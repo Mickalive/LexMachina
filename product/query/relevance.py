@@ -31,8 +31,9 @@ REMOTE_SAFEGUARD_MIN_REMOTE = 0.5
 #: invariant is stronger than any score blend: a Federal Supreme Court row the
 #: source index itself ranked top-5 must reach the generator.  After local
 #: scoring, up to this many such rows sitting below the evidence head are
-#: spliced into its tail (positions HEAD_RECALL_AT..10), preserving their
-#: relative local order and pushing other rows down without reordering them.
+#: spliced into its tail (positions HEAD_RECALL_AT..10), selected in the
+#: source index's own remote-rank order and pushing other rows down without
+#: reordering them.
 #: Bounded by construction: at most 3 rows move, only federal courts qualify,
 #: only when the index ranked them top-5, and rows already in the head are
 #: never touched.  Rows the generator still ignores remain subject to the
@@ -60,6 +61,34 @@ REMOTE_SAFEGUARD_MIN_REMOTE = 0.5
 #: inside the new one.  The window's effective membership therefore depends
 #: on how many non-relevance-channel rows outrank search rows; it is a
 #: channel-scale-mixing dependency, not a source-page bound.
+#:
+#: SELECTION ORDER (2026-10-17, business-judgment-rule durability repair):
+#: within the window, splice candidates are selected by REMOTE rank (the
+#: source index's own head order), never by local TF-IDF score order.  When
+#: local lexical evidence is silent — the cross-language case this backstop
+#: exists for — the local scores of the candidate rows are 0.000-0.016, so
+#: local order among them is channel-mixing noise: an off-domain federal row
+#: with a 0.01 advantage in pure noise could crowd a controlling authority
+#: out of the ≤3 splice slots and the leg would flip run-to-run.  The source
+#: index's ordering is the only non-noise signal in that regime, so it decides
+#: membership; all other bounds (federal-only, window, max 3 moved, insert at
+#: 8, local head untouched) are unchanged.
+#:
+#: SCORE-KIND TIERS (2026-10-17, same repair, measured live failure
+#: business-judgment-rule 20261017T054330Z): the global raw-score ordering
+#: MIXES CHANNEL SCALES — the leading-case channel scores by citation count
+#: (thousands) while search rows score ~40-70 — so the global top-15 window
+#: is filled by leading-case giants (2A_718/2006, 5A_736/2008, 130_V_532
+#: occupied the three splice slots at global remote ranks 4/5/6 while all
+#: five controlling BJR authorities sat outside them, retrieved but never
+#: spliced).  The accepted adapter itself ranks relevance-scored rows first
+#: (ocl_adapter.bundle.rank_candidates); the product backstop now mirrors
+#: that separation: rows carrying a relevance channel (``search`` /
+#: ``search.language_filter``) are windowed and ordered WITHIN their own
+#: score scale (relevance_tier_rank), and take the splice slots first; only
+#: unfilled slots go to other federal rows in global mixed-order rank.  The
+#: window bound, the max-3 cap and every other bound are unchanged.
+RECALL_RELEVANCE_CHANNELS = frozenset({"search", "search.language_filter"})
 REMOTE_HEAD_RECALL_REMOTE_TOP = 15
 REMOTE_HEAD_RECALL_LOCAL_HEAD = 10
 REMOTE_HEAD_RECALL_MAX_MOVED = 3
@@ -144,10 +173,21 @@ def _anchor_score(text: str, anchors: Iterable[tuple[str, str | None]]) -> float
     return min(1.0, score)
 
 
+def _is_relevance_backed(dec: dict) -> bool:
+    channels = dec.get("channels") or []
+    return any(ch in RECALL_RELEVANCE_CHANNELS for ch in channels)
+
+
 def _remote_head_recall(scored: list[dict]) -> list[dict]:
     """Federal rows the source index ranked inside the recall window but local
-    scoring left below the evidence head.  Returned in current relative order
-    (best local first), capped so displacement stays bounded."""
+    scoring left below the evidence head.
+
+    Membership is gated per SCORE-KIND TIER (see the note on
+    ``REMOTE_HEAD_RECALL_REMOTE_TOP``): relevance-channel rows are windowed and
+    ordered within their own score scale (``relevance_tier_rank``) and take the
+    splice slots first; remaining slots go to other federal rows in global
+    mixed-order rank.  Never local-score order.  Capped so displacement stays
+    bounded; the returned list is in the order the rows will be spliced."""
     raws = [
         (float(d.get("retrieval_score_raw"))
          if isinstance(d.get("retrieval_score_raw"), (int, float)) else 0.0)
@@ -155,23 +195,32 @@ def _remote_head_recall(scored: list[dict]) -> list[dict]:
     ]
     order = sorted(range(len(scored)), key=lambda i: (-raws[i], i))
     remote_rank = {i: r + 1 for r, i in enumerate(order)}
-    out = []
+    # Tier-A ranking: among relevance-channel rows only, on the search
+    # channel's own score scale (comparable within the tier, not across).
+    rel_idx = [i for i in order if _is_relevance_backed(scored[i])]
+    rel_rank = {i: r + 1 for r, i in enumerate(rel_idx)}
+
+    tier_a, tier_b = [], []
     for pos, dec in enumerate(scored):
         if pos < REMOTE_HEAD_RECALL_LOCAL_HEAD:
             continue
         if str(dec.get("court") or "").lower() not in REMOTE_FEDERAL_COURTS:
             continue
-        if remote_rank[pos] > REMOTE_HEAD_RECALL_REMOTE_TOP:
-            continue
-        out.append({
+        row = {
             "pos": pos,
             "decision_id": dec.get("decision_id"),
             "from_rank": pos + 1,
             "remote_rank": remote_rank[pos],
-        })
-        if len(out) >= REMOTE_HEAD_RECALL_MAX_MOVED:
-            break
-    return out
+            "relevance_tier_rank": rel_rank.get(pos),
+        }
+        if row["relevance_tier_rank"] is not None:
+            if row["relevance_tier_rank"] <= REMOTE_HEAD_RECALL_REMOTE_TOP:
+                tier_a.append(row)
+        elif remote_rank[pos] <= REMOTE_HEAD_RECALL_REMOTE_TOP:
+            tier_b.append(row)
+    tier_a.sort(key=lambda c: (c["relevance_tier_rank"], c["pos"]))
+    tier_b.sort(key=lambda c: (c["remote_rank"], c["pos"]))
+    return (tier_a + tier_b)[: REMOTE_HEAD_RECALL_MAX_MOVED]
 
 
 def _apply_head_recall(scored: list[dict], recalls: list[dict]) -> list[dict]:
@@ -313,12 +362,15 @@ def rerank_product_bundle(product_bundle: dict) -> dict:
             "local_head": REMOTE_HEAD_RECALL_LOCAL_HEAD,
             "max_moved": REMOTE_HEAD_RECALL_MAX_MOVED,
             "insert_at": REMOTE_HEAD_RECALL_INSERT_AT,
+            "selection_order": "relevance_tier_then_remote_rank",
+            "relevance_channels": sorted(RECALL_RELEVANCE_CHANNELS),
             "moved": [
                 {
                     "decision_id": m["decision_id"],
                     "from_rank": m["from_rank"],
                     "to_rank": m["to_rank"],
                     "remote_rank": m["remote_rank"],
+                    "relevance_tier_rank": m.get("relevance_tier_rank"),
                 }
                 for m in recalls
             ],

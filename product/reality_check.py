@@ -260,6 +260,43 @@ def truth_gates(slug: str, report: dict) -> None:
         raise GateFailure(f"unknown slug {slug}")
 
 
+#: The five frozen direct-TF business-judgment-rule authorities the ACCEPTED
+#: Core Evaluation frozen benchmark (frozen_sha256 ff57f556...) scores in its
+#: ``recall::citation_controlling_authority`` leg.  The durable workflow's own
+#: truth gate is deliberately wider (it also accepts ``bge_BGE_139_III_24``);
+#: this local parity gate is STRICTER, so a green local live run is predictive
+#: of the frozen leg instead of masking it.  Local-only: the durable workflow
+#: (control-plane scope) is untouched, and no frozen threshold is weakened.
+BJR_DIRECT_TF_FROZEN = frozenset({
+    "bger_4A_219_2015", "bger_4A_259_2016", "bger_4A_626_2013",
+    "bger_4A_603_2014", "bger_4A_62_2024",
+})
+
+
+def frozen_recall_gate(slug: str, report: dict) -> None:
+    """Local parity with the frozen benchmark's controlling-authority recall leg.
+
+    Runs ONLY for the business-judgment-rule leg and ONLY in live mode: fixture
+    runs are a wiring check and cannot prove retrieval recall, so they record an
+    instrumented skip instead of a false pass.  A failure here means the durable
+    Product Reality Check would pass its wider truth gate while the accepted
+    frozen benchmark still fails — exactly the blind spot that kept the BJR leg
+    RED at executions 38920872324 / 38934722443 / 38945976309.
+    """
+    if slug != "business-judgment-rule":
+        return
+    if str(report.get("mode") or "live") != "live":
+        return  # fixture runs: instrumented skip, recorded by evaluate()
+    cited = set((report.get("bundle") or {}).get("answer", {}).get("cited_decision_ids") or [])
+    hit = cited & BJR_DIRECT_TF_FROZEN
+    if not hit:
+        raise GateFailure(
+            "answer cites none of the five frozen direct-TF BJR authorities "
+            f"{sorted(BJR_DIRECT_TF_FROZEN)} (cited={sorted(cited)}); the frozen "
+            "benchmark leg recall::citation_controlling_authority would FAIL"
+        )
+
+
 def evaluate(slug: str, report: dict) -> list[dict]:
     """Run all gates, returning an ordered list of per-gate outcomes."""
     results: list[dict] = []
@@ -277,6 +314,20 @@ def evaluate(slug: str, report: dict) -> list[dict]:
     else:
         results.append({"gate": f"truth::{slug}", "passed": False,
                         "detail": "skipped: structural gates failed"})
+    if slug == "business-judgment-rule":
+        truth_ok = results[-1]["passed"] and results[-1]["gate"] == f"truth::{slug}"
+        if not truth_ok:
+            results.append({"gate": "recall::citation_controlling_authority",
+                            "passed": False,
+                            "detail": "skipped: truth gate failed"})
+        elif str(report.get("mode") or "live") != "live":
+            results.append({"gate": "recall::citation_controlling_authority",
+                            "passed": True,
+                            "detail": "fixture mode: frozen-recall parity not "
+                                      "applicable (wiring check only)"})
+        else:
+            step("recall::citation_controlling_authority",
+                 lambda: frozen_recall_gate(slug, report))
     return results
 
 
@@ -356,6 +407,24 @@ def run_leg(slug: str, mode: str, top_n: int, evidence_count: int, max_cites: in
         "answer_coverage": (final.get("provenance") or {}).get("answer_coverage"),
         "bundle": final,
     }
+    if slug == "business-judgment-rule":
+        # Durability diagnostic for the frozen leg: the failure chain is
+        # retrieved -> spliced into the evidence head -> cited by the model.
+        # Recording each stage separately turns a red run into a located repair
+        # instead of a coin flip.
+        by_id = {d.get("decision_id"): d for d in final.get("decisions", [])}
+        moved = (((final.get("provenance") or {}).get("product_rerank") or {})
+                 .get("remote_head_recall") or {}).get("moved")
+        report["frozen_bjr_recall"] = {
+            "frozen_authorities": sorted(BJR_DIRECT_TF_FROZEN),
+            "retrieved": sorted(a for a in BJR_DIRECT_TF_FROZEN if a in by_id),
+            "in_evidence_head": sorted(
+                a for a in BJR_DIRECT_TF_FROZEN
+                if a in by_id and (by_id[a].get("rank") or 10 ** 9) <= 10
+            ),
+            "cited": sorted(cited & BJR_DIRECT_TF_FROZEN),
+            "remote_head_recall_moved": moved,
+        }
     return report
 
 

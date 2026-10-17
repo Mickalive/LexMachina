@@ -517,6 +517,141 @@ def test_reranker_recalls_federal_row_at_remote_rank_12_buried_by_language_gap(m
     assert by_id_old["DIRECT-TF"]["remote_head_recall"] is False
 
 
+def test_head_recall_selection_is_remote_rank_order_not_local_score_order(monkeypatch):
+    """Durability repair 2026-10-17 (business-judgment-rule): inside the recall
+    window the splice slots are filled in SOURCE-INDEX (remote-rank) order, not
+    local-TF-IDF order.  When local lexical evidence is silent the local scores
+    of the candidate rows are noise (0.000-0.016 measured on the frozen leg), so
+    the old local-order selection let a 0.01 noise advantage decide which rows
+    reached the generator and the leg flipped run-to-run.
+
+    Discrimination control: the off-domain federal row HAS the better local
+    similarity (so the retired local-order rule would have spliced it), but the
+    controlling authority HAS the better remote rank (so the source-index rule
+    splices it).  With MAX_MOVED=1 the two rules cannot both win."""
+    monkeypatch.setattr(relevance_mod, "REMOTE_HEAD_RECALL_MAX_MOVED", 1)
+    french, decisions = _silent_federal_pool()
+    decisions.append({
+        "decision_id": "TF-AUTHORITY",
+        "court": "bger",
+        "score": 79.9,  # remote rank 12
+        "title": "Verwaltungsrat",
+        "citation": "TF 4A_219/2015",
+        "regeste": "",
+        "snippet": "curia deliberanda est sine mora.",  # silent: local sim ~0
+    })
+    decisions.append({
+        "decision_id": "OFF-DOMAIN-FED",
+        "court": "bger",
+        "score": 79.6,  # remote rank 13
+        "title": "Arbeitsrecht",
+        "citation": "TF 4A_999/2018",
+        "regeste": "",
+        # French overlap: better LOCAL sim than the authority, worse REMOTE rank
+        "snippet": "decision commerciale conseil administration juge abstient revoir tribunal",
+    })
+    bundle = {"query": french, "query_variants": [], "decisions": decisions,
+              "provenance": {}}
+    reranked = rerank_product_bundle(bundle)
+    by_id = {d["decision_id"]: d for d in reranked["decisions"]}
+    prov = reranked["provenance"]["product_rerank"]["remote_head_recall"]
+    # the noise advantage is real: local order would have picked the other row
+    assert (by_id["OFF-DOMAIN-FED"]["query_similarity"]
+            > by_id["TF-AUTHORITY"]["query_similarity"] + 0.01)
+    assert prov["selection_order"] == "relevance_tier_then_remote_rank"
+    assert len(prov["moved"]) == 1
+    assert prov["moved"][0]["decision_id"] == "TF-AUTHORITY"
+    assert prov["moved"][0]["remote_rank"] == 12
+    assert prov["moved"][0]["relevance_tier_rank"] is None  # no channels: tier B
+    assert [d["decision_id"] for d in reranked["decisions"]].index("TF-AUTHORITY") < 10
+
+
+def test_head_recall_bjr_three_authorities_at_remote_12_13_14_all_reach_evidence_head():
+    """BJR-shaped pool mirroring the frozen leg's measured candidate set: three
+    controlling authorities at remote ranks 12/13/14 with silent local sims, one
+    off-domain federal row at 15 with a small local advantage.  All three
+    authorities must land inside the top-10 evidence head (splice ranks 8-10),
+    in remote-rank order, and displacement stays bounded."""
+    french, decisions = _silent_federal_pool()
+    for did, score, rank in (
+        ("bger_4A_219_2015", 79.9, 12),
+        ("bger_4A_259_2016", 79.8, 13),
+        ("bger_4A_626_2013", 79.7, 14),
+    ):
+        decisions.append({
+            "decision_id": did, "court": "bger", "score": score,
+            "title": "Verwaltungsrat", "citation": f"TF {did}", "regeste": "",
+            "snippet": "curia deliberanda est sine mora.",
+        })
+    decisions.append({
+        "decision_id": "OFF-DOMAIN-FED", "court": "bger", "score": 79.6,
+        "title": "Arbeitsrecht", "citation": "TF 4A_999/2018", "regeste": "",
+        "snippet": "decision commerciale conseil administration juge abstient revoir tribunal",
+    })
+    reranked = rerank_product_bundle(
+        {"query": french, "query_variants": [], "decisions": decisions,
+         "provenance": {}})
+    order = [d["decision_id"] for d in reranked["decisions"]]
+    moved = reranked["provenance"]["product_rerank"]["remote_head_recall"]["moved"]
+    moved_ids = [m["decision_id"] for m in moved]
+    assert moved_ids == ["bger_4A_219_2015", "bger_4A_259_2016", "bger_4A_626_2013"], moved
+    assert [m["remote_rank"] for m in moved] == [12, 13, 14]
+    for did in moved_ids:
+        assert order.index(did) < 10, order[:12]  # inside the evidence head
+    assert len(moved) <= 3
+    assert sorted(d["rank"] for d in reranked["decisions"]) == list(range(1, 35))
+
+
+def test_head_recall_tier_separates_leading_case_scale_from_search_scale():
+    """Reproduces the measured live failure 20261017T054330Z (business-
+    judgment-rule): three off-domain leading-case giants (channels
+    ``leading_case``, raw citation-count scores in the thousands) occupy the
+    GLOBAL raw-score head while the controlling authorities are search hits on
+    the relevance channel's own ~40-70 scale.  The global mixed-order window
+    gave the giants all three splice slots and the leg went RED even though
+    every authority was retrieved.  With score-kind tiers the authorities'
+    tier ranks (1/2/3 on the search scale) win the slots and the giants never
+    move."""
+    french, decisions = _silent_federal_pool()
+    for did, score in (
+        ("LEADING-GIANT-1", 6984.0),
+        ("LEADING-GIANT-2", 5710.0),
+        ("LEADING-GIANT-3", 4138.0),
+    ):
+        decisions.append({
+            "decision_id": did, "court": "bger", "score": score,
+            "title": "BGE Sammlung", "citation": f"TF {did}", "regeste": "",
+            "channels": ["leading_case"],
+            "snippet": "curia deliberanda est sine mora.",  # silent, short: no lift
+        })
+    for did, score in (
+        ("bger_4A_219_2015", 64.9),
+        ("bger_4A_259_2016", 64.8),
+        ("bger_4A_626_2013", 64.7),
+    ):
+        decisions.append({
+            "decision_id": did, "court": "bger", "score": score,
+            "title": "Verwaltungsrat", "citation": f"TF {did}", "regeste": "",
+            "channels": ["search"],
+            "snippet": "curia deliberanda est sine mora.",
+        })
+    reranked = rerank_product_bundle(
+        {"query": french, "query_variants": [], "decisions": decisions,
+         "provenance": {}})
+    order = [d["decision_id"] for d in reranked["decisions"]]
+    by_id = {d["decision_id"]: d for d in reranked["decisions"]}
+    moved = reranked["provenance"]["product_rerank"]["remote_head_recall"]["moved"]
+    moved_ids = [m["decision_id"] for m in moved]
+    assert moved_ids == ["bger_4A_219_2015", "bger_4A_259_2016", "bger_4A_626_2013"], moved
+    assert [m["relevance_tier_rank"] for m in moved] == [1, 2, 3]
+    # giants kept their (better) GLOBAL remote ranks but never moved
+    assert all(by_id[f"LEADING-GIANT-{k}"]["remote_head_recall"] is False
+               for k in (1, 2, 3))
+    for did in moved_ids:
+        assert order.index(did) < 10, order[:12]
+    assert len(moved) <= 3
+
+
 # --------------------------------------------------------------------------- #
 # one decision, one point: court + docket identity merge
 # --------------------------------------------------------------------------- #

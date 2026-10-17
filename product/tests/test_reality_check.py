@@ -19,6 +19,7 @@ sys.path.insert(0, str(ROOT / "product"))
 from reality_check import (  # noqa: E402
     LEGS,
     WORKFLOW_MODEL_OVERRIDE,
+    BJR_DIRECT_TF_FROZEN,
     norm,
     structural_gates,
     truth_gates,
@@ -211,3 +212,76 @@ def test_structural_gate_rejects_citation_outside_bundle():
         assert "outside the bundle" in str(exc)
     else:  # pragma: no cover
         raise AssertionError("unknown citation must fail")
+
+
+# --------------------------------------------------------------------------- #
+# frozen-benchmark parity: recall::citation_controlling_authority (BJR)
+# --------------------------------------------------------------------------- #
+BJR_PROSE = (
+    "Le juge suisse s'abstient de revoir la decision commerciale du conseil "
+    "d'administration lorsque celui-ci disposait d'une information adequate, "
+    "a suivi un processus decisionnel complet, n'etait pas en conflit "
+    "d'interets, et que la decision reste defendable au regard du standard "
+    "de retenue judiciaire."
+)
+
+
+def _bjr_report(cited, mode="live"):
+    report = _report(BJR_PROSE, cited=cited,
+                     ids=set(cited) | {"bge_other"})
+    report["mode"] = mode
+    return report
+
+
+def test_bjr_frozen_recall_gate_fails_when_only_non_frozen_authorities_cited():
+    """The exact accepted RED shape (live leg 20261016T165604Z): the durable
+    workflow's wider truth gate PASSES on bge_BGE_139_III_24 while the frozen
+    benchmark's controlling-authority recall leg FAILS because none of the five
+    direct-TF authorities is cited.  The local parity gate must surface that
+    blind spot instead of hiding it behind a green truth gate."""
+    report = _bjr_report(["bge_BGE_110_II_391", "bge_BGE_139_III_24",
+                          "zh_handelsgericht_HG120149"])
+    gates = {g["gate"]: g for g in evaluate("business-judgment-rule", report)}
+    assert gates["structural"]["passed"]
+    assert gates["truth::business-judgment-rule"]["passed"], (
+        "the durable workflow's wider truth gate must still pass — the parity "
+        "gate is STRICTER, not a replacement")
+    assert not gates["recall::citation_controlling_authority"]["passed"]
+    assert "4A_219_2015" in gates["recall::citation_controlling_authority"]["detail"]
+
+
+def test_bjr_frozen_recall_gate_passes_when_a_frozen_tf_authority_cited():
+    report = _bjr_report(["bge_BGE_139_III_24", "bger_4A_219_2015"])
+    gates = {g["gate"]: g for g in evaluate("business-judgment-rule", report)}
+    assert all(g["passed"] for g in gates.values()), gates
+
+
+def test_bjr_frozen_recall_gate_fixture_mode_is_instrumented_skip():
+    """Fixture runs are a wiring check; they record an explicit not-applicable
+    detail instead of a false recall pass."""
+    report = _bjr_report(["bge_BGE_139_III_24"], mode="fixture")
+    gates = {g["gate"]: g for g in evaluate("business-judgment-rule", report)}
+    gate = gates["recall::citation_controlling_authority"]
+    assert gate["passed"]
+    assert "fixture" in gate["detail"]
+
+
+def test_non_bjr_legs_gain_no_extra_gate():
+    report = _report(
+        "Pour un local d'habitation, le bailleur doit notifier la resiliation "
+        "avec un preavis de 30 jours pour la fin du mois selon l'art. 257d al. 2 CO ; "
+        "une resiliation exercee de mauvaise foi constitue un abus de droit "
+        "et peut etre annulee par le tribunal."
+    )
+    report["mode"] = "live"
+    gates = evaluate("rent-default", report)
+    assert [g["gate"] for g in gates] == ["structural", "truth::rent-default"]
+
+
+def test_frozen_set_is_exactly_the_five_direct_tf_authorities():
+    """Pin the set against silent drift: these are the five frozen direct-TF
+    BJR authorities of the accepted benchmark, nothing more."""
+    assert BJR_DIRECT_TF_FROZEN == {
+        "bger_4A_219_2015", "bger_4A_259_2016", "bger_4A_626_2013",
+        "bger_4A_603_2014", "bger_4A_62_2024",
+    }
