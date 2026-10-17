@@ -117,6 +117,21 @@ def _run_bar_gates(args: list[str], out_path: Path) -> tuple[int, dict | None, s
     return proc.returncode, record, (proc.stderr or "").strip()
 
 
+def _current_direction_version() -> int:
+    """Direction version of the CURRENT lane state, derived at run time.
+
+    REPAIR 39027041693 (in-cycle, provenance-only): the record and report
+    previously hardcoded direction_version 50 from the v50 operational resume
+    (38986445355). Under v52 that literal is a false provenance statement.
+    Precedent: evaluation/lane_suite.py _lane_direction_version() (repair
+    M3_38966576940). A missing/unreadable state is an environment error, not a
+    fallback to a stale literal. No threshold, rule or verdict is touched.
+    """
+    state_path = _REPO_ROOT / "state" / "evaluation.json"
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    return int(state["direction_version"])
+
+
 def _leg_summary(leg_id: str, rc: int, record: dict | None, expected_rc: int) -> dict:
     out: dict = {
         "leg": leg_id,
@@ -241,7 +256,7 @@ def run_benchmark(run_id: str, out_dir: Path, report_dir: Path) -> tuple[int, di
         "schema": SCHEMA,
         "run_id": run_id,
         "generated_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "direction_version": 50,
+        "direction_version": _current_direction_version(),
         "reuses_entry_point": BAR_GATES_MODULE,
         "served_packet_dir": str(SERVED_PACKET_DIR),
         "served_bundle_sha256": {
@@ -260,9 +275,10 @@ def run_benchmark(run_id: str, out_dir: Path, report_dir: Path) -> tuple[int, di
         "reason": reason,
         "absolute_status_note": (
             "absolute bars LABEL_UNSOUND / GEOMETRY_UNSOUND are REPORTED by the "
-            "underlying gates and are NOT enforced as build blockers (direction v50); "
-            "BENCHMARK_VALID_NO_FALSIFICATION does NOT certify the absolute 1.0 label "
-            "bar or the all-11 geometry bar"),
+            "underlying gates and are NOT enforced as build blockers (direction "
+            f"v{_current_direction_version()}, derived from state/evaluation.json at "
+            "run time); BENCHMARK_VALID_NO_FALSIFICATION does NOT certify the "
+            "absolute 1.0 label bar or the all-11 geometry bar"),
         "elapsed_s": round(time.time() - t0, 3),
     }
 
@@ -284,7 +300,9 @@ def run_benchmark(run_id: str, out_dir: Path, report_dir: Path) -> tuple[int, di
         f"# Retrieval / counter-authority falsification benchmark — run {run_id}",
         "",
         f"- Schema: `{SCHEMA}`",
-        f"- Direction: v50 (operational resume of run 38986445355)",
+        f"- Direction: v{_current_direction_version()} (derived from "
+        "state/evaluation.json at run time; operational resume lineage of run "
+        "38986445355)",
         f"- Engine: `python -m {BAR_GATES_MODULE}` (accepted entry point, reused as subprocess)",
         f"- Combined verdict: **{verdict}** (exit {exit_code})",
         f"- Falsification proven: **{falsification_proven}**",
