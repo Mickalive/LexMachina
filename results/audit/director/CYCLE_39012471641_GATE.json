@@ -1,0 +1,101 @@
+{
+  "schema": "lexmachina/audit-gate/1",
+  "lane": "director",
+  "cycle_run": "39012471641",
+  "auditor": "LEXMACHINA_INDEPENDENT_AUDITOR",
+  "audited_at": "2026-10-17",
+  "audited_artifact": {
+    "mount": "/tmp/lex_director_proposal",
+    "commit": "e17b4e6d",
+    "subject": "Factory Director proposal 39012471641",
+    "parent_rejected_proposal": "c989e0e3",
+    "true_base": "origin/main state/factory_direction.json sha256 1465b35a27d0e954d0531c35d4bab1fd5a2748d578b5845d1596ca5671112f96 (version 50)"
+  },
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    {
+      "id": "F1",
+      "materiality": "material",
+      "location": "state/factory_direction.json -> factory_wide_operational_requirements[13]",
+      "defect": "The requirement asserts a false repository state: 'the accepted lab/frontier/<team> branches no longer exist'. They exist on origin. The same artifact states the opposite in requirement index 17 and in the product lane action (1) ('the remote branch lab/frontier/frontier-counter-anchor-classifier EXISTS and its drop-in ... are fetchable - re-verified by ls-remote this run').",
+      "evidence": "git ls-remote --heads origin lists all ten refs/heads/lab/frontier/<team> branches, including frontier-counter-anchor-classifier = d236f5990ddee9acf5cf17f59ee1cc3986905d6f and frontier-query-conditioned-map-geometry = dc3ffc6ca00347fcd01689d3356cc5a5abe8493c. The classifier branch was cloned and its accepted audit gate read (gate=PASS, safe_to_integrate=true, required_fixes=[]). True state: the branches exist but are NOT MOUNTED for lanes and teams, because core-lane.yml:119-126 mounts only teams whose main portfolio status is RUN or PROMOTE and the portfolio has 0 RUN teams.",
+      "why_material": "A binding requirement cannot tell an executing lane both that the frontier branches are gone and to fetch them directly. A lane or later director resolving that contradiction the wrong way can conclude the promoted components' artifacts are unavailable and drift toward the forbidden move of regenerating, paraphrasing or re-tuning a frozen rubric, bar or support test.",
+      "required_repair": "Restate the preamble: the lab/frontier/<team> branches EXIST on origin (quote the two promoted shas already re-verified by ls-remote) but are NOT MOUNTED for lanes and teams because core-lane.yml mounts only RUN/PROMOTE teams and no portfolio team is RUN. Keep the RULE clause, both sha256 values (4457e971..., a7452748...) and the cycle-branch fetch paths byte-unchanged."
+    },
+    {
+      "id": "F2",
+      "materiality": "material",
+      "location": "state/factory_direction.json -> factory_wide_operational_requirements[13]",
+      "defect": "Stale portfolio count in the same sentence: 'all eight portfolio teams are currently PAUSE or TERMINATED'. The portfolio carries ten teams.",
+      "evidence": "state/frontier_portfolio.json version 25 has 10 teams: 6 TERMINATED (frontier-map-semantics, frontier-adversarial-discoverability, frontier-counter-label-integrity, frontier-served-packet-falsification, frontier-counter-anchor-classifier, frontier-query-conditioned-map-geometry) and 4 PAUSE with PROMOTED_TO_PRODUCT (frontier-query-retrieval, frontier-generative-audit, frontier-query-map-ui, frontier-human-gate-harness), 0 RUN.",
+      "why_material": "It is a checkably false state claim inside the requirement that governs how lanes recover frozen rubrics, in an artifact whose report certifies that everything else was verified. The qualitative part ('none is RUN or PROMOTE', hence the mount is empty) is true; only the count is wrong.",
+      "required_repair": "Either restate the count as read from the current portfolio, or make it count-free ('no portfolio team is RUN or PROMOTE'). Change nothing else in the requirement."
+    }
+  ],
+  "claim_ceiling": "Defensible now: all four prior-cycle fixes (F1 placement evidence, F2 geometry reachability ceiling, F3 pre-registration, F4 RF4 owner) are correctly applied and numerically exact against accepted evidence - DE placement 0.448276 FAIL vs the accepted 0.5 threshold with the cause named (consensus cluster 127 of 170 rows), marginal counter rows 12/14/2, geometry bar unreachability proven ONLY on de and it with fr explicitly unproven, OUTLIER_VALIDITY passing on de and fr and degenerate only on it, one new pre-registered same-packet two-arm measurement with branches on both outcomes, and RF4 deferred with a named owner and a blocking trigger. The query-map vertical slice is real and source-linked: live OpenCaseLaw retrieval produced 46/46 rows carrying mcp.opencaselaw.ch decision URLs, expansion reached 134 decisions and 8 clusters with zero moved points, the served canvas map passes 39 assertions on each of the three accepted served bundles (one point per decision, click opens the decision, source link, relations and citation direction, deep links, evidence-gated counter rows), and the served bundle carries a sourced answer with 6 cited decision ids. Zero-cost and source-validity claims are true as stated (free_only=true; the seam's first choice probed PASS in every snapshot; no key needed for the live probe). No bar, rubric, threshold, population, incumbent, verdict contract, charter, team status or lane status was moved; no unaccepted evidence was promoted; no lane is HUMAN_DECISION_REQUIRED and no operational failure is escalated to the owner; the producer state honestly marks the remaining work incomplete and recommends continuation. NOT claimable: that any frozen bar is met; that the frozen recall benchmark is green (LOCAL_NOT_DURABLE); that the served packet is admissible; that the map is useful to a jurist; that human_gate_ready or machine_gate_ready may be set true; that all-11 geometry is unreachable on fr; that OUTLIER_VALIDITY is degenerate on the geometry population; that the promoted classifier discovers new counter-authority (its own later BLOCKED audit records that the emitted set equals the incumbent's already-supported set); that a channel string is a retrieval route; that the placement number will move. NOT claimable until F1 and F2 are corrected: that state/factory_direction.json v53 is fit to integrate as written. Nothing else in the artifact (mission string, the other 24 factory-wide requirements, both RUN lane questions, the portfolio record) is in question and must not be re-litigated next cycle.",
+  "evidence_summary": {
+    "verdict_basis": "Independent recomputation against fixed Main Prompt and accepted mounts; no required fix depends on the prior audit's prose, which was unavailable at /tmp/lex_prior_audit.",
+    "accepted_mounts_read": [
+      "/tmp/lex_accepted/core/product @ 3077b274 (accept product cycle 39006211027)",
+      "/tmp/lex_accepted/core/evaluation @ 76d04157 (accept evaluation cycle 39007294442)",
+      "/tmp/lex_accepted/frontier/frontier-query-conditioned-map-geometry @ dc3ffc6c",
+      "remote origin verified read-only via git ls-remote and one scratch clone of lab/frontier/frontier-counter-anchor-classifier"
+    ],
+    "accepted_mounts_mutated": "none (git status clean in all three after the audit; the live product run was executed against a scratch copy under /tmp/opencode)",
+    "prior_fixes_verdict": "F1 PASSED, F2 PASSED, F3 PASSED, F4 PASSED - all four recomputed from accepted artifacts",
+    "recomputed_numbers": {
+      "placement_38831241913": {
+        "de_discoverable_placement_share": 0.448276,
+        "verdict": "FAIL vs MIN_DISCOVERABLE_PLACEMENT_SHARE 0.5",
+        "consensus_cluster_size": 127,
+        "rows": "135 initial + 35 new adversarial = 170",
+        "distinct_cluster_share": 0.37931,
+        "is_outlier_share": 0.068966,
+        "fr": 0.636364,
+        "it": 0.571429,
+        "b1_marginal_counter_rows": [12, 14, 2],
+        "beyond_top20_share": [0.586207, 0.727273, 0.571429],
+        "a_counter_yield": [0.170588, 0.115789, 0.056452],
+        "cache_hits": 16,
+        "network_calls": 0,
+        "pool_never_seen_rate": "absent (grep 0)"
+      },
+      "geometry_relevance_ordered": {
+        "total_criteria_passed": 22,
+        "n_bundles_pass": 0,
+        "de": "7/11; PROJ_RANK 0.09196/0.30 FAIL (shuffle-invariant, identical=true); PROJ_SPEARMAN 0.09376; PROJ_KNN10 0.10794; STRUCTURE_SEP 0.97217/0.90; k=8 oracle_best_sep_ratio 0.9136859851279279 reachable=false operative_reachable=false; OUTLIER_VALIDITY PASS tail 0.0207254",
+        "fr": "8/11; PROJ_SPEARMAN 0.22967, PROJ_KNN10 0.14654, STRUCTURE_SEP 0.94883 FAIL; PROJ_RANK 0.39874 PASS; OUTLIER_VALIDITY PASS tail 0.0408163; k=8 oracle_best_sep_ratio 0.8851031805899202 reachable=true -> NOT PROVEN EITHER WAY",
+        "it": "7/11; STRUCTURE_SEP 0.96251, k=8 oracle_best_sep_ratio 0.9184654484408867 reachable=false; OUTLIER_VALIDITY FAIL [0.0,0.0] citation_graph_degenerate=true structurally_unreachable=true; PROJ_RANK 0.48832 PASS",
+        "french_largest_cluster_share": "0.7696 (incumbent) -> 0.2073732718894009 (promoted)",
+        "frozen_rule_sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633 unchanged"
+      },
+      "hot_path_axis_claim": "recomputed Spearman(score,rank) = -0.1126 / -0.3023 / -0.4854 on the three gate-packet bundles; provenance.stages == ['search']; 0 rows carry retrieval_score_raw - matches the direction's stated -0.11 / -0.30 / -0.49",
+      "label_axis": "5 of 65 counter rows supported under the frozen rubric (accepted verdict); 65-row denominator confirmed directly against the three accepted served bundles (25+15+25); 49 carry verified non-empty evidence text under the page's own render predicate, 16 unevidenced (1/4/11)"
+    },
+    "vertical_slice_executed_by_auditor": {
+      "setup": "copied accepted product head 3077b274 to a scratch tree; installed numpy and scikit-learn per product/requirements-query.txt; ran product/query_app.py live on 127.0.0.1",
+      "live_retrieval": "GET /api/query/start?q=Résiliation d'un bail commercial par le bailleur&n=40 -> 46 decisions, mode live, stages ['search'], base_url https://mcp.opencaselaw.ch/api, row provenance 'ocl:search ...', 46/46 rows carry canonical_url and source_url on mcp.opencaselaw.ch, no credentials used",
+      "expand": "46 -> 134 decisions, 8 clusters, map_stability geometry_preserved, points_moved 0; answer step remained pending_generative_audit under free-model latency",
+      "clickable_map": "node product/verify_query_page.js PASS 39 assertions on each of de-kapitalverletzung, fr-bail-entretien and it-responsabilita-medica served bundles: one canvas point per decision (214/214), click opens the decision, panel carries the source link, relations and citation direction listed, deep-link parameters parse, map is first paint, counter rows stay visible with evidence-gated rendering and unevidenced rows explicitly marked",
+      "served_answer": "fr-bail-entretien bundle: method generative_audit_llm_v2, model opencode/nemotron-3-ultra-free, 6 cited_decision_ids, 6 statements each bound to a decision_id",
+      "zero_cost_check": "state/model_health.json free_only=true; mimo-v2.6-flash-free (seam's first choice) PASS in the proposal snapshot 39005942424 and in main's latest 39012499120; generative_audit/provider.py:267-273 intersects ANSWER_MODEL_PREFERENCE with paths.healthy_models(); state/product.json source_policy external_spend 'none'"
+    },
+    "laundering_check": "No unaccepted evidence promoted. Classifier: accept d236f59 'accept Frontier frontier-counter-anchor-classifier 38964146628' with CYCLE_38964146628_GATE.json gate=PASS safe_to_integrate=true required_fixes=[] and a claim ceiling that itself mandates 1.0/60/5-65 published side by side. Geometry: accept be5eba7f, gates PASS. Evaluation accepts 46a94af and 76d04157. Product accept 3077b274. All origin branch shas quoted by the direction match git ls-remote. A later BLOCKED classifier audit (38973221261) exists; its R1 (portfolio status TERMINATED) is discharged by portfolio v25, R2 (no charter-1 re-dispatch) is honoured by 0 RUN teams, R3 is historical snapshot hygiene, and its outcome does not retract the accepted component - but its disclosure that the emitted set equals the incumbent's already-supported set (effect = removal of 60 unsupported labels, not discovery) is not carried into the artifact (advisory A2).",
+    "write_integrity_recomputed": "factory_direction: 25 requirements before and after, only indices 22 and 23 differ, all other 23 byte-identical; only the product lane question differs; corpus/legal-distance/fractal-map questions and all lane statuses and priorities byte-identical; mission and director_note also changed (disclosed). frontier_portfolio: 24->25, exactly one team changed (frontier-query-map-ui) with exactly one field added (deferred_required_fixes) plus one appended policy paragraph; 6 TERMINATED + 4 PAUSE + 0 RUN; key order preserved.",
+    "stale_blocked_question_check": "state/blockers/product.json and evaluation.json carry direction_version 50 and v50 question hashes. factory-supervisor.yml:217-225 enforces a blocker only when its question_hash equals the current question hash, so both are inert against v53 questions and both RUN lanes dispatch - no product starvation. Frontier blockers (5 files) are consulted only for RUN teams (factory-supervisor.yml:264-266) and all five blocked teams are TERMINATED; no blocker file exists for frontier-query-map-ui, so the RF4 resume path is clear. Undisclosed but inert (advisory A1).",
+    "mission_and_control_plane_attacks": "No mission drift (three 174k lanes PAUSE with quoted re-open conditions; 174k suite explicitly closed); no frontier proliferation or duplicated teams (zero new teams, zero RUN teams, no charter edited); no fake parallelism (two RUN lanes with disjoint scopes, evaluation's recompute depends on already-accepted product f0c50f4e); no weak acceptance test (quantitative exit condition, controlled two-arm pre-registration, human-gate success rule that refuses blanket yes and forbids self-declared human_gate_ready); no unjustified lane pause; no HUMAN_DECISION_REQUIRED abuse and no operational failure escalated to the owner; no benchmark gaming or bar movement; no prettiness-as-quality (promotion rests on frozen criteria with zero regressions and a recomputed structural measure); post-hoc metric risk closed by the pre-registration.",
+    "base_sha_check": "origin/main = 367666af (model-health-only refresh, 07:12:31Z); main's direction sha is 1465b35a..., version 50, so the supersession conclusion holds. The workflow-recorded reports/director/BASE_DIRECTION_SHA_39012471641.txt holds 94d28dea..., the rejected v52 direction, because the workflow records the base after restoring the rejected proposal - a real recording-order defect, disclosed twice in the artifact and not edited (.github/** is control-plane scope).",
+    "residual_risk": "After F1 and F2 are corrected the artifact is safe to integrate as written. The correction is confined to two factual clauses of one requirement; it must not be used to reopen the four verified fixes, the lane questions, the portfolio record, any bar, rubric, threshold, verdict contract or the DO-NOT-SERVE order."
+  },
+  "advisories": [
+    "A1: record the disposition of the five stale state/blockers/frontier/*.json records, including that the classifier's blocked_by_run 38973221261 is superseded by its accepted PASS+integrate at d236f59 with R1 discharged by portfolio v25 - inert today, but a future cycle could misread it as an open refutation of a promoted component.",
+    "A2: carry the 38973221261 disclosure into product action (1) - the promoted classifier found no supported label the incumbent lacked; its measured effect is the removal of 60 unsupported counter labels, not discovery, and on fr-bail-entretien it emits 0 labels meaning 'no evidenced counter-authority found', not 'no counter-authority'.",
+    "A3: base-sha and model-health citations are one refresh stale (report quotes main head 807844c7 / probe 06:47:05Z run 39010948387; the proposal's committed state file records 39005942424 at 05:25:06Z; main is now 367666af / 39012499120 at 07:12:31Z). Substance unchanged in all three snapshots; re-quote the current main head next cycle.",
+    "A4: core-lane.yml scope guard is at lines 212-220, not 210-216 as cited.",
+    "A5: internal numbering inconsistency - the evaluation lane cites 'requirements 8 and 21' while the array is referenced 0-based elsewhere (the zero-delta guard is index 5); and section 8's write-integrity bullet omits the mission and director_note diffs, which are disclosed elsewhere in the same section.",
+    "A6: the product lane lists eight actions with (4) labelled 'the cycle's point' but no explicit priority ordering; with one producer session per cycle, state the order that matters (integrate classifier -> upgrade admission to absolute statuses -> hot-path re-measure -> pre-registered placement test -> rebuild packet)."
+  ],
+  "owner_decision_required": false,
+  "human_gate_recommendation": "Do not surface a human gate. The shortest user-visible capability (real/cached OpenCaseLaw input -> source-linked bundle -> clickable map) is real and verified, but the standing accepted DO-NOT-SERVE order still holds and no admissible packet exists; the accepted state's own next_recommendation ('DO NOT ask the owner/jurist to review yet') remains accurate. The map-versus-ranked-list question is correctly parked behind an established bounded negative."
+}
