@@ -517,7 +517,12 @@ def run_pytest(log: _Log) -> None:
          # run 38972887369 (disclosed scope extension, not a re-freeze):
          # verdict-contract digest pin, exit-code reachability matrix and the
          # naive-consumer trap of the frozen-bar gates.
-         "tests/evaluation/test_bar_gate_verdict_contract.py"],
+         "tests/evaluation/test_bar_gate_verdict_contract.py",
+         # run 39004097533 (disclosed scope extension, not a re-freeze):
+         # the counter-authority label benchmark's frozen-hypothesis pin, its
+         # record-coherence checker and its red controls. No frozen benchmark,
+         # rubric, incumbent or success rule is touched by adding the file.
+         "tests/evaluation/test_counter_authority_label_benchmark.py"],
         cwd=str(_LANE_ROOT), capture_output=True, text=True, timeout=900)
     tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
     log.add("active lane pytest suite", proc.returncode == 0, tail[0])

@@ -31,6 +31,15 @@ CHECK_IDS = {
     "write_scope_diagnosis_record",
     "orchestration_diagnosis_38986445355",
     "retrieval_ca_benchmark_record",
+    # run 38993062549 added check_gate_validity_sweep to the verifier but this
+    # set was not extended, so the suite has been RED (1 failed / 25 passed) on
+    # the accepted tree since that commit. Verified pre-existing by stashing this
+    # cycle's work and re-running at 21b64ad0. Set-completeness repair only: the
+    # verifier's behaviour is unchanged and no check was weakened or removed.
+    "gate_validity_sweep",
+    # run 39004097533: the counter-authority label falsification (PRODUCT_FALSIFIED
+    # plus five fired gate predicates) is pinned so it cannot be softened silently.
+    "counter_authority_label_benchmark",
 }
 
 

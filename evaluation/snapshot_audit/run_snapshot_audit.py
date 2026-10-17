@@ -66,6 +66,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from evaluation.snapshot_audit import write_scope as ws
+from evaluation.packet_lineage_sweep import verify_rules_identity
 
 SCHEMA = "lex-evaluation-snapshot-audit/1"
 
@@ -147,6 +148,15 @@ DELIVERABLE_MANIFEST_PATHS = [
     "results/evaluation/retrieval_counter_authority_benchmark/38989947869_leg3_blanked_evidence.json",
     "reports/evaluation/RETRIEVAL_CA_BENCHMARK_38989947869.md",
     "reports/evaluation/CYCLE_38989947869.md",
+    # Run 39004097533: the counter-authority label benchmark. A PRODUCT_FALSIFIED
+    # result on the label axis plus five falsified GATE predicates; both are
+    # negative results of record and are pinned here so neither can be softened
+    # silently in a later cycle.
+    "evaluation/counter_authority_label_benchmark.py",
+    "tests/evaluation/test_counter_authority_label_benchmark.py",
+    "results/evaluation/counter_authority_label_benchmark/FROZEN_HYPOTHESIS_39004097533.json",
+    "results/evaluation/counter_authority_label_benchmark/39004097533.json",
+    "reports/evaluation/COUNTER_AUTHORITY_LABEL_BENCHMARK_39004097533.md",
 ]
 
 # Run 38986445355's team job died at step 6 ('Run lane cycle') after committing
@@ -163,6 +173,14 @@ RETRIEVAL_CA_BENCHMARK_RECORD = (
 SWEEP_RECORD = "results/evaluation/packet_lineage_sweep/38993062549.json"
 SWEEP_FROZEN_HYPOTHESIS = (
     "results/evaluation/packet_lineage_sweep/FROZEN_HYPOTHESIS_38993062549.json")
+
+# run 39004097533: the counter-authority label benchmark on real accepted product
+# artifacts. Its verdict PRODUCT_FALSIFIED and its five fired gate predicates are
+# negative results of record about the product's counter-authority labelling AND
+# about the accepted gate's packet-admission wiring.
+CA_LABEL_RECORD = "results/evaluation/counter_authority_label_benchmark/39004097533.json"
+CA_LABEL_FROZEN_HYPOTHESIS = (
+    "results/evaluation/counter_authority_label_benchmark/FROZEN_HYPOTHESIS_39004097533.json")
 
 
 def _sha256_file(path: Path) -> str:
@@ -647,6 +665,82 @@ def check_gate_validity_sweep(repo_root: Path) -> dict:
                   verdict=rec.get("verdict"), exit_code=rec.get("exit_code"))
 
 
+def check_counter_authority_label_benchmark(repo_root: Path) -> dict:
+    """Check 13: the counter-authority label falsification is on disk intact.
+
+    Two negative results of record are pinned here:
+
+    * PRODUCT_FALSIFIED on the product's counter-authority label axis, measured
+      with the identical frozen RULES_LABEL.json on real accepted product
+      artifacts, under a hypothesis frozen before execution; and
+    * five fired gate predicates, whose consequence is that the accepted
+      counter-label gate cannot observe a collapse of label support and is
+      therefore unsafe as the SOLE machine packet-admission input that Product
+      direction obligation (1) requires.
+
+    The check verifies the recorded verdict, the record's own coherence verdict,
+    the frozen-hypothesis provenance, the proven battery and the frozen-rubric
+    digests. A later cycle that wants to retract either result has to change this
+    check explicitly, in the open, rather than editing a number somewhere else.
+    """
+    problems = []
+    frozen = repo_root / CA_LABEL_FROZEN_HYPOTHESIS
+    if not frozen.exists():
+        problems.append(f"{CA_LABEL_FROZEN_HYPOTHESIS} missing")
+    path = repo_root / CA_LABEL_RECORD
+    if not path.exists():
+        return _check("counter_authority_label_benchmark", False,
+                      f"{CA_LABEL_RECORD} missing", problems=problems)
+    try:
+        rec = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return _check("counter_authority_label_benchmark", False,
+                      f"record is not valid JSON: {exc}", problems=problems)
+    if rec.get("schema") != "lex-counter-authority-label-benchmark/1":
+        problems.append(f"unexpected schema {rec.get('schema')!r}")
+    if rec.get("verdict") != "PRODUCT_FALSIFIED":
+        problems.append(f"recorded verdict is {rec.get('verdict')!r}, expected PRODUCT_FALSIFIED")
+    if rec.get("non_vacuity_all_hold") is not True:
+        problems.append("non-vacuity battery did not hold; a suppressed finding is not a result")
+    coherence = rec.get("record_coherence") or {}
+    if coherence.get("coherent") is not True:
+        problems.append(f"record self-check not coherent: {coherence.get('problems')}")
+    fh = rec.get("frozen_hypothesis") or {}
+    if fh.get("frozen_before_execution") is not True:
+        problems.append("record does not attest that the hypothesis was frozen before execution")
+    if frozen.exists() and fh.get("sha256") != _sha256_file(frozen):
+        problems.append("record was produced against a different freeze file")
+    ident = verify_rules_identity()
+    if not ident.get("all_match"):
+        problems.append(f"frozen RULES re-hash failed: {ident}")
+    fired = rec.get("gate_findings_fired") or []
+    expected_fired = {
+        "L2_gate_admits_total_label_collapse",
+        "L3_gate_population_predicate_is_confounded",
+        "L4_rate_and_count_semantics_disagree",
+        "L5_frozen_rubric_population_and_gate_incumbent_disagree",
+        "L6_anchor_ordering_is_not_quality_ordering",
+    }
+    if set(fired) != expected_fired:
+        problems.append(f"fired gate predicates {sorted(fired)} != {sorted(expected_fired)}")
+    l1 = ((rec.get("leg1_product_axis") or {}).get("L1")) or {}
+    if l1.get("holds") is not False:
+        problems.append("L1 product falsifier no longer reads as falsified")
+    if (rec.get("absolute_bar") or {}).get("enforced_as_build_blocker") is not False:
+        problems.append("the absolute bar is marked as a build blocker, which direction v50 forbids")
+    ok = not problems
+    b = rec.get("non_vacuity_battery") or {}
+    detail = (f"{rec.get('run_id')}: {rec.get('verdict')}; L1 product falsifier "
+              f"({l1.get('before_support_rate')} -> {l1.get('after_support_rate')} support_rate) "
+              f"held={l1.get('holds')}; {len(fired)} gate predicates fired; battery "
+              f"{sum(1 for k, v in b.items() if isinstance(v, dict) and v.get('holds'))}"
+              f"/{sum(1 for v in b.values() if isinstance(v, dict))} proven; "
+              f"absolute bar reported-not-enforced; rules re-hash {ident.get('all_match')}") \
+        if ok else f"problems: {problems}"
+    return _check("counter_authority_label_benchmark", ok, detail, problems=problems,
+                  verdict=rec.get("verdict"))
+
+
 def build_record(run_id: str, checks: list[dict], manifest: dict) -> dict:
     n_pass = sum(1 for c in checks if c["status"] == "PASS")
     ready = n_pass == len(checks)
@@ -718,6 +812,7 @@ def main(argv=None) -> int:
         checks.append(check_run_38986445355_diagnosis(repo_root))
         checks.append(check_retrieval_ca_benchmark(repo_root))
         checks.append(check_gate_validity_sweep(repo_root))
+        checks.append(check_counter_authority_label_benchmark(repo_root))
 
     record = build_record(args.run_id, checks, manifest)
     out_path.write_text(json.dumps(record, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
