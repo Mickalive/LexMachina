@@ -49,6 +49,28 @@ relative to the audit-job checkout) and reports/audit/evaluation/CYCLE_<run_id>.
 This module never writes audit artifacts itself; the independent audit
 checkout remains the only audit of record.
 
+ADDENDUM (cycle 39012970379): checks 14-16 pin the packet-admission
+conformance deliverable rescued from run 39010105493's producer snapshot and
+the diagnosis of that run's producer death:
+
+ 14. packet_admission_conformance          the committed execution record
+                                           carries the frozen verdict, the
+                                           frozen violation set, a proven
+                                           battery, a agreeing cross-check and
+                                           a re-hashed rubric identity
+                                           (mount-independent).
+ 15. packet_admission_conformance_reexecution
+                                           the benchmark is re-executed and
+                                           must exit 1 with the same violation
+                                           set (needs the accepted product
+                                           mount; absent => FAIL with the
+                                           environment reason, same convention
+                                           as check 2, never a silent pass).
+ 16. orchestration_diagnosis_39010105493   the producer-death diagnosis is
+                                           structurally complete, keeps the
+                                           cause hedged as a candidate set and
+                                           records the resume run.
+
 No frozen rubric, threshold, bar, incumbent, gate success rule or recorded
 verdict is read for modification; every frozen input is only re-hashed.
 """
@@ -157,6 +179,18 @@ DELIVERABLE_MANIFEST_PATHS = [
     "results/evaluation/counter_authority_label_benchmark/FROZEN_HYPOTHESIS_39004097533.json",
     "results/evaluation/counter_authority_label_benchmark/39004097533.json",
     "reports/evaluation/COUNTER_AUTHORITY_LABEL_BENCHMARK_39004097533.md",
+    # Run 39010105493: the packet-admission conformance benchmark, frozen before
+    # its own module existed, executed to exit 1 with three violating records,
+    # then rescued uncommitted by the workflow's persist step when the producer
+    # step died. The resume cycle (39012970379) completes the report, the state
+    # block and this verifier's pin of the deliverable.
+    "evaluation/packet_admission_conformance.py",
+    "tests/evaluation/test_packet_admission_conformance.py",
+    "results/evaluation/packet_admission_conformance/FROZEN_HYPOTHESIS_39010105493.json",
+    "results/evaluation/packet_admission_conformance/39010105493.json",
+    "results/evaluation/packet_admission_conformance/39012970379.json",
+    "evaluation/snapshot_audit/orchestration_diagnosis_39010105493.json",
+    "reports/evaluation/CYCLE_39012970379.md",
 ]
 
 # Run 38986445355's team job died at step 6 ('Run lane cycle') after committing
@@ -181,6 +215,23 @@ SWEEP_FROZEN_HYPOTHESIS = (
 CA_LABEL_RECORD = "results/evaluation/counter_authority_label_benchmark/39004097533.json"
 CA_LABEL_FROZEN_HYPOTHESIS = (
     "results/evaluation/counter_authority_label_benchmark/FROZEN_HYPOTHESIS_39004097533.json")
+
+# run 39010105493: the packet-admission conformance benchmark. It falsifies the
+# machine-readable packet-admission invariant direction v50 / product obligation
+# (1) declare, over the accepted product artifacts, under a hypothesis frozen
+# before the module existed. Its verdict and its violation set are negative
+# results of record and are pinned here so neither can be softened silently.
+PAC_RECORD = "results/evaluation/packet_admission_conformance/39010105493.json"
+PAC_FROZEN_HYPOTHESIS = (
+    "results/evaluation/packet_admission_conformance/FROZEN_HYPOTHESIS_39010105493.json")
+PAC_DIAGNOSIS = "evaluation/snapshot_audit/orchestration_diagnosis_39010105493.json"
+PAC_SCHEMA = "lex-evaluation-packet-admission-conformance/1"
+#: The frozen violation set of record (file paths relative to the product mount).
+PAC_VIOLATION_FILES = frozenset({
+    "results/product/gate_packet/38812599575/packet.json",
+    "results/product/gate_packet/38839347028/packet.json",
+    "state/product.json",
+})
 
 
 def _sha256_file(path: Path) -> str:
@@ -741,6 +792,199 @@ def check_counter_authority_label_benchmark(repo_root: Path) -> dict:
                   verdict=rec.get("verdict"))
 
 
+def check_packet_admission_conformance(repo_root: Path) -> dict:
+    """Check 14: the packet-admission falsification is on disk intact.
+
+    Mount-INDEPENDENT: everything below is verified from the committed record,
+    the committed frozen hypothesis and a rubric re-hash, so an auditor without
+    the accepted product mount still certifies the result of record. The live
+    re-execution is check 15.
+
+    The falsified invariant is direction v50 / product obligation (1): no packet,
+    owner card, disclosure or state field may carry ready_for_owner_session or
+    human_gate_ready true while an accepted frozen bar is unmet with no persisted
+    admission block. It is pinned exactly so a later cycle cannot quietly stop
+    reporting it without changing this check in the open.
+    """
+    problems = []
+    frozen = repo_root / PAC_FROZEN_HYPOTHESIS
+    if not frozen.exists():
+        problems.append(f"{PAC_FROZEN_HYPOTHESIS} missing")
+    else:
+        try:
+            hyp = json.loads(frozen.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            hyp = None
+            problems.append(f"frozen hypothesis not valid JSON: {exc}")
+        if hyp is not None:
+            if hyp.get("frozen_before_implementation") is not True:
+                problems.append("hypothesis does not attest freeze-before-implementation")
+            if hyp.get("frozen_before_execution") is not True:
+                problems.append("hypothesis does not attest freeze-before-execution")
+            if (hyp.get("success_rule_frozen") or {}).get("never_changed_after_execution") \
+                    is not True:
+                problems.append("success rule not attested as never changed after execution")
+            if "honest_pre_freeze_disclosure" not in hyp:
+                problems.append("hypothesis carries no honest pre-freeze disclosure")
+            if RULES_LABEL_SHA256 not in json.dumps(hyp) or RULES_GEOMETRY_SHA256 not in json.dumps(hyp):
+                problems.append("hypothesis does not carry the two direction-pinned rubric shas")
+    path = repo_root / PAC_RECORD
+    if not path.exists():
+        return _check("packet_admission_conformance", False,
+                      f"{PAC_RECORD} missing", problems=problems)
+    try:
+        rec = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return _check("packet_admission_conformance", False,
+                      f"record is not valid JSON: {exc}", problems=problems)
+    if rec.get("schema") != PAC_SCHEMA:
+        problems.append(f"schema={rec.get('schema')!r}")
+    if rec.get("verdict") != "PACKET_ADMISSION_INVARIANT_VIOLATED":
+        problems.append(f"verdict={rec.get('verdict')!r} (expected the frozen "
+                        "PACKET_ADMISSION_INVARIANT_VIOLATED)")
+    if rec.get("exit_code") != 1:
+        problems.append(f"exit_code={rec.get('exit_code')!r}")
+    metric = rec.get("metric") or {}
+    viol_files = {v.get("file") for v in metric.get("violations", [])}
+    if viol_files != set(PAC_VIOLATION_FILES):
+        problems.append(f"violation file set {sorted(viol_files)} != pinned set "
+                        f"{sorted(PAC_VIOLATION_FILES)}")
+    if rec.get("violations_total") != len(metric.get("violations", [])):
+        problems.append("violations_total disagrees with metric.violations")
+    if metric.get("n_violations") != rec.get("violations_total"):
+        problems.append("metric.n_violations disagrees with violations_total")
+    battery = rec.get("non_vacuity_battery") or {}
+    if battery.get("all_hold") is not True:
+        problems.append("non-vacuity battery did not hold; a suppressed finding is not a result")
+    if battery.get("n_holding") != battery.get("n_controls"):
+        problems.append("battery n_holding != n_controls")
+    ident = rec.get("rules_identity") or {}
+    if ident.get("match") is not True or ident.get("rules_label_sha256") != RULES_LABEL_SHA256 \
+            or ident.get("rules_geometry_sha256") != RULES_GEOMETRY_SHA256:
+        problems.append("record's rubric re-hash does not match the direction-pinned shas")
+    xcheck = rec.get("served_packet_crosscheck") or {}
+    if xcheck.get("sources_agree") is not True:
+        problems.append("the two accepted bar sources disagree in the record")
+    bar_src = rec.get("bar_status_source") or {}
+    if bar_src.get("recomputed_by_this_benchmark") is not False:
+        problems.append("the record recomputed a bar instead of reading the accepted record")
+    if bar_src.get("frontier_candidates_remeasured") is not False:
+        problems.append("the record re-measured a Frontier candidate")
+    if rec.get("direction_version") != 50:
+        problems.append(f"direction_version={rec.get('direction_version')!r}")
+    cc = (rec.get("claim_ceiling") or "").lower()
+    for phrase in ("human_gate_ready stays false", "does not prove map usefulness",
+                   "does not move or meet"):
+        if phrase not in cc:
+            problems.append(f"claim_ceiling missing {phrase!r}")
+    if "child process" not in (rec.get("product_execution_disclosure") or ""):
+        problems.append("product_execution_disclosure missing the child-process guarantee")
+    ok = not problems
+    detail = (f"record {rec.get('run_id')}: {rec.get('verdict')} exit {rec.get('exit_code')}; "
+              f"{len(viol_files)} frozen violation files; battery "
+              f"{battery.get('n_holding')}/{battery.get('n_controls')} proven; rubric re-hash "
+              f"match={ident.get('match')}; served-packet cross-check agree="
+              f"{xcheck.get('sources_agree')}; bars READ not recomputed") if ok else \
+             f"packet-admission conformance problems: {problems}"
+    return _check("packet_admission_conformance", ok, detail, problems=problems,
+                  verdict=rec.get("verdict"), exit_code=rec.get("exit_code"),
+                  violation_files=sorted(viol_files))
+
+
+def check_packet_admission_conformance_reexecution(repo_root: Path, workdir: Path) -> dict:
+    """Check 15: re-execute the benchmark; it must exit 1 with the same set."""
+    mount = Path(os.environ.get("LEX_ACCEPTED_PRODUCT_MOUNT", "/tmp/lex_accepted/product"))
+    if not mount.is_dir():
+        return _check("packet_admission_conformance_reexecution", False,
+                      f"environment limit: accepted product mount absent at {mount}; "
+                      "the frozen verdict itself is certified by the "
+                      "mount-independent packet_admission_conformance check",
+                      environment_limited=True)
+    out_path = workdir / "pac_fresh.json"
+    proc = subprocess.run(
+        [sys.executable, "-m", "evaluation.packet_admission_conformance",
+         "--run-id", "snapshot_audit_fresh", "--mount", str(mount),
+         "--out", str(out_path), "--skip-product-exec"],
+        cwd=str(repo_root), capture_output=True, text=True, timeout=600)
+    if proc.returncode not in (0, 1) or not out_path.exists():
+        return _check("packet_admission_conformance_reexecution", False,
+                      f"benchmark did not produce a record (exit {proc.returncode}); "
+                      f"stderr: {(proc.stderr or '')[:400] or 'empty'}",
+                      exit_code=proc.returncode, environment_limited=False)
+    rec = json.loads(out_path.read_text(encoding="utf-8"))
+    viol_files = {v.get("file") for v in (rec.get("metric") or {}).get("violations", [])}
+    battery_ok = bool((rec.get("non_vacuity_battery") or {}).get("all_hold"))
+    ok = (proc.returncode == 1
+          and rec.get("verdict") == "PACKET_ADMISSION_INVARIANT_VIOLATED"
+          and viol_files == set(PAC_VIOLATION_FILES)
+          and battery_ok
+          and (rec.get("served_packet_crosscheck") or {}).get("sources_agree") is True)
+    detail = (f"fresh execution exit {proc.returncode}, verdict {rec.get('verdict')}, "
+              f"violation files match the pinned set ({len(viol_files)}/3), "
+              f"battery all_hold={battery_ok}") if ok else \
+             (f"fresh execution exit {proc.returncode}, verdict {rec.get('verdict')}, "
+              f"violation files {sorted(viol_files)}; battery all_hold={battery_ok}")
+    return _check("packet_admission_conformance_reexecution", ok, detail,
+                  exit_code=proc.returncode, environment_limited=False,
+                  violation_files=sorted(viol_files))
+
+
+def check_pac_diagnosis(repo_root: Path) -> dict:
+    """Check 16: run 39010105493's producer death is diagnosed at job/step level
+    with the un-loggable cause kept hedged as a candidate set."""
+    path = repo_root / PAC_DIAGNOSIS
+    if not path.exists():
+        return _check("orchestration_diagnosis_39010105493", False,
+                      f"{PAC_DIAGNOSIS} missing")
+    try:
+        diag = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return _check("orchestration_diagnosis_39010105493", False,
+                      f"diagnosis is not valid JSON: {exc}")
+    problems = []
+    if diag.get("schema") != "lex-evaluation-orchestration-diagnosis/1":
+        problems.append("schema")
+    if not diag.get("query_method"):
+        problems.append("query_method")
+    if not diag.get("limits"):
+        problems.append("limits")
+    run = (diag.get("runs") or {}).get("39010105493", {})
+    if not run:
+        problems.append("runs.39010105493")
+    else:
+        if run.get("conclusion") != "failure":
+            problems.append("runs.39010105493.conclusion")
+        team = (run.get("jobs") or {}).get("team", {})
+        if team.get("failed_step") != "Run lane cycle":
+            problems.append("jobs.team.failed_step")
+        if team.get("step_number") != 6:
+            problems.append("jobs.team.step_number")
+        if not isinstance(team.get("failed_step_duration_s"), int):
+            problems.append("jobs.team.failed_step_duration_s (the timing evidence)")
+        audit = (run.get("jobs") or {}).get("audit", {})
+        if audit.get("conclusion") != "skipped":
+            problems.append("jobs.audit.conclusion")
+        if not (audit.get("skipped_because") or audit.get("interpretation")):
+            problems.append("jobs.audit.skipped_because")
+        cause = run.get("root_cause") or {}
+        if not cause.get("candidate_causes_of_the_step_failure_not_disambiguated"):
+            problems.append("root_cause.candidate_causes (the cause must stay a recorded "
+                            "set: job logs are 403)")
+        if not cause.get("best_supported_cause"):
+            problems.append("root_cause.best_supported_cause")
+        preserved = (run.get("producer_work_preserved") or {})
+        if not preserved.get("commit_created_by_the_workflow_persist_step", {}).get("sha"):
+            problems.append("producer_work_preserved.commit_created_by_the_workflow_persist_step.sha")
+    if "39012970379" not in (diag.get("runs") or {}):
+        problems.append("runs.39012970379 (resume run)")
+    ok = not problems
+    detail = ("39010105493 diagnosed at job/step level (team step 6 'Run lane cycle' failure "
+              "2703 s, audit skipped); cause hedged as a candidate set with a best-supported "
+              "cause; the workflow-created snapshot commit and the resume run are recorded") \
+        if ok else f"diagnosis structural problems: {problems}"
+    return _check("orchestration_diagnosis_39010105493", ok, detail, problems=problems)
+
+
 def build_record(run_id: str, checks: list[dict], manifest: dict) -> dict:
     n_pass = sum(1 for c in checks if c["status"] == "PASS")
     ready = n_pass == len(checks)
@@ -768,6 +1012,8 @@ def build_record(run_id: str, checks: list[dict], manifest: dict) -> dict:
             "run 38982176936's write-scope failure is reproduced with the real control-plane step body (exit 3, identical BAD set) and its producer-authored self-audit is voided with byte-identical preserved copies",
             "run 38986445355's mid-cycle producer death (team step 6 'Run lane cycle') is diagnosed at job/step level with the un-loggable provider cause hedged as a candidate set",
             "the three-leg retrieval/counter-authority falsification benchmark re-exits BENCHMARK_VALID_NO_FALSIFICATION (legs 0/1/1 over the accepted run_bar_gates entry point, falsification_proven=true)",
+            "the packet-admission conformance benchmark of run 39010105493 is intact and re-executes: PACKET_ADMISSION_INVARIANT_VIOLATED, exit 1, the same three violating records, battery 4/4, both accepted bar sources agreeing",
+            "run 39010105493's producer death (team step 6 'Run lane cycle', 2703 s, audit skipped) is diagnosed at job/step level with the un-loggable cause hedged as a candidate set and the workflow-created snapshot commit identified",
         ],
         "snapshot_claims_not_certified": [
             "jurist-usefulness of the map (human gate); human_gate_ready stays false under the standing accepted DO-NOT-SERVE order",
@@ -813,6 +1059,9 @@ def main(argv=None) -> int:
         checks.append(check_retrieval_ca_benchmark(repo_root))
         checks.append(check_gate_validity_sweep(repo_root))
         checks.append(check_counter_authority_label_benchmark(repo_root))
+        checks.append(check_packet_admission_conformance(repo_root))
+        checks.append(check_packet_admission_conformance_reexecution(repo_root, workdir))
+        checks.append(check_pac_diagnosis(repo_root))
 
     record = build_record(args.run_id, checks, manifest)
     out_path.write_text(json.dumps(record, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")

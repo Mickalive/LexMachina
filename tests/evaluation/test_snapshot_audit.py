@@ -40,6 +40,12 @@ CHECK_IDS = {
     # run 39004097533: the counter-authority label falsification (PRODUCT_FALSIFIED
     # plus five fired gate predicates) is pinned so it cannot be softened silently.
     "counter_authority_label_benchmark",
+    # run 39010105493 (completed by resume run 39012970379): the packet-admission
+    # conformance falsification, its live re-execution, and the diagnosis of the
+    # producer step that died before it could write its own report and state.
+    "packet_admission_conformance",
+    "packet_admission_conformance_reexecution",
+    "orchestration_diagnosis_39010105493",
 }
 
 
@@ -417,3 +423,101 @@ def test_write_scope_diagnosis_checker_rejects_an_unreproduced_cause(tmp_path):
     res = rsa.check_write_scope_diagnosis(root)
     assert res["status"] == "FAIL"
     assert any("not identical" in p for p in res["problems"])
+
+
+# ------------------------------------------- run 39010105493 (checks 14-16) --
+
+def _fake_pac_root(tmp_path: Path) -> Path:
+    """Minimal repo root carrying the frozen hypothesis and the execution record
+    of run 39010105493, byte-copied from the real snapshot when available."""
+    src = Path(".")
+    for rel in (rsa.PAC_FROZEN_HYPOTHESIS, rsa.PAC_RECORD):
+        d = (tmp_path / rel).parent
+        d.mkdir(parents=True, exist_ok=True)
+        (tmp_path / rel).write_bytes((src / rel).read_bytes())
+    return tmp_path
+
+
+def test_pac_record_checker_fails_when_the_record_is_missing(tmp_path):
+    res = rsa.check_packet_admission_conformance(tmp_path)
+    assert res["status"] == "FAIL"
+    assert any("missing" in p for p in res["problems"])
+
+
+def test_pac_record_checker_rejects_a_softened_verdict(tmp_path):
+    """Breaking fixture: a record re-labelled HELD or exit 0 must go red, so the
+    falsification of record cannot be quietly flipped by editing the JSON."""
+    root = _fake_pac_root(tmp_path)
+    rec = json.loads((root / rsa.PAC_RECORD).read_text())
+    rec["verdict"] = "PACKET_ADMISSION_INVARIANT_HELD"
+    rec["exit_code"] = 0
+    (root / rsa.PAC_RECORD).write_text(json.dumps(rec))
+    res = rsa.check_packet_admission_conformance(root)
+    assert res["status"] == "FAIL"
+    assert any(p.startswith("verdict=") for p in res["problems"])
+    assert any(p.startswith("exit_code=") for p in res["problems"])
+
+
+def test_pac_record_checker_rejects_a_dropped_violation(tmp_path):
+    """Breaking fixture: removing one of the three violating records must fail,
+    so the frozen violation set cannot shrink silently."""
+    root = _fake_pac_root(tmp_path)
+    rec = json.loads((root / rsa.PAC_RECORD).read_text())
+    dropped = rec["metric"]["violations"].pop()
+    rec["metric"]["n_violations"] = len(rec["metric"]["violations"])
+    rec["violations_total"] = len(rec["metric"]["violations"])
+    (root / rsa.PAC_RECORD).write_text(json.dumps(rec))
+    res = rsa.check_packet_admission_conformance(root)
+    assert res["status"] == "FAIL"
+    assert any("violation file set" in p for p in res["problems"])
+    assert dropped["file"] in set(rsa.PAC_VIOLATION_FILES)
+
+
+def test_pac_record_checker_rejects_an_unproven_battery(tmp_path):
+    """Breaking fixture: a non-vacuity battery that did not hold voids the
+    finding, and this checker must say so."""
+    root = _fake_pac_root(tmp_path)
+    rec = json.loads((root / rsa.PAC_RECORD).read_text())
+    rec["non_vacuity_battery"]["all_hold"] = False
+    (root / rsa.PAC_RECORD).write_text(json.dumps(rec))
+    res = rsa.check_packet_admission_conformance(root)
+    assert res["status"] == "FAIL"
+    assert any("non-vacuity battery" in p for p in res["problems"])
+
+
+def test_pac_record_checker_passes_on_the_committed_record():
+    res = rsa.check_packet_admission_conformance(Path("."))
+    assert res["status"] == "PASS", res
+    assert set(res["violation_files"]) == set(rsa.PAC_VIOLATION_FILES)
+
+
+def test_pac_reexecution_check_fails_without_the_product_mount(tmp_path, monkeypatch):
+    """Environment limit is a recorded FAIL with a reason, never a silent pass."""
+    monkeypatch.setenv("LEX_ACCEPTED_PRODUCT_MOUNT", str(tmp_path / "absent"))
+    res = rsa.check_packet_admission_conformance_reexecution(Path("."), tmp_path)
+    assert res["status"] == "FAIL"
+    assert res["environment_limited"] is True
+
+
+def test_pac_diagnosis_checker_rejects_a_missing_artifact(tmp_path):
+    res = rsa.check_pac_diagnosis(tmp_path)
+    assert res["status"] == "FAIL"
+
+
+def test_pac_diagnosis_checker_rejects_a_single_asserted_cause(tmp_path):
+    """The cause must stay a recorded candidate set: job logs are 403 and an
+    asserted single cause would be an over-claim."""
+    diag = json.loads(Path(rsa.PAC_DIAGNOSIS).read_text())
+    diag["runs"]["39010105493"]["root_cause"][
+        "candidate_causes_of_the_step_failure_not_disambiguated"] = []
+    p = tmp_path / rsa.PAC_DIAGNOSIS
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(diag))
+    res = rsa.check_pac_diagnosis(tmp_path)
+    assert res["status"] == "FAIL"
+    assert any("candidate_causes" in x for x in res["problems"])
+
+
+def test_pac_diagnosis_checker_passes_on_the_committed_artifact():
+    res = rsa.check_pac_diagnosis(Path("."))
+    assert res["status"] == "PASS", res

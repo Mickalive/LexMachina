@@ -522,7 +522,13 @@ def run_pytest(log: _Log) -> None:
          # the counter-authority label benchmark's frozen-hypothesis pin, its
          # record-coherence checker and its red controls. No frozen benchmark,
          # rubric, incumbent or success rule is touched by adding the file.
-         "tests/evaluation/test_counter_authority_label_benchmark.py"],
+         "tests/evaluation/test_counter_authority_label_benchmark.py",
+         # run 39010105493 / resume 39012970379 (disclosed scope extension, not
+         # a re-freeze): the packet-admission conformance gate's predicate,
+         # binding, exit-code and frozen-hypothesis pins, plus its mount-gated
+         # integration tests. No frozen benchmark, rubric, incumbent or success
+         # rule is touched by adding the file.
+         "tests/evaluation/test_packet_admission_conformance.py"],
         cwd=str(_LANE_ROOT), capture_output=True, text=True, timeout=900)
     tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
     log.add("active lane pytest suite", proc.returncode == 0, tail[0])

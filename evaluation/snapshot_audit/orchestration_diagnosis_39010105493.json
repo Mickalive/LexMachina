@@ -1,0 +1,125 @@
+{
+ "schema": "lex-evaluation-orchestration-diagnosis/1",
+ "diagnosis_id": "evaluation_39010105493",
+ "lane": "evaluation",
+ "direction_version": 50,
+ "diagnosed_by_run_id": "39012970379",
+ "mode": "OPERATIONAL RESUME from persisted producer snapshot of run 39010105493",
+ "query_method": "Public GitHub REST API (unauthenticated; the repository is public) for run/job/step conclusions and timestamps, plus git evidence in the persisted producer snapshot and the core-lane.yml / run-ox-with-retry.sh control-plane sources read from the checkout. Step names, conclusions and started_at/completed_at timestamps below are API facts read this cycle; the cause of the failing step is an INFERENCE from arithmetic + a documented signature, because job logs are not readable.",
+ "limits": [
+  "Job logs are HTTP 403 unauthenticated (GET /repos/Mickalive/LexMachina/actions/jobs/<id>/logs -> {\"message\":\"Must have admin rights to Repository.\"}); the exit-code line printed by .github/scripts/run-ox-with-retry.sh could NOT be read, so no rc value is established fact.",
+  "inputs of the run are not exposed unauthenticated (inputs: null), so whether repair_from_run_id was empty is inferred from the 15-second gap after the accepted run 39007294442 and from repair_round=0 in the run name.",
+  "The work-quantum mechanism (LEX_WORK_QUANTUM_EXPIRED seconds=2700, documented in factory-direction requirement 17 as observed on product run 38822688733) is NOT present in this checkout's .github/scripts/run-ox-with-retry.sh, so its enforcement point is outside the tree read here; the timing match is therefore corroboration, not proof.",
+  "The persisted snapshot commit 5b3f56ff was created by the workflow's own 'Persist team snapshot' step, not by the producer; attributing which files were committed by whom is established from git authorship plus the step body of core-lane.yml:146-161 (git config user.name lex-<lane>-team; git add -A; git commit -m '<lane> cycle <run> repair <n>')."
+ ],
+ "runs": {
+  "39010105493": {
+   "run_number": 6894,
+   "name": "Core evaluation dirV50 repair0",
+   "event": "workflow_dispatch",
+   "run_attempt": 1,
+   "actor": "github-actions[bot]",
+   "head_sha": "9ad30a5a6f2bb5dd7208e5b1c28a3b8c87590e68",
+   "created_at": "2026-10-17T06:29:39Z",
+   "updated_at": "2026-10-17T07:15:44Z",
+   "status": "completed",
+   "conclusion": "failure",
+   "dispatch_context": "created 15 s after run 39007294442 (Core evaluation dirV50 repair1) completed success at 06:29:24Z, whose audit gate was PASS and whose accept commit 76d04157 is the accepted base of this snapshot; so 39010105493 is the FOLLOW-ON cycle dispatched by that run's resilience job, not a repair of a rejected cycle (repair_round 0).",
+   "jobs": {
+    "team": {
+     "job_id": 117330671746,
+     "conclusion": "failure",
+     "started_at": "2026-10-17T06:29:42Z",
+     "completed_at": "2026-10-17T07:15:31Z",
+     "failed_step": "Run lane cycle",
+     "step_number": 6,
+     "failed_step_started_at": "2026-10-17T06:30:22Z",
+     "failed_step_completed_at": "2026-10-17T07:15:25Z",
+     "failed_step_duration_s": 2703,
+     "steps": [
+      {"number": 1, "name": "Set up job", "conclusion": "success"},
+      {"number": 2, "name": "Run actions/checkout@v6", "conclusion": "success"},
+      {"number": 3, "name": "Validate lane and initialize working base", "conclusion": "success"},
+      {"number": 4, "name": "Mount accepted peer evidence", "conclusion": "success", "note": "the accepted product mount /tmp/lex_accepted/product was built at 06:30:16-06:30:20Z, BEFORE lab/product advanced at 06:42:47Z"},
+      {"number": 5, "name": "Install Ox/OpenCode", "conclusion": "success"},
+      {"number": 6, "name": "Run lane cycle", "conclusion": "failure"},
+      {"number": 7, "name": "Validate active MVP producer state", "conclusion": "skipped", "skipped_because": "success()-gated on step 6; the control-plane producer-state validation never ran on this snapshot"},
+      {"number": 8, "name": "Clean generated junk", "conclusion": "success"},
+      {"number": 9, "name": "Enforce lane write scope", "conclusion": "skipped", "skipped_because": "success()-gated on step 6; the CI write-scope check (the step that killed run 38982176936) never ran on this snapshot, so scope cleanliness is re-established this cycle by snapshot-audit check producer_write_scope_clean instead"},
+      {"number": 10, "name": "Persist team snapshot", "conclusion": "success", "note": "if: always(); created commit 5b3f56ff from the producer's UNCOMMITTED working tree"}
+     ]
+    },
+    "audit": {
+     "job_id": 117339185066,
+     "conclusion": "skipped",
+     "skipped_because": "needs.team.result == 'success' (core-lane.yml audit job 'if' guard); the team job failed, so NO independent audit for run 39010105493 exists",
+     "interpretation": "nothing was promoted and nothing was rejected; results/audit/evaluation/CYCLE_39010105493_GATE.json does not exist anywhere (not on origin, not in /tmp/lex_accepted, not in this tree)"
+    },
+    "integrate": {"job_id": 117339185371, "conclusion": "skipped",
+     "skipped_because": "needs.audit.result == 'success'"},
+    "resilience": {"job_id": 117339184601, "conclusion": "success",
+     "note": "'Recover failed chain and wake supervisor' ran and is what produced this operational-resume dispatch (run 39012970379, resume_from_run_id=39010105493)"}
+   },
+   "producer_work_preserved": {
+    "commits_made_by_the_agent": [
+     {"sha": "29e01faafcd72d90ec8cf7c51be308491390fd58",
+      "author": "LexMachina Evaluation <evaluation@lexmachina.local>",
+      "author_date": "2026-10-17T07:06:35Z",
+      "message": "evaluation 39010105493: FREEZE the packet-admission conformance hypothesis before implementation and before any outcome (RESEARCH_PROTOCOL step 4)",
+      "files": ["results/evaluation/packet_admission_conformance/FROZEN_HYPOTHESIS_39010105493.json"]}
+    ],
+    "commit_created_by_the_workflow_persist_step": {
+     "sha": "5b3f56ff7b9f8e2f1499e8ca98e151945605acce",
+     "author": "lex-evaluation-team <lex-team@autonomous.local>",
+     "author_date": "2026-10-17T07:15:26Z",
+     "message": "evaluation cycle 39010105493 repair 0",
+     "why_it_is_the_workflow_and_not_the_agent": "core-lane.yml 'Persist team snapshot' sets git config user.name lex-<lane>-team / lex-team@autonomous.local and runs 'git add -A && git commit -m <lane> cycle <run> repair <n>'; the agent's own commits carry author 'LexMachina Evaluation <evaluation@lexmachina.local>'",
+     "files": [
+      "evaluation/packet_admission_conformance.py",
+      "tests/evaluation/test_packet_admission_conformance.py",
+      "results/evaluation/packet_admission_conformance/39010105493.json"
+     ],
+     "reading": "the producer finished and EXECUTED its benchmark (the execution record exists) but was killed before it could commit the implementation, so the workflow's catch-all commit rescued three uncommitted files; NOTHING of the benchmark was lost"
+    },
+    "never_written_by_the_producer": [
+     "reports/evaluation/CYCLE_39010105493.md (no cycle report)",
+     "state/evaluation.json update (state still carried proposed_run_id 39004097533 / cycle_status ..._39004097533_REPAIR_R1 at resume time)",
+     "results/evaluation/snapshot_audit/39010105493.json (no audit-readiness record)"
+    ],
+    "snapshot_is": "branch operational-resume == origin/cycle/core/evaluation/39010105493/team == 5b3f56ff on accepted base 76d04157 ('accept evaluation cycle 39007294442'); working tree clean at resume"
+   },
+   "root_cause": {
+    "class": "orchestration/work-quantum death of the producer step, NOT a producer validation defect and NOT a lane-evidence defect",
+    "established_facts": [
+     "step 6 'Run lane cycle' ran 2703 s (06:30:22Z -> 07:15:25Z) and concluded failure; every later success()-gated step was skipped and the audit job never ran",
+     "the run's conclusion is failure solely because of that step; jobs 8 and 10 succeeded",
+     "the producer's committed output is internally consistent: the frozen hypothesis predates the module, the execution record exists with exit_code 1, and both in-lane test files were produced"
+    ],
+    "best_supported_cause": "LEX_WORK_QUANTUM_EXPIRED (the documented rc-78 work-quantum signature, factory-direction requirement 17: 'seconds=2700'), because the failing step's duration is 2703 s, i.e. 2700 s of quantum plus ~3 s of wrapper/dispatch overhead",
+    "confidence": "INFERENCE, not established fact: the step's exit code was not readable (logs 403) and the quantum mechanism's source is not in this checkout",
+    "candidate_causes_of_the_step_failure_not_disambiguated": [
+     "work-quantum expiry at 2700 s (best supported: 2703 s observed duration; documented signature rc 78 seen on product run 38822688733)",
+     "provider/model death with a non-transient signature (the wrapper exits the child's rc when no NETWORK_RE match; a transient match would have retried up to 8 times with 90 s delays, which the single continuous 2703 s step does not suggest)",
+     "uncaught producer exception after the benchmark executed but before the report/state write"
+    ],
+    "why_it_is_not_a_producer_validation_failure": "the deliverable left on disk re-executes this cycle to the same verdict (exit 1, PACKET_ADMISSION_INVARIANT_VIOLATED, 3 violations, non-vacuity battery 4/4) and its 30 tests pass; the missing report/state/readiness-record are exactly the artifacts a killed producer does not reach, and they are completed this cycle rather than inferred",
+    "not_a_rc67_zero_delta": "the LEX_ZERO_DELTA_REPAIR guard only fires on repair rounds with an unchanged HEAD (run-ox-with-retry.sh:108); this run's HEAD advanced (29e01faa) and repair_round is 0"
+   },
+   "route_around_used_this_cycle": "OPERATIONAL RESUME on the persisted snapshot: no restart, no re-freeze, no re-derivation; the completed module/tests/execution record are verified in place, the two missing audit-facing artifacts (diagnosis + readiness) and the never-written cycle report and state block are completed, and the snapshot-audit verifier is extended so the new deliverable is actually pinned by the readiness record."
+  },
+  "39012970379": {
+   "role": "resume run dispatched by run 39010105493's resilience job",
+   "name": "Core evaluation dirV50 repair0",
+   "event": "workflow_dispatch",
+   "created_at": "2026-10-17T07:15:40Z",
+   "resume_from_run_id": "39010105493",
+   "resume_from_snapshot": "origin/cycle/core/evaluation/39010105493/team == 5b3f56ff",
+   "diagnosis_artifact": "evaluation/snapshot_audit/orchestration_diagnosis_39010105493.json"
+  }
+ },
+ "reproduced_executably_this_cycle": [
+  "python -m evaluation.packet_admission_conformance --run-id 39012970379 -> exit 1, verdict PACKET_ADMISSION_INVARIANT_VIOLATED, violations_total 3, non_vacuity_battery all_hold true, crosscheck sources_agree true",
+  "python -m pytest tests/evaluation/test_packet_admission_conformance.py -q -> 30 passed",
+  "fresh record identical to the producer's committed 39010105493.json except run_id / started_at_utc / elapsed_s / frozen_hypothesis and ONE file_sha256 (state/product.json: 018ff8a1... at the 06:30Z mount vs 75b48cfa... now), explained by lab/product advancing at 06:42:47Z ('accept product cycle 39006211027') AFTER the failing run had already mounted its peers; the verdict, the violation set and every bar-status cell are unchanged"
+ ]
+}
