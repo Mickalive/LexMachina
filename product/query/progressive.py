@@ -87,16 +87,33 @@ def first_page_config(top_n: int, mode: str, page_size: int = FIRST_PAGE_SIZE):
 
 def _retrieve_first_page(query: str, top_n: int, mode: str) -> dict:
     from ocl_adapter import build_candidate_bundle
-    from ocl_adapter.fixtures import fixture_config, replay_fixtures
+
+    from .pipeline import replay_fixture_query
 
     if mode == "fixture":
-        cfg = fixture_config(
-            mode="offline",
-            target=min(max(40, top_n), 200),
-            max_candidates=min(max(100, top_n), 200),
-            stop_when_target_met=False,
+        # Same two-source offline replay as the full pass: the canonical
+        # frontier scenario first (frozen fixture query, historical
+        # behaviour), then the product live cache with the exact first-page
+        # config shape the live run recorded.
+        out = replay_fixture_query(
+            query,
+            top_n=top_n,
+            hydrate_top=0,
+            config_factory=lambda n: first_page_config(n, "offline"),
         )
-        return replay_fixtures(query, config=cfg, hydrate_top=0)
+        if not out.get("candidates"):
+            # Many questions were only ever retrieved with the FULL pass, so
+            # no first-page-shaped envelope exists for them. Replay the
+            # full-pass shape instead and take the head: offline replay is
+            # local, and the progressive contract is about not waiting on the
+            # network, not about pretending a page was fetched.
+            out = replay_fixture_query(query, top_n=top_n, hydrate_top=0)
+            if out.get("candidates"):
+                out["candidates"] = out["candidates"][:FIRST_PAGE_SIZE]
+                out.setdefault("provenance", {}).setdefault(
+                    "product_fixture_replay", {})["first_page_source"] = (
+                    "full_pass_cache_head")
+        return out
     cfg = first_page_config(top_n, mode)
     return build_candidate_bundle(query, config=cfg, hydrate_top=0, include_structure=True)
 

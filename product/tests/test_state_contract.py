@@ -86,10 +86,20 @@ def test_workflow_validation_rejects_non_integer_direction_version(tmp_path: Pat
 
 #: The direction version this cycle was dispatched with. Hard-pinned so the
 #: test asserts the real workflow assertion rather than whatever the control
-#: plane happens to say at test time.  Run 38877693206 was dispatched with
-#: direction v55 (the run that fixed the unevidenced counter-authority ring);
-#: the previous pin was 54 (run 38839347028, gate-packet rebuild).
-RUN_DIRECTION_VERSION = 55
+#: plane happens to say at test time.
+#:
+#: Run 39011220761 (this cycle) was dispatched with "factory direction
+#: version=50", and both authoritative readers agree: the mounted control
+#: plane ``/tmp/lex_control/state/factory_direction.json`` and
+#: ``origin/main:state/factory_direction.json`` each report version 50.
+#: Previous pins tracked their own dispatch — 55 for run 38877693206 (the
+#: unevidenced counter-authority ring fix), 54 for run 38839347028 (gate-packet
+#: rebuild). Higher versions survive only as delivery keys inside this state
+#: file (``v51_delivery`` … ``v55_delivery``); they are not the accepted
+#: control plane on main, so pinning 55 here made this contract fail against
+#: the authoritative plane (pre-existing red, disclosed in cycles 39003037673
+#: and 39006211027, repaired this cycle by re-pinning to the dispatch input).
+RUN_DIRECTION_VERSION = 50
 
 
 def test_canonical_state_in_this_worktree_is_current() -> None:

@@ -94,6 +94,59 @@ def _retrieval_config(top_n: int, mode: str) -> AdapterConfig:
     )
 
 
+def replay_fixture_query(
+    query: str,
+    *,
+    top_n: int,
+    hydrate_top: int = 0,
+    config_factory=None,
+) -> dict:
+    """Deterministic, network-free replay for ``retrieval_mode="fixture"``.
+
+    Two content-addressed sources are tried in a fixed order, both with
+    ``mode="offline"`` (cache-only; a miss degrades, it never hits the network):
+
+    1. the canonical Frontier fixture scenario (``fixture_config``), which only
+       ever recorded the frozen fixture query "Kündigung Mietvertrag Mietrecht"
+       — unchanged historical behaviour for every pre-existing fixture test;
+    2. the product-owned live cache (``results/product/query_cache``) replayed
+       with the **same retrieval config the live run used**, because the
+       adapter's request keys are config-shaped (page size, page counts,
+       channel stages) — a differently-shaped config simply misses.
+
+    Source 2 is what makes ``reality_check.py --mode fixture`` work for the
+    four frozen reality legs: their envelopes were recorded by live runs of
+    the exact same question and config, but never by the canonical scenario.
+    Before this fallback, fixture mode raised "OpenCaseLaw retrieval returned
+    no decisions" for every leg question (negative evidence preserved in
+    ``results/product/reality_check/summary_fixture_20261016T165553Z.json`` and
+    ``..._20261017T055734Z.json``).
+
+    ``config_factory(top_n)`` lets a caller replay with its own live config
+    shape (e.g. ``progressive.first_page_config``).
+    """
+    legacy_cfg = fixture_config(
+        mode="offline",
+        target=min(max(40, top_n), 200),
+        max_candidates=min(max(100, top_n), 200),
+        stop_when_target_met=False,
+    )
+    out = replay_fixtures(query, config=legacy_cfg, hydrate_top=hydrate_top)
+    source = "canonical_frontier_fixture_scenario"
+    if not out.get("candidates"):
+        cfg = (config_factory or (lambda n: _retrieval_config(n, "offline")))(top_n)
+        out = replay_fixtures(query, config=cfg, hydrate_top=hydrate_top)
+        source = "product_query_cache_live_config_replay"
+    prov = out.setdefault("provenance", {})
+    prov["product_fixture_replay"] = {
+        "source": source,
+        "mode": "offline",
+        "network": "none",
+        "n_candidates": len(out.get("candidates") or []),
+    }
+    return out
+
+
 def _retrieve(
     query: str,
     top_n: int,
@@ -104,14 +157,10 @@ def _retrieve(
 ) -> dict:
     if mode == "fixture":
         # Frozen OpenCaseLaw envelopes; deterministic and network-free.
-        cfg = fixture_config(
-            mode="offline",
-            target=min(max(40, top_n), 200),
-            max_candidates=min(max(100, top_n), 200),
-            stop_when_target_met=False,
-        )
         fixture_hydrate_top = hydrate_top or len(hydrate_ids or [])
-        return replay_fixtures(query, config=cfg, hydrate_top=fixture_hydrate_top)
+        return replay_fixture_query(
+            query, top_n=top_n, hydrate_top=fixture_hydrate_top
+        )
     if mode not in {"live", "offline", "refresh"}:
         raise ValueError(f"unsupported retrieval mode: {mode}")
     cfg = _retrieval_config(top_n, mode)

@@ -90,7 +90,12 @@ def _report(slug: str, prose: str, cited: list[str] | None = None) -> dict:
             }
         },
     }
-    return {"slug": slug, "mode": "fixture", "validation_errors": [], "total_seconds": 12.0,
+    # Every test in this file runs the runner with mode="live", so the fake
+    # leg must carry the same mode run_leg() stamps on a live run. A report
+    # that claims mode="fixture" while the runner executed live is an
+    # inconsistent input: evaluate() would correctly answer with offline
+    # wiring gates instead of the frozen live gate set.
+    return {"slug": slug, "mode": "live", "validation_errors": [], "total_seconds": 12.0,
             "bundle": bundle}
 
 
