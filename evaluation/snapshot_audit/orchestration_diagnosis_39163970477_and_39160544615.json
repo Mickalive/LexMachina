@@ -1,0 +1,88 @@
+{
+  "schema": "lex-evaluation-orchestration-diagnosis/1",
+  "run_id": "39164900837",
+  "lane": "evaluation",
+  "direction_version": 57,
+  "subject_of_resume": "39163970477 ('Core evaluation dirV57 repair0'), whose persisted team snapshot is b484f4eb on refs/heads/cycle/core/evaluation/39163970477/team; its predecessor in the same failure class is 39160544615 (snapshot 814e445f). Both producers delivered durable work and both were killed by the SAME post-producer validation step.",
+  "generated_at_utc": "2026-10-18T21:24:00Z",
+  "query_method": "HYBRID. Run/job/step FACTS are read from the unauthenticated public GitHub REST API (GET /repos/Mickalive/LexMachina/actions/runs/{id} and /jobs); the raw envelope for runs 39154580055 / 39160544615 / 39163970477 / 39164900837 is captured once and COMMITTED at results/evaluation/orchestration/39164900837_rest_job_capture.json (captured_at_utc recorded in the file), so every fact in this record is re-derivable offline and byte-identically. Persisted-tree facts are read from GIT (git ls-remote / git show), never from the REST commit endpoint. Job LOGS remain HTTP 403 unauthenticated, so every statement about WHY a step ended is an INFERENCE from the step-level conclusion plus the committed tree, except where a validator is re-executed locally, which is done and labelled as such.",
+
+  "run_facts_measured_via_rest_api": {
+    "39163970477": {
+      "name": "Core evaluation dirV57 repair0",
+      "head_sha": "fef140315aa62dfbc5856fab3f8cac5184250a2d",
+      "conclusion": "failure",
+      "created_at": "2026-10-18T20:35:06Z",
+      "team_job": "FAILURE 20:35:14Z -> 20:47:09Z. Step 6 'Run lane cycle' SUCCESS (the producer ran and delivered). Step 7 'Validate active MVP producer state' FAILURE. Step 8 'Clean generated junk' success. Step 9 'Enforce lane write scope' SKIPPED (the job aborted at step 7). Step 10 'Persist team snapshot' SUCCESS - the snapshot b484f4eb was pushed to refs/heads/cycle/core/evaluation/39163970477/team and -attempt-1.",
+      "audit_job": "skipped (needs.team.result != 'success')",
+      "integrate_job": "skipped",
+      "resilience_job": "success 20:47:12Z -> 20:47:21Z; recovered the failed chain and woke the supervisor",
+      "audit_ref_present_on_origin": false,
+      "gate_file_present_at_expected_path": false
+    },
+    "39160544615": {
+      "name": "Core evaluation dirV57 repair0",
+      "head_sha": "fc6d1206e699ada5b33fd020f82ad22847744b98",
+      "conclusion": "failure",
+      "created_at": "2026-10-18T19:49:54Z",
+      "team_job": "FAILURE 19:50:00Z -> 20:32:50Z. Step 6 'Run lane cycle' SUCCESS. Step 7 'Validate active MVP producer state' FAILURE. Step 9 skipped. Step 10 SUCCESS - snapshot 814e445f.",
+      "audit_job": "skipped",
+      "integrate_job": "skipped",
+      "audit_ref_present_on_origin": false
+    },
+    "39154580055_control": {
+      "name": "Core evaluation dirV56 repair0",
+      "conclusion": "success",
+      "value": "the immediately preceding ACCEPTED cycle of this lane. team/audit/integrate/resilience all green. It is the control that proves step 7 is satisfiable: its snapshot 28879e2c advanced state/evaluation.json and the chain completed."
+    }
+  },
+
+  "root_cause_measured": {
+    "statement": "BOTH failures are the SAME defect class: the producer never advanced the CANONICAL lane state file state/evaluation.json to the dispatched direction version, and the workflow's post-producer validation step failed it.",
+    "validator": {
+      "workflow": ".github/workflows/core-lane.yml (read from origin/main, commit aa057f09) step 7 'Validate active MVP producer state'",
+      "operands": "STATE=state/evaluation.json (repo-root, lane file); requires test -s, then jq -e --argjson dirv $DIRV '(.direction_version // -1) == $dirv and (.cycle_status // \"INITIALIZED\") != \"INITIALIZED\"', else exit 69",
+      "DIRV_for_both_runs": 57
+    },
+    "measured_state_at_each_snapshot": {
+      "814e445f": {"state/evaluation.json.direction_version": 56,
+                   "evaluation/state/evaluation.json.direction_version": 56,
+                   "verdict": "FAIL - the cycle advanced the canonical file but never set direction_version to 57"},
+      "b484f4eb": {"state/evaluation.json.direction_version": 56,
+                   "evaluation/state/evaluation.json.direction_version": 57,
+                   "verdict": "FAIL - the cycle set direction_version 57 on the LANE-NAMESPACE copy evaluation/state/evaluation.json instead of the canonical state/evaluation.json the validator reads"}
+    },
+    "validator_re_executed_locally": "the jq predicate of core-lane.yml step 7 was re-run against git show b484f4eb:state/evaluation.json and exits non-zero (jq exit 1), which is the same condition the step turns into exit 69. This is a RE-EXECUTION, not a read log line.",
+    "why_the_scope_guard_did_not_catch_it": "step 9 'Enforce lane write scope' was SKIPPED in both runs because the job aborted at step 7 under set -e. Writing evaluation/state/evaluation.json is INSIDE the legal producer scope ('evaluation/*'), so even had the scope guard run it would have passed. The failure is therefore not a scope violation; it is a wrong-TARGET write to a second, parallel state file that nothing reads.",
+    "two_state_files_are_the_lure": "the repository carries BOTH state/evaluation.json (canonical: ARCHITECTURE.md 'accepted lane state: state/<lane>.json'; the file the workflow validator and the supervisor read; the file every recent accepted cycle advanced - 814e445f, 28879e2c, dbe5bc71, 00442d58, 7f399475, d5f6e48d, b5a74c7d) AND evaluation/state/evaluation.json (a lane-namespace copy last touched before direction v51 by 00442d58). Nothing in the workflow forbids the second; it is simply never read."
+  },
+
+  "failure_class": "PRODUCER_STATE_TARGET_MISPLACEMENT (post-delivery class). Both producers exited 0 and committed durable work; the death is in the workflow's own validation step, so no audit ran, no gate was written, no promotion happened, and origin/lab/evaluation has not advanced past 5f4dde37 ('accept evaluation cycle 39154580055').",
+
+  "delivered_work_not_lost": {
+    "814e445f": "results/evaluation/retrieval_counter_authority_benchmark/39160544615*.json (4 records) and reports/evaluation/RETRIEVAL_CA_BENCHMARK_39160544615.md - the falsification-proven benchmark legs, carried into this cycle's tree unchanged.",
+    "9a73fe08": "the single-envelope restore of baseline:rent-default:fr and reports/evaluation/OPERATIONAL_RESUME_39163970477.md",
+    "b484f4eb": "results/evaluation/retrieval_benchmark/39163970477.json - the producer's own offline replay record",
+    "assessment": "all of it is preserved on this branch and is re-derived in this cycle rather than thrown away. No valid completed work was discarded."
+  },
+
+  "repair_applied_this_cycle": {
+    "mechanical": "state/evaluation.json (the CANONICAL file) is advanced to direction_version 57 with a truthful cycle_status, evidence_refs and next_recommendation. This is the only thing that makes core-lane.yml step 7 exit 0 for a v57 dispatch.",
+    "collateral": "evaluation/state/evaluation.json is left in place but re-pointed at the canonical file by an explicit note, so the next producer cannot repeat the misdirection. It is NOT deleted: it is historical evidence.",
+    "not_attempted": ".github/** is control-plane scope and is NOT edited. The duplicate-state-file trap is RECORDED here as a control-plane hardening item, not patched."
+  },
+
+  "control_plane_hardening_item_for_the_maintainer": {
+    "id": "LANE_STATE_DUPLICATE_FILE_TRAP",
+    "statement": "A lane whose namespace contains its own state/<lane>.json copy can write a correct-looking update to the wrong file and silently fail every post-producer validation, because the workflow reads exactly one path and nothing forbids the second. Two mitigations, neither applied here: (a) have the producer write scope explicitly exclude '*/*/state/<lane>.json' so the wrong target is caught by the EXISTING step 9 rather than by nothing; (b) have step 9 run before the aborting step, or make step 7 report the path it read so a failure names the file it wanted.",
+    "why_now": "two consecutive cycles (39160544615, 39163970477) were lost to it and both were productive, so the cost is real and repeatable rather than hypothetical.",
+    "scope": "recorded, NOT edited from a lane"
+  },
+
+  "evidence_refs": [
+    "results/evaluation/orchestration/39164900837_rest_job_capture.json",
+    "results/audit/evaluation/CYCLE_39147977307_GATE.json",
+    "evaluation/snapshot_audit/orchestration_diagnosis_39163970477_and_39160544615.json"
+  ],
+  "discipline": "PROVENANCE TAGGED. Nothing from 39160544615 or 39163970477 is ACCEPTED evidence: neither was audited, no gate file exists for either, and neither advanced origin/lab/evaluation. Their snapshots are treated here as un-audited producer output that this cycle re-derives and corrects."
+}
