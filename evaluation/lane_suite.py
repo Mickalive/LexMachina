@@ -681,6 +681,17 @@ def run_pytest(log: _Log) -> None:
           # job reports status=completed and must not read as an audit that ran.
           # No accepted verdict, frozen file, rubric or threshold is touched.
           "tests/evaluation/test_quantum_death_ledger.py",
+          # run 39173770080 (disclosed scope extension, not a re-freeze): the
+          # operational-resume delivery. It pins the three re-hashed frozen pins,
+          # the orchestration probe's class truth-table (including the
+          # RUN_ID_ONLY_IN_COMMIT_MESSAGE class), the committed zero-delta
+          # diagnosis of run 39173551486 and its live reproduction, the additive
+          # frozen-cache digest manifest and its verifier, the F9 scratch-run
+          # isolation record with the preserved pre-fix 5/5 leak, the Item-2
+          # consumption gate, and this run's three-leg falsification benchmark.
+          # No frozen benchmark, rubric, incumbent or success rule is touched by
+          # adding the file.
+          "tests/evaluation/test_v57_resume_delivery.py",
           # run 39167917715 (disclosed scope extension, not a re-freeze): the
           # v57 open-items regression tests - frozen-benchmark input-integrity
           # pins (24/24 cache match, gate-by-gate reproduction, the 21/24 drift

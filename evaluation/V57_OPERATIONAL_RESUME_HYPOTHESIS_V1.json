@@ -1,0 +1,54 @@
+{
+  "schema": "lex-evaluation-frozen-hypothesis/1",
+  "run_id": "39173770080",
+  "lane": "evaluation",
+  "direction_version": 57,
+  "frozen_at_utc": "2026-10-18T22:58:00Z",
+  "route": "OPERATIONAL_RESUME from the persisted producer snapshot of run 39173551486 (branch cycle/core/evaluation/39173551486/team). The prior workflow FAILED; completed work is preserved, not restarted.",
+  "product_decision_unlocked": "Whether the evaluation lane can hand the query-map MVP a trustworthy verdict at all. Two of the three v57 lane deliverables are decided by this cycle: (a) whether the lane's own committed claim-bearing tree is safe to promote (orchestration/validation integrity), and (b) whether the two named SCHEDULED-NOT-DONE audit fixes F8/F9 are now done. Item 1 stays CLOSED and is NOT re-executed. Item 2 must NOT be pre-empted.",
+  "hypothesis": "The evaluation lane's ACCEPTED-SOUND EVIDENCE IS INTACT AND ITS DELIVERY PATH IS NOT: (i) run 39173551486 produced ZERO durable delta and no audit gate, so its failure is an orchestration/validation death and not a product or instrument result; (ii) the lane's committed claim-bearing result/report files are nonetheless MUTATED by the lane's own accepted test suite on every run, which is a promotion hazard independent of (i); (iii) the frozen retrieval benchmark's 24 input envelopes have NO append-only digest manifest, so a moved frozen input can only be discovered by an independent audit; and (iv) the accepted product head has NOT moved since the cycle-39167917715 coverage falsification, so re-running that falsifier now would be a zero-delta re-observation of bytes already falsified, while the handoff itself remains open.",
+  "baseline": "The committed tree at the producer snapshot tip (git 993f7618, 'evaluation cycle 39171298736 repair 1'), re-derived from git rather than from any narrative.",
+  "frozen_claim_bearing_items": {
+    "H1_ORCHESTRATION_ZERO_DELTA": {
+      "measurement": "derive from git: (a) tip of refs/heads/cycle/core/evaluation/39173551486/team, (b) the commit the branch would have started from, (c) a full-tree text search for the literal run id 39173551486 in tracked files, (d) presence of results/audit/evaluation/CYCLE_39173551486_GATE.json.",
+      "success_rule": "S1_ZERO_DELTA_CONFIRMED := the snapshot tip equals the prior accepted tip AND no tracked file references the run id. Recorded as the diagnosis, with the class named (TEAM_JOB_ZERO_COMMIT__AUDIT_SKIPPED__NO_GATE_FILE).",
+      "failure_rule": "If the tip differs from the prior tip, the claim is REFUTED and this cycle must treat 39173551486 as delivered work instead."
+    },
+    "H2_SCRATCH_RUN_MUTATES_COMMITTED_RESULTS_F9": {
+      "measurement": "sha256 of the 5 committed artifacts (4 results + 1 report) before and after ONE invocation of the exact command the accepted test tests/evaluation/test_benchmark_retrieval_counter_authority.py runs, plus git status --porcelain.",
+      "success_rule": "S2_REPRODUCED := n_mutated_of_5 >= 1 at the producer-snapshot tip. The fix must then make n_mutated_of_5 == 0 for the same command under the fixed test.",
+      "failure_rule": "n_mutated_of_5 == 0 means the accepted convention (remove scratch artifacts before commit) is sufficient and F9 is CLOSED-NOT-A-DEFECT; no edit may be made on that ground."
+    },
+    "H3_NO_CACHE_DIGEST_MANIFEST_F8": {
+      "measurement": "absence/presence of any committed append-only manifest that pins the 24 frozen cache-envelope body digests outside evaluation/retrieval_gate/FREEZE_RECORD.json.",
+      "success_rule": "S3_ABSENT_CONFIRMED := no such manifest exists AND the accepted cache digest is recovered 24/24 from the committed envelopes against the accepted run of record 39098571937. The new additive manifest is then published under results/evaluation/.",
+      "binding_constraint": "evaluation/retrieval_gate/FREEZE_RECORD.json MUST re-hash to b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49 and must not be edited. The audit's literal wording (write the manifest INTO FREEZE_RECORD.json) is therefore inadmissible; a separate additive file is the only admissible route.",
+      "failure_rule": "A FREEZE_RECORD.json edit, or any n_match < 24, is a FAIL and is reported as such."
+    },
+    "H4_ITEM2_HANDOFF_STATUS": {
+      "measurement": "the git head of the mounted accepted product branch /tmp/lex_accepted/product, compared against accepted_product_head pinned in the last executed falsification record.",
+      "success_rule": "S4_STATUS_DERIVED := head unchanged => CONSUMPTION_BLOCKED_ON_PRODUCT (re-running is zero-delta, the handoff stays open); head changed => CONSUME_NOW.",
+      "prohibition": "This cycle MUST NOT execute evaluation/coverage_finding_falsification.py against the unchanged head. Pre-empting the handoff is a required fix, not a judgement call."
+    },
+    "H5_FAST_MVP_FALSIFICATION_BENCHMARK": {
+      "measurement": "python -m evaluation.benchmark_retrieval_counter_authority --run-id 39173770080, three legs over the accepted-product mount.",
+      "success_rule": "S5_BENCHMARK_EXECUTES := leg1 exit 0 / PASS_NO_REGRESSION, leg2 exit 1 / FAIL_REGRESSION, leg3 exit 1 / FAIL_REGRESSION, combined exit 0 and falsification_proven true.",
+      "claim_ceiling": "BENCHMARK_VALID_NO_FALSIFICATION proves only that the served packet does not regress below the recomputed incumbents and that both frozen gates can fail a deliberately regressed input. It is NOT a bar met, NOT a UX claim and NOT a human-gate unblock. Exit 2 (ENVIRONMENT_OR_VACUOUS) is never a pass.",
+      "failure_rule": "Any non-zero combined exit is reported verbatim, never smoothed."
+    }
+  },
+  "standing_constraints_verbatim": [
+    "No frozen bar, rubric, threshold, incumbent, benchmark or success rule is edited, regenerated, re-derived or re-tuned.",
+    "RULES_LABEL.json stays 4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608; RULES_GEOMETRY.json stays a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633; the frozen retrieval benchmark stays 187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72 with freeze record b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49.",
+    "No obsolete universal-174k geometry benchmark is re-run.",
+    "human_gate_ready stays false; both accepted DO-NOT-SERVE orders stand; no owner question is authorised.",
+    "Zero network calls against the live OpenCaseLaw endpoint are made by this cycle; the accepted-product mount and the committed frozen cache are read-only inputs.",
+    "Any scratch/ephemeral artefact is written outside results/evaluation/ and reports/evaluation/, or is provably byte-identical on repeat."
+  ],
+  "honest_pre_execution_disclosure": {
+    "peeked_before_this_file_was_written": ["H2_SCRATCH_RUN_MUTATES_COMMITTED_RESULTS_F9", "H5_FAST_MVP_FALSIFICATION_BENCHMARK"],
+    "what_was_seen": "A scratch invocation of the F9 command was run once to locate which committed files it mutates, and once with --run-id 39173770080 to confirm the mount is live. H2 and H5 are therefore EXPLORATORY until re-measured under the instrument below; the re-measurement is the record of record, not the peek.",
+    "not_peeked": ["H1_ORCHESTRATION_ZERO_DELTA", "H3_NO_CACHE_DIGEST_MANIFEST_F8", "H4_ITEM2_HANDOFF_STATUS"]
+  },
+  "stop_rule": "If H1 is refuted (the prior run did deliver), stop and re-plan: this hypothesis would be measuring the wrong thing. If H5 returns non-zero, the product verdict is reported verbatim and the cycle still completes the F8/F9 work, because an instrument failure is not a reason to lose a delivery."
+}

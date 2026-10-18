@@ -1,0 +1,88 @@
+{
+ "schema": "lex-evaluation-orchestration-probe/1",
+ "subject_run_id": "39173551486",
+ "subject_branch": "origin/cycle/core/evaluation/39173551486/team",
+ "measured_for_run_id": "39173770080",
+ "route": "OPERATIONAL_RESUME from the persisted producer snapshot of run 39173551486",
+ "branch_tip": "993f76189d18d1179e52e1ca327a60b1c65750e2",
+ "git_tree": "1dddcbaf5acbe5971d26e60a2795a2fb044ed066",
+ "tip_subject": {
+  "commit": "993f76189d18d1179e52e1ca327a60b1c65750e2",
+  "short": "993f7618",
+  "committed_at": "2026-10-18T22:44:25Z",
+  "author": "lex-evaluation-team",
+  "subject": "evaluation cycle 39171298736 repair 1"
+ },
+ "lineage_seed_commit": "993f76189d18d1179e52e1ca327a60b1c65750e2",
+ "tip_moved_versus_seed": false,
+ "commits_naming_run_id": [],
+ "n_commits_naming_run_id": 0,
+ "tracked_files_naming_run_id": [],
+ "n_tracked_files_naming_run_id": 0,
+ "audit_gate_path": "results/audit/evaluation/CYCLE_39173551486_GATE.json",
+ "audit_gate_present": false,
+ "durable_delta": {
+  "files_changed_versus_seed": []
+ },
+ "derived_class": "TEAM_JOB_ZERO_COMMIT__AUDIT_SKIPPED__NO_GATE_FILE",
+ "class_glossary": {
+  "TEAM_JOB_ZERO_COMMIT__AUDIT_SKIPPED__NO_GATE_FILE": "the snapshot tip is unchanged from the lineage's previous tip and no tracked file references the run id: the producer delivered nothing, so needs.team was not success, the audit job was skipped and no gate exists. A skipped audit job reports status=completed; this class exists so that is never read as an audit that ran.",
+  "TEAM_JOB_DELIVERED__AUDIT_GATE_PRESENT": "tracked files reference the run id and its gate file is in the tree: the run is deliverable and was audited.",
+  "TEAM_JOB_DELIVERED__AUDIT_GATE_ABSENT": "tracked files reference the run id but no gate file exists: the run delivered and the audit did not produce a verdict for it.",
+  "TEAM_JOB_DELIVERED__RUN_ID_ONLY_IN_COMMIT_MESSAGE": "a commit carries the run id but no tracked file does: the persist step recorded the cycle while the tree itself was unchanged."
+ },
+ "measured_at_utc": "2026-10-18T22:57:28Z",
+ "frozen_hypothesis": "evaluation/V57_OPERATIONAL_RESUME_HYPOTHESIS_V1.json",
+ "frozen_hypothesis_sha256": "05090bf25aba90fb08718edd11a22642f5c6c62be5c7da6814901137b14bb3e1",
+ "diagnosis": "Run 39173551486 produced ZERO durable delta. Its dispatched snapshot branch points at 993f7618, whose commit message names run 39171298736, not 39173551486; no commit on any ref carries 39173551486; no tracked file in that tree contains the string 39173551486; and no audit gate file exists for it. Under .github/workflows/core-lane.yml the audit job is gated on needs.team.result == 'success', so a team job that committed nothing and ended non-success SKIPS the audit job. A skipped GitHub job reports status=completed, so the absence of a gate is the only machine evidence that no audit ran - which is why this probe exists rather than a line in a report.",
+ "consequence_for_this_lane": "The silence teaches the factory nothing about retrieval, counter-authority recall, label or geometry soundness, or the query map. It must not be recorded as a product or instrument result, and the lane must NOT restart from scratch. Item 1 of direction v57 was already CLOSED by run 39164900837 and Item 2's last executed falsification is preserved; this cycle resumes from those.",
+ "what_this_cycle_instead_delivered": [
+  "F8 closed: additive frozen-cache digest manifest + verifier (evaluation/retrieval_cache_digest_manifest.py)",
+  "F9 closed: scratch benchmark runs can no longer rewrite committed evidence (evaluation/scratch_output_isolation.py + --out-dir/--report-dir)",
+  "Item 2 consumption gate: evaluation/coverage_handoff_status.py names the blocking object instead of re-observing unchanged bytes",
+  "FAST MVP retrieval/counter-authority falsification benchmark re-executed for this run id"
+ ],
+ "claim_ceiling": "Orchestration only. A zero-delta run says nothing about retrieval, counter-authority recall, label soundness, geometry soundness or jurist usefulness, and is never recorded as a product or instrument result.",
+ "selftest": {
+  "schema": "lex-evaluation-orchestration-probe-selftest/1",
+  "cases": [
+   {
+    "tip_moved": false,
+    "files_name_run": false,
+    "commit_names_run": false,
+    "gate_present": false,
+    "expected": "TEAM_JOB_ZERO_COMMIT__AUDIT_SKIPPED__NO_GATE_FILE",
+    "observed": "TEAM_JOB_ZERO_COMMIT__AUDIT_SKIPPED__NO_GATE_FILE",
+    "passed": true
+   },
+   {
+    "tip_moved": true,
+    "files_name_run": true,
+    "commit_names_run": true,
+    "gate_present": true,
+    "expected": "TEAM_JOB_DELIVERED__AUDIT_GATE_PRESENT",
+    "observed": "TEAM_JOB_DELIVERED__AUDIT_GATE_PRESENT",
+    "passed": true
+   },
+   {
+    "tip_moved": true,
+    "files_name_run": true,
+    "commit_names_run": true,
+    "gate_present": false,
+    "expected": "TEAM_JOB_DELIVERED__AUDIT_GATE_ABSENT",
+    "observed": "TEAM_JOB_DELIVERED__AUDIT_GATE_ABSENT",
+    "passed": true
+   },
+   {
+    "tip_moved": true,
+    "files_name_run": false,
+    "commit_names_run": true,
+    "gate_present": false,
+    "expected": "TEAM_JOB_DELIVERED__RUN_ID_ONLY_IN_COMMIT_MESSAGE",
+    "observed": "TEAM_JOB_DELIVERED__RUN_ID_ONLY_IN_COMMIT_MESSAGE",
+    "passed": true
+   }
+  ],
+  "all_passed": true
+ }
+}

@@ -43,6 +43,16 @@ Combined exit codes (aligned with run_bar_gates / VERDICT_CONTRACT.json):
 
 No Product code is imported. No network is used. No frozen file is written.
 The accepted-product mount at /tmp/lex_accepted is read-only input.
+
+SCRATCH-RUN OBLIGATION (audit CYCLE_39164900837 F9)
+---------------------------------------------------
+A claim-bearing cycle writes its records to the committed defaults below.  A
+SCRATCH invocation (a unit test, a local poke, a retry) MUST pass ``--out-dir``
+and ``--report-dir``; otherwise it overwrites committed claim-bearing records in
+``results/evaluation/retrieval_counter_authority_benchmark/`` and
+``reports/evaluation/``.  That is not a style rule: the overwritten files are
+picked up by the workflow's ``git add -A`` persist step and land in the promoted
+snapshot, so a unit test silently becomes part of the accepted evidence.
 """
 from __future__ import annotations
 
@@ -172,6 +182,18 @@ def _leg_summary(leg_id: str, rc: int, record: dict | None, expected_rc: int) ->
     else:
         out["record"] = None
     return out
+
+
+def _rel_or_abs(path: Path) -> str:
+    """Repo-relative when the file landed inside the repo, absolute otherwise.
+
+    A scratch run that redirects --out-dir must not print a committed-tree
+    path in its own report; the path it names has to be the path it wrote.
+    """
+    try:
+        return str(path.resolve().relative_to(_REPO_ROOT.resolve()))
+    except ValueError:
+        return str(path)
 
 
 def run_benchmark(run_id: str, out_dir: Path, report_dir: Path) -> tuple[int, dict]:
@@ -337,7 +359,7 @@ def run_benchmark(run_id: str, out_dir: Path, report_dir: Path) -> tuple[int, di
         "NOT meet the absolute LABEL_SOUND / GEOMETRY_SOUND bars, and does NOT "
         "unblock the human gate (standing accepted DO-NOT-SERVE order).",
         "",
-        f"Machine record: `results/evaluation/retrieval_counter_authority_benchmark/{run_id}.json`",
+        f"Machine record: `{_rel_or_abs(combined_path)}`",
     ]
     report_path = report_dir / f"RETRIEVAL_CA_BENCHMARK_{run_id}.md"
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -345,14 +367,29 @@ def run_benchmark(run_id: str, out_dir: Path, report_dir: Path) -> tuple[int, di
     return exit_code, record
 
 
+#: Default committed destinations.  Claim-bearing runs write HERE; a scratch run
+#: must pass --out-dir/--report-dir instead (audit CYCLE_39164900837 F9).
+DEFAULT_OUT_DIR = _REPO_ROOT / "results/evaluation/retrieval_counter_authority_benchmark"
+DEFAULT_REPORT_DIR = _REPO_ROOT / "reports/evaluation"
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--run-id", default=None,
                     help="run id for result/report filenames (default: $GITHUB_RUN_ID or 'local')")
+    ap.add_argument("--out-dir", default=None,
+                    help="directory for the machine records "
+                         "(default: the committed results/evaluation/ tree). "
+                         "A scratch/ad-hoc invocation MUST override this so it "
+                         "cannot rewrite a committed claim-bearing record.")
+    ap.add_argument("--report-dir", default=None,
+                    help="directory for the human-readable report "
+                         "(default: the committed reports/evaluation/ tree). "
+                         "Same scratch-run obligation as --out-dir.")
     args = ap.parse_args(argv)
     run_id = args.run_id or __import__("os").environ.get("GITHUB_RUN_ID", "local")
-    out_dir = _REPO_ROOT / "results" / "evaluation" / "retrieval_counter_authority_benchmark"
-    report_dir = _REPO_ROOT / "reports" / "evaluation"
+    out_dir = Path(args.out_dir) if args.out_dir else DEFAULT_OUT_DIR
+    report_dir = Path(args.report_dir) if args.report_dir else DEFAULT_REPORT_DIR
     exit_code, record = run_benchmark(run_id, out_dir, report_dir)
     print(json.dumps({
         "verdict": record.get("verdict"),
