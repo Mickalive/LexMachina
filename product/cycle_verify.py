@@ -561,10 +561,76 @@ def check_git_scope() -> list[dict]:
     }]
 
 
+def check_relation_direction() -> list[dict]:
+    """A shared_citation edge states the co-citation in French, never the raw token.
+
+    Re-derived live (never asserted): the real offline pipeline output for the
+    leg whose relations are shared_citation-only is written to a scratch file
+    and run through the REAL page contract (verify_query_page.js + query.html).
+    The check fails if the fixture stops carrying the edge kind under test
+    (non-vacuity), if the page contract fails, or if either direction
+    assertion is not present as an ok line.
+    """
+    import shutil
+    import tempfile
+
+    from product.offline_slice import build_bundle
+
+    bundle = build_bundle("petty-theft-dismissal", 100, enrich=True)
+    relations = bundle.get("relations") or []
+    shared = [r for r in relations if r.get("kind") == "shared_citation"]
+    if not shared:
+        return [_fail(
+            "the shared_citation leg still carries the edge kind under test",
+            f"kinds={sorted({r.get('kind') for r in relations})}")]
+    node = shutil.which("node")
+    if node is None:
+        return [_fail("node runs the page contract", "node not found")]
+    with tempfile.TemporaryDirectory() as tmp:
+        local = Path(tmp) / "bundle.json"
+        local.write_text(json.dumps(bundle, ensure_ascii=False), encoding="utf-8")
+        try:
+            proc = subprocess.run(  # noqa: S603
+                [node, str(REPO_ROOT / "product" / "verify_query_page.js"), str(local)],
+                capture_output=True, text=True, cwd=str(REPO_ROOT),
+                timeout=300, check=False,
+            )
+        except Exception as exc:  # pragma: no cover
+            return [_fail("the page contract runs", f"{type(exc).__name__}: {exc}")]
+    out = proc.stdout or ""
+    return [
+        {
+            "claim": "the real shared_citation bundle passes the page contract",
+            "status": "PASS" if proc.returncode == 0 and "FAIL" not in out else "FAIL",
+            "observed": {"returncode": proc.returncode,
+                         "n_shared_citation_edges": len(shared),
+                         "last_line": out.strip().splitlines()[-1] if out.strip() else ""},
+        },
+        {
+            "claim": "the detail panel states the citation direction",
+            "status": "PASS" if "ok - detail panel states the citation direction" in out
+            else "FAIL",
+            "observed": "assertion label present as ok in the page contract output",
+            "definition_source": "product/verify_query_page.js section 5",
+        },
+        {
+            "claim": "a shared_citation edge states the co-citation in French, "
+                     "never the raw machine token",
+            "status": "PASS"
+            if ("ok - a shared_citation edge states the co-citation in French and names the shared authority" in out
+                and "ok - the raw relation-kind token never reaches the jurist-facing panel" in out)
+            else "FAIL",
+            "observed": "both synthetic line-level assertions present as ok",
+            "definition_source": "product/static/query.html relLine (shared_citation branch)",
+        },
+    ]
+
+
 CHECKS: dict[str, Callable[[], list[dict]]] = {
     "slice": check_slice_and_page_contract,
     "counter": check_counter_authority_counts,
     "relation": check_relation_channel,
+    "relation_direction": check_relation_direction,
     "posture": check_fail_closed_posture,
     "owner_question": check_no_owner_question,
     "tracked": check_tracked_results_not_mutated,
