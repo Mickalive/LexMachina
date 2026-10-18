@@ -644,7 +644,23 @@ def run_pytest(log: _Log) -> None:
          # verdict file, no accepted verdict is overwritten, no frozen rubric,
          # threshold, bar or incumbent is touched, and the frozen retrieval spec,
          # the accepted baseline record and the v1 record are read-only inputs.
-         "tests/evaluation/test_subject_match_audit.py"],
+          "tests/evaluation/test_subject_match_audit.py",
+          # run 39120832665 (disclosed scope extension, not a re-freeze): the
+          # question-native concept-gap DISCLOSURE transfer instrument that
+          # measures whether the accepted 39113690481 disclosure defect of
+          # packet 38839347028 transferred to the REBUILT packet
+          # rebuilt-39027045675 (same three frozen qids; scored-population
+          # transfer under the standing 'no new spec' rule). It pins the frozen
+          # hypothesis's exploratory-peek disclosure, the five non-vacuity
+          # controls, the disclosure predicate's substring markers, the accepted
+          # record's own verdict and per-qid zero sets, and zero network.
+          # POST-FREEZE ADDITION in the sense of evaluation/retrieval_gate/
+          # id_hygiene.py: no gate is added to any frozen verdict file, no
+          # accepted verdict is overwritten, no frozen rubric, threshold, bar or
+          # incumbent is touched, and the accepted subject_match_audit
+          # instrument plus the rebuilt packet's committed bytes are read-only
+          # inputs.
+          "tests/evaluation/test_question_native_transfer.py"],
         cwd=str(_LANE_ROOT), capture_output=True, text=True, timeout=900)
     tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
     log.add("active lane pytest suite", proc.returncode == 0, tail[0])
