@@ -672,7 +672,15 @@ def run_pytest(log: _Log) -> None:
           # 10 rebuilt-packet pins against the frozen hypothesis and match, and
           # the primary record's pin COUNT must stay 13 (the false 14/14
           # provenance claim of 034f2043 must not recur).
-          "tests/evaluation/test_secondary_source_fallback.py"],
+          "tests/evaluation/test_secondary_source_fallback.py",
+          # run 39137732712 (disclosed scope extension, not a re-freeze): the
+          # quantum-death ledger's own regression test. It is pure-function plus
+          # committed-record pinning, needs NO network (the REST envelope is a
+          # committed capture and the tree facts come from the local object
+          # store), and it pins the load-bearing correction that a SKIPPED audit
+          # job reports status=completed and must not read as an audit that ran.
+          # No accepted verdict, frozen file, rubric or threshold is touched.
+          "tests/evaluation/test_quantum_death_ledger.py"],
         cwd=str(_LANE_ROOT), capture_output=True, text=True, timeout=900)
     tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
     log.add("active lane pytest suite", proc.returncode == 0, tail[0])

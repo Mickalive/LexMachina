@@ -1,0 +1,56 @@
+{
+  "schema": "lex-evaluation-quantum-death-ledger-hypothesis/1",
+  "frozen_at_utc": "2026-10-18T15:05:00Z",
+  "frozen_by_run_id": "39137732712",
+  "lane": "evaluation",
+  "direction_version": 56,
+  "why_this_instrument_exists": "Direction v56 names AUDIT STARVATION, not a missing measurement, as this lane's blocker: producer steps die and the audit job (gated on needs.team.result == 'success') never runs. Every previously recorded diagnosis of that class (orchestration_diagnosis_39064497606.json F4, 39076123103, 39072968899, 39092033997) established the POST_DELIVERY variant - the producer wrote a complete durable delta and was killed at ~2703-2704 s before exit 0. Run 39134286491 is a DIFFERENT measured class: its producer step consumed the whole 2704 s quantum and the workflow's own 'Persist team snapshot' step (git switch -C / git add -A / git commit || true / git push --force, core-lane.yml:146-161), which SUCCEEDED at 14:49:31Z, left BOTH refs cycle/core/evaluation/39134286491/team and .../team-attempt-1 at 904aff83, which is byte-identical to the accepted lane head. That is a ZERO-DELTA quantum death. If the two classes are conflated, the control-plane remedy (finish and exit 0) is aimed at the wrong half of the population. This ledger measures how many dispatches of each class occurred; it never re-measures a frozen bar and never adjudicates any packet.",
+  "hypothesis_H1": "Among the frozen evaluation dispatch population, the producer step's outcome is not a single class: at least one dispatch died at the work quantum with a NON-EMPTY persisted delta (post-delivery) and at least one died at the work quantum with an EMPTY persisted delta (zero-delta), and the audit job ran for none of the quantum deaths.",
+  "population_frozen": {
+    "how_drawn": "GET /repos/Mickalive/LexMachina/actions/workflows/core-lane.yml/runs?branch=main&per_page=60 (public, unauthenticated), filtered to name == 'Core evaluation dirV56 *' with created_at >= 2026-10-18T07:00:00Z. The run-id LIST was fixed from that response BEFORE any per-run commit or file-set was inspected.",
+    "run_ids": [
+      "39104154685",
+      "39106938175",
+      "39109815075",
+      "39111232991",
+      "39113690481",
+      "39115755033",
+      "39117425713",
+      "39118290208",
+      "39120832665",
+      "39123055362",
+      "39126342512",
+      "39127490129",
+      "39130892266",
+      "39134286491"
+    ],
+    "n": 14,
+    "disclosure": "this population is the dispatches of ONE lane under ONE direction version in ONE day. It is not a sample of the factory and no rate here generalises beyond it. The last element 39134286491 is the run this cycle resumes; the other 13 are the comparison set."
+  },
+  "definitions_frozen": {
+    "producer_step": "core-lane.yml team job step 6, named 'Run lane cycle'.",
+    "quantum_death": "step 6 conclusion == 'failure' AND (completed_at - started_at) >= 2700 s.",
+    "producer_commit_present": "the persisted team ref's head commit message begins with 'evaluation cycle <run_id>' (core-lane.yml:159 writes exactly that subject). A head commit whose message is instead an 'accept evaluation cycle <other_run>' commit means the persist step's 'git add -A' found nothing to commit and 'git commit ... || true' was a no-op, i.e. the persisted snapshot carries ZERO delta over the lane base it was built from.",
+    "persisted_delta_files": "the file list of the producer commit when one exists (GET /repos/{o}/{r}/commits/{sha}); [] when it does not.",
+    "audit_ran": "the 'audit' job of the run has status 'completed' (not 'skipped').",
+    "gate_of_record": "a results/audit/evaluation/CYCLE_<run_id>_GATE.json exists on origin/cycle/core/evaluation/<run_id>/audit.",
+    "classification": {
+      "POST_DELIVERY_QUANTUM_DEATH": "quantum_death AND producer_commit_present",
+      "ZERO_DELTA_QUANTUM_DEATH": "quantum_death AND NOT producer_commit_present",
+      "OTHER_FAILURE": "step 6 failed for a reason other than the quantum duration",
+      "PRODUCER_SUCCESS": "step 6 conclusion == 'success'"
+    }
+  },
+  "success_rule_frozen": {
+    "rule": "H1 is SUPPORTED iff at least one run classifies as POST_DELIVERY_QUANTUM_DEATH AND at least one classifies as ZERO_DELTA_QUANTUM_DEATH AND every quantum_death run has audit_ran == false.",
+    "on_support": "the two classes must be reported SEPARATELY in the report and in state; the previously published post-delivery-only narrative is then shown to be incomplete, and the control-plane hardening item is stated for the zero-delta half (which the 'finish and exit 0' remedy does not address).",
+    "on_refutation": "report H1 REFUTED and keep the prior post-delivery-only account; do not relabel anything.",
+    "what_this_never_does": "it never edits a rubric, threshold, bar, benchmark, baseline, success rule, packet or frozen file; it never adjudicates a packet; it never changes human_gate_ready; it never accepts or rejects a Frontier verdict; it does not certify that a product is correct. No number here may be moved to a higher evidence tier than MEASURED-OPERATIONS."
+  },
+  "what_would_falsify_this_hypothesis_besides_the_rule": "If the REST commit endpoint were rate-limited or partially unavailable, per-run classification could be inferred from a missing response rather than measured; the instrument must therefore record, per run, whether each fact was MEASURED or UNAVAILABLE, and must NOT classify a run whose producer_commit fact is UNAVAILABLE.",
+  "reused_not_rederived": {
+    "workflow_step_lineage": ".github/workflows/core-lane.yml read from this checkout (lines 104-121 producer step, 123-144 write scope, 146-161 persist step, 163-166 audit job gate)",
+    "prior_diagnoses": "evaluation/snapshot_audit/orchestration_diagnosis_{39064497606,39072968899,39076123103}.json are READ for comparison only and are not modified",
+    "no_benchmark_rerun": "no frozen-bar gate, reality benchmark, retrieval gate, rebuilt-packet adjudication, BJR leg or universal-174k suite is executed by this instrument"
+  }
+}

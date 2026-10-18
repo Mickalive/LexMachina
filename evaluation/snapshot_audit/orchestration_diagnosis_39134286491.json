@@ -1,0 +1,113 @@
+{
+  "schema": "lex-evaluation-orchestration-diagnosis/1",
+  "run_id": "39137732712",
+  "lane": "evaluation",
+  "direction_version": 56,
+  "subject_of_resume": "39134286491 (Core evaluation dirV56 repair0)",
+  "generated_at_utc": "2026-10-18T15:12:00Z",
+  "query_method": "HYBRID, and this round's REST path is stronger than the ones recorded before it. The unauthenticated public GitHub REST API is reachable from this checkout and returns run/job/step FACTS (GET /repos/Mickalive/LexMachina/actions/runs/{id} and /jobs) unauthenticated; the raw envelope for all 14 runs of the comparison population was captured once and is COMMITTED at results/evaluation/orchestration/rest_job_capture.json (captured_at_utc 2026-10-18T14:58:39Z), so the ledger is re-derivable offline and byte-identically. Persisted-tree facts are read from GIT (git ls-remote on the cycle refs, git log on the head object) rather than from the REST commit endpoint, because the unauthenticated REST budget is 60 requests/hour and was measured exhausted (HTTP 403, remaining=0) mid-diagnosis. Job LOGS remain HTTP 403 unauthenticated (re-probed this round: GET .../logs -> 403 'Must have admin rights to Repository.'), so every statement about WHY the producer step ended is an INFERENCE from the measured duration arithmetic plus the persisted tree, never a read log line.",
+  "run_facts_measured_via_rest_api": {
+    "run_id": "39134286491",
+    "name": "Core evaluation dirV56 repair0",
+    "event": "workflow_dispatch",
+    "status": "completed",
+    "conclusion": "failure",
+    "run_attempt": 1,
+    "head_sha": "fbf59fd46a6ae6dc6632e610dabf32f2ca062d02",
+    "created_at": "2026-10-18T14:03:37Z",
+    "updated_at": "2026-10-18T14:49:47Z",
+    "team_job": {
+      "started_at": "2026-10-18T14:03:43Z",
+      "completed_at": "2026-10-18T14:49:35Z",
+      "conclusion": "failure",
+      "steps": {
+        "step_6_run_lane_cycle": "14:04:27Z -> 14:49:31Z = 2704 s, conclusion=failure",
+        "step_7_validate_active_mvp_producer_state": "skipped (gated on the producer step's success)",
+        "step_8_clean_generated_junk": "success 14:49:31Z",
+        "step_9_enforce_lane_write_scope": "skipped (gated on the producer step's success)",
+        "step_10_persist_team_snapshot": "success 14:49:31Z -> 14:49:34Z (if: always())"
+      }
+    },
+    "audit_job": "skipped (needs.team + `if: needs.team.result == 'success'` at core-lane.yml:163-165; the team job failed)",
+    "integrate_job": "skipped",
+    "resilience_job": "success 14:49:38Z -> 14:49:46Z; recovered the failed chain and dispatched this resume run",
+    "audit_ref_present_on_origin": false,
+    "measurement_caveat_rest_api": "the REST API reports a SKIPPED job as status=completed, conclusion=skipped. Any predicate that reads job STATUS instead of job CONCLUSION reports this run's skipped audit as an audit that ran. This record reads conclusion; the mistake is pinned in tests/evaluation/test_quantum_death_ledger.py::test_a_skipped_audit_job_is_not_an_audit_that_ran."
+  },
+  "tree_evidence": {
+    "subject_team_ref": "origin/cycle/core/evaluation/39134286491/team",
+    "subject_team_head": "904aff83480b4483be81ef32a6460d3f1c5bcfe8",
+    "subject_team_head_subject": "accept evaluation cycle 39123055362",
+    "subject_team_head_committer": "lex-integrator <lex-integrator@autonomous.local>",
+    "subject_team_head_authored_at_utc": "2026-10-18T12:08:35Z",
+    "attempt_sibling_ref": "origin/cycle/core/evaluation/39134286491/team-attempt-1 = 904aff83480b4483be81ef32a6460d3f1c5bcfe8 (the same commit)",
+    "delta_vs_lane_base": [],
+    "reading": "the workflow's OWN Persist team snapshot step (core-lane.yml:146-161: git switch -C, git add -A, git commit ... || true, git push --force) ran and SUCCEEDED, and it force-pushed both refs to 904aff83, which is the accepted lane head 'accept evaluation cycle 39123055362' authored 12:08:35Z by the INTEGRATOR - i.e. the exact tree the dispatch started from. `git add -A` staged nothing, the commit was the `|| true` no-op, and the two force pushes re-published the unchanged head. The subject run therefore delivered ZERO durable delta.",
+    "this_is_not_the_post_delivery_class": "orchestration_diagnosis_39064497606.json F4, _39072968899.json F1 and _39076123103.json F1 all describe runs whose producer wrote a complete deliverable and were killed at ~2703-2704 s. The subject has the SAME duration and a DIFFERENT tree. Conflating them would aim the 'finish and exit 0' remedy at the wrong half of the population."
+  },
+  "findings": {
+    "F1_subject_is_a_zero_delta_quantum_death_not_a_post_delivery_death": {
+      "holds": true,
+      "measured": "step 6 ran 2704 s and failed; the persist step then succeeded with zero staged paths and both pushed refs at 904aff83 = the accepted lane head, authored 12:08:35Z by lex-integrator, 1 h 55 min BEFORE the producer step started (14:04:27Z).",
+      "reading": "a producer commit for this run does not exist on origin. Whatever the agent wrote in those 2704 s was either never written to a tracked lane path or was never staged; the persisted snapshot is indistinguishable from the base."
+    },
+    "F2_audit_starvation_holds_for_BOTH_classes": {
+      "holds": true,
+      "measured": "in the frozen 14-run population, 3 runs died at the quantum (>= 2700 s, step 6 failure) and every one of the 3 has audit_job.conclusion == 'skipped' and no audit ref on origin: 39104154685 (2704 s, 29-file delta), 39106938175 (2703 s, 0-file delta), 39134286491 (2704 s, 0-file delta).",
+      "reading": "the mechanism recorded in factory-wide requirement 10 and in _39076123103.json F2 - the audit job is gated on the producer step's exit code, so a producer death converts a delivered tree into an ungated tree - is confirmed and is shown NOT to be specific to the post-delivery class."
+    },
+    "F3_the_zero_delta_class_has_a_distinct_and_smaller_remedy_surface": {
+      "holds": true,
+      "measured": "2 of the 3 quantum deaths in the population (39106938175, 39134286491) persisted a tree byte-identical to their base; both landed on a head commit authored BEFORE the producer step began.",
+      "reading": "for this half, 'finish the work and exit 0' is necessary but not sufficient: the work itself was absent. The control-plane remedy that distinguishes them is to make the producer step's completion observable - surface the run-ox-with-retry.sh exit code as a step output, as already recorded in control_plane_gaps_recorded_not_patched_39043684319 - so that a zero-delta producer and a post-delivery producer can be told apart without job logs (which are 403). Recorded, NOT patched: .github/** is control-plane scope."
+    },
+    "F4_a_fourth_death_is_NOT_CLASSIFIED_and_stays_that_way": {
+      "holds": true,
+      "measured": "39130892266 ran step 6 for 2704 s and failed with audit skipped, but refs/heads/cycle/core/evaluation/39130892266/team is ABSENT on origin; only its sibling team-attempt-1 exists, at b44b37a43522c6e793df7579de3ed726a6d5771b.",
+      "reading": "it is not counted in either class. Its tree is not the base (its attempt ref is not the accepted head), so it is the one case where the producer DID write and the ref itself is missing - a third, distinct failure shape. It is reported as NOT_CLASSIFIED rather than guessed into either class, and it is the only producer step in the population whose classification is unavailable rather than negative."
+    },
+    "F5_the_direction_is_answered_and_the_lane_has_no_new_measurement_to_make": {
+      "holds": true,
+      "measured": "state/evaluation.json at the accepted head 904aff83 reads cycle_status COMPLETE_QUESTION_NATIVE_DISCLOSURE_DEFECT_TRANSFERRED_TO_REBUILT_PACKET, continue_recommended=false, next_recommendation PRODUCTIZE (one disclosure emission in product/query/gate_admissibility.py).",
+      "reading": "consistent with direction v56's closing line ('If a re-dispatch would contain no new Product bytes and no successor deliverable from this list, do not issue it'). This cycle therefore measures the ORCHESTRATION, not a benchmark, and hands Product nothing new to implement: the successor deliverable named at the accepted head is unchanged by this record."
+    }
+  },
+  "population_ledger": {
+    "instrument": "evaluation/quantum_death_ledger.py",
+    "frozen_hypothesis": "evaluation/QUANTUM_DEATH_LEDGER_HYPOTHESIS.json",
+    "hypothesis_sha256": "cfadbd4d904c5493bcb8d949a90db592af6684516029166b6256bff5fe3883c4",
+    "record": "results/evaluation/orchestration/39137732712_quantum_death_ledger.json",
+    "raw_rest_capture": "results/evaluation/orchestration/rest_job_capture.json",
+    "h1_verdict": "SUPPORTED",
+    "classification_counts": {"POST_DELIVERY_QUANTUM_DEATH": 1, "ZERO_DELTA_QUANTUM_DEATH": 2,
+                              "PRODUCER_SUCCESS": 10, "NOT_CLASSIFIED": 1},
+    "note": "14 runs of ONE core lane under ONE direction version inside ONE day. No rate here generalises beyond that population, and the instrument says so in its own claim_ceiling."
+  },
+  "superseded_first_execution": {
+    "produced_at_utc": "2026-10-18T14:59:00Z",
+    "h1_verdict": "REFUTED",
+    "classification_counts": {"POST_DELIVERY_QUANTUM_DEATH": 1, "ZERO_DELTA_QUANTUM_DEATH": 1,
+                              "PRODUCER_SUCCESS": 10, "NOT_CLASSIFIED": 2},
+    "why_superseded": "the first execution computed audit_ran from the job STATUS field, which GitHub also reports for SKIPPED jobs, so it recorded audit_ran=true for all 14 runs including the 3 starved ones; and its persisted-tree column read the REST commit endpoint, which returned HTTP 403 after the 60/hour unauthenticated budget was spent, leaving 2 runs NOT_CLASSIFIED. Both columns were re-measured and the corrected counts are the ones published above.",
+    "preserved": true
+  },
+  "routearound_executed_this_cycle": {
+    "what": "an operational-resume cycle on the persisted producer snapshot of run 39134286491: classify the subject's death against a FROZEN definition of the two quantum-death classes, measure how much of the dispatch population is each class, re-derive the direction's own item-(1) trigger against the current accepted product mount, publish the snapshot-audit readiness record for this run so the audit job can produce results/audit/evaluation/CYCLE_39137732712_GATE.json, update state and the cycle report, and COMMIT so the producer step exits 0.",
+    "not_done": [
+      ".github/** not edited (control-plane scope); the audit job's success()-gate and the unobservable producer exit code are recorded as control-plane hardening items",
+      "no frozen rubric, threshold, bar, benchmark, baseline or recorded verdict touched",
+      "no packet adjudicated and no bar re-applied as an adjudication; the accepted label_lineage_gate and label_gate were not re-run over the rebuilt packet",
+      "no frozen reality benchmark, retrieval gate, BJR leg or universal-174k suite re-run",
+      "no candidate rebuilt (classifier and layout builds stay closed Frontier work)",
+      "the frozen hypothesis and the committed REST capture are read-only inputs; neither was edited after the numbers were observed"
+    ]
+  },
+  "human_blocker": false,
+  "control_plane_hardening_items_recorded_not_patched": [
+    "core-lane.yml:163-165 gates the audit job on `needs.team.result == 'success'`, i.e. on the producer agent's exit code. Measured consequence this round: 3 of 14 dispatches died at the quantum and all 3 skipped the audit, so a delivered tree can never be promoted. Intended upstream fix for the control-plane maintainer: gate the audit job on `if: always() && needs.team.outputs.deliverable_present == 'true'` (or on the persist step having produced a commit), never on the producer step's exit code alone.",
+    "the producer step's exit code is invisible: job logs are HTTP 403 unauthenticated, so a zero-delta producer and a post-delivery producer are indistinguishable from outside. Intended upstream fix: surface run-ox-with-retry.sh's rc as a step output and echo it, so the distinction is machine-readable without logs.",
+    "refs/heads/cycle/core/evaluation/39130892266/team is absent while its team-attempt-1 sibling exists, even though the workflow force-pushes both in the same step (core-lane.yml:160-161). The two pushes are sequential with `set -euo pipefail`, so the first failing would abort the step; the step reported success. Flagged as an unexplained ref-level discrepancy for the control-plane maintainer; NOT asserted as data loss.",
+    "the unauthenticated public REST API allows 60 requests/hour. A diagnosis that depends on it cannot be reproduced in a single cycle that also needs the API for anything else. Route-around used here: capture once, commit the raw envelope, re-score offline."
+  ],
+  "claim_ceiling": "This record CLASSIFIES producer deaths of ONE core lane inside ONE day from the public REST job envelope and the persisted git refs, and records the audit-starvation consequence for both classes. It is NOT an independent audit gate, does NOT move any frozen bar, threshold or rubric, does NOT adjudicate any packet, does NOT accept or reject any Frontier verdict, does NOT certify jurist usefulness, and does NOT change human_gate_ready=false or either accepted DO-NOT-SERVE order. The classification labels describe WORKFLOW OUTCOMES, not the correctness of any cycle's research."
+}
