@@ -288,6 +288,7 @@ def probe_live(record: dict, keys: list[str], spec: dict, timeout: float) -> lis
         by_key = {q["query_key"]: q for q in record["queries"]}
         for key in keys:
             q = by_key[key]
+            accepted_ids = list(q.get("ids") or [])
             params = {"query": q["query"], "limit": int(q["limit"]), "offset": 0,
                       "sort": "relevance", "fields": "full", "include_pinpoint": "false"}
             res = cli.search(query_key=key, channel=q["channel"], slug=q["slug"],
@@ -299,7 +300,24 @@ def probe_live(record: dict, keys: list[str], spec: dict, timeout: float) -> lis
             if res.body is not None:
                 fp = body_fingerprint(json.dumps(res.body, ensure_ascii=False))
                 entry["probe_health"] = {k: v for k, v in fp.items() if not k.startswith("_")}
-                entry["_probe_ids"] = fp.get("_ids") or []
+                probe_ids = fp.get("_ids") or []
+                entry["_probe_ids"] = probe_ids
+                a, b = set(accepted_ids), set(probe_ids)
+                same_order = accepted_ids == probe_ids
+                entry["stability_vs_frozen_input"] = {
+                    "frozen_input_ids_sha256": q.get("ids_sha256"),
+                    "n_frozen_input_ids": len(accepted_ids),
+                    "n_probe_ids": len(probe_ids),
+                    "ids_retained": len(a & b),
+                    "ids_lost": len(a - b),
+                    "ids_new": len(b - a),
+                    "jaccard": round(len(a & b) / len(a | b), 6) if (a | b) else None,
+                    "identical_order": same_order,
+                    "top10_retained": len(set(accepted_ids[:10]) & b),
+                    "note": ("how much of the frozen input's own decision list survives a "
+                             "fresh live fetch of the SAME frozen URL; this is upstream "
+                             "stability, which no gate of the frozen benchmark measures"),
+                }
             out.append(entry)
     except Exception as exc:  # a probe failure is reported, never silently swallowed
         out.append({"probe_error": f"{type(exc).__name__}: {exc}"})
@@ -495,29 +513,6 @@ def main(argv: list[str] | None = None) -> int:
     fresh = json.loads(fresh_out.read_text(encoding="utf-8"))
     record["m3_gate_comparison"] = compare_records(accepted, fresh)
 
-    # -- m5 ---------------------------------------------------------------- #
-    if args.probe_live:
-        if args.probe_keys:
-            keys = [k for k in args.probe_keys.split(",") if k]
-        else:
-            keys = record["m3_gate_comparison"]["query_raw_sha256_drift"] or [
-                r["query_key"] for r in post["rows"] if not r.get("match")]
-            # a degraded envelope is the decisive diagnostic; probe it first
-            keys = [d["query_key"] for d in
-                    record["m5_degraded_envelopes"]["envelopes"]] + [
-                k for k in keys if k not in
-                {d["query_key"] for d in record["m5_degraded_envelopes"]["envelopes"]}]
-        capped = keys[:max(0, args.probe_max)]
-        record["m5_live_probe"] = {
-            "cache_dir_used": "THROWAWAY (tempfile.mkdtemp), removed afterwards; the "
-                              "frozen cache is never written by a probe",
-            "probe_target_url": "the frozen spec URL for each drifted query, unchanged",
-            "candidate_keys": keys,
-            "probed_keys": capped,
-            "n_capped_by": args.probe_max,
-            "results": probe_live(accepted, capped, spec, args.probe_timeout),
-            "tier": "DIAGNOSTIC - never a gate input (frozen hypothesis S5)",
-        }
     degraded = [{"query_key": r["query_key"], "cache_path": r["cache_path"],
                  "health": r.get("health"),
                  "match": r.get("match")}
@@ -544,6 +539,29 @@ def main(argv: list[str] | None = None) -> int:
             })
         record["m5_degraded_envelopes"]["comparisons"] = comparisons
 
+
+    if args.probe_live:
+        if args.probe_keys:
+            keys = [k for k in args.probe_keys.split(",") if k]
+        else:
+            keys = record["m3_gate_comparison"]["query_raw_sha256_drift"] or [
+                r["query_key"] for r in post["rows"] if not r.get("match")]
+            # a degraded envelope is the decisive diagnostic; probe it first
+            keys = [d["query_key"] for d in
+                    record["m5_degraded_envelopes"]["envelopes"]] + [
+                k for k in keys if k not in
+                {d["query_key"] for d in record["m5_degraded_envelopes"]["envelopes"]}]
+        capped = keys[:max(0, args.probe_max)]
+        record["m5_live_probe"] = {
+            "cache_dir_used": "THROWAWAY (tempfile.mkdtemp), removed afterwards; the "
+                              "frozen cache is never written by a probe",
+            "probe_target_url": "the frozen spec URL for each drifted query, unchanged",
+            "candidate_keys": keys,
+            "probed_keys": capped,
+            "n_capped_by": args.probe_max,
+            "results": probe_live(accepted, capped, spec, args.probe_timeout),
+            "tier": "DIAGNOSTIC - never a gate input (frozen hypothesis S5)",
+        }
     # -- m6 ---------------------------------------------------------------- #
     prior = repo / args.prior_repair
     divergent = repo / args.divergent
@@ -580,13 +598,29 @@ def main(argv: list[str] | None = None) -> int:
     S1 = (post["n_match"] == post["n_queries"]
           and cmp_["n_gates_compared"] == 40
           and cmp_["n_gate_detail_differences"] == 0)
-    S2 = "COMPLETE" if post["n_match"] == post["n_queries"] else "PARTIAL"
+    # S2 judges the PRIOR repair, so it is evaluated on the manifest of the tree
+    # AS THE PRIOR CYCLE LEFT IT (pre-restore). Instrument v1 evaluated it on the
+    # post-restore manifest and therefore reported the prior repair as COMPLETE
+    # once this cycle had repaired the tree; that is a labelling defect, corrected
+    # here in favour of the frozen rule's intent, with both readings published.
+    S2 = "COMPLETE" if pre["n_match"] == pre["n_queries"] else "PARTIAL"
+    S2b = "COMPLETE" if post["n_match"] == post["n_queries"] else "PARTIAL"
     S4 = ("INPUT_BYTES_MOVED_WITH_AGGREGATE_STABLE"
           if (cmp_["accepted_counts"] == cmp_["fresh_counts"]
               and post["n_match"] < post["n_queries"]) else None)
     record["verdict"] = {
         "S1_closure_complete": S1,
         "S2_prior_repair_completeness": S2,
+        "S2b_after_this_cycle_restore": S2b,
+        "S2_basis": {
+            "S2": "evaluated on m1_input_byte_identity_before_restore (the tree the "
+                  "cycle-39163970477 commit left)",
+            "S2b": "evaluated on m1_input_byte_identity_after_restore (the tree this "
+                   "cycle leaves)",
+            "correction_disclosure": "instrument v1 computed S2 from the post-restore "
+                                     "manifest; it is corrected here. The success rule "
+                                     "itself (S2 = COMPLETE only at 24/24) is unchanged.",
+        },
         "S3_readings_published_side_by_side": bool(
             readings["accepted_run_of_record"] and readings["divergent_run"]),
         "S4_input_bytes_moved_with_aggregate_stable": S4,
