@@ -1,5 +1,5 @@
 {
-  "accepted_run_id": "39034350468 (proposed; pending independent audit of this resume cycle)",
+  "accepted_run_id": "39149741259 (proposed; pending independent audit of this repair cycle). NOTE: 39144924680 (round 4) was REJECTED by audit CYCLE_39144924680_GATE.json (gate=REVISE, required_fixes RF-1 and RF-2) and is therefore NOT an accepted run.",
   "bjr_recall_durability": {
     "artifact": "results/product/reality_check/bjr_recall_durability_20261017.json",
     "claim_ceiling": "LOCAL_NOT_DURABLE: this is local live evidence only. The accepted frozen benchmark (frozen_sha256 ff57f556...) is Core Evaluation's recompute and remains RED (overall_pass=false at 38920872324 / 38934722443 / 38945976309) until that lane recomputes it on a run containing this repair. A durable Actions [reality-check] run is still required. No frozen gate, threshold, rubric or success rule was weakened or edited; the new local parity gate is STRICTER than the durable workflow gate.",
@@ -104,7 +104,7 @@
       "scope": "control-plane workflow scope; recorded, not edited from the lane"
     }
   ],
-  "current_run": "39097705922",
+  "current_run": "39149741259",
   "cycle_39056694835_frontier_serve_audit_intake": {
     "admission": "fail-closed",
     "claim_ceiling": [
@@ -288,7 +288,230 @@
     "run_id": "39063665073",
     "what_this_cycle_is": "An operational resume of run 39060279436 (rc-78 work-quantum expiry) plus the next vertical-slice delta of the canonical loop: the independent adversarial pass became VISIBLE in the product."
   },
-  "cycle_status": "V56_REPAIR_OF_CY39091749561__F1_TEST_ACCOUNTING_PARSER_REFUSES_NOT_ZEROES__F2_CEILING_TEST_IMPORTABLE_AND_SET_RELATION_VS_ACCEPTED_BASE_0_NEW_2_FIXED__F3_OFFLINE_EVIDENCE_REEMITTED_WITH_VERIFY_PASS_63__F4_STATE_AND_REPORTS_FOR_39086926860_39087917357_39091749561__F5_RF3_WORDING_NARROWED__F6_F7_APPLIED__ADMISSION_FAIL_CLOSED__MACHINE_GATE_FALSE__HUMAN_GATE_FALSE__NO_OWNER_SESSION",
+  "cycle_39082232157_rf0_rf4_ordered_work": {
+    "RF0_withdraw_owner_question_firing": {
+      "accepted_verdict_now_recorded": true,
+      "accepted_verdict_provenance": "frontier-rebuilt-packet-serve-audit run 39061330426: audit CYCLE_39061330426_GATE.json gate=PASS safe_to_integrate=true required_fixes=[]; accept commit 26582bc5; portfolio v28 status=TERMINATED. Verified against the control-plane mount this cycle - the citation is TRUE and independently verifiable, which is what falsified the earlier audit's \"fabricated cross-lane citation\" finding (that finding was correct about the stale portfolio record and wrong about the citation; the portfolio record is repaired).",
+      "consequence": "Both supersession conditions are unmet, so the accepted DO-NOT-SERVE order simply STANDS. No owner card, owner session, ready_for_owner_session=true or human_gate_ready=true is produced from this verdict, and the question is not staged as ready to fire.",
+      "history_preserved": "The superseded REVISE audit (run 39053132092, FIX-1..FIX-4) is preserved verbatim under independent_audit_history. Nothing was deleted; the route_around.superseded_status field keeps the withdrawn firing named so the withdrawal is auditable.",
+      "intake_record": "results/product/frontier_verdicts/frontier-rebuilt-packet-serve-audit_intake.json",
+      "intake_schema": ".../rebuilt-packet-serve-audit/2 (supersedes /1)",
+      "owner_decision_required": false,
+      "owner_decision_required_reason": "Charter outcome (C) requires BOTH frozen absolute bars unmet. The label bar is met as written by the accepted instrument, so charter outcome (C) is not reached and the charter DOES NOT convert the map-versus-ranked-list choice into an owner decision.",
+      "owner_question_status": "WITHDRAWN_NOT_FIRED_NEVER_TO_FIRE_ON_THIS_VERDICT; question text DELETED",
+      "requirement_13_condition_a_met": false,
+      "requirement_13_condition_b_met": false,
+      "route_around_status": "RECORDED_FAIL_CLOSED_NO_OWNER_QUESTION (was TRIGGERED_AND_FIRED)",
+      "status": "DONE",
+      "tests": "product/tests/test_no_owner_question_from_accepted_verdict.py (10 tests) + product/tests/test_frontier_serve_audit_intake.py (13 tests, re-pointed not deleted)"
+    },
+    "RF1_counter_authority_count": {
+      "artifact": "results/product/counter_authority_counting.json (schema product-counter-authority-counting/1), produced by python3 -m product.counter_authority_report",
+      "both_definitions_always_published": "per audit CYCLE_39065274887 F3 convention",
+      "demo_corrected": 1,
+      "demo_counter_authority_id": "ju_gerichte_CC_2021_44 (candidate-limiting, evidenced)",
+      "demo_previously_reported_as": 5,
+      "inflation_factor_demo": 5.0,
+      "inflation_factor_live": 3.5,
+      "live_corrected": 2,
+      "live_counter_statuses": "both abstained_unevidenced",
+      "live_previously_reported_as": 7,
+      "live_reconciliation": "The old 7 equals the generative audit's SUPPORTING count (supporting 7 / limiting 0 / contrary_or_exception 0), while the bundle's own row-level `cited` provenance covers 5 rows. These are measured at DIFFERENT stages and were NOT shown to be the same set - recorded as unverified rather than asserted from a matching cardinality (factory-wide requirement 16). Either way the old number cannot be a counter count: the audit found zero limiting and zero contrary authority.",
+      "severity_of_original_defect": "MATERIAL - the inflated number feeds a GATE",
+      "single_source_of_truth": "product/query/counter_status.py (stdlib-only leaf), re-exported by product/query/gate_admissibility.py so gate_admissibility.NON_COUNTER_STATUSES remains THE object (identity contract preserved, verified)",
+      "status": "DONE",
+      "surfaces_fixed": [
+        "product/query/bundle.py::bundle_summary (n_counter -> n_counter_authorities + n_rows_with_counter_status + histogram)",
+        "product/query_app.py::run_status counts (broad `counter` key REMOVED, not renamed)",
+        "product/query_app.py::_enrich_task job detail",
+        "product/human_gate_finalize.py::bundle_evidence counter_ids + both counts published",
+        "product/gate_rehearsal.py::_counter_ids",
+        "product/slice_smoke.py enrich stage report",
+        "product/offline_slice.py::summarise (was startswith(\"candidate\"), which missed abstained_unevidenced entirely)"
+      ],
+      "tests": "product/tests/test_counter_authority_definition.py (19 tests, incl. three non-vacuity controls for the scanning guards)",
+      "why_the_broad_test_was_wrong": "counter_status is a provenance field as well as a verdict field: 'cited' means the sourced answer CITED the decision, which is the opposite of countering it; 'supporting-candidate' / 'context' / 'unclassified' are recall-only rows kept for high recall."
+    },
+    "RF2_RF4_test_accounting": {
+      "RF2_defect": "a report published net new passing tests of +7 where the measured change was +10",
+      "RF4_defect": "that count was pinned to a re-probed MOVING snapshot (21:30:00Z), already stale against the control plane's 22:24:12Z snapshot when the audit read it; the audit recomputed 162 passed / 1 failed and falsified the \"163 passed / 13 passed (fixed)\" claim",
+      "direction_recorded_247_vs_255": "recorded in results/product/counter_authority_counting.json under served_bundle_row_arithmetic.direction_recorded_case, explicitly labelled as belonging to run 39073545280 and NOT a measurement taken from an artifact in this tree",
+      "pinning_rule": "a pin names a run id AND a commit sha; never a timestamp, never a re-probed snapshot; baseline must be an ancestor of head; identical commits refuse; an unparseable log refuses rather than yielding zeros; a missing measurement is reported before any pin error",
+      "replacement_tool": "product/test_accounting.py",
+      "served_row_arithmetic_invariant": "RF2 also recorded a report publishing 247 as the final served bundle size when the bundle held 255 (247 + 8 adversarial rows). final == n_existing_before_adversarial + n_adversarial_rows_added is now measured per bundle; on the live bundle of record it is 194 + 8 = 202 and the pre-adversarial count would understate by 8.",
+      "status": "DONE",
+      "tests": "product/tests/test_test_accounting_is_anchored.py (18 tests, incl. the RF2 case base 564 -> head 574 == +10 reproduced by the tool)"
+    },
+    "RF3_stop_fake_delta_from_the_test_suite": {
+      "fixture_fix": "a tmp_path-backed `feedback_api` fixture; the tracked file is copied INTO tmp_path to seed the FEAT-081 records/aggregation/export tests",
+      "guard": "product/tests/test_no_test_writes_into_tracked_results.py (10 tests, dependency-free so it is collectible where torch is not): a content pin on the tracked file, a residue fingerprint, an AST+tokenize static scan for any fixture pointing a writer at the tracked results tree, and a non-vacuity control that fires on the forbidden shape",
+      "named_defect": "product/tests/test_cycle_v18_product.py:255-300 constructed NavigationAPI against the TRACKED product/results/fractal_map, so every suite run appended pytest residue (test_jurist_1 / test_aggregator_3/4/5) to product/results/fractal_map/jurist_feedback/feedback.jsonl; run 39073545280 committed that residue (+20 lines) as its ENTIRE delta",
+      "same_class_found_elsewhere": {
+        "artifact": "results/product/regression/tracked_results_writer_inventory.json",
+        "fixed_this_cycle": [
+          "product/tests/test_cycle_v18_product.py"
+        ],
+        "growth_guard": "test_the_unfixed_class_has_not_grown fails if 38 rises; the pin is lowered only in the same commit that fixes the modules, never raised",
+        "modules": 13,
+        "offending_lines": 38,
+        "why_not_fixed_here": "every remaining module is in the 18-module uncollectable set (needs sentence_transformers/torch), so it cannot be executed or verified in a bare environment. Bulk-editing 13 unverifiable modules would trade a recorded, measured defect for an unmeasured one, so the count is PINNED so the class cannot grow, the per-module inventory is published, and each entry is a named repair backlog item."
+      },
+      "status": "DONE_FOR_THE_NAMED_MODULE; SAME_CLASS_MEASURED_AND_PINNED_IN_13_OTHERS",
+      "tracked_file_restored": "restored to its pre-residue content from commit fe10ac6, sha256 5d6ccf197d97ef6c5a5b77ef56c4f395b6e8d1f8f7b2fdac4e211895a23843eb. CORRECTED by run 39094983039 (audit CYCLE_39091749561 F6): commit 3fdde66 did NOT overwrite anything in place. The file was DELETED at 51ba32a ('cleanup: slim active product branch after query-map pivot') and RE-ADDED with the pytest residue at 3fdde66. Stated plainly, so the claim is not stronger than the evidence: the recovered record is itself SYNTHETIC (jurist_id 'test_jurist', payload.test 'data'), so 'history recovered' here means RESIDUE REMOVED, not real jurist data restored. The whole file's history remains in git and no historical entry is discarded."
+    },
+    "RF5_RF6_posture_unchanged": {
+      "both_do_not_serve_orders_stand": "The accepted DO-NOT-SERVE order on served packet 38839347028 (product-owned copy results/product/frontier_verdicts/ACCEPTED_frontier-served-packet-falsification_38880639079.json) is NOT superseded by the rebuilt-packet verdict. Both stand. Acceptance of a DO-NOT-SERVE verdict is not a supersession of a DO-NOT-SERVE order.",
+      "owner_session_path": "A FUTURE accepted verdict independently satisfying requirement 13 condition (a) or (b) on the bytes then of record - never from this one.",
+      "posture": [
+        "amber dashed ring + explicit \"non etayee\" count for unevidenced counters",
+        "size-based mega-cluster disclosure",
+        "machine_gate_ready=false",
+        "human_gate_ready=false",
+        "packet_admitted=false"
+      ],
+      "status": "UNCHANGED AND NOW GUARDED"
+    },
+    "accepted_frontier_mount": {
+      "action_taken": "Product built the missing seams itself rather than waiting, per the standing parallel-integration obligation (Frontier teams are accelerators, not dependencies).",
+      "mount": "/tmp/lex_accepted/frontier",
+      "not_redispatched": "frontier-counter-anchor-classifier, frontier-query-conditioned-map-geometry and frontier-rebuilt-packet-serve-audit are all CLOSED and must never be re-chartered or re-dispatched.",
+      "status": "EMPTY at cycle start - no Frontier artifact available to absorb"
+    },
+    "claim_ceiling": [
+      "This cycle corrects three numbers and closes one false firing. It is a REPAIR cycle, not a capability advance, and it must not be reported as one.",
+      "RF1 makes the product's disclosed counter yield LOWER. That is the honest direction: the previous number was inflated by cited rows and would have flattered the map's discoverability claim.",
+      "Correcting a counter number does not move the geometry bar or the label bar, and does not authorise serving any packet.",
+      "The 13 remaining tracked-results writer fixtures are a real, unfixed defect that is measured and pinned - not closed.",
+      "Every number here is a local measurement at the named commits on this machine; a from-source rebuild is environment-scoped, not byte-identical across machines.",
+      "human_gate_ready stays false. The owner session may be proposed only by a FUTURE accepted verdict satisfying requirement 13 condition (a) or (b) on the bytes then of record."
+    ],
+    "control_plane_hardening_items_carried": [
+      "The rc-67 LEX_ZERO_DELTA_REPAIR guard fires only on repair rounds and means \"the producer found nothing to do\", not \"the lane is broken\" - route around by changing the QUESTION.",
+      "The supervisor jq \"//\" dead-code guard on continue_recommended is dead at any direction version; the portfolio .status field is the only reliable stop. .github/** is control-plane scope and is recorded here, not edited from this lane.",
+      "The blocker question-hash writer/reader mismatch (writer includes the trailing newline, reader strips it) is dead code, so no blocker file can hold a lane and no question rewrite clears one.",
+      "GITHUB_TOKEN pushes never trigger workflows; durable machine evidence must come from a workflow_dispatch run."
+    ],
+    "direction_version": 56,
+    "end_to_end_vertical_slice": {
+      "command": "python3 product/offline_slice.py --slug rent-default --verify",
+      "corrected_counts_emitted_by_the_product_itself": "counter_rows: 1 and counter_status_bearing_rows: 5 - the RF1 correction is what the product now emits on its own run, not only what an artifact asserts.",
+      "geometry_preserved_by_enrich": true,
+      "page_contract": "PASS 56 assertions",
+      "question_to_answer_to_counter_to_map": "n_decisions 100 / n_clusters 8 / rows_with_xy 100 / answer_status ready / cited 4",
+      "result": "verdict: PASS in 0.593s, network: none"
+    },
+    "evidence_tier": "REPRODUCED",
+    "not_touched": [
+      "universal 174k alignment / dense embeddings / citation-graph reconstruction",
+      "the frozen gates and every frozen rubric (bar scoring stays Core Evaluation's)",
+      "any Frontier charter - counter-anchor-classifier, query-conditioned-map-geometry and rebuilt-packet-serve-audit are all closed and must never be re-dispatched",
+      "the packet bytes (rebuilt-39027045675 raw sha256 2942c3c2... unchanged, re-verified by test)",
+      "3-D projection and custom model training (closed until after the human gate)",
+      "the 18 uncollectable test modules (excluded identically at baseline and head)"
+    ],
+    "regression": {
+      "artifact": "results/product/regression/test_accounting.json",
+      "baseline": {
+        "commit": "03a4cabb72df5cb38b5228c65ca9fb3fd1a04974",
+        "errors": 30,
+        "failed": 45,
+        "passed": 562,
+        "run_id": "39065274887",
+        "skipped": 2,
+        "total_collected": 639
+      },
+      "collection_scope": {
+        "n_uncollectable_modules": 18,
+        "rule": "excluded IDENTICALLY at baseline and head; a different set would invalidate the delta, so the list is published by name in collection_scope.uncollectable_modules_excluded",
+        "why": "these modules import sentence_transformers/torch, absent from the CI and bare image"
+      },
+      "correction_artifact": "results/product/regression/CYCLE_39094983039_regression_scope.json",
+      "correction_by_run": "39094983039",
+      "delta": {
+        "derived_not_asserted": true,
+        "errors": 0,
+        "failed": -2,
+        "net_change_in_collected": 60,
+        "passed": 62,
+        "skipped": 0
+      },
+      "head": {
+        "commit": "ec622c6ba0ed0664fcb11be7d3e46d645a89cf79",
+        "errors": 30,
+        "failed": 43,
+        "passed": 624,
+        "run_id": "39082232157",
+        "skipped": 2,
+        "total_collected": 699
+      },
+      "mid_cycle_regressions_caught_and_resolved": "An intermediate run showed 50 failed / 614 passed. All 5 were tests encoding the SUPERSEDED pre-acceptance state (test_frontier_serve_audit_intake.py x5: not-accepted, REVISE-with-4-fixes, route-around-pending, owner-question-prepared, label-bar-nuance) plus test_progressive_query.py asserting the removed counts.counter key. Each was re-pointed at the new truth with its guard intent preserved; none was deleted.",
+      "new_failures": 1,
+      "new_failures_note": "CORRECTED by run 39094983039 (audit CYCLE_39091749561 F2). The previous sentence here read 'new_failures: 0 ... strict SUBSET ... 2 pre-existing failures fixed ... 0 introduced'; that is false. Measured against the ACCEPTED base 03a4cabb, this cycle's head (ec622c6) introduced exactly ONE new failing test - test_human_gate_finalize.py::test_ceiling_regression_is_caught_end_to_end_through_the_cli, broken by RF1's new 'from product.query.counter_status import ...' in product/human_gate_finalize.py, which the test's copy-in-tmp_path CLI harness could not import - and fixed ONE pre-existing failure (test_state_contract.py::test_cli_returns_zero_when_the_contract_holds). The second fixed test named below was fixed LATER (fb44923), so the '2 fixed / 0 introduced' enumeration was not true at the commit this block describes. The set relation for THIS cycle is published at results/product/regression/CYCLE_39094983039_regression_scope.json (baseline 03a4cabb vs the repaired head: NEW_FAILURES [] and 2 fixed), measured with the same command shape and the same 18-module uncollectable exclusion at both roots.",
+      "numeric_environment": {
+        "numpy": "2.5.4",
+        "python": "3.12.3",
+        "scipy": "1.18.1",
+        "sklearn": "1.9.1"
+      },
+      "rf3_empirical_verification": "STATICALLY enforced for all modules; EMPIRICALLY verified only for the collectible set. The guard that protects the tree is product/tests/test_no_test_writes_into_tracked_results.py (AST+tokenize scan for any fixture pointing a writer at the tracked results tree, a content pin, a residue fingerprint and a non-vacuity control); it is collectible here and passes. The module whose fixture RF3 fixed, product/tests/test_cycle_v18_product.py, is in the 18-module uncollectable set (ModuleNotFoundError: sentence_transformers) at base and head, so it cannot run in this environment and the tracked feedback file's byte-identity (sha256 5d6ccf197d97ef6c5a5b77ef56c4f395b6e8d1f8f7b2fdac4e211895a23843eb) after a suite run is evidence about the collectible modules only. Corrected by run 39094983039 (audit CYCLE_39091749561 F5): the previous wording claimed an empirical 699-test verification the environment cannot produce.",
+      "schema": "product-test-accounting/1 (commit-anchored, derived)",
+      "scope_rule": "ROOT_SCOPED: every number is a measurement at the two named commits on this machine with the control plane at /tmp/lex_control, not a universal claim. A from-source rebuild is environment-scoped, not byte-identical across machines.",
+      "test_modules_added_or_repointed": [
+        "product/tests/test_no_owner_question_from_accepted_verdict.py (new, 10 tests)",
+        "product/tests/test_counter_authority_definition.py (new, 19 tests)",
+        "product/tests/test_no_test_writes_into_tracked_results.py (new, 10 tests)",
+        "product/tests/test_test_accounting_is_anchored.py (new, 18 tests)",
+        "product/tests/test_frontier_serve_audit_intake.py (re-pointed, 13 tests, 3 guards added)",
+        "product/tests/test_progressive_query.py (stale counts.counter assertion updated)",
+        "product/tests/test_state_contract.py (hand-maintained pin DERIVED; +2 tests)"
+      ],
+      "tool": "python3 -m product.test_accounting"
+    },
+    "report": "reports/product/CYCLE_39082232157.md",
+    "run_id": "39082232157",
+    "what_this_cycle_is": "The four ordered remaining items of direction v56, plus the admissible product-improving work adjacent to them. All six ordered items are addressed: RF0 (withdraw the owner-question firing), RF1 (stop labelling the broad count as counter authorities), RF2/RF4 (test-accounting arithmetic and pinning), RF3 (stop manufacturing fake delta from the test suite), and RF5/RF6 (the fail-closed posture is unchanged and now has an executable guard)."
+  },
+  "cycle_39086926860_resume_and_relation_channel": {
+    "commit_of_record": "351f388",
+    "posture": "fail-closed, unchanged: no owner question, no gate flag moved",
+    "report": "reports/product/CYCLE_39086926860.md",
+    "run_id": "39086926860",
+    "shipped": [
+      "product/orchestration_evidence.py: run 39082232157 classified AUDIT_STEP_CANCELLED_NO_GATE (audit step cancelled after 3299.0s > the wrapper's own 2700s quantum, so rc-78 is excluded by arithmetic); artifact results/product/orchestration/CYCLE_39082232157_orchestration.json",
+      "product/query/relation_channel.py: the map's relation channel states itself from MEASURED counts and never synthesises an edge; coverage 2/100 -> 8/100 rows after hydration, 0 shared pairs, 0 edges, published as EMPTY_NO_SHARED_AUTHORITY where the jurist clicks",
+      "product/cycle_verify.py: one-command claim ledger, 21/21 claims at the time; artifact results/product/cycle_verify/CYCLE_39086926860_cycle_verify.json",
+      "page contract 56 -> 63 assertions; retrieval ranks now shown on counter/discovery cards so marginal discovery at ranks 51-164 is visible"
+    ],
+    "state_block_added_by_run": "39094983039",
+    "why_this_block_exists": "Audit CYCLE_39091749561 F4: state was three cycles stale with no block for 39086926860 / 39087917357 / 39091749561. This block records what that cycle shipped, read back from its commit and artifacts; it is not new evidence."
+  },
+  "cycle_39087917357_orchestration_classes": {
+    "commit_of_record": "fb44923",
+    "posture": "fail-closed, unchanged",
+    "report": "reports/product/CYCLE_39087917357.md",
+    "run_id": "39087917357",
+    "shipped": [
+      "orchestration_evidence.TEAM_JOB_CANCELLED: a cancelled team job cannot be read for snapshot survival off a cancelled conclusion; survival is derived from the named team branch instead (cycle/core/product/39087917357/team = fb44923, no audit branch); artifact results/product/orchestration/CYCLE_39086926860_orchestration.json",
+      "forbidden_verdict_keys() schema + cycle_verify assertions that a diagnosis publishes a cause space and never a verdict; artifact results/product/cycle_verify/CYCLE_39087917357_cycle_verify.json",
+      "results/product/regression/CYCLE_39087917357_regression_scope.json - KEPT as shipped, with its limitation disclosed: its baseline was snapshot_HEAD_351f388 (a producer snapshot that already contained RF1), so its empty NEW_FAILURES could not see the RF1 break. The set relation against the ACCEPTED base is results/product/regression/CYCLE_39094983039_regression_scope.json."
+    ],
+    "state_block_added_by_run": "39094983039",
+    "why_this_block_exists": "Audit CYCLE_39091749561 F4: the cycle shipped a title-only commit and no report; this block plus reports/product/CYCLE_39087917357.md record what it shipped."
+  },
+  "cycle_39091749561_repair0": {
+    "audit_of_record": "results/audit/product/CYCLE_39091749561_GATE.json (gate=REVISE, safe_to_integrate=false, required_fixes F1..F5) - repaired by 39094983039",
+    "commit_of_record": "d20bf0e",
+    "posture": "fail-closed, unchanged",
+    "report": "reports/product/CYCLE_39091749561.md",
+    "run_id": "39091749561",
+    "shipped": [
+      "results/product/orchestration/CYCLE_39087917357_orchestration.json (TEAM_JOB_CANCELLED classification, verified independently against the public REST record and git ls-remote by that cycle's auditor)",
+      "results/product/cycle_verify/CYCLE_39091749561_cycle_verify.json (30 claims, 0 failed on independent re-run, observed values identical)",
+      "results/product/offline_slice/20261018T031559Z/ - committed WITHOUT --verify: page_contract false with an empty detail while verified=true. Audit F3; the capability itself holds (verify_query_page.js PASS 63 on that exact bundle) and the evidence is re-emitted with --verify in run 39094983039 as results/product/offline_slice/20261018T040254Z/."
+    ],
+    "state_block_added_by_run": "39094983039"
+  },
+  "cycle_status": "REPAIR_ROUND_5_OF_REJECTED_39144924680_COMPLETE__RF1_ATTRIBUTION_MEASURED_NOT_TYPED__RF2_ESCAPE_PATHS_CLOSED_AND_SCOPE_PUBLISHED__ADMISSION_FAIL_CLOSED",
   "direction_version": 56,
   "evidence_refs": [
     "results/product/gate_packet/rebuilt-39027045675/packet.json",
@@ -319,7 +542,57 @@
     "results/product/regression/CYCLE_39094983039_regression_scope.json",
     "results/product/regression/logs_39094983039/baseline_pytest.log",
     "results/product/regression/logs_39094983039/head_pytest.log",
-    "results/product/offline_slice/20261018T040254Z/summary.json"
+    "results/product/offline_slice/20261018T040254Z/summary.json",
+    "results/product/regression/CYCLE_39116225867_regression_scope.json",
+    "results/product/regression/logs_39116225867/baseline_pytest.log",
+    "results/product/regression/logs_39116225867/head_pytest.log",
+    "product/static/query.html",
+    "product/verify_query_page.js",
+    "product/tests/test_relation_direction_render.py",
+    "results/product/offline_slice/20261018T101000Z/summary.json",
+    "results/product/orchestration/CYCLE_39116225867_snapshot_diagnosis.json",
+    "results/product/regression/CYCLE_39119287975_regression_scope.json",
+    "results/product/regression/logs_39119287975/baseline_pytest.log",
+    "results/product/regression/logs_39119287975/head_pytest.log",
+    "product/cycle_verify.py",
+    "product/tests/test_cycle_verify_is_a_gate.py",
+    "results/product/cycle_verify/CYCLE_39119287975_cycle_verify.json",
+    "reports/product/CYCLE_39119287975.md",
+    "results/product/progressive_slice/39119287975_live.json",
+    "results/product/progressive_slice/bundle_39119287975_live.json",
+    "results/product/regression/logs_39119287975/confirmation_pytest_final_tree.log",
+    "results/product/regression/logs_39119287975/final_tree_pytest.log",
+    "reports/product/CYCLE_39123358661_REPAIR1.md",
+    "results/product/cycle_verify/CYCLE_39123358661_cycle_verify.json",
+    "results/product/regression/CYCLE_39123358661_regression_scope.json",
+    "results/product/regression/logs_39123358661/baseline_pytest.log",
+    "results/product/regression/logs_39123358661/head_pytest.log",
+    "results/product/regression/logs_39123358661/confirmation_pytest_final_tree.log",
+    "product/regression_set_relation_matrix.py",
+    "product/tests/test_regression_set_relation_matrix.py",
+    "product/data/regression_fail_fixture/CYCLE_39116225867_regression_scope.json",
+    "product/live_slice.py",
+    "product/query_env.py",
+    "product/bootstrap_query_env.sh",
+    "product/tests/test_live_slice_and_query_env.py",
+    "reports/product/CYCLE_39128456801.md",
+    "results/product/orchestration/CYCLE_39128456801_resume_diagnosis.json",
+    "results/product/live_slice/CYCLE_39128456801_live.json",
+    "results/product/live_slice/CYCLE_39128456801_live_bundle.json",
+    "results/product/regression/CYCLE_39128456801_regression_scope.json",
+    "results/product/regression/logs_39128456801/head_pytest.log",
+    "results/product/cycle_verify/CYCLE_39128456801_cycle_verify.json",
+    "product/test_delta_attribution.py",
+    "product/tests/test_delta_attribution.py",
+    "product/tests/test_report_artifact_arithmetic.py",
+    "product/data/report_pre_repair_bytes/CYCLE_39139648336_pre_repair.md",
+    "results/product/regression/CYCLE_39149741259_test_delta_attribution.json",
+    "results/product/regression/CYCLE_39149741259_report_testcount_disclosure.json",
+    "reports/product/CYCLE_39149741259_REPAIR5.md",
+    "results/product/regression/CYCLE_39149741259_leakage_check.json",
+    "results/product/regression/logs_39149741259/round5_leakage_check.log",
+    "product/report_scope_measurement.py",
+    "results/product/cycle_verify/CYCLE_39149741259_cycle_verify.json"
   ],
   "evidence_tier": "REPRODUCED",
   "frontier_verdict_adoption": {
@@ -518,7 +791,7 @@
     "status": "COMPLETE_AND_RECORDED",
     "v50_objective": "one durable, retrievable, GREEN core-lane run of lane=product whose own team job executes the four frozen reality legs LIVE"
   },
-  "next_recommendation": "continue_recommended=true; human_gate_ready=false; machine_gate_ready=false; packet_admitted=false. Direction v56 ordered work is discharged and committed; the tracked-path write class is fixed at 0 offender lines with a growth guard. Admission stays fail-closed: the accepted serve verdict (DO-NOT-SERVE-UNCHANGED, owner_decision_required=false) is unchanged, requirement 13 conditions (a) and (b) are both unmet, and no owner question is staged. Next concrete step when the lane re-opens: live OpenCaseLaw retrieval smoke on the same vertical slice, then frozen evaluation feedback.",
+  "next_recommendation": "continue_recommended=true; human_gate_ready=false; machine_gate_ready=false; packet_admitted=false. The canonical vertical slice is now proven FRESH-NETWORK end to end (product/live_slice.py PASS 10/10: retrieval_mode_served=refresh, adapter cache_hits 0, network_calls 8, 23 cache files touched, 158 decisions in 8 clusters, every row sourced and clickable, 6 cited decisions from a live free model, 2 counter authorities against 8 status-bearing rows, local map 0.238s against the 1.5s budget). The lane's own instrument now declares and bootstraps its numpy/sklearn runtime and fails closed with a remedy instead of a bare ModuleNotFoundError. NEXT: Core Evaluation's frozen feedback on the served live bundle; do not re-charter any Frontier team, do not rebuild the classifier or the geometry variant, do not touch frozen gates, rubrics, bars, packet bytes or the frozen claim-cache manifest, and keep the accepted DO-NOT-SERVE-UNCHANGED order in force.",
   "next_recommended": "continue_recommended=true; human_gate_ready=false; machine_gate_ready=false; machine admission still blocks serving. Cycle 39014141628 is an OPERATIONAL RESUME of the persisted producer snapshot of run 39011220761 (f3c47c8): diagnosis rc-78 LEX_WORK_QUANTUM_EXPIRED (step 7 state validation SKIPPED, not failed - no product-code failure), preserved work verified, state/report finished, snapshot made audit-ready. Direction v50 obligations status: (1) packet admission fail-closed on both accepted bars - already landed, still blocking; (2)(3) mega-cluster size-based disclosure + unevidenced-counter disclosure - landed, re-verified by tests; (4) query-conditioned geometry variant integrated behind LEXMACHINA_GEOMETRY_VARIANT, default incumbent; (5) red BJR recall leg - local live evidence now 4/4 legs with the parity gate in the snapshot's own CI summary, still pending a durable Actions run and Core Evaluation's frozen recompute. No gate/threshold/rubric weakened; .github untouched.",
   "normal_path": {
     "generation_and_counter": "frontier-generative-audit contract 2.2 (independent adversarial pass)",
@@ -824,8 +1097,10 @@
     },
     "secondary_risk_noted": "Earlier cycles also wrote outside product scope (frontier/frontier-generative-audit/generative_audit/provider.py and results/frontier/frontier-query-retrieval/cache/*). Those writes are already committed in the snapshot; 'Enforce lane write scope' only inspects pending changes, so they cannot be cleaned without tripping the scope check in the same run. They are recorded as pre-existing snapshot content, not current-cycle work. Live-run cache by-products created inside a cycle are removed before the scope step (reports/product/CYCLE_38559540834.md section 4)."
   },
-  "prior_current_run": "39094983039",
+  "packet_admitted": false,
+  "prior_current_run": "39144924680",
   "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
+  "ready_for_owner_session": false,
   "reality_check_status": {
     "blocking_leg": "durable gate blocking leg: rent-default (Art. 257d(2) residential termination) — the answer must state the 30-day/end-of-month notice rule AND the good-faith/Rechtsmissbrauch limitation. That leg now PASSES locally in live mode (results/product/reality_check/rent-default_live_20261014T122313Z.json); only the durable Actions run remains red.",
     "ci_leg_runner": {
@@ -1309,6 +1584,522 @@
     "run_id": "39051003925",
     "status": "DELIVERED_PENDING_INDEPENDENT_AUDIT"
   },
+  "repair_39065274887_round1": {
+    "concentric_underpaint_cleared": true,
+    "fixes": [
+      {
+        "file": "product/static/query.html",
+        "id": "F1",
+        "note": "distinct discovery radius; concentric underpaint detector",
+        "status": "fixed"
+      },
+      {
+        "file": "product/canvas_probe.js",
+        "id": "F1",
+        "note": "geometry-aware with concentric-underpaint assertion",
+        "status": "fixed"
+      },
+      {
+        "file": "product/tests/test_adversarial_discovery_ui.py",
+        "id": "F1",
+        "note": "new geometry invariants",
+        "status": "fixed"
+      },
+      {
+        "file": "product/tests/test_regression_scope_honesty.py",
+        "id": "F2",
+        "note": "re-attested without hard-pinning old current_run",
+        "status": "fixed"
+      },
+      {
+        "file": "results/product/regression/CYCLE_39063665073_regression_scope.json",
+        "id": "F2",
+        "note": "added accepted_base_comparison per F2",
+        "status": "fixed"
+      },
+      {
+        "file": "reports/product/CYCLE_39063665073.md",
+        "id": "F3",
+        "note": "corrected final-bundle histogram; cited LIVE_V2 final-bundle alongside pass-level",
+        "status": "fixed"
+      }
+    ],
+    "gate_positions_unchanged": {
+      "continue_recommended": true,
+      "human_gate_ready": false,
+      "machine_gate_ready": false,
+      "ready_for_owner_session": false,
+      "self_certification": false
+    },
+    "measured_packet_sha": "2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170",
+    "repair_from": "39063665073",
+    "round": 1,
+    "run_id": "39065274887"
+  },
+  "repair_39094983039_round1_F1_to_F7": {
+    "accepted_base": "03a4cabb72df5cb38b5228c65ca9fb3fd1a04974",
+    "capability_delta": "NONE, and that is the honest reading: this is a measurement-integrity repair. The user-visible slice is unchanged and still one command (offline_slice.py --verify -> PASS 63, network none).",
+    "claim_ceiling": "REPAIR_ONLY: every required_fixes item F1..F5 is fixed in code, tests and claim-bearing text, and F6/F7 too; the accounting and set-relation numbers are re-derivable from committed, sha-pinned raw logs. NOT claimed: any frozen bar met, any jurist usefulness, any answer-quality, label-soundness or geometry-coherence result, any durable Actions run, any served packet, any human-gate input.",
+    "fixes": {
+      "F1_material_parser": "product/test_accounting.py::parse_pytest_summary reads outcome clauses token-wise in ANY interleaving, cross-checks every count against an independently written pattern, and REFUSES (never zeros) when a count present in the line is missing from the result or when the line has no duration. Five new tests include the auditor's own captured line ('43 failed, 623 passed, 3 skipped, 45 warnings, 30 errors in 67.91s (0:01:07)') which the old parser read as errors 0 / seconds 0.0 / total 669, plus a non-vacuity control that weakens the clause reader to the F1-era shape and asserts the real parser then RAISES. results/product/regression/test_accounting.json is re-emitted from the sha-pinned raw logs below.",
+      "F2_material_new_failure": "product/tests/test_human_gate_finalize.py::test_ceiling_regression_is_caught_end_to_end_through_the_cli now passes PYTHONPATH=<repo root> to its subprocess so the copied module can import product.query.counter_status; guard intent unchanged (mutated anchor, CLI as a script, exit 8, no output written). The set relation is re-measured against the ACCEPTED base 03a4cabb, not a producer snapshot: NEW_FAILURES [] and 2 fixed.",
+      "F3_minor_unverified_evidence": "results/product/offline_slice/20261018T040254Z/summary.json: page_contract true, page_contract_detail 'PASS 63 assertions', verified true, 100 decisions / 8 clusters / 100 source links, 0.417s, network none. The 031559Z pair is kept unmodified.",
+      "F4_minor_stale_state": "state blocks for 39086926860 / 39087917357 / 39091749561 plus this run; reports/product/CYCLE_{39086926860,39087917357,39091749561,39094983039}.md all written; current_run and state_updated_by_run advance to 39094983039.",
+      "F5_minor_rf3_wording": "rf3_empirical_verification restated as static-for-all / empirical-for-the-collectible-set, naming test_cycle_v18_product.py as uncollectable here.",
+      "F6_F7_non_blocking": "F6: the tracked_file_restored sentence corrected (deleted at 51ba32a, re-added with residue at 3fdde66; recovered record is synthetic). F7: counter_evidenced() added to the stdlib-only leaf as the Python twin of query.html::counterEvidenced (status AND non-empty text AND verified flag); cycle_verify counts with the shared predicate and still publishes the weaker flag-only reading beside it, labelled; parity with the page is a source-reading test."
+    },
+    "frontier_mount": "/tmp/lex_accepted/frontier was EMPTY at cycle start; nothing absorbed",
+    "gate_positions": {
+      "continue_recommended": true,
+      "do_not_serve_orders": "both stand (served 38839347028 and rebuilt 2942c3c2...)",
+      "human_gate_ready": false,
+      "machine_gate_ready": false,
+      "owner_decision_required": false,
+      "packet_admitted": false,
+      "ready_for_owner_session": false
+    },
+    "regression": {
+      "accounting_artifact": "results/product/regression/test_accounting.json",
+      "artifact": "results/product/regression/CYCLE_39094983039_regression_scope.json",
+      "baseline": {
+        "commit": "03a4cabb72df5cb38b5228c65ca9fb3fd1a04974",
+        "errors": 30,
+        "failed": 43,
+        "passed": 564,
+        "seconds": 53.66,
+        "skipped": 2,
+        "summary_line": "43 failed, 564 passed, 2 skipped, 45 warnings, 30 errors in 53.66s",
+        "total_collected": 639,
+        "unique_failing_or_erroring_ids": 73
+      },
+      "collection_scope": {
+        "n_uncollectable_modules": 18,
+        "rule": "excluded IDENTICALLY at both roots; those modules remain UNMEASURED, not passing"
+      },
+      "head": {
+        "commit": "the commit carrying this repair (head pin published in test_accounting.json)",
+        "errors": 30,
+        "failed": 41,
+        "passed": 718,
+        "seconds": 65.97,
+        "skipped": 2,
+        "summary_line": "41 failed, 718 passed, 2 skipped, 48 warnings, 30 errors in 65.97s (0:01:05)",
+        "total_collected": 791,
+        "unique_failing_or_erroring_ids": 71
+      },
+      "numeric_environment": {
+        "numpy": "2.5.4",
+        "pytest": "9.1.1",
+        "python": "3.12.3",
+        "scipy": "1.18.1",
+        "sklearn": "1.9.1"
+      },
+      "raw_logs": {
+        "baseline": "results/product/regression/logs_39094983039/baseline_pytest.log",
+        "head": "results/product/regression/logs_39094983039/head_pytest.log",
+        "why": "Both runs' full pytest output is committed and sha256-pinned in the artifact, so every count below is re-derivable from bytes instead of from prose. The two artifacts describe the SAME two runs; this is the reconciliation the audit asked for."
+      },
+      "schema": "product-regression-evidence/2 (set relation, ROOT_SCOPED)",
+      "scope_rule": "ROOT_SCOPED: measured at /home/runner/work/LexMachina/LexMachina and, for the baseline, at the pristine worktree /tmp/opencode/repair/base, with the control plane at /tmp/lex_control. Not a universal claim.",
+      "set_relation_vs_accepted_base": {
+        "arithmetic_reconciles": true,
+        "baseline_only_FIXED": [
+          "product/tests/test_ci_run_evidence.py::test_runner_records_both_dispatch_and_workspace_shas",
+          "product/tests/test_state_contract.py::test_cli_returns_zero_when_the_contract_holds"
+        ],
+        "identity": "passed_delta +154 == collected_delta +152 - net_unique(-2) - skipped 0",
+        "n_fixed": 2,
+        "n_intersection": 71,
+        "n_new_failures": 0,
+        "repaired_only_NEW_FAILURES": []
+      }
+    },
+    "repair_of": "audit results/audit/product/CYCLE_39091749561_GATE.json (gate=REVISE, safe_to_integrate=false, required_fixes F1..F5) on the rejected cycle 39091749561 and the three unreported cycles it covered",
+    "report": "reports/product/CYCLE_39094983039.md",
+    "run_id": "39094983039"
+  },
+  "repair_39123358661_audit_defects": {
+    "audit_claim_ceiling": "OFFLINE WIRING + SNAPSHOT-VERIFICATION + ONE LIVE-MODE SMOKE; product code delta independently verified sound; integration withheld only for two concrete false claims in the report of record",
+    "audit_gate": "REVISE",
+    "audit_of_record": "results/audit/product/CYCLE_39119287975_GATE.json",
+    "audit_safe_to_integrate": false,
+    "defect_a": {
+      "false_claim": "python3 product/cycle_verify.py --only regression --run-id 99999999999 --write -> refused, exit 1, no file written",
+      "fix": [
+        "product/data/regression_fail_fixture/CYCLE_39116225867_regression_scope.json - a byte-identical copy of the committed artifact that genuinely records n_repaired_only = 1",
+        "cycle_verify.py::main --regression-dir - one additive flag repointing the regression check; restored in a finally so it cannot leak into a later invocation",
+        "the corrected demonstration is published in reports/product/CYCLE_39119287975.md section 1 and verified live, in-process and as a subprocess",
+        "the original unpinned invocation is asserted to be a PASS, so the timing dependency is recorded rather than rediscovered"
+      ],
+      "mechanism": "never wrong - the refusal in cycle_verify.py::main is unchanged",
+      "recomputed_before_any_change": "writes the file and exits 0 (PASS 3/3): the invocation FAILs only while the NEWEST regression artifact records a new failure, and CYCLE_39119287975 is clean"
+    },
+    "defect_b": {
+      "false_claim": "CYCLE_39116225867_regression_scope.json produces PASS/PASS for check_regression_set_relation",
+      "fix": [
+        "product/cycle_verify.py::regression_set_relation_rows is now the single definition, shared by the gate and the matrix",
+        "product/regression_set_relation_matrix.py classifies every committed artifact with the IMPORTED predicate (never copied), --json for the machine form",
+        "removed CYCLE_39116225867 from produce_pass_pass in both reports/product/CYCLE_39119287975.md and results/product/orchestration/CYCLE_39116225867_snapshot_diagnosis.json; added produce_at_least_one_FAIL",
+        "new ledger check regression_matrix recomputes the classification and fails if the published list contains a false claim, is duplicated, or is incomplete as of run_id_diagnosing; later artifacts are disclosed by name, never required back into a historical record"
+      ],
+      "recomputed": "FAIL/PASS/PASS - set_difference_repaired_only_NEW_FAILURES records one id",
+      "refinement_measured_not_assumed": "the two pre-scope artifacts yield THREE fail claims each (claims 1 and 2 fail on absent schema/1 and schema/3 fields, not only on the null scope block), so 'produce that exact claim pair' describes the recorded assertion message rather than a two-claim ledger; the cause-space conclusion is unchanged",
+      "root_cause_of_the_defect": "check_regression_set_relation only reads the NEWEST artifact, so the classification of older artifacts had to be answered by copying the gate's three expressions; the copy drifted and nothing re-derived it"
+    },
+    "direction_of_the_guard": "published SUBSET OF actually-PASS/PASS is enforced; equality was tried and is wrong - it made this repair's own regression run fail its own suite when it committed a new clean artifact, which is the self-referential class the diagnosis is about",
+    "ledger": {
+      "artifact": "results/product/cycle_verify/CYCLE_39123358661_cycle_verify.json",
+      "command": "python3 product/cycle_verify.py --run-id 39123358661 --write",
+      "n_claims": 38,
+      "n_failed": 0,
+      "new_check": "regression_matrix (5 claims)",
+      "verdict": "PASS"
+    },
+    "next_concrete_step": "a fresh-network retrieval check against https://mcp.opencaselaw.ch/api on the same slice (the 39119287975 smoke served retrieval from the pinned cache, so corpus freshness is still unproven), then Core Evaluation's frozen feedback on the served bundle",
+    "not_touched": [
+      "packet bytes 2942c3c2...",
+      "frozen gates/rubrics ff57f556",
+      "bar scoring (Core Evaluation's)",
+      "all Frontier charters (closed/TERMINATED)",
+      "the 159 legacy failures",
+      "every historical artifact except the two places the audit named",
+      ".github/** (control-plane scope)"
+    ],
+    "posture_after_repair": {
+      "accepted_verdict_of_record": "DO-NOT-SERVE-UNCHANGED, frontier-rebuilt-packet-serve-audit run 39061330426, gate=PASS, accept 26582bc5, owner_decision_required=false; the DO-NOT-SERVE order on served packet 38839347028 stands and is NOT superseded",
+      "continue_recommended": true,
+      "human_gate_ready": false,
+      "machine_gate_ready": false,
+      "packet_admitted": false,
+      "ready_for_owner_session": false
+    },
+    "regression_vs_accepted_base_453a873": {
+      "arithmetic_reconciles": true,
+      "artifact": "results/product/regression/CYCLE_39123358661_regression_scope.json",
+      "baseline": {
+        "collected": 1092,
+        "failed": 159,
+        "passed": 918,
+        "root": "/tmp/lex_baseline_453a873",
+        "skipped": 15
+      },
+      "decomposition": "+6 from cycle 39119287975 and +25 from this repair (the one new test module, 25 tests collected); 6 + 25 = 31 and 918 + 31 = 949",
+      "environment": {
+        "numpy": "2.5.4",
+        "pytest": "9.1.1",
+        "python": "3.12.3",
+        "scikit_learn": "1.9.1",
+        "scipy": "1.18.1"
+      },
+      "head": {
+        "collected": 1123,
+        "failed": 159,
+        "passed": 949,
+        "root": "this working tree",
+        "skipped": 15
+      },
+      "passed_delta": 31,
+      "post_write_confirmation": {
+        "failing_id_set_identical_to_artifact_baseline": true,
+        "failing_id_set_identical_to_artifact_head": true,
+        "fixed": [],
+        "log": "results/product/regression/logs_39123358661/confirmation_pytest_final_tree.log",
+        "log_sha256": "e3d0ebe80399627f0702acc54e8b9e5d3d120c25e6cae62f237b480910f34327",
+        "new_failures": [],
+        "run_summary": "159 failed, 949 passed, 15 skipped (1123 collected)",
+        "tree": "state update + this repair report + diagnosis corrections + shipped ledger all present"
+      },
+      "raw_log_sha256": {
+        "baseline": "e1ad341638e4e1cdad83d86cfa67c8eaf660c5116f88e6aaa18582f1af920dbc",
+        "confirmation": "e3d0ebe80399627f0702acc54e8b9e5d3d120c25e6cae62f237b480910f34327",
+        "head": "872ccb56e304e9233aed49590ab46b36094bbbe98ed9c15c9c15367daaae3565"
+      },
+      "root_scoped": true,
+      "schema": "product-regression-evidence/2",
+      "set_relation": {
+        "fixed": [],
+        "n_baseline_only": 0,
+        "n_intersection": 159,
+        "n_repaired_only": 0,
+        "new_failures": []
+      }
+    },
+    "status": "BOTH REQUIRED FIXES APPLIED AND RE-DERIVABLE BY COMMAND"
+  },
+  "resume_39097705922": {
+    "claim_ceiling": "OFFLINE WIRING EVIDENCE ONLY: the offline slice proves query -> bundle -> sourced answer -> counter-authority pass -> clickable map from recorded envelopes with no network. No frozen gate evaluated, no legal-usefulness claim, no serve recommendation. The accepted DO-NOT-SERVE order on rebuilt-390927045675 stands.",
+    "committed_this_resume": [
+      "product/app/navigation.py - sentence_transformers import made LAZY (was eager at module scope, pulling torch into the product.server import chain and darkening 18 test modules in any bare environment); NavigationAPI gained write_dir= seam; _get_embedding_model degrades to None when the optional dependency is absent",
+      "product/app/corpus_loader.py - user_import_write_dir= seam; read side no longer mkdirs the tracked user_imports fixture on a read-only call",
+      "product/app/incremental_updater.py - delta dir resolves through nav_api._write_dir when present",
+      "product/tests/test_product.py and 14 further test modules - every NavigationAPI construction that read the tracked product/results/fractal_map tree now passes write_dir=str(tmp_path); the three idempotency helpers that shutil.rmtree-ed tracked user_imports/corpus_user_imports fixtures now wipe scratch state (results/product/regression/tracked_results_writer_inventory.json: fixed_this_cycle 1 -> 15, offender lines -> 0)",
+      "product/tests/test_no_test_writes_into_tracked_results.py - guard extended from WRITER_APIS to MUTATING_APIS (DESTRUCTIVE_APIS: rmtree/unlink/remove/rmdir/removedirs/rename/replace), REDIRECT_KEYWORDS write_dir/user_import_write_dir recognition, broader tracked-path regex (user_imports, corpus_user_imports, spatial_indices)",
+      "product/tests/test_fast_path_imports_without_dense_stack.py (NEW) - the query fast path imports without the dense stack",
+      "results/product/offline_slice/20261018T045708Z/ - producer's verified offline slice (fixture-replay retrieval_mode, socket.connect booby-trapped; query -> bundle -> sourced answer -> counter pass -> clickable map; counter_rows=1 vs counter_status_bearing_rows=5 under the RF1 honest names)",
+      "results/product/regression/CYCLE_39097705922_regression_scope.json + logs_39097705922/ - baseline(HEAD test bytes) 915 passed/159 failed vs head(working tree) 918 passed/159 failed; +3 passed, 0 fixed, 0 new failures; set differences both empty; arithmetic reconciles; raw logs sha256-pinned"
+    ],
+    "kind": "OPERATIONAL RESUME of the persisted producer snapshot of run 39094983039",
+    "not_touched": [
+      "the packet bytes (rebuilt-39027045675 raw sha256 2942c3c2... unchanged)",
+      "the frozen gates and rubrics (ff57f556) - bar scoring stays Core Evaluation's",
+      "any Frontier charter (all TERMINATED/closed; never re-dispatched)",
+      "the 159 legacy failing tests - identical set at baseline and head (accepted convention: legacy 174k representation expectations vs the query-specific product)",
+      ".github/** (control-plane scope)"
+    ],
+    "posture": "fail-closed UNCHANGED: machine_gate_ready=false, human_gate_ready=false, packet_admitted=false, ready_for_owner_session=false; no owner question staged or fired; both DO-NOT-SERVE orders stand (38839347028 and rebuilt-39027045675); accepted verdict owner_decision_required=false re-stated verbatim",
+    "producer_death_diagnosis": "The 39097705922 producer completed the regression scope (results/product/regression/CYCLE_39097705922_regression_scope.json, logs pinned by sha256), the tracked-path hardening edits, the inventory update and the offline slice (results/product/offline_slice/20261018T045708Z/, verified PASS 63 assertions) and then stopped at 04:57:09Z with NO commit, NO state update and NO cycle report. No gate file, no product defect, no evidence of a state-validation failure; the signature (work complete, snapshot unfinished) is the provider death/rotation class already recorded in factory direction requirement 20, not a verdict on the work.",
+    "resumed_at": "2026-10-18T05:07:00Z",
+    "rf0_rf5_status": "All ordered items from direction v56 discharged in committed history (owner-question withdrawal 0982fec; RF1 product/query/counter_status.py single source of truth consumed by query_app.run_status, human_gate_finalize, cycle_verify; RF2 product/test_accounting.py run-id+commit pins, 564->574==+10, 255-row invariant; RF3 tmp_path fixtures + content pin; RF5/R6 fail-closed posture guarded). This resume extends RF3's same-class coverage from 1 named module to all 15 and pins the class at 0 offender lines with a growth guard.",
+    "run_id": "39097705922",
+    "verification_this_resume": "Re-ran the offline slice after the death: PASS 63 assertions; the 100 decisions, the 8 clusters and the answer are byte-identical (canonical JSON) to the producer's 045708Z run; only provenance metadata (paths/seconds) differs. Re-ran the four affected guard/accounting test modules: 66 passed. No tracked file under product/results/** is modified by the suite (guard + content pin on jurist_feedback/feedback.jsonl, 1 line, jurist_id test_jurist, matches HEAD)."
+  },
+  "resume_39119287975": {
+    "kind": "OPERATIONAL RESUME of the persisted producer snapshot of run 39116225867",
+    "posture": "UNCHANGED: machine_gate_ready=false, human_gate_ready=false, packet_admitted=false, ready_for_owner_session=false, continue_recommended=true; both accepted DO-NOT-SERVE orders stand; no owner question staged; requirement 13 conditions (a) and (b) remain unmet on the accepted outcome-B verdict (owner_decision_required=false)",
+    "producer_failure_diagnosis": {
+      "inference_labelled_as_such": [
+        "INFERENCE (the ledger bytes are not in the snapshot, so the invocation cannot be replayed): the producer ran product/cycle_verify.py --write with a FAIL verdict into the canonical results/product/cycle_verify/ directory from a tree whose newest regression artifact was an old-schema one, and the FAIL file was then removed before 'git add -A' in the workflow's Persist team snapshot step - it would otherwise be committed, because that step commits every untracked file"
+      ],
+      "proven_chain": [
+        "results/product/regression/logs_39116225867/{baseline,head}_pytest.log re-parsed offline: the head run's ONLY failing test id absent from the baseline is product/tests/test_cycle_verify_is_a_gate.py::test_committed_artifact_is_a_pass_and_says_what_it_is_not (159 baseline / 160 head, intersection 159, baseline-only 0, repaired-only 1)",
+        "that test reads the NEWEST file in results/product/cycle_verify/ as 'the shipped ledger' and asserts verdict==PASS; its recorded assertion message was reproduced byte-for-byte in this environment from a ledger carrying exactly two FAIL claims: the regression 'no new failing test id' claim and the 'both roots are published' claim with observed {baseline_at: null, declared_label: null, measured_at: null}",
+        "exhaustive recomputation over all eight committed regression artifacts: only CYCLE_39048942749_regression_scope.json (schema/1) and CYCLE_39051003925_regression_scope.json (schema/3) - the two pre-scope artifacts, both with an empty scope block and no set_relation key - produce that exact claim pair; every schema/2 artifact (39060279436 onward) produces PASS/PASS",
+        "so the FAIL ledger the suite read was computed against a regression artifact set that predates 39060279436, i.e. not against this cycle's own measurement; a FAIL ledger then becomes the newest shipped ledger, which fails the suite, which is then recorded as the cycle's only 'new failure', which keeps any fresh ledger FAIL - a fixed point in which the cycle can never ship a PASS ledger",
+        "on the CURRENT tree (no 39116225867 ledger present) all 27 tests of product/tests/test_cycle_verify_is_a_gate.py pass and the full ledger is 32/33 claims, the single failure being the stale 'new failure' entry in the superseded 39116225867 artifact"
+      ],
+      "remeasurement": {
+        "artifact": "results/product/regression/CYCLE_39119287975_regression_scope.json",
+        "baseline": "pristine worktree of accepted base 453a873 at /tmp/lex_baseline_453a873 (the same accepted base the superseded 39116225867 artifact used, so the comparison is like-for-like)",
+        "baseline_passed_failed": "918 passed / 159 failed / 15 skipped (1092 collected)",
+        "conclusion": "the single 'new failure' recorded in CYCLE_39116225867_regression_scope.json does NOT reproduce on the tree; it was the ledger-poisoning self-hit measured against the FAIL ledger, not a product regression. Both artifacts are preserved; the 39119287975 artifact supersedes it as the newest measurement, by the ledger's own documented 'each cycle replaces it' rule.",
+        "head_passed_failed": "924 passed / 159 failed / 15 skipped (1098 collected)",
+        "set_relation": "intersection 159, baseline-only 0, repaired-only 0; arithmetic reconciles (collected_delta 6 == passed_delta 6)"
+      },
+      "repair_committed_this_resume": [
+        "product/cycle_verify.py main(): --write REFUSES to place a FAIL-verdict ledger into the canonical DEFAULT_OUT_DIR (exit 1, refusal printed with the reason, claims still shown); an explicit non-canonical --out-dir still keeps a diagnostic FAIL ledger. A PASS ledger still writes normally.",
+        "product/tests/test_cycle_verify_is_a_gate.py: 3 new tests (failing ledger refused from canonical dir / still kept under explicit out-dir / PASS path still writes - non-vacuity both ways)"
+      ],
+      "root_cause_class": "SELF-REFERENTIAL LEDGER DEADLOCK (not rc-78, not a zero-delta death, not a product defect, not a human-gate problem)",
+      "what_the_snapshot_delivered": [
+        "commit 173bac1: product/static/query.html relLine shared_citation branch (cite en commun, shared authority named, raw machine token never rendered); product/verify_query_page.js section 5 synthetic contract lines; product/tests/test_relation_direction_render.py (3 integration tests over real pipeline output for both edge kinds); all four reality-leg offline slices re-run (rent-default 65, petty-theft-dismissal 67, corporate-criminal-liability 67, business-judgment-rule 67 assertions, PASS) with the two pre-fix bundles preserved as negative evidence",
+        "commit 89b6552 (repair 0): product/cycle_verify.py check_relation_direction (re-derives the shared_citation claim live through verify_query_page.js) and results/product/regression/CYCLE_39116225867_regression_scope.json + sha256-pinned baseline/head logs"
+      ],
+      "what_the_snapshot_did_not_deliver": [
+        "no reports/product/CYCLE_39116225867.md (no narrative of record)",
+        "no state/product.json update (state still read current_run=39097705922 at snapshot time)",
+        "no results/product/cycle_verify/CYCLE_39116225867_cycle_verify.json (no shipped ledger for the run)"
+      ]
+    },
+    "resumed_at": "2026-10-18T10:50:00Z",
+    "resumed_from": {
+      "accepted_base_lab_product_tip": "453a873",
+      "frontier_mounts_at_cycle_start": "/tmp/lex_accepted/frontier was EMPTY; nothing to absorb",
+      "snapshot_branch": "cycle/core/product/39116225867/team",
+      "snapshot_head": "89b65527719b73660e5446d50913ca6d58d7002d"
+    },
+    "run_id": "39119287975",
+    "verification_this_resume": [
+      "python3 product/cycle_verify.py (dry run, pre-remeasurement): 32/33 claims; all slice/counter/relation/relation_direction/posture/owner_question/tracked/orchestration/diagnosis/scope claims PASS; the single FAIL was the superseded 39116225867 regression entry",
+      "python3 -m pytest product/tests/test_cycle_verify_is_a_gate.py: 27 passed",
+      "python3 product/cycle_verify.py --only regression --run-id 99999999999 --write: refused, exit 1, no file written (live non-vacuity of the new guard)",
+      "post-write confirmation: full suite re-run against the FINAL tree (state + report + diagnosis + shipped ledger present) = 159 failed / 924 passed / 15 skipped, failing-ID set identical to both the artifact head set and the baseline set (0 new, 0 fixed); results/product/regression/logs_39119287975/confirmation_pytest_final_tree.log sha256 e5d593cf7845fd2c3a4ffaafc9f28f137a8d80b854b610db46741a2c6e3563e4",
+      "shipped ledger: results/product/cycle_verify/CYCLE_39119287975_cycle_verify.json = PASS 33/33 claims (python3 product/cycle_verify.py --run-id 39119287975 --write), re-runnable in one command",
+      "live vertical-slice smoke on the committed tree: python3 product/slice_smoke.py --run-id 39119287975_live --port 8813 --n 150 --timeout 480 -> ok=true, all budgets green (first map 0.178s, 194 decisions with points_moved=0, answer_status=ready / 6 cited / 3 counter authorities, adversarial 7 findings / 5 challenging, 81 health probes with 0 failures); retrieval requests cache-served (cache_hits 8, network_calls 0) over the pinned OpenCaseLaw query cache, model legs fresh (enrich_model_s 76.0); strict_local citation validation 0 hallucinated / 6 unverified, identical to all five prior live runs; artifacts results/product/progressive_slice/{39119287975_live.json,bundle_39119287975_live.json}",
+      "final-tree suite confirmation after all writes: results/product/regression/logs_39119287975/final_tree_pytest.log sha256 20254541ce64c1ec48a761501dc3fa0de4a701b370a17301698c60be0a93e1c1 = 159 failed / 924 passed / 15 skipped, failing-ID set identical to baseline (0 new, 0 fixed)"
+    ]
+  },
+  "resume_39128456801": {
+    "fresh_network_slice": {
+      "answer": {
+        "cited_ids": [
+          "bger_6B_750_2020",
+          "bger_6B_124_2016",
+          "bger_6B_31_2019",
+          "bger_6B_7_2014",
+          "bstger_CN.2024.18",
+          "bstger_CA.2023.20"
+        ],
+        "degraded": false,
+        "n_cited": 6,
+        "provider": "opencode/mimo-v2.6-flash-free",
+        "provider_error": null,
+        "status": "ready"
+      },
+      "artifact": "results/product/live_slice/CYCLE_39128456801_live.json",
+      "bundle": "results/product/live_slice/CYCLE_39128456801_live_bundle.json",
+      "checks": "10/10",
+      "claim_ceiling": "A fresh-network wiring and latency measurement of the canonical vertical slice (query -> query_result_bundle -> sourced answer -> counter-authority pass -> clickable map) against the live public OpenCaseLaw API on this tree. It scores no frozen bar, reads no Frontier verdict, issues no serve recommendation and makes no legal-usefulness claim. Admission stays fail-closed regardless of its verdict.",
+      "command": "python3 product/live_slice.py --run-id CYCLE_39128456801_live --n 150",
+      "counters": {
+        "by_status": {
+          "abstained_unevidenced": 1,
+          "candidate-limiting": 1,
+          "cited": 6,
+          "none": 150
+        },
+        "counter_authorities": 2,
+        "counter_status_bearing_rows": 8,
+        "definition_source": "product/query/counter_status.py (RF1 single source of truth)",
+        "evidenced_counter_ids": [
+          "bge_146 IV 68",
+          "bstger_TPF_2012_62"
+        ],
+        "unevidenced_counter_ids": []
+      },
+      "freshness": {
+        "adapter_cache_hits": 0,
+        "adapter_cache_stats": {
+          "available": true,
+          "hits": 8,
+          "misses": 0,
+          "n_keys": 1276,
+          "root": "/home/runner/work/LexMachina/LexMachina/results/product/query_cache",
+          "writes": 8
+        },
+        "adapter_counter_disagreement_disclosed": "cache_stats.hits=8 vs request_summary.cache_hits=0; both published, the freshness verdict rests on request_summary AND the independent file diff",
+        "adapter_network_calls": 8,
+        "independent_probe": {
+          "cache_dir": "results/product/query_cache",
+          "n_files_added": 4,
+          "n_files_modified": 19,
+          "n_files_removed": 0,
+          "n_files_touched": 23
+        }
+      },
+      "map": {
+        "geometry_preserved_by_enrich": true,
+        "languages": {
+          "?": 36,
+          "de": 61,
+          "fr": 34,
+          "it": 27
+        },
+        "largest_cluster": 82,
+        "n_clusters": 8,
+        "n_decisions": 158,
+        "n_decisions_before_enrich": 150,
+        "n_points_moved_by_enrichment": 0,
+        "n_points_shared_with_initial_map": 150,
+        "n_rows_added_by_enrichment": 8,
+        "n_rows_dropped_by_enrichment": 0,
+        "points_moved_by_enrichment": [],
+        "rows_added_by_enrichment": [
+          "bge_107 IB 264",
+          "bge_116 III 4",
+          "bge_126 III 534",
+          "bge_131 III 459",
+          "bge_134 V 49",
+          "bge_135 V 201",
+          "bge_136 III 583",
+          "bge_144 IV 127"
+        ],
+        "rows_with_cluster_id": 158,
+        "rows_with_source_url": 158,
+        "rows_with_xy": 158
+      },
+      "retrieval_mode_served": "refresh",
+      "timing_s": {
+        "budget_geometry_s": 2.0,
+        "budget_local_map_s": 1.5,
+        "enrich_s": 181.046,
+        "initial_total_s": 28.022,
+        "local_map_s": 0.2381,
+        "local_map_within_budget": true,
+        "total_s": 209.068,
+        "upstream_retrieval_s": 27.7832
+      },
+      "verdict": "PASS"
+    },
+    "kind": "operational resume of producer snapshot 39123358661",
+    "ledger": {
+      "artifact": "results/product/cycle_verify/CYCLE_39128456801_cycle_verify.json",
+      "command": "python3 product/cycle_verify.py --run-id 39128456801 --write",
+      "n_claims": 41,
+      "n_failed": 0,
+      "new_check": "environment (3 claims)",
+      "verdict": "PASS"
+    },
+    "next_concrete_step": "Core Evaluation's frozen feedback on the served live bundle (bar scoring is that lane's), and - only if a future ACCEPTED verdict independently satisfies requirement 13 (a) or (b) - an owner clickable session. This cycle does NOT claim human_gate_ready.",
+    "not_touched": [
+      "packet bytes 2942c3c2...",
+      "frozen gates/rubrics ff57f556",
+      "bar scoring (Core Evaluation's)",
+      "every Frontier charter (closed/TERMINATED, never re-dispatched)",
+      "the frozen claim-cache manifest and the restored tracked cache entries",
+      "every historical artifact of 39116225867 / 39119287975 / 39123358661",
+      ".github/** (control-plane scope)"
+    ],
+    "orchestration_failure": {
+      "artifact": "results/product/orchestration/CYCLE_39128456801_resume_diagnosis.json",
+      "class": "POST_DELIVERY_DEATH_ON_A_COMPLETE_TREE",
+      "excluded_classes": [
+        "ZERO_DELTA_CYCLE",
+        "PRODUCT_DEFECT_IN_THE_SNAPSHOT_DELTA",
+        "SCOPE_VIOLATION",
+        "HUMAN_GATE_OR_OWNER_DECISION"
+      ],
+      "lesson_applied": "commit the durable delta BEFORE starting any optional measurement; no optional step was started that could not finish inside the quantum",
+      "not_claimed": "the workflow's exit code, the killed step, and whether the wrapper retried are UNOBSERVABLE here (no GH_TOKEN). The class is a cause space with the measured evidence above, not a reading of the run record."
+    },
+    "regression_vs_accepted_head_9727a45": {
+      "artifact": "results/product/regression/CYCLE_39128456801_regression_scope.json",
+      "log": "results/product/regression/logs_39128456801/head_pytest.log",
+      "log_sha256": "2ec204112e551d5a4560950e29527f7c17a12e09608b4cac6286c109a032615f"
+    },
+    "second_finding_undeclared_runtime": {
+      "class": "UNDECLARED_RUNTIME_MAKES_VALIDATION_FAIL_FOR_A_NON_PRODUCT_REASON",
+      "control_plane_item_recorded_not_edited": {
+        "candidate_fixes": [
+          "core-lane.yml: add `pip install -r product/requirements-query.txt` to both the team and the audit job",
+          "or: have both jobs run `bash product/bootstrap_query_env.sh` once before the agent runs"
+        ],
+        "item": "core-lane.yml installs no python requirements for the team or audit job",
+        "scope": "control-plane workflow scope; .github/** is not product-writable. Recorded here once, like the existing durable_reality_check_trigger_gap item, so the lane stops re-discovering it."
+      },
+      "fail_closed": "a missing dependency stays a FAIL with the remedy attached; it is never converted into a skip",
+      "fix_shipped": [
+        "product/query_env.py (REQUIRED/PINNED/probe, stdlib-cheap import)",
+        "product/bootstrap_query_env.sh (one command, pinned, --check reports without installing)",
+        "product/cycle_verify.py::check_query_runtime_declared - new fail-closed 'environment' check"
+      ],
+      "measured": "on the untouched runner, python3 product/cycle_verify.py reported 5 FAILs, all 'ModuleNotFoundError: No module named numpy' (slice, counter, relation, relation_direction, tracked); re-derived with a meta_path blocker: FAIL 0/5",
+      "root_cause": "no step of .github/workflows/core-lane.yml installs product/requirements-query.txt for the team or the audit job"
+    },
+    "snapshot_identity": {
+      "all_changed_paths_inside_lane_scope": true,
+      "branch": "cycle/core/product/39123358661/team",
+      "commit_timestamps_utc": {
+        "4ba7a87": "2026-10-18T11:09:24Z",
+        "75c748b": "2026-10-18T11:01:27Z",
+        "9727a45": "2026-10-18T11:55:47Z"
+      },
+      "commits": [
+        "75c748b",
+        "4ba7a87",
+        "9727a45"
+      ],
+      "head": "9727a452d2959e414e2a1cd3942daca568221558",
+      "identity_with_local_operational_resume_branch": "git diff --stat origin/cycle/core/product/39123358661/team HEAD == empty at resume start",
+      "lane_scope_check": "product/*, tests/product/*, results/product/*, reports/product/*, state/product.json, data/product/* - no path of the 13 touched files would trip `Enforce lane write scope` (.github/workflows/core-lane.yml:123-144)",
+      "state_written_at": "2026-10-18T11:52:00Z"
+    },
+    "snapshot_ledger_recheck": {
+      "command": "python3 product/cycle_verify.py --run-id 39128456801",
+      "observed": "PASS 38/38",
+      "shipped": "results/product/cycle_verify/CYCLE_39123358661_cycle_verify.json"
+    },
+    "snapshot_verdict": "COMPLETE AND VERIFIED - nothing restarted, nothing re-litigated",
+    "source_drift_finding": {
+      "consequence": "fixture-replay from results/product/query_cache no longer equals what live retrieval returns today",
+      "fix_shipped": "product/live_slice.py --ephemeral-cache points a freshness run at a throwaway cache dir so the class cannot recur",
+      "regression_caught_and_reverted": "the refresh rewrote 19 entries covered by the frozen claim-cache manifest results/product/CYCLE_38759730609_cache_manifest.json, turning product/tests/test_cache_non_orphan.py::test_claim_cache_manifest_is_intact_and_append_tolerant from green to red. The tracked entries were restored with `git checkout -- results/product/query_cache`; the frozen manifest is historical evidence and is never rewritten from this lane. 41 NEW cache keys (additive, append-tolerant) remain.",
+      "what": "the refreshed bodies differ from the tracked cache: e.g. bge_142 IV 333 now returns a populated preparatory_materials (STGB 102, STGB 305bis, with SR numbers and BBl references) where the cached copy had []"
+    },
+    "tests_added": {
+      "module": "product/tests/test_live_slice_and_query_env.py",
+      "n_tests": 13
+    }
+  },
   "run_38763217418": {
     "annotation_source": "GET https://api.github.com/repos/Mickalive/LexMachina/check-runs/116529139394/annotations (public)",
     "annotations_observed": [
@@ -1455,9 +2246,9 @@
     "fixtures": "offline/test only; never merged into live results",
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
   },
-  "state_updated_at": "2026-10-18T05:10:00Z",
-  "state_updated_by_run": "39097705922",
-  "state_updated_from_resumed_snapshot_run": "39031213637",
+  "state_updated_at": "2026-10-18T18:40:00Z",
+  "state_updated_by_run": "39149741259",
+  "state_updated_from_resumed_snapshot_run": "39136122746",
   "supersedes_claims": {
     "gate_ceremony_is_one_query_only": "SUPERSEDED BY RUN 38792650692: the packet pre-registers three questions (FR/DE/IT), re-verifies each bundle at run time and hands the owner one deep link per question. The single-query path still works (product/human_gate_session.py is unchanged) and is still the way ONE session is finalized.",
     "prior_direction_version": 48,
@@ -3404,390 +4195,293 @@
       "run_id": 39011220761
     }
   ],
-  "repair_39065274887_round1": {
-    "run_id": "39065274887",
-    "repair_from": "39063665073",
-    "round": 1,
-    "fixes": [
-      {
-        "id": "F1",
-        "file": "product/static/query.html",
-        "status": "fixed",
-        "note": "distinct discovery radius; concentric underpaint detector"
-      },
-      {
-        "id": "F1",
-        "file": "product/canvas_probe.js",
-        "status": "fixed",
-        "note": "geometry-aware with concentric-underpaint assertion"
-      },
-      {
-        "id": "F1",
-        "file": "product/tests/test_adversarial_discovery_ui.py",
-        "status": "fixed",
-        "note": "new geometry invariants"
-      },
-      {
-        "id": "F2",
-        "file": "product/tests/test_regression_scope_honesty.py",
-        "status": "fixed",
-        "note": "re-attested without hard-pinning old current_run"
-      },
-      {
-        "id": "F2",
-        "file": "results/product/regression/CYCLE_39063665073_regression_scope.json",
-        "status": "fixed",
-        "note": "added accepted_base_comparison per F2"
-      },
-      {
-        "id": "F3",
-        "file": "reports/product/CYCLE_39063665073.md",
-        "status": "fixed",
-        "note": "corrected final-bundle histogram; cited LIVE_V2 final-bundle alongside pass-level"
-      }
-    ],
-    "gate_positions_unchanged": {
-      "continue_recommended": true,
-      "human_gate_ready": false,
-      "machine_gate_ready": false,
-      "ready_for_owner_session": false,
-      "self_certification": false
-    },
-    "measured_packet_sha": "2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170",
-    "concentric_underpaint_cleared": true
-  },
-  "cycle_39082232157_rf0_rf4_ordered_work": {
-    "run_id": "39082232157",
-    "direction_version": 56,
-    "evidence_tier": "REPRODUCED",
-    "what_this_cycle_is": "The four ordered remaining items of direction v56, plus the admissible product-improving work adjacent to them. All six ordered items are addressed: RF0 (withdraw the owner-question firing), RF1 (stop labelling the broad count as counter authorities), RF2/RF4 (test-accounting arithmetic and pinning), RF3 (stop manufacturing fake delta from the test suite), and RF5/RF6 (the fail-closed posture is unchanged and now has an executable guard).",
-    "RF0_withdraw_owner_question_firing": {
-      "status": "DONE",
-      "intake_record": "results/product/frontier_verdicts/frontier-rebuilt-packet-serve-audit_intake.json",
-      "intake_schema": ".../rebuilt-packet-serve-audit/2 (supersedes /1)",
-      "route_around_status": "RECORDED_FAIL_CLOSED_NO_OWNER_QUESTION (was TRIGGERED_AND_FIRED)",
-      "owner_question_status": "WITHDRAWN_NOT_FIRED_NEVER_TO_FIRE_ON_THIS_VERDICT; question text DELETED",
-      "owner_decision_required": false,
-      "owner_decision_required_reason": "Charter outcome (C) requires BOTH frozen absolute bars unmet. The label bar is met as written by the accepted instrument, so charter outcome (C) is not reached and the charter DOES NOT convert the map-versus-ranked-list choice into an owner decision.",
-      "requirement_13_condition_a_met": false,
-      "requirement_13_condition_b_met": false,
-      "consequence": "Both supersession conditions are unmet, so the accepted DO-NOT-SERVE order simply STANDS. No owner card, owner session, ready_for_owner_session=true or human_gate_ready=true is produced from this verdict, and the question is not staged as ready to fire.",
-      "accepted_verdict_now_recorded": true,
-      "accepted_verdict_provenance": "frontier-rebuilt-packet-serve-audit run 39061330426: audit CYCLE_39061330426_GATE.json gate=PASS safe_to_integrate=true required_fixes=[]; accept commit 26582bc5; portfolio v28 status=TERMINATED. Verified against the control-plane mount this cycle - the citation is TRUE and independently verifiable, which is what falsified the earlier audit's \"fabricated cross-lane citation\" finding (that finding was correct about the stale portfolio record and wrong about the citation; the portfolio record is repaired).",
-      "history_preserved": "The superseded REVISE audit (run 39053132092, FIX-1..FIX-4) is preserved verbatim under independent_audit_history. Nothing was deleted; the route_around.superseded_status field keeps the withdrawn firing named so the withdrawal is auditable.",
-      "tests": "product/tests/test_no_owner_question_from_accepted_verdict.py (10 tests) + product/tests/test_frontier_serve_audit_intake.py (13 tests, re-pointed not deleted)"
-    },
-    "RF1_counter_authority_count": {
-      "status": "DONE",
-      "severity_of_original_defect": "MATERIAL - the inflated number feeds a GATE",
-      "single_source_of_truth": "product/query/counter_status.py (stdlib-only leaf), re-exported by product/query/gate_admissibility.py so gate_admissibility.NON_COUNTER_STATUSES remains THE object (identity contract preserved, verified)",
-      "why_the_broad_test_was_wrong": "counter_status is a provenance field as well as a verdict field: 'cited' means the sourced answer CITED the decision, which is the opposite of countering it; 'supporting-candidate' / 'context' / 'unclassified' are recall-only rows kept for high recall.",
-      "demo_corrected": 1,
-      "demo_previously_reported_as": 5,
-      "demo_counter_authority_id": "ju_gerichte_CC_2021_44 (candidate-limiting, evidenced)",
-      "live_corrected": 2,
-      "live_previously_reported_as": 7,
-      "live_counter_statuses": "both abstained_unevidenced",
-      "inflation_factor_demo": 5.0,
-      "inflation_factor_live": 3.5,
-      "live_reconciliation": "The old 7 equals the generative audit's SUPPORTING count (supporting 7 / limiting 0 / contrary_or_exception 0), while the bundle's own row-level `cited` provenance covers 5 rows. These are measured at DIFFERENT stages and were NOT shown to be the same set - recorded as unverified rather than asserted from a matching cardinality (factory-wide requirement 16). Either way the old number cannot be a counter count: the audit found zero limiting and zero contrary authority.",
-      "surfaces_fixed": [
-        "product/query/bundle.py::bundle_summary (n_counter -> n_counter_authorities + n_rows_with_counter_status + histogram)",
-        "product/query_app.py::run_status counts (broad `counter` key REMOVED, not renamed)",
-        "product/query_app.py::_enrich_task job detail",
-        "product/human_gate_finalize.py::bundle_evidence counter_ids + both counts published",
-        "product/gate_rehearsal.py::_counter_ids",
-        "product/slice_smoke.py enrich stage report",
-        "product/offline_slice.py::summarise (was startswith(\"candidate\"), which missed abstained_unevidenced entirely)"
+  "resume_39139648336": {
+    "kind": "operational_resume",
+    "resumed_snapshot_run": "39136122746",
+    "snapshot_head": "9bfd03f (cycle/core/product/39136122746/team)",
+    "snapshot_ledger_recheck": "results/product/cycle_verify/CYCLE_39136122746_cycle_verify.json re-derived PASS 41/41 on the snapshot tree; re-shipped for this run as results/product/cycle_verify/CYCLE_39139648336_cycle_verify.json PASS 41/41 on the final tree",
+    "orchestration_failure_diagnosis": {
+      "run": "39136122746 (Core product dirV56 repair3)",
+      "conclusion": "failure",
+      "failing_step": "team step 6 'Run lane cycle'; steps 7 (Validate active MVP producer state) and 9 (Enforce lane write scope) skipped; audit and integrate skipped",
+      "job_window": "2026-10-18T14:28:26Z -> 2026-10-18T15:15:11Z (2805 s)",
+      "final_commit": "9bfd03f at 2026-10-18T15:15:06Z, five seconds BEFORE the job failure timestamp - the complete fix set was already committed",
+      "classification": "rc-78 LEX_WORK_QUANTUM_EXPIRED class (post-delivery death on a complete tree)",
+      "evidence_for_class": [
+        "wrapper quantum constant LEX_AGENT_QUANTUM_SECONDS=2700 s (recorded, product/run-ox-with-retry.sh); job total 2805 s = 2700 s quantum + ~105 s wrapper overhead (steps 1-5)",
+        "death at the quantum boundary immediately after the final commit - the producer had nothing left to do but the non-product tail (report + state update)",
+        "same class as runs 38822688733 / 38822364429 (factory-wide requirement 10) and evaluation 38945976309 (requirement 20)"
       ],
-      "artifact": "results/product/counter_authority_counting.json (schema product-counter-authority-counting/1), produced by python3 -m product.counter_authority_report",
-      "tests": "product/tests/test_counter_authority_definition.py (19 tests, incl. three non-vacuity controls for the scanning guards)",
-      "both_definitions_always_published": "per audit CYCLE_39065274887 F3 convention"
+      "uncertainty": "job logs are admin-only (HTTP 403 unauthenticated); the exact wrapper exit-code string is therefore NOT quoted from a log line. The CLASS is established by public arithmetic (timings + quantum constant + commit-vs-failure ordering); the rc string is the class label, not a log citation",
+      "not": [
+        "not a product failure",
+        "not a validation defect (step 7 never ran)",
+        "not a human-gate problem"
+      ]
     },
-    "RF2_RF4_test_accounting": {
-      "status": "DONE",
-      "RF2_defect": "a report published net new passing tests of +7 where the measured change was +10",
-      "RF4_defect": "that count was pinned to a re-probed MOVING snapshot (21:30:00Z), already stale against the control plane's 22:24:12Z snapshot when the audit read it; the audit recomputed 162 passed / 1 failed and falsified the \"163 passed / 13 passed (fixed)\" claim",
-      "replacement_tool": "product/test_accounting.py",
-      "pinning_rule": "a pin names a run id AND a commit sha; never a timestamp, never a re-probed snapshot; baseline must be an ancestor of head; identical commits refuse; an unparseable log refuses rather than yielding zeros; a missing measurement is reported before any pin error",
-      "served_row_arithmetic_invariant": "RF2 also recorded a report publishing 247 as the final served bundle size when the bundle held 255 (247 + 8 adversarial rows). final == n_existing_before_adversarial + n_adversarial_rows_added is now measured per bundle; on the live bundle of record it is 194 + 8 = 202 and the pre-adversarial count would understate by 8.",
-      "direction_recorded_247_vs_255": "recorded in results/product/counter_authority_counting.json under served_bundle_row_arithmetic.direction_recorded_case, explicitly labelled as belonging to run 39073545280 and NOT a measurement taken from an artifact in this tree",
-      "tests": "product/tests/test_test_accounting_is_anchored.py (18 tests, incl. the RF2 case base 564 -> head 574 == +10 reproduced by the tool)"
+    "repair_chain_context": {
+      "repair1_39128456801": "audit CYCLE_39128456801_GATE.json gate=REVISE (F1-F4: live_slice NameError, cache-fingerprint root, bootstrap python re-check, report arithmetic)",
+      "repair2_39132612111": "green chain, audit CYCLE_39132612111 gate=REVISE (F1-F4 still unfixed + F5 no report/state + F6 process) - a success run that promoted nothing (factory-wide requirement 8)",
+      "repair3_39136122746": "producer committed the F1-F4 fix set (9bfd03f) then died at the quantum boundary; F5 (report + state) never shipped; this resume completes it"
     },
-    "RF3_stop_fake_delta_from_the_test_suite": {
-      "status": "DONE_FOR_THE_NAMED_MODULE; SAME_CLASS_MEASURED_AND_PINNED_IN_13_OTHERS",
-      "named_defect": "product/tests/test_cycle_v18_product.py:255-300 constructed NavigationAPI against the TRACKED product/results/fractal_map, so every suite run appended pytest residue (test_jurist_1 / test_aggregator_3/4/5) to product/results/fractal_map/jurist_feedback/feedback.jsonl; run 39073545280 committed that residue (+20 lines) as its ENTIRE delta",
-      "fixture_fix": "a tmp_path-backed `feedback_api` fixture; the tracked file is copied INTO tmp_path to seed the FEAT-081 records/aggregation/export tests",
-      "tracked_file_restored": "restored to its pre-residue content from commit fe10ac6, sha256 5d6ccf197d97ef6c5a5b77ef56c4f395b6e8d1f8f7b2fdac4e211895a23843eb. CORRECTED by run 39094983039 (audit CYCLE_39091749561 F6): commit 3fdde66 did NOT overwrite anything in place. The file was DELETED at 51ba32a ('cleanup: slim active product branch after query-map pivot') and RE-ADDED with the pytest residue at 3fdde66. Stated plainly, so the claim is not stronger than the evidence: the recovered record is itself SYNTHETIC (jurist_id 'test_jurist', payload.test 'data'), so 'history recovered' here means RESIDUE REMOVED, not real jurist data restored. The whole file's history remains in git and no historical entry is discarded.",
-      "guard": "product/tests/test_no_test_writes_into_tracked_results.py (10 tests, dependency-free so it is collectible where torch is not): a content pin on the tracked file, a residue fingerprint, an AST+tokenize static scan for any fixture pointing a writer at the tracked results tree, and a non-vacuity control that fires on the forbidden shape",
-      "same_class_found_elsewhere": {
-        "offending_lines": 38,
-        "modules": 13,
-        "fixed_this_cycle": [
-          "product/tests/test_cycle_v18_product.py"
-        ],
-        "why_not_fixed_here": "every remaining module is in the 18-module uncollectable set (needs sentence_transformers/torch), so it cannot be executed or verified in a bare environment. Bulk-editing 13 unverifiable modules would trade a recorded, measured defect for an unmeasured one, so the count is PINNED so the class cannot grow, the per-module inventory is published, and each entry is a named repair backlog item.",
-        "artifact": "results/product/regression/tracked_results_writer_inventory.json",
-        "growth_guard": "test_the_unfixed_class_has_not_grown fails if 38 rises; the pin is lowered only in the same commit that fixes the modules, never raised"
-      }
+    "f1_f4_verification_this_resume": {
+      "F1_NameError_fix": "EMPIRICAL PASS: python3 product/live_slice.py --run-id CYCLE_39139648336_F1F2_VERIFY --n 150 --ephemeral-cache -> 10/10 checks, no NameError, artifact results/product/live_slice/CYCLE_39139648336_F1F2_VERIFY.json",
+      "F2_fingerprint_root_fix": "EMPIRICAL PASS: independent_cache_probe on the ephemeral root saw the network (files_added 32 touched, adapter_cache_hits=0, network_calls=8); the tracked cache is no longer fingerprinted",
+      "F3_bootstrap_python_recheck_fix": "EMPIRICAL PASS: bash product/bootstrap_query_env.sh --check -> exit 0, \"query fast-path runtime: OK\" (exec bash, no SyntaxError)",
+      "F4_report_arithmetic": "reports/product/CYCLE_39128456801.md corrected 13 -> 17 tests (13 original + 4 repair-3 F1/F2/F3 verification tests); both the 13 and the 17 published side by side",
+      "test_module": "product/tests/test_live_slice_and_query_env.py 17/17 pass"
     },
-    "RF5_RF6_posture_unchanged": {
-      "status": "UNCHANGED AND NOW GUARDED",
-      "posture": [
-        "amber dashed ring + explicit \"non etayee\" count for unevidenced counters",
-        "size-based mega-cluster disclosure",
-        "machine_gate_ready=false",
-        "human_gate_ready=false",
-        "packet_admitted=false"
-      ],
-      "both_do_not_serve_orders_stand": "The accepted DO-NOT-SERVE order on served packet 38839347028 (product-owned copy results/product/frontier_verdicts/ACCEPTED_frontier-served-packet-falsification_38880639079.json) is NOT superseded by the rebuilt-packet verdict. Both stand. Acceptance of a DO-NOT-SERVE verdict is not a supersession of a DO-NOT-SERVE order.",
-      "owner_session_path": "A FUTURE accepted verdict independently satisfying requirement 13 condition (a) or (b) on the bytes then of record - never from this one."
+    "f5_completion": {
+      "report_of_record": "reports/product/CYCLE_39139648336.md (this cycle)",
+      "state_update": "this file: current_run=39139648336, accepted_run_id proposed 39139648336 pending independent audit"
     },
-    "control_plane_hardening_items_carried": [
-      "The rc-67 LEX_ZERO_DELTA_REPAIR guard fires only on repair rounds and means \"the producer found nothing to do\", not \"the lane is broken\" - route around by changing the QUESTION.",
-      "The supervisor jq \"//\" dead-code guard on continue_recommended is dead at any direction version; the portfolio .status field is the only reliable stop. .github/** is control-plane scope and is recorded here, not edited from this lane.",
-      "The blocker question-hash writer/reader mismatch (writer includes the trailing newline, reader strips it) is dead code, so no blocker file can hold a lane and no question rewrite clears one.",
-      "GITHUB_TOKEN pushes never trigger workflows; durable machine evidence must come from a workflow_dispatch run."
-    ],
+    "f6_discipline": "named fixes first (shipped at 9bfd03f, preserved verbatim), then the verification measurement, then report+state, then exit 0. No fixture re-runs manufactured as delta; query_cache test residue from the verification pytest runs was reverted (tracked cache restored to committed state, untracked cache files removed)",
+    "regression_vs_accepted_head_9727a45": {
+      "scope": "product/tests (the accepted baseline scope; top-level tests/ adds 93 frontier tests and is not part of the comparison)",
+      "collected": "1123 -> 1140 (+17 = exactly the one new module: 13 original + 4 repair-3 additions)",
+      "failed": "159 == 159, failing-ID set IDENTICAL (0 new, 0 fixed)",
+      "log": "results/product/regression/logs_39139648336/confirmation_pytest_final_tree.log (1140 collected / 966 passed / 159 failed / 15 skipped)"
+    },
+    "snapshot_identity_preserved": "nothing was restarted from scratch; the 9bfd03f snapshot delta is preserved verbatim and this resume adds only verification + report + state on top",
+    "fail_closed_posture": "unchanged: machine_gate_ready=false, human_gate_ready=false, packet_admitted=false, ready_for_owner_session=false; both accepted DO-NOT-SERVE orders stand; no owner question is staged or fired",
     "not_touched": [
-      "universal 174k alignment / dense embeddings / citation-graph reconstruction",
-      "the frozen gates and every frozen rubric (bar scoring stays Core Evaluation's)",
-      "any Frontier charter - counter-anchor-classifier, query-conditioned-map-geometry and rebuilt-packet-serve-audit are all closed and must never be re-dispatched",
-      "the packet bytes (rebuilt-39027045675 raw sha256 2942c3c2... unchanged, re-verified by test)",
-      "3-D projection and custom model training (closed until after the human gate)",
-      "the 18 uncollectable test modules (excluded identically at baseline and head)"
+      "frozen gates/rubrics/bars (ff57f556 byte-unchanged)",
+      "packet bytes",
+      "frontier teams (none re-charterable)",
+      ".github/** (control-plane scope)"
     ],
-    "claim_ceiling": [
-      "This cycle corrects three numbers and closes one false firing. It is a REPAIR cycle, not a capability advance, and it must not be reported as one.",
-      "RF1 makes the product's disclosed counter yield LOWER. That is the honest direction: the previous number was inflated by cited rows and would have flattered the map's discoverability claim.",
-      "Correcting a counter number does not move the geometry bar or the label bar, and does not authorise serving any packet.",
-      "The 13 remaining tracked-results writer fixtures are a real, unfixed defect that is measured and pinned - not closed.",
-      "Every number here is a local measurement at the named commits on this machine; a from-source rebuild is environment-scoped, not byte-identical across machines.",
-      "human_gate_ready stays false. The owner session may be proposed only by a FUTURE accepted verdict satisfying requirement 13 condition (a) or (b) on the bytes then of record."
-    ],
-    "report": "reports/product/CYCLE_39082232157.md",
-    "regression": {
-      "schema": "product-test-accounting/1 (commit-anchored, derived)",
-      "artifact": "results/product/regression/test_accounting.json",
-      "tool": "python3 -m product.test_accounting",
-      "baseline": {
-        "commit": "03a4cabb72df5cb38b5228c65ca9fb3fd1a04974",
-        "run_id": "39065274887",
-        "passed": 562,
-        "failed": 45,
-        "skipped": 2,
-        "errors": 30,
-        "total_collected": 639
-      },
-      "head": {
-        "commit": "ec622c6ba0ed0664fcb11be7d3e46d645a89cf79",
-        "run_id": "39082232157",
-        "passed": 624,
-        "failed": 43,
-        "skipped": 2,
-        "errors": 30,
-        "total_collected": 699
-      },
-      "delta": {
-        "passed": 62,
-        "failed": -2,
-        "skipped": 0,
-        "errors": 0,
-        "net_change_in_collected": 60,
-        "derived_not_asserted": true
-      },
-      "new_failures": 1,
-      "new_failures_note": "CORRECTED by run 39094983039 (audit CYCLE_39091749561 F2). The previous sentence here read 'new_failures: 0 ... strict SUBSET ... 2 pre-existing failures fixed ... 0 introduced'; that is false. Measured against the ACCEPTED base 03a4cabb, this cycle's head (ec622c6) introduced exactly ONE new failing test - test_human_gate_finalize.py::test_ceiling_regression_is_caught_end_to_end_through_the_cli, broken by RF1's new 'from product.query.counter_status import ...' in product/human_gate_finalize.py, which the test's copy-in-tmp_path CLI harness could not import - and fixed ONE pre-existing failure (test_state_contract.py::test_cli_returns_zero_when_the_contract_holds). The second fixed test named below was fixed LATER (fb44923), so the '2 fixed / 0 introduced' enumeration was not true at the commit this block describes. The set relation for THIS cycle is published at results/product/regression/CYCLE_39094983039_regression_scope.json (baseline 03a4cabb vs the repaired head: NEW_FAILURES [] and 2 fixed), measured with the same command shape and the same 18-module uncollectable exclusion at both roots.",
-      "mid_cycle_regressions_caught_and_resolved": "An intermediate run showed 50 failed / 614 passed. All 5 were tests encoding the SUPERSEDED pre-acceptance state (test_frontier_serve_audit_intake.py x5: not-accepted, REVISE-with-4-fixes, route-around-pending, owner-question-prepared, label-bar-nuance) plus test_progressive_query.py asserting the removed counts.counter key. Each was re-pointed at the new truth with its guard intent preserved; none was deleted.",
-      "collection_scope": {
-        "n_uncollectable_modules": 18,
-        "why": "these modules import sentence_transformers/torch, absent from the CI and bare image",
-        "rule": "excluded IDENTICALLY at baseline and head; a different set would invalidate the delta, so the list is published by name in collection_scope.uncollectable_modules_excluded"
-      },
-      "test_modules_added_or_repointed": [
-        "product/tests/test_no_owner_question_from_accepted_verdict.py (new, 10 tests)",
-        "product/tests/test_counter_authority_definition.py (new, 19 tests)",
-        "product/tests/test_no_test_writes_into_tracked_results.py (new, 10 tests)",
-        "product/tests/test_test_accounting_is_anchored.py (new, 18 tests)",
-        "product/tests/test_frontier_serve_audit_intake.py (re-pointed, 13 tests, 3 guards added)",
-        "product/tests/test_progressive_query.py (stale counts.counter assertion updated)",
-        "product/tests/test_state_contract.py (hand-maintained pin DERIVED; +2 tests)"
-      ],
-      "rf3_empirical_verification": "STATICALLY enforced for all modules; EMPIRICALLY verified only for the collectible set. The guard that protects the tree is product/tests/test_no_test_writes_into_tracked_results.py (AST+tokenize scan for any fixture pointing a writer at the tracked results tree, a content pin, a residue fingerprint and a non-vacuity control); it is collectible here and passes. The module whose fixture RF3 fixed, product/tests/test_cycle_v18_product.py, is in the 18-module uncollectable set (ModuleNotFoundError: sentence_transformers) at base and head, so it cannot run in this environment and the tracked feedback file's byte-identity (sha256 5d6ccf197d97ef6c5a5b77ef56c4f395b6e8d1f8f7b2fdac4e211895a23843eb) after a suite run is evidence about the collectible modules only. Corrected by run 39094983039 (audit CYCLE_39091749561 F5): the previous wording claimed an empirical 699-test verification the environment cannot produce.",
-      "numeric_environment": {
-        "python": "3.12.3",
-        "numpy": "2.5.4",
-        "scipy": "1.18.1",
-        "sklearn": "1.9.1"
-      },
-      "scope_rule": "ROOT_SCOPED: every number is a measurement at the two named commits on this machine with the control plane at /tmp/lex_control, not a universal claim. A from-source rebuild is environment-scoped, not byte-identical across machines.",
-      "correction_by_run": "39094983039",
-      "correction_artifact": "results/product/regression/CYCLE_39094983039_regression_scope.json"
+    "next_concrete_step": "independent audit of this tree (CYCLE_39139648336); no owner session is authorised - the accepted serve verdict carries owner_decision_required=false and requirement 13 conditions (a)/(b) are both unmet"
+  },
+  "repair_39139648336_round4": {
+    "kind": "repair round 4 of the rejected cycle 39139648336",
+    "run_id": 39144924680,
+    "base": "2b0b9025d0b51363eb869a883d6c29a0f64364ff (rejected producer head of run 39139648336)",
+    "audit_of_record": {
+      "path": "/tmp/lex_prior_audit/results/audit/product/CYCLE_39139648336_GATE.json",
+      "sha256": "cbc23c89ea81ab54cddbd7a4bdde507a6e1eaea7deb8c386314e8729489175a9",
+      "gate": "REVISE",
+      "safe_to_integrate": false,
+      "n_required_fixes": 1,
+      "why_not_in_repository": "a REVISE gate is not integrated, so it is not committed; documented pattern per audit CYCLE_39051003925.md section 8.5 (only PASS gates are committed). Read from the mounted prior-audit tree."
     },
-    "end_to_end_vertical_slice": {
-      "command": "python3 product/offline_slice.py --slug rent-default --verify",
-      "result": "verdict: PASS in 0.593s, network: none",
-      "question_to_answer_to_counter_to_map": "n_decisions 100 / n_clusters 8 / rows_with_xy 100 / answer_status ready / cited 4",
-      "page_contract": "PASS 56 assertions",
-      "geometry_preserved_by_enrich": true,
-      "corrected_counts_emitted_by_the_product_itself": "counter_rows: 1 and counter_status_bearing_rows: 5 - the RF1 correction is what the product now emits on its own run, not only what an artifact asserts."
+    "ordered_fix": {
+      "defect": "reports/product/CYCLE_39139648336.md section 3 F1 stated the live sourced answer as '(6 cited, live free model)' while the artifact of record records answer.n_cited=5",
+      "artifact_of_record": "results/product/live_slice/CYCLE_39139648336_F1F2_VERIFY.json",
+      "artifact_sha256": "3d7e3a70f59a32b8f509fa2fedfd80aa08002f207e555733d756bec4a0593e5a",
+      "artifact_value": 5,
+      "report_before_sha256": "d4cd8345319bab9f6c058d0b08bc9153741a5cb5acf8b026ba523c9c11144326",
+      "report_after_sha256": "bee0728c5c34702ada373ff725ceaacaa2c5955e8cbf9509d4f90f06337043db",
+      "fix": "published 5 as the report's citation count AND the superseded 6 beside it, explicitly marked as the pre-repair value - RF2 arithmetic discipline, the same side-by-side form as the F4 13->17 correction",
+      "diff_scope": "one paragraph of one report; no other number in the cycle changed (the audit fenced this with \"No other numbers in the cycle change\")",
+      "report_after_sha256_round_5": "2bbff26404f1f36bfa92cc837a2e04c8d984c6fd81601d581ac9be99e8442702",
+      "report_after_sha256_note": "report_after_sha256 (bee0728c...) is the round-4 value; round 5 added corrections to that report, so the current bytes are report_after_sha256_round_5. Both are published because the round-4 value is what the round-4 cycle's own claim was about."
     },
-    "accepted_frontier_mount": {
-      "mount": "/tmp/lex_accepted/frontier",
-      "status": "EMPTY at cycle start - no Frontier artifact available to absorb",
-      "action_taken": "Product built the missing seams itself rather than waiting, per the standing parallel-integration obligation (Frontier teams are accelerators, not dependencies).",
-      "not_redispatched": "frontier-counter-anchor-classifier, frontier-query-conditioned-map-geometry and frontier-rebuilt-packet-serve-audit are all CLOSED and must never be re-chartered or re-dispatched."
-    }
-  },
-  "packet_admitted": false,
-  "ready_for_owner_session": false,
-  "cycle_39086926860_resume_and_relation_channel": {
-    "run_id": "39086926860",
-    "commit_of_record": "351f388",
-    "state_block_added_by_run": "39094983039",
-    "why_this_block_exists": "Audit CYCLE_39091749561 F4: state was three cycles stale with no block for 39086926860 / 39087917357 / 39091749561. This block records what that cycle shipped, read back from its commit and artifacts; it is not new evidence.",
-    "report": "reports/product/CYCLE_39086926860.md",
-    "shipped": [
-      "product/orchestration_evidence.py: run 39082232157 classified AUDIT_STEP_CANCELLED_NO_GATE (audit step cancelled after 3299.0s > the wrapper's own 2700s quantum, so rc-78 is excluded by arithmetic); artifact results/product/orchestration/CYCLE_39082232157_orchestration.json",
-      "product/query/relation_channel.py: the map's relation channel states itself from MEASURED counts and never synthesises an edge; coverage 2/100 -> 8/100 rows after hydration, 0 shared pairs, 0 edges, published as EMPTY_NO_SHARED_AUTHORITY where the jurist clicks",
-      "product/cycle_verify.py: one-command claim ledger, 21/21 claims at the time; artifact results/product/cycle_verify/CYCLE_39086926860_cycle_verify.json",
-      "page contract 56 -> 63 assertions; retrieval ranks now shown on counter/discovery cards so marginal discovery at ranks 51-164 is visible"
-    ],
-    "posture": "fail-closed, unchanged: no owner question, no gate flag moved"
-  },
-  "cycle_39087917357_orchestration_classes": {
-    "run_id": "39087917357",
-    "commit_of_record": "fb44923",
-    "state_block_added_by_run": "39094983039",
-    "why_this_block_exists": "Audit CYCLE_39091749561 F4: the cycle shipped a title-only commit and no report; this block plus reports/product/CYCLE_39087917357.md record what it shipped.",
-    "report": "reports/product/CYCLE_39087917357.md",
-    "shipped": [
-      "orchestration_evidence.TEAM_JOB_CANCELLED: a cancelled team job cannot be read for snapshot survival off a cancelled conclusion; survival is derived from the named team branch instead (cycle/core/product/39087917357/team = fb44923, no audit branch); artifact results/product/orchestration/CYCLE_39086926860_orchestration.json",
-      "forbidden_verdict_keys() schema + cycle_verify assertions that a diagnosis publishes a cause space and never a verdict; artifact results/product/cycle_verify/CYCLE_39087917357_cycle_verify.json",
-      "results/product/regression/CYCLE_39087917357_regression_scope.json - KEPT as shipped, with its limitation disclosed: its baseline was snapshot_HEAD_351f388 (a producer snapshot that already contained RF1), so its empty NEW_FAILURES could not see the RF1 break. The set relation against the ACCEPTED base is results/product/regression/CYCLE_39094983039_regression_scope.json."
-    ],
-    "posture": "fail-closed, unchanged"
-  },
-  "cycle_39091749561_repair0": {
-    "run_id": "39091749561",
-    "commit_of_record": "d20bf0e",
-    "state_block_added_by_run": "39094983039",
-    "report": "reports/product/CYCLE_39091749561.md",
-    "shipped": [
-      "results/product/orchestration/CYCLE_39087917357_orchestration.json (TEAM_JOB_CANCELLED classification, verified independently against the public REST record and git ls-remote by that cycle's auditor)",
-      "results/product/cycle_verify/CYCLE_39091749561_cycle_verify.json (30 claims, 0 failed on independent re-run, observed values identical)",
-      "results/product/offline_slice/20261018T031559Z/ - committed WITHOUT --verify: page_contract false with an empty detail while verified=true. Audit F3; the capability itself holds (verify_query_page.js PASS 63 on that exact bundle) and the evidence is re-emitted with --verify in run 39094983039 as results/product/offline_slice/20261018T040254Z/."
-    ],
-    "audit_of_record": "results/audit/product/CYCLE_39091749561_GATE.json (gate=REVISE, safe_to_integrate=false, required_fixes F1..F5) - repaired by 39094983039",
-    "posture": "fail-closed, unchanged"
-  },
-  "repair_39094983039_round1_F1_to_F7": {
-    "run_id": "39094983039",
-    "repair_of": "audit results/audit/product/CYCLE_39091749561_GATE.json (gate=REVISE, safe_to_integrate=false, required_fixes F1..F5) on the rejected cycle 39091749561 and the three unreported cycles it covered",
-    "accepted_base": "03a4cabb72df5cb38b5228c65ca9fb3fd1a04974",
-    "report": "reports/product/CYCLE_39094983039.md",
-    "fixes": {
-      "F1_material_parser": "product/test_accounting.py::parse_pytest_summary reads outcome clauses token-wise in ANY interleaving, cross-checks every count against an independently written pattern, and REFUSES (never zeros) when a count present in the line is missing from the result or when the line has no duration. Five new tests include the auditor's own captured line ('43 failed, 623 passed, 3 skipped, 45 warnings, 30 errors in 67.91s (0:01:07)') which the old parser read as errors 0 / seconds 0.0 / total 669, plus a non-vacuity control that weakens the clause reader to the F1-era shape and asserts the real parser then RAISES. results/product/regression/test_accounting.json is re-emitted from the sha-pinned raw logs below.",
-      "F2_material_new_failure": "product/tests/test_human_gate_finalize.py::test_ceiling_regression_is_caught_end_to_end_through_the_cli now passes PYTHONPATH=<repo root> to its subprocess so the copied module can import product.query.counter_status; guard intent unchanged (mutated anchor, CLI as a script, exit 8, no output written). The set relation is re-measured against the ACCEPTED base 03a4cabb, not a producer snapshot: NEW_FAILURES [] and 2 fixed.",
-      "F3_minor_unverified_evidence": "results/product/offline_slice/20261018T040254Z/summary.json: page_contract true, page_contract_detail 'PASS 63 assertions', verified true, 100 decisions / 8 clusters / 100 source links, 0.417s, network none. The 031559Z pair is kept unmodified.",
-      "F4_minor_stale_state": "state blocks for 39086926860 / 39087917357 / 39091749561 plus this run; reports/product/CYCLE_{39086926860,39087917357,39091749561,39094983039}.md all written; current_run and state_updated_by_run advance to 39094983039.",
-      "F5_minor_rf3_wording": "rf3_empirical_verification restated as static-for-all / empirical-for-the-collectible-set, naming test_cycle_v18_product.py as uncollectable here.",
-      "F6_F7_non_blocking": "F6: the tracked_file_restored sentence corrected (deleted at 51ba32a, re-added with residue at 3fdde66; recovered record is synthetic). F7: counter_evidenced() added to the stdlib-only leaf as the Python twin of query.html::counterEvidenced (status AND non-empty text AND verified flag); cycle_verify counts with the shared predicate and still publishes the weaker flag-only reading beside it, labelled; parity with the page is a source-reading test."
+    "durable_guard": {
+      "module": "product/tests/test_report_artifact_arithmetic.py",
+      "sha256": "a9e7dfe45d6b7b872a07944a0f31ab1ed68ff0cc5dab9d4fd9897cbb0099ced4",
+      "result": "4/4 pass",
+      "what_it_enforces": "every citation-count claim in a report that cites a live-slice artifact equals that artifact's answer.n_cited, or is a supersession carrying BOTH a correction marker AND the true value in the same paragraph",
+      "measured_negative_control": "the pre-repair bytes of the report of record (git show 2b0b902:...) replayed through the sweep FIRE on claimed=[6] expected=5; the corrected bytes produce no violation",
+      "non_vacuity_superseded_round4": "controls pin the two weakening paths: a marker with no true value fires, and an unmarked wrong number beside the right one fires",
+      "non_vacuity": "MEASURED SCOPE, not a completeness claim (audit RF-2 corrected this field, which had overstated it as 'the two ways'): the citation sweep covers 2 live-slice artifacts, 3 artifact/report pairs and 10 citation claims in the reports' own prose; 3 further claims sit inside blockquotes and are excluded, because a report documenting what a defect said is not the report asserting it. Published and re-measured in results/product/regression/CYCLE_39149741259_report_testcount_disclosure.json, which fails if it has rotted. Round 5 closed the three escape paths the auditor measured (inverted phrasing; a correction marker in an unrelated sentence; an identifier that merely contains a marker word) and added artifact-free decomposition arithmetic over every report. The remaining non-claims are named in that same artifact.",
+      "scope_claim_superseded_heading": "reports/product/CYCLE_39144924680_REPAIR4.md section 2 was headed 'The defect class is now machine-enforced'; the heading is superseded and the section now states the measured scope beside the superseded wording, which is retained.",
+      "sha256_after_round_5": "f6d11c8e72802ac6d4cfa750dc619ba960dbb2606f5eb4e356c26ec2e9f055a4"
     },
     "regression": {
-      "schema": "product-regression-evidence/2 (set relation, ROOT_SCOPED)",
-      "artifact": "results/product/regression/CYCLE_39094983039_regression_scope.json",
-      "accounting_artifact": "results/product/regression/test_accounting.json",
+      "artifact": "results/product/regression/CYCLE_39144924680_regression_scope.json",
+      "artifact_sha256": "08ad7340fe1982fd63aec44aa82df14908aa02b9d3f395f0d1528725a4d6bbfa",
+      "tool": "product/regression_scope.py (accepted lane tool; refuses to publish when the arithmetic identity does not close)",
+      "method": "--run-id 39144924680 --baseline-root /tmp/lex_base_39144924680 (pristine git worktree of the accepted baseline of cycle 39123358661, commit 9727a45) against this repaired tree; both roots published inside the artifact",
+      "baseline_swap_refusal_routed_around": "a --baseline-ref 9727a45 run was REFUSED by the tool (exit 2, nothing written) because this cycle's suite-visible delta is an ADDED test module, which byte injection cannot remove from the baseline run. Routed around with --baseline-root; the refusal was not edited.",
+      "set_relation": "intersection 159, n_repaired_only 0 (no new failures), n_baseline_only 0 (no fixed failures) - failing-ID set IDENTICAL to the accepted baseline",
+      "counts": {
+        "baseline": {
+          "collected": 1123,
+          "passed": 949,
+          "failed": 159,
+          "skipped": 15
+        },
+        "head": {
+          "collected": 1144,
+          "passed": 970,
+          "failed": 159,
+          "skipped": 15
+        },
+        "collected_delta": 21,
+        "passed_delta": 21
+      },
       "raw_logs": {
-        "baseline": "results/product/regression/logs_39094983039/baseline_pytest.log",
-        "head": "results/product/regression/logs_39094983039/head_pytest.log",
-        "why": "Both runs' full pytest output is committed and sha256-pinned in the artifact, so every count below is re-derivable from bytes instead of from prose. The two artifacts describe the SAME two runs; this is the reconciliation the audit asked for."
+        "baseline": "results/product/regression/logs_39144924680/baseline_pytest.log (sha256 75a3b67fbff1b53b0495c891bf78c9801882be1be0162976ef9e9f755e8feb31)",
+        "head": "results/product/regression/logs_39144924680/head_pytest.log (sha256 d7cc3f689f405c4bdf79cf0afb6320ff9dc4c82d1c65338d3abd6d1112c991be)"
       },
-      "baseline": {
-        "commit": "03a4cabb72df5cb38b5228c65ca9fb3fd1a04974",
-        "unique_failing_or_erroring_ids": 73,
-        "failed": 43,
-        "passed": 564,
-        "skipped": 2,
-        "errors": 30,
-        "total_collected": 639,
-        "seconds": 53.66,
-        "summary_line": "43 failed, 564 passed, 2 skipped, 45 warnings, 30 errors in 53.66s"
-      },
-      "head": {
-        "commit": "the commit carrying this repair (head pin published in test_accounting.json)",
-        "unique_failing_or_erroring_ids": 71,
-        "failed": 41,
-        "passed": 718,
-        "skipped": 2,
-        "errors": 30,
-        "total_collected": 791,
-        "seconds": 65.97,
-        "summary_line": "41 failed, 718 passed, 2 skipped, 48 warnings, 30 errors in 65.97s (0:01:05)"
-      },
-      "set_relation_vs_accepted_base": {
-        "repaired_only_NEW_FAILURES": [],
-        "n_new_failures": 0,
-        "baseline_only_FIXED": [
-          "product/tests/test_ci_run_evidence.py::test_runner_records_both_dispatch_and_workspace_shas",
-          "product/tests/test_state_contract.py::test_cli_returns_zero_when_the_contract_holds"
-        ],
-        "n_fixed": 2,
-        "n_intersection": 71,
-        "arithmetic_reconciles": true,
-        "identity": "passed_delta +154 == collected_delta +152 - net_unique(-2) - skipped 0"
-      },
-      "collection_scope": {
-        "n_uncollectable_modules": 18,
-        "rule": "excluded IDENTICALLY at both roots; those modules remain UNMEASURED, not passing"
-      },
-      "numeric_environment": {
-        "python": "3.12.3",
-        "numpy": "2.5.4",
-        "scipy": "1.18.1",
-        "sklearn": "1.9.1",
-        "pytest": "9.1.1"
-      },
-      "scope_rule": "ROOT_SCOPED: measured at /home/runner/work/LexMachina/LexMachina and, for the baseline, at the pristine worktree /tmp/opencode/repair/base, with the control plane at /tmp/lex_control. Not a universal claim."
+      "audit_note_3_discharged": true,
+      "remeasured_on_final_tree": "the artifact and both raw logs were re-generated AFTER the report and state edits of this cycle, so the head log is the measurement of the tree as shipped; the set relation is unchanged (159/159, repaired-only 0, baseline-only 0)",
+      "delta_decomposition_superseded_round4": "+21 = +17 (the 17-test test_live_slice_and_query_env.py module from the predecessor cycle) + +4 (this cycle's guard module), both measured by collection, never by hand",
+      "delta_decomposition": "MEASURED, no longer typed: results/product/regression/CYCLE_39149741259_test_delta_attribution.json (product/test_delta_attribution.py, collection-only measurement at the named baseline commit 9727a45, at every commit that touched product/tests/, and at the range endpoint 1d0d481) reports 'collected-test delta 9727a45 -> head = +21 = +11 + +2 + +4 + +4  (db3891e=+11, c1bda4a=+2, 9bfd03f=+4, 1d0d481=+4)'. At cycle granularity: the +17 belongs to cycle 39128456801 across its three commits (+11/+2/+4); the rejected cycle 39139648336 (head 2b0b902) contributed +0 because it touched no file under product/tests/; this cycle contributed +4.",
+      "delta_decomposition_corrected_by": "audit RF-1 of cycle 39144924680 (CYCLE_39144924680_GATE.json, gate=REVISE): the immediate predecessor 39139648336 added ZERO tests and the module was added by db3891e in cycle 39128456801, two cycles back. The superseded sentence is retained verbatim in delta_decomposition_superseded_round4 rather than deleted (AGENTS.md rule 6)."
     },
-    "capability_delta": "NONE, and that is the honest reading: this is a measurement-integrity repair. The user-visible slice is unchanged and still one command (offline_slice.py --verify -> PASS 63, network none).",
-    "frontier_mount": "/tmp/lex_accepted/frontier was EMPTY at cycle start; nothing absorbed",
-    "gate_positions": {
+    "ledger": {
+      "artifact": "results/product/cycle_verify/CYCLE_39144924680_cycle_verify.json",
+      "sha256": "8bb5f61196f7672fa5e41601b24d4b0e5481d4192c9c56880d4118d745f698ef",
+      "verdict": "PASS 41/41",
+      "note": "the ledger embeds state-derived posture observations, so its sha is pinned AFTER this state edit; a re-run over the same tree reproduces this exact sha (fixed point), which is why it is published here and in the report"
+    },
+    "runnable_slice_reproved": {
+      "command": "python3 product/offline_slice.py --out /tmp/lex_slice_39144924680 --verify",
+      "verdict": "PASS in 0.345s, network=none (socket.connect booby-trapped)",
+      "shape": "question -> query_result_bundle -> sourced answer -> counter-authority pass -> source-linked clickable map: 100 decisions, 8 clusters, 100/100 rows with canonical_url, x/y and cluster_id, page contract PASS 65 assertions, geometry_preserved_by_enrich=True"
+    },
+    "fail_closed_posture": {
       "machine_gate_ready": false,
       "human_gate_ready": false,
       "packet_admitted": false,
       "ready_for_owner_session": false,
+      "continue_recommended": true,
       "owner_decision_required": false,
-      "do_not_serve_orders": "both stand (served 38839347028 and rebuilt 2942c3c2...)",
-      "continue_recommended": true
+      "accepted_do_not_serve_orders_stand": true,
+      "requirement_13_supersession_conditions_met": false,
+      "owner_question": "NONE_STAGED_NONE_FIRED_NONE_READY_TO_FIRE"
     },
-    "claim_ceiling": "REPAIR_ONLY: every required_fixes item F1..F5 is fixed in code, tests and claim-bearing text, and F6/F7 too; the accounting and set-relation numbers are re-derivable from committed, sha-pinned raw logs. NOT claimed: any frozen bar met, any jurist usefulness, any answer-quality, label-soundness or geometry-coherence result, any durable Actions run, any served packet, any human-gate input."
-  },
-  "resume_39097705922": {
-    "run_id": "39097705922",
-    "kind": "OPERATIONAL RESUME of the persisted producer snapshot of run 39094983039",
-    "resumed_at": "2026-10-18T05:07:00Z",
-    "producer_death_diagnosis": "The 39097705922 producer completed the regression scope (results/product/regression/CYCLE_39097705922_regression_scope.json, logs pinned by sha256), the tracked-path hardening edits, the inventory update and the offline slice (results/product/offline_slice/20261018T045708Z/, verified PASS 63 assertions) and then stopped at 04:57:09Z with NO commit, NO state update and NO cycle report. No gate file, no product defect, no evidence of a state-validation failure; the signature (work complete, snapshot unfinished) is the provider death/rotation class already recorded in factory direction requirement 20, not a verdict on the work.",
-    "committed_this_resume": [
-      "product/app/navigation.py - sentence_transformers import made LAZY (was eager at module scope, pulling torch into the product.server import chain and darkening 18 test modules in any bare environment); NavigationAPI gained write_dir= seam; _get_embedding_model degrades to None when the optional dependency is absent",
-      "product/app/corpus_loader.py - user_import_write_dir= seam; read side no longer mkdirs the tracked user_imports fixture on a read-only call",
-      "product/app/incremental_updater.py - delta dir resolves through nav_api._write_dir when present",
-      "product/tests/test_product.py and 14 further test modules - every NavigationAPI construction that read the tracked product/results/fractal_map tree now passes write_dir=str(tmp_path); the three idempotency helpers that shutil.rmtree-ed tracked user_imports/corpus_user_imports fixtures now wipe scratch state (results/product/regression/tracked_results_writer_inventory.json: fixed_this_cycle 1 -> 15, offender lines -> 0)",
-      "product/tests/test_no_test_writes_into_tracked_results.py - guard extended from WRITER_APIS to MUTATING_APIS (DESTRUCTIVE_APIS: rmtree/unlink/remove/rmdir/removedirs/rename/replace), REDIRECT_KEYWORDS write_dir/user_import_write_dir recognition, broader tracked-path regex (user_imports, corpus_user_imports, spatial_indices)",
-      "product/tests/test_fast_path_imports_without_dense_stack.py (NEW) - the query fast path imports without the dense stack",
-      "results/product/offline_slice/20261018T045708Z/ - producer's verified offline slice (fixture-replay retrieval_mode, socket.connect booby-trapped; query -> bundle -> sourced answer -> counter pass -> clickable map; counter_rows=1 vs counter_status_bearing_rows=5 under the RF1 honest names)",
-      "results/product/regression/CYCLE_39097705922_regression_scope.json + logs_39097705922/ - baseline(HEAD test bytes) 915 passed/159 failed vs head(working tree) 918 passed/159 failed; +3 passed, 0 fixed, 0 new failures; set differences both empty; arithmetic reconciles; raw logs sha256-pinned"
-    ],
-    "verification_this_resume": "Re-ran the offline slice after the death: PASS 63 assertions; the 100 decisions, the 8 clusters and the answer are byte-identical (canonical JSON) to the producer's 045708Z run; only provenance metadata (paths/seconds) differs. Re-ran the four affected guard/accounting test modules: 66 passed. No tracked file under product/results/** is modified by the suite (guard + content pin on jurist_feedback/feedback.jsonl, 1 line, jurist_id test_jurist, matches HEAD).",
-    "rf0_rf5_status": "All ordered items from direction v56 discharged in committed history (owner-question withdrawal 0982fec; RF1 product/query/counter_status.py single source of truth consumed by query_app.run_status, human_gate_finalize, cycle_verify; RF2 product/test_accounting.py run-id+commit pins, 564->574==+10, 255-row invariant; RF3 tmp_path fixtures + content pin; RF5/R6 fail-closed posture guarded). This resume extends RF3's same-class coverage from 1 named module to all 15 and pins the class at 0 offender lines with a growth guard.",
-    "posture": "fail-closed UNCHANGED: machine_gate_ready=false, human_gate_ready=false, packet_admitted=false, ready_for_owner_session=false; no owner question staged or fired; both DO-NOT-SERVE orders stand (38839347028 and rebuilt-39027045675); accepted verdict owner_decision_required=false re-stated verbatim",
     "not_touched": [
-      "the packet bytes (rebuilt-39027045675 raw sha256 2942c3c2... unchanged)",
-      "the frozen gates and rubrics (ff57f556) - bar scoring stays Core Evaluation's",
-      "any Frontier charter (all TERMINATED/closed; never re-dispatched)",
-      "the 159 legacy failing tests - identical set at baseline and head (accepted convention: legacy 174k representation expectations vs the query-specific product)",
-      ".github/** (control-plane scope)"
+      "frozen gates, rubrics and bars (ff57f556 byte-unchanged)",
+      "packet bytes: served 38839347028 and rebuilt rebuilt-39027045675",
+      "every Frontier team (closed; none re-charterable, none re-dispatched)",
+      ".github/** (control-plane scope)",
+      "universal-174k geometry, dense embeddings, corpus work (paused lanes)",
+      "every other number in the round-3 cycle report and state"
     ],
-    "claim_ceiling": "OFFLINE WIRING EVIDENCE ONLY: the offline slice proves query -> bundle -> sourced answer -> counter-authority pass -> clickable map from recorded envelopes with no network. No frozen gate evaluated, no legal-usefulness claim, no serve recommendation. The accepted DO-NOT-SERVE order on rebuilt-390927045675 stands."
+    "report_of_record": "reports/product/CYCLE_39144924680_REPAIR4.md",
+    "claim_ceiling": "report-arithmetic repair, a committed regression guard, and a re-derived regression/ledger measurement on this tree. Scores no frozen bar, reads no Frontier verdict, makes no legal-usefulness claim, issues no serve recommendation.",
+    "next_concrete_step": "independent audit of run 39144924680; on PASS the ordered set for direction v56 stands complete and independently verified, and the lane CONTINUES on the canonical query-map product (fail-closed) - a partial milestone is not a reason to stop, and no human product gate may be self-declared"
+  },
+  "repair_39139648336_round5": {
+    "kind": "repair round 5 of the rejected cycle 39144924680",
+    "run_id": 39149741259,
+    "base": "1d0d481 (rejected producer head of run 39144924680, the round-4 cycle)",
+    "audit_of_record": {
+      "path": "/tmp/lex_prior_audit/results/audit/product/CYCLE_39144924680_GATE.json",
+      "gate": "REVISE",
+      "safe_to_integrate": false,
+      "n_required_fixes": 2,
+      "terminal_condition": "apply RF-1 and RF-2 (either branch), fold in note N1 if RF-2(a) is taken, and re-run ONLY product/tests/test_report_artifact_arithmetic.py and product/cycle_verify.py. Do NOT re-run the regression measurement - the set relation against both 9727a45 and 453a873 is established in that audit and is reproducible from the committed sha256-pinned logs.",
+      "regression_remeasured_this_round": false,
+      "why_not": "the audit established the set relation against the declared baseline 9727a45 and the accepted base 453a873 and fenced re-measurement; re-running it would spend the round on a measurement that already exists in pinned, re-parsable form."
+    },
+    "rf1_attribution_repair": {
+      "defect": "reports/product/CYCLE_39144924680_REPAIR4.md section 4 attributed the +21 collected-test delta to the predecessor cycle 39139648336 (+17) and this cycle (+4). The predecessor touched no file under product/tests/ and contributed +0.",
+      "root_cause": "a decomposition typed into prose instead of measured from git",
+      "structural_remedy": "product/test_delta_attribution.py measures the collected count at the named baseline commit, at every commit in range that touches product/tests/, at the range endpoint and in the uncommitted working tree, attributes each step to the modules git reports, and REFUSES to publish (exit 2, no artifact) when the per-step deltas do not sum to the observed total or when the working tree collects tests no changed module accounts for.",
+      "artifact": "results/product/regression/CYCLE_39149741259_test_delta_attribution.json",
+      "measured_decomposition": "collected-test delta 9727a45 -> head = +21 = +11 + +2 + +4 + +4  (db3891e=+11, c1bda4a=+2, 9bfd03f=+4, 1d0d481=+4)",
+      "cycle_granularity": "cycle 39128456801 +17 across db3891e/c1bda4a/9bfd03f; cycle 39139648336 +0; cycle 39144924680 +4",
+      "correction_form": "side by side: the superseded sentence is retained in both the report (section 4a) and state (delta_decomposition_superseded_round4)",
+      "hardening": "product/tests/test_delta_attribution.py asserts the committed arithmetic closes, that the base total is corroborated by the independent full-run regression artifact, that the working-tree count still equals a live collection of this tree (the staleness detector), that the rejected cycle's head commit is credited with no step, and that every report citing the artifact quotes its canonical line verbatim, so the prose cannot become a second source of truth",
+      "artifact_sha256": "eada56a3103ca56a42bd713e526e93088d3b0670c678d742396d87e97b1b22f8",
+      "tool_sha256": "280695b834f3e8c391f709b3a1bce7a58b0a51cb676723493cff945440ea7a68",
+      "tests_sha256": "2baeedc5aa1e93b9de1d1e0d0d1e89f2c31e758e6c2201bca8aa02001cf542a8",
+      "working_tree_line": "working-tree collected delta 1d0d481 -> tree = +25 = +19 + +6  (test_delta_attribution.py=+19, test_report_artifact_arithmetic.py=+6)",
+      "measurement_moment_disclosure": "the artifact was measured on this cycle's tree BEFORE the cycle was committed, so its committed range ends at 1d0d481 and its working-tree block records +25 uncommitted (19 in product/tests/test_delta_attribution.py, +6 net in product/tests/test_report_artifact_arithmetic.py). Re-running the tool now reports the SAME base and head totals with the range extended by this cycle's commit aeb3eb3 (+25) and a zero uncommitted delta. Both readings are true at their own moment; the committed artifact is the measurement of record for RF-1's +21 and is the one both reports quote verbatim. The staleness detector compares the COLLECTED TOTAL, which is unchanged, so the pin holds."
+    },
+    "rf2_scope_overclaim_repair": {
+      "defect": "the round-4 report and state claimed the guard 'pins THE TWO ways the sweep could be weakened' and headed section 2 'The defect class is now machine-enforced'; the auditor measured at least two further escape paths plus a scope gap",
+      "branch_taken": "both: the three measured escape paths are CLOSED in code, and the claim is narrowed to the measured scope published as an artifact",
+      "closed_escape_paths": [
+        "inverted phrasing ('the answer cited 9 decisions') - the round-4 regex demanded the count to precede the word",
+        "a correction marker in an unrelated SENTENCE of the same paragraph - markers are now word-boundary patterns and sentence-scoped to the claim they correct",
+        "an identifier that merely contains a marker word (e.g. correction_marker_present) - word-boundary matching removes that channel",
+        "test-count arithmetic, which the round-4 sweep could not see at all - decomposition_violations now checks the internal sum of every '+N = +a + +b' in every report, with no artifact required"
+      ],
+      "note_n1_folded_structurally": "the negative control now sweeps the REAL pre-repair bytes, committed once at product/data/report_pre_repair_bytes/CYCLE_39139648336_pre_repair.md and pinned by the sha256 the audit published for 'git show 2b0b902:reports/product/CYCLE_39139648336.md' (d4cd8345...). Round 4 transcribed the defective line by hand.",
+      "note_n2_applied": "the round-4 report's --baseline-ref refusal narrative said the delta 'is an ADDED test module', singular; the tool names two modules. Corrected with the superseded wording retained.",
+      "published_scope": "results/product/regression/CYCLE_39149741259_report_testcount_disclosure.json - 2 artifacts, 3 artifact/report pairs, 10 citation claims in the reports' own prose, 3 claims excluded as quotation, plus named non-claims and a fail-closed freshness assertion",
+      "named_non_claims": [
+        "a bare test-count claim in a report citing SEVERAL regression artifacts is not attributed to any of them; the report states numbers from its own artifact while citing older ones, so attribution is ambiguous by construction",
+        "a single-module pytest run inside a results table is not a suite count",
+        "the guard cannot verify that a number is the RIGHT number when no artifact carries it",
+        "a wrong number hidden inside a quotation is not detected (concealment, not drift)",
+        "which commit produced each part of a collected-test delta is measured by product/test_delta_attribution.py, not by this guard"
+      ],
+      "published_scope_artifact_sha256": "f5f31dbb3480cea1b445a262f19c2b1e53dfc0f3273a9b598613b26e99c7919c",
+      "scope_measurement_tool": "product/report_scope_measurement.py",
+      "scope_measurement_tool_sha256": "4aa8aeade3d61fb5fed8d5a32b77787b80aafe3ab6c2b1410d15ee071d6641e6",
+      "guard_sha256_after_round_5": "f6d11c8e72802ac6d4cfa750dc619ba960dbb2606f5eb4e356c26ec2e9f055a4",
+      "pinned_pre_repair_bytes": {
+        "path": "product/data/report_pre_repair_bytes/CYCLE_39139648336_pre_repair.md",
+        "sha256": "d4cd8345319bab9f6c058d0b08bc9153741a5cb5acf8b026ba523c9c11144326",
+        "is_the_audit_published_sha": true
+      },
+      "scope_artifact_note": "regenerated twice in this cycle: the freshness assertion fired when this cycle's own report edit changed the bare-test-count claim count, which is the detector doing its job."
+    },
+    "runnable_delta": {
+      "new_module": "product/test_delta_attribution.py",
+      "new_tests": "product/tests/test_delta_attribution.py",
+      "extended_tests": "product/tests/test_report_artifact_arithmetic.py",
+      "ledger_check": "product/cycle_verify.py::check_test_delta_attribution (registered as 'test_delta')",
+      "shape": "one command re-derives the decomposition and re-measures this tree's collection, so the report's quoted sentence, the committed artifact and the tree cannot drift apart",
+      "test_counts": {
+        "product/tests/test_delta_attribution.py": 19,
+        "product/tests/test_report_artifact_arithmetic.py": 10
+      },
+      "ledger": {
+        "artifact": "results/product/cycle_verify/CYCLE_39149741259_cycle_verify.json",
+        "sha256": "d90c30635b69d7a71eb3ca39976ce6396045b972441b7b4b1d858610750c7711",
+        "verdict": "PASS 44/44 (41 pre-existing claims + 3 new test_delta claims, none removed)",
+        "command": "python3 product/cycle_verify.py --run-id 39149741259"
+      },
+      "vertical_slice": {
+        "command": "python3 product/offline_slice.py --out /tmp/lex_slice_39149741259 --verify",
+        "verdict": "PASS, network=none (socket.connect booby-trapped)",
+        "shape": "question -> query_result_bundle -> sourced answer -> counter-authority pass -> source-linked clickable map: 100 decisions, 8 clusters, 100/100 rows with canonical_url, x/y and cluster_id, counter_rows 1 against counter_status_bearing_rows 5, page contract PASS 65 assertions"
+      }
+    },
+    "posture_unchanged": {
+      "machine_gate_ready": false,
+      "human_gate_ready": false,
+      "packet_admitted": false,
+      "ready_for_owner_session": false,
+      "continue_recommended": true,
+      "owner_decision_required": false,
+      "accepted_do_not_serve_orders_stand": true,
+      "requirement_13_supersession_conditions_met": false,
+      "owner_question": "NONE_STAGED_NONE_FIRED_NONE_READY_TO_FIRE"
+    },
+    "not_touched": [
+      "frozen gates, rubrics and bars (ff57f556 byte-unchanged)",
+      "packet bytes: served 38839347028 and rebuilt rebuilt-39027045675",
+      "every Frontier team (closed; none re-charterable, none re-dispatched)",
+      ".github/** (control-plane scope)",
+      "the round-4 regression measurement and its sha256-pinned logs (the audit fenced re-running it)",
+      "every other number in the round-4 cycle's report and state"
+    ],
+    "report_of_record": "reports/product/CYCLE_39149741259_REPAIR5.md",
+    "claim_ceiling": "report-arithmetic repair with a structural remedy (a measured attribution and an extended guard at a published scope). Scores no frozen bar, reads no Frontier verdict, makes no legal-usefulness claim, issues no serve recommendation, and re-measures no regression.",
+    "reports_corrected": {
+      "reports/product/CYCLE_39144924680_REPAIR4.md": {
+        "sections": [
+          "0 item 2",
+          "2 (heading + scope + negative control)",
+          "3 (N2)",
+          "4a (RF-1)"
+        ],
+        "sha256_before_round_5": "bee0728c5c34702ada373ff725ceaacaa2c5955e8cbf9509d4f90f06337043db",
+        "sha256_after_round_5": "2bbff26404f1f36bfa92cc837a2e04c8d984c6fd81601d581ac9be99e8442702",
+        "edit_form": "every superseded sentence is retained verbatim and marked; no number was deleted and no prior claim was overwritten silently"
+      }
+    },
+    "leakage_check": {
+      "kind": "LEAKAGE CHECK, not a regression re-measurement",
+      "why": "the round-4 audit's terminal condition forbids re-running the regression measurement; the round-4 regression artifact and its baseline comparison are untouched and remain the measurement of record. The narrow question this cycle's own 25 added tests raise - did they break anything that passed at the round-4 head - was measured as a set relation against the already-committed sha256-pinned round-4 head log, and nothing else.",
+      "artifact": "results/product/regression/CYCLE_39149741259_leakage_check.json",
+      "raw_log": "results/product/regression/logs_39149741259/round5_leakage_check.log",
+      "set_relation_vs_round_4_head": {
+        "intersection": 159,
+        "new_failing_ids": 0,
+        "fixed_ids": 0,
+        "identical_failing_sets": true
+      },
+      "summary_line": "159 failed, 995 passed, 15 skipped, 78 warnings in 75.22s (0:01:15)",
+      "arithmetic": "970 passed at the round-4 head + 25 tests added here = 995 passed; 1144 + 25 = 1169 collected",
+      "claim_ceiling": "a set relation between two pytest logs at this root and this environment; not a regression measurement, not an audit verdict, and no claim about the 159 pre-existing failures."
+    }
   }
 }
