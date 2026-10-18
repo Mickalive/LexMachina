@@ -1,0 +1,88 @@
+{
+  "schema": "lex-evaluation-product-counter-recall-hypothesis/1",
+  "frozen_at_utc": "2026-10-18T08:40:00Z",
+  "frozen_before_execution": true,
+  "frozen_by": "Core Evaluation lane, factory direction v56, run 39111232991",
+  "direction_version_at_freeze": 56,
+
+  "question": "Does the shipped query-map product's served bundle retrieve the frozen controlling-authority set and the frozen known counter-authority set for the questions it serves, at least as well as the plain OpenCaseLaw result set it wraps?",
+
+  "why_this_is_the_smallest_falsifying_benchmark": {
+    "gap_closed": "The frozen retrieval benchmark (evaluation/retrieval_gate, 40 gates, frozen_sha256 187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72) scores ONLY plain OpenCaseLaw searches. Every one of its 40 gates draws rows from evaluation.retrieval_gate.client.SearchClient. Its only product-side output, exploratory_product_cache_comparison, reads results/product/query_cache envelopes, is labelled TIER=EXPLORATORY, and is never read by gates.evaluate(). No claim-bearing gate anywhere in this lane measures the PRODUCT's served bundle against a frozen id set.",
+    "consequence": "A product could ship a served bundle that retrieves strictly less of the known counter-authority set than the plain OpenCaseLaw top-50 it wraps, and every accepted gate in this lane would stay green. That is the exact failure the Master Prompt's retrieval-first doctrine ('optimize recall before map aesthetics', 'preserve lower-ranked candidates that may represent contrary or minority lines', 'A visualization cannot reveal an authority that retrieval failed to find') exists to prevent.",
+    "size": "One module, one frozen hypothesis file, one fixture index, one test file. No new benchmark family, no new corpus, no new network fetch."
+  },
+
+  "reused_accepted_assets": {
+    "frozen_id_sets": "evaluation/retrieval_gate/frozen_retrieval_benchmark.json (sha256 187b0e54..., direction_version 49) - authority_ids and known_counter_ids per slug, plus the slug<->language query texts",
+    "id_matcher": "evaluation.retrieval_gate.gates.match_authorities + row_cores + frozen.alnum_core - the ACCEPTED id matcher that already reconciles legacy BGE-style frozen ids against ATF-style returned ids and citation strings. This benchmark does NOT write, re-tune or re-derive an id matcher.",
+    "baseline_record": "results/evaluation/retrieval_benchmark/39101217095.json - the accepted LIVE OpenCaseLaw pass (pass_a_mode='live', 24/24 searches OK, 277.872s, frozen_sha256 pin matches). Its per-slug row pool is the frozen baseline pool. NO new network search is performed by this benchmark.",
+    "vendor_tree_precedent": "evaluation/frozen_bars/vendored/ - the accepted blob-proven vendoring convention"
+  },
+
+  "analyst_mapping_FROZEN_BEFORE_EXECUTION": {
+    "disclosure": "The product's served question ids are NOT the frozen spec's slugs. The mapping below is an ANALYST mapping, frozen here before execution. It is an assumption of this benchmark, not a product fact, and the falsification below is reported per mapped cell so a reader can reject any single mapping without rejecting the rest.",
+    "cells": [
+      {
+        "slug": "rent-default",
+        "served_question_id": "fr-bail-entretien",
+        "frozen_record_language": "fr",
+        "basis": "Same subject and same legal rule: lease termination for rent arrears under art. 257d OR / art. 257d CO. Frozen slug queries ask under which conditions a landlord may terminate a residential lease for late payment of rent; the served question is fr-bail-entretien."
+      },
+      {
+        "slug": "corporate-criminal-liability",
+        "served_question_id": "de-kapitalverletzung",
+        "frozen_record_language": "de",
+        "basis": "Same subject: criminal liability of corporate organs for capital offences (Art. 102 OR / Kapitalverletzung). de-kapitalverletzung is the served German-language counterpart of the frozen corporate-criminal-liability slug."
+      },
+      {
+        "slug": "petty-theft-dismissal",
+        "served_question_id": "it-responsabilita-medica",
+        "frozen_record_language": "de",
+        "basis": "WEAKEST CELL, DISCLOSED AS WEAK. The served Italian question is medical-liability; the frozen slug is petty-theft dismissal under art. 337 StGB. These are different subject matters, so a near-zero hit count in this cell is NOT on its own evidence about the product. This cell is reported and is admissible to the success rule only in the product-minus-baseline direction, which is the frozen rule."
+      }
+    ],
+    "unmapped_frozen_slug": "business-judgment-rule has no served counterpart in the accepted packet and is therefore NOT MEASURED by this benchmark. It is not silently dropped: it appears in the record as an explicit unmapped entry with status NOT_MEASURED.",
+    "why_the_direction_of_the_rule_matters": "Because one cell's subject match is weak, the ONLY admissible rule is the a-priori parity rule below: the product is a layer ON TOP of a plain OpenCaseLaw search, so it cannot be credited with a recall that its own baseline already had, and it cannot be blamed for a lower per-cell count on a cell whose subject match is weak - the parity rule compares product against the SAME cell's baseline, which carries the same subject weakness."
+  },
+
+  "success_rule_FROZEN": {
+    "statement": "PASS_NO_PARITY_REGRESSION (exit 0) if and only if, for every MEASURABLE cell, product_recall >= baseline_recall on BOTH frozen id sets. Any measurable cell with product_recall < baseline_recall on either set is FAIL_PARITY_REGRESSION (exit 1). No measurable cell at all is NOT_MEASURED (exit 2).",
+    "derivation": "The Master Prompt and ARCHITECTURE.md define the product as 'broad retrieval -> sourced AI answer -> visual map -> explicit search for contrary / limiting authority' layered on OpenCaseLaw retrieval, and evaluation's lane directive states 'Baseline should be the same OpenCaseLaw search/result set without the additional query-map/counter-authority machinery where practical.' A layer that returns strictly fewer of a known id set than the layer it wraps has by construction added no recall. The comparison needs no tuned constant: the only threshold is product >= baseline.",
+    "recall_measure": ">=1-of-set, the SAME gate_semantics the frozen spec already uses ('>=1-of-set' per authority/counter gate), applied with the SAME accepted matcher. No per-id or per-fraction recall score is introduced.",
+    "non_measurable_never_counts_as_a_pass": "A cell whose frozen id set is empty (rent-default authority_ids == []) yields passed=null with an explicit reason, never True. This mirrors evaluation.retrieval_gate.gates.authority_recall's existing not-measurable branch and the standing rule that a NOT_APPLICABLE verdict is not a bar-met.",
+    "never_weakened_after_results": "This file is written once, before the scorer executes, and hashed. If any gate predicate here has to change after the first execution, that is a NEW frozen spec with a NEW digest, and the old record is preserved."
+  },
+
+  "gate_names_FROZEN": [
+    "product::authority_recall::<slug>",
+    "product::counter_recall::<slug>",
+    "parity::authority_not_below_baseline::<slug>",
+    "parity::counter_not_below_baseline::<slug>",
+    "nonvacuity::blanked_product_pool_must_fail",
+    "nonvacuity::parity_gate_is_not_vacuous",
+    "provenance::frozen_spec_and_baseline_identity"
+  ],
+
+  "non_vacuity_FROZEN": {
+    "requirement": "Before any product verdict is reportable, two hostile controls must fire: (a) scoring a deliberately BLANKED product pool must yield FAIL, not pass; (b) a deliberately regressed product pool whose recall is below the cell baseline must yield FAIL_PARITY_REGRESSION. If either control does not fire the benchmark returns ENVIRONMENT_OR_VACUOUS (exit 2) and its verdict is discarded, never reported as a pass.",
+    "rationale": "A gate that cannot fail is not a measurement. This is the same non-vacuity discipline as evaluation.benchmark_retrieval_counter_authority and evaluation.packet_lineage_sweep."
+  },
+
+  "pre_execution_disclosure_HONEST": {
+    "what_happened": "Before this file was written, an exploratory reconnaissance pass was executed in the producer's shell: it loaded the frozen spec, loaded the three served bundles from the accepted product mount, and printed the raw hit/miss counts of gates.match_authorities over each bundle. The benchmark itself had not been implemented and no verdict had been computed.",
+    "what_was_seen": "rent-default/fr-bail-entretien known-counter hits 1 of 9; corporate-criminal-liability/de-kapitalverletzung authority hits 0 of 2 and counter hits 0 of 6; petty-theft-dismissal/it-responsabilita-medica authority hits 0 of 2 and counter hits 0 of 9. The baseline counts read off the already-accepted 39101217095 record were 3/9, 4/6 and 7/9 known counter ids.",
+    "why_it_does_not_launder_the_result": "The reconnaissance could not have chosen the rule. The success rule is the a-priori parity predicate product >= baseline, which is forced by the product's architecture and by the lane directive's own baseline definition; it is not a threshold fitted to make a number pass or fail, and it contains no constant that was tuned. The exact figure that reconciles with the reconnaissance is DISCLOSED HERE, BEFORE execution, so a reader can judge the freeze against the observation rather than the other way round. The hypothesis, the mapping, the gate names, the not-measurable branch and the non-vacuity controls are all frozen at this point and were not adjusted afterwards.",
+    "accepted_precedent": "evaluation/reality_gate and evaluation/retrieval_gate both carry an equivalent honest_pre_freeze_disclosure field for their own pre-freeze probes."
+  },
+
+  "claim_ceiling": "This benchmark can establish ONE thing and nothing more: on the accepted served packet, for the mapped cells, how many of the frozen controlling-authority ids and the frozen known counter-authority ids the PRODUCT's served bundle retrieves, compared with how many the plain OpenCaseLaw pool it wraps retrieves. It does NOT prove the map is useful to a jurist, does NOT re-classify any decision as supporting/contrary/limiting, does NOT re-score the label or geometry bars, does NOT meet or move any frozen bar, does NOT lift the accepted DO-NOT-SERVE order on packet 38839347028 or on rebuilt-39027045675, and does NOT certify admission of any packet. human_gate_ready stays false. The per-cell mapping is an analyst assumption and is published with its weakest cell labelled as such.",
+
+  "environment_contract": {
+    "mount_optional": true,
+    "mount_env": "LEX_ACCEPTED_PRODUCT_MOUNT else /tmp/lex_accepted/product",
+    "fallback": "evaluation/product_counter_recall/ACCEPTED_SERVED_ID_INDEX.json - a derived, sha256-pinned index of the accepted served bundles' decision ids, built by this cycle from the accepted mount and re-verified against it by tests/evaluation/test_product_counter_recall.py whenever the mount is present.",
+    "if_neither_available": "NOT_MEASURED, exit 2. Never a pass.",
+    "network": "This benchmark performs NO network request. It reads only committed in-repo records and, when present, the read-only accepted product mount."
+  }
+}

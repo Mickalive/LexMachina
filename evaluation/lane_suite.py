@@ -618,7 +618,19 @@ def run_pytest(log: _Log) -> None:
          # evaluation/retrieval_gate/id_hygiene.py: no gate is added to any frozen
          # verdict file, no accepted verdict is overwritten and no frozen
          # benchmark, rubric, incumbent or success rule is touched by adding it.
-         "tests/evaluation/test_served_packet_transfer.py"],
+         "tests/evaluation/test_served_packet_transfer.py",
+         # run 39111232991 (disclosed scope extension, not a re-freeze): the
+         # PRODUCT-vs-BASELINE recall falsifier's frozen-hypothesis pin
+         # (including its honest pre-execution disclosure), its accepted-matcher
+         # reuse guard, the deterministic-replay pin, the NOT-measurable-is-not-
+         # a-pass refusals, the three negative controls (blanked bundle, regressed
+         # pool, oracle pool that reaches the green verdict) and the vendored id
+         # index's mount-rebuild equality check. POST-FREEZE ADDITION in the sense
+         # of evaluation/retrieval_gate/id_hygiene.py: no gate is added to any
+         # frozen verdict file, no accepted verdict is overwritten, no frozen
+         # rubric/threshold/bar/incumbent is touched, and the frozen retrieval
+         # spec and the accepted 39101217095 baseline record are read-only inputs.
+         "tests/evaluation/test_product_counter_recall.py"],
         cwd=str(_LANE_ROOT), capture_output=True, text=True, timeout=900)
     tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
     log.add("active lane pytest suite", proc.returncode == 0, tail[0])

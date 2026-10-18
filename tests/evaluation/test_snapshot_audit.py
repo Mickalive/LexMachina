@@ -680,14 +680,34 @@ def test_diagnosis_parse_check_requires_the_snapshot_rescue_commit(tmp_path):
 # ------------------- check 18: accepted_base_gate_coverage_recorded ---------
 
 def test_accepted_base_coverage_is_disclosed_on_the_live_branch():
-    """The one ungated run at origin/lab/evaluation's head must be disclosed,
-    and the disclosure must match what git re-derives."""
+    """The ungated runs at origin/lab/evaluation's head must be disclosed,
+    and the disclosure must match what git re-derives.
+
+    REPAIRED by run 39111232991 (2026-10-18). This test used to hard-code
+    ``derived_ungated_runs == ["39027041693"]``, a measurement taken by cycle
+    39043684319 when the accepted branch head was 09970e83. Four further
+    evaluation cycles have since been ACCEPTED onto origin/lab/evaluation (most
+    recently cycle 39109815075 at head 3c2fcab6), so the newest
+    "accept evaluation cycle" commit is now the head itself and the derived
+    ungated set is empty. The hard-coded list therefore became a FALSE
+    assertion on the committed tree. The invariant that matters is the
+    coverage contract, not the frozen value: the declared set must equal the
+    set the check re-derives from git, and the record must carry a non-empty
+    claim ceiling and a non-empty ``finding.what_is_NOT_claimed``. The 39043684319
+    measurement is preserved verbatim under
+    ``results/evaluation/accepted_base_gate_coverage_39043684319.json`` ->
+    ``superseded_snapshot_39043684319``; it is superseded as present tense,
+    not deleted.
+    """
     res = rsa.check_accepted_base_gate_coverage(Path("."))
     if res.get("environment_limited"):
         pytest.skip("origin/lab/evaluation not fetchable here")
     assert res["status"] == "PASS", res
-    assert res["derived_ungated_runs"] == ["39027041693"], res
-    assert res["declared_ungated_runs"] == res["derived_ungated_runs"]
+    assert res["declared_ungated_runs"] == res["derived_ungated_runs"], res
+    rec = _committed_coverage_record()
+    assert rec["accepted_branch_head"] == res["accepted_branch_head"], res
+    assert rec["claim_ceiling"], "a coverage record must state its boundaries"
+    assert rec["finding"]["what_is_NOT_claimed"], "a coverage gap must state its boundaries"
 
 
 #: Captured at import, because the fixtures below monkeypatch the module

@@ -1,79 +1,153 @@
 {
-  "acceptance_rule_applied": "factory-wide requirement 8: a cycle counts as accepted only when BOTH a gate with gate=PASS and safe_to_integrate=true AND an 'accept <lane> cycle <run_id>' commit exist. This check measures the second half plus gate-file presence; it does not read gate contents.",
+ "acceptance_rule_applied": "factory-wide requirement 8: a cycle counts as accepted only when BOTH a gate with gate=PASS and safe_to_integrate=true AND an 'accept <lane> cycle <run_id>' commit exist. This check measures the second half plus gate-file presence; it does not read gate contents.",
+ "accepted_branch_head": "3c2fcab6cc3c36bf4467c49ed28187478f78a888",
+ "action_taken": "DISCLOSED, NOT REWRITTEN. The record's own measurement fields were re-derived from git exactly as evaluation.snapshot_audit.run_snapshot_audit's check 18 recomputes them, and the previous measurement is preserved verbatim under superseded_snapshot_39043684319. No commit was rewritten, no branch was pushed to and no historical finding was deleted.",
+ "claim_ceiling": "This record establishes, at the named accepted branch head, which run ids sit above the newest 'accept evaluation cycle' commit and whether each has a gate file of record on that branch. It does NOT establish that the accepted evidence is sound, does NOT read gate contents, does NOT quantify how much of the head depends on any one cycle, and does NOT propose a rollback or a rewrite of the branch.",
+ "control_plane_gap_recorded_not_patched": ".github/** is control-plane scope and was NOT edited from this lane. Recorded for the control plane: the persist step pushes the producer tree to cycle/core/<lane>/<run>/team only, so nothing in the workflow explains unaudited producer commits arriving on lab/<lane>; a lane-side guard (e.g. refusing a push to lab/ that is not the integrate job's identity) or an audit-side check that the newest accept commit is the branch head would surface this immediately.",
+ "finding": {
+  "statement": "STATUS UPDATE run 39111232991, 2026-10-18: origin/lab/evaluation HEAD is 3c2fcab6 ('accept evaluation cycle 39109815075', audit CYCLE_39109815075_GATE.json gate=PASS, safe_to_integrate=true, required_fixes=[]). The newest 'accept evaluation cycle' commit is now that same commit, so ZERO run ids sit above it and the unaudited-head condition reported by run 39043684319 no longer holds. Fourteen gate files are present on the accepted branch, including the newly accepted CYCLE_39109815075_GATE.json. The earlier measurement (head 09970e83, unaudited run 39027041693 at the head) is preserved verbatim under superseded_snapshot_39043684319 and is NOT retracted or rewritten.",
+  "what_is_NOT_claimed": [
+   "this is NOT a claim that every accepted cycle on the branch was audited to the same depth; the coverage measure reads commit subjects and gate-file PRESENCE and does not read gate contents",
+   "this is NOT a claim that the CYCLE_39109815075 audit was clean in every respect; its own CONTEXT note recommends the control plane accept the gate-of-record state or escalate the admission question rather than re-dispatch identical reconciliations, and that recommendation is recorded verbatim in results/audit/evaluation/CYCLE_39109815075_GATE.json",
+   "the historical 39043684319 finding that the accepted branch carried one UNAUDITED cycle at its head is SUPERSEDED AS PRESENT TENSE, not deleted",
+   "an empty derived ungated set says nothing about whether future cycles will be gated; it is a point-in-time coverage reading at the named head"
+  ],
+  "ungated": []
+ },
+ "gates_present_on_accepted_branch": [
+  "38918468438",
+  "38928722878",
+  "38934722443",
+  "38951152192",
+  "38966576940",
+  "38971202786",
+  "38978411574",
+  "38989947869",
+  "38993062549",
+  "39007294442",
+  "39012970379",
+  "39018005027",
+  "39020603510",
+  "39109815075"
+ ],
+ "lane": "evaluation",
+ "newest_accept_commit": {
+  "committer": "lex-integrator",
+  "sha": "3c2fcab6",
+  "subject": "accept evaluation cycle 39109815075"
+ },
+ "purpose": "Measure whether every run whose producer commits sit at the HEAD of the ACCEPTED evaluation branch origin/lab/evaluation is covered by a gate of record on that branch. Found by cycle 39043684319 while diagnosing the run it resumes from; recorded so the gap is disclosed and cannot be forgotten.",
+ "run_id": "39043684319",
+ "runs_above_newest_accept_commit": {
+  "39027041693": {
+   "commits": [
+    {
+     "committer": "lex-evaluation lane",
+     "sha": "09970e83",
+     "subject": "evaluation 39027041693: FAST MVP falsification benchmark to cycle-attributed record; direction pins v50->v52 repaired"
+    },
+    {
+     "committer": "lex-evaluation lane",
+     "sha": "11774ddc",
+     "subject": "evaluation 39027041693: new-head recompute delivered; harness shape repair proven non-weakening; rebuild trigger executable"
+    },
+    {
+     "committer": "lex-evaluation lane",
+     "sha": "85780da9",
+     "subject": "evaluation 39027041693: AMEND the harness shape-repair protocol - HR1 (repair is local) is FALSIFIED by execution"
+    },
+    {
+     "committer": "lex-evaluation lane",
+     "sha": "c10376ae",
+     "subject": "evaluation 39027041693: FREEZE the harness shape-repair protocol; record the trigger result NO_NEW_PACKET"
+    },
+    {
+     "committer": "lex-evaluation lane",
+     "sha": "410a1b26",
+     "subject": "evaluation 39027041693: FREEZE the new-head recompute protocol (H1-H8) + pin the served-packet baseline, before any execution"
+    }
+   ],
+   "has_gate_file_on_accepted_branch": false,
+   "run_id": "39027041693"
+  }
+ },
+ "schema": "lex-evaluation-accepted-base-gate-coverage/1",
+ "ungated_runs_above_the_newest_accept_commit": [],
+ "superseded_snapshot_39043684319": {
+  "as_recorded_by_run": "39043684319",
   "accepted_branch_head": "09970e838a2c8b1252d6e6f07f6b74cfa525a310",
-  "action_taken": "DISCLOSED, NOT REWRITTEN. Rewriting or force-pushing origin/lab/evaluation is outside a lane's write scope and would destroy the very history this record measures. The lane does not cite run 39027041693 as accepted evidence anywhere in its claim ceiling; its artifacts are re-verified independently where this cycle relies on them (the served-packet baseline manifest is re-hashed by set relation, and the trigger is recomputed from scratch against the live accepted product mount).",
-  "claim_ceiling": "This record establishes that one unaudited cycle sits at the head of the accepted evaluation branch. It does NOT establish that the accepted evidence is unsound, does NOT quantify how much of the head depends on it, and does NOT propose a rollback.",
-  "control_plane_gap_recorded_not_patched": ".github/** is control-plane scope and was NOT edited from this lane. Recorded for the control plane: the persist step pushes the producer tree to cycle/core/<lane>/<run>/team only, so nothing in the workflow explains unaudited producer commits arriving on lab/<lane>; a lane-side guard (e.g. refusing a push to lab/ that is not the integrate job's identity) or an audit-side check that the newest accept commit is the branch head would surface this immediately.",
+  "ungated_runs_above_the_newest_accept_commit": [
+   "39027041693"
+  ],
+  "newest_accept_commit": {
+   "committer": "lex-integrator",
+   "sha": "baa9f406",
+   "subject": "accept evaluation cycle 39020603510"
+  },
   "finding": {
-    "statement": "origin/lab/evaluation HEAD is 09970e83 and its newest 'accept evaluation cycle' commit is baa9f406 (accept evaluation cycle 39020603510). The five commits ABOVE that accept commit are all run 39027041693 producer commits, authored and committed as 'lex-evaluation lane'. Run 39027041693 has NO results/audit/evaluation/CYCLE_39027041693_GATE.json on the accepted branch (its audit job FAILED at step 5 'Independent audit' after 2704 s and steps 6-7 were skipped, so no gate was ever written) and NO accept commit sits above it. By the acceptance rule the accepted branch therefore currently carries one UNAUDITED cycle at its head.",
-    "ungated": [
-      "39027041693"
-    ],
-    "what_is_NOT_claimed": [
-      "this is NOT a claim that the frozen-bar gates are unaudited: results/audit/evaluation/CYCLE_{38971202786,38978411574,38989947869,38993062549,39007294442,39012970379,39018005027,39020603510}_GATE.json are all PRESENT on the accepted branch, so the accepted evidence the direction relies on is intact",
-      "this is NOT a claim that the 39027041693 work is wrong: it is unverified, which is a different statement",
-      "the committer identity 'lex-evaluation lane' matches neither workflow identity ('lex-evaluation-team' for the persist step, 'lex-integrator' for the integrate step), but agent-authored commits are common on this branch (run 39020603510's producer commits used 'LexMachina Evaluation Agent' and were legitimately promoted), so the IDENTITY ALONE is not evidence of a bypass and is not used as such",
-      "how those five commits reached the branch (direct push vs. an integration path) is NOT distinguishable from this checkout and is not asserted"
-    ]
+   "statement": "origin/lab/evaluation HEAD is 09970e83 and its newest 'accept evaluation cycle' commit is baa9f406 (accept evaluation cycle 39020603510). The five commits ABOVE that accept commit are all run 39027041693 producer commits, authored and committed as 'lex-evaluation lane'. Run 39027041693 has NO results/audit/evaluation/CYCLE_39027041693_GATE.json on the accepted branch (its audit job FAILED at step 5 'Independent audit' after 2704 s and steps 6-7 were skipped, so no gate was ever written) and NO accept commit sits above it. By the acceptance rule the accepted branch therefore currently carries one UNAUDITED cycle at its head.",
+   "ungated": [
+    "39027041693"
+   ],
+   "what_is_NOT_claimed": [
+    "this is NOT a claim that the frozen-bar gates are unaudited: results/audit/evaluation/CYCLE_{38971202786,38978411574,38989947869,38993062549,39007294442,39012970379,39018005027,39020603510}_GATE.json are all PRESENT on the accepted branch, so the accepted evidence the direction relies on is intact",
+    "this is NOT a claim that the 39027041693 work is wrong: it is unverified, which is a different statement",
+    "the committer identity 'lex-evaluation lane' matches neither workflow identity ('lex-evaluation-team' for the persist step, 'lex-integrator' for the integrate step), but agent-authored commits are common on this branch (run 39020603510's producer commits used 'LexMachina Evaluation Agent' and were legitimately promoted), so the IDENTITY ALONE is not evidence of a bypass and is not used as such",
+    "how those five commits reached the branch (direct push vs. an integration path) is NOT distinguishable from this checkout and is not asserted"
+   ]
   },
   "gates_present_on_accepted_branch": [
-    "38918468438",
-    "38928722878",
-    "38934722443",
-    "38951152192",
-    "38966576940",
-    "38971202786",
-    "38978411574",
-    "38989947869",
-    "38993062549",
-    "39007294442",
-    "39012970379",
-    "39018005027",
-    "39020603510"
+   "38918468438",
+   "38928722878",
+   "38934722443",
+   "38951152192",
+   "38966576940",
+   "38971202786",
+   "38978411574",
+   "38989947869",
+   "38993062549",
+   "39007294442",
+   "39012970379",
+   "39018005027",
+   "39020603510"
   ],
-  "lane": "evaluation",
-  "newest_accept_commit": {
-    "committer": "lex-integrator",
-    "sha": "baa9f406",
-    "subject": "accept evaluation cycle 39020603510"
-  },
-  "purpose": "Measure whether every run whose producer commits sit at the HEAD of the ACCEPTED evaluation branch origin/lab/evaluation is covered by a gate of record on that branch. Found by cycle 39043684319 while diagnosing the run it resumes from; recorded so the gap is disclosed and cannot be forgotten.",
-  "run_id": "39043684319",
   "runs_above_newest_accept_commit": {
-    "39027041693": {
-      "commits": [
-        {
-          "committer": "lex-evaluation lane",
-          "sha": "09970e83",
-          "subject": "evaluation 39027041693: FAST MVP falsification benchmark to cycle-attributed record; direction pins v50->v52 repaired"
-        },
-        {
-          "committer": "lex-evaluation lane",
-          "sha": "11774ddc",
-          "subject": "evaluation 39027041693: new-head recompute delivered; harness shape repair proven non-weakening; rebuild trigger executable"
-        },
-        {
-          "committer": "lex-evaluation lane",
-          "sha": "85780da9",
-          "subject": "evaluation 39027041693: AMEND the harness shape-repair protocol - HR1 (repair is local) is FALSIFIED by execution"
-        },
-        {
-          "committer": "lex-evaluation lane",
-          "sha": "c10376ae",
-          "subject": "evaluation 39027041693: FREEZE the harness shape-repair protocol; record the trigger result NO_NEW_PACKET"
-        },
-        {
-          "committer": "lex-evaluation lane",
-          "sha": "410a1b26",
-          "subject": "evaluation 39027041693: FREEZE the new-head recompute protocol (H1-H8) + pin the served-packet baseline, before any execution"
-        }
-      ],
-      "has_gate_file_on_accepted_branch": false,
-      "run_id": "39027041693"
-    }
+   "39027041693": {
+    "commits": [
+     {
+      "committer": "lex-evaluation lane",
+      "sha": "09970e83",
+      "subject": "evaluation 39027041693: FAST MVP falsification benchmark to cycle-attributed record; direction pins v50->v52 repaired"
+     },
+     {
+      "committer": "lex-evaluation lane",
+      "sha": "11774ddc",
+      "subject": "evaluation 39027041693: new-head recompute delivered; harness shape repair proven non-weakening; rebuild trigger executable"
+     },
+     {
+      "committer": "lex-evaluation lane",
+      "sha": "85780da9",
+      "subject": "evaluation 39027041693: AMEND the harness shape-repair protocol - HR1 (repair is local) is FALSIFIED by execution"
+     },
+     {
+      "committer": "lex-evaluation lane",
+      "sha": "c10376ae",
+      "subject": "evaluation 39027041693: FREEZE the harness shape-repair protocol; record the trigger result NO_NEW_PACKET"
+     },
+     {
+      "committer": "lex-evaluation lane",
+      "sha": "410a1b26",
+      "subject": "evaluation 39027041693: FREEZE the new-head recompute protocol (H1-H8) + pin the served-packet baseline, before any execution"
+     }
+    ],
+    "has_gate_file_on_accepted_branch": false,
+    "run_id": "39027041693"
+   }
   },
-  "schema": "lex-evaluation-accepted-base-gate-coverage/1",
-  "ungated_runs_above_the_newest_accept_commit": [
-    "39027041693"
-  ]
+  "preserved_verbatim": true,
+  "why": "The 39043684319 measurement is history and is preserved byte-for-byte under this key. It is NOT deleted, reworded or re-scoped."
+ },
+ "republished_by": "39111232991",
+ "republished_at_utc": "2026-10-18T08:36:00Z",
+ "republication_reason": "check 18 of the readiness verifier re-derives this disclosure from git and fails when the recorded head does not equal the re-derived head. Between the 39043684319 measurement and this cycle four more evaluation cycles were accepted onto the branch, which moved the head. Re-publishing the measured fields is the record's designed behaviour, not a rewrite of a verdict."
 }

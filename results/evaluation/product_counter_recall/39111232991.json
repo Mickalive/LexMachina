@@ -1,0 +1,452 @@
+{
+ "schema": "lex-evaluation-product-counter-recall/1",
+ "run_id": "39111232991",
+ "direction_version": 56,
+ "entry_point": "python -m evaluation.product_counter_recall",
+ "hypothesis": {
+  "path": "evaluation/PRODUCT_COUNTER_RECALL_HYPOTHESIS.json",
+  "sha256": "2e94d1c6f65af304fa6345be00e8a29b34016012a4c3e04ee4bb36bbafb10c38",
+  "frozen_before_execution": true,
+  "pre_execution_disclosure_present": true
+ },
+ "frozen_spec": {
+  "path": "evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
+  "sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+  "frozen_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72"
+ },
+ "baseline": {
+  "record": "results/evaluation/retrieval_benchmark/39101217095.json",
+  "sha256": "49dd60ad0ee96ed1de7225da4653b752c13fb058cfed05a613e0440d67c32ac9",
+  "pass_a_mode": "live",
+  "note": "plain OpenCaseLaw searches with no query-map / counter-authority machinery; this benchmark performs no network request"
+ },
+ "product": {
+  "served_packet_id": "38839347028",
+  "id_index_origin": "rebuilt_live_from_mount:/tmp/lex_accepted/product",
+  "mount": "/tmp/lex_accepted/product",
+  "n_questions": 3,
+  "source_bundle_sha256": {
+   "fr-bail-entretien": "6c5ea31d4b9af4abfa39e9f8025cfa3d34279ff1f04d0f643e571e27b23a2618",
+   "de-kapitalverletzung": "2441ff2b16722afcd22dca9ad39eafcbeb079b2dfc367d763fbe53fce1356f9c",
+   "it-responsabilita-medica": "76e7f7ad998f3878e7b08635663e2d594a7a77bdaeb33bcf5fa52d0af00b7aff"
+  }
+ },
+ "network_requests": 0,
+ "verdict": "FAIL_PARITY_REGRESSION",
+ "exit_code": 1,
+ "n_gates": 13,
+ "n_passed": 2,
+ "n_failed": 9,
+ "n_not_measurable": 2,
+ "failed_gates": [
+  "parity::counter_not_below_baseline::rent-default",
+  "product::authority_recall::corporate-criminal-liability",
+  "product::counter_recall::corporate-criminal-liability",
+  "parity::authority_not_below_baseline::corporate-criminal-liability",
+  "parity::counter_not_below_baseline::corporate-criminal-liability",
+  "product::authority_recall::petty-theft-dismissal",
+  "product::counter_recall::petty-theft-dismissal",
+  "parity::authority_not_below_baseline::petty-theft-dismissal",
+  "parity::counter_not_below_baseline::petty-theft-dismissal"
+ ],
+ "not_measurable_gates": [
+  "product::authority_recall::rent-default",
+  "parity::authority_not_below_baseline::rent-default"
+ ],
+ "parity_failure_gates": [
+  "parity::counter_not_below_baseline::rent-default",
+  "parity::authority_not_below_baseline::corporate-criminal-liability",
+  "parity::counter_not_below_baseline::corporate-criminal-liability",
+  "parity::authority_not_below_baseline::petty-theft-dismissal",
+  "parity::counter_not_below_baseline::petty-theft-dismissal"
+ ],
+ "gates": [
+  {
+   "gate": "product::authority_recall::rent-default",
+   "passed": null,
+   "detail": "frozen spec carries no controlling-authority set for this slug (authority_ids = []); recall is not measurable and is never counted as a pass",
+   "measured": {
+    "slug": "rent-default",
+    "served_question_id": "fr-bail-entretien",
+    "n_frozen_ids": 0
+   }
+  },
+  {
+   "gate": "product::counter_recall::rent-default",
+   "passed": true,
+   "detail": "product served bundle recalls 1/9 frozen known counter-authority ids (>=1-of-set)",
+   "measured": {
+    "slug": "rent-default",
+    "served_question_id": "fr-bail-entretien",
+    "n_rows": 217,
+    "hits": [
+     "bge_BGE_117_II_415"
+    ],
+    "missing": [
+     "bger_4A_332_2025",
+     "bs_appellationsgericht_AG.2014.783",
+     "gr_gerichte_PKG_2010_20",
+     "gr_gerichte_PZ_2006_125",
+     "lu_gerichte_11_05_126",
+     "so_gerichte_ZKREK.2004.338",
+     "zh_mietgericht_MB170006-L",
+     "zh_obergericht_NL100149"
+    ],
+    "matched_core": {
+     "bge_BGE_117_II_415": "117ii415"
+    }
+   }
+  },
+  {
+   "gate": "parity::authority_not_below_baseline::rent-default",
+   "passed": null,
+   "detail": "frozen authority id set is empty; the parity comparison is not measurable and is never counted as a pass",
+   "measured": {
+    "slug": "rent-default",
+    "n_product": 0,
+    "n_baseline": 0
+   }
+  },
+  {
+   "gate": "parity::counter_not_below_baseline::rent-default",
+   "passed": false,
+   "detail": "product 1 < baseline 3 of 9 frozen counter ids: the query-map / counter-authority layer on top of plain OpenCaseLaw returns strictly LESS of the frozen set than the search it wraps",
+   "measured": {
+    "slug": "rent-default",
+    "served_question_id": "fr-bail-entretien",
+    "product_hits": 1,
+    "baseline_hits": 3,
+    "product_hit_ids": [
+     "bge_BGE_117_II_415"
+    ],
+    "baseline_hit_ids": [
+     "bge_BGE_117_II_415",
+     "gr_gerichte_PKG_2010_20",
+     "zh_mietgericht_MB170006-L"
+    ],
+    "product_only": [],
+    "baseline_only": [
+     "gr_gerichte_PKG_2010_20",
+     "zh_mietgericht_MB170006-L"
+    ],
+    "n_product_rows": 217,
+    "n_baseline_rows": 240
+   }
+  },
+  {
+   "gate": "product::authority_recall::corporate-criminal-liability",
+   "passed": false,
+   "detail": "product served bundle recalls 0/2 frozen controlling-authority ids",
+   "measured": {
+    "slug": "corporate-criminal-liability",
+    "served_question_id": "de-kapitalverletzung",
+    "n_rows": 214,
+    "hits": [],
+    "missing": [
+     "bge_BGE_142_IV_333",
+     "bger_6B_124_2016"
+    ],
+    "matched_core": {}
+   }
+  },
+  {
+   "gate": "product::counter_recall::corporate-criminal-liability",
+   "passed": false,
+   "detail": "product served bundle recalls 0/6 frozen known counter-authority ids",
+   "measured": {
+    "slug": "corporate-criminal-liability",
+    "served_question_id": "de-kapitalverletzung",
+    "n_rows": 214,
+    "hits": [],
+    "missing": [
+     "bge_BGE_146_IV_68",
+     "bger_6B_7_2014",
+     "bstger_BG.2016.5",
+     "so_gerichte_BKBES.2026.74",
+     "so_gerichte_STBER.2011.32",
+     "zh_obergericht_UE220221"
+    ],
+    "matched_core": {}
+   }
+  },
+  {
+   "gate": "parity::authority_not_below_baseline::corporate-criminal-liability",
+   "passed": false,
+   "detail": "product 0 < baseline 2 of 2 frozen authority ids: the query-map / counter-authority layer on top of plain OpenCaseLaw returns strictly LESS of the frozen set than the search it wraps",
+   "measured": {
+    "slug": "corporate-criminal-liability",
+    "served_question_id": "de-kapitalverletzung",
+    "product_hits": 0,
+    "baseline_hits": 2,
+    "product_hit_ids": [],
+    "baseline_hit_ids": [
+     "bge_BGE_142_IV_333",
+     "bger_6B_124_2016"
+    ],
+    "product_only": [],
+    "baseline_only": [
+     "bge_BGE_142_IV_333",
+     "bger_6B_124_2016"
+    ],
+    "n_product_rows": 214,
+    "n_baseline_rows": 240
+   }
+  },
+  {
+   "gate": "parity::counter_not_below_baseline::corporate-criminal-liability",
+   "passed": false,
+   "detail": "product 0 < baseline 4 of 6 frozen counter ids: the query-map / counter-authority layer on top of plain OpenCaseLaw returns strictly LESS of the frozen set than the search it wraps",
+   "measured": {
+    "slug": "corporate-criminal-liability",
+    "served_question_id": "de-kapitalverletzung",
+    "product_hits": 0,
+    "baseline_hits": 4,
+    "product_hit_ids": [],
+    "baseline_hit_ids": [
+     "bge_BGE_146_IV_68",
+     "bger_6B_7_2014",
+     "so_gerichte_BKBES.2026.74",
+     "so_gerichte_STBER.2011.32"
+    ],
+    "product_only": [],
+    "baseline_only": [
+     "bge_BGE_146_IV_68",
+     "bger_6B_7_2014",
+     "so_gerichte_BKBES.2026.74",
+     "so_gerichte_STBER.2011.32"
+    ],
+    "n_product_rows": 214,
+    "n_baseline_rows": 240
+   }
+  },
+  {
+   "gate": "product::authority_recall::petty-theft-dismissal",
+   "passed": false,
+   "detail": "product served bundle recalls 0/2 frozen controlling-authority ids",
+   "measured": {
+    "slug": "petty-theft-dismissal",
+    "served_question_id": "it-responsabilita-medica",
+    "n_rows": 211,
+    "hits": [],
+    "missing": [
+     "bger_4A_177_2017",
+     "bger_4A_228_2015"
+    ],
+    "matched_core": {}
+   }
+  },
+  {
+   "gate": "product::counter_recall::petty-theft-dismissal",
+   "passed": false,
+   "detail": "product served bundle recalls 0/9 frozen known counter-authority ids",
+   "measured": {
+    "slug": "petty-theft-dismissal",
+    "served_question_id": "it-responsabilita-medica",
+    "n_rows": 211,
+    "hits": [],
+    "missing": [
+     "ar_gerichte_KG_ARGVP_2005_3462",
+     "bge_BGE_121_III_467",
+     "bge_BGE_124_III_25",
+     "bge_BGE_130_III_28",
+     "bge_BGE_138_I_113",
+     "ch_vb_JAAC_68.7__",
+     "ge_gerichte_ATAS_1103_2006",
+     "ge_gerichte_CAPH_107_2004",
+     "so_gerichte_ZZ.1990.7"
+    ],
+    "matched_core": {}
+   }
+  },
+  {
+   "gate": "parity::authority_not_below_baseline::petty-theft-dismissal",
+   "passed": false,
+   "detail": "product 0 < baseline 1 of 2 frozen authority ids: the query-map / counter-authority layer on top of plain OpenCaseLaw returns strictly LESS of the frozen set than the search it wraps",
+   "measured": {
+    "slug": "petty-theft-dismissal",
+    "served_question_id": "it-responsabilita-medica",
+    "product_hits": 0,
+    "baseline_hits": 1,
+    "product_hit_ids": [],
+    "baseline_hit_ids": [
+     "bger_4A_177_2017"
+    ],
+    "product_only": [],
+    "baseline_only": [
+     "bger_4A_177_2017"
+    ],
+    "n_product_rows": 211,
+    "n_baseline_rows": 240
+   }
+  },
+  {
+   "gate": "parity::counter_not_below_baseline::petty-theft-dismissal",
+   "passed": false,
+   "detail": "product 0 < baseline 7 of 9 frozen counter ids: the query-map / counter-authority layer on top of plain OpenCaseLaw returns strictly LESS of the frozen set than the search it wraps",
+   "measured": {
+    "slug": "petty-theft-dismissal",
+    "served_question_id": "it-responsabilita-medica",
+    "product_hits": 0,
+    "baseline_hits": 7,
+    "product_hit_ids": [],
+    "baseline_hit_ids": [
+     "ar_gerichte_KG_ARGVP_2005_3462",
+     "bge_BGE_121_III_467",
+     "bge_BGE_124_III_25",
+     "bge_BGE_130_III_28",
+     "bge_BGE_138_I_113",
+     "ge_gerichte_CAPH_107_2004",
+     "so_gerichte_ZZ.1990.7"
+    ],
+    "product_only": [],
+    "baseline_only": [
+     "ar_gerichte_KG_ARGVP_2005_3462",
+     "bge_BGE_121_III_467",
+     "bge_BGE_124_III_25",
+     "bge_BGE_130_III_28",
+     "bge_BGE_138_I_113",
+     "ge_gerichte_CAPH_107_2004",
+     "so_gerichte_ZZ.1990.7"
+    ],
+    "n_product_rows": 211,
+    "n_baseline_rows": 240
+   }
+  },
+  {
+   "gate": "provenance::frozen_spec_and_baseline_identity",
+   "passed": true,
+   "detail": "frozen retrieval spec digest matches the accepted pin 187b0e54b03b... and loads; the baseline record carries the same pin",
+   "measured": {
+    "frozen_spec_path": "evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
+    "frozen_spec_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "frozen_sha256_pinned": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "baseline_record": "results/evaluation/retrieval_benchmark/39101217095.json",
+    "baseline_record_sha256": "49dd60ad0ee96ed1de7225da4653b752c13fb058cfed05a613e0440d67c32ac9",
+    "baseline_record_frozen_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "baseline_pass_a_mode": "live",
+    "baseline_transport": {
+     "n_queries": 24,
+     "n_ok": 24,
+     "n_failed": 0,
+     "failures": []
+    },
+    "product_id_index_origin": "rebuilt_live_from_mount:/tmp/lex_accepted/product",
+    "product_mount": "/tmp/lex_accepted/product",
+    "served_packet_id": "38839347028"
+   }
+  }
+ ],
+ "cells": [
+  {
+   "slug": "rent-default",
+   "served_question_id": "fr-bail-entretien",
+   "frozen_record_language": "fr",
+   "basis": "Same subject and same legal rule: lease termination for rent arrears under art. 257d OR / art. 257d CO. Frozen slug queries ask under which conditions a landlord may terminate a residential lease for late payment of rent; the served question is fr-bail-entretien.",
+   "status": "MEASURED",
+   "n_product_rows": 217,
+   "n_baseline_rows": 240,
+   "authority": {
+    "n_frozen": 0,
+    "product_hits": [],
+    "baseline_hits": []
+   },
+   "counter": {
+    "n_frozen": 9,
+    "product_hits": [
+     "bge_BGE_117_II_415"
+    ],
+    "baseline_hits": [
+     "bge_BGE_117_II_415",
+     "gr_gerichte_PKG_2010_20",
+     "zh_mietgericht_MB170006-L"
+    ]
+   }
+  },
+  {
+   "slug": "corporate-criminal-liability",
+   "served_question_id": "de-kapitalverletzung",
+   "frozen_record_language": "de",
+   "basis": "Same subject: criminal liability of corporate organs for capital offences (Art. 102 OR / Kapitalverletzung). de-kapitalverletzung is the served German-language counterpart of the frozen corporate-criminal-liability slug.",
+   "status": "MEASURED",
+   "n_product_rows": 214,
+   "n_baseline_rows": 240,
+   "authority": {
+    "n_frozen": 2,
+    "product_hits": [],
+    "baseline_hits": [
+     "bge_BGE_142_IV_333",
+     "bger_6B_124_2016"
+    ]
+   },
+   "counter": {
+    "n_frozen": 6,
+    "product_hits": [],
+    "baseline_hits": [
+     "bge_BGE_146_IV_68",
+     "bger_6B_7_2014",
+     "so_gerichte_BKBES.2026.74",
+     "so_gerichte_STBER.2011.32"
+    ]
+   }
+  },
+  {
+   "slug": "petty-theft-dismissal",
+   "served_question_id": "it-responsabilita-medica",
+   "frozen_record_language": "de",
+   "basis": "WEAKEST CELL, DISCLOSED AS WEAK. The served Italian question is medical-liability; the frozen slug is petty-theft dismissal under art. 337 StGB. These are different subject matters, so a near-zero hit count in this cell is NOT on its own evidence about the product. This cell is reported and is admissible to the success rule only in the product-minus-baseline direction, which is the frozen rule.",
+   "status": "MEASURED",
+   "n_product_rows": 211,
+   "n_baseline_rows": 240,
+   "authority": {
+    "n_frozen": 2,
+    "product_hits": [],
+    "baseline_hits": [
+     "bger_4A_177_2017"
+    ]
+   },
+   "counter": {
+    "n_frozen": 9,
+    "product_hits": [],
+    "baseline_hits": [
+     "ar_gerichte_KG_ARGVP_2005_3462",
+     "bge_BGE_121_III_467",
+     "bge_BGE_124_III_25",
+     "bge_BGE_130_III_28",
+     "bge_BGE_138_I_113",
+     "ge_gerichte_CAPH_107_2004",
+     "so_gerichte_ZZ.1990.7"
+    ]
+   }
+  }
+ ],
+ "unmapped_frozen_slugs": [
+  {
+   "slug": "business-judgment-rule",
+   "status": "NOT_MEASURED",
+   "reason": "the frozen analyst mapping declares no served counterpart for this slug; the accepted served packet serves no such question"
+  }
+ ],
+ "non_vacuity": {
+  "all_hold": true,
+  "battery": [
+   {
+    "control": "blanked_product_pool_must_fail",
+    "holds": true,
+    "why": "scoring a deliberately BLANKED product pool against the 9 frozen counter ids of rent-default yields 0 hits while the cell baseline recalls 3; a gate that passed this input would be vacuous",
+    "slug": "rent-default",
+    "blanked_product_hits": 0,
+    "baseline_hits": 3
+   },
+   {
+    "control": "parity_gate_is_not_vacuous",
+    "holds": true,
+    "why": "a deliberately regressed product pool (the first 1 baseline row(s), recalling 0) sits BELOW the cell baseline (3), so parity::counter_not_below_baseline::rent-default is falsified by a known input; if it did not fire the parity rule would be vacuous",
+    "slug": "rent-default",
+    "regressed_product_hits": 0,
+    "baseline_hits": 3
+   }
+  ]
+ },
+ "success_rule": "PASS_NO_PARITY_REGRESSION (exit 0) if and only if, for every MEASURABLE cell, product_recall >= baseline_recall on BOTH frozen id sets. Any measurable cell with product_recall < baseline_recall on either set is FAIL_PARITY_REGRESSION (exit 1). No measurable cell at all is NOT_MEASURED (exit 2).",
+ "claim_ceiling": "This benchmark can establish ONE thing and nothing more: on the accepted served packet, for the mapped cells, how many of the frozen controlling-authority ids and the frozen known counter-authority ids the PRODUCT's served bundle retrieves, compared with how many the plain OpenCaseLaw pool it wraps retrieves. It does NOT prove the map is useful to a jurist, does NOT re-classify any decision as supporting/contrary/limiting, does NOT re-score the label or geometry bars, does NOT meet or move any frozen bar, does NOT lift the accepted DO-NOT-SERVE order on packet 38839347028 or on rebuilt-39027045675, and does NOT certify admission of any packet. human_gate_ready stays false. The per-cell mapping is an analyst assumption and is published with its weakest cell labelled as such."
+}
