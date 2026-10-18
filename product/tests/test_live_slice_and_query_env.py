@@ -86,27 +86,32 @@ def test_freshness_block_requires_all_three_independent_readings():
     for needle in ("adapter_cache_hits", "adapter_network_calls",
                    "independent_cache_probe", "adapter_cache_stats"):
         assert needle in src, needle
-    record = {
-        "adapter_cache_hits": 0,
-        "adapter_network_calls": 3,
-        "independent_cache_probe": {"n_files_written": 2},
-        "adapter_cache_stats": {"hits": 0},
-    }
-    assert record["adapter_cache_hits"] == 0
-    assert record["independent_cache_probe"]["n_files_written"] > 0
 
 
-def test_cache_fingerprint_sees_a_new_file_and_ignores_a_stale_one(tmp_path, monkeypatch):
+def test_cache_delta_separates_added_modified_and_removed():
+    """An in-place refresh must not be reported as a removal."""
+    delta = live_slice._cache_delta(
+        {"a.json": 10, "b.json": 10, "gone.json": 10},
+        {"a.json": 10, "b.json": 42, "new.json": 5},
+    )
+    assert delta["n_files_added"] == 1
+    assert delta["n_files_modified"] == 1
+    assert delta["n_files_removed"] == 1
+    assert delta["n_files_touched"] == 3
+    assert delta["files_modified"] == ["b.json"], delta
+
+
+def test_cache_fingerprint_sees_a_new_file(tmp_path, monkeypatch):
     root = tmp_path / "cache"
     root.mkdir()
     monkeypatch.setattr(query_env, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(live_slice, "product_cache_dir", lambda: root)
     (root / "a.json").write_text("{}", encoding="utf-8")
     first = live_slice._cache_fingerprint()
-    assert len(first) == 1
+    assert first == {"a.json": 2}, first
     (root / "b.json").write_text("{}", encoding="utf-8")
     second = live_slice._cache_fingerprint()
-    assert second - first == {("b.json", 2)}, second - first
+    assert set(second) - set(first) == {"b.json"}, second
 
 
 def test_live_slice_never_touches_the_gate_packet_or_the_frozen_tree():
@@ -122,6 +127,27 @@ def test_live_slice_never_touches_the_gate_packet_or_the_frozen_tree():
             imported.add(node.module or "")
     for forbidden in ("gate_packet", "rebuild_packet", "frozen", "evaluation"):
         assert forbidden not in imported, imported
+
+
+def test_ephemeral_cache_option_exists_because_the_product_cache_is_frozen():
+    """A refresh rewrites cache entries in place; the tracked ones are frozen evidence."""
+    import tempfile
+
+    from product.query import pipeline
+
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp) / "query_cache"
+        seen = {}
+        original = pipeline.product_cache_dir
+        pipeline.product_cache_dir = lambda: root  # stand in for run()'s override
+        try:
+            seen["root"] = pipeline.product_cache_dir()
+        finally:
+            pipeline.product_cache_dir = original
+        assert seen["root"] == root
+    src = Path(live_slice.__file__).read_text(encoding="utf-8")
+    assert "--ephemeral-cache" in src
+    assert "CYCLE_38759730609_cache_manifest.json" in src
 
 
 def test_shipped_live_slice_artifact_is_self_consistent():

@@ -72,17 +72,41 @@ BUDGET_LOCAL_MAP_S = 1.5
 BUDGET_GEOMETRY_S = 2.0
 
 
-def _cache_fingerprint() -> set[tuple[str, int]]:
-    """(relative path, size) for every cache file - an independent freshness probe."""
+def _cache_fingerprint() -> dict[str, int]:
+    """relative path -> size for every cache file (an independent freshness probe).
+
+    Sizes are part of the fingerprint on purpose: the adapter rewrites an entry
+    in place, so a refreshed body of the same key shows up as a MODIFIED file,
+    not as a removal. Reporting that as "removed" would understate what the
+    network actually returned.
+    """
     root = product_cache_dir()
-    out: set[tuple[str, int]] = set()
+    out: dict[str, int] = {}
     for p in root.rglob("*"):
         if p.is_file():
             try:
-                out.add((str(p.relative_to(root)), p.stat().st_size))
+                out[str(p.relative_to(root))] = p.stat().st_size
             except OSError:
                 continue
     return out
+
+
+def _cache_delta(before: dict[str, int], after: dict[str, int]) -> dict:
+    added = sorted(set(after) - set(before))
+    removed = sorted(set(before) - set(after))
+    modified = sorted(p for p in (set(before) & set(after)) if before[p] != after[p])
+    return {
+        "cache_dir": "results/product/query_cache",
+        "files_before": len(before),
+        "files_after": len(after),
+        "n_files_added": len(added),
+        "n_files_modified": len(modified),
+        "n_files_removed": len(removed),
+        "files_added": added[:20],
+        "files_modified": modified[:20],
+        "files_removed": removed[:20],
+        "n_files_touched": len(added) + len(modified) + len(removed),
+    }
 
 
 def _versions() -> dict:
@@ -97,8 +121,22 @@ def _versions() -> dict:
     return mods
 
 
-def run(query: str, *, top_n: int, enrich: bool, evidence_count: int) -> dict:
-    from product.query.pipeline import enrich_query_bundle, run_query_initial
+def run(query: str, *, top_n: int, enrich: bool, evidence_count: int,
+        cache_root: Path | None = None) -> dict:
+    from product.query import pipeline
+
+    if cache_root is not None:
+        # A refresh rewrites cache entries IN PLACE, and the tracked product
+        # cache is covered by a frozen claim-cache manifest
+        # (results/product/CYCLE_38759730609_cache_manifest.json).  Measured
+        # consequence of forgetting this: the 39128456801 freshness run turned
+        # 19 manifest-covered entries into different bytes and took
+        # test_cache_non_orphan.py::test_claim_cache_manifest_is_intact_and_
+        # append_tolerant from green to red.  The frozen manifest is historical
+        # evidence and is never rewritten from this lane, so a freshness run
+        # that must not touch it points the adapter at its own directory.
+        cache_root.mkdir(parents=True, exist_ok=True)
+        pipeline.product_cache_dir = lambda: cache_root  # type: ignore[assignment]
 
     before = _cache_fingerprint()
     t0 = time.time()
@@ -122,16 +160,32 @@ def run(query: str, *, top_n: int, enrich: bool, evidence_count: int) -> dict:
     total_s = time.time() - t0
 
     after = _cache_fingerprint()
-    written = sorted(p for p, _size in (after - before))
-    removed = sorted(p for p, _size in (before - after))
-
+    cache_delta = _cache_delta(before, after)
+    rows = bundle.get("decisions") or []
+    final_summary = summarise(bundle)
+    languages: dict[str, int] = {}
+    by_status: dict[str, int] = {}
+    for row in rows:
+        lang = str(row.get("language") or "?")
+        languages[lang] = languages.get(lang, 0) + 1
+        key = str(row.get("counter_status") or "none")
+        by_status[key] = by_status.get(key, 0) + 1
+    initial_geom = {d.get("decision_id"): (d.get("x"), d.get("y"), d.get("cluster_id"))
+                    for d in initial.get("decisions") or []}
+    final_geom = {d.get("decision_id"): (d.get("x"), d.get("y"), d.get("cluster_id"))
+                  for d in rows}
+    # The invariant is "a point the researcher already looked at never moves",
+    # NOT "the row set is frozen": enrichment may add adversarial rows and drop
+    # shells. Comparing the two dicts outright would report that legitimate row
+    # churn as a moved point, so only ids present in BOTH are compared.
+    shared = sorted(set(initial_geom) & set(final_geom))
+    moved_points = [i for i in shared if initial_geom[i] != final_geom[i]]
     prov = bundle.get("provenance") or {}
     retrieval = prov.get("retrieval") or {}
     remote = retrieval.get("remote") or {}
     summary = remote.get("request_summary") or {}
     cache_stats = remote.get("cache_stats") or {}
     timing = prov.get("timing") or {}
-    rows = bundle.get("decisions") or []
     answer = bundle.get("answer") or {}
     ga = (prov.get("generative_audit") or {})
 
@@ -151,22 +205,24 @@ def run(query: str, *, top_n: int, enrich: bool, evidence_count: int) -> dict:
             "adapter_cache_stats": cache_stats,
             "adapter_failures": summary.get("failures"),
             "adapter_degraded": remote.get("degraded"),
-            "independent_cache_probe": {
-                "cache_dir": "results/product/query_cache",
-                "files_before": len(before),
-                "files_after": len(after),
-                "files_written": written[:20],
-                "n_files_written": len(written),
-                "files_removed": removed[:20],
-            },
+            "independent_cache_probe": cache_delta,
         },
         "map": {
             "n_decisions": len(rows),
             "n_clusters": len(bundle.get("clusters") or []),
             "rows_with_xy": sum(1 for r in rows if r.get("x") is not None and r.get("y") is not None),
             "rows_with_source_url": sum(1 for r in rows if r.get("canonical_url")),
-            "languages": summarise(bundle).get("languages"),
-            "geometry_preserved_by_enrich": summarise(bundle).get("geometry_preserved_by_enrich"),
+            "languages": languages,
+            "rows_with_cluster_id": final_summary.get("rows_with_cluster_id"),
+            "largest_cluster": final_summary.get("largest_cluster"),
+            "geometry_preserved_by_enrich": not moved_points,
+            "n_decisions_before_enrich": len(initial_geom),
+            "n_points_shared_with_initial_map": len(shared),
+            "n_points_moved_by_enrichment": len(moved_points),
+            "points_moved_by_enrichment": moved_points[:10],
+            "rows_added_by_enrichment": sorted(set(final_geom) - set(initial_geom))[:10],
+            "n_rows_added_by_enrichment": len(set(final_geom) - set(initial_geom)),
+            "n_rows_dropped_by_enrichment": len(set(initial_geom) - set(final_geom)),
         },
         "answer": {
             "status": answer.get("status"),
@@ -182,7 +238,7 @@ def run(query: str, *, top_n: int, enrich: bool, evidence_count: int) -> dict:
             "counter_status_bearing_rows": counter_status_bearing_count(rows),
             "evidenced_counter_ids": sorted(evidenced_counter_ids(rows)),
             "unevidenced_counter_ids": sorted(unevidenced_counter_ids(rows)),
-            "by_status": summarise(bundle).get("by_status"),
+            "by_status": by_status,
         },
         "timing_s": {
             "upstream_retrieval_s": timing.get("upstream_retrieval_s"),
@@ -228,14 +284,34 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--evidence", type=int, default=12, help="decisions hydrated for the answer")
     ap.add_argument("--no-enrich", action="store_true",
                     help="map-only: skip the answer + counter-authority pass")
+    ap.add_argument("--ephemeral-cache", action="store_true",
+                    help="retrieve into a throwaway cache dir instead of the tracked "
+                         "product cache, whose entries are covered by a frozen "
+                         "claim-cache manifest (recommended for freshness checks)")
     args = ap.parse_args(argv)
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     tag = args.run_id or time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
 
-    out = run(args.query, top_n=args.n, enrich=not args.no_enrich, evidence_count=args.evidence)
+    cache_root = None
+    tmp_cache = None
+    if args.ephemeral_cache:
+        import tempfile
+
+        tmp_cache = tempfile.TemporaryDirectory(prefix="live-slice-cache-")
+        cache_root = Path(tmp_cache.name) / "query_cache"
+
+    try:
+        out = run(args.query, top_n=args.n, enrich=not args.no_enrich,
+                  evidence_count=args.evidence, cache_root=cache_root)
+    finally:
+        if tmp_cache is not None:
+            tmp_cache.cleanup()
     record, bundle = out["record"], out["bundle"]
     record["run_id"] = tag
+    record["cache_root"] = ("ephemeral (outside the tracked product cache)"
+                            if cache_root is not None else
+                            "results/product/query_cache")
 
     bundle_path = OUT_DIR / f"{tag}_bundle.json"
     bundle_path.write_text(json.dumps(bundle, indent=1, sort_keys=True), encoding="utf-8")
@@ -253,7 +329,9 @@ def main(argv: list[str] | None = None) -> int:
         "retrieval_mode_served_is_refresh": record["retrieval_mode_served"] == "refresh",
         "no_cache_hits_on_the_network_leg": fresh["adapter_cache_hits"] == 0,
         "adapter_made_network_calls": (fresh["adapter_network_calls"] or 0) > 0,
-        "independent_probe_saw_new_cache_files": fresh["independent_cache_probe"]["n_files_written"] > 0,
+        "independent_probe_saw_the_network": fresh["independent_cache_probe"]["n_files_touched"] > 0,
+        "enrichment_never_moved_a_point_already_on_the_map":
+            record["map"]["geometry_preserved_by_enrich"],
         "map_has_rows": record["map"]["n_decisions"] > 0,
         "every_row_has_xy": record["map"]["rows_with_xy"] == record["map"]["n_decisions"],
         "every_row_has_a_source_link": record["map"]["rows_with_source_url"] == record["map"]["n_decisions"],
@@ -272,7 +350,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"\n{record['verdict']}: {len(checks) - len(record['n_failed_checks'])}/{len(checks)} checks")
     print(f"n_decisions={record['map']['n_decisions']} n_clusters={record['map']['n_clusters']} "
           f"network_calls={fresh['adapter_network_calls']} cache_hits={fresh['adapter_cache_hits']} "
-          f"new_cache_files={fresh['independent_cache_probe']['n_files_written']}")
+          f"cache_files_touched={fresh['independent_cache_probe']['n_files_touched']}")
     print(f"counter_authorities={record['counters']['counter_authorities']} "
           f"status_bearing={record['counters']['counter_status_bearing_rows']}")
     print(f"upstream={record['timing_s']['upstream_retrieval_s']}s "
