@@ -1,5 +1,5 @@
 {
-  "accepted_run_id": "39139648336 (proposed; pending independent audit of this resume cycle)",
+  "accepted_run_id": "39144924680 (proposed; pending independent audit of this repair cycle)",
   "bjr_recall_durability": {
     "artifact": "results/product/reality_check/bjr_recall_durability_20261017.json",
     "claim_ceiling": "LOCAL_NOT_DURABLE: this is local live evidence only. The accepted frozen benchmark (frozen_sha256 ff57f556...) is Core Evaluation's recompute and remains RED (overall_pass=false at 38920872324 / 38934722443 / 38945976309) until that lane recomputes it on a run containing this repair. A durable Actions [reality-check] run is still required. No frozen gate, threshold, rubric or success rule was weakened or edited; the new local parity gate is STRICTER than the durable workflow gate.",
@@ -104,7 +104,7 @@
       "scope": "control-plane workflow scope; recorded, not edited from the lane"
     }
   ],
-  "current_run": "39139648336",
+  "current_run": "39144924680",
   "cycle_39056694835_frontier_serve_audit_intake": {
     "admission": "fail-closed",
     "claim_ceiling": [
@@ -511,7 +511,7 @@
     ],
     "state_block_added_by_run": "39094983039"
   },
-  "cycle_status": "OPERATIONAL_RESUME_OF_39136122746_COMPLETE__RC78_POST_DELIVERY_CLASS_DIAGNOSED_FROM_PUBLIC_RECORDS__F1_F4_FIXES_VERIFIED_EMPIRICALLY__F4_ARITHMETIC_CORRECTED_13_TO_17__F5_REPORT_AND_STATE_SHIPPED__LEDGER_PASS_41_OF_41__ADMISSION_FAIL_CLOSED__MACHINE_GATE_READY_FALSE__HUMAN_GATE_READY_FALSE",
+  "cycle_status": "REPAIR_ROUND_4_OF_REJECTED_39139648336_COMPLETE__ORDERED_FIX_APPLIED_(REPORT_CITED_COUNT_6_TO_5_RF2_SIDE_BY_SIDE)__DURABLE_GUARD_SHIPPED_(test_report_artifact_arithmetic_4_OF_4)__REGRESSION_SCOPE_ARTIFACT_SHIPPED_(REPAIRED_ONLY_0_BASELINE_ONLY_0)__LEDGER_PASS_41_OF_41__ADMISSION_FAIL_CLOSED__MACHINE_GATE_READY_FALSE__HUMAN_GATE_READY_FALSE",
   "direction_version": 56,
   "evidence_refs": [
     "results/product/gate_packet/rebuilt-39027045675/packet.json",
@@ -1087,7 +1087,7 @@
     "secondary_risk_noted": "Earlier cycles also wrote outside product scope (frontier/frontier-generative-audit/generative_audit/provider.py and results/frontier/frontier-query-retrieval/cache/*). Those writes are already committed in the snapshot; 'Enforce lane write scope' only inspects pending changes, so they cannot be cleaned without tripping the scope check in the same run. They are recorded as pre-existing snapshot content, not current-cycle work. Live-run cache by-products created inside a cycle are removed before the scope step (reports/product/CYCLE_38559540834.md section 4)."
   },
   "packet_admitted": false,
-  "prior_current_run": "39128456801",
+  "prior_current_run": "39139648336",
   "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
   "ready_for_owner_session": false,
   "reality_check_status": {
@@ -2235,8 +2235,8 @@
     "fixtures": "offline/test only; never merged into live results",
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
   },
-  "state_updated_at": "2026-10-18T15:48:47Z",
-  "state_updated_by_run": "39139648336",
+  "state_updated_at": "2026-10-18T16:55:05Z",
+  "state_updated_by_run": "39144924680",
   "state_updated_from_resumed_snapshot_run": "39136122746",
   "supersedes_claims": {
     "gate_ceremony_is_one_query_only": "SUPERSEDED BY RUN 38792650692: the packet pre-registers three questions (FR/DE/IT), re-verifies each bundle at run time and hands the owner one deep link per question. The single-query path still works (product/human_gate_session.py is unchanged) and is still the way ONE session is finalized.",
@@ -4240,5 +4240,100 @@
       ".github/** (control-plane scope)"
     ],
     "next_concrete_step": "independent audit of this tree (CYCLE_39139648336); no owner session is authorised - the accepted serve verdict carries owner_decision_required=false and requirement 13 conditions (a)/(b) are both unmet"
+  },
+  "repair_39139648336_round4": {
+    "kind": "repair round 4 of the rejected cycle 39139648336",
+    "run_id": 39144924680,
+    "base": "2b0b9025d0b51363eb869a883d6c29a0f64364ff (rejected producer head of run 39139648336)",
+    "audit_of_record": {
+      "path": "/tmp/lex_prior_audit/results/audit/product/CYCLE_39139648336_GATE.json",
+      "sha256": "cbc23c89ea81ab54cddbd7a4bdde507a6e1eaea7deb8c386314e8729489175a9",
+      "gate": "REVISE",
+      "safe_to_integrate": false,
+      "n_required_fixes": 1,
+      "why_not_in_repository": "a REVISE gate is not integrated, so it is not committed; documented pattern per audit CYCLE_39051003925.md section 8.5 (only PASS gates are committed). Read from the mounted prior-audit tree."
+    },
+    "ordered_fix": {
+      "defect": "reports/product/CYCLE_39139648336.md section 3 F1 stated the live sourced answer as '(6 cited, live free model)' while the artifact of record records answer.n_cited=5",
+      "artifact_of_record": "results/product/live_slice/CYCLE_39139648336_F1F2_VERIFY.json",
+      "artifact_sha256": "3d7e3a70f59a32b8f509fa2fedfd80aa08002f207e555733d756bec4a0593e5a",
+      "artifact_value": 5,
+      "report_before_sha256": "d4cd8345319bab9f6c058d0b08bc9153741a5cb5acf8b026ba523c9c11144326",
+      "report_after_sha256": "bee0728c5c34702ada373ff725ceaacaa2c5955e8cbf9509d4f90f06337043db",
+      "fix": "published 5 as the report's citation count AND the superseded 6 beside it, explicitly marked as the pre-repair value - RF2 arithmetic discipline, the same side-by-side form as the F4 13->17 correction",
+      "diff_scope": "one paragraph of one report; no other number in the cycle changed (the audit fenced this with \"No other numbers in the cycle change\")"
+    },
+    "durable_guard": {
+      "module": "product/tests/test_report_artifact_arithmetic.py",
+      "sha256": "a9e7dfe45d6b7b872a07944a0f31ab1ed68ff0cc5dab9d4fd9897cbb0099ced4",
+      "result": "4/4 pass",
+      "what_it_enforces": "every citation-count claim in a report that cites a live-slice artifact equals that artifact's answer.n_cited, or is a supersession carrying BOTH a correction marker AND the true value in the same paragraph",
+      "measured_negative_control": "the pre-repair bytes of the report of record (git show 2b0b902:...) replayed through the sweep FIRE on claimed=[6] expected=5; the corrected bytes produce no violation",
+      "non_vacuity": "controls pin the two weakening paths: a marker with no true value fires, and an unmarked wrong number beside the right one fires"
+    },
+    "regression": {
+      "artifact": "results/product/regression/CYCLE_39144924680_regression_scope.json",
+      "artifact_sha256": "08ad7340fe1982fd63aec44aa82df14908aa02b9d3f395f0d1528725a4d6bbfa",
+      "tool": "product/regression_scope.py (accepted lane tool; refuses to publish when the arithmetic identity does not close)",
+      "method": "--run-id 39144924680 --baseline-root /tmp/lex_base_39144924680 (pristine git worktree of the accepted baseline of cycle 39123358661, commit 9727a45) against this repaired tree; both roots published inside the artifact",
+      "baseline_swap_refusal_routed_around": "a --baseline-ref 9727a45 run was REFUSED by the tool (exit 2, nothing written) because this cycle's suite-visible delta is an ADDED test module, which byte injection cannot remove from the baseline run. Routed around with --baseline-root; the refusal was not edited.",
+      "set_relation": "intersection 159, n_repaired_only 0 (no new failures), n_baseline_only 0 (no fixed failures) - failing-ID set IDENTICAL to the accepted baseline",
+      "counts": {
+        "baseline": {
+          "collected": 1123,
+          "passed": 949,
+          "failed": 159,
+          "skipped": 15
+        },
+        "head": {
+          "collected": 1144,
+          "passed": 970,
+          "failed": 159,
+          "skipped": 15
+        },
+        "collected_delta": 21,
+        "passed_delta": 21
+      },
+      "delta_decomposition": "+21 = +17 (the 17-test test_live_slice_and_query_env.py module from the predecessor cycle) + +4 (this cycle's guard module), both measured by collection, never by hand",
+      "raw_logs": {
+        "baseline": "results/product/regression/logs_39144924680/baseline_pytest.log (sha256 75a3b67fbff1b53b0495c891bf78c9801882be1be0162976ef9e9f755e8feb31)",
+        "head": "results/product/regression/logs_39144924680/head_pytest.log (sha256 d7cc3f689f405c4bdf79cf0afb6320ff9dc4c82d1c65338d3abd6d1112c991be)"
+      },
+      "audit_note_3_discharged": true,
+      "remeasured_on_final_tree": "the artifact and both raw logs were re-generated AFTER the report and state edits of this cycle, so the head log is the measurement of the tree as shipped; the set relation is unchanged (159/159, repaired-only 0, baseline-only 0)"
+    },
+    "ledger": {
+      "artifact": "results/product/cycle_verify/CYCLE_39144924680_cycle_verify.json",
+      "sha256": "8bb5f61196f7672fa5e41601b24d4b0e5481d4192c9c56880d4118d745f698ef",
+      "verdict": "PASS 41/41",
+      "note": "the ledger embeds state-derived posture observations, so its sha is pinned AFTER this state edit; a re-run over the same tree reproduces this exact sha (fixed point), which is why it is published here and in the report"
+    },
+    "runnable_slice_reproved": {
+      "command": "python3 product/offline_slice.py --out /tmp/lex_slice_39144924680 --verify",
+      "verdict": "PASS in 0.345s, network=none (socket.connect booby-trapped)",
+      "shape": "question -> query_result_bundle -> sourced answer -> counter-authority pass -> source-linked clickable map: 100 decisions, 8 clusters, 100/100 rows with canonical_url, x/y and cluster_id, page contract PASS 65 assertions, geometry_preserved_by_enrich=True"
+    },
+    "fail_closed_posture": {
+      "machine_gate_ready": false,
+      "human_gate_ready": false,
+      "packet_admitted": false,
+      "ready_for_owner_session": false,
+      "continue_recommended": true,
+      "owner_decision_required": false,
+      "accepted_do_not_serve_orders_stand": true,
+      "requirement_13_supersession_conditions_met": false,
+      "owner_question": "NONE_STAGED_NONE_FIRED_NONE_READY_TO_FIRE"
+    },
+    "not_touched": [
+      "frozen gates, rubrics and bars (ff57f556 byte-unchanged)",
+      "packet bytes: served 38839347028 and rebuilt rebuilt-39027045675",
+      "every Frontier team (closed; none re-charterable, none re-dispatched)",
+      ".github/** (control-plane scope)",
+      "universal-174k geometry, dense embeddings, corpus work (paused lanes)",
+      "every other number in the round-3 cycle report and state"
+    ],
+    "report_of_record": "reports/product/CYCLE_39144924680_REPAIR4.md",
+    "claim_ceiling": "report-arithmetic repair, a committed regression guard, and a re-derived regression/ledger measurement on this tree. Scores no frozen bar, reads no Frontier verdict, makes no legal-usefulness claim, issues no serve recommendation.",
+    "next_concrete_step": "independent audit of run 39144924680; on PASS the ordered set for direction v56 stands complete and independently verified, and the lane CONTINUES on the canonical query-map product (fail-closed) - a partial milestone is not a reason to stop, and no human product gate may be self-declared"
   }
 }
