@@ -1,19 +1,38 @@
 """Honest-state invariants for the frontier-rebuilt-packet-serve-audit verdict intake.
 
-Factory direction v55 ordered the product lane to record the CURRENT acceptance status
-of the frontier-rebuilt-packet-serve-audit verdict and to keep the OUTCOME-B route-around
-PENDING until that verdict is independently accepted. The verdict was measured as
-outcome (B) DO-NOT-SERVE-UNCHANGED but its independent audit (run 39053132092) returned
-gate=REVISE with 4 required fixes, so it is REPRODUCED, NOT accepted.
+WHAT CHANGED IN THIS MODULE, and why (factory direction v56, RF0)
+-----------------------------------------------------------------
+Five assertions below used to encode the PRE-ACCEPTANCE state: the verdict was
+"not accepted", its audit was "REVISE with four fixes", the route-around was
+"PENDING_ACCEPTANCE_NOT_FIRED" and the owner question was "PREPARED_NOT_FIRED".
 
-These tests lock the honest-state invariants so a future cycle cannot:
-  * cite the verdict as accepted evidence or as superseding the DO-NOT-SERVE order;
-  * fire the OUTCOME-B route-around (record the accepted negative / carry the owner
-    question) before the verdict is independently accepted;
-  * carry ready_for_owner_session=true or human_gate_ready=true while either frozen
-    bar is unmet;
+All five had to move, because the underlying facts moved first:
+
+  * the team's verdict was independently ACCEPTED at run 39061330426
+    (gate=PASS, safe_to_integrate=true, required_fixes=[]), so "not accepted"
+    became false; and
+  * the accepted verdict carries owner_decision_required=FALSE, so the staged
+    owner question rested on a FALSE claim and had to be deleted, not merely
+    downgraded.
+
+Those tests were not deleted. Each was re-pointed at the new truth and kept its
+guard intent, because the underlying hazard never went away: the DO-NOT-SERVE
+order still stands, admission is still fail-closed, and the label bar still must
+be read BY INSTRUMENT/TEXT. What changed is WHICH direction the guard points.
+
+The invariants this module still locks, so a future cycle cannot:
+  * treat the now-ACCEPTED verdict as superseding the DO-NOT-SERVE order
+    (acceptance of a DO-NOT-SERVE verdict is not a supersession of a DO-NOT-SERVE
+    order - this is the subtle one);
+  * re-stage or fire the map-versus-ranked-list owner question on this verdict;
+  * carry ready_for_owner_session=true or human_gate_ready=true while either
+    frozen bar is unmet;
   * state the label-bar status without the BY-INSTRUMENT/TEXT reading required by
-    independent audit FIX-3.
+    independent audit FIX-3;
+  * delete the historical REVISE audit, which is evidence of the repair chain.
+
+The companion module tests/test_no_owner_question_from_accepted_verdict.py holds
+the executable guard on the withdrawal itself.
 """
 from __future__ import annotations
 
@@ -38,46 +57,136 @@ def _load(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def test_intake_record_exists_and_marks_verdict_not_accepted() -> None:
+# --------------------------------------------------------------------------- #
+# acceptance status
+# --------------------------------------------------------------------------- #
+
+def test_intake_record_records_the_accepted_verdict() -> None:
+    """The verdict IS accepted as evidence now (audit run 39061330426, gate=PASS).
+
+    Being ACCEPTED means the negative is evidence. It does NOT make the packet
+    servable - the serve recommendation is unchanged.
+    """
     d = _load(INTAKE_RECORD)
-    assert d["schema"] == "product-frontier-verdict-intake/rebuilt-packet-serve-audit/1"
+    assert d["schema"] == "product-frontier-verdict-intake/rebuilt-packet-serve-audit/2"
     assert d["team_id"] == "frontier-rebuilt-packet-serve-audit"
-    assert d["evidence_tier"] == "REPRODUCED"
-    assert d["accepted"] is False
+    assert d["evidence_tier"] == "ACCEPTED"
+    assert d["accepted"] is True
     assert d["verdict"]["charter_outcome"] == "B"
-    assert d["verdict"]["serve_recommendation"] == "DO-NOT-SERVE-UNCHANGED"
+    assert d["verdict"]["serve_recommendation"] == "DO-NOT-SERVE-UNCHANGED", (
+        "accepting the verdict must not change its serve recommendation"
+    )
+    assert d["verdict"]["owner_decision_required"] is False
 
 
-def test_independent_audit_recorded_as_revise_with_four_fixes() -> None:
+def test_accepted_audit_is_primary_and_the_revise_audit_is_preserved() -> None:
+    """The REVISE audit is HISTORY, not deleted: it is the repair chain's evidence."""
     d = _load(INTAKE_RECORD)
     audit = d["independent_audit"]
-    assert audit["run_id"] == "39053132092"
-    assert audit["gate"] == "REVISE"
-    assert audit["safe_to_integrate"] is False
-    fix_ids = {f["id"] for f in audit["required_fixes"]}
-    assert fix_ids == {"FIX-1", "FIX-2", "FIX-3", "FIX-4"}
+    assert audit["run_id"] == "39061330426"
+    assert audit["gate"] == "PASS"
+    assert audit["safe_to_integrate"] is True
+    assert audit["required_fixes"] == []
+
+    history = d["independent_audit_history"]
+    assert history, "the REVISE audit must be preserved, not overwritten"
+    old = history[0]
+    assert old["run_id"] == "39053132092"
+    assert old["gate"] == "REVISE"
+    assert old["safe_to_integrate"] is False
+    assert {f["id"] for f in old["required_fixes"]} == {
+        "FIX-1", "FIX-2", "FIX-3", "FIX-4"
+    }
 
 
-def test_route_around_pending_not_fired() -> None:
+def test_team_is_terminated_not_rerun() -> None:
+    """A team that reached its stop rule must not be re-dispatched."""
+    d = _load(INTAKE_RECORD)
+    assert d["team_state"]["cycle_status"] == "COMPLETE"
+    assert d["team_state"]["continue_recommended"] is False
+    assert d["team_state"]["portfolio_status"] == "TERMINATED"
+    assert d["team_state"]["accepted_commit"] == "26582bc5"
+    assert isinstance(d["team_state"]["accepted_run_id"], str)
+
+
+def test_core_evaluation_adjudication_is_not_promoted_by_the_acceptance() -> None:
+    """Accepting the FRONTIER verdict does not accept Evaluation's separate run.
+
+    Two different lanes, two different audits. Core Evaluation's run 39049030442 was
+    never independently accepted, and the frontier verdict's acceptance says nothing
+    about it. Conflating the two would launder an unaudited record.
+    """
+    d = _load(INTAKE_RECORD)
+    ce = d["core_evaluation_adjudication"]
+    assert "NOT independently accepted" in ce["acceptance_status"]
+    assert d["accepted"] is True, "the frontier verdict IS accepted"
+    # ... yet Evaluation's own record is still not. Both facts hold at once.
+    assert ce["run_id"] == "39049030442"
+    assert int(ce["run_id"]) != int(d["independent_audit"]["run_id"])
+
+
+# --------------------------------------------------------------------------- #
+# route-around and owner question
+# --------------------------------------------------------------------------- #
+
+def test_route_around_recorded_fail_closed_with_no_owner_question() -> None:
+    """The route-around fired on acceptance, but only the fail-closed half.
+
+    Recording the accepted negative and keeping admission closed are correct and
+    required. Carrying the owner question was not, and is now named as withdrawn.
+    """
     d = _load(INTAKE_RECORD)
     ra = d["route_around"]
-    assert ra["status"] == "PENDING_ACCEPTANCE_NOT_FIRED"
-    # the trigger is an independent ACCEPTED verdict; a REVISE verdict does not fire it
+    assert ra["status"] == "RECORDED_FAIL_CLOSED_NO_OWNER_QUESTION"
+    assert ra["superseded_status"] == "TRIGGERED_AND_FIRED", (
+        "the superseded firing stays named so the withdrawal is auditable"
+    )
     assert "independently" in ra["trigger_condition"].lower()
-    # prohibited actions are still recorded as prohibitions, not done
+    # the accepted negative WAS recorded and admission WAS kept closed
+    assert any("accepted negative" in a for a in ra["actions_fired"])
+    # the owner question WAS withdrawn, and is named as prohibited
+    assert any("owner" in a.lower() and "question" in a.lower()
+               for a in ra["actions_prohibited"])
+    # prohibited actions are still recorded as prohibitions
     assert "re-build the packet" in ra["actions_prohibited"]
     assert "re-run geometry or classifier work" in ra["actions_prohibited"]
 
 
-def test_do_not_serve_order_in_force() -> None:
+def test_owner_question_withdrawn_never_to_fire_on_this_verdict() -> None:
+    """The staged question is DELETED, because its justification was false.
+
+    It claimed the accepted verdict "converts the map-versus-ranked-list choice
+    into ONE explicit owner product decision". The accepted verdict says the
+    opposite. Downgrading the status would leave the claim standing; the direction
+    ordered deletion.
+    """
+    d = _load(INTAKE_RECORD)
+    oq = d["owner_question"]
+    assert oq["status"] == "WITHDRAWN_NOT_FIRED_NEVER_TO_FIRE_ON_THIS_VERDICT"
+    assert oq["question"] is None, "the question text must be deleted"
+    assert oq["question_deleted"] is True
+    assert "owner_decision_required" in oq["question_deleted_reason"]
+    for key in ("requirement_13_condition_a", "requirement_13_condition_b"):
+        assert oq["supersession_conditions"][key]["met"] is False
+
+
+def test_do_not_serve_order_in_force_after_acceptance() -> None:
+    """Accepting a DO-NOT-SERVE verdict does NOT supersede a DO-NOT-SERVE order.
+
+    This is the subtle trap. The trigger fired - the verdict is now accepted
+    evidence - yet neither supersession condition is met, so the order stands
+    unreviewed rather than being lifted.
+    """
     d = _load(INTAKE_RECORD)
     dns = d["do_not_serve_order"]
     assert dns["status"] == "IN_FORCE"
-    # neither supersession condition is met
-    assert dns["current_state"] == (
-        "Neither supersession condition is met: the rebuilt packet's geometry bar is unmet "
-        "(0/3 at 11/11) and the frontier verdict is REVISE (not accepted). The order stands."
-    )
+    assert "order stands" in dns["current_state"].lower()
+    assert "(a) is unmet" in dns["current_state"]
+    assert "(b) is unmet" in dns["current_state"]
+    # and the pre-acceptance reading is kept, so the change is auditable
+    hist = dns["status_history"]
+    assert "39053132092" in hist["v1_2026_10_17"]
+    assert "39061330426" in hist["v2_this_cycle"]
 
 
 def test_admission_fail_closed() -> None:
@@ -90,15 +199,12 @@ def test_admission_fail_closed() -> None:
     assert "fail-closed" in pos["admission"]
 
 
-def test_owner_question_prepared_not_fired() -> None:
-    d = _load(INTAKE_RECORD)
-    oq = d["owner_question"]
-    assert oq["status"] == "PREPARED_NOT_FIRED"
-    # the question is recorded but explicitly NOT presented to the owner now
-    assert "NOT presented to the owner now" in oq["why_prepared_not_fired"]
-
+# --------------------------------------------------------------------------- #
+# unchanged invariants
+# --------------------------------------------------------------------------- #
 
 def test_label_bar_reading_nuance_by_instrument() -> None:
+    """Unchanged by RF0 - the FIX-3 BY-INSTRUMENT/TEXT requirement still binds."""
     d = _load(INTAKE_RECORD)
     nuance = d["route_around"]["label_bar_reading_nuance"]
     assert nuance["instrument_reading"].startswith("LABEL_SOUND")
@@ -133,6 +239,10 @@ def test_product_state_carries_no_owner_readiness_claim() -> None:
     assert d["machine_gate_ready"] is False
     assert d["human_gate_ready"] is False
     assert d["continue_recommended"] is True
+    # The cycle_39056694835_* block is a HISTORICAL record of that cycle's state and
+    # is deliberately left untouched: it said the verdict was not accepted, which was
+    # true on that day. Rewriting it to match today would destroy the record that the
+    # verdict was later accepted.
     cycle_key = "cycle_39056694835_frontier_serve_audit_intake"
     assert cycle_key in d
     assert d[cycle_key]["route_around_status"] == "PENDING_ACCEPTANCE_NOT_FIRED"

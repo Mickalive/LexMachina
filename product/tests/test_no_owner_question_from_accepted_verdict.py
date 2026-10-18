@@ -75,7 +75,7 @@ def test_intake_records_the_accepted_verdict_not_a_stale_revise():
     assert audit["gate"] == "PASS", f"accepted audit gate is PASS, got {audit['gate']}"
     assert audit["safe_to_integrate"] is True
     assert audit["required_fixes"] == []
-    assert audit["run_id"] == 39061330426
+    assert audit["run_id"] == "39061330426"
     assert rec["team_state"]["portfolio_status"] == "TERMINATED", (
         "the team reached its stop rule and must be TERMINATED, not RUN"
     )

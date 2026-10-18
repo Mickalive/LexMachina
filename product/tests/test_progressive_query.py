@@ -307,7 +307,17 @@ def test_enrich_is_accepted_asynchronously_and_the_server_stays_responsive():
         assert bundle["provenance"]["phase"] == "complete"
         assert bundle["answer"]["status"] == "ready"
         assert bundle["answer"]["cited_decision_ids"]
-        assert st["counts"]["counter"] > 0
+        # RF1: the server no longer publishes a bare `counts.counter`. That key
+        # counted rows with any non-empty counter_status - including every decision
+        # the answer cited - and labelled them "counter authorities". Both definitions
+        # are published under honest names, and the broad key is gone so nothing can
+        # keep reading it as a finding count.
+        assert "counter" not in st["counts"], (
+            "the mislabelled broad counter key must not return: it counted cited, "
+            "supporting-candidate, context and unclassified rows as counter authorities"
+        )
+        assert st["counts"]["counter_status_bearing_rows"] >= 0
+        assert st["counts"]["counter_authorities"] <= st["counts"]["counter_status_bearing_rows"]
 
 
 def test_double_click_does_not_start_two_model_runs():
