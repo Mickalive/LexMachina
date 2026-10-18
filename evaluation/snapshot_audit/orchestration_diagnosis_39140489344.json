@@ -1,0 +1,88 @@
+{
+ "schema": "lex-evaluation-orchestration-diagnosis/1",
+ "run_id": "39140489344",
+ "lane": "evaluation",
+ "direction_version": 56,
+ "subject_of_resume": "39139952067 (Core evaluation dirV56 repair0), resumed via resume_from_run_id=39139952067; its persisted team snapshot is b5a74c7d, byte-identical to the snapshot 39137732712 persisted, because the 39139952067 producer step died after 361 s without leaving any durable delta.",
+ "generated_at_utc": "2026-10-18T15:47:58Z",
+ "query_method": "HYBRID. Run/job/step FACTS are read from the unauthenticated public GitHub REST API (GET /repos/Mickalive/LexMachina/actions/runs/{id} and /jobs); the raw envelope for runs 39137732712 / 39139952067 / 39140489344 (run + jobs + steps) is captured once and COMMITTED at results/evaluation/orchestration/39140489344_rest_job_capture.json (captured_at_utc recorded in the file), so every fact in this record is re-derivable offline and byte-identically. Persisted-tree facts are read from GIT (git ls-remote on the cycle refs), never from the REST commit endpoint (60/hour unauthenticated budget). Job LOGS remain HTTP 403 unauthenticated (re-probed this run: GET /repos/Mickalive/LexMachina/actions/runs/39139952067/logs -> 403 'Must have admin rights to Repository.'), so every statement about WHY a step ended is an INFERENCE from measured duration arithmetic plus the persisted tree, never a read log line.",
+ "run_facts_measured_via_rest_api": {
+  "run_id": "39137732712",
+  "name": "Core evaluation dirV56 repair0",
+  "event": "workflow_dispatch",
+  "status": "completed",
+  "conclusion": "failure",
+  "run_attempt": 1,
+  "created_at": "2026-10-18T14:49:43Z",
+  "team_job": "SUCCESS. 'Run lane cycle' 14:50:33Z -> 15:12:49Z = 1336 s; 'Validate active MVP producer state' success; 'Enforce lane write scope' success; 'Persist team snapshot' success 15:12:49Z -> 15:12:53Z (committed b5a74c7d, 14 files, 11003 insertions).",
+  "audit_job": "FAILURE. Steps: 'Checkout accepted base and mount team' success (40 s); 'Install Ox/OpenCode' success (3 s); 'Independent audit' SUCCESS 15:13:43Z -> 15:19:14Z = 331 s; 'Enforce audit scope and read gate' FAILURE 15:19:14Z -> 15:19:14Z = 0 s; 'Persist audit snapshot' SKIPPED; 'Complete job' success.",
+  "integrate_job": "skipped (gated on needs.audit.result == 'success')",
+  "resilience_job": "success 15:19:20Z -> 15:19:26Z; recovered the failed chain and woke the supervisor, which dispatched 39139952067.",
+  "audit_ref_present_on_origin": false,
+  "gate_file_present_at_expected_path": false,
+  "expected_gate_path_in_audit_checkout": "results/audit/evaluation/CYCLE_39137732712_GATE.json (UPPERCASE _GATE.json, relative to the audit-job checkout = origin/lab/evaluation @ 904aff83, per core-lane.yml 'Enforce audit scope and read gate')",
+  "failure_class": "AUDIT_STEP_GATE_READ_DEATH (post-delivery class, but the death is in the AUDIT job's gate-read step, not the producer step: the producer delivered b5a74c7d and exited 0; the audit agent then ran 331 s and the run still produced no gate of record).",
+  "cause_candidate_set_hedged": [
+   "(a) BEST-SUPPORTED, not asserted: the audit agent's gate artifact was not present at the expected relative path in the audit-job checkout when the read step ran, so jq failed with 'Could not open file' (exit 2). This is the placement-pathology class recorded in factory-wide requirements #5 and #14 (artifacts written under /tmp/lex_team instead of the job checkout, or a case-variant suffix); the audit agent's own prompt names the producer workspace /tmp/lex_team explicitly, which is the recorded trap.",
+   "(b) CONSISTENT, not excluded: the audit agent crossed the write scope (the step's scope check exits 3 BEFORE the gate read; any porcelain entry outside results/audit/evaluation/* and reports/audit/audit/* ... results/evaluation/*... precisely: outside results/audit/evaluation/* and reports/audit/evaluation/* would do it). Both candidates produce a 0 s step failure and neither is directly loggable (logs 403)."
+  ],
+  "consequence": "The audit agent's 331 s of audit work is UNRECOVERABLE: 'Persist audit snapshot' was skipped, so no audit branch exists on origin (verified: git ls-remote shows no refs/heads/cycle/core/evaluation/39137732712/audit) and no gate file is committed anywhere. The run concluded failure and the resilience job dispatched 39139952067."
+ },
+ "run_facts_measured_via_rest_api_39139952067": {
+  "run_id": "39139952067",
+  "name": "Core evaluation dirV56 repair0",
+  "event": "workflow_dispatch",
+  "status": "completed",
+  "conclusion": "failure",
+  "run_attempt": 1,
+  "created_at": "2026-10-18T15:19:24Z",
+  "team_job": "FAILURE. 'Run lane cycle' FAILURE 15:20:14Z -> 15:26:15Z = 361 s. Steps 7 'Validate active MVP producer state' and 9 'Enforce lane write scope' were SKIPPED (success-gated on the producer step). 'Clean generated junk' success; 'Persist team snapshot' success (3 s, if: always()).",
+  "audit_job": "skipped (if: needs.team.result == 'success'; the team job failed)",
+  "integrate_job": "skipped",
+  "resilience_job": "success 15:26:24Z -> 15:26:31Z; recovered the failed chain and woke the supervisor, which dispatched 39140489344 (this run).",
+  "audit_ref_present_on_origin": false,
+  "durable_delta": "ZERO. origin/cycle/core/evaluation/39139952067/team = b5a74c7dd012ae8594a7c8cc32367ae8e1f2993f, byte-identical to origin/cycle/core/evaluation/39137732712/team and to the resume base this run started from; the persist step's 'git add -A; git commit || true' produced no new commit (verified via git ls-remote).",
+  "failure_class": "TEAM_STEP_FAST_FAILURE (361 s << 2700 s work quantum: NOT a LEX_WORK_QUANTUM_EXPIRED death and NOT a zero-delta quantum death; a distinct short-duration class).",
+  "cause_candidate_set_hedged": [
+   "(a) CONSISTENT: a transient provider/model failure during the agent run (factory-wide requirement #20 records this class; the wrapper's rc would be non-zero and non-transient, so the retry loop exits immediately).",
+   "(b) CONSISTENT: the agent exited 0 after read-only verification with no durable delta and run-ox-with-retry.sh's LEX_ZERO_DELTA_REPAIR guard fired rc 67 (REPAIR_INTENT is set for this lane: core-lane.yml exports LEX_REQUIRE_DELTA=1 for evaluation). The 326 s agent runtime is long enough for a substantial read-only verification pass that then wrote nothing.",
+   "(c) CONSISTENT, least supported: the agent wrote its artifacts outside the workspace (e.g. under /tmp), leaving git status empty."
+  ],
+  "why_no_candidate_is_asserted": "Job logs are HTTP 403 unauthenticated (re-probed this run), the wrapper's rc line is not surfaced as a step output, and the persisted tree carries no marker. Per factory-wide requirement #20, a provider death is not a verdict and must not be read as one; per the audit-starvation doctrine, an unavailable fact is never guessed into a cause."
+ },
+ "tree_evidence": {
+  "resume_base_ref": "origin/cycle/core/evaluation/39139952067/team",
+  "resume_base_head": "b5a74c7dd012ae8594a7c8cc32367ae8e1f2993f",
+  "resume_base_head_subject": "evaluation cycle 39137732712: subject 39134286491 is a ZERO_DELTA quantum death, not the post-delivery class",
+  "resume_base_head_committer": "lex-evaluation-team <lex-team@autonomous.local>, authored 2026-10-18T15:12:10Z",
+  "predecessor_team_ref": "origin/cycle/core/evaluation/39137732712/team = b5a74c7dd012ae8594a7c8cc32367ae8e1f2993f (the SAME commit: the resume base is byte-identical to the snapshot that produced it, i.e. 39139952067 added nothing)",
+  "audit_ref_for_39137732712_present": false,
+  "audit_ref_for_39139952067_present": false,
+  "gate_file_for_39137732712_present": false,
+  "accepted_lane_head": "origin/lab/evaluation = 904aff83480b4483be81ef32a6460d3f1c5bcfe8 ('accept evaluation cycle 39123055362'); the resume-chain commits b5a74c7d and its descendants are NOT on the accepted branch, which is exactly the audit-starvation state."
+ },
+ "population_observation_post_freeze": {
+  "frozen_ledger_population_n": 14,
+  "frozen_ledger_population_captured_at_utc": "2026-10-18T14:58:39Z",
+  "frozen_ledger_note": "The frozen quantum-death ledger (results/evaluation/orchestration/39137732712_quantum_death_ledger.json, hypothesis evaluation/QUANTUM_DEATH_LEDGER_HYPOTHESIS.json sha256 cfadbd4d...) froze 14 dirV56 dispatches ending at 39134286491. This run does NOT re-open that frozen hypothesis or re-measure that population.",
+  "post_freeze_dirV56_dispatches_measured_this_run": [
+   "39137732712 (team SUCCESS + audit gate-read death)",
+   "39139952067 (team fast failure, zero delta)",
+   "39140489344 (this run)"
+  ],
+  "anomaly_recorded_not_repaired": "39137732712 was created 14:49:43Z, BEFORE the 14:58:39Z frozen-population capture, yet is absent from the frozen 14. The omission is consistent with a runs-listing snapshot quirk (the ledger's own column_limitations already flags listing-snapshot limits). Recorded here as an observation about the frozen capture; the frozen measurement itself is preserved verbatim.",
+  "audit_starvation_population_dirV56_total": "At least 5 dirV56 dispatches under the current direction have now starved the audit job or died ungated: 39104154685 and 39134286491 (quantum deaths, frozen ledger), 39137732712 (audit gate-read death), 39139952067 (team fast failure), plus this run 39140489344 pending. The four dirV55 repair dispatches named in the direction question (39069657032/39069756168/39072968899/39076123103) belong to the SUPERSEDED direction version and are out of the dirV56 population by construction."
+ },
+ "findings": [
+  "The lane deliverable resumed from (b5a74c7d) is INTACT and COMPLETE: the quantum-death ledger, the snapshot-audit readiness record READY 21/21, the trigger reconciliation, the report and the state blocks are all present and parse; this run re-verifies them (see the readiness record) instead of re-measuring them.",
+  "The blocker named in the lane question (audit starvation) has recurred twice more under dirV56 since the frozen ledger, in two DIFFERENT classes: an audit-job gate-read death after a successful producer (39137732712) and a 361 s producer-step fast failure (39139952067). 'Ship the smallest gate-able deliverable and exit 0 inside the quantum' is necessary but not sufficient: the 39137732712 producer DID exit 0 inside the quantum and the audit job still died at gate-read.",
+  "No measurement in this record re-opens a frozen benchmark: no rubric, bar, threshold, incumbent, packet or recorded verdict is re-derived, re-tuned or re-adjudicated. The frozen ledger hypothesis and population are preserved verbatim."
+ ],
+ "human_blocker": false,
+ "control_plane_hardening_items_recorded_not_patched": [
+  "core-lane.yml audit job 'Enforce audit scope and read gate': the gate read is a bare jq on a relative path with no pre-check that the auditor's artifacts landed in the audit-job checkout. When the auditor's gate is missing or mis-placed (the placement-pathology class of requirements #5/#14), the step dies with a jq error and the audit agent's work is lost (no snapshot). A scope check that distinguishes 'gate absent' from 'scope crossed', or an audit-prompt restatement of the checkout-relative contract, would make the two causes machine-distinguishable. .github/** is control-plane scope and is RECORDED here, not edited.",
+  "run-ox-with-retry.sh: the wrapper's rc (67 zero-delta, 75 stall, provider death) is not surfaced as a step output, so the two death classes of 39139952067 cannot be told apart from outside (logs 403). Surfacing rc as a step output would make the distinction machine-readable.",
+  "The audit job has no retry/rotate on its own gate-read step: a single placement slip by the auditor kills the whole audit attempt and re-dispatches the lane."
+ ],
+ "claim_ceiling": "This record diagnoses ORCHESTRATION failures only. It establishes no product, evidence or human-gate verdict. The accepted deliverable at the resume base (the quantum-death ledger and the READY 21/21 snapshot audit of run 39137732712) is preserved verbatim and re-verified, not re-derived. human_gate_ready stays false; the accepted DO-NOT-SERVE-UNCHANGED serve verdict stands. The cause of each hedged death remains a candidate set, never an asserted cause."
+}
