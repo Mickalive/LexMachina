@@ -360,3 +360,93 @@ def test_regression_check_rejects_arithmetic_that_does_not_close(monkeypatch, tm
     rows = cv.check_regression_set_relation()
     assert rows[1]["status"] == "FAIL"
     assert "REFUSED" in json.dumps(rows[1]["observed"])
+
+
+# --------------------------------------------------------------------------
+# F1b: the ledger must be able to SEE a red committed guard
+# --------------------------------------------------------------------------
+#
+# Audit F1b of rejected cycle 39169296466: `product/cycle_verify.py` reported
+# PASS 44/44 on a tree that was red on
+# test_report_artifact_arithmetic.py::testcount_disclosure_artifact_is_current,
+# because no claim covered that module. Every control below therefore drives the
+# new `guards` claim against a DELIBERATELY BROKEN input and requires a FAIL -
+# a ledger claim that cannot see the defect class it was written for is a rubber
+# stamp with a new name.
+
+def test_guard_claim_is_green_on_this_tree():
+    rows = cv.check_committed_guards()
+    verdicts = {r["claim"]: r["status"] for r in rows}
+    assert verdicts, "the guards check returned no claims at all"
+    failed = {c: s for c, s in verdicts.items() if s != "PASS"}
+    assert not failed, (
+        f"the committed guards are red on this tree: {failed} - a cycle that "
+        "ships a red guard must not also publish a PASS ledger")
+
+
+def test_guard_claim_sees_a_stale_report_testcount_disclosure(tmp_path):
+    """The exact F1 shape: the pinned artifact no longer matches the sweep."""
+    stale = json.loads(
+        (ROOT / "results" / "product" / "regression"
+         / "CYCLE_39149741259_report_testcount_disclosure.json").read_text(encoding="utf-8"))
+    pinned = tmp_path / "CYCLE_39149741259_report_testcount_disclosure.json"
+    pinned.write_text(json.dumps(stale), encoding="utf-8")
+    rows = cv._guard_report_testcount_disclosure(disclosure_path=pinned)
+    assert rows[0]["status"] == "FAIL", (
+        "the guards claim must FAIL on the historical disclosure artifact, which "
+        "is exactly what it was pinned to before this repair and is what the "
+        "rejected cycle shipped against")
+
+
+def test_guard_claim_sees_a_deleted_state_register_record(tmp_path):
+    """The exact F2 shape: an accepted record removed from the register."""
+    state = json.loads((ROOT / "state" / "product.json").read_text(encoding="utf-8"))
+    state["verification"] = {
+        k: v for k, v in state["verification"].items()
+        if k not in {"latest_reality_check", "resume_39014141628"}}
+    target = tmp_path / "product.json"
+    target.write_text(json.dumps(state), encoding="utf-8")
+    rows = cv._guard_state_register(state_path=target)
+    assert rows[0]["status"] == "FAIL"
+    assert set(rows[0]["observed"]["missing"]) == {
+        "latest_reality_check", "resume_39014141628"}
+
+
+def test_guard_claim_sees_an_edited_state_register_record(tmp_path):
+    """The softer shape: an admitted failure rewritten rather than deleted."""
+    state = json.loads((ROOT / "state" / "product.json").read_text(encoding="utf-8"))
+    state["verification"]["pre_existing_collection_errors"] = "none"
+    target = tmp_path / "product.json"
+    target.write_text(json.dumps(state), encoding="utf-8")
+    rows = cv._guard_state_register(state_path=target)
+    assert rows[0]["status"] == "FAIL"
+    assert "pre_existing_collection_errors" in rows[0]["observed"]["changed_keys"]
+
+
+def test_guard_claim_fails_closed_when_it_cannot_load(monkeypatch, tmp_path):
+    """A guard that cannot run is FAIL, not PASS - the module's own stated rule."""
+    import builtins
+
+    real_import = builtins.__import__
+
+    def blocked(name, *args, **kwargs):
+        if name.startswith("product.tests.test_report_artifact_arithmetic") or \
+                name.startswith("product.report_scope_measurement"):
+            raise ImportError(f"blocked: {name}")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", blocked)
+    monkeypatch.delitem(sys.modules, "product.tests.test_report_artifact_arithmetic",
+                        raising=False)
+    monkeypatch.delitem(sys.modules, "product.report_scope_measurement", raising=False)
+    rows = cv._guard_report_testcount_disclosure()
+    assert rows[0]["status"] == "FAIL", (
+        "an unloadable guard must FAIL closed; a green row here would re-create "
+        "the exact blind spot F1b describes")
+
+
+def test_guard_claim_detects_a_vacuous_sweep():
+    """An empty candidate set is a sweep of nothing and must not read as green."""
+    rows = cv._guard_report_testcount_disclosure(live={"bare_testcount_claims": {}})
+    vacuity = [r for r in rows if "non-vacuous" in r["claim"]][0]
+    assert vacuity["status"] == "FAIL"

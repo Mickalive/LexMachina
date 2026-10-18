@@ -124,6 +124,136 @@ def _pass(claim: str, observed: Any, **extra: Any) -> dict:
 
 
 # --------------------------------------------------------------------------
+# the guards that guard this lane's own publications
+# --------------------------------------------------------------------------
+
+#: The report-arithmetic guard module, imported lazily so this file's own import
+#: budget stays stdlib-only (``test_fast_path_imports_without_the_dense_stack``
+#: depends on it). The module itself imports nothing but json/re/pathlib.
+REPORT_ARITHMETIC_GUARD = "product.tests.test_report_artifact_arithmetic"
+
+
+def _guard_report_testcount_disclosure(
+    disclosure_path: Path | None = None, live: dict | None = None) -> list[dict]:
+    """Re-derive the report test-count disclosure guard (audit F1 of 39169296466).
+
+    The rejected cycle shipped a tree that was RED on
+    ``testcount_disclosure_artifact_is_current`` while this ledger reported
+    PASS 44/44 - no claim here covered that module, which is audit F1b's exact
+    finding. This claim closes that hole: it runs the guard's OWN sweep and
+    compares it to the artifact the guard is pinned to, so a red guard is a red
+    ledger.
+
+    Both arguments exist so a negative control can point the claim at a stale
+    artifact or a mutated sweep without touching the repository.
+    """
+    try:
+        from product.tests import test_report_artifact_arithmetic as guard
+        from product.report_scope_measurement import measure
+    except Exception as exc:  # a check that cannot run is FAIL, never a pass
+        return [_fail("the report-arithmetic guard can be loaded and run",
+                      f"{type(exc).__name__}: {exc}")]
+
+    pinned = Path(disclosure_path) if disclosure_path else guard.DISCLOSURE
+    if not pinned.is_file():
+        return [_fail("the pinned report test-count disclosure exists",
+                      f"missing: {_repo_relative(pinned)} - re-measure and "
+                      "re-publish with product/report_scope_measurement.py")]
+    try:
+        published = json.loads(pinned.read_text(encoding="utf-8"))
+        fresh = live if live is not None else measure()
+    except (OSError, json.JSONDecodeError) as exc:
+        return [_fail("the report test-count disclosure parses", repr(exc))]
+
+    claimed = published.get("bare_testcount_claims") or {}
+    measured = fresh.get("bare_testcount_claims") or {}
+    out = [_pass_or_fail(
+        set(claimed) == set(measured) and all(
+            claimed[k].get("bare_testcount_claims")
+            == v.get("bare_testcount_claims") for k, v in measured.items()),
+        "the pinned report test-count disclosure matches a fresh sweep of this tree",
+        {"pinned": _repo_relative(pinned),
+         "published_reports": sorted(claimed),
+         "measured_reports": sorted(measured),
+         "only_published": sorted(set(claimed) - set(measured)),
+         "only_measured": sorted(set(measured) - set(claimed)),
+         "regenerate": f"python3 product/report_scope_measurement.py --run-id <id> "
+                       "--out results/product/regression/CYCLE_<id>_"
+                       "report_testcount_disclosure.json"},
+        definition_source="product/report_scope_measurement.py::measure(), which "
+                          "calls the guard's own sweep functions over the committed "
+                          "tree (collection and parsing only; no suite run)")]
+
+    # Non-vacuity, in the same claim block: a sweep that finds nothing is a green
+    # sweep of nothing, and publishing "no report carries a bare test-count claim"
+    # would be an unbounded vacuity claim.
+    out.append(_pass_or_fail(
+        bool(measured) and bool(claimed),
+        "the test-count candidate sweep is non-vacuous on this tree",
+        {"reports_swept": len(measured),
+         "note": "a report joins the candidate set by citing a regression-scope "
+                 "artifact; zero means the sweep is measuring an empty tree"},
+        definition_source="the guard's own sweep_testcount_candidates()"))
+
+    cite_pub = published.get("citation_sweep") or {}
+    cite_new = fresh.get("citation_sweep") or {}
+    out.append(_pass_or_fail(
+        cite_pub.get("artifact_report_pairs") == cite_new.get("artifact_report_pairs")
+        and cite_pub.get("citation_claims_parsed")
+        == cite_new.get("citation_claims_parsed"),
+        "the pinned citation-sweep scope matches a fresh sweep of this tree",
+        {"published_pairs": cite_pub.get("artifact_report_pairs"),
+         "measured_pairs": cite_new.get("artifact_report_pairs"),
+         "published_claims": cite_pub.get("citation_claims_parsed"),
+         "measured_claims": cite_new.get("citation_claims_parsed")},
+        definition_source="the guard's own citation_claim_coverage()"))
+    return out
+
+
+def _guard_state_register(state_path: Path | None = None) -> list[dict]:
+    """Re-derive the state verification-register retention guard (audit F2).
+
+    The rejected cycle deleted 12 accepted records from
+    ``state/product.json``'s ``verification`` register - including the lane's own
+    admitted failures - and nothing failed, because (audit note N4) no committed
+    test read that register. This claim makes the ledger read it.
+    """
+    try:
+        from product import state_register
+    except Exception as exc:
+        return [_fail("the state-register guard can be loaded", repr(exc))]
+    target = Path(state_path) if state_path else STATE_PATH
+    if not target.is_file():
+        return [_fail("state/product.json exists", f"missing: {target}")]
+    try:
+        rows = state_register.rows(target)
+    except Exception as exc:
+        return [_fail("the state verification register can be compared",
+                      f"{type(exc).__name__}: {exc}")]
+    for row in rows:
+        row["guard"] = (
+            "state_register.retention (product/state_register.py, baseline "
+            f"{state_register.BASELINE_COMMIT})")
+    return rows
+
+
+def check_committed_guards() -> list[dict]:
+    """Every committed staleness guard is re-derived HERE, not only in pytest.
+
+    Audit F1b of rejected cycle 39169296466: ``product/cycle_verify.py`` reported
+    PASS 44/44 on a tree that was red on a committed guard, because no claim in
+    it covered ``product/tests/test_report_artifact_arithmetic.py``. A ledger that
+    cannot see a red guard is why this class survived two cycles.
+
+    So this check calls the guards' own measurement functions and compares them
+    to the artifacts they are pinned to. It deliberately does NOT shell out to
+    pytest: the point is that the ONE COMMAND re-derives the guards, in seconds,
+    with the same definitions the committed tests use.
+    """
+    return _guard_report_testcount_disclosure() + _guard_state_register()
+
+
+# --------------------------------------------------------------------------
 # individual checks
 # --------------------------------------------------------------------------
 
@@ -950,6 +1080,7 @@ CHECKS: dict[str, Callable[[], list[dict]]] = {
     "regression": check_regression_set_relation,
     "regression_matrix": check_regression_matrix_matches_diagnosis,
     "test_delta": check_test_delta_attribution,
+    "guards": check_committed_guards,
     "scope": check_git_scope,
 }
 

@@ -113,12 +113,38 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--run-id", default=None)
+    ap.add_argument("--previous", default=None,
+                    help="filename of the disclosure artifact this run's pin "
+                         "REPLACES; recorded in the artifact so the pin move is "
+                         "auditable from the artifact alone (audit F1 of "
+                         "CYCLE_39169296466_GATE.json: publish under the new run "
+                         "id, never overwrite the historical one)")
+    ap.add_argument("--pin-reason", default=None,
+                    help="why the pin moved; required with --previous")
     ap.add_argument("--out", required=True)
     args = ap.parse_args(argv)
+
+    if args.previous and not args.pin_reason:
+        ap.error("--previous requires --pin-reason: a pin move with no recorded "
+                 "reason is indistinguishable from an unexplained edit")
 
     payload = measure()
     if args.run_id:
         payload["run_id"] = int(args.run_id)
+    if args.previous:
+        previous = ROOT / "results" / "product" / "regression" / args.previous
+        if not previous.is_file():
+            ap.error(f"the artifact this pin replaces does not exist: {previous}")
+        payload["pin_repoint"] = {
+            "previous_artifact": previous.name,
+            "previous_artifact_sha256": hashlib.sha256(
+                previous.read_bytes()).hexdigest(),
+            "reason": args.pin_reason,
+            "preserved": "the previous artifact is left on disk byte-identical and "
+                         "is guarded by "
+                         "product/tests/test_report_artifact_arithmetic.py::"
+                         "test_the_previous_disclosure_artifact_is_preserved_as_history",
+        }
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")

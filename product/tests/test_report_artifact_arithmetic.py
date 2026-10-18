@@ -53,8 +53,36 @@ ROOT = Path(__file__).resolve().parents[2]
 LIVE_SLICE_DIR = ROOT / "results" / "product" / "live_slice"
 REPORTS_DIR = ROOT / "reports" / "product"
 REGRESSION_DIR = ROOT / "results" / "product" / "regression"
+
+#: The coverage measurement THIS module checks against. Named by file, not
+#: "newest", because it is the artifact ``testcount_disclosure_artifact_is_current``
+#: and ``test_measured_scope_is_published_not_aspirational`` compare a fresh
+#: sweep to: a later cycle that re-publishes it must not silently change what an
+#: earlier report says.
+#:
+#: PIN REPOINT, recorded (repair round 1 of rejected cycle 39169296466, run
+#: 39172315384, audit F1 of CYCLE_39169296466_GATE.json). The pin previously named
+#: ``CYCLE_39149741259_report_testcount_disclosure.json``, whose
+#: ``bare_testcount_claims`` set is the ten-report candidate set measured in that
+#: cycle's tree. The rejected cycle's own report of record,
+#: ``CYCLE_39169296466.md``, cites a regression-scope artifact and carries ten
+#: bare test-count claims, so it joined the candidate set: 11 live candidates
+#: against 10 published, and ``testcount_disclosure_artifact_is_current`` was RED
+#: on the very tree that cycle shipped. That is audit D1 of BLOCKED cycle
+#: 39160624523 recurring - a staleness guard left behind when the tree grew - and
+#: it survived because no ledger claim covered this module (audit F1b). The guard
+#: names its own remedy ("re-measure and re-publish"), so it was followed exactly:
+#: the sweep was re-run over the repaired tree and published under THIS cycle's
+#: run id. The historical artifact stays on disk untouched as that cycle's
+#: evidence and is guarded by
+#: ``test_the_previous_disclosure_artifact_is_preserved_as_history`` - a
+#: re-pointed pin moves a check, never a piece of evidence.
 DISCLOSURE = (ROOT / "results" / "product" / "regression"
-              / "CYCLE_39149741259_report_testcount_disclosure.json")
+              / "CYCLE_39172315384_report_testcount_disclosure.json")
+#: The previous pin, kept as a readable constant so a reader can diff the two
+#: artifacts instead of trusting prose about them.
+DISCLOSURE_PREVIOUS_PIN = (ROOT / "results" / "product" / "regression"
+                           / "CYCLE_39149741259_report_testcount_disclosure.json")
 
 #: The PRE-REPAIR BYTES of the report of record, extracted once from git
 #: (``git show 2b0b902:reports/product/CYCLE_39139648336.md``) and pinned by the
@@ -556,6 +584,56 @@ def testcount_disclosure_artifact_is_current():
             f"({published[name]['bare_testcount_claims']} -> "
             f"{entry['bare_testcount_claims']}); re-measure the disclosure")
     assert live, "the candidate sweep found no reports at all - it is vacuous"
+
+
+def test_the_previous_disclosure_artifact_is_preserved_as_history():
+    """The re-pointed pin moves a CHECK, never a piece of evidence.
+
+    ``CYCLE_39149741259_report_testcount_disclosure.json`` is that cycle's
+    measurement of its own tree - the candidate set as it stood before
+    ``CYCLE_39169296466.md`` joined it. Re-pointing DISCLOSURE must not delete or
+    rewrite it: the reason the pin moved is recorded at the constant, and the old
+    numbers stay readable so a reader can compare the two artifacts instead of
+    trusting prose about them. This is the same preservation contract
+    ``product/tests/test_delta_attribution.py`` applies to the sibling
+    attribution pin.
+    """
+    assert DISCLOSURE_PREVIOUS_PIN.exists(), (
+        "the historical disclosure artifact the previous pin named is gone - a "
+        "pin move must never remove evidence")
+    old = json.loads(DISCLOSURE_PREVIOUS_PIN.read_text(encoding="utf-8"))
+    assert old["run_id"] == 39149741259, (
+        f"the historical artifact no longer records the run it was published for "
+        f"(run_id={old.get('run_id')})")
+    assert old["schema"] == "product-report-arithmetic-scope/1", (
+        "the historical artifact's schema was rewritten")
+    historical_reports = set(old["bare_testcount_claims"])
+    current = json.loads(DISCLOSURE.read_text(encoding="utf-8"))
+    current_reports = set(current["bare_testcount_claims"])
+    # The re-publish may ADD reports (that is what the pin moved for) and it may
+    # update a report's claim count; it may not DROP one without a reason.
+    assert historical_reports <= current_reports, (
+        "the re-published disclosure dropped a report the historical measurement "
+        f"carried: {sorted(historical_reports - current_reports)}")
+    assert current["pin_repoint"]["previous_artifact"] == DISCLOSURE_PREVIOUS_PIN.name, (
+        "the re-published disclosure does not name the artifact it replaced, so "
+        "the pin move is not auditable from the artifact alone")
+    assert current["pin_repoint"]["reason"], (
+        "the re-published disclosure records no reason for the pin move")
+
+
+def test_the_current_pin_is_measured_on_this_cycle_not_copied_from_the_previous():
+    """The re-publish must be a MEASUREMENT of this tree, not an edited copy."""
+    current = json.loads(DISCLOSURE.read_text(encoding="utf-8"))
+    live = sweep_testcount_candidates()
+    assert set(current["bare_testcount_claims"]) == set(live), (
+        "the pinned disclosure does not match a fresh sweep of this tree; "
+        "re-measure rather than edit the artifact by hand")
+    for name, entry in live.items():
+        assert current["bare_testcount_claims"][name]["bare_testcount_claims"] == \
+            entry["bare_testcount_claims"], (
+            f"{name}: the published claim count {current['bare_testcount_claims'][name]['bare_testcount_claims']} "
+            f"is not what a fresh sweep measures ({entry['bare_testcount_claims']})")
 
 def test_quotation_is_excluded_and_that_exclusion_is_bounded():
     """The quote-context exclusion is a boundary, stated in both directions.

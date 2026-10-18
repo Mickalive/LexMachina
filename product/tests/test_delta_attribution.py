@@ -52,24 +52,36 @@ from product import test_delta_attribution as tda  # noqa: E402
 #: is the artifact a report quotes: a later cycle that regenerates it must not
 #: silently change what an older report says.
 #:
-#: PIN REPOINT, recorded (operational resume run 39169296466, base commit
-#: 4acd595): the pin previously named ``CYCLE_39149741259_test_delta_attribution.json``,
-#: whose ``working_tree.collected_total`` (1169) is the tree of that cycle. This
-#: resume re-applies the accepted Evaluation handoff disclosure together with
-#: ``product/tests/test_query_concept_disclosure.py`` (+5 collected), so the
-#: staleness detector below must measure against the artifact of THIS tree, and
-#: the historical file stays on disk untouched as that cycle's evidence. The
-#: independent auditor of run 39160624523 (CYCLE_39160624523_GATE.json, D1)
-#: named exactly this remedy: regenerate the attribution for the new tree and
-#: repoint the pin with a recorded reason. The old artifact is neither deleted
-#: nor rewritten; only which artifact THIS module checks moves, and the reason is
-#: this comment.
+#: PIN REPOINT, recorded twice, both kept here because a pin move with no
+#: recorded reason is indistinguishable from an unexplained edit:
+#:
+#: 1. (operational resume run 39169296466, base commit 4acd595) the pin
+#:    previously named ``CYCLE_39149741259_test_delta_attribution.json``, whose
+#:    ``working_tree.collected_total`` (1169) is the tree of that cycle. That
+#:    resume re-applied the accepted Evaluation handoff disclosure together with
+#:    ``product/tests/test_query_concept_disclosure.py`` (+5 collected).
+#: 2. (repair round 1 of rejected cycle 39169296466, run 39172315384) the pin
+#:    named ``CYCLE_39169296466_test_delta_attribution.json``, whose
+#:    ``working_tree.collected_total`` (1175) is that cycle's tree. This repair
+#:    adds 16 collected tests - 6 ledger controls in ``test_cycle_verify_is_a_gate``,
+#:    2 preservation/currency guards in this module's sibling
+#:    ``test_report_artifact_arithmetic``, and 8 register-retention tests in the
+#:    new ``test_state_register_retention`` - so the staleness detector below
+#:    must measure against the artifact of THIS tree. Leaving the old pin would
+#:    have shipped a SECOND red committed guard, which is exactly audit F1 of
+#:    CYCLE_39169296466_GATE.json on this module's sibling.
+#:
+#: Both times the independent auditor named the same remedy (audit
+#: CYCLE_39160624523_GATE.json D1): regenerate the attribution for the new tree
+#: and repoint the pin with a recorded reason. The old artifacts are neither
+#: deleted nor rewritten; only which artifact THIS module checks moves.
 ATTRIBUTION = (ROOT / "results" / "product" / "regression"
-               / "CYCLE_39169296466_test_delta_attribution.json")
+               / "CYCLE_39172315384_test_delta_attribution.json")
 #: The previous pin, kept as a readable constant so a reader can diff the two
-#: artifacts instead of trusting prose about them.
+#: artifacts instead of trusting prose about them. Its own predecessor
+#: (CYCLE_39149741259_test_delta_attribution.json) is likewise still on disk.
 ATTRIBUTION_PREVIOUS_PIN = (ROOT / "results" / "product" / "regression"
-                            / "CYCLE_39149741259_test_delta_attribution.json")
+                            / "CYCLE_39169296466_test_delta_attribution.json")
 #: The full-run regression measurement whose base is the SAME named commit. An
 #: independent measurement path (full run, not collection-only) of the same tree.
 REGRESSION = (ROOT / "results" / "product" / "regression"
@@ -138,20 +150,33 @@ def test_head_total_is_corroborated_by_the_full_run_regression_artifact():
 def test_the_previous_pin_artifact_is_preserved_as_history():
     """The re-pointed pin moves a CHECK, never a piece of evidence.
 
-    CYCLE_39149741259_test_delta_attribution.json is that cycle's measurement of
-    its own tree. Repointing ATTRIBUTION must not delete or rewrite it: the
-    reason the pin moved is recorded at the constant, and the old numbers stay
-    readable so a reader can compare the two artifacts instead of trusting prose.
+    ``CYCLE_39169296466_test_delta_attribution.json`` is the rejected cycle's
+    measurement of its own tree (working-tree total 1175, head 4acd595). The
+    artifact before it, ``CYCLE_39149741259_test_delta_attribution.json``
+    (working-tree total 1169, head 1d0d481), is still on disk too: the pin has
+    now moved twice and neither move may remove a measurement. Repointing
+    ATTRIBUTION must not delete or rewrite either; the reason the pin moved is
+    recorded at the constant, and the old numbers stay readable so a reader can
+    compare the artifacts instead of trusting prose about them.
     """
     assert ATTRIBUTION_PREVIOUS_PIN.exists(), (
         "the historical attribution artifact the previous pin named is gone - "
         "a pin move must never remove evidence")
     old = json.loads(ATTRIBUTION_PREVIOUS_PIN.read_text(encoding="utf-8"))
-    assert old["head"]["commit"].startswith("1d0d481"), (
-        "the historical artifact no longer records the tree it was published for")
-    assert old["working_tree"]["collected_total"] == 1169, (
+    assert old["head"]["commit"].startswith("4acd595"), (
+        f"the historical artifact no longer records the tree it was published "
+        f"for (head {old['head']['commit'][:7]})")
+    assert old["working_tree"]["collected_total"] == 1175, (
         "the historical artifact's working-tree total was edited; a re-pointed "
         "pin must leave the previous measurement byte-stable")
+    grand = (ROOT / "results" / "product" / "regression"
+             / "CYCLE_39149741259_test_delta_attribution.json")
+    assert grand.exists(), (
+        "the artifact the pin named BEFORE the last move is gone; two pin moves "
+        "must have preserved both historical measurements")
+    prior = json.loads(grand.read_text(encoding="utf-8"))
+    assert prior["head"]["commit"].startswith("1d0d481")
+    assert prior["working_tree"]["collected_total"] == 1169
 
 
 def test_working_tree_total_still_equals_what_this_tree_collects():
