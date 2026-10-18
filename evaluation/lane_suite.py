@@ -630,7 +630,21 @@ def run_pytest(log: _Log) -> None:
          # frozen verdict file, no accepted verdict is overwritten, no frozen
          # rubric/threshold/bar/incumbent is touched, and the frozen retrieval
          # spec and the accepted 39101217095 baseline record are read-only inputs.
-         "tests/evaluation/test_product_counter_recall.py"],
+         "tests/evaluation/test_product_counter_recall.py",
+         # run 39113690481 (disclosed scope extension, not a re-freeze): the
+         # claim-admissibility audit that repairs the rejected cycle 39111232991.
+         # It pins the v1 hypothesis and record as byte-unchanged inputs, the v2
+         # and v2.1 frozen-amendment chain, the discarded first execution
+         # (ENVIRONMENT_OR_VACUOUS, never a pass), the mechanical D1 subject-
+         # match catcher, the D2 per-cell channel split including the derived
+         # plain-top-50 comparator, the mapping-free question-native coverage
+         # and admission-gap gates, the three non-vacuity controls, zero network
+         # and deterministic replay. POST-FREEZE ADDITION in the sense of
+         # evaluation/retrieval_gate/id_hygiene.py: no gate is added to any frozen
+         # verdict file, no accepted verdict is overwritten, no frozen rubric,
+         # threshold, bar or incumbent is touched, and the frozen retrieval spec,
+         # the accepted baseline record and the v1 record are read-only inputs.
+         "tests/evaluation/test_subject_match_audit.py"],
         cwd=str(_LANE_ROOT), capture_output=True, text=True, timeout=900)
     tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
     log.add("active lane pytest suite", proc.returncode == 0, tail[0])

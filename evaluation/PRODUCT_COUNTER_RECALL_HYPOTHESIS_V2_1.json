@@ -1,0 +1,119 @@
+{
+ "schema": "lex-evaluation-product-counter-recall-hypothesis/2.1",
+ "frozen_at_utc": "2026-10-18T09:52:00Z",
+ "frozen_before_execution": true,
+ "frozen_by": "Core Evaluation lane, factory direction v56, run 39113690481 (repair round 1 of rejected cycle 39111232991)",
+ "direction_version_at_freeze": 56,
+ "supersedes": {
+  "path": "evaluation/PRODUCT_COUNTER_RECALL_HYPOTHESIS_V2.json",
+  "sha256": "8ecf0953957fc5b680ea6541330e285b9c2f009fc933665b76a4387e066a970c",
+  "rule": "V2 is retained byte-unchanged. Nothing in it is edited. This file is a NEW frozen spec with a NEW digest, written after the first V2 execution was discarded, exactly as V1's own 'never_weakened_after_results' clause requires."
+ },
+ "instrument_correction_FROZEN": {
+  "what_happened": "The first execution of the V2 instrument returned ENVIRONMENT_OR_VACUOUS (exit 2) because the third non-vacuity control, subject_match_gate_is_not_vacuous, did not hold: every cell measured norm_axis=UNANCHORED_ON_ONE_SIDE instead of DIFFERENT_NORM. That record is preserved, unedited, at results/evaluation/subject_match_audit/39113690481_DEFECT_NORM_AXIS_UNANCHORED.json and is NOT evidence of anything except its own discard. The instrument's own rule says a failed control is discarded and never reported as a pass, and that is what happened.",
+  "defect": "norm_tokens_of() harvested a norm number only when it was introduced by an article marker ('art. 257d'). The product's own question.json records write their norms as 'CP 257d ss.', 'OR 321 ff., EOG' and 'c.c. 2052 ss.' - with no article marker - so the PRODUCT side of the norm axis harvested nothing and the axis collapsed to UNANCHORED_ON_ONE_SIDE on all three cells. The V2 file's own prose rule says the norm references are 'lexically harvested from the product's own question.json subject fields'; the implementation did not implement that prose. This is an implementation defect against the already-frozen rule, not a change of the rule.",
+  "fix": "NORM_REF_RE now also accepts a Swiss code abbreviation from a frozen whitelist (CP, CO, OR, EOG, StGB, CC, ZGB, ZPO, BGG, DBG, VRG, ORG, CPG, StPO, SchKG, DSG) followed by the number, so 'CP 257d', 'OR 321', 'c.c. 2052' yield 257d / 321 / 2052. A bare number is still never harvested, so docket numbers cannot leak in - verified: 'Bundesgericht entscheidet im Verfahren 4A_123/2020 zur Sache' yields [].",
+  "why_this_cannot_be_result_fitting": "Admissibility requires declared_admissible AND norm_axis==SAME_NORM AND subject_axis==SAME_SUBJECT_TERMS. All three V2 cells already declare product_layer_claim_admissible=false, so measured admissibility is False for every cell no matter what the norm axis measures. The fix therefore CANNOT change n_admissible_cells (0 before, 0 after), CANNOT change any verdict class, and CANNOT change any gate pass/fail except the third non-vacuity control and the printed axis values. Its only possible effect on the headline is nil; its only effect on the record is to make the reported axes correct. That is the proof that the fix is a bug fix.",
+  "second_correction_honest": "V2 predicted expected_subject_axis=SAME_SUBJECT_TERMS for corporate-criminal-liability<->de-kapitalverletzung. Measured it is NO_SHARED_SUBJECT_TERMS: the two sides share no content token at all, not even 'kapitalverletzung' (the frozen slug's queries are about Art. 102 StGB and never use the compound). The prediction was wrong and the correction makes the mismatch STRONGER, never weaker. V2's wrong prediction is left in place, unedited, and this line is the correction of record."
+ },
+ "question": "Which of the two claims made about cycle 39111232991 survive its own inputs? (a) Is the product-layer parity-regression claim admissible at all on the frozen analyst mapping, when the mapping is measured mechanically against the product's own served-question records? (b) Independent of any analyst mapping: does a served bundle retrieve the core legal concepts of the question it claims to answer, and is any admission gap hiding that?",
+ "frozen_inputs": {
+  "note": "every input is re-hashed at execution time and compared to these pins; a mismatch fails provenance::v1_and_extract_identity and is reported, never silently absorbed. instrument_sha256 below is the digest of the CORRECTED instrument, which differs from V2's pin by exactly the NORM_REF_RE / norm_tokens_of change disclosed above.",
+  "instrument_sha256": "c207fd819ae4605de704d2cdc4a30254f39a9840994a2e43ea4ef10fb5656342",
+  "v1_hypothesis_sha256": "2e94d1c6f65af304fa6345be00e8a29b34016012a4c3e04ee4bb36bbafb10c38",
+  "v1_record_sha256": "09ce572510ea71980d02dca1c226080df1c1ce770da2b569086565f8f1671ce0",
+  "frozen_spec_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+  "baseline_record_sha256": "49dd60ad0ee96ed1de7225da4653b752c13fb058cfed05a613e0440d67c32ac9",
+  "subjects_extract_sha256": "692f7d8449384ad65f43209461b5c0ad90017797c827b0847be5b423f3292605",
+  "coverage_extract_sha256": "d91a1902d1abb5faa6592edb2123cce8fc0f0a442057a3a4b456a1b094a94de3",
+  "subjects_extract": "evaluation/subject_match_audit/SERVED_QUESTION_SUBJECTS.json - sha256-pinned derivative of <mount>/results/product/gate_packet/38839347028/questions/<qid>.question.json, carrying each source file's own sha256",
+  "coverage_extract": "evaluation/subject_match_audit/QUESTION_NATIVE_COVERAGE.json - sha256-pinned derivative of the same bundles, carrying each source bundle's own sha256",
+  "mount_optional": "with no accepted mount the two pinned extracts are used and the record says vendored_extract; with a mount both are rebuilt live and the record says rebuilt_live_from_mount"
+ },
+ "analyst_mapping_V2_FROZEN_BEFORE_EXECUTION": {
+  "disclosure": "Same three served_question_ids as V1 and V2 - unchanged. Only the admissibility declaration and its stated reason change, and only one expected_* axis is corrected upward (see instrument_correction_FROZEN.second_correction_honest). Each cell declares whether it may support a PRODUCT-LAYER claim, and the measurement is permitted to DOWNGRADE a declaration but never to upgrade it.",
+  "cells": [
+   {
+    "slug": "rent-default",
+    "served_question_id": "fr-bail-entretien",
+    "frozen_record_language": "fr",
+    "product_layer_claim_admissible": false,
+    "product_layer_claim_inadmissible_reason": "PARTIAL subject match, same article family but a different factual predicate. The product's own question.json legal_area is 'droit du bail - entretien de l'immeuble et resiliation (CP 257d ss.)' and its question is 'Resiliation du bail pour defaut d'entretien du bailleur', i.e. the landlord's failure to maintain. The frozen slug's baseline queries ask under which conditions a landlord may terminate for LATE PAYMENT OF RENT. Same norm (257d), different predicate. A product<baseline result on this cell is therefore not established as a product-layer defect.",
+    "expected_norm_axis": "SAME_NORM",
+    "expected_subject_axis": "SAME_SUBJECT_TERMS"
+   },
+   {
+    "slug": "corporate-criminal-liability",
+    "served_question_id": "de-kapitalverletzung",
+    "frozen_record_language": "de",
+    "product_layer_claim_admissible": false,
+    "product_layer_claim_inadmissible_reason": "MISMATCHED SUBJECT. The product's own question.json legal_area is 'Arbeitsrecht - Sorgfaltspflichten des Arbeitgebers bei Kapitalverletzung (OR 321 ff., EOG)': an EMPLOYMENT-LAW duty of care. The frozen slug is criminal liability of the company under Art. 102 StGB. The shared word 'Kapitalverletzung' is used in two different senses under two different norms, which is exactly the confusion the v1 basis text made. No norm token is shared.",
+    "expected_norm_axis": "DIFFERENT_NORM",
+    "expected_subject_axis": "NO_SHARED_SUBJECT_TERMS"
+   },
+   {
+    "slug": "petty-theft-dismissal",
+    "served_question_id": "it-responsabilita-medica",
+    "frozen_record_language": "de",
+    "product_layer_claim_admissible": false,
+    "product_layer_claim_inadmissible_reason": "MISMATCHED SUBJECT, disclosed as weak by v1 and kept weak here. Medical liability under c.c. 2052 ss. is not dismissal of a petty thief under art. 337 StGB. No norm token is shared.",
+    "expected_norm_axis": "DIFFERENT_NORM",
+    "expected_subject_axis": "NO_SHARED_SUBJECT_TERMS"
+   }
+  ],
+  "unmapped_frozen_slug": "business-judgment-rule has no served counterpart in the accepted packet and stays NOT_MEASURED, exactly as in v1."
+ },
+ "admissibility_rule_FROZEN": {
+  "statement": "A mapping cell supports a PRODUCT-LAYER claim if and only if BOTH hold: (1) the cell declares product_layer_claim_admissible=true in this file, and (2) the measurement returns norm_axis == SAME_NORM AND subject_axis == SAME_SUBJECT_TERMS. The measurement can only downgrade a declaration. A false declaration with a SAME_NORM / SAME_SUBJECT_TERMS measurement is NOT an error: it is the conservative direction and is recorded, never corrected upward by the measurement.",
+  "norm_axis": "SAME_NORM iff the frozen slug's norm_tokens (declared, unioned with lexically harvested article-or-code references in its own frozen query texts) intersect the norm references lexically harvested from the product's own question.json subject fields (legal_area, question, hypothesis, look_for, counter_authority_needed, why_this_question). A norm reference is a number introduced either by an article marker (art., artikel, articolo) or by one of the frozen Swiss code abbreviations CP, CO, OR, EOG, StGB, CC, ZGB, ZPO, BGG, DBG, VRG, ORG, CPG, StPO, SchKG, DSG; a bare number is never harvested. DIFFERENT_NORM iff both sides name at least one norm and the intersection is empty. UNANCHORED_ON_ONE_SIDE otherwise.",
+  "subject_axis": "SAME_SUBJECT_TERMS iff at least one content token is shared, content tokens being de-accented lowercase alnum tokens of length >= 5 with the frozen generic stoplist removed.",
+  "generic_stoplist_frozen": "defined once in evaluation/subject_match_audit.py GENERIC_STOPWORDS; it contains only generic legal/procedural function words and is not tuned to any cell",
+  "no_constant": "no threshold, no weight, no tunable constant. The only decisions are set membership and set intersection."
+ },
+ "comparator_rule_FROZEN": {
+  "statement": "The comparator scored by v1 is reported as the union of the frozen baseline record's own per-query channels, split by that record's explicit 'channel' field. For every cell the record publishes baseline-channel-only hits, counter-channel-only hits, and the set of comparator hits reachable ONLY through the counter channel, so the phrase 'the plain OpenCaseLaw top-50 it wraps' is either supported by numbers or withdrawn.",
+  "counter_channel_caveat": "The counter channel's queries are limitation-token queries ('Art. 257d al. 2 CO resiliation abusive exception limite ...'); they are themselves a counter-authority search design, not a plain natural-language query. Any baseline advantage carried by that channel is NOT a plain-search advantage."
+ },
+ "question_native_rule_FROZEN": {
+  "why": "This is the falsifier that needs no analyst mapping at all and therefore cannot inherit D1. It asks only: for the question the product actually serves, do the product's own rows retrieve the core legal concepts of that question, and does the packet's own admission record disclose it when they do not?",
+  "concept_extraction": "core concepts = de-accented lowercase alnum tokens of the served question's own 'question' text with length >= 5 and the frozen generic stoplist removed; nothing is added, dropped or weighted beyond that, and question words that survive (e.g. Italian 'quale', 'devono', 'essere') are KEPT, which can only make the coverage gate easier to pass, never harder",
+  "coverage_measure": "a concept is COVERED iff at least one bundle row's concatenated (title, regeste, snippet, full_text, citation, decision_id) contains it as a substring. Substring containment is deliberately permissive: it can only over-report coverage, so a COVERAGE_DEFECT verdict cannot be an artefact of strict tokenisation. This is the same >=1-of-set semantics the accepted retrieval gates use.",
+  "gates": [
+   "question_native_concept_coverage::<qid> - every core concept of the served question is covered by at least one bundle row",
+   "admission::selfcheck_disagreement::<qid> - NOT a defect only if the packet did not admit the bundle cleanly while its own concept self-check reports zero-row concepts. This gate fires when admissibility.admissible is true AND warning_count == 0 AND blocking_count == 0 AND at least one core concept has zero rows."
+  ],
+  "selfcheck_cross_check": "the packet's own measured query_concept_rows / query_concepts_under_covered are published side by side with the independent recomputation. Agreement and disagreement are both reported; neither is suppressed."
+ },
+ "decision_rule_V2_FROZEN": {
+  "statement": "This cycle's verdict is decided by the question-native, mapping-free gates and by the non-vacuity battery, NOT by the recall numbers v1 produced. ENVIRONMENT_OR_VACUOUS (exit 2) if any non-vacuity control fails. Otherwise: if any question_native_concept_coverage:: or admission::selfcheck_disagreement:: gate fails, the verdict is QUESTION_NATIVE_PRODUCT_DEFECT_ESTABLISHED (or QUESTION_NATIVE_PRODUCT_DEFECT_AND_HARNESS_FALSIFICATION_STAND when at least one cell is simultaneously admissible) at exit 1; if no mapping-free gate fails, the verdict is HARNESS_FALSIFICATION_STANDS_NO_ADMISSIBLE_PRODUCT_CLAIM or NO_MAPPING_FREE_PRODUCT_DEFECT_FOUND, exit 0 only for the latter.",
+  "what_this_verdict_does_not_do": "It does not re-score, weaken or replace the v1 harness result, which is read and preserved. It does not change any frozen bar, rubric, threshold, spec or accepted verdict. It does not decide whether the product is useful."
+ },
+ "non_vacuity_FROZEN": {
+  "requirement": "three hostile controls must fire before any verdict is reportable: (a) a deliberately BLANKED bundle must cover zero core concepts; (b) a payload-equivalence oracle containing every core concept text must reach full coverage, proving the gate can go green; (c) the subject-match admissibility gate must demonstrably discriminate, i.e. at least one cell must measure norm_axis == DIFFERENT_NORM. If any control fails the verdict is ENVIRONMENT_OR_VACUOUS (exit 2) and is discarded, never reported as a pass.",
+  "rationale": "Same non-vacuity discipline as evaluation.benchmark_retrieval_counter_authority, evaluation.packet_lineage_sweep and v1 of this benchmark. A gate that cannot fail is not a measurement. Control (c) is exactly what caught the instrument defect recorded above on the first execution."
+ },
+ "gate_names_V2_FROZEN": [
+  "subject_match::<slug>",
+  "comparator_channel_split::<slug>",
+  "question_native_concept_coverage::<qid>",
+  "admission::selfcheck_disagreement::<qid>",
+  "nonvacuity::concept_coverage_gate_is_not_vacuous",
+  "nonvacuity::oracle_bundle_covers_every_concept",
+  "nonvacuity::subject_match_gate_is_not_vacuous",
+  "provenance::v1_and_extract_identity"
+ ],
+ "pre_execution_disclosure_HONEST": {
+  "what_was_seen_before_this_file_was_written": "Everything V2's disclosure names, PLUS the first execution's output: verdict ENVIRONMENT_OR_VACUOUS with the third control failing and norm_axis=UNANCHORED_ON_ONE_SIDE on all three cells, and the record's two mapping-free gate failures (question_native_concept_coverage::de-kapitalverletzung, admission::selfcheck_disagreement::de-kapitalverletzung). Those two failures were already visible in the coverage extract before this file was written and are disclosed in V2's own disclosure; they are repeated here so no reader can think they were discovered after this freeze.",
+  "what_was_NOT_seen_before_this_file_written": "No execution with the CORRECTED norm extraction. The corrected subject-match axes, the resulting n_admissible_cells, the channel-split numbers and the final verdict were not computed when this file was written.",
+  "why_it_does_not_launder_the_result": "The one change is an implementation fix proved incapable of changing any headline (see instrument_correction_FROZEN.why_this_cannot_be_result_fitting). The decision rule, the gates, the concept extraction, the coverage measure, the admissibility rule and the claim ceiling are carried over from V2 verbatim; none is adjusted to a number. The second correction makes a measured axis WORSE for the product-side interpretation, i.e. it is against the direction the v1 headline would have liked.",
+  "accepted_precedent": "evaluation/reality_gate and evaluation/retrieval_gate carry equivalent honest_pre_freeze_disclosure fields; v1 and v2 of this benchmark carry pre_execution_disclosure_HONEST with the same structure."
+ },
+ "claim_ceiling": "This cycle can establish exactly two things. (1) The cycle-39111232991 harness result stands as a HARNESS result and does NOT establish a product-layer recall defect on any of its three cells, because no cell is subject-matched to the question the product serves; the correct successor is a frozen spec re-derived against served questions, or serving the frozen questions, and neither is possible inside the accepted served packet. (2) Independent of any mapping, a served bundle either does or does not retrieve the core legal concepts of its own question, and the packet's admission record either does or does not disclose that. It does NOT prove the map is useful or useless to a jurist; it does NOT re-classify any decision as supporting/contrary/limiting; it does NOT re-score or move the label or geometry bars (LABEL_UNSOUND 5/65, GEOMETRY_UNSOUND 0/3 bundles at 11/11 unchanged); it does NOT lift the accepted DO-NOT-SERVE order on packet 38839347028 nor DO-NOT-SERVE-UNCHANGED on rebuilt-39027045675; it does NOT certify admission of any packet; human_gate_ready stays false. A concept that is a German compound noun may simply not be the doctrine's own vocabulary, so a zero-row concept is a retrieval signal the product itself already computes, not proof that the authorities are absent - that caveat is frozen in the report and is not to be dropped after results are seen.",
+ "environment_contract": {
+  "mount_optional": true,
+  "mount_env": "LEX_ACCEPTED_PRODUCT_MOUNT else /tmp/lex_accepted/product",
+  "fallback": "the two pinned extracts under evaluation/subject_match_audit/",
+  "if_neither_available": "NOT_MEASURED, exit 2. Never a pass.",
+  "network": "This instrument performs NO network request. It reads only committed in-repo records and, when present, the read-only accepted product mount."
+ }
+}

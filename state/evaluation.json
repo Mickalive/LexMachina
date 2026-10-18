@@ -60,8 +60,8 @@
   "recorded_retrieval_verdict": "still FAIL, 12 failed / 24 passed / 4 not measurable over 40 gates; --rescore reproduces it byte-for-byte after this cycle's gate change",
   "rule": "every headline number below states the definition used and the artifact it was recomputed from"
  },
- "continue_recommended": true,
- "continue_recommended_reason": "NO for another identical reconciliation cycle. The direction's binding R1-R3 and M1-M6 repair items were verified already applied at run 39092033997, the last accepted audit (CYCLE_39109815075_GATE.json) returned PASS with required_fixes=[], and its own CONTEXT note records that a sixth identical reconciliation over a byte-stable population should not be re-dispatched. This cycle instead produced the lane's first claim-bearing PRODUCT-side recall falsification, which is the successor deliverable. The successor question, if the control plane commissions one, is whether the frozen authority/counter id sets describe the questions the product actually serves -- an analyst-mapping question, not another measurement of the same bytes.",
+ "continue_recommended": false,
+ "continue_recommended_reason": "false, matching reports/evaluation/CYCLE_39111232991.md sections 1 and 9 (audit fix D3). The binding R1-R3 and M1-M6 direction items were already discharged at 39092033997 and the last accepted audit before this cycle was PASS with required_fixes=[]. The rejected cycle's four audit fixes are now applied, so there is no outstanding audit item and no legitimate same-question re-measurement: cycle 39113690481 froze a NEW spec (V2, amended by V2_1, new digests), executed a NEW instrument and produced a NEW falsification. The successor question - do any frozen authority/counter id sets describe a question the product actually serves - is answerable only by (a) re-deriving a frozen spec against served questions or (b) serving the frozen questions, both of which are Product-side decisions about which questions the product will serve. A dispatch that contained no new Product bytes and no successor deliverable would be a zero-delta cycle; the direction states not to issue one.",
  "control_plane_gaps_recorded_not_patched": [
   "query-map-evaluation-ci.yml runs ONLY 'pytest -q evaluation/query_map/test_harness.py'; grep over .github/ finds zero references to tests/evaluation/, test_reality_gate or test_retrieval_gate.",
   "the same workflow's path filter covers only evaluation/query_map/**, evaluation/__init__.py and state/evaluation.json, so edits to evaluation/reality_gate/**, evaluation/retrieval_gate/** or tests/evaluation/** cannot trigger it.",
@@ -302,7 +302,7 @@
   "report": "reports/evaluation/COUNTER_AUTHORITY_LABEL_BENCHMARK_39004097533.md",
   "verdict": "PRODUCT_FALSIFIED"
  },
- "cycle_status": "COMPLETE_PRODUCT_PARITY_RECALL_FALSIFIED",
+ "cycle_status": "COMPLETE_CLAIM_SCOPE_RETRACTED_AND_QUESTION_NATIVE_PRODUCT_DEFECT_ESTABLISHED",
  "direction_item_1_trigger_39043684319": {
   "accepted_product_head": "cc719eeb accept product cycle 39019268074",
   "claim_ceiling": "This says the served population did not move. It is NOT a pass and says nothing about whether the served packet meets either frozen bar.",
@@ -721,7 +721,22 @@
   "results/evaluation/trigger_reconciliation/39111232991/39111232991_trigger.json",
   "results/evaluation/trigger_reconciliation/39111232991/39111232991_reconciliation.json",
   "results/evaluation/snapshot_audit/39111232991.json",
-  "reports/evaluation/CYCLE_39111232991.md"
+  "reports/evaluation/CYCLE_39111232991.md",
+  "evaluation/subject_match_audit.py",
+  "evaluation/subject_match_audit/SERVED_QUESTION_SUBJECTS.json",
+  "evaluation/subject_match_audit/QUESTION_NATIVE_COVERAGE.json",
+  "evaluation/PRODUCT_COUNTER_RECALL_HYPOTHESIS_V2.json",
+  "evaluation/PRODUCT_COUNTER_RECALL_HYPOTHESIS_V2_1.json",
+  "tests/evaluation/test_subject_match_audit.py",
+  "results/evaluation/subject_match_audit/39113690481.json",
+  "results/evaluation/subject_match_audit/39113690481_DEFECT_NORM_AXIS_UNANCHORED.json",
+  "results/evaluation/orchestration/39113690481_pytest_shim.json",
+  "reports/evaluation/CYCLE_39111232991_CORRECTION.md",
+  "reports/evaluation/CYCLE_39113690481.md",
+  "results/evaluation/trigger_reconciliation/39113690481/39113690481_trigger.json",
+  "results/evaluation/trigger_reconciliation/39113690481/39113690481_reconciliation.json",
+  "results/evaluation/snapshot_audit/39113690481.json",
+  "results/evaluation/lane_suite/39113690481"
  ],
  "evidence_tier": "REPRODUCED",
  "execution_records_38951152192": {
@@ -911,7 +926,7 @@
   "status": "PRESERVED_NOT_ACTIVE"
  },
  "human_gate_ready": false,
- "human_gate_ready_reason": "false (unchanged, and NOT advanced by this cycle). This cycle falsified a product claim, it did not certify one. The accepted DO-NOT-SERVE order on packet 38839347028 (run 39061330426, owner_decision_required=false) stands, the rebuilt packet is not accepted, and the absolute bars LABEL_UNSOUND (5/65) and GEOMETRY_UNSOUND (0/3 bundles at 11/11) are unchanged, reported and never enforced here. The new finding lowers, never raises, what may be claimed.",
+ "human_gate_ready_reason": "false (unchanged, and NOT advanced by this cycle). This cycle narrowed a product claim and found one admission-disclosure defect; it certified no product capability. The accepted DO-NOT-SERVE order on packet 38839347028 and the accepted DO-NOT-SERVE-UNCHANGED verdict on rebuilt-39027045675 (owner_decision_required=false) both stand, and the absolute bars LABEL_UNSOUND (5/65) and GEOMETRY_UNSOUND (0/3 bundles at 11/11) are unchanged, reported and never enforced here.",
  "independent_verification_39020603510": {
   "boundary_hand_checked": "5/65 < 5/65 is False (incumbent passes, strict inequality correct); 4/65 < 5/65 is True (one supported row removed blocks); 1/9 < 5/65 is False (strictly better rate does not block).",
   "freeze_discipline_verified": "The freeze file is byte-identical between commit 757bcb2c and HEAD (sha 1982787ac3866590...), 757bcb2c contains only that file, and the implementation commit 76286ab7 came after.",
@@ -1143,7 +1158,7 @@
   "verdict_driver": "python -m evaluation.newhead_verdict  (decides the frozen success rule from committed records only)",
   "verdict_record": "results/evaluation/newhead_recompute_39027041693/derived/VERDICT_39027041693.json"
  },
- "next_recommendation": "Hand the PRODUCT_PARITY_RECALL_FALSIFIED finding to Product as a concrete P0-class defect: the served bundle returns strictly less of the frozen controlling-authority and known counter-authority set than the plain OpenCaseLaw pool it wraps, on all three measurable cells. Then hand off to audit. Do NOT issue another evaluation dispatch that would contain no new Product bytes and no successor deliverable.",
+ "next_recommendation": "PIVOT_WITHIN_MISSION. Do NOT hand Product a P0 recall defect; that claim is RETRACTED (audit fix D1/D4) because no cell of the frozen analyst mapping is subject-matched to the question the product serves - measured n_admissible_cells=0. Do hand Product ONE narrow, mapping-free finding (audit fix D4 successor): admission::selfcheck_disagreement::de-kapitalverletzung - the served German bundle of 214 decisions was admitted with admissible=true, warning_count=0, blocking_count=0 while the packet's own pre-registered concept self-check reports two core concepts of the question with ZERO rows (kapitalverletzung, uberwachungspflicht), reproduced independently by evaluation/subject_match_audit.py. The fix is a disclosure change in product/query/gate_admissibility.py (emit a finding when query_concepts_under_covered is non-empty); it touches no frozen bar or threshold. The harness result of cycle 39111232991 stands, with its status narrowed to STANDS_AS_A_HARNESS_RESULT. The successor question is whether any frozen id set describes a served question; do not issue an evaluation dispatch that would contain no new Product bytes and no successor deliverable.",
  "next_recommendation_38951152192": "HAND OFF TO PRODUCT, then stop this lane's proposal chain. The v49 evaluation question is encoded, enforced, self-falsified twice (F6 cached-replay latency erasure, closed 38945976309; F7 bare-checkout pytest false-red, closed this cycle), and both falsifications are closed without moving any frozen bar. What remains is not lane work: audit and promote (or reject) the stacked proposals 38939239917 (retrieval benchmark) and 38945976309 (hardening) so their deliverables stop shadowing every re-dispatch, and set the portfolio .status stop per factory-direction item 13 — continue_recommended:false cannot stop re-dispatch while the supervisor jq // defect stands. continue_recommended stays false: the next dispatch must carry a NEW question, never a re-run of this one. Product's open falsifications are unchanged and restated without re-measurement (FR/IT authority recall 0/N vs DE 2/2, 2/5, 1/2; fresh BJR leg cites 0/5 frozen BJR authorities; retrieval live pass 256.827s vs frozen 240s budget; duplicate::unique_ids fails on all four questions; 6 unusable ids among 960 rows; rent-default authority gates permanently not_measurable). human_gate_ready stays false. No 174k/global-map benchmarks rerun; none was run this cycle.",
  "operational_resume_38977570612": {
   "audit_readiness": "snapshot is audit-ready: 15 files, all inside the evaluation lane namespace (evaluation/, tests/evaluation/, results/evaluation/, reports/evaluation/, state/evaluation.json); auditor gate path must be results/audit/evaluation/CYCLE_38977570612_GATE.json (uppercase _GATE.json) written from the audit-job checkout, never /tmp/lex_team",
@@ -1430,7 +1445,7 @@
   "producer_commit": "660ad896",
   "run_id": "38939239917"
  },
- "proposed_run_id": "39111232991",
+ "proposed_run_id": "39113690481",
  "recommendation": "PIVOT_WITHIN_MISSION",
  "recommendation_rationale": "RESEARCH_PROTOCOL step 9 for run 39086856920. All four required fixes of audit CYCLE_39082753086_GATE.json are applied, each with a pinned regression test, and nothing frozen was weakened: no rubric, threshold, bar, incumbent verdict, baseline, query set, metric or success rule was edited, regenerated or re-tuned; RULES_LABEL 4457e971 and RULES_GEOMETRY a7452748 are re-hashed byte-unchanged by snapshot-audit check 1. In the same cycle the lane built and executed the smallest executable instrument that can falsify the served query-map MVP on the exact hole the audit named as uncovered, and it FIRED: on the accepted mount's rebuilt-39027045675 bundles (642 decisions) 173 pre-date the mission window, 120 are adversarial-seeded rows, and 3 carry decision ids that are unusable as a map-point key, a citation anchor and a dedupe key. human_gate_ready stays false and the accepted DO-NOT-SERVE order is untouched.",
  "recommendation_rationale_prior_39007294442": "RESEARCH_PROTOCOL step 9. The v50 two-gate build question stays delivered; this cycle did not rebuild it, it tested the LABEL half on real accepted product artifacts and produced the lane's first product-level falsification of the counter-authority labelling (PRODUCT_FALSIFIED, exit 1, battery 4/4 proven) plus five fired gate predicates. The next concrete discriminating purpose under the same mission is a declared-population re-freeze of the counter-label bar, which is the only thing that makes Product obligation (1) enforceable; that touches a FROZEN rubric and is therefore recorded as control-plane scope, not patched from this lane. continue_recommended stays true for that single successor, not as a generic keep-running.",
@@ -1496,8 +1511,8 @@
   ],
   "what_did_not_change": "the committed record results/evaluation/counter_authority_label_benchmark/39004097533.json, the frozen hypothesis, RULES_LABEL.json, RULES_GEOMETRY.json, any incumbent, any gate success rule, the PRODUCT_FALSIFIED verdict, the five fired gate predicates, the exit code and the claim ceiling. PRODUCT_FALSIFIED recomputes unchanged from the record under every one of the five frozen anchors."
  },
- "repair_audit_ref": "origin/cycle/core/evaluation/39082753086/audit:results/audit/evaluation/CYCLE_39082753086_GATE.json (gate=REVISE, safe_to_integrate=false, required_fixes=F1..F4; mounted read-only at /tmp/lex_prior_audit; NO escalation; the prior gate's BLOCKED condition for a fifth NO_NEW_PACKET cycle was explicitly NOT met and is recorded as cured)",
- "repair_audit_ref_location": "audit branch ref origin/cycle/core/evaluation/38968781838/audit (fetchable; verified this cycle)",
+ "repair_audit_ref": "results/audit/evaluation/CYCLE_39111232991_GATE.json",
+ "repair_audit_ref_location": "branch cycle/core/evaluation/39111232991/audit, gate=REVISE, safe_to_integrate=false, required_fixes=[D1,D2,D3,D4]",
  "repair_chain_closed_by": "the 39004097533 repair chain closed at 39007294442 (gate PASS, accept commit 76d04157, which is this snapshot's accepted base); repair_audit_ref below is retained as history, and this cycle is NOT a repair (fresh follow-on cycle whose producer step died)",
  "repair_fixes_applied": {
   "M1_38966576940": "vendored-digest runtime enforcement added: tests/evaluation/test_frozen_bar_gates.py::test_vendored_files_match_pinned_digests re-hashes all 14 vendored rubric/reference files against VENDORED_SHA256.json at test time, so a lenient vendored edit that inflates label support becomes a visible red instead of an invisible green on the one-sided regression gate.",
@@ -1517,7 +1532,7 @@
   "R6b": "producer-authored self-audit files dropped from this branch; the independent audit checkout remains the only audit of record",
   "hardening_repair_39004097533_r1": "Adopted the audit's recommended hardening: new mount-independent test tests/evaluation/test_counter_authority_label_benchmark.py::test_pooled_anchor_regression_holds_under_all_five_anchors recomputes from the committed record's anchor_fit_spread (a) improved == False for all five frozen anchors (matched pinned 11/70->7/58; fr-bail-entretien pinned 3/70->2/58) and (b) the fr-bail-entretien FR cells (2/24 before, 2/22 after) plus matched-anchor FR 0-supported, so neither corrected claim can silently regress."
  },
- "repair_round": 2,
+ "repair_round": 3,
  "repeat_invariance_39020603510": {
   "accepted_run_bar_gates": "N=20, exit 0 x20, verdict PASS_NO_REGRESSION, no stderr",
   "label_lineage_sweep": "N=10, exit 0 x10, ALL_PREDICTIONS_HELD x10, every measured block byte-equal across runs, no stderr",
@@ -1616,8 +1631,8 @@
   "report_path_for_the_auditor": "reports/audit/evaluation/CYCLE_39043684319.md",
   "verdict": "READY"
  },
- "state_updated_at": "2026-10-18T08:52:00Z",
- "state_updated_by_run": "39111232991",
+ "state_updated_at": "2026-10-18T10:05:00Z",
+ "state_updated_by_run": "39113690481",
  "unresolved_observation_39020603510": {
   "concrete_successor": "CHEAP AND WORTH DOING: make the lane suite measure repeat-invariance of BOTH entry points (say N=10 each, stderr captured, verdict + measured blocks compared run-to-run) and commit the observed non-zero rate as a first-class record. That converts an anecdote into a rate and would catch a real intermittent. NOT done in this cycle because it changes the accepted lane suite's check list beyond a disclosed additive extension.",
   "discipline": "The anomaly is preserved rather than deleted, exactly as any other negative observation in this lane.",
@@ -3387,5 +3402,169 @@
   "why": "check 18 re-derives this disclosure from git and fails when the recorded head does not equal the re-derived head. Four further evaluation cycles were accepted onto origin/lab/evaluation after cycle 39043684319 measured it (head 09970e83, one unaudited run 39027041693 at the head). The head is now 3c2fcab6 ('accept evaluation cycle 39109815075') and the derived ungated set is empty.",
   "action": "RE-DERIVED AND RE-PUBLISHED, history preserved verbatim under the record's new superseded_snapshot_39043684319 key. No commit rewritten, no branch pushed to, no historical finding deleted.",
   "pre_existing_defect_also_repaired": "tests/evaluation/test_snapshot_audit.py::test_accepted_base_coverage_is_disclosed_on_the_live_branch asserted the hard-coded derived set ['39027041693'], which became a FALSE assertion on the committed tree once the branch head moved. Repaired to assert the coverage CONTRACT (declared == re-derived, plus non-empty claim ceiling and what_is_NOT_claimed) instead of a frozen value, with the supersession documented in the docstring."
+ },
+ "audit_fixes_applied_39113690481": {
+  "audit": "results/audit/evaluation/CYCLE_39111232991_GATE.json (gate=REVISE, safe_to_integrate=false)",
+  "D1": "subject-mismatched analyst mappings retracted; corrected mapping frozen as a NEW digest (V2 8ecf0953..., amended V2_1 d51bb7cd...). The v1 hypothesis file is byte-unchanged. Measured mechanically: n_admissible_cells=0.",
+  "D2": "'plain OpenCaseLaw top-50 it wraps' withdrawn; the scored pool is the baseline UNION counter channels (150+90=240 rows/slug). Per-cell channel split published. Derived: on rent-default, the only norm-matched cell, the plain baseline-channel comparator shows product 1 >= baseline 1, i.e. NO regression under the comparator the report described.",
+  "D3": "state.continue_recommended set false, matching reports/evaluation/CYCLE_39111232991.md sections 1 and 9; human_gate_ready stays false.",
+  "D4": "next_recommendation rescoped: no P0 recall defect on all three cells; the narrow harness statement plus the successor question plus the mapping-free admission finding."
+ },
+ "subject_match_admissibility_39113690481": {
+  "instrument": "evaluation/subject_match_audit.py",
+  "record": "results/evaluation/subject_match_audit/39113690481.json",
+  "frozen_spec": "evaluation/PRODUCT_COUNTER_RECALL_HYPOTHESIS_V2_1.json (amends V2)",
+  "n_admissible_cells": 0,
+  "cells": {
+   "rent-default": {
+    "norm_axis": "SAME_NORM",
+    "shared_norm_tokens": [
+     "257d"
+    ],
+    "subject_axis": "SAME_SUBJECT_TERMS",
+    "shared_content_tokens": [
+     "bailleur",
+     "resiliation"
+    ],
+    "claim_scope": "NOT_ADMISSIBLE_TO_A_PRODUCT_LAYER_CLAIM",
+    "why": "PARTIAL: same article family, different factual predicate (defaut d'entretien vs retard de paiement du loyer)"
+   },
+   "corporate-criminal-liability": {
+    "norm_axis": "DIFFERENT_NORM",
+    "shared_norm_tokens": [],
+    "frozen_norm_tokens": [
+     "102"
+    ],
+    "product_norm_tokens": [
+     "321"
+    ],
+    "subject_axis": "NO_SHARED_SUBJECT_TERMS",
+    "shared_content_tokens": [],
+    "claim_scope": "NOT_ADMISSIBLE_TO_A_PRODUCT_LAYER_CLAIM",
+    "why": "MISMATCHED: employment-law Sorgfaltspflichten OR 321 ff. vs Art. 102 StGB corporate criminal liability"
+   },
+   "petty-theft-dismissal": {
+    "norm_axis": "DIFFERENT_NORM",
+    "shared_norm_tokens": [],
+    "frozen_norm_tokens": [
+     "337"
+    ],
+    "product_norm_tokens": [
+     "2052"
+    ],
+    "subject_axis": "NO_SHARED_SUBJECT_TERMS",
+    "shared_content_tokens": [],
+    "claim_scope": "NOT_ADMISSIBLE_TO_A_PRODUCT_LAYER_CLAIM",
+    "why": "MISMATCHED: medical liability c.c. 2052 ss. vs art. 337 StGB petty-theft dismissal"
+   }
+  },
+  "rule": "admissibility requires declared_admissible AND norm_axis==SAME_NORM AND subject_axis==SAME_SUBJECT_TERMS; the measurement can only DOWNGRADE a declaration, never upgrade it. No threshold and no tunable constant.",
+  "mechanical_catcher": "tests/evaluation/test_subject_match_audit.py::test_a_cell_declaring_same_subject_without_a_shared_norm_is_downgraded (mount-independent, no product data needed; would have failed the v1 declaration)"
+ },
+ "comparator_channel_split_39113690481": {
+  "record": "results/evaluation/subject_match_audit/39113690481.json -> comparator_channel_split",
+  "scored_pool": "baseline channel (3x50 = 150 rows) UNION counter channel (3x30 = 90 rows) = 240 rows per slug, split by the baseline record's own per-query 'channel' field",
+  "why_the_counter_channel_is_not_a_plain_search": "its queries are limitation-token queries (e.g. 'Art. 257d al. 2 CO resiliation abusive exception limite reprise du loyer impaye'), i.e. themselves a counter-authority search design",
+  "known_counter_hits": {
+   "rent-default": {
+    "product": 1,
+    "comparator_union": 3,
+    "baseline_channel_alone": 1,
+    "counter_channel_only_advantage": [
+     "bge_BGE_117_II_415",
+     "zh_mietgericht_MB170006-L"
+    ]
+   },
+   "corporate-criminal-liability": {
+    "product": 0,
+    "comparator_union": 4,
+    "baseline_channel_alone": 3,
+    "counter_channel_only_advantage": [
+     "so_gerichte_BKBES.2026.74"
+    ]
+   },
+   "petty-theft-dismissal": {
+    "product": 0,
+    "comparator_union": 7,
+    "baseline_channel_alone": 5,
+    "counter_channel_only_advantage": [
+     "bge_BGE_124_III_25",
+     "ge_gerichte_CAPH_107_2004"
+    ]
+   }
+  },
+  "derived_claim_pinned_by": "tests/evaluation/test_subject_match_audit.py::test_plain_top50_comparator_is_published_per_cell"
+ },
+ "question_native_coverage_39113690481": {
+  "verdict": "QUESTION_NATIVE_PRODUCT_DEFECT_ESTABLISHED",
+  "exit_code": 1,
+  "n_gates": 13,
+  "n_passed": 11,
+  "n_failed": 2,
+  "n_not_measurable": 0,
+  "non_vacuity_all_hold": true,
+  "network_requests": 0,
+  "failed_gates": [
+   "question_native_concept_coverage::de-kapitalverletzung",
+   "admission::selfcheck_disagreement::de-kapitalverletzung"
+  ],
+  "rule": "core concepts of a served question = de-accented lowercase alnum tokens of its own question text, length>=5, frozen generic stoplist removed; covered iff >=1 bundle row (title/regeste/snippet/full_text/citation/decision_id) contains it as a substring (permissive by construction, >=1-of-set semantics as in the accepted gates)",
+  "finding": "de-kapitalverletzung: 214 decisions, 0 rows contain 'kapitalverletzung', 0 contain 'uberwachungspflicht'. The packet's own measured query_concepts_under_covered already reports both at 0 rows; this cycle reproduced the same zero set independently (independent_and_product_selfcheck_agree=true on all three questions). The bundle was nevertheless admitted admissible=true, warning_count=0, blocking_count=0.",
+  "product_handoff": "emit an admission finding when query_concepts_under_covered is non-empty (disclosure change in product/query/gate_admissibility.py; no frozen bar or threshold is touched)",
+  "caveat_frozen_before_the_run": "a German compound noun may not be the doctrine's own vocabulary; this is a retrieval signal the product itself already computes, not proof that the authorities are absent. The auditable claim is the disagreement between the bundle content and the packet's own admission record.",
+  "why_this_is_not_D1_inherited": "no analyst slug, no frozen id set, no baseline record and no mapping of any kind enters this measurement"
+ },
+ "preserved_negative_result_39113690481": {
+  "what": "the FIRST execution of evaluation/subject_match_audit.py returned ENVIRONMENT_OR_VACUOUS (exit 2) because norm_tokens_of() harvested a norm number only after an article marker ('art. 257d') while the product's records write 'CP 257d ss.', 'OR 321 ff.', 'c.c. 2052 ss.' with no marker, collapsing norm_axis to UNANCHORED_ON_ONE_SIDE on all three cells",
+  "record": "results/evaluation/subject_match_audit/39113690481_DEFECT_NORM_AXIS_UNANCHORED.json (unedited)",
+  "discipline": "a failed non-vacuity control is discarded and never reported as a pass; the record is kept",
+  "fix": "a frozen Swiss code-abbreviation whitelist was added to NORM_REF_RE; the fix went into a NEW frozen spec (V2_1, new digest), V2 was not edited",
+  "proof_the_fix_is_not_result_fitting": "all three cells already declare product_layer_claim_admissible=false, so n_admissible_cells is 0 before and after and no verdict class can change; the fix changes reported axis values and one non-vacuity control only",
+  "honest_correction": "V2 predicted expected_subject_axis=SAME_SUBJECT_TERMS for corporate-criminal-liability; measured it is NO_SHARED_SUBJECT_TERMS. The prediction was wrong and the correction makes the mismatch stronger. The wrong prediction stays in V2, unedited."
+ },
+ "claim_scope_correction_39113690481": {
+  "applies_to": "state block product_counter_recall_falsification_39111232991, which is LEFT UNCHANGED",
+  "correction_of_record": "reports/evaluation/CYCLE_39111232991_CORRECTION.md",
+  "retracted": "the product-layer claim 'on every measurable cell the product's served bundle retrieves strictly fewer of the frozen authority/counter ids than the plain OpenCaseLaw result set it wraps', and the phrase 'the plain OpenCaseLaw top-50 it wraps' as a description of the comparator",
+  "preserved": "the v1 instrument, its 13 gates, its non-vacuity battery, its empty-set NOT_MEASURED branches and results/evaluation/product_counter_recall/39111232991.json (sha256 09ce572510ea71980d02dca1c226080df1c1ce770da2b569086565f8f1671ce0), all byte-unchanged and re-verified offline by the independent audit",
+  "new_status_of_v1": "STANDS_AS_A_HARNESS_RESULT; product_layer_claim_admissible=False"
+ },
+ "durable_delta_39113690481": [
+  "evaluation/subject_match_audit.py (new instrument: mechanical subject-match admissibility + comparator channel split + mapping-free question-native coverage and admission-gap gates; zero network; mount-optional)",
+  "evaluation/subject_match_audit/SERVED_QUESTION_SUBJECTS.json and QUESTION_NATIVE_COVERAGE.json (sha256-pinned, source-sha256-bearing derivatives of the accepted served questions and bundles)",
+  "evaluation/PRODUCT_COUNTER_RECALL_HYPOTHESIS_V2.json (8ecf0953...) and _V2_1.json (d51bb7cd...) (two NEW frozen specs; v1 byte-unchanged)",
+  "tests/evaluation/test_subject_match_audit.py (27 cases)",
+  "results/evaluation/subject_match_audit/39113690481.json and ..._DEFECT_NORM_AXIS_UNANCHORED.json",
+  "reports/evaluation/CYCLE_39111232991_CORRECTION.md and reports/evaluation/CYCLE_39113690481.md",
+  "reports/evaluation/CYCLE_39111232991.md (dated retraction banner added; original text unaltered; pre-banner sha256 6996ba9f88621b609cb7cc07bc89f88427691b101018e183026504c3547fb1c4 recorded in the banner)",
+  "state/evaluation.json (D3 alignment, D4 rescope, new blocks, evidence_refs appended - nothing removed or reordered)",
+  "evaluation/lane_suite.py (disclosed additive scope extension: the new test file joins the pytest scope)"
+ ],
+ "trigger_reconciliation_39113690481": {
+  "record": "results/evaluation/trigger_reconciliation/39113690481/39113690481_reconciliation.json",
+  "trigger_record": "results/evaluation/trigger_reconciliation/39113690481/39113690481_trigger.json",
+  "verdict": "TRIGGER_FIRES__SCORED_CLAIM_MOVEMENT_NOT_MEASURED",
+  "trigger_verdict": "ADJUDICATE_REQUIRED",
+  "scored_claim_change": null,
+  "re_run_forbidden": false,
+  "note": "identical to the accepted verdicts of cycles 39109815075 and 39111232991: the scored product population is byte-stable, so the direction's own falsification trigger has nothing new to adjudicate. Executed because the snapshot-audit readiness record requires the trigger verdict to be reconciled against a record rather than asserted."
+ },
+ "snapshot_audit_39113690481": {
+  "record": "results/evaluation/snapshot_audit/39113690481.json",
+  "n_checks": 21,
+  "n_passed": 21,
+  "verdict": "READY",
+  "ready_for_independent_audit": true,
+  "gate_path_for_the_auditor": "results/audit/evaluation/CYCLE_39113690481_GATE.json (UPPERCASE _GATE.json, relative to the audit-job checkout, never /tmp/lex_team)",
+  "report_path_for_the_auditor": "reports/audit/evaluation/CYCLE_39113690481.md",
+  "note": "pytest is ABSENT in this image, so the lane suite's pytest pass is [SKIP]ped exactly as in the last READY run and the stdlib checks are authoritative. READY is conditional on that absence and says so, per the accepted R2 disclosure of audit CYCLE_39064597912_GATE.json. accepted_base_gate_coverage_recorded needed origin/lab/evaluation, which was not fetched in this checkout on the first attempt (reported as an environment limit, never as a pass); it was fetched and re-derived, head 3c2fcab, matching the accepted disclosure."
+ },
+ "lane_suite_39113690481": {
+  "record": "results/evaluation/lane_suite/39113690481",
+  "verdict": "PASS",
+  "checks": "56/57",
+  "seconds": 191.955,
+  "pytest": "ABSENT in this image; the pytest sub-check is [SKIP]ped and the stdlib checks are authoritative. The single non-pass is the known disclosed item carried by the suite.",
+  "scope_extension": "evaluation/subject_match_audit + tests/evaluation/test_subject_match_audit.py join the pytest scope (disclosed additive extension, same comment convention as the accepted M4 repair of cycle 39092033997); no gate added to any frozen verdict file, no accepted verdict overwritten."
  }
 }
