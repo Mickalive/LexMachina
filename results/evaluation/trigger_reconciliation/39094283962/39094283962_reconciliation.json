@@ -1,0 +1,94 @@
+{
+ "schema": "lex-evaluation-trigger-reconciliation/1",
+ "run_id": "39094283962",
+ "produced_at_utc": "2026-10-18T03:53:48Z",
+ "trigger": {
+  "mechanism": "python -m evaluation.newhead_recompute --mode trigger",
+  "argv": [
+   "/usr/bin/python",
+   "-m",
+   "evaluation.newhead_recompute",
+   "--mode",
+   "trigger",
+   "--run-id",
+   "39094283962",
+   "--product-mount",
+   "/tmp/lex_accepted/product",
+   "--out-dir",
+   "/home/runner/work/LexMachina/LexMachina/results/evaluation/trigger_reconciliation/39094283962",
+   "--baseline-manifest",
+   "results/evaluation/newhead_recompute_39027041693/served_packet_baseline_39027041693.json"
+  ],
+  "returncode": 0,
+  "stderr_tail": "",
+  "record_path": "results/evaluation/trigger_reconciliation/39094283962/39094283962_trigger.json",
+  "record_sha256": "69d7e74940e67bb0c5da573abf6c21b4c6480447fa9e14946bc81d60cf5bb30b",
+  "verdict": "ADJUDICATE_REQUIRED",
+  "re_run_forbidden": false,
+  "reason": "served-packet claim population differs from the pinned baseline; direction items (1)-(3) fire",
+  "set_relation": {
+   "added": [
+    "results/product/gate_packet/rebuilt-39027045675/disclosures.json",
+    "results/product/gate_packet/rebuilt-39027045675/handoff.json",
+    "results/product/gate_packet/rebuilt-39027045675/manifest.json",
+    "results/product/gate_packet/rebuilt-39027045675/packet.json",
+    "results/product/gate_packet/rebuilt-39027045675/questions/de-kapitalverletzung.admissibility.json",
+    "results/product/gate_packet/rebuilt-39027045675/questions/de-kapitalverletzung.bundle.json",
+    "results/product/gate_packet/rebuilt-39027045675/questions/de-kapitalverletzung.question.json",
+    "results/product/gate_packet/rebuilt-39027045675/questions/fr-bail-entretien.admissibility.json",
+    "results/product/gate_packet/rebuilt-39027045675/questions/fr-bail-entretien.bundle.json",
+    "results/product/gate_packet/rebuilt-39027045675/questions/fr-bail-entretien.question.json",
+    "results/product/gate_packet/rebuilt-39027045675/questions/it-responsabilita-medica.admissibility.json",
+    "results/product/gate_packet/rebuilt-39027045675/questions/it-responsabilita-medica.bundle.json",
+    "results/product/gate_packet/rebuilt-39027045675/questions/it-responsabilita-medica.question.json"
+   ],
+   "changed": [
+    "state/product.json"
+   ],
+   "identical_as_a_set": false,
+   "n_baseline": 56,
+   "n_byte_identical": 55,
+   "n_changed": 1,
+   "n_common": 56,
+   "n_current": 69,
+   "removed": []
+  },
+  "product_mount_head": "03a4cabb72df5cb38b5228c65ca9fb3fd1a04974"
+ },
+ "newly_served_packet_bytes": {
+  "comparison_side": "product mount results/product/gate_packet/<dir>/ vs lane tree results/evaluation/rebuilt_packet_adjudication_39049030442/packet/",
+  "packet_dirs": [
+   "rebuilt-39027045675"
+  ],
+  "relations": {
+   "rebuilt-39027045675": {
+    "comparison_side": "product mount results/product/gate_packet/rebuilt-39027045675/  vs  lane tree results/evaluation/rebuilt_packet_adjudication_39049030442/packet/",
+    "n_current_files": 13,
+    "n_adjudicated_files": 13,
+    "n_byte_identical": 12,
+    "n_differing": 1,
+    "differing_files": [
+     "disclosures.json"
+    ],
+    "only_in_current": [],
+    "only_in_adjudicated": []
+   }
+  },
+  "packet_json_sha256": "2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170",
+  "adjudication_of_record": "results/evaluation/rebuilt_packet_adjudication_39049030442/39049030442_adjudication.json",
+  "unmatched_added_paths": []
+ },
+ "state_product_json": {
+  "baseline_product_head": "cc719eebf",
+  "error": "baseline state/product.json not retrievable at cc719eebf (shallow history?)",
+  "git_stderr_tail": "fatal: invalid object name 'cc719eebf'.\n"
+ },
+ "verdict": "TRIGGER_FIRES__SCORED_CLAIM_MOVEMENT_NOT_MEASURED",
+ "retracted_claim": "NO_NEW_PACKET",
+ "claim_ceiling": "This record publishes the trigger verdict the direction's own frozen mechanism returns, plus whether the reported population delta moves any SCORED claim. It creates NO new benchmark, threshold, bar or verdict, and it does not re-adjudicate any packet. A firing trigger whose scored content is unchanged is a GATE-OF-RECORD signal, not a licence to raise or lower any product claim. NO_NEW_PACKET is RETRACTED: it was published in cycles 39064597912 / 39072968899 / 39076123103 / 39079133613 without ever executing this trigger.",
+ "what_this_record_does_NOT_establish": [
+  "It does not establish that the served packet should or should not be admitted; that is the product admission gate's question, not the trigger's.",
+  "It does not re-open the accepted rebuilt-packet adjudication (results/evaluation/rebuilt_packet_adjudication_39049030442), whose bytes are re-hashed here and not re-scored.",
+  "It does not certify any owner-facing readiness claim; human_gate_ready stays false."
+ ]
+}

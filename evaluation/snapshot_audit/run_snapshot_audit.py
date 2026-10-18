@@ -482,6 +482,22 @@ DELIVERABLE_MANIFEST_PATHS = [
     "results/evaluation/trigger_reconciliation/39092033997/39092033997_reconciliation.json",
     "results/evaluation/trigger_reconciliation/39092033997/39092033997_trigger.json",
     "reports/evaluation/CYCLE_39092033997.md",
+    # Operational resume of run 39092033997 (this run, 39094283962). The subject
+    # delivered its full delta and exited 0 (producer step 03:00:59Z->03:36:16Z,
+    # team job success) but the AUDIT job then failed at its 'Independent audit'
+    # step 16 s after invocation (03:37:06Z->03:37:22Z, measured via the GitHub
+    # REST API), so no gate of record exists and the run concluded failure
+    # (audit starvation, post-delivery class). This run adds: the step-level
+    # orchestration diagnosis of 39092033997 (with the deliverable-integrity
+    # recomputation: all 119 subject pins verify byte-identically), this run's
+    # item-(1) trigger records, the lane-suite record, and the cycle report. The
+    # snapshot-audit readiness record remains intentionally NOT in this manifest
+    # (same disclosed convention as every prior resume: written after check 6).
+    "evaluation/snapshot_audit/orchestration_diagnosis_39092033997.json",
+    "results/evaluation/trigger_reconciliation/39094283962/39094283962_trigger.json",
+    "results/evaluation/trigger_reconciliation/39094283962/39094283962_reconciliation.json",
+    "results/evaluation/lane_suite/39094283962.json",
+    "reports/evaluation/CYCLE_39094283962.md",
   ]
 
 #: REPAIR F2 (audit CYCLE_39082753086_GATE.json). Files deliberately NOT pinned by

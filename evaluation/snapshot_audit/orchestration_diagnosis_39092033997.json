@@ -1,0 +1,71 @@
+{
+ "schema": "lex-evaluation-orchestration-diagnosis/1",
+ "run_id": "39094283962",
+ "lane": "evaluation",
+ "direction_version": 56,
+ "subject_of_resume": "39092033997 (Core evaluation dirV56 operational resume of zero-delta run 39091660737)",
+ "generated_at_utc": "2026-10-18T03:50:00Z",
+ "query_method": "HYBRID, both halves re-probed this run. (1) The GitHub REST API IS reachable unauthenticated from this checkout (public repo Mickalive/LexMachina): GET /repos/Mickalive/LexMachina/actions/runs/39092033997 -> HTTP 200 carrying the run conclusion, run_attempt and per-job per-step status/conclusion/timestamps quoted below; GET /repos/Mickalive/LexMachina/actions/runs/39092033997/jobs -> HTTP 200 with the job table. (2) Job LOGS remain HTTP 403 unauthenticated (re-probed this run: GET /repos/Mickalive/LexMachina/actions/jobs/117577146532/logs -> 403 'Must have admin rights to Repository'), so every statement about WHICH provider failure killed the audit step is a candidate, never a read log line. (3) git-over-HTTPS works: origin/lab/evaluation and the cycle refs were fetched/verified locally (accepted base 09970e838a2c8b1252d6e6f07f6b74cfa525a310).",
+ "run_facts_measured_via_rest_api": {
+  "run": {
+   "created_at": "2026-10-18T02:59:45Z",
+   "updated_at": "2026-10-18T03:37:37Z",
+   "run_attempt": 1,
+   "status": "completed",
+   "conclusion": "failure"
+  },
+  "jobs": [
+   {
+    "name": "team",
+    "id": 117570650098,
+    "conclusion": "success",
+    "measured": "all 10 steps success; 'Run lane cycle' 03:00:59Z->03:36:16Z (35m17s, far inside the 45m wrapper quantum); 'Validate active MVP producer state', 'Clean generated junk', 'Enforce lane write scope' all success at 03:36:16Z; 'Persist team snapshot' 03:36:16Z->03:36:19Z"
+   },
+   {
+    "name": "audit",
+    "id": 117577146532,
+    "conclusion": "failure",
+    "failed_step": "5 'Independent audit' conclusion=failure 03:37:06Z->03:37:22Z (16 s)",
+    "measured": "steps 3-4 (checkout/mount, install) success; step 5 FAILED 16 s after start, before any audit work could emit a gate; steps 6 'Enforce audit scope and read gate' and 7 'Persist audit snapshot' SKIPPED - no gate file, no audit ref"
+   },
+   {
+    "name": "resilience",
+    "id": 117577325838,
+    "conclusion": "success",
+    "measured": "'Recover failed chain and wake supervisor' 03:37:29Z->03:37:34Z"
+   },
+   {
+    "name": "integrate",
+    "id": 117577326667,
+    "conclusion": "skipped",
+    "measured": "skipped: gated on needs.audit.result == 'success'; no accept, no repair dispatch, no blocker file"
+   }
+  ]
+ },
+ "tree_evidence": {
+  "team_ref": "cycle/core/evaluation/39092033997/team = 3434774b6958a7e19840ff27969fe32934b3a6ae",
+  "attempt_ref": "cycle/core/evaluation/39092033997/team-attempt-1 = 3434774b6958a7e19840ff27969fe32934b3a6ae (single attempt)",
+  "producer_commits_above_resume_base": 6,
+  "producer_commit_span_utc": ["2026-10-18T03:02:52Z", "2026-10-18T03:35:56Z"],
+  "resume_base": "b293c45a7e010f3bc08ec90ddf6e36e8a83ca597 - the persisted producer snapshot of zero-delta run 39091660737, whose own team ref (b293c45a) is byte-identical to its predecessor 39086856920's head; the 39091660737 zero-delta death is preserved in results/evaluation/orchestration/39091660737_ref_check.json",
+  "audit_ref_exists": false,
+  "deliverable_integrity_this_run": "all 119 sha256 pins embedded in results/evaluation/snapshot_audit/39092033997.json re-verify byte-identically against the tree at 3434774b (recomputed this run); the state pin snapshot_audit_39092033997.readiness_record_sha256 990963bd589c66be4c29390aa28208f59aaa68b097565b3b842d8aa5e5997755 matches the committed record bytes; the two falsification records (served_bundle_scope/39092033997.json, served_packet_transfer/39092033997.json) parse under their schemas"
+ },
+ "findings": {
+  "team_job_success_confirmed": "The producer's exit-0 claim is CONFIRMED by the job record, not merely plausible: team concluded success with every step green. The candidate 'the team job failed at a post-agent step (write scope / state validation)' is REFUTED for this run.",
+  "audit_job_failed_at_independent_audit_16s": "The audit job FAILED at its 'Independent audit' step 16 s after that step started. The job's checkout/mount/install steps were green; the agent step died at first invocation. Nothing was gated, nothing was persisted, no gate of record exists.",
+  "audit_starvation_post_delivery_class_measured": "This is the post-delivery audit-starvation class (factory-wide requirement 20; the F4 class of evaluation/snapshot_audit/orchestration_diagnosis_39064497606.json), now measured at step level rather than inferred from ref absence. Two structural facts make the 16 s death invisible to the factory's automatic paths: (a) the audit job's 'Persist audit snapshot' step has NO if: always() (unlike the team persist step), so an audit-step death persists no audit ref; (b) integrate is gated on needs.audit.result == 'success', so no repair round is auto-dispatched either. The only wake path is the resilience job's 'Recover failed chain and wake supervisor' (measured success 03:37:29Z->03:37:34Z) followed by a manual resume dispatch - which is exactly how run 39094283962 came to exist (created 03:37:32Z, resume_from_run_id=39092033997).",
+  "specific_cause_unlogged_candidate_set": "Whether the 16 s audit-step death was a model-auth failure, provider rotation/overload, or a wrapper-level failure is NOT determinable: job logs return HTTP 403 unauthenticated from this image (re-probed). The 16 s first-invocation class matches the recorded death signature of run 39091660737 (16 s, recurs 39048936311) and the requirement-20 provider-death class. A specific cause is recorded as a candidate set, never as an assertion."
+ },
+ "routearound_executed_this_cycle": {
+  "mechanism": "core-lane.yml resume_from_run_id input (control-plane): run 39094283962 was dispatched with resume_from_run_id=39092033997, checking out the persisted team snapshot on branch operational-resume at 3434774b; no history rewritten, nothing prior re-derived",
+  "lane_action": "this run preserves the byte-intact 39092033997 deliverable (all 119 pins verified), adds THIS diagnosis, re-executes the direction's item-(1) trigger under run id 39094283962, re-runs the lane suite and the snapshot-audit verifier for 39094283962, updates state/evidence_refs, publishes the cycle report, and exits 0 - so the audit job, gated on needs.team.result == 'success', actually runs and writes results/audit/evaluation/CYCLE_39094283962_GATE.json"
+ },
+ "control_plane_hardening_items_recorded_not_patched": [
+  "the audit persist step has no if: always(), so a 16 s audit-step death leaves no audit ref and no gate of record; the team persist step's if: always() is what rescued the tree (recorded; .github/** is control-plane scope and is NOT edited from a lane)",
+  "no automatic path re-dispatches a run whose team job succeeded but whose audit job died at invocation; supervisor wake via the resilience job plus a manual resume dispatch is the only route (recorded)",
+  "job logs are HTTP 403 unauthenticated from lane images, so step-level provider causes stay candidate sets in every diagnosis (recorded across many cycles)"
+ ],
+ "human_blocker": false,
+ "claim_ceiling": "This record DIAGNOSES the audit starvation of run 39092033997 from measured REST job/step facts and git ref facts, and verifies the byte integrity of the 39092033997 deliverable. It is NOT an independent audit gate, does NOT move any frozen bar, does NOT accept or overturn any Frontier verdict, and does NOT certify jurist usefulness. The specific provider cause of the 16 s audit-step death remains an un-loggable candidate set."
+}
