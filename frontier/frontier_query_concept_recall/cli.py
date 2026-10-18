@@ -126,12 +126,21 @@ def union_rows(base: list[dict], extra: list[dict]) -> list[dict]:
 
     No row is ever removed from ``base``: an id present in the baseline stays in
     the pool.  This is the only merge the layer performs.
+
+    Operational resume fix (2026-10-18): the dedup key is NORMALISED to a
+    single id (``canonical_decision_id`` when present, else ``decision_id``)
+    so a candidate row carrying the canonical id can never slip past a
+    baseline row that lacks the field (the served bundles' decisions do not
+    carry ``canonical_decision_id``).  On the frozen inputs this changes no
+    measured number - the it-responsabilita-medica candidate page has zero
+    decision_id overlap with its bundle and the leg pools carry the field on
+    both sides - but it closes the cross-shape duplicate hazard the previous
+    tuple key ``(canonical, decision_id)`` had.
     """
-    seen: set[tuple[str, str]] = set()
+    seen: set[str] = set()
     out: list[dict] = []
     for row in list(base) + list(extra):
-        key = (str(row.get("canonical_decision_id") or ""),
-               str(row.get("decision_id") or ""))
+        key = str(row.get("canonical_decision_id") or row.get("decision_id") or "")
         if key in seen:
             continue
         seen.add(key)
@@ -474,6 +483,28 @@ def run(bundles: dict[str, dict], out_dir: Path, *, offline: bool = False) -> di
                  "a question with zero under-covered concepts cannot be reduced further"),
     }
 
+    # How many retrieval cells did the A1 channel actually MOVE (pool grew)?
+    # This is the direct responsiveness witness for the vacuity adjudication:
+    # a broken harness would show 0 even when the search returned rows.
+    cells_with_added_rows = sum(
+        1 for v in served.values() if v["delta"]["n_rows_added"] > 0
+    ) + sum(
+        1 for v in legs.values() for c in v["per_language"].values()
+        if (c["A0_baseline_shipped"].get("n_rows") is not None
+            and c["A1_union"].get("n_rows") is not None
+            and c["A1_union"]["n_rows"] > c["A0_baseline_shipped"]["n_rows"])
+    )
+    cells_total = len(served) + sum(
+        len(v["per_language"]) for v in legs.values())
+    measurable_leg_cells = sum(
+        1 for v in legs.values() for c in v["per_language"].values()
+        if c["A0_baseline_shipped"]["measurable"])
+    missing_authority_ids = sorted({
+        aid for v in legs.values() for aid in (v.get("authority_ids") or [])})
+    recovered_ids = sorted({
+        nid for v in legs.values() for c in v["per_language"].values()
+        for nid in (c.get("newly_found_ids") or [])})
+
     cause = None
     if not outcome_a:
         returned = {
@@ -487,13 +518,16 @@ def run(bundles: dict[str, dict], out_dir: Path, *, offline: bool = False) -> di
         cause = {
             "one_bounded_cause": (
                 "TERM-ONLY EXPANSION QUERIES ARE TOO NARROW FOR THE OPENCASELAW "
-                "RELEVANCE INDEX. Each A1 search sent a bare 12-token mined vocabulary "
-                "with no natural-language question text, while every accepted baseline "
-                "query is a full sentence and returned 50/50 results. Measured: the "
-                "de-kapitalverletzung expansion returned HTTP 200 with 0 rows and the "
-                "fr-bail-entretien expansion 1 row; across all 12 measurable "
-                "(leg, language) cells the candidate-only channel recovered 0 of 9 "
-                "missing frozen authority ids and added none to any baseline pool."),
+                "RELEVANCE INDEX. Each A1 search sent a bare mined-vocabulary term "
+                "list (up to 12 tokens) with no natural-language question text, "
+                "while every accepted baseline query is a full sentence and "
+                "returned 50/50 results. Measured on the committed cache: the "
+                "de-kapitalverletzung expansion returned HTTP 200 with 0 rows, the "
+                "fr-bail-entretien expansion 1 row, and the corporate-criminal-"
+                "liability::fr expansion 0 rows; across all measurable "
+                f"(leg, language) cells the candidate-only channel recovered "
+                f"{len(recovered_ids)} of {len(missing_authority_ids)} missing "
+                "frozen authority ids."),
             "evidence": {
                 "served_n_results_of_50": returned["served"],
                 "served_zero_result_queries": empty,
@@ -501,9 +535,13 @@ def run(bundles: dict[str, dict], out_dir: Path, *, offline: bool = False) -> di
                 "candidate_only_recall_non_zero_cells": sum(
                     1 for v in legs.values() for c in v["per_language"].values()
                     if (c["A1_candidate_only"]["recall"] or 0) > 0),
-                "measurable_cells": sum(
-                    1 for v in legs.values() for c in v["per_language"].values()
-                    if c["A0_baseline_shipped"]["measurable"]),
+                "measurable_cells": measurable_leg_cells,
+                "mechanism_witness_cells_with_added_rows": cells_with_added_rows,
+                "mechanism_witness_cells_total": cells_total,
+                "latency_note": (
+                    "the same bare-term composition is also SLOW: the original live "
+                    "calls (disclosed in latency_budget.per_search_calls) include "
+                    "breaches of the frozen <30 s per-search budget, up to 83.5 s"),
                 "accepted_baseline_queries_returning_50_of_50": True,
             },
             "what_this_does_not_claim": (
@@ -534,18 +572,36 @@ def run(bundles: dict[str, dict], out_dir: Path, *, offline: bool = False) -> di
         "vacuity_reading": (
             "the frozen non-vacuity rule requires a blanked expansion to score STRICTLY "
             "BELOW the candidate. The candidate recovered nothing, so blanked ties it and "
-            "the rule reports vacuous=True; under the charter's literal wording this run "
-            "is void as a PROMOTION run. The measurement itself is responsive - the A1 "
-            "channel changed the pooled row count on 11 of 15 queries - so the tie is a "
-            "true non-improvement, not a broken harness. The negative verdict does not "
-            "depend on this rule: improved_fr_it_cells is 0 and reduced questions is 0 "
-            "regardless."),
+            "the rule reports vacuous=True; under the charter's literal tie clause this "
+            "would void a PROMOTION run. Adjudication, recorded rather than smoothed over: "
+            "(a) the tie is a TRUE NULL, not a broken harness - the A1 channel changed the "
+            f"pooled row count on {cells_with_added_rows} of {cells_total} retrieval cells "
+            "(served questions and legs), so the pooling and scoring machinery registers "
+            "improvements when the search returns them; (b) the A3 shuffled control passed "
+            "on every served question (no coverage raised on the target); (c) the frozen "
+            "RULES.json thresholds route ANY failure of an outcome-A criterion, including "
+            "this vacuity tie, to OUTCOME_B_BOUNDED_NEGATIVE, whose own charter definition "
+            "describes exactly the true-null case ('no in-budget deterministic expansion "
+            "recovers the missing concepts or authority ids'); (d) regression_suite.py "
+            "test_metric_sensitivity_non_vacuity proves the coverage and recall axes "
+            "register an injected improvement directly. The negative verdict does not "
+            "depend on the vacuity rule: improved_fr_it_cells is 0 and reduced questions "
+            "is 0 regardless."),
         "bounded_cause": cause,
     }
 
     # ================================================================== #
     # 8. Latency budget
     # ================================================================== #
+    # Operational resume fix (2026-10-18): a duplicated ``verdict = {...}``
+    # block previously OVERWROTE the rich verdict above with a truncated copy
+    # whose ``"outcome": outcome`` bound a live ``oci.SearchOutcome`` object,
+    # crashing ``json.dumps`` at write time (TypeError: Object of type
+    # SearchOutcome is not JSON serializable).  That crash is the operational
+    # failure of producer snapshot 39168288007: measurement completed, results
+    # were never written, and the team state stayed INCOMPLETE.  The rich
+    # verdict (with outcome_a_structural_analysis, vacuity_reading and
+    # bounded_cause) is the single verdict now; ``outcome`` is a string.
     live_calls = list(cache.disclosed)
     latencies = [c["latency_seconds"] for c in live_calls]
     max_latency = max(latencies) if latencies else 0.0
@@ -566,6 +622,13 @@ def run(bundles: dict[str, dict], out_dir: Path, *, offline: bool = False) -> di
         "n_calls_over_per_search_budget": sum(
             1 for c in live_calls if c["latency_seconds"] >= oci.PER_SEARCH_BUDGET_S),
         "per_search_calls": sorted(live_calls, key=lambda c: -c["latency_seconds"]),
+        "original_live_calls_sum_latency_seconds": round(sum(latencies), 3),
+        "original_live_pass_wall_reconstructable": False,
+        "original_live_pass_note": (
+            "cache envelopes persist each call's own latency_seconds but not the "
+            "concurrent live-pass wall clock, so the <240 s full-pass gate cannot "
+            "be re-verified from the cache alone; the per-search gate IS "
+            "re-verifiable and is evaluated below on the ORIGINAL measured times"),
         "disclosure": ("candidate expansion queries are new query text and are never in "
                        "the accepted cache; every added call is listed above with the wall "
                        "time measured when it was actually issued, including on a cached "
@@ -574,24 +637,16 @@ def run(bundles: dict[str, dict], out_dir: Path, *, offline: bool = False) -> di
             None if max_latency < oci.PER_SEARCH_BUDGET_S else
             "PER-SEARCH BUDGET BREACHED: the candidate layer's added searches took up to "
             f"{round(max_latency, 1)}s against a frozen <{oci.PER_SEARCH_BUDGET_S}s per-search "
-            "limit; a cached replay costs no network but does not make the original call "
-            "cheaper, so this is a property of the layer and not of the replay"),
+            "limit "
+            f"({sum(1 for c in live_calls if c['latency_seconds'] >= oci.PER_SEARCH_BUDGET_S)} "
+            f"of {len(live_calls)} added calls over budget, measured sum "
+            f"{round(sum(latencies), 1)}s); a cached replay costs no network but does not "
+            "make the original call cheaper, so this is a property of the layer and not "
+            "of the replay"),
     }
-
-    verdict = {
-        "outcome": outcome,
-        "accepted_baseline_reproduced": repro_ok,
-        "required_fr_it_cells": 2,
-        "failing_fr_it_cells_total": len(failing_cells),
-        "improved_fr_it_cells": len(improved_cells),
-        "improved_fr_it_cell_names": improved_cells,
-        "failing_fr_it_cell_names": failing_cells,
-        "required_reduced_questions": 2,
-        "reduced_under_covered_questions": len(reduced),
-        "reduced_under_covered_names": reduced,
-        "any_vacuous": any_vacuous,
-        "regressed_gates": any_regression,
-    }
+    verdict["latency_budget_breach_named"] = budget["budget_breach_named"]
+    verdict["n_calls_over_per_search_budget"] = budget["n_calls_over_per_search_budget"]
+    verdict["transport_all_ok"] = transport_ok
 
     record = {
         "schema": "frontier_query_concept_recall.harness_results.v2",
@@ -623,8 +678,22 @@ def run(bundles: dict[str, dict], out_dir: Path, *, offline: bool = False) -> di
 
 
 def _outcome_from_env(query: str, env: dict[str, Any], cache: oci.Cache) -> oci.SearchOutcome:
+    """Replay one cached envelope, DISCLOSING the originally measured latency.
+
+    Operational resume fix (2026-10-18): the previous offline path silently
+    dropped ``latency_seconds`` from the cache envelope, so a cached replay
+    reported ``per_search_observed_max_seconds = 0.0`` and the frozen <30 s
+    per-search budget appeared to hold even though the original live calls
+    had breached it.  The frozen budget is a property of the layer, not of
+    the replay, so every replay now discloses the original wall time exactly
+    as :func:`frontier_query_concept_recall.oci.search` does on a cache hit.
+    """
     rows, total = oci._rows_from(str(env.get("body") or "{}"))
     cache.hits += 1
+    measured = float(env.get("latency_seconds") or 0.0)
+    cache.disclosed.append({"query": query, "status": int(env.get("status") or 200),
+                            "latency_seconds": round(measured, 3),
+                            "from_cache": True, "originally_live": True})
     return oci.SearchOutcome(query, str(env.get("url")), int(env.get("status") or 200),
                              rows, total, 0.0, True)
 
