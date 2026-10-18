@@ -9,16 +9,19 @@
     "results/evaluation/retrieval_benchmark/39098571937.json",
     "results/evaluation/frozen_bar_gates/39098571937.json",
     "results/evaluation/label_lineage_gate/39020603510_sweep.json",
-    "results/evaluation/retrieval_counter_authority_benchmark/39098571937.json",
-    "results/evaluation/rebuild_preflight_39033797087/39033797087_preflight.json"
+    "results/evaluation/rebuild_preflight_39033797087/39033797087_preflight.json",
+    "reports/evaluation/RETRIEVAL_CA_BENCHMARK_39147198313.md",
+    "results/evaluation/retrieval_counter_authority_benchmark/39147198313.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39147198313_leg1_served_baseline.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39147198313_leg2_hostile_geometry.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39147198313_leg3_blanked_evidence.json"
   ],
-  "next_recommendation": "MINIMAL GATE-ABLE DELIVERABLE SHIPPED AND VERIFIED. Frozen retrieval benchmark (offline cached replay) executes in ~0.09s: cached reproducibility PASS, all 24 queries transport OK, authority recall FAIL for 3/4 questions in fr/it (expected falsification of plain OpenCaseLaw baseline), duplicate IDs detected in 3/4 questions, counter limiting marker not verified for corporate-criminal-liability. Frozen bar gates (label + geometry) execute in ~5.5s: PASS_NO_REGRESSION on served-packet lineage (input shas match accepted LABEL_HALF), negative controls proven, absolute status LABEL_UNSOUND / GEOMETRY_UNSOUND reported not enforced per direction v50. Label lineage gate sweep executes in ~13s: ALL_PREDICTIONS_HELD on frozen hypothesis. Retrieval/counter-authority falsification benchmark: BENCHMARK_VALID_NO_FALSIFICATION. Total wall time << 2700s quantum. Audit job gated on needs.team==success can run. Verification run 39147198313 confirms all components executable and results reproducible. NO further same-question cycles justified.",
+  "next_recommendation": "MINIMAL GATE-ABLE DELIVERABLE SHIPPED; VERIFICATION RUN 39147198313 MEASURES A DIVERGENCE, NOT A REPRODUCTION, OF THE ACCEPTED RUN OF RECORD. Frozen retrieval benchmark (offline cached replay) executes in ~0.09s with cached reproducibility PASS and all 24 queries transport OK; the verifying run measures 23 passed / 11 failed / 6 not_measurable against the accepted run of record 39098571937's 24/10: ONE additional falsification (duplicate::unique_ids::rent-default; rent-default per-slug passed True -> False). Root cause measured from committed bytes: the retrieval cache generation for baseline:rent-default:fr moved 6495719b8f2f (b81ab1a2, used by 39098571937) -> 6de4f533ab2b (67a884e2, cycle 39104154685 repair 2, no cycle report and no audit gate on that branch), so the accepted 24/10 is not reproducible from the committed tree; the 23/11 reading is stable across 39101217095, 39115755033, 39117425713 and 39147198313. Frozen bar gates (label + geometry) execute in ~5.6s: PASS_NO_REGRESSION on served-packet lineage, negative controls proven, absolute status LABEL_UNSOUND / GEOMETRY_UNSOUND reported not enforced. Label lineage gate sweep executes in ~10.9s: ALL_PREDICTIONS_HELD. Retrieval/counter-authority falsification benchmark: BENCHMARK_VALID_NO_FALSIFICATION. Total verification wall time 49.874s (instrumented components) << 2700s quantum. Audit job gated on needs.team==success can run. NO further same-question cycles justified.",
   "frozen_retrieval_benchmark": {
     "run_id": "39098571937",
-    "verified_run_id": "39147198313",
     "mode": "offline_replay",
-    "pass_a_wall_seconds": 0.044,
-    "pass_b_wall_seconds": 0.042,
+    "pass_a_wall_seconds": 0.068,
+    "pass_b_wall_seconds": 0.068,
     "overall_pass": false,
     "n_passed": 24,
     "n_failed": 10,
@@ -33,11 +36,36 @@
     },
     "claim_ceiling": "measures retrieval reachability, source validity, duplicate suppression, cross-language robustness, counter reachability, latency and cached reproducibility of independent OpenCaseLaw searches for frozen questions; cannot show map usefulness, never re-classifies decisions"
   },
+  "frozen_retrieval_benchmark_verification_39147198313": {
+    "run_id": "39147198313",
+    "mode": "offline_replay",
+    "pass_a_wall_seconds": 0.044,
+    "pass_b_wall_seconds": 0.042,
+    "overall_pass": false,
+    "n_passed": 23,
+    "n_failed": 11,
+    "n_not_measurable": 6,
+    "verdict": "NOT REPRODUCED - DIVERGENT (1 additional falsification)",
+    "additional_falsification": "duplicate::unique_ids::rent-default (rent-default per-slug passed True -> False vs the accepted run of record)",
+    "findings_that_do_reproduce": [
+      "cached-replay identity: reproducible::cached_second_pass_identical PASS (identical raw sha256 + ordered ID lists on 24/24 queries)",
+      "transport: 24/24 queries OK"
+    ],
+    "divergence_cause": "cache generation for baseline:rent-default:fr moved 6495719b8f2f (b81ab1a2, cycle 39101217095 repair 1; used by accepted run 39098571937) -> 6de4f533ab2b (67a884e2, cycle 39104154685 repair 2, no cycle report and no audit gate on that branch). The accepted run of record is NOT reproducible from the committed tree.",
+    "divergence_cross_reference": "repair_39101217095/F2_cache_provenance discloses the earlier cache overwrite at b81ab1a2 (20/24 cache files re-fetched live during run 39101217095)",
+    "stable_across_runs": ["39101217095", "39115755033", "39117425713", "39147198313"],
+    "key_findings": {
+      "authority_recall_fr_it": "FAIL for corporate-criminal-liability, business-judgment-rule, petty-theft-dismissal (rent-default not measurable: frozen reality benchmark carries no controlling-authority set)",
+      "duplicate_ids": "FAIL for 4/4 questions (rent-default, corporate-criminal-liability, business-judgment-rule, petty-theft-dismissal)",
+      "counter_limiting_marker": "FAIL for corporate-criminal-liability",
+      "latency": "not measurable in offline mode"
+    },
+    "record": "results/evaluation/retrieval_benchmark/39147198313.json"
+  },
   "frozen_bar_gates": {
     "run_id": "39098571937",
-    "verified_run_id": "39147198313",
     "mode": "served_lineage",
-    "elapsed_seconds": 5.563,
+    "elapsed_seconds": 7.417,
     "verdict": "PASS_NO_REGRESSION",
     "input_shas_match_accepted": true,
     "label_gate": {
@@ -68,29 +96,47 @@
     },
     "negative_controls_all_proven": true
   },
+  "frozen_bar_gates_verification_39147198313": {
+    "run_id": "39147198313",
+    "mode": "served_lineage",
+    "elapsed_seconds": 5.563,
+    "verdict": "PASS_NO_REGRESSION",
+    "input_shas_match_accepted": true,
+    "environment": "producer-context only: packet_dir /tmp/lex_accepted/product/results/product/gate_packet/38839347028/questions (ephemeral out-of-repo mount, absent in audit environments)",
+    "record": "results/evaluation/frozen_bar_gates/39147198313.json",
+    "independently_re_derivable": "run_bar_gates --adjudicate on the vendored rebuilt packet (results/evaluation/rebuilt_packet_adjudication_39049030442/packet/questions) reproduces the sweep exactly from committed bytes"
+  },
   "label_lineage_gate": {
     "run_id": "39020603510",
     "verified_run_id": "39147198313",
     "mode": "sweep",
-    "elapsed_seconds": 12.9,
+    "elapsed_seconds": 10.907,
     "verdict": "SWEEP_COMPLETE",
     "frozen_prediction_verification": "ALL_PREDICTIONS_HELD",
     "n_in_scope_packets": 4,
     "parity_summary": {
       "label_geometry_parity_achieved": false,
       "packets_where_lineage_and_geometry_disagree": ["38812599575"]
-    }
+    },
+    "environment": "producer-context only: sweep reads the ephemeral mount /tmp/lex_accepted/product/...",
+    "verification_record": "results/evaluation/label_lineage_gate/39147198313_sweep.json"
   },
   "retrieval_counter_authority_benchmark": {
-    "run_id": "39098571937",
-    "verified_run_id": "39147198313",
+    "run_id": "39147198313",
     "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
     "falsification_proven": true,
     "legs": {
-      "served_baseline": {"exit_code": 0, "verdict": "PASS_NO_REGRESSION"},
-      "geometry_falsification": {"exit_code": 1, "verdict": "FAIL_REGRESSION"},
-      "label_falsification": {"exit_code": 1, "verdict": "FAIL_REGRESSION"}
-    }
+      "served_baseline": {"exit_code": 0, "verdict": "PASS_NO_REGRESSION", "packet_dir": "/tmp/lex_accepted/product/results/product/gate_packet/38839347028/questions", "elapsed_s": 5.548},
+      "geometry_falsification": {"exit_code": 1, "verdict": "FAIL_REGRESSION", "packet_dir": "/tmp/ca_bench_geom_moys2occ/hostile_geometry", "elapsed_s": 5.589},
+      "label_falsification": {"exit_code": 1, "verdict": "FAIL_REGRESSION", "packet_dir": "/tmp/ca_bench_label_eckalsdz/blanked_evidence", "elapsed_s": 5.555}
+    },
+    "environment": "producer-context only: leg 1 reads the ephemeral /tmp/lex_accepted/product mount; legs 2-3 read ephemeral /tmp/ca_bench_* packets generated this cycle; none is independently re-executable from committed bytes",
+    "records": [
+      "results/evaluation/retrieval_counter_authority_benchmark/39147198313_leg1_served_baseline.json",
+      "results/evaluation/retrieval_counter_authority_benchmark/39147198313_leg2_hostile_geometry.json",
+      "results/evaluation/retrieval_counter_authority_benchmark/39147198313_leg3_blanked_evidence.json"
+    ],
+    "report": "reports/evaluation/RETRIEVAL_CA_BENCHMARK_39147198313.md"
   },
   "rebuild_preflight": {
     "run_id": "39033797087",
@@ -99,9 +145,21 @@
     "success_rule_holds": false,
     "legs_as_predicted": ["A_identity_control", "B_population_plus_one", "C_preserved_population_blanked_evidence", "D_geometry_still_enforcing_on_changed_population"],
     "legs_falsified": ["E_refusal_negative_control"],
-    "note": "Leg E falsification (run_bar_gates exits 0 on zero-counter-row packet) is a documented freeze prediction falsification, not a gate defect. The accepted two-bar enforcement envelope is measured and disclosed."
+    "note": "Leg E falsification (run_bar_gates exits 0 on zero-counter-row packet) is a documented freeze prediction falsification, not a gate defect. The accepted two-bar enforcement envelope is measured and disclosed.",
+    "environment": "producer-context only: preflight adjudicate legs read the ephemeral /tmp/lex_accepted/product mount",
+    "verification_record": "results/evaluation/rebuild_preflight_39147198313/39147198313_preflight.json"
   },
-  "total_verification_wall_seconds": 22.0,
+  "total_verification_wall_seconds": 49.874,
+  "total_verification_wall_derivation": {
+    "frozen_retrieval_benchmark_39147198313": "0.044 + 0.042 = 0.086 (pass_a_wall_seconds + pass_b_wall_seconds)",
+    "frozen_bar_gates_39147198313": "5.563 (elapsed_s)",
+    "label_lineage_gate_39147198313": "10.907 (elapsed_s)",
+    "retrieval_counter_authority_benchmark_39147198313": "16.906 (elapsed_s)",
+    "rebuild_preflight_39147198313": "16.412 (legs A+B+C elapsed_s 5.514 + 5.518 + 5.380; legs D and E record no elapsed_s and are labelled not-instrumented)",
+    "sum_seconds": 49.874
+  },
   "quantum_budget_seconds": 2700,
-  "audit_ready": true
+  "audit_ready": true,
+  "audit_ready_qualification": "the deliverable executes well inside the 2700s quantum and the audit job can run; BUT four of five verified components (served-lineage bar gates, label-lineage sweep, rebuild preflight, CA-benchmark leg 1) read the ephemeral out-of-repo mount /tmp/lex_accepted/product/... and their executed/reproduced status is producer-context only. Independently re-derivable from committed bytes: the retrieval cached replay, and run_bar_gates --adjudicate on the vendored rebuilt packet.",
+  "verification_report": "reports/evaluation/VERIFICATION_RUN_39147198313.md"
 }
