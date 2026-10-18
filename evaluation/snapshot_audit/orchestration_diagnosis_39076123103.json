@@ -1,0 +1,97 @@
+{
+  "schema": "lex-evaluation-orchestration-diagnosis/1",
+  "run_id": "39079133613",
+  "lane": "evaluation",
+  "direction_version": 55,
+  "subject_of_resume": "39076123103 (Core evaluation dirV55 repair1)",
+  "generated_at_utc": "2026-10-17T23:38:00Z",
+  "query_method": "HYBRID. The GitHub REST API (GET /repos/Mickalive/LexMachina/actions/runs/{id} and /jobs) IS reachable from this checkout and returns the run/job/step FACTS below unauthenticated (public repo; re-probed this run: GET .../runs/39076123103 and .../jobs both HTTP 200). Job LOGS remain HTTP 403 unauthenticated (re-probed this run: GET .../runs/39076123103/logs -> 403), so every statement about WHY the producer step ended is an INFERENCE from the measured duration arithmetic and the persisted tree, never a read log line.",
+  "run_facts_measured_via_rest_api": {
+    "run_id": 39076123103,
+    "name": "Core evaluation dirV55 repair1",
+    "event": "workflow_dispatch",
+    "status": "completed",
+    "conclusion": "failure",
+    "run_attempt": 1,
+    "head_sha": "6763db76d8003a10f78f7641f4c2df8c4d36561",
+    "created_at": "2026-10-17T22:41:57Z",
+    "updated_at": "2026-10-17T23:28:07Z",
+    "team_job": {
+      "started_at": "2026-10-17T22:42:04Z",
+      "completed_at": "2026-10-17T23:27:54Z",
+      "conclusion": "failure",
+      "steps": {
+        "step_6_run_lane_cycle": "22:42:46Z -> 23:27:49Z = 2703s (measured: 2703.0s), conclusion=failure",
+        "step_7_validate_active_mvp_producer_state": "skipped (success()-gated)",
+        "step_9_enforce_lane_write_scope": "skipped (success()-gated)",
+        "step_10_persist_team_snapshot": "23:27:49Z -> 23:27:52Z, conclusion=success (if: always())"
+      }
+    },
+    "audit_job": "skipped (needs.team + if needs.team.result == 'success'; team failed)",
+    "integrate_job": "skipped",
+    "resilience_job": "success 23:27:57Z -> 23:28:05Z; recovered the failed chain and dispatched the next repair round (this run, 39079133613)",
+    "audit_ref_present_on_origin": false,
+    "newest_evaluation_audit_ref_on_origin": "cycle/core/evaluation/39064597912/audit (commit f150115a, gate=REVISE, R1-R3); the refs for 39069756168, 39072968899 and 39076123103 do not exist"
+  },
+  "tree_evidence": {
+    "subject_team_ref": "origin/cycle/core/evaluation/39076123103/team",
+    "subject_team_head": "b90dca4bf760d7c7d50bfec19d2d21bdccbeec79",
+    "subject_team_commit_subject": "evaluation cycle 39076123103 repair 1",
+    "subject_team_commit_authored_at_utc": "2026-10-17T23:27:49Z",
+    "subject_team_committer": "lex-evaluation-team <lex-team@autonomous.local>",
+    "parent_commit": "71ab19281cd89b7e37b83845c8fc4eb12ada4186 (evaluation cycle 39072968899 repair 1)",
+    "delta_vs_parent": [
+      "A evaluation/snapshot_audit/orchestration_diagnosis_39072968899.json",
+      "M evaluation/snapshot_audit/run_snapshot_audit.py (+21: deliverable-manifest paths and claim notes for the 390769756168/39072968899 resumes and this run)",
+      "A reports/evaluation/CYCLE_39076123103.md",
+      "A results/evaluation/lane_suite/39076123103.json",
+      "A results/evaluation/orchestration_39076123103/local_evidence_manifest.json",
+      "A results/evaluation/snapshot_audit/39076123103.json",
+      "M state/evaluation.json",
+      "M tests/evaluation/test_audit_correction_verification.py (R1: direction pin 52 -> 55)"
+    ],
+    "subject_snapshot_audit_record": "results/evaluation/snapshot_audit/39076123103.json reads READY (20/20 checks PASS) with post_write_self_reference VERIFIED and post_write_state_claim VERIFIED",
+    "reading": "the 39076123103 tree carries the COMPLETE producer deliverable (diagnosis of 39072968899, R1-R3 fixes, NO_NEW_PACKET re-verification, snapshot audit READY, state, report) and NOTHING that follows a completed cycle in the control plane: no CYCLE_39076123103 audit ref, no accept commit. The producer wrote every in-cycle artifact and then the step ended non-zero."
+  },
+  "findings": {
+    "F1_post_delivery_producer_death_at_work_quantum_THIRD_tree": {
+      "holds": true,
+      "measured": "producer step 6 'Run lane cycle' ran 22:42:46Z -> 23:27:49Z = 2703s (measured 2703.0s) and was killed at the 2700s work quantum (+3s overhead). 2703s is the SAME signature as runs 39060704006 (2704s) and 39072968899 (2704s), both already on record. The cause (LEX_WORK_QUANTUM_EXPIRED) is an INFERENCE from the duration arithmetic; job logs are HTTP 403 (re-probed this run).",
+      "reading": "the producer step's rc was non-zero AFTER writing a durable delta (8 files). This is the post-delivery audit-starvation class, NOT a zero-delta immediate death. The agent completed its work (snapshot audit READY 20/20, report written) and the quantum killed the step before it could exit 0. With this subject, FIVE delivered producer trees now sit ungated on origin (39049030442 c3c04285, 39052477458 d01a2d4d7, 39060704006 67d2910a, 39072968899 71ab1928, 39076123103 b90dca4b) and the newest evaluation audit ref remains 39064597912 (f150115a)."
+    },
+    "F2_audit_starvation_is_the_validation_failure": {
+      "holds": true,
+      "measured": "core-lane.yml gates the audit job on `needs.team.result == 'success'`; the team job's result is the producer step's result. A producer step killed at the quantum after writing its deliverable therefore skips the audit and leaves the tree UNGATED. No cycle/core/evaluation/39076123103/audit ref exists on origin.",
+      "why": "the exact structural defect recorded in evaluation/snapshot_audit/orchestration_diagnosis_39064497606.json (F4), in the 39072968899 report section 1a, in the 39076123103 report section 1a, and in v55 factory-wide requirement 20. The route-around is to complete the producer step with rc 0 and a durable delta so the audit job runs.",
+      "consequence": "the dirV55 question is answered in the delivered trees but cannot be promoted without a gate. This cycle is that route-around."
+    },
+    "F3_subject_deliverable_is_complete_and_consistent": {
+      "holds": true,
+      "evidence": "the 39076123103 snapshot audit record reads READY 20/20 with both post-write checks VERIFIED; state/evaluation.json reads proposed_run_id=39076123103 with the snapshot_audit_39076123103 block (20/20 READY); the report headline matches. The producer's work is internally consistent and green.",
+      "reading": "nothing about the subject's WORK is defective; the failure is purely the missing gate caused by the post-delivery quantum death."
+    },
+    "F4_no_binding_audit_fixes_remain_unapplied": {
+      "holds": true,
+      "measured": "the binding R1-R3 fixes from audit CYCLE_39064597912 (REVISE) were applied by the subject tree itself (tests/evaluation/test_audit_correction_verification.py pin 52 -> 55; the pytest-conditional RED disclosure in state and report; state provenance hygiene). The only open audit in this chain is the REVISE of the PRIOR resume (39064597912), whose fixes are applied; no gate exists yet for 39072968899 or 39076123103. frontier-rebuilt-packet-serve-audit stays portfolio status=RUN accepted_run_id=null, so direction OUTCOME-B route-around has NOT triggered.",
+      "reading": "the concrete durable delta for this cycle is NOT a repair list; it is the resume itself: complete the producer step with rc 0 and a durable delta so the audit job produces results/audit/evaluation/CYCLE_39079133613_GATE.json."
+    }
+  },
+  "routearound_executed_this_cycle": {
+    "what": "an operational-resume cycle on the persisted producer snapshot b90dca4b of run 39076123103: diagnose the post-delivery quantum death (2703s) and the audit-starvation consequence (this record), re-verify NO_NEW_PACKET by set relation against the unchanged product head 03a4cabb, re-run the lane suite and the snapshot-audit verifier, publish a fresh snapshot-audit READY record for run 39079133613, update state and the cycle report, and COMMIT so the producer step exits 0 and the audit job produces results/audit/evaluation/CYCLE_39079133613_GATE.json.",
+    "not_done": [
+      ".github/** not edited (control-plane scope; the success()-gate on the audit job is recorded as a control-plane hardening item)",
+      "no frozen rubric/threshold/bar/success rule/recorded verdict touched",
+      "no byte-identical re-measurement of the label_gate instrument as an ADJUDICATION of the rebuilt packet (the accepted snapshot-audit tool re-executes run_bar_gates internally as its own checks 2/3)",
+      "no frozen reality benchmark re-run",
+      "no universal-174k benchmark re-run",
+      "no candidate rebuilt (classifier and layout builds stay closed Frontier work)"
+    ]
+  },
+  "human_blocker": false,
+  "control_plane_hardening_items_recorded_not_patched": [
+    "core-lane.yml gates the audit job on the producer step's success; a post-delivery producer death at the work quantum therefore leaves a COMPLETE deliverable ungated. Measured again this run: the 39076123103 producer step died at 2703s after persisting b90dca4b, and no audit ref exists. FIVE delivered trees are now ungated. Intended upstream fix for the control-plane maintainer: allow the audit job to run `if: always() && needs.team.outputs.deliverable_present == 'true'` (or gate on the persist step's commit existing), never on the producer step alone.",
+    "job LOGS remain HTTP 403 unauthenticated for these runs (re-probed this run: GET .../runs/39076123103/logs -> 403), so every failed-step cause stays an INFERENCE; an artifact-preserving log upload inside run-ox-with-retry.sh would convert this class of diagnosis from inference to fact.",
+    "the supervisor's 'exhausted same-charter work' jq '//' dead-code guard (v55 factory-wide requirement 13) remains unpatched; the durable stop is the portfolio .status field, which a lane cannot set."
+  ],
+  "claim_ceiling": "This record DIAGNOSES a post-delivery producer death at the work quantum (2703 s, measured) from the measured REST job facts and the persisted tree, and records the audit-starvation consequence. It is NOT an independent audit gate, does NOT move any frozen bar, does NOT accept any Frontier verdict, and does NOT certify jurist usefulness."
+}
