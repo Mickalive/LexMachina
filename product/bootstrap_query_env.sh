@@ -59,4 +59,8 @@ specs=(); for e in "${PINNED[@]}"; do specs+=("${e%% *}"); done
 "$PY" -m pip install --user --quiet "${specs[@]}"
 echo
 echo "re-checking..."
-exec "$PY" "${REPO_ROOT}/product/bootstrap_query_env.sh" --check
+# Re-check with BASH, not with $PY: this file is a bash script (set -euo
+# pipefail at line 15), so handing it to the Python interpreter makes the
+# remedy path die with SyntaxError right after a successful install - the
+# exact defect the 39128456801 audit (F3) re-measured empirically.
+exec bash "${REPO_ROOT}/product/bootstrap_query_env.sh" --check

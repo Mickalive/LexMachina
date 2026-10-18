@@ -12,7 +12,10 @@ Cycle 39128456801.  Two things are guarded:
 """
 from __future__ import annotations
 
+import ast
+import copy
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -166,3 +169,156 @@ def test_shipped_live_slice_artifact_is_self_consistent():
         assert data["verdict"] in {"PASS", "FAIL"}
         if data["verdict"] == "FAIL":
             assert data["n_failed_checks"], data
+
+
+# ---------------------------------------------------------------------------
+# F1/F2 (audit CYCLE_39132612111): run()/main() must EXECUTE end-to-end.
+# The 39128456801 resume dropped the pipeline import from run(), so every
+# invocation died with NameError before any network I/O while 13 unit tests
+# stayed green - and _cache_fingerprint() kept probing the TRACKED cache root
+# while run() redirected only the pipeline adapter, so the recommended
+# freshness mode self-FAILed.  These tests execute the real main() with a
+# monkeypatched network so a recurrence can never again hide behind green
+# unit tests.
+# ---------------------------------------------------------------------------
+
+_FIXTURE_BUNDLE = (REPO_ROOT / "results" / "product" / "offline_slice" /
+                   "20261018T101000Z" / "rent-default.bundle.json")
+
+
+def _fresh_refresh_bundle() -> dict:
+    """The verified offline fixture, re-provenanced as a refresh-mode result.
+
+    The page/answer/map content is byte-faithful to the verified bundle; only
+    the retrieval provenance is rewritten to what a genuine refresh leg
+    reports (mode=refresh, zero cache hits, >0 network calls), because those
+    are the fields the instrument's freshness checks read.
+    """
+    bundle = copy.deepcopy(json.loads(_FIXTURE_BUNDLE.read_text(encoding="utf-8")))
+    remote = bundle["provenance"]["retrieval"]["remote"]
+    remote["mode"] = "refresh"
+    remote["request_summary"] = {
+        "cache_hits": 0, "network_calls": 1, "requests_logged": 1, "failures": 0,
+    }
+    remote["cache_stats"] = {"hits": 0, "misses": 1, "writes": 1}
+    remote["degraded"] = False
+    return bundle
+
+
+def test_main_executes_end_to_end_with_a_monkeypatched_refresh(tmp_path, monkeypatch):
+    """F1: main() runs run()/main() for real; a dropped import fails this test.
+
+    The network is monkeypatched at the pipeline seam (exactly where run()
+    imports it), so this is hermetic and deterministic - but every other line
+    of main()/run() executes, including the freshness probe, the bundle
+    contract validation and the artifact write.
+    """
+    from product.query import pipeline
+
+    fixture = _fresh_refresh_bundle()
+
+    def fake_initial(query, *, top_n=150, retrieval_mode="live"):
+        assert retrieval_mode == "refresh", retrieval_mode
+        # Simulate the adapter writing a cache entry into the root the
+        # PIPELINE module resolves - the same name run() redirects under
+        # --ephemeral-cache.  The independent probe must see this file.
+        root = pipeline.product_cache_dir()
+        root.mkdir(parents=True, exist_ok=True)
+        (root / "fake_envelope.json").write_text("{}", encoding="utf-8")
+        return copy.deepcopy(fixture)
+
+    def fake_enrich(initial, *, retrieval_mode="live", evidence_count=12, **kw):
+        assert retrieval_mode == "refresh", retrieval_mode
+        return copy.deepcopy(initial)
+
+    monkeypatch.setattr(pipeline, "run_query_initial", fake_initial)
+    monkeypatch.setattr(pipeline, "enrich_query_bundle", fake_enrich)
+    # run() mutates pipeline.product_cache_dir in place; register the module
+    # attribute with monkeypatch so the original is restored at teardown.
+    monkeypatch.setattr(pipeline, "product_cache_dir", pipeline.product_cache_dir)
+    out_dir = tmp_path / "live_slice"
+    monkeypatch.setattr(live_slice, "OUT_DIR", out_dir)
+
+    rc = live_slice.main(["--run-id", "F1_E2E", "--n", "100", "--ephemeral-cache"])
+    assert rc == 0, "main() must PASS every freshness/contract check"
+    record = json.loads((out_dir / "F1_E2E.json").read_text(encoding="utf-8"))
+    assert record["verdict"] == "PASS", record["n_failed_checks"]
+    assert record["retrieval_mode_served"] == "refresh"
+    # F2: under --ephemeral-cache the probe must fingerprint the REDIRECTED
+    # root (where the fake adapter wrote), not the tracked product cache.
+    probe = record["freshness"]["independent_cache_probe"]
+    assert probe["n_files_touched"] == 1, probe
+    assert probe["files_added"] == ["fake_envelope.json"], probe
+    assert probe["cache_dir"] != "results/product/query_cache", probe
+    assert record["cache_root"].startswith("ephemeral"), record["cache_root"]
+    assert record["checks"]["independent_probe_saw_the_network"] is True
+    assert (out_dir / "F1_E2E_bundle.json").is_file()
+
+
+def test_run_imports_every_pipeline_name_it_calls():
+    """Static twin of the e2e test: both names must be IMPORTED inside run().
+
+    The e2e test above is the behavioural guard; this AST check names the
+    exact defect (a bare call to a name that is neither imported nor defined)
+    so a failure message points straight at it.
+    """
+    tree = ast.parse(Path(live_slice.__file__).read_text(encoding="utf-8"))
+    run_fn = next(n for n in ast.walk(tree)
+                  if isinstance(n, ast.FunctionDef) and n.name == "run")
+    imported: set[str] = set()
+    for node in ast.walk(run_fn):
+        if isinstance(node, ast.ImportFrom):
+            imported.update(a.asname or a.name for a in node.names)
+    used = {n.id for n in ast.walk(run_fn)
+            if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load)}
+    for name in ("run_query_initial", "enrich_query_bundle"):
+        assert name in imported, f"{name} is called but not imported inside run()"
+
+
+def test_cache_fingerprint_fingerprints_the_root_it_is_given(tmp_path):
+    """F2 unit-level: the probe honours an explicit root (the redirected one)."""
+    root_a, root_b = tmp_path / "a", tmp_path / "b"
+    root_a.mkdir(); root_b.mkdir()
+    (root_a / "tracked.json").write_text("{}", encoding="utf-8")
+    (root_b / "ephemeral.json").write_text("{}", encoding="utf-8")
+    assert live_slice._cache_fingerprint(root_a) == {"tracked.json": 2}
+    assert live_slice._cache_fingerprint(root_b) == {"ephemeral.json": 2}
+
+
+def test_bootstrap_install_path_re_checks_with_bash_and_succeeds(tmp_path):
+    """F3: after a successful install the remedy command exits 0.
+
+    The script is a BASH script (set -euo pipefail); re-checking it with the
+    Python interpreter dies with SyntaxError right after a successful install
+    - the exact defect the 39128456801 audit re-measured.  A stub PYTHON
+    simulates 'modules missing -> pip install succeeds -> probes pass', so
+    the real install path (including the re-check exec) runs hermetically.
+    """
+    marker = tmp_path / "installed.marker"
+    stub = tmp_path / "stub_python.py"
+    stub.write_text(
+        "#!/usr/bin/env python3\n"
+        "import os, sys\n"
+        "marker = os.environ['STUB_MARKER']\n"
+        "argv = sys.argv[1:]\n"
+        "if argv[:2] == ['-m', 'pip']:\n"
+        "    open(marker, 'w').write('ok')\n"
+        "    sys.exit(0)\n"
+        "if argv and argv[0] == '-c':\n"
+        "    if os.path.exists(marker):\n"
+        "        print('99.9.9')\n"
+        "        sys.exit(0)\n"
+        "    sys.exit(1)\n"
+        "sys.exit(1)\n",
+        encoding="utf-8")
+    stub.chmod(0o755)
+    env = dict(os.environ, PYTHON=str(stub), STUB_MARKER=str(marker))
+    out = subprocess.run(
+        ["bash", str(query_env.BOOTSTRAP)],
+        capture_output=True, text=True, cwd=str(REPO_ROOT),
+        env=env, timeout=120, check=False)
+    combined = out.stdout + out.stderr
+    assert out.returncode == 0, combined
+    assert marker.exists(), "the install branch must have run"
+    assert "query fast-path runtime: OK" in combined, combined
+    assert "SyntaxError" not in combined, combined

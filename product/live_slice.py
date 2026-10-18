@@ -72,15 +72,23 @@ BUDGET_LOCAL_MAP_S = 1.5
 BUDGET_GEOMETRY_S = 2.0
 
 
-def _cache_fingerprint() -> dict[str, int]:
+def _cache_fingerprint(root: Path | None = None) -> dict[str, int]:
     """relative path -> size for every cache file (an independent freshness probe).
 
     Sizes are part of the fingerprint on purpose: the adapter rewrites an entry
     in place, so a refreshed body of the same key shows up as a MODIFIED file,
     not as a removal. Reporting that as "removed" would understate what the
     network actually returned.
+
+    ``root`` is the cache directory the ADAPTER is using.  Under
+    ``--ephemeral-cache``, ``run()`` redirects ``pipeline.product_cache_dir``
+    to a throwaway directory, so the probe must fingerprint THAT root - the
+    tracked product cache stays untouched and a genuine fresh retrieval must
+    not be reported as "0 files touched" (audit F2, live-measured FAIL 9/10
+    against the public API before this parameter existed).
     """
-    root = product_cache_dir()
+    if root is None:
+        root = product_cache_dir()
     out: dict[str, int] = {}
     for p in root.rglob("*"):
         if p.is_file():
@@ -123,6 +131,13 @@ def _versions() -> dict:
 
 def run(query: str, *, top_n: int, enrich: bool, evidence_count: int,
         cache_root: Path | None = None) -> dict:
+    # F1: these two names were imported here at db3891e and the import was
+    # dropped by the 39128456801 resume (c1bda4a), so every invocation died
+    # with NameError before any network I/O while 13 unit tests stayed green.
+    # The import is deliberately INSIDE run(): product.query.pipeline pulls
+    # the heavy stack (numpy/sklearn), and live_slice must stay importable
+    # in a runtime-less interpreter so the environment check can fail closed.
+    from product.query.pipeline import enrich_query_bundle, run_query_initial
     from product.query import pipeline
 
     if cache_root is not None:
@@ -138,7 +153,13 @@ def run(query: str, *, top_n: int, enrich: bool, evidence_count: int,
         cache_root.mkdir(parents=True, exist_ok=True)
         pipeline.product_cache_dir = lambda: cache_root  # type: ignore[assignment]
 
-    before = _cache_fingerprint()
+    # F2: the probe must fingerprint the root the ADAPTER is redirected to,
+    # not the module-level cache_path binding.  Resolving it through the
+    # pipeline module (the same object run() patches above) makes the
+    # independent probe and the adapter agree by construction in both modes.
+    probe_root = pipeline.product_cache_dir()
+
+    before = _cache_fingerprint(probe_root)
     t0 = time.time()
     initial = run_query_initial(query, top_n=top_n, retrieval_mode="refresh")
     t_initial = time.time() - t0
@@ -159,8 +180,10 @@ def run(query: str, *, top_n: int, enrich: bool, evidence_count: int,
         enrich_s = 0.0
     total_s = time.time() - t0
 
-    after = _cache_fingerprint()
+    after = _cache_fingerprint(probe_root)
     cache_delta = _cache_delta(before, after)
+    cache_delta["cache_dir"] = str(probe_root.relative_to(REPO_ROOT)) if (
+        probe_root.is_relative_to(REPO_ROOT)) else str(probe_root)
     rows = bundle.get("decisions") or []
     final_summary = summarise(bundle)
     languages: dict[str, int] = {}
