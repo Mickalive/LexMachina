@@ -306,3 +306,87 @@ def test_instrument_never_edits_a_frozen_input_or_a_frozen_bar():
     # the only input file it may write is a cache envelope, and only under a
     # guarded restore
     assert 'path.write_bytes' not in src and 'tmp.write_bytes(new_raw)' in src
+
+
+# --------------------------------------------------------------------------- #
+# F2 (audit CYCLE_39164900837): report evidence-table digests must match files
+# --------------------------------------------------------------------------- #
+
+
+def test_report_evidence_table_digests_match_files():
+    """Every sha256 printed in the current cycle report's evidence table must
+    equal the actual sha256 of the named file, and no non-hex placeholder may
+    appear.  This is the regression guard for audit F2: run 39164900837 printed
+    fabricated digests (e.g. ``a1b2c3d4...``, ``e5f6g7h8...``) in its claim-
+    bearing report, and nothing in the control plane compared them against the
+    bytes on disk.
+    """
+    report = REPO / "reports/evaluation/CYCLE_39167917715.md"
+    if not report.exists():
+        pytest.skip("current cycle report not yet written")
+    text = report.read_text(encoding="utf-8")
+    # match lines of the form: `| path/to/file | <64-hex> |`
+    rows = re.findall(
+        r"\|\s*`?([A-Za-z0-9_./-]+\.(?:json|md|py))`?\s*\|\s*`?([0-9a-f]{64})`?\s*\|",
+        text)
+    assert rows, "no digest rows found in the evidence table"
+    for rel, printed in rows:
+        path = REPO / rel
+        assert path.is_file(), f"evidence table names a missing file: {rel}"
+        actual = hashlib.sha256(path.read_bytes()).hexdigest()
+        assert printed == actual, (
+            f"evidence table digest mismatch for {rel}: printed {printed[:16]}... "
+            f"but actual is {actual[:16]}...  (audit F2 regression)")
+    # no non-hex placeholder may survive in the evidence table
+    bad = re.findall(r"\b[a-zA-Z]{8}\.\.\.", text)
+    assert not bad, f"non-hex placeholder in evidence table: {bad}"
+
+
+# --------------------------------------------------------------------------- #
+# F6 (audit CYCLE_39164900837): committed/re-executed label binding
+# --------------------------------------------------------------------------- #
+
+
+def test_coverage_finding_falsification_label_binding_is_by_name():
+    """The coverage-finding falsifier must bind committed and re-executed
+    verdicts by NAME, not by positional unpacking.  Run 39164900837's
+    instrument did ``b, a = entry['after'], before`` which swapped the two
+    labels; the values were identical at identical=3/3 so the swap was value-
+    neutral, but it is a false claim waiting for its first divergence.  This
+    test pins the corrected binding from the source.
+    """
+    src = (REPO / "evaluation/coverage_finding_falsification.py").read_text(
+        encoding="utf-8")
+    # strip comments (lines starting with #) so the historical bug description
+    # in the source comments does not false-positive
+    code_lines = [ln for ln in src.splitlines() if not ln.lstrip().startswith("#")]
+    code = "\n".join(code_lines)
+    # the old positional-swap pattern must be gone from CODE (comments may
+    # still describe it as historical context)
+    assert "b, a = entry[\"after\"], before" not in code, (
+        "the committed/re-executed positional swap (audit F6) has returned")
+    # the corrected name-based binding must be present in code
+    assert "reexecuted = entry[\"after\"]" in code, (
+        "the instrument must bind reexecuted by name, not by position")
+    # the comparison must use the named variables
+    assert "committed" in code and "reexecuted" in code
+
+
+def test_coverage_finding_falsification_record_carries_named_binding():
+    """The committed record of the corrected instrument must carry the
+    committed/re-executed comparison keyed by name, and the verdict must
+    agree with the re-executed reading (not the committed one).
+    """
+    rec_path = REPO / "results/evaluation/coverage_finding_falsification/39167917715.json"
+    if not rec_path.exists():
+        pytest.skip("corrected record not yet emitted")
+    rec = _load(rec_path)
+    v = rec["verdict"]
+    assert v["committed_vs_reexecuted_identical"] == 3
+    assert v["S3_symmetry_required"] is True
+    assert v["failing_bundles"] == ["de-kapitalverletzung"]
+    for e in rec["bundles"]:
+        cmp_ = e["comparison"]
+        assert "committed_warning_count" in cmp_
+        assert "reexecuted_warning_count" in cmp_
+        assert cmp_["committed_under_covered"] == cmp_["reexecuted_under_covered"]

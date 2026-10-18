@@ -262,25 +262,39 @@ def main(argv: list[str] | None = None) -> int:
             record["bundles"].append(entry)
             continue
         entry["after"] = summarise(fresh, "accepted product code re-executed on the served bytes")
-        b, a = entry["after"], before
+        # REPAIR 39167917715 / audit CYCLE_39164900837 F6: the previous version
+        # bound ``b, a = entry["after"], before`` and then wrote ``b`` into the
+        # ``committed_*`` keys and ``a`` into the ``reexecuted_*`` keys, i.e.
+        # the two labels were SWAPPED.  It was harmless only while the two
+        # agreed 3/3; the first real divergence would have published a false
+        # claim, which is exactly the case the block exists to expose.  The
+        # binding is now explicit by name and cannot be inverted by a
+        # one-character assignment.
+        reexecuted = entry["after"]
         entry["comparison"] = {
-            "committed_admissible": b["admissible"],
-            "reexecuted_admissible": a["admissible"],
-            "committed_warning_count": b["warning_count"],
-            "reexecuted_warning_count": a["warning_count"],
-            "committed_under_covered": b["measured_query_concepts_under_covered"],
-            "reexecuted_under_covered": a["measured_query_concepts_under_covered"],
-            "committed_finding_codes": [f["code"] for f in b["findings"]],
-            "reexecuted_finding_codes": [f["code"] for f in a["findings"]],
+            "committed_admissible": before["admissible"],
+            "reexecuted_admissible": reexecuted["admissible"],
+            "committed_warning_count": before["warning_count"],
+            "reexecuted_warning_count": reexecuted["warning_count"],
+            "committed_under_covered": before["measured_query_concepts_under_covered"],
+            "reexecuted_under_covered": reexecuted["measured_query_concepts_under_covered"],
+            "committed_finding_codes": [f["code"] for f in before["findings"]],
+            "reexecuted_finding_codes": [f["code"] for f in reexecuted["findings"]],
             "identical_finding_code_and_severity_list": (
-                [(f["code"], f["severity"]) for f in b["findings"]]
-                == [(f["code"], f["severity"]) for f in a["findings"]]),
+                [(f["code"], f["severity"]) for f in before["findings"]]
+                == [(f["code"], f["severity"]) for f in reexecuted["findings"]]),
             "differences": sorted(set(
-                [f"{c}:{s}" for c, s in [(f["code"], f["severity"]) for f in b["findings"]]]
-                + [f"{c}:{s}" for c, s in [(f["code"], f["severity"]) for f in a["findings"]]])),
+                [f"{c}:{s}" for c, s in [(f["code"], f["severity"]) for f in before["findings"]]]
+                + [f"{c}:{s}" for c, s in [(f["code"], f["severity"]) for f in reexecuted["findings"]]])),
         }
+        # The verdict is decided on the RE-EXECUTED product code run against
+        # the served bytes (that is what "falsify-or-pass the fix on the exact
+        # served bytes" means).  The committed artifact is published beside it
+        # and a disagreement would be surfaced by
+        # identical_finding_code_and_severity_list, never smoothed over.
         entry["outcome"] = ("PASS_FIRES_AS_ORDERED"
-                            if a["expected_to_fire"] == a["observed_fire_strict_warning_severity"]
+                            if reexecuted["expected_to_fire"]
+                            == reexecuted["observed_fire_strict_warning_severity"]
                             else "FAIL_NOT_LANDED")
         n_pass += entry["outcome"].startswith("PASS")
         n_fail += entry["outcome"].startswith("FAIL")

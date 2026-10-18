@@ -680,7 +680,17 @@ def run_pytest(log: _Log) -> None:
           # store), and it pins the load-bearing correction that a SKIPPED audit
           # job reports status=completed and must not read as an audit that ran.
           # No accepted verdict, frozen file, rubric or threshold is touched.
-          "tests/evaluation/test_quantum_death_ledger.py"],
+          "tests/evaluation/test_quantum_death_ledger.py",
+          # run 39167917715 (disclosed scope extension, not a re-freeze): the
+          # v57 open-items regression tests - frozen-benchmark input-integrity
+          # pins (24/24 cache match, gate-by-gate reproduction, the 21/24 drift
+          # negative preserved), the mapping-free coverage-handoff falsifier's
+          # frozen predicate and symmetry rule, and the F2/F6 audit-correction
+          # guards (report evidence-table digest verification and the
+          # committed/re-executed label binding in the coverage instrument).
+          # No frozen benchmark, rubric, incumbent or success rule is touched
+          # by adding the file.
+          "tests/evaluation/test_v57_open_items.py"],
         cwd=str(_LANE_ROOT), capture_output=True, text=True, timeout=900)
     tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
     log.add("active lane pytest suite", proc.returncode == 0, tail[0])

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lane-state consistency verification (current direction v56).
+"""Lane-state consistency verification (current direction v57).
 
 HISTORY: this file originally verified the v35-era lane state (TF-IDF 174k
 freeze, dense criteria blockers).  That question is COMPLETE; its state was
@@ -40,6 +40,18 @@ audit CYCLE_39064597912 as the latest binding audit and adds binding items M1-M6
 and repair items (1)-(3)). A direction pin repair touches no frozen benchmark,
 rubric, incumbent, threshold or success rule; the state file's
 direction_version (56) is authoritative.
+
+REPAIR 39167917715 (audit results/audit/evaluation/CYCLE_39164900837_GATE.json,
+F5; direction v57): the direction pin is bumped 56 -> 57 to match the v57 lane
+state. This is the FIFTH advance in the same disclosed convention
+(49->50, 50->52, 52->55, 55->56, 56->57) and it is EXPECTED, not a new defect:
+the director materially rewrote this lane's question between v56 and v57 (v57
+names the two named open items - frozen-benchmark input integrity and the
+coverage-falsification handoff - and pins the direction_version advance
+explicitly as 'EXPECTED by this rewrite'). Leaving the pin at 56 was the exact
+failure audit CYCLE_39164900837 F5 charged to cycle 39164900837. A direction
+pin repair touches no frozen benchmark, rubric, incumbent, threshold or
+success rule; the state file's direction_version (57) is authoritative.
 """
 import json
 from pathlib import Path
@@ -57,7 +69,7 @@ def test_state_file_has_mandatory_fields():
                    "next_recommendation"):
         assert field in state, f"missing mandatory field {field}"
     assert state["lane"] == "evaluation"
-    assert state["direction_version"] == 56
+    assert state["direction_version"] == 57
 
 
 def test_evidence_refs_exist():
