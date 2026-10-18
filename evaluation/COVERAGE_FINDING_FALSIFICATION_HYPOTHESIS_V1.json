@@ -1,0 +1,71 @@
+{
+  "schema": "lex-coverage-finding-falsification-hypothesis/1",
+  "lane": "evaluation",
+  "direction_version": 57,
+  "run_id": "39164900837",
+  "frozen_at_utc": "2026-10-18T20:56:00Z",
+  "status": "FROZEN_BEFORE_EXECUTION",
+  "protocol_note": "Written and committed BEFORE evaluation.coverage_finding_falsification was executed and before any of its output artifacts existed. The mapping-free discipline is frozen here: the falsifier may not use an analyst slug, a frozen id set, a baseline record, or any mapping of query to expected finding. It derives the expected finding from the product's own declared rule applied to the product's own measured field, and compares it with the findings the accepted product code actually emits.",
+
+  "lane_question_items_addressed": ["ITEM 2 FALSIFICATION HANDOFF"],
+
+  "handoff_under_test": {
+    "source": "accepted product_handoff of question_native_coverage_39113690481, transferred by accepted transfer run 39120832665 -> commit 034f2043 with verdict DISCLOSURE_DEFECT_TRANSFERRED, covering rebuilt-39027045675",
+    "order_verbatim": "emit an admission finding (severity warning) whenever measured.query_concepts_under_covered is non-empty, with the under-covered terms in the finding detail",
+    "served_bytes": "results/product/gate_packet/rebuilt-39027045675/questions/{de-kapitalverletzung,fr-bail-entretien,it-responsabilita-medica}.{bundle,admissibility}.json on the accepted product mount",
+    "accepted_product_head": "bcb1217714a8809d3e47fede85a314b0196a82d1 ('accept product cycle 39149741259')"
+  },
+
+  "served_byte_digests_frozen": {
+    "de-kapitalverletzung.bundle.json": "c4005d4b78553b0aebd92bba59001c87a376146873f807d575255a4f721dd7f2",
+    "de-kapitalverletzung.admissibility.json": "456f065da725d8bc04705fd665cf23c97f51c4bc982af6205aa81742ead83c64",
+    "fr-bail-entretien.bundle.json": "0b3a224e3493479bc84628531eb7c56cac7dcfa978b29afbfc1305cb52574517",
+    "fr-bail-entretien.admissibility.json": "7de50e526ba792b1729badbc7ba5a21f575ce0d6518cb3ccb527acd08c80680d",
+    "it-responsabilita-medica.bundle.json": "6b43341242b5e1d4c305dcf29f12428541ceedc0b6cc89b5f2c8ae8d634f82b4",
+    "it-responsabilita-medica.admissibility.json": "2c6df157438cf8e35ba9d65f3fccd5d5aba0635638000d0bb80757bb3a015cdb",
+    "note": "these are the exact served bytes; the falsifier re-hashes them at execution and refuses to proceed if any differs"
+  },
+
+  "mapping_free_contract": {
+    "forbidden": [
+      "any analyst-assigned slug, question name or hand-written expectation keyed to a particular bundle",
+      "any frozen decision-id set for the question",
+      "any baseline admission record used as the expected answer",
+      "any mapping from a bundle to the finding it should produce, written by a human before execution"
+    ],
+    "permitted_and_required": [
+      "read the product's own measured.query_concepts_under_covered from the accepted admission record on the served bytes",
+      "apply the handoff rule as a pure predicate: expected_to_fire := len(under_covered) > 0",
+      "enumerate the findings the accepted product code ACTUALLY emits by re-executing the accepted admission instrument on the served bundle bytes",
+      "declare firing by matching on the product's own emitted field values (severity in {warning} and the under-covered terms appearing in the finding's own detail/fields), never on a name chosen by this lane"
+    ],
+    "why_this_is_not_a_mapping": "The predicate is the handoff sentence itself, evaluated against a field the product computed. No analyst knowledge of which bundle has which defect enters the instrument. The same predicate is applied to all bundles without exception, including the two whose under-covered set is empty and therefore must NOT fire."
+  },
+
+  "hypothesis": "Hc1. On the exact served bytes of rebuilt-39027045675, the accepted product code emits a severity-warning admission finding naming the under-covered concepts for every bundle whose measured.query_concepts_under_covered is non-empty. Hc2. The committed admission artifacts on the served bytes agree with what the accepted code re-executes (the artifacts are not stale). Hc3. Therefore the accepted transfer's disclosure defect is closed.",
+
+  "metrics": {
+    "m1_predicate_fire": "per bundle: under_covered (from measured), expected_to_fire = len(under_covered) > 0",
+    "m2_committed_findings": "per bundle: the full finding list in the committed admission artifact with code/severity/detail, plus warning_count and blocking_count",
+    "m3_reexecuted_findings": "per bundle: the findings the accepted product's own admission instrument emits when re-executed on the served bundle bytes, with the accepted product head recorded",
+    "m4_firing_match": "per bundle: expected_to_fire vs observed_fire, where observed_fire is decided by the mapping-free predicate in m1 applied to m3",
+    "m5_committed_vs_reexecuted": "whether m2 == m3 (codes, severities, counts), so a stale served artifact is distinguishable from a missing code path",
+    "m6_before_after": "a single artifact carrying the BEFORE record (the committed served admission artifact, which is the state the handoff was written against) and the AFTER record (the accepted code re-executed on the same served bytes) side by side, per bundle, with both digests"
+  },
+
+  "success_rule_frozen": {
+    "S1_pass": "The fix PASSES if and only if for ALL three bundles observed_fire == expected_to_fire under the mapping-free predicate, AND m5 reports committed == re-executed. Under that outcome the handoff is CONSUMED and this lane's Item 2 is closed.",
+    "S2_fail_is_the_expected_shape": "If observed_fire < expected_to_fire the outcome is FAIL_NOT_LANDED, NOT_LANDED_ON_SERVED_BYTES, and the cycle records it as a product defect with the exact bundle, the exact measured under-covered list and the exact emitted finding list. A FAIL is a first-class accepted result, not a lane failure.",
+    "S3_symmetry_required": "A pass requires the two bundles whose under_covered is empty to remain silent as well. A 'fix' that fires unconditionally is a FAIL, not a pass.",
+    "S4_no_pre_emption": "The instrument must not modify, patch or shim the accepted product tree. It is read-only against /tmp/lex_accepted/product and may execute its code with that tree on sys.path, writing output only under results/evaluation/.",
+    "S5_pause_bar": "Whatever the outcome, this cycle must not propose pausing the lane before this handoff is consumed (audit CYCLE_39122016679 F3). A FAIL outcome means the handoff is still open, so continue_recommended stays true."
+  },
+
+  "claim_ceiling": "This instrument decides ONE thing: whether the ordered coverage disclosure is present on the exact served bytes of rebuilt-39027045675 under the accepted product code. It does not evaluate the product's overall admission correctness, does not re-score the frozen label or geometry bars, does not raise or lower any threshold, and does not unblock the human gate.",
+
+  "execution": {
+    "instrument": "evaluation/coverage_finding_falsification.py",
+    "command": "python -m evaluation.coverage_finding_falsification --run-id 39164900837 --out results/evaluation/coverage_finding_falsification/39164900837.json",
+    "out": "results/evaluation/coverage_finding_falsification/39164900837.json"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "schema": "lex-frozen-cache-integrity-hypothesis/1",
+  "lane": "evaluation",
+  "direction_version": 57,
+  "run_id": "39164900837",
+  "frozen_at_utc": "2026-10-18T20:56:00Z",
+  "status": "FROZEN_BEFORE_EXECUTION",
+  "protocol_note": "Written and committed BEFORE evaluation.frozen_cache_integrity was executed and before any of its output artifacts existed. Every numeric claim this file makes about the committed tree was itself derived by INSPECTION of committed git objects and committed records (git show / sha256sum / json.load), not by running the benchmark. That inspection is disclosed in full below and is itself the evidence this cycle acts on. The frozen part is the success rule, the metrics and the digests.",
+
+  "lane_question_items_addressed": ["ITEM 1 FROZEN-BENCHMARK INTEGRITY"],
+
+  "question": "Does the accepted retrieval/counter-authority benchmark run-of-record 39098571937 reproduce from the committed tree, and if not, which frozen INPUT moved, which commit moved it, and is the previous cycle's single-body restore a complete or a partial repair?",
+
+  "baseline": {
+    "accepted_run_of_record": "results/evaluation/retrieval_benchmark/39098571937.json",
+    "accepted_record_sha256": "aaf2587ad192a828c56cb082a74a2d5e944fbb4b2afc58df0b1e6a0f9b75dd66",
+    "accepted_verdict": {"n_gates": 40, "n_passed": 24, "n_failed": 10, "n_not_measurable": 6, "overall_pass": false},
+    "accepted_generated_at": "2026-10-18T05:44:58Z",
+    "divergent_run": "results/evaluation/retrieval_benchmark/39147198313.json",
+    "divergent_record_sha256": "4fa05a18d21db77b6d679cd0883c77fe2d81ceb3e12b9e0f3f701ac9193b5c86",
+    "divergent_verdict": {"n_gates": 40, "n_passed": 23, "n_failed": 11, "n_not_measurable": 6, "overall_pass": false},
+    "prior_producer_repair_run": "results/evaluation/retrieval_benchmark/39163970477.json",
+    "prior_producer_repair_record_sha256": "8aa38d3dd900df6d2f3649bc5cf460d4621e906ad77495e1554229d7775e6bbb",
+    "prior_producer_repair_verdict": {"n_gates": 40, "n_passed": 24, "n_failed": 10, "n_not_measurable": 6, "overall_pass": false},
+    "frozen_spec": {
+      "path": "evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
+      "sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+      "freeze_record": "evaluation/retrieval_gate/FREEZE_RECORD.json",
+      "freeze_record_sha256": "b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49",
+      "note": "Spec bytes are UNCHANGED by this cycle and are re-hashed before use. No threshold, gate, metric or success rule of the frozen benchmark is edited, re-derived, re-tuned or paraphrased by this cycle."
+    }
+  },
+
+  "hypothesis": "H1. The committed cache tree is byte-identical to the input manifest of the accepted run-of-record 39098571937 for all 24 frozen query responses. H2. Therefore the frozen benchmark re-derives 39098571937 gate-for-gate with zero gate-detail differences. H3. The single-body restore performed in cycle 39163970477 is a COMPLETE repair.",
+
+  "pre_execution_observations_disclosed": {
+    "note": "These are INSPECTION facts about committed objects, established while diagnosing the prior cycle. They are recorded here so that no part of this cycle's design is hidden from the audit. They are NOT results of the frozen instrument.",
+    "f1": "The accepted record 39098571937 was committed by git commit b81ab1a2 ('evaluation cycle 39101217095 repair 1', 2026-10-18T05:48:27Z), matching the record's own generated_at 2026-10-18T05:44:58Z.",
+    "f2": "The 24 cache envelopes as they exist at commit b81ab1a2 carry body_sha256 values that match the raw_sha256 recorded by the accepted record for all 24 of 24 query keys (24/24).",
+    "f3": "Commit 67a884e2 ('evaluation cycle 39104154685 repair 2', 2026-10-18T07:14:33Z) rewrote the fetched_at field of all 24 envelopes and changed the body of more than one of them.",
+    "f4": "Cycle 39163970477 (commit 9a73fe08) restored exactly ONE envelope (the f7/... hash), the one named by factory direction v57 as the single moved cache body.",
+    "f5": "The direction text itself states the committed tree measured 23/11/6 with exactly ONE additional falsification; f3 and f4 are consistent with more than one body having moved, which is the specific point this instrument must settle by re-hash rather than by counting."
+  },
+
+  "metrics": {
+    "m1_input_byte_identity": "For each of the 24 frozen query keys: the cache envelope at results/evaluation/retrieval_benchmark/cache/<aa>/<sha256(url)>.json, its body_sha256, and equality against the raw_sha256 recorded for that query_key by the accepted run-of-record. Reported as n_match / n_drift and as a per-query table.",
+    "m2_overwriting_commit": "For each drifted envelope, the git commit that last changed the file, and the body_sha256 of the same file in that commit's first parent, so the overwriting commit is NAMED and not inferred.",
+    "m3_gate_level_reproduction": "An offline pass-A + pass-B re-execution of evaluation.retrieval_gate.run_retrieval_benchmark against the committed cache, compared gate-by-gate (full gate objects, not just counts) with the accepted record: n_gates_compared, n_gate_detail_differences, n_passed, n_failed, n_not_measurable.",
+    "m4_query_level_reproduction": "Per query_key comparison of raw_sha256 and ids_sha256 between the fresh offline re-execution and the accepted record.",
+    "m5_upstream_drift_diagnosis": "For every cache envelope, the OpenCaseLaw response fields that distinguish a healthy from a degraded search (degraded, note, total, returned, result_set_id), plus - only for drifted envelopes - the ordered decision_id overlap between the accepted body, the current body, and (optionally, best-effort, into a throwaway cache that can never mutate the frozen cache) a fresh live fetch of the same frozen URL.",
+    "m6_readings_side_by_side": "A single artifact publishing all three readings with their record sha256, their input-manifest match count, their verdict counts, and the exact cache-body digests that separate them."
+  },
+
+  "success_rule_frozen": {
+    "S1_closure_complete": "ITEM 1 is CLOSED if and only if (a) m1 reports 24/24 input byte-identity at the tree under test, AND (b) m3 reports n_gates_compared == 40 with n_gate_detail_differences == 0 against the accepted record, AND (c) m2 can name the overwriting commit for every envelope whose body differs between b81ab1a2 and the pre-repair tree.",
+    "S2_prior_repair_complete": "The cycle-39163970477 restore is judged COMPLETE only if m1 is 24/24; it is judged PARTIAL if m1 < 24. This rule is fixed now and is NOT re-decided after the numbers are read.",
+    "S3_publication": "m6 must publish the accepted 24/10 reading and the divergent 23/11/6 reading in the SAME artifact, each with its record sha256 and with the digest of the cache body that separates them, exactly as factory direction v57 requires.",
+    "S4_aggregate_is_not_input": "An aggregate verdict match is NEVER sufficient evidence of input stability. If m3 reports 24/10 while m1 < 24, the cycle records INPUT_BYTES_MOVED_WITH_AGGREGATE_STABLE and that is a FAILURE of H1 regardless of the green aggregate.",
+    "S5_no_green_re_run": "No input is re-fetched live into the frozen cache, no gate is weakened, no threshold is changed, and no success rule is relaxed in order to reach S1. A live probe, if performed, writes ONLY to a throwaway cache directory outside results/evaluation/retrieval_benchmark/cache and is reported as DIAGNOSTIC, never as a gate input."
+  },
+
+  "falsification_outcomes": {
+    "H1_refuted": "m1 < 24/24 at the tree under test. The frozen benchmark's inputs are NOT pinned; report which envelopes moved, to which commit, and stop treating the aggregate as reproducible.",
+    "H2_refuted": "m2/m3 show an aggregate or gate-level difference that survives the input repair.",
+    "H3_refuted": "S2 evaluates to PARTIAL.",
+    "adverse_for_the_product": "m5 shows that a moved body was a degraded upstream response and that the accepted body masked a failing gate. That is a real, product-relevant retrieval fact and must be published as a negative result with the exact degraded flag and note, never smoothed over."
+  },
+
+  "claim_ceiling": "This instrument proves whether the accepted retrieval benchmark's INPUTS and GATES reproduce from the committed tree. It does not certify that the product's retrieval is good, does not raise any absolute bar, does not change any frozen threshold, and does not unblock the human gate. human_gate_ready stays false. Both accepted DO-NOT-SERVE orders stand. The BJR leg stays closed as repaired.",
+
+  "execution": {
+    "instrument": "evaluation/frozen_cache_integrity.py",
+    "command": "python -m evaluation.frozen_cache_integrity --run-id 39164900837 --out results/evaluation/frozen_cache_integrity/39164900837.json",
+    "out": "results/evaluation/frozen_cache_integrity/39164900837.json",
+    "network": "optional and diagnostic only; a live probe targets a throwaway cache dir and never writes results/evaluation/retrieval_benchmark/cache"
+  }
+}
