@@ -33,6 +33,15 @@ sys.path.insert(0, str(REPO_ROOT))
 
 OUT_DIR = REPO_ROOT / "results" / "product" / "progressive_slice"
 
+# RF1: real counter authorities vs the broader provenance count, from the
+# accepted single source of truth. The old `"counter"` key counted every row
+# with a non-empty counter_status - including every decision the answer cited -
+# and reported 7 where 2 rows are genuine counter authorities.
+from product.query.counter_status import (  # noqa: E402
+    counter_authority_count,
+    counter_status_bearing_count,
+)
+
 DEFAULT_QUERY = "Responsabilite penale de l'entreprise selon l'art. 102 CP"
 
 
@@ -164,8 +173,9 @@ def main(argv: list[str] | None = None) -> int:
             "method": bundle["answer"]["method"],
             "model": bundle["answer"]["model"],
             "cited": len(bundle["answer"].get("cited_decision_ids") or []),
-            "counter": sum(1 for d in bundle["decisions"]
-                           if d.get("counter_status") not in (None, "", "none")),
+            "counter_authorities": counter_authority_count(bundle["decisions"]),
+            "counter_status_bearing_rows": counter_status_bearing_count(
+                bundle["decisions"]),
             "enrich_total_s": tfin.get("enrich_total_s"),
             "enrich_model_s": tfin.get("enrich_model_s"),
             "enrich_non_model_s": tfin.get("enrich_non_model_s"),

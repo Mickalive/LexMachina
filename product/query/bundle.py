@@ -8,6 +8,12 @@ from __future__ import annotations
 
 from typing import Any
 
+from product.query.counter_status import (
+    counter_authority_count,
+    counter_status_bearing_count,
+    counter_status_histogram,
+)
+
 BUNDLE_VERSION = "1.0"
 
 REQUIRED_TOP = ["bundle_version", "query", "query_variants", "answer",
@@ -71,7 +77,12 @@ def bundle_summary(bundle: dict) -> dict[str, Any]:
         "n_decisions": len(decs),
         "n_clusters": len(bundle.get("clusters", [])),
         "n_relations": len(bundle.get("relations", [])),
-        "n_counter": sum(1 for d in decs if d.get("counter_status") not in (None, "", "none")),
+        # RF1: `n_counter` used `counter_status != "none"`, which counted every
+        # decision the sourced answer cited. Both definitions are now published
+        # under their honest names (audit CYCLE_39065274887 F3 convention).
+        "n_counter_authorities": counter_authority_count(decs),
+        "n_rows_with_counter_status": counter_status_bearing_count(decs),
+        "counter_status_histogram": counter_status_histogram(decs),
         "languages": langs,
         "answer_citations": len(bundle.get("answer", {}).get("cited_decision_ids", [])),
     }

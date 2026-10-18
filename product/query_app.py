@@ -50,6 +50,10 @@ from query import (  # noqa: E402
     run_query_first_page,
 )
 from query.bundle import validate_bundle  # noqa: E402
+from query.gate_admissibility import (  # noqa: E402
+    counter_authority_count,
+    counter_status_bearing_count,
+)
 
 STATIC_DIR = PRODUCT_ROOT / "static"
 
@@ -200,8 +204,14 @@ def _enrich_task(run_id: str) -> None:
         "method": answer.get("method"),
         "model": answer.get("model"),
         "cited": len(answer.get("cited_decision_ids") or []),
-        "counter": sum(1 for d in final.get("decisions", [])
-                       if d.get("counter_status") not in (None, "", "none")),
+        # RF1: never label "rows carrying a non-empty counter_status" as
+        # "counter authorities" - `cited` (every decision the answer cites) and
+        # `supporting-candidate` / `context` / `unclassified` are provenance
+        # values, not counter findings. Both numbers are published, each under
+        # its own honest name (audit CYCLE_39069382456 / CYCLE_39065274887 F3).
+        "counter_authorities": counter_authority_count(final.get("decisions") or []),
+        "counter_status_bearing_rows": counter_status_bearing_count(
+            final.get("decisions") or []),
         "enrich_total_s": final.get("provenance", {}).get("timing", {}).get("enrich_total_s"),
     })
 
@@ -240,8 +250,15 @@ def run_status(run_id: str) -> dict:
         "counts": {
             "decisions": len(bundle.get("decisions") or []),
             "clusters": len(bundle.get("clusters") or []),
-            "counter": sum(1 for d in bundle.get("decisions") or []
-                           if d.get("counter_status") not in (None, "", "none")),
+            # RF1. `counter` counted every row whose counter_status was not
+            # "none", which included every decision the answer cited; the demo
+            # bundle reported 5 where 1 row is a real counter authority. The
+            # honest name is kept as an explicit, clearly-labelled alias so no
+            # consumer silently keeps reading the inflated number as
+            # "counter authorities" - it is a breaking change on purpose.
+            "counter_authorities": counter_authority_count(bundle.get("decisions") or []),
+            "counter_status_bearing_rows": counter_status_bearing_count(
+                bundle.get("decisions") or []),
         },
         "timing": prov.get("timing", {}),
         "jobs": jobs,

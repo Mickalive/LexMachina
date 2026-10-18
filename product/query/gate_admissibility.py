@@ -176,12 +176,37 @@ _IPV6_LITERAL = re.compile(r"^(?=.*:.*:)[0-9a-f:.]+$", re.I)
 def _is_ip_literal(host: str) -> bool:
     return bool(_IPV4_LITERAL.match(host) or _IPV6_LITERAL.match(host))
 
-#: Statuses that mean "this row is not a counter-authority finding". Kept in step
-#: with ``isCounter()`` in product/static/query.html, so the packet's disclosed
-#: counter yield is exactly the set the researcher sees ringed on the map.
-NON_COUNTER_STATUSES = frozenset(
-    {"none", "", None, "cited", "unclassified", "supporting-candidate", "context"}
+# ---------------------------------------------------------------------------
+# RF1: the single source of truth for "what counts as a counter authority".
+#
+# These names are re-exported from ``product/query/counter_status.py``, a
+# stdlib-only leaf, and ``NON_COUNTER_STATUSES`` below IS that module's object
+# (not a copy) so this module stays the single source of truth of record while
+# light importers such as ``product/human_gate_finalize.py`` can share one
+# definition without inheriting numpy/scikit-learn import cost.
+#
+# See counter_status.py for why ``counter_status != "none"`` is the wrong test:
+# it counted every decision the answer CITED, inflating the demo bundle's
+# disclosed counter authorities from 1 to 5.
+# ---------------------------------------------------------------------------
+from product.query.counter_status import (  # noqa: E402
+    NON_COUNTER_STATUSES,
+    counter_authority_count,
+    counter_authority_ids,
+    counter_status_bearing_count,
+    counter_status_histogram,
+    is_counter_status,
 )
+
+__all__ = [
+    "NON_COUNTER_STATUSES",
+    "counter_authority_count",
+    "counter_authority_ids",
+    "counter_ids",
+    "counter_status_bearing_count",
+    "counter_status_histogram",
+    "is_counter_status",
+]
 
 #: Languages other than the row's own are still useful context on a map, so this
 #: is a signal, not a defect: a question asked in German that returns no German
@@ -207,17 +232,7 @@ def _is_citation_shell(decision: dict) -> bool:
 
 def counter_ids(bundle: dict) -> list[str]:
     """Decision ids the counter-authority pass actually flagged."""
-    out = []
-    for d in bundle.get("decisions") or []:
-        if not isinstance(d, dict):
-            continue
-        status = d.get("counter_status")
-        if status in NON_COUNTER_STATUSES:
-            continue
-        did = str(d.get("decision_id") or "")
-        if did:
-            out.append(did)
-    return out
+    return counter_authority_ids(bundle.get("decisions") or [])
 
 
 def _finding(code: str, severity: str, detail: str, **extra: Any) -> dict:
@@ -677,15 +692,23 @@ def verify_bundle(
     # warning_count, or a healthy packet starts looking like a sick one.
     notices = [f for f in findings if f["severity"] == "info"]
     coverage_field_coverage = (inspection.get("decision_field_coverage") or {})
-    rows_with_status = sum(
-        1 for d in decisions if (d.get("counter_status") or "none") not in ("none", "", None)
-    )
+    # RF1: the broad row count stays, but it is now derived from the one shared
+    # helper and is published under its honest provenance name beside the real
+    # counter-authority count, so the two definitions can never be conflated.
+    rows_with_status = counter_status_bearing_count(decisions)
     measured = {
         "n_decisions": n,
         "n_clusters": len(clusters),
         "n_relations": n_relations,
         "n_counter_authorities": len(counters),
         "n_rows_with_counter_status": rows_with_status,
+        "counter_authority_definition": (
+            "counter_status not in gate_admissibility.NON_COUNTER_STATUSES "
+            "(excludes cited / supporting-candidate / context / unclassified / none); "
+            "n_rows_with_counter_status is the broader provenance count and the two "
+            "definitions are never interchangeable"
+        ),
+        "counter_status_histogram": counter_status_histogram(decisions),
         "counter_ranks": sorted(counter_ranks)[:25],
         "counter_channels": dict(counter_channels),
         "counter_rows_from_citation_channels": n_counter_from_citations,

@@ -1,20 +1,20 @@
 {
-  "schema": "product-frontier-verdict-intake/rebuilt-packet-serve-audit/1",
+  "schema": "product-frontier-verdict-intake/rebuilt-packet-serve-audit/2",
   "record_type": "PRODUCT_OWNED_VERDICT_STATUS_INTAKE",
-  "harvested_at": "2026-10-17T18:30:00Z",
-  "purpose": "Product-lane record of the CURRENT acceptance status of the frontier-rebuilt-packet-serve-audit verdict, the resulting DO-NOT-SERVE standing, and the product lane's pending OUTCOME-B route-around. This intake does NOT adopt the verdict as accepted evidence and does NOT fire the route-around; it records status so the product lane can fire the route-around the moment the verdict is independently accepted. It changes no frozen artifact, no rubric, no bar and no packet byte.",
+  "harvested_at": "2026-10-18T00:00:00Z",
+  "purpose": "Product-lane record of the ACCEPTED verdict of frontier-rebuilt-packet-serve-audit, the resulting DO-NOT-SERVE standing, and the fact that NO owner question is fired and none is staged. It changes no frozen artifact, no rubric, no bar and no packet byte. Admission stays fail-closed.",
   "team_id": "frontier-rebuilt-packet-serve-audit",
   "charter_version": 3,
   "evidence_tier": "REPRODUCED",
-  "accepted": false,
-  "accepted_reason": "The independent audit of the team's verdict (run 39053132092) completed at 2026-10-17T18:07:43Z with gate=REVISE, safe_to_integrate=false and 4 required fixes. A REVISE verdict is not accepted evidence. The verdict is recorded here as REPRODUCED operational status only.",
+  "accepted": true,
+  "accepted_reason": "ACCEPTED. The team's single charter verdict was independently audited at run 39061330426 (results/audit/frontier/frontier-rebuilt-packet-serve-audit/CYCLE_39061330426_GATE.json, gate=PASS, safe_to_integrate=true, required_fixes=[]) and promoted by accept commit 26582bc5 on lab/frontier/frontier-rebuilt-packet-serve-audit. Verdict of record: DO-NOT-SERVE-UNCHANGED, charter outcome B, owner_decision_required=false. The team is now status=TERMINATED in frontier_portfolio v28 and must never be re-chartered, revived or re-dispatched.",
   "team_state": {
     "cycle_status": "COMPLETE",
     "continue_recommended": false,
-    "accepted_run_id": null,
-    "accepted_commit": null,
-    "measurement_commit": "4e4ad05b38fea445ef7a8b96e40709b76591a097",
-    "measurement_commit_time_iso": "2026-10-17T17:14:39Z",
+    "accepted_run_id": 39061330426,
+    "accepted_commit": "26582bc5",
+    "portfolio_status": "TERMINATED",
+    "portfolio_status_note": "frontier_portfolio v28 moves this team OFF status=RUN. The stale RUN flag was the root cause of the 'fabricated cross-lane citation' finding against product run 39073545280: portfolio v27 recorded status=RUN / run_history=[] / 'never been dispatched' while the audit of record existed. That control-plane record was the defect and has been repaired, so the citation is TRUE and independently verifiable now. The lane's actual error was the owner-question FIRING, corrected below.",
     "verification": {
       "tests_result": "26 passed",
       "byte_identical_reproduction": true,
@@ -28,11 +28,14 @@
     "charter_outcome": "B",
     "serve_recommendation": "DO-NOT-SERVE-UNCHANGED",
     "owner_decision_required": false,
-    "owner_decision_required_reason": "Charter outcome (C) requires BOTH frozen absolute bars unmet. The label bar is met as written on the rebuilt bytes under the accepted instrument reading (LABEL_SOUND; 5/5 issued supported). The charter therefore does not convert the map-versus-ranked-list choice into an owner decision.",
+    "owner_decision_required_reason": "Charter outcome (C) requires BOTH frozen absolute bars unmet. The label bar is met as written by the accepted instrument, so charter outcome (C) is not reached and the charter DOES NOT convert the map-versus-ranked-list choice into an owner decision.",
     "bounded_causes": [
       "geometry_bar_unmet: per-criterion counts de-kapitalverletzung=7, fr-bail-entretien=5, it-responsabilita-medica=7 of 11 (no bundle reaches 11/11 on the frozen criteria)",
       "comparative_marginal_discovery_present: some issued counter authorities are absent from the initial-pool top-K or invisible in the list top-K"
-    ]
+    ],
+    "verdict_status": "ACCEPTED (run 39061330426, gate=PASS, safe_to_integrate=true, required_fixes=[])",
+    "label_bar_reading": "BY INSTRUMENT/TEXT, never as an unqualified 'met'. Instrument reading: LABEL_SOUND at n_scored=5 (accepted label_gate absolute_status, population-free; accepted VERDICT_CONTRACT LABEL_SOUND := n_scored>0 and n_supported==n_scored). Frozen RULES_LABEL.json prose residual: INSUFFICIENT_POPULATION at n_scored<7 (population-conditioned; disclosed, not re-derived). The population-pinned regression verdict is NOT_APPLICABLE because the population differs from the pinned 65, and NOT_APPLICABLE is NOT a pass.",
+    "comparative_half_accepted": "MARGINAL DISCOVERY EXISTS and is accepted product-improving evidence: all 5 issued counter authorities are absent from the initial-pool top-20 and invisible in the list top-20 (positions 51-164), so the accepted CLASSIFICATION_ONLY negative does NOT reproduce on these bytes. This is a POSITIVE product finding and it does NOT authorise serving the packet."
   },
   "packet_measured": {
     "packet_id": "rebuilt-39027045675",
@@ -45,61 +48,31 @@
     "non_vacuity": "7 instrument verdicts move under seeded controls (>=2 required).",
     "cross_check": "Core Evaluation's re-score of these bytes is ABSENT at hard stop (the team's own claim, later found FALSE by the independent audit - see independent_audit.required_fixes FIX-1)."
   },
-  "independent_audit": {
-    "run_id": "39053132092",
-    "completed_at": "2026-10-17T18:07:43Z",
-    "gate": "REVISE",
-    "safe_to_integrate": false,
-    "gate_file": "results/audit/frontier/frontier-rebuilt-packet-serve-audit/CYCLE_39053132092_GATE.json",
-    "required_fixes": [
-      {
-        "id": "FIX-1",
-        "severity": "material",
-        "summary": "Claim-bearing artifacts state Core Evaluation's re-score of packet 2942c3c2 is ABSENT 'verified across every evaluation-lane ref'. FALSE: Core Evaluation published a real same-bytes adjudication at 2026-10-17T17:05:31Z (run 39049030442), re-verified byte-identical. Repair: re-sweep Evaluation refs at final resume, consume run 39049030442 as the CROSS-CHECK input, publish Evaluation's numbers beside the recomputation, delete the false absence text."
-      },
-      {
-        "id": "FIX-2",
-        "severity": "material",
-        "summary": "cross_check._dig resolves the first recursively-found key, producing a SPURIOUS divergence on label.yield_over_classifier_population and silently dropping n_abstained, geometry per-qid counts and mega. Repair: explicit schema mapping to Evaluation's adjudication record; keep _dig only as non-authoritative fallback; add a test feeding the real 39049030442 record."
-      },
-      {
-        "id": "FIX-3",
-        "severity": "disclosure",
-        "summary": "'Label bar met as written' asserted unqualified. Correct under the accepted instrument (LABEL_SOUND, population-free) and the accepted VERDICT_CONTRACT, and Core Evaluation independently read the same; but the frozen RULES_LABEL.json prose also defines a population-conditioned LABEL_SOUND (n_scored == 7) and an INSUFFICIENT_POPULATION non-result class. Outcome (B) vs (C) - and therefore whether the owner receives the ONE map-versus-ranked-list decision - turns on this reading. Repair: publish the label-bar status BY INSTRUMENT/TEXT everywhere."
-      },
-      {
-        "id": "FIX-4",
-        "severity": "process-binding",
-        "summary": "Absence/negativity claims in claim-bearing artifacts were inherited from an earlier attempt's sweep and re-affirmed at the final resume without re-verification. Repair: re-verify absence claims at the FINAL resume before promotion; future stale absence claims of this class gate BLOCKED."
-      }
-    ],
-    "repair_must_not": [
-      "edit RULES_LABEL.json, RULES_GEOMETRY.json, VERDICT_CONTRACT.json, LABEL_LINEAGE_VERDICT.json or the team's frozen RULES.json",
-      "change packet bytes 2942c3c2 or re-measure under a different population/threshold/K",
-      "change the verdict enum outcome (DO-NOT-SERVE-UNCHANGED, charter outcome B) unless a correctly-mapped cross-check actually diverges",
-      "violate the charter's one-verdict-cycle hard stop"
-    ]
-  },
   "route_around": {
     "name": "OUTCOME-B route-around (factory direction v55 product question)",
-    "status": "PENDING_ACCEPTANCE_NOT_FIRED",
-    "trigger_condition": "frontier-rebuilt-packet-serve-audit's verdict must be INDEPENDENTLY ACCEPTED (audit gate=PASS, safe_to_integrate=true, promote commit on the accepted branch). Currently gate=REVISE, so the trigger is NOT met.",
+    "status": "RECORDED_FAIL_CLOSED_NO_OWNER_QUESTION",
+    "superseded_status": "TRIGGERED_AND_FIRED",
+    "superseded_by": "director run 39078722623 (direction v56)",
+    "withdrawn_actions": [
+      "carried the map-versus-ranked-list choice to the owner as ONE recorded product question",
+      "any 'ready to fire' staging of that question"
+    ],
+    "why_withdrawn": "Both claims that supported firing the owner question are CONTRADICTED by the accepted verdict's own owner_decision_required=false and its stated reason: charter outcome (C) is not reached because the label bar is met as written BY THE ACCEPTED INSTRUMENT, so the charter does NOT convert the map-versus-ranked-list choice into an owner decision. Firing the owner question would have spent the repository owner's scarcest resource on a packet an independent audit says must not be served.",
+    "trigger_condition": "frontier-rebuilt-packet-serve-audit's verdict must be INDEPENDENTLY ACCEPTED. That trigger FIRED at run 39061330426.",
     "actions_when_triggered": [
       "RECORD the accepted negative against the packet of record (rebuilt-39027045675)",
-      "keep admission fail-closed (machine_gate_ready=false, human_gate_ready=false, packet_admitted=false)",
-      "carry the map-versus-ranked-list choice to the owner as ONE recorded product question under the accepted supersession condition (b): 'an accepted bounded negative converting the map-versus-ranked-list choice into ONE explicit owner product decision'"
+      "keep admission fail-closed (machine_gate_ready=false, human_gate_ready=false, packet_admitted=false)"
+    ],
+    "actions_fired": [
+      "the accepted negative was recorded against packet rebuilt-39027045675",
+      "admission was kept fail-closed"
     ],
     "actions_prohibited": [
+      "carry the map-versus-ranked-list choice to the owner on this verdict",
       "re-build the packet",
       "re-run geometry or classifier work",
       "re-charter, revive or re-dispatch any Frontier team for a second look"
-    ],
-    "label_bar_reading_nuance": {
-      "note": "Per independent audit FIX-3, the label-bar status must be published BY INSTRUMENT/TEXT. Outcome (B) vs (C) turns on this reading.",
-      "instrument_reading": "LABEL_SOUND at n_scored=5 (accepted label_gate absolute_status, population-free; accepted VERDICT_CONTRACT LABEL_SOUND := n_scored>0 and n_supported==n_scored)",
-      "frozen_rules_text_residual": "INSUFFICIENT_POPULATION at n_scored<7 (frozen RULES_LABEL.json prose, population-conditioned; disclosed not re-derived)",
-      "product_admission_consequence": "Regardless of the label-bar reading nuance, the rebuilt packet carries packet_admitted=false, packet_admission_blocked=true, ready_for_owner_session=false (see product/query/packet_admission.py and the rebuilt packet's own packet_admission field). Admission stays fail-closed while the geometry bar is unmet (0/3 bundles at 11/11)."
-    }
+    ]
   },
   "do_not_serve_order": {
     "status": "IN_FORCE",
@@ -148,9 +121,24 @@
     }
   },
   "owner_question": {
-    "status": "PREPARED_NOT_FIRED",
-    "question": "Does the query-specific visual map materially improve legal research over the sourced AI answer plus a conventional ranked list - specifically, does it expose relevant branches, exceptions or decisions (especially contrary/limiting authority) that the ranked list hides, and increase confidence that contrary authority was not hidden?",
-    "why_prepared_not_fired": "The ONE owner question may be carried to the owner only after an independent accepted verdict on the rebuilt packet supersedes the DO-NOT-SERVE order (supersession condition a) OR an accepted bounded negative converts the map-versus-ranked-list choice into ONE explicit owner product decision (supersession condition b). Neither is met: the frontier verdict is REVISE and the geometry bar is unmet. The question is recorded here so it is ready to fire on acceptance; it is NOT presented to the owner now."
+    "status": "WITHDRAWN_NOT_FIRED_NEVER_TO_FIRE_ON_THIS_VERDICT",
+    "question": null,
+    "question_deleted": true,
+    "question_deleted_reason": "RF0 (direction v56) ordered this deletion. The staged question asserted that the accepted outcome-B verdict 'converts the map-versus-ranked-list choice into ONE explicit owner product decision'. That assertion is contradicted by the accepted verdict's own owner_decision_required=false. The question text is withdrawn so no later dispatch can fire or re-stage it.",
+    "supersession_conditions": {
+      "requirement_13_condition_a": {
+        "text": "an independent audit gate=PASS of a rebuilt packet whose artifacts show the frozen rubrics met as written with a serve recommendation replacing DO-NOT-SERVE",
+        "met": false,
+        "why_not": "The accepted verdict IS a gate=PASS audit, but its serve recommendation is DO-NOT-SERVE-UNCHANGED, not a recommendation replacing DO-NOT-SERVE, and the geometry bar is unmet on these bytes (0/3 bundles at 11/11). Condition (a) asks for a packet that PASSES; this packet is accepted as DO-NOT-SERVE."
+      },
+      "requirement_13_condition_b": {
+        "text": "an accepted bounded negative converting the map-versus-ranked-list choice into ONE explicit owner product decision",
+        "met": false,
+        "why_not": "The accepted verdict states owner_decision_required=FALSE and gives the reason: charter outcome (C) is not reached. An accepted negative that explicitly declines to convert the choice cannot satisfy a condition that requires it to convert the choice. Condition (b) is NOT met."
+      }
+    },
+    "consequence": "Both supersession conditions are unmet, so the accepted DO-NOT-SERVE order simply STANDS. No owner card, owner session, ready_for_owner_session=true or human_gate_ready=true may be produced from this verdict, and the map-versus-ranked-list question must not be staged as ready to fire.",
+    "only_future_path": "The owner session may be proposed ONLY if a FUTURE accepted verdict independently satisfies requirement 13 condition (a) or (b) on the bytes then of record - never from this one."
   },
   "product_position": {
     "machine_gate_ready": false,
@@ -158,15 +146,17 @@
     "ready_for_owner_session": false,
     "packet_admitted": false,
     "admission": "fail-closed (product/query/packet_admission.py denies owner session: counter_label_support 5/65 = 0.0769 < frozen absolute bar 1.0; map_geometry 0/3 bundles pass all 11 criteria)",
-    "why": "Admission stays fail-closed while the accepted DO-NOT-SERVE order is in force and no independent accepted verdict on the rebuilt bytes exists. Product does not claim an owner session."
+    "why": "Admission stays fail-closed. The accepted verdict is a DO-NOT-SERVE order on this packet and explicitly declines to convert the map-versus-ranked-list choice into an owner decision (owner_decision_required=false). Product does not claim an owner session and does not stage one."
   },
   "claim_ceiling": [
-    "The frontier-rebuilt-packet-serve-audit verdict is REPRODUCED, NOT accepted; it must not be cited as accepted evidence or as superseding the DO-NOT-SERVE order.",
+    "The frontier-rebuilt-packet-serve-audit verdict is ACCEPTED (run 39061330426) as a DO-NOT-SERVE-UNCHANGED negative for packet rebuilt-39027045675. It is evidence THAT the packet must not be served; it is not evidence that the packet is good, and it does not authorise serving it.",
     "The 5/5 support-among-emitted rate must always be quoted with 60 abstentions and yield 5/65 = 0.0769 (three numbers together).",
     "The label-bar status must be published BY INSTRUMENT/TEXT (instrument LABEL_SOUND at n_scored=5; frozen rules-text residual INSUFFICIENT_POPULATION at n_scored<7), never as an unqualified 'met'.",
     "Core Evaluation's adjudication (run 39049030442) is EXISTING operational evidence; its own independent audit is outstanding, so it is not accepted evidence.",
     "No packet, owner card, disclosure or state field may carry ready_for_owner_session=true or human_gate_ready=true while either accepted bar is unmet.",
-    "This intake does not re-build the packet, re-run geometry/classifier work, re-derive a threshold, or re-charter/re-dispatch any Frontier team."
+    "This intake does not re-build the packet, re-run geometry/classifier work, re-derive a threshold, or re-charter/re-dispatch any Frontier team.",
+    "The accepted verdict's owner_decision_required is false. Do not restate it as an owner decision, an owner card, or a pending owner question, on this verdict or any artifact derived from it.",
+    "Requirement 13 conditions (a) and (b) are BOTH unmet on the bytes of record; the DO-NOT-SERVE order therefore stands unreviewed rather than being superseded."
   ],
   "source_provenance": {
     "frontier_team_state": {
@@ -206,5 +196,55 @@
       ]
     },
     "note": "This intake is a product-owned SYNTHESIS of the three sources above. It does not re-measure anything and changes no frozen artifact, rubric, bar or packet byte."
+  },
+  "supersedes_intake_version": 1,
+  "supersedes_reason": "RF0 (direction v56). v1 recorded the verdict as REPRODUCED/NOT-ACCEPTED citing the REVISE audit of run 39053132092, and staged a route-around plus an owner question that a later cycle fired. Both are superseded: the verdict reached its single charter verdict and was independently ACCEPTED at run 39061330426, and the accepted verdict does NOT convert the map-versus-ranked-list choice into an owner decision. The historical REVISE audit record is preserved below under independent_audit_history; nothing is deleted, only superseded.",
+  "independent_audit_history": [
+    {
+      "run_id": "39053132092",
+      "completed_at": "2026-10-17T18:07:43Z",
+      "gate": "REVISE",
+      "safe_to_integrate": false,
+      "gate_file": "results/audit/frontier/frontier-rebuilt-packet-serve-audit/CYCLE_39053132092_GATE.json",
+      "required_fixes": [
+        {
+          "id": "FIX-1",
+          "severity": "material",
+          "summary": "Claim-bearing artifacts state Core Evaluation's re-score of packet 2942c3c2 is ABSENT 'verified across every evaluation-lane ref'. FALSE: Core Evaluation published a real same-bytes adjudication at 2026-10-17T17:05:31Z (run 39049030442), re-verified byte-identical. Repair: re-sweep Evaluation refs at final resume, consume run 39049030442 as the CROSS-CHECK input, publish Evaluation's numbers beside the recomputation, delete the false absence text."
+        },
+        {
+          "id": "FIX-2",
+          "severity": "material",
+          "summary": "cross_check._dig resolves the first recursively-found key, producing a SPURIOUS divergence on label.yield_over_classifier_population and silently dropping n_abstained, geometry per-qid counts and mega. Repair: explicit schema mapping to Evaluation's adjudication record; keep _dig only as non-authoritative fallback; add a test feeding the real 39049030442 record."
+        },
+        {
+          "id": "FIX-3",
+          "severity": "disclosure",
+          "summary": "'Label bar met as written' asserted unqualified. Correct under the accepted instrument (LABEL_SOUND, population-free) and the accepted VERDICT_CONTRACT, and Core Evaluation independently read the same; but the frozen RULES_LABEL.json prose also defines a population-conditioned LABEL_SOUND (n_scored == 7) and an INSUFFICIENT_POPULATION non-result class. Outcome (B) vs (C) - and therefore whether the owner receives the ONE map-versus-ranked-list decision - turns on this reading. Repair: publish the label-bar status BY INSTRUMENT/TEXT everywhere."
+        },
+        {
+          "id": "FIX-4",
+          "severity": "process-binding",
+          "summary": "Absence/negativity claims in claim-bearing artifacts were inherited from an earlier attempt's sweep and re-affirmed at the final resume without re-verification. Repair: re-verify absence claims at the FINAL resume before promotion; future stale absence claims of this class gate BLOCKED."
+        }
+      ],
+      "repair_must_not": [
+        "edit RULES_LABEL.json, RULES_GEOMETRY.json, VERDICT_CONTRACT.json, LABEL_LINEAGE_VERDICT.json or the team's frozen RULES.json",
+        "change packet bytes 2942c3c2 or re-measure under a different population/threshold/K",
+        "change the verdict enum outcome (DO-NOT-SERVE-UNCHANGED, charter outcome B) unless a correctly-mapped cross-check actually diverges",
+        "violate the charter's one-verdict-cycle hard stop"
+      ],
+      "note": "HISTORICAL. This is the FIRST independent audit of the team's first attempt (gate=REVISE, 4 required fixes). It is superseded by the accepted audit below but is preserved verbatim as evidence of the repair chain."
+    }
+  ],
+  "independent_audit": {
+    "run_id": 39061330426,
+    "completed_at": "2026-10-17T20:03:09Z",
+    "gate": "PASS",
+    "safe_to_integrate": true,
+    "required_fixes": [],
+    "gate_file": "results/audit/frontier/frontier-rebuilt-packet-serve-audit/CYCLE_39061330426_GATE.json",
+    "accept_commit": "26582bc5",
+    "independently_verifiable": "Yes. The portfolio record that made this citation unfalsifiable is repaired (portfolio v28: status TERMINATED, full run_history). Verified against the control plane mount this cycle."
   }
 }

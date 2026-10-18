@@ -91,6 +91,20 @@ from typing import Any, Iterable, Sequence
 PRODUCT_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = PRODUCT_ROOT.parent
 
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+# RF1: real counter authorities only, from the accepted single source of truth.
+# Imported from the stdlib-only leaf ``product/query/counter_status.py`` rather
+# than from ``gate_admissibility`` so this browser-export CLI does not inherit
+# that module's numpy/scikit-learn import cost; the two resolve to the same
+# ``NON_COUNTER_STATUSES`` object.
+from product.query.counter_status import (  # noqa: E402
+    counter_authority_count,
+    counter_authority_ids,
+    counter_status_bearing_count,
+)
+
 #: The four comparative questions from the Master Prompt's human product gate,
 #: verbatim in intent, pinned here so a session record is self-describing.
 GATE_QUESTIONS: dict[str, str] = {
@@ -339,17 +353,18 @@ def bundle_evidence(draft: dict, bundle: dict | None) -> dict:
     evidence["query_sha256"] = canonical_sha256(bundle.get("query"))
     decisions = bundle.get("decisions") or []
     by_id = {str(d.get("decision_id")): d for d in decisions if isinstance(d, dict) and d.get("decision_id")}
-    counter_ids = {
-        str(d.get("decision_id"))
-        for d in decisions
-        if isinstance(d, dict) and (d.get("counter_status") or "none") not in ("none", "", None)
-    }
+    counter_ids = set(counter_authority_ids(decisions))
     opened = [str(x) for x in (draft.get("decisions_opened") or [])]
     counters = [str(x) for x in (draft.get("counter_authorities_opened") or [])]
     evidence.update(
         {
             "bundle_decision_count": len(decisions),
             "bundle_counter_count": len(counter_ids),
+            # RF1 / audit CYCLE_39065274887 F3: both definitions, side by side,
+            # so a reader can never mistake the provenance count for the
+            # counter-authority count.
+            "bundle_counter_authority_count": counter_authority_count(decisions),
+            "bundle_counter_status_bearing_count": counter_status_bearing_count(decisions),
             "query_matches_bundle": ref.get("query") == bundle.get("query"),
             "opened_in_bundle": sum(1 for d in opened if d in by_id),
             "opened_not_in_bundle": sorted({d for d in opened if d not in by_id}),

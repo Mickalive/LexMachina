@@ -8,18 +8,69 @@ FEAT-079: Temporal-filtering metadata gap — map metadata 'year' field fallback
 FEAT-080: Cross-language neighbors by TF-IDF text similarity
 FEAT-081: Jurist-feedback loop closure — records, cluster summary, export
 FEAT-082: Section coverage expansion — 1150/1202 decisions (95.7%) vs previous 6.3%
+
+RF3 (direction v56, from the 39073545280 audit): the three FEAT-081 feedback
+tests below used to construct ``NavigationAPI`` against the TRACKED
+``product/results/fractal_map`` directory. ``NavigationAPI.submit_feedback``
+appends to ``<results_dir>/jurist_feedback/feedback.jsonl``, so every suite run
+mutated a committed file, and ``core-lane.yml``'s ``git add -A`` then committed
+that residue as if it were the cycle's deliverable (run 39073545280 shipped 20
+lines of it as its entire delta). The fixtures now use pytest's ``tmp_path``;
+``tests/test_no_test_writes_into_tracked_results.py`` fails the build if the
+tracked file ever changes again.
 """
 import sys
 import json
 import math
+import os
+import shutil
 import tempfile
 from pathlib import Path
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.corpus_loader import CorpusLoader, Decision
 from app.language_analyzer import LanguageAnalyzer
 from app.tfidf_proximity import TFIDFProximity
+
+
+#: The historical, tracked feedback records. The FEAT-081 tests need *a*
+#: populated feedback file to exercise retrieval/aggregation/export, so the
+#: tmp_path fixture is seeded from the repository's own historical file rather
+#: than from records invented inline. Nothing is written back to the repo.
+def _seed_feedback_fixture(results_dir: Path) -> Path:
+    """Copy the tracked feedback file into an isolated tmp dir and return it."""
+    tracked = Path(__file__).parent.parent / "results" / "fractal_map" / "jurist_feedback" / "feedback.jsonl"
+    feedback_dir = results_dir / "jurist_feedback"
+    feedback_dir.mkdir(parents=True, exist_ok=True)
+    seeded = feedback_dir / "feedback.jsonl"
+    if tracked.exists():
+        shutil.copyfile(tracked, seeded)
+    else:
+        seeded.write_text("", encoding="utf-8")
+    return seeded
+
+
+@pytest.fixture()
+def feedback_api(tmp_path):
+    """A ``NavigationAPI`` whose results dir is a throwaway tmp_path.
+
+    RF3: never point this at ``product/results/fractal_map``. That directory is
+    tracked; ``initialize()`` writes ``user_imports/imported_positions.jsonl``
+    into it and ``submit_feedback()`` appends to ``jurist_feedback/feedback.jsonl``.
+    """
+    from app.navigation import NavigationAPI
+
+    corpus_dir = str(Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical")
+    results_dir = tmp_path / "fractal_map"
+    results_dir.mkdir(parents=True, exist_ok=True)
+    _seed_feedback_fixture(results_dir)
+    api = NavigationAPI(corpus_dir, str(results_dir))
+    api.initialize()
+    api._feedback_results_dir = results_dir  # asserted by the guard test
+    return api
 
 
 # ---------------------------------------------------------------------------
@@ -247,14 +298,13 @@ def test_cross_language_neighbors_sorted_by_similarity():
 # FEAT-081: Jurist-feedback loop closure
 # ---------------------------------------------------------------------------
 
-def test_feedback_records_retrieval():
-    """Verify feedback records can be retrieved with pagination."""
-    from app.navigation import NavigationAPI
+def test_feedback_records_retrieval(feedback_api):
+    """Verify feedback records can be retrieved with pagination.
 
-    corpus_dir = str(Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical")
-    results_dir = str(Path(__file__).parent.parent / "results" / "fractal_map")
-    api = NavigationAPI(corpus_dir, results_dir)
-    api.initialize()
+    RF3: ``feedback_api`` writes into ``tmp_path``, never the tracked
+    ``product/results/fractal_map`` directory.
+    """
+    api = feedback_api
 
     # Submit a test feedback record
     result = api.submit_feedback(
@@ -286,14 +336,9 @@ def test_feedback_records_retrieval():
     return True
 
 
-def test_cluster_feedback_summary():
+def test_cluster_feedback_summary(feedback_api):
     """Verify cluster quality ratings are aggregated correctly."""
-    from app.navigation import NavigationAPI
-
-    corpus_dir = str(Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical")
-    results_dir = str(Path(__file__).parent.parent / "results" / "fractal_map")
-    api = NavigationAPI(corpus_dir, results_dir)
-    api.initialize()
+    api = feedback_api
 
     # Submit cluster quality ratings
     for rating in [3, 4, 5]:
@@ -316,14 +361,9 @@ def test_cluster_feedback_summary():
     return True
 
 
-def test_feedback_export():
+def test_feedback_export(feedback_api):
     """Verify feedback export produces valid JSON and CSV."""
-    from app.navigation import NavigationAPI
-
-    corpus_dir = str(Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical")
-    results_dir = str(Path(__file__).parent.parent / "results" / "fractal_map")
-    api = NavigationAPI(corpus_dir, results_dir)
-    api.initialize()
+    api = feedback_api
 
     # Export as JSON
     json_export = api.export_feedback(format="json")

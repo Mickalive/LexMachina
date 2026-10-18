@@ -104,11 +104,18 @@ def _wait_health(base: str, *, limit_s: float = 30.0) -> None:
 
 
 def _counter_ids(bundle: dict) -> list[str]:
-    return [
-        str(d.get("decision_id"))
-        for d in bundle.get("decisions") or []
-        if isinstance(d, dict) and (d.get("counter_status") or "none") not in ("none", "", None)
-    ]
+    """Real counter authorities only - the accepted single source of truth.
+
+    RF1: this used the broad ``counter_status != "none"`` test, so every row the
+    sourced answer cited (``cited``) and every recall-only row
+    (``supporting-candidate`` / ``context`` / ``unclassified``) counted as a
+    counter authority. Delegated to
+    ``gate_admissibility.counter_authority_ids`` so the rehearsal can never
+    drift from the gate packet's own number.
+    """
+    from query.gate_admissibility import counter_authority_ids
+
+    return counter_authority_ids(bundle.get("decisions") or [])
 
 
 def _wake_runner(watch: Path, draft_path: Path, thread: threading.Thread, *, limit_s: float = 30.0) -> None:

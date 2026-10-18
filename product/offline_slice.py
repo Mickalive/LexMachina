@@ -40,6 +40,12 @@ REPO_ROOT = PRODUCT_ROOT.parent
 sys.path.insert(0, str(PRODUCT_ROOT))
 sys.path.insert(0, str(REPO_ROOT))
 
+# RF1: one shared definition of "counter authority" across the product.
+from product.query.counter_status import (  # noqa: E402
+    counter_authority_count,
+    counter_status_bearing_count,
+)
+
 DEFAULT_SLUG = "rent-default"
 
 
@@ -105,7 +111,12 @@ def summarise(bundle: dict) -> dict:
         if cid is None:
             continue  # a None-keyed bucket is not a cluster (audit D3)
         clusters[cid] = clusters.get(cid, 0) + 1
-    counter = sum(1 for r in rows if str(r.get("counter_status") or "").startswith("candidate"))
+    # RF1: the old test was `counter_status.startswith("candidate")`, which is
+    # both too narrow (it misses `abstained_unevidenced`, a real counter status
+    # the frozen counter-anchor classifier emits) and definitionally wrong. Use
+    # the accepted single source of truth and publish both counts.
+    counter_authorities = counter_authority_count(rows)
+    counter_status_bearing = counter_status_bearing_count(rows)
     slice_prov = (bundle.get("provenance") or {}).get("offline_slice") or {}
     return {
         "n_decisions": len(rows),
@@ -118,7 +129,8 @@ def summarise(bundle: dict) -> dict:
         # audit D3: the docstring/report claim 'cluster_id on every row' —
         # the tool must actually verify it, not just assert it.
         "rows_with_cluster_id": sum(1 for r in rows if r.get("cluster_id") is not None),
-        "counter_rows": counter,
+        "counter_rows": counter_authorities,
+        "counter_status_bearing_rows": counter_status_bearing,
         "answer_status": (bundle.get("answer") or {}).get("status"),
         "cited_decision_ids": len((bundle.get("answer") or {}).get("cited_decision_ids") or []),
         "enriched": bool(slice_prov.get("enriched")),
@@ -196,7 +208,8 @@ def main(argv: list[str] | None = None) -> int:
     if not args.quiet:
         print(f"offline slice [{args.slug}] in {elapsed}s (network: none)")
         for k in ("n_decisions", "n_clusters", "largest_cluster", "rows_with_source_url",
-                  "rows_with_xy", "rows_with_cluster_id", "counter_rows", "answer_status",
+                  "rows_with_xy", "rows_with_cluster_id", "counter_rows",
+                  "counter_status_bearing_rows", "answer_status",
                   "cited_decision_ids", "enriched", "geometry_preserved_by_enrich"):
             print(f"  {k}: {stats[k]}")
         print(f"  replay: {stats['fixture_replay'].get('source')}"
