@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lane-state consistency verification (current direction v55).
+"""Lane-state consistency verification (current direction v56).
 
 HISTORY: this file originally verified the v35-era lane state (TF-IDF 174k
 freeze, dense criteria blockers).  That question is COMPLETE; its state was
@@ -30,6 +30,16 @@ the 39064597912 audit returned gate=REVISE safe_to_integrate=false until the
 pin was advanced. Same disclosed convention as the 49->50 and 50->52 repairs;
 the state file's direction_version (55) is authoritative. No frozen benchmark,
 rubric, incumbent, threshold or success rule is touched.
+
+REPAIR 39082753086 (audit results/audit/evaluation/CYCLE_39079133613_GATE.json,
+R1-R5; direction v56): the direction pin is bumped 55 -> 56 to match the v56
+lane state. This is the FOURTH advance in the same disclosed convention
+(49->50, 50->52, 52->55, 55->56) and it is EXPECTED, not a new defect: the
+director materially changed this lane's question between v55 and v56 (v56 names
+audit CYCLE_39064597912 as the latest binding audit and adds binding items M1-M6
+and repair items (1)-(3)). A direction pin repair touches no frozen benchmark,
+rubric, incumbent, threshold or success rule; the state file's
+direction_version (56) is authoritative.
 """
 import json
 from pathlib import Path
@@ -47,7 +57,7 @@ def test_state_file_has_mandatory_fields():
                    "next_recommendation"):
         assert field in state, f"missing mandatory field {field}"
     assert state["lane"] == "evaluation"
-    assert state["direction_version"] == 55
+    assert state["direction_version"] == 56
 
 
 def test_evidence_refs_exist():

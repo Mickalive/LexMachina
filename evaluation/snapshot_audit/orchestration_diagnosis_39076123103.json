@@ -13,7 +13,7 @@
     "status": "completed",
     "conclusion": "failure",
     "run_attempt": 1,
-    "head_sha": "6763db76d8003a10f78f7641f4c2df8c4d36561",
+    "head_sha": "676d3db76d8003a10f78f7641f4c2df8c4d36561",
     "created_at": "2026-10-17T22:41:57Z",
     "updated_at": "2026-10-17T23:28:07Z",
     "team_job": {
@@ -42,7 +42,7 @@
     "parent_commit": "71ab19281cd89b7e37b83845c8fc4eb12ada4186 (evaluation cycle 39072968899 repair 1)",
     "delta_vs_parent": [
       "A evaluation/snapshot_audit/orchestration_diagnosis_39072968899.json",
-      "M evaluation/snapshot_audit/run_snapshot_audit.py (+21: deliverable-manifest paths and claim notes for the 390769756168/39072968899 resumes and this run)",
+      "M evaluation/snapshot_audit/run_snapshot_audit.py (+21: deliverable-manifest paths and claim notes for the 39076123103/39072968899 resumes and this run)",
       "A reports/evaluation/CYCLE_39076123103.md",
       "A results/evaluation/lane_suite/39076123103.json",
       "A results/evaluation/orchestration_39076123103/local_evidence_manifest.json",
@@ -57,7 +57,7 @@
     "F1_post_delivery_producer_death_at_work_quantum_THIRD_tree": {
       "holds": true,
       "measured": "producer step 6 'Run lane cycle' ran 22:42:46Z -> 23:27:49Z = 2703s (measured 2703.0s) and was killed at the 2700s work quantum (+3s overhead). 2703s is the SAME signature as runs 39060704006 (2704s) and 39072968899 (2704s), both already on record. The cause (LEX_WORK_QUANTUM_EXPIRED) is an INFERENCE from the duration arithmetic; job logs are HTTP 403 (re-probed this run).",
-      "reading": "the producer step's rc was non-zero AFTER writing a durable delta (8 files). This is the post-delivery audit-starvation class, NOT a zero-delta immediate death. The agent completed its work (snapshot audit READY 20/20, report written) and the quantum killed the step before it could exit 0. With this subject, FIVE delivered producer trees now sit ungated on origin (39049030442 c3c04285, 39052477458 d01a2d4d7, 39060704006 67d2910a, 39072968899 71ab1928, 39076123103 b90dca4b) and the newest evaluation audit ref remains 39064597912 (f150115a)."
+      "reading": "the producer step's rc was non-zero AFTER writing a durable delta (8 files). This is the post-delivery audit-starvation class, NOT a zero-delta immediate death. The agent completed its work (snapshot audit READY 20/20, report written) and the quantum killed the step before it could exit 0. With this subject, FIVE delivered producer trees in THIS RESUME CHAIN now sit ungated on origin (39049030442 c3c04285, 39052477458 d01a2d4d7, 39060704006 67d2910a, 39072968899 71ab1928, 39076123103 b90dca4b) and the newest evaluation audit ref remains 39064597912 (f150115a). SCOPE (corrected by audit CYCLE_39079133613 R5): 'FIVE' counts the dirV55 resume chain only and is NOT a count over all of refs/heads/cycle/core/evaluation/*. MEASURED over ALL evaluation team refs on origin by run 39082753086 (git ls-remote --heads origin 'refs/heads/cycle/core/evaluation/*', 49 team refs, 18 audit refs): 31 runs have a team ref and NO audit ref, across 21 DISTINCT TREES. Audit CYCLE_39079133613 R5 measured 29 runs / 21 distinct trees slightly earlier; the run count grew by two because 39082226738 and 39082595318 have since published zero-delta team refs, and the distinct-TREE count is unchanged at 21. So FIVE UNDERSTATES the audit-starvation problem. This correction is conservative in the honest direction and does NOT weaken the structural finding: the newest evaluation audit ref on origin IS 39064597912 (f150115a, gate=REVISE) and audit starvation is real. NOTE ALSO that this block's 'newest audit ref = 39064597912' is now itself stale: audit ref cycle/core/evaluation/39079133613/audit (44d4e6bb, CYCLE_39079133613_GATE.json gate=REVISE) exists and is newer; it is recorded here as history and is superseded by that gate."
     },
     "F2_audit_starvation_is_the_validation_failure": {
       "holds": true,
@@ -89,7 +89,7 @@
   },
   "human_blocker": false,
   "control_plane_hardening_items_recorded_not_patched": [
-    "core-lane.yml gates the audit job on the producer step's success; a post-delivery producer death at the work quantum therefore leaves a COMPLETE deliverable ungated. Measured again this run: the 39076123103 producer step died at 2703s after persisting b90dca4b, and no audit ref exists. FIVE delivered trees are now ungated. Intended upstream fix for the control-plane maintainer: allow the audit job to run `if: always() && needs.team.outputs.deliverable_present == 'true'` (or gate on the persist step's commit existing), never on the producer step alone.",
+    "core-lane.yml gates the audit job on the producer step's success; a post-delivery producer death at the work quantum therefore leaves a COMPLETE deliverable ungated. Measured again this run: the 39076123103 producer step died at 2703s after persisting b90dca4b, and no audit ref exists. FIVE delivered trees are now ungated [scope: this resume chain; the all-refs population is larger -- see the R5 scope correction in run_facts_measured_via_rest]. Intended upstream fix for the control-plane maintainer: allow the audit job to run `if: always() && needs.team.outputs.deliverable_present == 'true'` (or gate on the persist step's commit existing), never on the producer step alone.",
     "job LOGS remain HTTP 403 unauthenticated for these runs (re-probed this run: GET .../runs/39076123103/logs -> 403), so every failed-step cause stays an INFERENCE; an artifact-preserving log upload inside run-ox-with-retry.sh would convert this class of diagnosis from inference to fact.",
     "the supervisor's 'exhausted same-charter work' jq '//' dead-code guard (v55 factory-wide requirement 13) remains unpatched; the durable stop is the portfolio .status field, which a lane cannot set."
   ],

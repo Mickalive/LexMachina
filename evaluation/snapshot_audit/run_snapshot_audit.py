@@ -102,6 +102,22 @@ Checks (each recorded PASS/FAIL/NOT_RUN; no check is silently dropped):
                                 is preserved rather than rewritten and a new
                                 silent disagreement is red.
 
+ 21. trigger_verdict_matches_record  THE DIRECTION'S OWN ITEM-(1) TRIGGER MUST
+                                BE EXECUTED, NOT ASSERTED. Added by cycle
+                                39082753086 after audit
+                                results/audit/evaluation/
+                                CYCLE_39079133613_GATE.json (gate=REVISE, fixes
+                                R1/R2 both HIGH) found NO_NEW_PACKET published in
+                                four consecutive cycles while the frozen
+                                ``newhead_recompute --mode trigger`` returns
+                                ADJUDICATE_REQUIRED against the named mount. The
+                                check re-executes that frozen trigger, requires a
+                                committed trigger record, and fails when prose
+                                asserts a "does not fire" claim with no matching
+                                record or contradicting one. It refuses to certify
+                                an unmeasured trigger verdict; it does not judge
+                                whether the re-score is worth running.
+
 Exit 0 = ready_for_independent_audit (all checks PASS). Exit 1 = not ready.
 environment_limited=true on a check discloses WHY it failed (an environment
 input, such as the accepted product mount, was absent); it NEVER converts a
@@ -1821,6 +1837,216 @@ def check_frontier_cross_check_reconciliation(repo_root: Path) -> dict:
                   frontier_accepted_run_id=ft.get("accepted_run_id"), problems=problems)
 
 
+#: Prose patterns that ASSERT a direction-item-(1) trigger verdict. A "does not
+#: fire" claim with no matching, freshly executed trigger record is the exact
+#: defect audit CYCLE_39079133613 R1/R2 found published for four cycles.
+TRIGGER_CLAIM_PATTERNS = (
+    (re.compile(r"NO_NEW_PACKET"), "NO_NEW_PACKET"),
+    (re.compile(r"trigger[^\n]{0,40}does not fire", re.I), "trigger_does_not_fire"),
+    (re.compile(r"direction[^\n]{0,40}item[^\n]{0,20}\(?1\)?[^\n]{0,60}does not fire", re.I),
+     "direction_item_1_does_not_fire"),
+    (re.compile(r"ADJUDICATE_REQUIRED"), "ADJUDICATE_REQUIRED"),
+)
+#: Claim LABELS (not prose) that assert the negative. Matching on the label
+#: rather than on the prose avoids the underscore/space mismatch that made an
+#: early draft of this check silently never fire on "trigger does not fire".
+NEGATIVE_CLAIM_LABELS = frozenset({"NO_NEW_PACKET", "trigger_does_not_fire",
+                                 "direction_item_1_does_not_fire"})
+
+#: A negative trigger claim inside one of these windows is a REFERENCE to a
+#: retracted or historical verdict, not an ASSERTION of it. Without this the
+#: check would flag the retraction notice that records the falsehood -- i.e. it
+#: would demand that the lane delete the evidence of its own mistake, which is
+#: the exact opposite of the provenance rule. Retraction evidence is preserved
+#: verbatim and is never rewritten (see AGENTS.md rule 5/6 and the accepted
+#: no-restatement discipline).
+RETRACTION_MARKERS = (
+    re.compile(r"RETRACT", re.I),
+    re.compile(r"withdraw", re.I),
+    re.compile(r"\bfalse\b", re.I),
+    re.compile(r"wrongly|incorrect|not a pass|never (?:execut|ran)", re.I),
+    re.compile(r"superseded|SUPERSEDED", re.I),
+    re.compile(r"without ever executing|had published|never executed", re.I),
+    # "contradicts"/"contradicting" mark a NEGATION of the claim, e.g. the lane
+    # prose that describes this very check ("fails when prose asserts a negative
+    # claim that the executed record contradicts").
+    re.compile(r"contradict", re.I),
+)
+
+
+def _is_retraction_context(text: str, start: int, end: int, pad: int = 260) -> bool:
+    """Is this occurrence a REFERENCE to a retracted/historical verdict?
+
+    Scoped to the enclosing LINE for the LEFT edge (plus `pad` characters either
+    side), then whitespace-collapsed. Anchoring the left edge to the line start
+    stops an unrelated retraction elsewhere in a large state document from
+    silently excusing a real assertion; the right edge stays character-bounded so
+    the search cannot run away, and the whitespace collapse is what survives
+    markdown hard-wrapping, which routinely splits a cue across two source lines.
+    """
+    line_start = text.rfind("\n", 0, start) + 1
+    window = text[max(line_start, start - pad): end + pad]
+    # Markdown is hard-wrapped at ~80 columns, so a cue like "without ever
+    # executing" is routinely split across two source lines ("**without" /
+    # "ever executing"). Collapse whitespace before matching, otherwise the cue
+    # is missed and preserved retraction prose is wrongly flagged as assertion.
+    flat = re.sub(r"\s+", " ", window)
+    return any(rx.search(flat) for rx in RETRACTION_MARKERS)
+
+
+#: State blocks that are scope to the CURRENT run and therefore ASSERT what this
+#: cycle measured. Per-cycle HISTORICAL blocks (no_new_packet_reverification_*,
+#: *_RETRACTED_*, orchestration_* etc.) are excluded by construction: this lane
+#: preserves historical and retracted claim-bearing text verbatim and never
+#: rewrites it, so asserting on them would fire on the preservation record
+#: itself. The exclusion is disclosed in the check detail, not hidden.
+CURRENT_RUN_STATE_FIELDS = (
+    "cycle_status", "continue_recommended_reason", "next_recommendation",
+    "verdict", "recommendation", "recommendation_rationale",
+)
+
+
+def _scan_trigger_claims(text: str, origin: str, honour_retraction: bool = True) -> list[dict]:
+    hits = []
+    for rx, label in TRIGGER_CLAIM_PATTERNS:
+        for m in rx.finditer(text):
+            if honour_retraction and _is_retraction_context(text, m.start(), m.end()):
+                continue
+            ctx = text[max(0, m.start() - 90): m.end() + 90].replace("\n", " ")
+            hits.append({"origin": origin, "claim": label, "context": ctx})
+    return hits
+
+
+def check_trigger_verdict_matches_record(repo_root: Path, run_id: str,
+                                         workdir: Path) -> dict:
+    """Check 21: the direction's own trigger verdict must be EXECUTED, not asserted.
+
+    Added by cycle 39082753086, after audit
+    results/audit/evaluation/CYCLE_39079133613_GATE.json (gate=REVISE,
+    safe_to_integrate=false, fixes R1 HIGH / R2 HIGH) found that this lane had
+    published ``NO_NEW_PACKET`` / "the re-score trigger does not fire" in four
+    consecutive cycles WITHOUT EVER EXECUTING
+    ``python -m evaluation.newhead_recompute --mode trigger``. Executed against
+    the very mount the reports named, the frozen mechanism returns
+    ``ADJUDICATE_REQUIRED``.
+
+    The defect survived 20/20 READY readiness records because check 19
+    (readiness_claims_match_record) certifies SELF-CONSISTENCY between prose and
+    the record that MEASURES it -- and no record measured the trigger. A claim
+    the record never measured passes vacuously. This check closes that hole:
+
+      * it RE-EXECUTES the frozen trigger (it does not trust the committed
+        reconciliation record, by the same discipline as check 18);
+      * it requires a committed trigger record for the current run;
+      * it fails when THIS cycle's report or THIS cycle's state blocks assert a
+        "does not fire" claim that the executed record contradicts.
+
+    SCOPE, stated rather than hidden: the assertion scan covers the current
+    cycle's report and the current run's state fields and state blocks.
+    Per-cycle HISTORICAL and RETRACTED state blocks are excluded, because this
+    lane preserves claim-bearing history verbatim and never rewrites it; and an
+    occurrence sitting inside a retraction window is treated as a reference to a
+    retracted verdict, not as an assertion of it. Asserting on either would
+    force the lane to delete the evidence of its own mistake.
+
+    It deliberately does NOT judge the engineering question of whether the
+    re-score is worth running; it only refuses to let the lane assert a trigger
+    verdict it never measured.
+    """
+    cid = "trigger_verdict_matches_record"
+    state_path = repo_root / "state/evaluation.json"
+    state = json.loads(state_path.read_text(encoding="utf-8")) if state_path.exists() else {}
+    block = state.get(f"trigger_reconciliation_{run_id}") or {}
+    rel = block.get("record")
+    problems: list[str] = []
+
+    if not rel:
+        return _check(cid, False,
+                      f"state/evaluation.json has no trigger_reconciliation_{run_id} block naming a "
+                      f"trigger record; the direction's item-(1) trigger verdict cannot be "
+                      f"reconciled against anything",
+                      problems=["no trigger record declared for this run"],
+                      trigger_verdict=None, re_executed_verdict=None)
+
+    rec_path = repo_root / rel
+    if not rec_path.exists():
+        return _check(cid, False, f"declared trigger record {rel} does not exist",
+                      problems=["declared trigger record missing"], trigger_verdict=None,
+                      re_executed_verdict=None)
+    rec = json.loads(rec_path.read_text(encoding="utf-8"))
+    if rec.get("schema") != "lex-evaluation-trigger-reconciliation/1":
+        problems.append("trigger record schema")
+    recorded = ((rec.get("trigger") or {}).get("verdict"))
+
+    # Re-execute, do not trust. Same discipline as check 18's git re-derivation.
+    mount = Path(os.environ.get("LEX_PRODUCT_MOUNT", "/tmp/lex_accepted/product"))
+    if not (mount / "state").is_dir():
+        return _check(cid, False,
+                      f"product mount {mount} unavailable; the frozen trigger cannot be "
+                      f"re-executed here (environment limit, NOT a pass)",
+                      environment_limited=True,
+                      problems=["product mount unavailable"], trigger_verdict=recorded,
+                      re_executed_verdict=None)
+    re_dir = workdir / "trigger_reconciliation"
+    proc = subprocess.run(
+        [sys.executable, "-m", "evaluation.trigger_reconciliation",
+         "--run-id", run_id, "--product-mount", str(mount),
+         "--repo-root", str(repo_root), "--out-dir", str(re_dir)],
+        cwd=str(repo_root), capture_output=True, text=True)
+    re_path = re_dir / f"{run_id}_reconciliation.json"
+    if proc.returncode != 0 or not re_path.exists():
+        return _check(cid, False,
+                      f"re-execution of the frozen trigger failed (rc={proc.returncode}): "
+                      f"{(proc.stderr or '')[-300:]}",
+                      problems=["trigger re-execution failed"], trigger_verdict=recorded,
+                      re_executed_verdict=None)
+    re_rec = json.loads(re_path.read_text(encoding="utf-8"))
+    re_verdict = (re_rec.get("trigger") or {}).get("verdict")
+    if re_verdict != recorded:
+        problems.append(f"re-executed trigger verdict {re_verdict} != committed record {recorded}")
+
+    # Assertion scope: this run's report + this run's state fields/blocks only.
+    report_rel = f"reports/evaluation/CYCLE_{run_id}.md"
+    state_scope = {k: state[k] for k in CURRENT_RUN_STATE_FIELDS if k in state}
+    for k in list(state):
+        if k.endswith(f"_{run_id}") or k == f"trigger_reconciliation_{run_id}":
+            state_scope[k] = state[k]
+    sources = [("state/evaluation.json [current-run scope]", json.dumps(state_scope, ensure_ascii=False))]
+    rp = repo_root / report_rel
+    if rp.exists():
+        sources.append((report_rel, rp.read_text(encoding="utf-8", errors="replace")))
+    claims = [h for origin, txt in sources for h in _scan_trigger_claims(txt, origin)]
+
+    negative = [c for c in claims if c["claim"] in NEGATIVE_CLAIM_LABELS]
+    for c in negative:
+        if recorded != "NO_NEW_PACKET":
+            problems.append(
+                f"{c['origin']} asserts the negative trigger claim {c['claim']!r} but the "
+                f"executed trigger record says {recorded!r}: a retracted verdict must not be "
+                f"re-asserted by the cycle that retracted it -- context: {c['context'][:160]}")
+
+    ret = rec.get("retracted_claim")
+    if ret and recorded == "NO_NEW_PACKET" and rec.get("verdict", "").startswith("TRIGGER_FIRES"):
+        problems.append("record retracts NO_NEW_PACKET while its own trigger verdict is NO_NEW_PACKET")
+
+    ok = not problems
+    detail = (f"frozen trigger re-executed against {mount}: {re_verdict}; committed record "
+              f"{rel} agrees; {len(claims)} assertion(s) scanned across {len(sources)} "
+              f"current-run source(s), {len(negative)} negative, 0 survive as assertions "
+              f"(retraction and historical blocks are preserved and out of assertion scope)"
+              if ok else
+              f"trigger-claim reconciliation problems: {problems}")
+    return _check(cid, ok, detail, trigger_verdict=recorded,
+                  re_executed_verdict=re_verdict, n_claims_scanned=len(claims),
+                  n_negative_claims=len(negative), record=rel,
+                  assertion_scope=["state/evaluation.json::current-run fields+blocks",
+                                   report_rel],
+                  out_of_assertion_scope=["per-cycle historical state blocks",
+                                          "retracted/historical blocks (preserved verbatim)",
+                                          "occurrence inside a retraction window"],
+                  problems=problems)
+
+
 def build_record(run_id: str, checks: list[dict], manifest: dict,
                  pending: list[str] | None = None) -> dict:
     n_pass = sum(1 for c in checks if c["status"] == "PASS")
@@ -1924,6 +2150,9 @@ def main(argv=None) -> int:
         checks.append(check_diagnosis_39040205229(repo_root))
         checks.append(check_accepted_base_gate_coverage(repo_root))
         checks.append(check_frontier_cross_check_reconciliation(repo_root))
+        # Check 21 RE-EXECUTES a frozen instrument, so it is placed after the
+        # pure-readiness checks. It needs args.run_id, which is available here.
+        checks.append(check_trigger_verdict_matches_record(repo_root, args.run_id, workdir))
 
         # Check 19 needs the finished counts, so it is computed last. The counts
         # it compares the current state block against are the POST-check-19

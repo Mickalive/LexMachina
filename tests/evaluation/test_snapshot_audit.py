@@ -63,6 +63,14 @@ CHECK_IDS = {
     # readiness record's own path is now a declared, post-write-verified self
     # reference) and gave check 4 the failing lane-suite check names.
     "readiness_claims_match_record",
+    # run 39082753086: the direction's own item-(1) trigger must be EXECUTED,
+    # not asserted. Audit CYCLE_39079133613 (gate=REVISE, fixes R1/R2 both HIGH)
+    # found NO_NEW_PACKET published for four consecutive cycles while the frozen
+    # newhead_recompute --mode trigger returns ADJUDICATE_REQUIRED against the
+    # very mount the reports named. Check 19 certified self-consistency only,
+    # so a claim no record measured passed vacuously. Set-completeness of the
+    # verifier's check set; no check was weakened or removed.
+    "trigger_verdict_matches_record",
 }
 
 
@@ -1027,3 +1035,74 @@ def test_readiness_claims_catch_a_report_lane_suite_green_over_a_red_suite(tmp_p
         _claim_root(tmp_path, block, report), "999", _RECORD_16_OF_18)
     assert res["status"] == "FAIL", res
     assert any("lane suite: PASS" in p for p in res["problems"]), res
+
+
+# --------------------------- check 21: trigger-claim assertion scope --------
+
+def test_check21_flags_a_bare_negative_trigger_claim():
+    """The defect audit CYCLE_39079133613 R1/R2 found: a 'does not fire' claim
+    asserted with no matching trigger record. It must be an ASSERTION here."""
+    hits = [h for h in rsa._scan_trigger_claims(
+        "The re-score trigger does not fire this cycle.", "t")
+        if h["claim"] in rsa.NEGATIVE_CLAIM_LABELS]
+    assert hits, "a bare negative trigger claim must be flagged as an assertion"
+
+
+def test_check21_does_not_flag_retraction_or_historical_text():
+    """Preserved retraction evidence must NOT be flagged: the lane is forbidden
+    from rewriting claim-bearing history, so the check must discriminate
+    assertion from reference rather than demanding deletion of the record."""
+    preserved = [
+        "NO_NEW_PACKET is RETRACTED; the frozen trigger returns ADJUDICATE_REQUIRED.",
+        "retracted_verdict = NO_NEW_PACKET",
+        "cycles 39064597912..39079133613 published NO_NEW_PACKET without ever "
+        "executing the trigger",
+        "the trigger returns ADJUDICATE_REQUIRED",
+    ]
+    for text in preserved:
+        hits = [h for h in rsa._scan_trigger_claims(text, "t")
+                if h["claim"] in rsa.NEGATIVE_CLAIM_LABELS]
+        assert not hits, f"reference/retraction text wrongly flagged: {text[:60]}"
+
+
+def test_check21_requires_a_committed_trigger_record():
+    """No declared record for this run is a FAIL, not a vacuous pass."""
+    import json as _json
+    import tempfile
+    from pathlib import Path as _P
+    with tempfile.TemporaryDirectory() as td:
+        root = _P(td)
+        (root / "state").mkdir()
+        (root / "state/evaluation.json").write_text(
+            _json.dumps({"lane": "evaluation", "trigger_reconciliation_999": {}}))
+        out = rsa.check_trigger_verdict_matches_record(root, "999", root)
+        assert out["status"] == "FAIL"
+        assert out["trigger_verdict"] is None
+
+
+def test_check21_is_environment_limited_not_silent_pass_when_mount_absent():
+    """An unavailable product mount must be an explicit environment_limited FAIL,
+    never a silent PASS (same convention as checks 15 and 18)."""
+    import json as _json
+    import os
+    import tempfile
+    from pathlib import Path as _P
+    with tempfile.TemporaryDirectory() as td:
+        root = _P(td)
+        (root / "state").mkdir()
+        rec = root / "rec.json"
+        rec.write_text(_json.dumps({"schema": "lex-evaluation-trigger-reconciliation/1",
+                                    "trigger": {"verdict": "ADJUDICATE_REQUIRED"}}))
+        (root / "state/evaluation.json").write_text(
+            _json.dumps({"trigger_reconciliation_999": {"record": "rec.json"}}))
+        old = os.environ.get("LEX_PRODUCT_MOUNT")
+        os.environ["LEX_PRODUCT_MOUNT"] = str(root / "no_such_mount")
+        try:
+            out = rsa.check_trigger_verdict_matches_record(root, "999", root)
+        finally:
+            if old is None:
+                os.environ.pop("LEX_PRODUCT_MOUNT", None)
+            else:
+                os.environ["LEX_PRODUCT_MOUNT"] = old
+        assert out["status"] == "FAIL"
+        assert out.get("environment_limited") is True
