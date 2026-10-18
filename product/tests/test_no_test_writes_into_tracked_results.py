@@ -70,6 +70,41 @@ WRITER_APIS = {
     "export_feedback",
 }
 
+#: APIs that DESTROY whatever path they are handed.
+#:
+#: CYCLE_39097705922 added this set after the suite was made collectible again
+#: and three helpers were found calling ``shutil.rmtree`` on
+#: ``product/results/corpus/normalization/user_imports`` and
+#: ``product/results/fractal_map/user_imports`` "for idempotency" - which deletes
+#: a COMMITTED fixture rather than merely dirtying the tree. Deletion is strictly
+#: worse than residue (it destroys history instead of adding noise to it) and the
+#: original guard could not see it, because a destructive call was not in
+#: ``WRITER_APIS``.
+DESTRUCTIVE_APIS = {
+    "rmtree",
+    "unlink",
+    "remove",
+    "rmdir",
+    "removedirs",
+    "rename",
+    "replace",
+}
+
+#: Union: anything that can change the tracked tree.
+MUTATING_APIS = WRITER_APIS | DESTRUCTIVE_APIS
+
+#: A ``write_dir=`` (or ``user_import_write_dir=``) argument that names a
+#: throwaway location instead of the tracked tree. ``NavigationAPI`` gained these
+#: keyword seams in CYCLE_39097705922 precisely so a caller can read the tracked
+#: artifacts without being granted write access to them.
+REDIRECT_KEYWORDS = ("write_dir", "user_import_write_dir")
+_SCRATCH_TOKENS = ("tmp_path", "tempfile", "LAST_SCRATCH_WRITE_DIR",
+                   "_scratch_import_dir", "mkdtemp")
+
+#: How far apart a tracked-path assignment and a mutating call may be and still
+#: count as "that path was handed to a mutator".
+PROXIMITY_LINES = 6
+
 #: Residue fingerprints: a jurist_id that only a test would ever use.
 _RESIDUE_JURIST = re.compile(r"test_(?:jurist|aggregator)_\w+")
 
@@ -156,8 +191,16 @@ def _node_text(source: str, node: ast.AST) -> str:
 #: so that every spelling of the same path matches:
 #: ``... / "results" / "fractal_map"``, ``"results/fractal_map"`` and
 #: ``'results'/'fractal_map'`` all normalise to ``results / fractal_map``.
+#:
+#: The alternation names the WRITABLE subdirectories rather than ``results/``
+#: wholesale: a read-only fixture may legitimately point into the tracked tree,
+#: and only these four are handed to a mutator. ``user_imports`` and
+#: ``spatial_indices`` were added in cycle 39097705922 once the modules became
+#: executable and turned out to target them.
 _TRACKED_RESULTS_PATH = re.compile(
-    r"results\s*/\s*(?:fractal_map|[^/\n]*jurist_feedback)"
+    r"results\s*/\s*(?:[^/\n]+\s*/\s*)*"
+    r"(?:fractal_map|user_imports|corpus_user_imports"
+    r"|spatial_indices|[^/\n]*jurist_feedback)"
 )
 
 
@@ -215,42 +258,84 @@ def _tracked_results_references(path: Path) -> list[tuple[int, str]]:
     return hits
 
 
-def _writer_call_lines(path: Path) -> list[int]:
-    """Line numbers of calls to writer-capable APIs in ``path``."""
+def _called_name(node: ast.Call) -> str | None:
+    func = node.func
+    if isinstance(func, ast.Name):
+        return func.id
+    if isinstance(func, ast.Attribute):
+        return func.attr
+    return None
+
+
+def _keyword_source(node: ast.Call, names: tuple[str, ...]) -> str:
+    """Source text of the given keyword arguments, or "" when absent."""
+    out = []
+    for kw in node.keywords:
+        if kw.arg in names and kw.value is not None:
+            out.append(ast.unparse(kw.value))
+    return " ".join(out)
+
+
+def _mutating_calls(path: Path) -> list[tuple[int, bool]]:
+    """``[(lineno, redirected), ...]`` for every mutating call in ``path``.
+
+    ``redirected`` is True when the call explicitly routes its writes to a
+    throwaway directory via one of :data:`REDIRECT_KEYWORDS`. Such a call is not
+    an offender even when the paths it READS are tracked - that is the whole
+    point of the seam.
+    """
     try:
         source = path.read_text(encoding="utf-8")
         tree = ast.parse(source)
     except (OSError, SyntaxError, UnicodeDecodeError):
         return []
-    out: list[int] = []
+    out: list[tuple[int, bool]] = []
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
             continue
-        func = node.func
-        name = None
-        if isinstance(func, ast.Name):
-            name = func.id
-        elif isinstance(func, ast.Attribute):
-            name = func.attr
-        if name in WRITER_APIS:
-            out.append(node.lineno)
+        if _called_name(node) not in MUTATING_APIS:
+            continue
+        redirect = _keyword_source(node, REDIRECT_KEYWORDS)
+        redirected = bool(redirect) and any(
+            tok in redirect for tok in _SCRATCH_TOKENS
+        )
+        out.append((node.lineno, redirected))
     return out
 
 
+def _writer_call_lines(path: Path) -> list[int]:
+    """Line numbers of mutating calls in ``path`` (writers AND destructors).
+
+    The name is historical; the behaviour now covers
+    :data:`DESTRUCTIVE_APIS` as well, because the class of harm is the same.
+    """
+    return [lineno for lineno, _ in _mutating_calls(path)]
+
+
+def _unredirected_call_lines(path: Path) -> list[int]:
+    """Mutating call sites that were NOT explicitly redirected to scratch."""
+    return [lineno for lineno, redirected in _mutating_calls(path) if not redirected]
+
+
 def _offenders_by_module() -> dict[str, list[str]]:
-    """``relative module path -> ["<path>:<lineno>: <text>", ...]``."""
+    """``relative module path -> ["<path>:<lineno>: <text>", ...]``.
+
+    A tracked-path line is an offender when a mutating call that was NOT
+    redirected to a scratch directory sits within :data:`PROXIMITY_LINES` of it.
+    """
     out: dict[str, list[str]] = {}
     for path in sorted(TESTS_DIR.rglob("test_*.py")):
-        writer_lines = _writer_call_lines(path)
-        if not writer_lines:
+        mutating = _unredirected_call_lines(path)
+        if not mutating:
             continue
         found: list[str] = []
         for lineno, text in _tracked_results_references(path):
             if "tmp_path" in text or "tempfile" in text:
                 continue
             # Only flag lines that build a path into the tracked tree AND mention a
-            # writer within 6 lines, so unrelated read-only fixtures do not trip it.
-            if any(abs(lineno - w) <= 6 for w in writer_lines):
+            # mutating call within PROXIMITY_LINES, so unrelated read-only
+            # fixtures do not trip it.
+            if any(abs(lineno - w) <= PROXIMITY_LINES for w in mutating):
                 found.append(f"{path.relative_to(REPO_ROOT)}:{lineno}: {text}")
         if found:
             out[str(path.relative_to(REPO_ROOT))] = found
@@ -258,22 +343,43 @@ def _offenders_by_module() -> dict[str, list[str]]:
 
 
 #: Modules this cycle fixed. Each must stay at ZERO offenders, forever.
-FIXED_MODULES = ("product/tests/test_cycle_v18_product.py",)
+FIXED_MODULES = (
+    "product/tests/test_cycle_v18_product.py",
+    "product/tests/test_cycle_174k_simulation.py",
+    "product/tests/test_cycle_33032746334.py",
+    "product/tests/test_cycle_33033658714.py",
+    "product/tests/test_cycle_33304668621.py",
+    "product/tests/test_cycle_33660041466_incremental.py",
+    "product/tests/test_cycle_33660041466_lod.py",
+    "product/tests/test_cycle_33982486898.py",
+    "product/tests/test_cycle_product_scale.py",
+    "product/tests/test_cycle_product_v10.py",
+    "product/tests/test_cycle_product_v11.py",
+    "product/tests/test_cycle_scale_readiness.py",
+    "product/tests/test_cycle_v17_validate_reps.py",
+    "product/tests/test_cycle_v17_webgl_vectorized.py",
+    "product/tests/test_product.py",
+)
 
-#: Pinned baseline for the rest of the class, measured on this cycle's tree.
+#: Pinned baseline for the rest of the class.
 #:
-#: 13 further modules carry the SAME defect: they build a writer-capable
-#: ``NavigationAPI`` against the tracked ``product/results/fractal_map``. They are
-#: NOT fixed by this cycle, deliberately: every one of them is in the 18-module
-#: uncollectable set (they need ``sentence_transformers``/torch), so a rewrite
-#: could not be executed or verified here. Bulk-editing 13 unverifiable modules
-#: would trade a recorded, measured defect for an unmeasured one.
+#: CYCLE_39082232157 pinned this at **38** offending lines across 14 modules and
+#: deliberately left them unfixed, with this rationale (preserved verbatim in
+#: ``cycle_39082232157_rf0_rf4_ordered_work.RF3_stop_fake_delta_from_the_test_suite``
+#: in ``state/product.json``): every one of those modules was in the
+#: 18-module uncollectable set, so a rewrite "could not be executed or verified
+#: here", and bulk-editing 13 unverifiable modules "would trade a recorded,
+#: measured defect for an unmeasured one".
 #:
-#: Instead the baseline is pinned so the class cannot GROW, the per-module
-#: inventory is published as machine-readable evidence, and
-#: ``test_the_unfixed_class_has_not_grown`` fails if this number rises. Each entry
-#: is a concrete repair backlog item, not a tolerated unknown.
-PINNED_UNFIXED_OFFENDER_LINES = 38
+#: CYCLE_39097705922 removes the premise. ``product/app/navigation.py`` imported
+#: ``sentence_transformers`` at module scope, which made ``product/server.py``
+#: and all 18 dependent test modules unimportable wherever the optional dense
+#: stack is absent - including the canonical CI environment. Making that import
+#: lazy restored all 18 modules, and with them the ability to execute and verify
+#: a fix. The class is now **0**, measured, not asserted.
+#:
+#: The pin is kept, at zero, so the class cannot regrow. It is never raised.
+PINNED_UNFIXED_OFFENDER_LINES = 0
 
 
 def test_no_test_fixture_points_a_writer_at_the_tracked_results_tree():
@@ -318,13 +424,21 @@ def test_publish_the_unfixed_inventory_as_evidence():
     artifact = {
         "schema": "product-tracked-results-writer-inventory/1",
         "run_id": os.environ.get("LEX_PRODUCT_RUN_ID", "local"),
-        "what_this_is": (
-            "Every product/tests module that builds a writer-capable API "
-            "(NavigationAPI/submit_feedback/export_feedback/save_map/save_meta) "
-            "against the TRACKED product/results/ tree. Such a fixture mutates a "
-            "committed file on every pytest run; core-lane.yml collects the tree "
-            "with `git add -A`, so the residue was once committed as a cycle's "
-            "entire delta (run 39073545280, +20 lines)."
+"what_this_is": (
+            "Every product/tests module that hands a path in the TRACKED "
+            "product/results/ tree to an API that mutates or destroys it: the "
+            "appenders (NavigationAPI/submit_feedback/export_feedback/save_map/"
+            "save_meta) and the destructors (rmtree/unlink/remove/rmdir/"
+            "removedirs/rename/replace). Such a fixture changes a committed file "
+            "on every pytest run; core-lane.yml collects the tree with `git add "
+            "-A`, so append-residue was once committed as a cycle's entire delta "
+            "(run 39073545280, +20 lines) and rtree-residue deletes committed "
+            "fixtures outright."
+        ),
+        "mutation_class_covered": (
+            "append (WRITER_APIS) and destroy (DESTRUCTIVE_APIS); a writer call "
+            "that passes a scratch write_dir= / user_import_write_dir= is not an "
+            "offender, because the write provably cannot reach the tracked tree"
         ),
         "fixed_this_cycle": list(FIXED_MODULES),
         "fixed_verified_offender_lines": {
@@ -335,12 +449,28 @@ def test_publish_the_unfixed_inventory_as_evidence():
         "unfixed_per_module": {m: len(h) for m, h in sorted(unfixed.items())},
         "unfixed_detail": unfixed,
         "why_unfixed_is_not_excused": (
-            "Every remaining module is in the 18-module uncollectable set "
-            "(needs sentence_transformers/torch), so it cannot be executed or "
-            "verified in a bare environment. Rewriting 13 unverifiable modules "
-            "would replace a recorded, measured defect with an unmeasured one, so "
-            "the cycle pins the count, publishes the locations, and fixes them "
-            "where it can actually run the test."
+            "NOBODY - the unfixed remainder is EMPTY and MEASURED at 0, not "
+            "asserted. Cycle 39082232157 pinned this at 38 lines across 14 "
+            "modules and declined to fix them, because every one of those "
+            "modules needs sentence_transformers/torch and could not be "
+            "COLLECTED or EXECUTED in a bare environment; editing code that "
+            "cannot run would have replaced a recorded defect with an unmeasured "
+            "one. Cycle 39097705922 removed that premise (the eager "
+            "`from sentence_transformers import ...` in "
+            "product/app/navigation.py is now lazy, restoring all 18 modules to "
+            "the collectible set), then repaired the whole class and "
+            "demonstrated the repair empirically: running those 14 modules "
+            "leaves `git status --porcelain product/results` empty, where before "
+            "the repair the same run MODIFIED one tracked fixture and DELETED "
+            "another."
+        ),
+        "repair_mechanism": (
+            "NavigationAPI gained write_dir=, CorpusLoader gained "
+            "user_import_write_dir=, and both default to the historical "
+            "behaviour. The 15 affected modules now either pass tmp_path or "
+            "hand NavigationAPI a tempfile.mkdtemp() scratch directory, and the "
+            "three idempotency helpers that used to shutil.rmtree tracked "
+            "user_imports directories now wipe scratch state instead."
         ),
     }
     out_dir = REPO_ROOT / "results" / "product" / "regression"
@@ -449,3 +579,133 @@ def test_v18_feedback_tests_use_the_tmp_path_fixture():
         assert 'parent.parent / "results"' not in body, (
             f"{fn.name} still resolves a path under product/results/; that directory is tracked"
         )
+
+# --------------------------------------------------------------------------- #
+# 3. non-vacuity for the two capabilities added in cycle 39097705922
+# --------------------------------------------------------------------------- #
+
+def test_destructive_class_is_detected_and_was_previously_invisible(tmp_path):
+    """Non-vacuity: ``rmtree`` on a tracked dir is caught; append-only missed it.
+
+    This is the exact shape three helpers used, including
+    ``shutil.rmtree(user_import_dir)`` where ``user_import_dir`` came from the
+    tracked corpus tree two lines above.
+    """
+    destructive = tmp_path / "test_synthetic_destructor.py"
+    destructive.write_text(
+        "import shutil\n"
+        "\n"
+        "def test_bad():\n"
+        "    base_dir = Path(__file__).parent.parent\n"
+        "    user_import_dir = (\n"
+        "        base_dir / 'results' / 'corpus' / 'normalization' / 'user_imports'\n"
+        "    )\n"
+        "    if user_import_dir.exists():\n"
+        "        shutil.rmtree(user_import_dir)\n",
+        encoding="utf-8",
+    )
+    assert "rmtree" in DESTRUCTIVE_APIS
+    calls = _mutating_calls(destructive)
+    assert calls, "rmtree() must be recognised as a mutating call"
+    assert all(not redirected for _ln, redirected in calls), (
+        "shutil.rmtree(...) carries no write_dir= keyword and must not be "
+        "treated as redirected"
+    )
+    # The defect must actually register, not merely be counted.
+    offenders = _tracked_results_references(destructive)
+    assert offenders, "the tracked-path assignment must be seen"
+    unredirected = _unredirected_call_lines(destructive)
+    assert any(abs(ln - w) <= PROXIMITY_LINES for ln, _ in offenders for w in unredirected), (
+        "an unredirected rmtree next to a tracked-path line must register as an "
+        "offender; this is the control that would have caught the deletion of "
+        "the committed user_corpus.jsonl fixture"
+    )
+
+    # And the append-only scanner really would have missed it: the F1-era rule
+    # keyed on WRITER_APIS, which does not contain rmtree.
+    assert not (WRITER_APIS & DESTRUCTIVE_APIS), (
+        "the destructive set must not overlap the append-only set, or this "
+        "control cannot show the new coverage is new"
+    )
+
+
+def test_write_dir_redirect_is_recognised_but_only_onto_scratch(tmp_path):
+    """Non-vacuity: the seam is admitted, and only when it really points off-tree.
+
+    Without this, the guard could be satisfied by naming ``write_dir`` while
+    still writing into the tracked tree - the fix would be cosmetic.
+    """
+    good = tmp_path / "test_synthetic_redirect.py"
+    good.write_text(
+        "def test_ok(tmp_path):\n"
+        "    results_dir = str(Path(__file__).parent.parent / 'results' / 'fractal_map')\n"
+        "    api = NavigationAPI(corpus_dir, results_dir, write_dir=str(tmp_path))\n",
+        encoding="utf-8",
+    )
+    calls = _mutating_calls(good)
+    assert len(calls) == 1 and calls[0][1] is True, (
+        f"write_dir=str(tmp_path) must be recognised as redirected, got {calls}"
+    )
+    assert _unredirected_call_lines(good) == [], (
+        "a correctly redirected writer must not remain in the unredirected set"
+    )
+
+    # Redirecting back INTO the tracked tree is not a redirect.
+    bad = tmp_path / "test_synthetic_fake_redirect.py"
+    bad.write_text(
+        "def test_bad():\n"
+        "    results_dir = str(Path(__file__).parent.parent / 'results' / 'fractal_map')\n"
+        "    api = NavigationAPI(corpus_dir, results_dir, write_dir=results_dir)\n",
+        encoding="utf-8",
+    )
+    assert _mutating_calls(bad) == [(3, False)], (
+        "write_dir= pointing at the tracked tree must NOT be accepted as a "
+        f"redirect, got {_mutating_calls(bad)}"
+    )
+
+    # tempfile scratch counts as redirected too - that is what the 14 migrated
+    # module-level helpers use.
+    scratch = tmp_path / "test_synthetic_scratch.py"
+    scratch.write_text(
+        "def test_ok():\n"
+        "    results_dir = str(base_dir / 'results' / 'fractal_map')\n"
+        "    api = NavigationAPI(corpus_dir, results_dir,\n"
+        "                        write_dir=tempfile.mkdtemp(prefix='lex_nav_write_'))\n",
+        encoding="utf-8",
+    )
+    assert all(redirected for _ln, redirected in _mutating_calls(scratch)), (
+        "a tempfile.mkdtemp() write_dir must be recognised as scratch"
+    )
+
+
+def test_no_migrated_module_still_names_a_tracked_path_without_scratch(tmp_path):
+    """Belt-and-braces on the 14 migrated modules.
+
+    Reads each migrated module and asserts that every ``NavigationAPI`` call in
+    it either passes a scratch ``write_dir`` or is the one intentional
+    historical case. Cheap, and it fails loudly if a later edit drops the kwarg.
+    """
+    missing = []
+    for module in FIXED_MODULES:
+        path = REPO_ROOT / module
+        if not path.exists():
+            missing.append(f"{module}: MISSING")
+            continue
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for lineno, redirected in _mutating_calls(path):
+            if redirected:
+                continue
+            source = lines[lineno - 1]
+            if "NavigationAPI(" not in source:
+                continue
+            # Accept the other correct shape: a fixture that already builds its
+            # own results_dir out of tmp_path (the test_cycle_v18_product.py
+            # pattern, fixed by cycle 39082232157 before write_dir existed).
+            lookback = "\n".join(lines[max(0, lineno - 26):lineno])
+            if "tmp_path" in lookback or "tempfile" in lookback:
+                continue
+            missing.append(f"{module}:{lineno}: {source.strip()}")
+    assert missing == [], (
+        "a NavigationAPI call in a migrated module lost its scratch write_dir:\n  "
+        + "\n  ".join(missing)
+    )

@@ -399,7 +399,7 @@ class TestFullScalePipeline:
         assert total < 3.0, f"Pipeline took {total:.3f}s, must be < 3.0s"
         assert n_visible > 0
 
-    def test_representation_coverage_174k(self):
+    def test_representation_coverage_174k(self, tmp_path):
         """All 30 representations have their spatial index at 1000 scale."""
         print("=== Test: Representation Coverage ===")
         from app.navigation import NavigationAPI
@@ -411,7 +411,7 @@ class TestFullScalePipeline:
             print("  SKIP: data directories not available")
             return
 
-        api = NavigationAPI(corpus_dir, results_dir)
+        api = NavigationAPI(corpus_dir, results_dir, write_dir=str(tmp_path))
         api.initialize()
 
         reps = api.map_loader.get_available_representations()

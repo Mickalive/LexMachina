@@ -90,7 +90,7 @@ def test_map_loader():
     return True
 
 
-def test_navigation_api():
+def test_navigation_api(tmp_path):
     """Test the navigation API end-to-end."""
     print("=== Test: Navigation API ===")
     
@@ -98,7 +98,7 @@ def test_navigation_api():
     corpus_dir = str(base_dir / "results" / "corpus" / "normalization" / "canonical")
     results_dir = str(base_dir / "results" / "fractal_map")
     
-    api = NavigationAPI(corpus_dir, results_dir)
+    api = NavigationAPI(corpus_dir, results_dir, write_dir=str(tmp_path))
     status = api.initialize()
     
     assert status["status"] == "ready", f"API not ready: {status}"
@@ -147,7 +147,7 @@ def test_navigation_api():
     return True
 
 
-def test_end_to_end():
+def test_end_to_end(tmp_path):
     """Test complete end-to-end navigation flow."""
     print("=== Test: End-to-End Navigation ===")
     
@@ -155,7 +155,7 @@ def test_end_to_end():
     corpus_dir = str(base_dir / "results" / "corpus" / "normalization" / "canonical")
     results_dir = str(base_dir / "results" / "fractal_map")
     
-    api = NavigationAPI(corpus_dir, results_dir)
+    api = NavigationAPI(corpus_dir, results_dir, write_dir=str(tmp_path))
     api.initialize()
     
     # Flow: Overview → Map → Cluster → Decision → Neighbors
@@ -186,7 +186,7 @@ def test_end_to_end():
     return True
 
 
-def test_hdbscan():
+def test_hdbscan(tmp_path):
     """Test HDBSCAN clustering as alternative to Leiden."""
     print("=== Test: HDBSCAN Clustering ===")
     
@@ -194,7 +194,7 @@ def test_hdbscan():
     corpus_dir = str(base_dir / "results" / "corpus" / "normalization" / "canonical")
     results_dir = str(base_dir / "results" / "fractal_map")
     
-    api = NavigationAPI(corpus_dir, results_dir)
+    api = NavigationAPI(corpus_dir, results_dir, write_dir=str(tmp_path))
     api.initialize()
     
     # Verify HDBSCAN is available
@@ -222,7 +222,7 @@ def test_hdbscan():
     return True
 
 
-def test_corpus_import():
+def test_corpus_import(tmp_path):
     """Test user corpus import functionality."""
     print("=== Test: Corpus Import ===")
     
@@ -230,13 +230,17 @@ def test_corpus_import():
     corpus_dir = str(base_dir / "results" / "corpus" / "normalization" / "canonical")
     results_dir = str(base_dir / "results" / "fractal_map")
     
-    # Clean any previous user imports for idempotent test
+    # Clean any previous user imports for idempotent test.
+    # CYCLE_39097705922: this used to shutil.rmtree the TRACKED
+    # product/results/corpus/normalization/user_imports directory (deleting a
+    # committed fixture). NavigationAPI now takes write_dir=tmp_path, so the
+    # user-import file it appends to is already per-test scratch state.
     import shutil
-    user_import_dir = Path(corpus_dir).parent / "user_imports"
+    user_import_dir = tmp_path / "corpus_user_imports"
     if user_import_dir.exists():
         shutil.rmtree(user_import_dir)
     
-    api = NavigationAPI(corpus_dir, results_dir)
+    api = NavigationAPI(corpus_dir, results_dir, write_dir=str(tmp_path))
     api.initialize()
     
     initial_count = api.corpus.size
@@ -301,13 +305,13 @@ def test_corpus_import():
     return True
 
 
-def test_section_modes():
+def test_section_modes(tmp_path):
     """Test section-based map modes (multi-view navigation)."""
     print("=== Test: Section Modes ===")
     
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
     
     # Verify section modes loaded
@@ -343,13 +347,13 @@ def test_section_modes():
     return True
 
 
-def test_citations():
+def test_citations(tmp_path):
     """Test citation graph integration."""
     print("=== Test: Citations ===")
     
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
     
     # Verify citation graph loaded
@@ -390,13 +394,13 @@ def test_citations():
     return True
 
 
-def test_map_modes_api():
+def test_map_modes_api(tmp_path):
     """Test the map modes API endpoint."""
     print("=== Test: Map Modes API ===")
     
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
     
     # Test get_map_modes
@@ -423,13 +427,13 @@ def test_map_modes_api():
     return True
 
 
-def test_hierarchical_leiden():
+def test_hierarchical_leiden(tmp_path):
     """Test hierarchical Leiden representation (validated fractal map architecture)."""
     print("=== Test: Hierarchical Leiden ===")
     
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
     
     # Verify hierarchical_leiden is available
@@ -506,7 +510,7 @@ def test_hierarchical_leiden():
     return True
 
 
-def test_true_hierarchical_leiden():
+def test_true_hierarchical_leiden(tmp_path):
     """Test TRUE hierarchical Leiden representation (validated fractal map architecture).
 
     True hierarchical Leiden runs Leiden within parent clusters at finer resolution,
@@ -521,7 +525,7 @@ def test_true_hierarchical_leiden():
 
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
 
     # Verify true_hierarchical_leiden is available
@@ -598,7 +602,7 @@ def test_true_hierarchical_leiden():
     return True
 
 
-def test_legal_cited_decisions():
+def test_legal_cited_decisions(tmp_path):
     """Test legal_cited_decisions representation (ACCEPTED legal-distance signal).
 
     This representation uses TF-IDF on cited decisions only.
@@ -610,7 +614,7 @@ def test_legal_cited_decisions():
 
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
 
     # Verify legal_cited_decisions is available
@@ -684,7 +688,7 @@ def test_legal_cited_decisions():
     return True
 
 
-def test_center_projected():
+def test_center_projected(tmp_path):
     """Test center_projected representation (CRITICAL - evaluation v2 finding).
 
     This is the ONLY representation passing BOTH adversarial benchmarks:
@@ -698,7 +702,7 @@ def test_center_projected():
 
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
 
     # Verify center_projected is available
@@ -743,7 +747,7 @@ def test_center_projected():
     return True
 
 
-def test_hybrid_alpha_0_3():
+def test_hybrid_alpha_0_3(tmp_path):
     """Test hybrid_alpha_0_3 representation (30% center_projected + 70% legal_cited_decisions).
 
     This hybrid favors citation-proximity (legal_cited_decisions) while retaining
@@ -755,7 +759,7 @@ def test_hybrid_alpha_0_3():
 
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
 
     # Verify hybrid_alpha_0_3 is available
@@ -794,7 +798,7 @@ def test_hybrid_alpha_0_3():
     return True
 
 
-def test_hybrid_alpha_0_5():
+def test_hybrid_alpha_0_5(tmp_path):
     """Test hybrid_alpha_0_5 representation (50% center_projected + 50% legal_cited_decisions).
 
     Equal blend of language-invariant legal geometry and citation-proximity signals.
@@ -805,7 +809,7 @@ def test_hybrid_alpha_0_5():
 
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
 
     # Verify hybrid_alpha_0_5 is available
@@ -844,7 +848,7 @@ def test_hybrid_alpha_0_5():
     return True
 
 
-def test_legal_issues_outcomes():
+def test_legal_issues_outcomes(tmp_path):
     """Test legal_issues_outcomes representation (legal-specific signal from legal_signals).
 
     This representation captures legal issues (statutes, cited decisions) and outcomes
@@ -858,7 +862,7 @@ def test_legal_issues_outcomes():
 
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
 
     # Verify legal_issues_outcomes is available
@@ -935,7 +939,7 @@ def test_mahalanobis_best():
                 "Per factory direction v34, metric learning representations are v1.1+ complementary modes.")
 
 
-def test_cited_decisions_tfidf():
+def test_cited_decisions_tfidf(tmp_path):
     """Test cited_decisions_tfidf_174k representation (ACCEPTED - zero-shot breakthrough at 174k scale).
 
     Zero-shot TF-IDF on cited decisions only at FULL 174k scale (173,963 decisions).
@@ -947,7 +951,7 @@ def test_cited_decisions_tfidf():
 
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
 
     reps = api.map_loader.get_available_representations()
@@ -1072,7 +1076,7 @@ def test_cited_decisions_tfidf_hybrid_cp64_0_7():
                 "Per factory direction v34, dense embedding hybrids are v1.1+ complementary modes.")
 
 
-def test_cited_outcome_hybrid_0_5():
+def test_cited_outcome_hybrid_0_5(tmp_path):
     """Test cited_outcome_hybrid_0.5_174k representation (ACCEPTED - BEST PRODUCTION HYBRID at 174k scale).
 
     Hybrid: 50% cited_decisions_tfidf + 50% outcome signal. JP=0.7990, LangDom=0.4911.
@@ -1085,7 +1089,7 @@ def test_cited_outcome_hybrid_0_5():
 
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
 
     reps = api.map_loader.get_available_representations()
@@ -1119,7 +1123,7 @@ def test_cited_outcome_hybrid_0_5():
     return True
 
 
-def test_cited_outcome_hybrid_0_7():
+def test_cited_outcome_hybrid_0_7(tmp_path):
     """Test cited_outcome_hybrid_0.7_174k representation (ACCEPTED - BEST FRACTAL HYBRID at 174k scale).
 
     Hybrid: 70% cited_decisions_tfidf + 30% outcome signal. HierAdv=+0.3703.
@@ -1131,7 +1135,7 @@ def test_cited_outcome_hybrid_0_7():
 
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
 
     reps = api.map_loader.get_available_representations()
@@ -1181,7 +1185,7 @@ def test_hybrid_stabilized_best():
                 "Per factory direction v34, dense embedding hybrids are v1.1+ complementary modes.")
 
 
-def test_following_alpha0_3():
+def test_following_alpha0_3(tmp_path):
     """Test following_alpha0.3 representation (ACCEPTED - Citation Role: Following).
 
     Citation role view: decisions that FOLLOW cited precedents. Extracts "following" role
@@ -1193,7 +1197,7 @@ def test_following_alpha0_3():
 
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
 
     reps = api.map_loader.get_available_representations()
@@ -1221,7 +1225,7 @@ def test_following_alpha0_3():
     return True
 
 
-def test_criticizing_alpha0_3():
+def test_criticizing_alpha0_3(tmp_path):
     """Test criticizing_alpha0.3 representation (ACCEPTED - Citation Role: Criticizing).
 
     Citation role view: decisions that CRITICIZE cited precedents. Extracts "criticizing" role
@@ -1233,7 +1237,7 @@ def test_criticizing_alpha0_3():
 
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
 
     reps = api.map_loader.get_available_representations()
@@ -1261,7 +1265,7 @@ def test_criticizing_alpha0_3():
     return True
 
 
-def test_citing_alpha0_3():
+def test_citing_alpha0_3(tmp_path):
     """Test citing_alpha0.3 representation (ACCEPTED - Citation Role: Citing).
 
     Citation role view: decisions that CITING precedents (general role). Extracts "citing" role
@@ -1273,7 +1277,7 @@ def test_citing_alpha0_3():
 
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
 
     reps = api.map_loader.get_available_representations()
@@ -1301,7 +1305,7 @@ def test_citing_alpha0_3():
     return True
 
 
-def test_linear_hybrid05_concat():
+def test_linear_hybrid05_concat(tmp_path):
     """Test linear_hybrid05_concat representation (v15b ACCEPTED - BEST STABLE combination).
 
     Equal-weight concatenation of linear_metric_best (128D) + cited_outcome_hybrid_0.5 (128D) = 256D.
@@ -1313,7 +1317,7 @@ def test_linear_hybrid05_concat():
 
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
 
     reps = api.map_loader.get_available_representations()
@@ -1344,7 +1348,7 @@ def test_linear_hybrid05_concat():
     return True
 
 
-def test_all_representations_coverage():
+def test_all_representations_coverage(tmp_path):
     """Comprehensive test: verify ALL representations load, serve data, and have neighbors.
 
     This is the canonical representation coverage gate. Catches any representation that
@@ -1355,7 +1359,7 @@ def test_all_representations_coverage():
 
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
 
     reps = api.map_loader.get_available_representations()

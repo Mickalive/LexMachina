@@ -16,14 +16,30 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from app.corpus_loader import CorpusLoader
 from app.map_loader import MapLoader
 from app.navigation import NavigationAPI
+import tempfile
 
+
+#: Scratch write directory handed to the most recently created NavigationAPI.
+#: Recorded so idempotency helpers can clear RUNTIME state without touching the
+#: tracked ``product/results/`` tree (CYCLE_39097705922).
+LAST_SCRATCH_WRITE_DIR = Path(tempfile.mkdtemp(prefix="lex_nav_write_"))
+
+
+def _scratch_import_dir():
+    """A throwaway user-import directory.
+
+    Replaces the pre-39097705922 behaviour of deleting the committed
+    ``product/results/**/user_imports`` directory "for idempotency" - which
+    deleted tracked fixtures rather than merely dirtying them.
+    """
+    return Path(tempfile.mkdtemp(prefix="lex_nav_write_")) / "user_imports"
 
 def _get_api():
     """Create and initialize a fresh NavigationAPI instance."""
     base_dir = Path(__file__).parent.parent
     corpus_dir = str(base_dir / "results" / "corpus" / "normalization" / "canonical")
     results_dir = str(base_dir / "results" / "fractal_map")
-    api = NavigationAPI(corpus_dir, results_dir)
+    api = NavigationAPI(corpus_dir, results_dir, write_dir=str(LAST_SCRATCH_WRITE_DIR))
     api.initialize()
     return api
 
@@ -44,15 +60,14 @@ def test_multi_representation_import():
     # Determine paths from base_dir (before API init)
     base_dir = Path(__file__).parent.parent
     
-    # Clean corpus user_imports (loaded by CorpusLoader)
-    corpus_import_dir = base_dir / "results" / "corpus" / "normalization" / "user_imports"
-    if corpus_import_dir.exists():
-        shutil.rmtree(corpus_import_dir)
-    
-    # Clean fractal_map user_imports (persisted by NavigationAPI._save_imported_position)
-    nav_import_dir = base_dir / "results" / "fractal_map" / "user_imports"
-    if nav_import_dir.exists():
-        shutil.rmtree(nav_import_dir)
+    # RF3/CYCLE_39097705922: NavigationAPI writes go to a scratch write_dir, so
+    # this "clean for idempotency" step no longer needs to - and must not -
+    # delete anything under the tracked product/results/ tree. It used to
+    # shutil.rmtree a COMMITTED user_corpus.jsonl fixture.
+    # Idempotency now comes from the per-call scratch write_dir that _get_api()
+    # hands to NavigationAPI, not from deleting committed fixtures.
+    corpus_import_dir = _scratch_import_dir()
+    nav_import_dir = _scratch_import_dir()
     
     api = _get_api()
     
@@ -123,11 +138,10 @@ def test_multi_representation_import():
     assert result2["imported"] == 0, f"Duplicates should be skipped, got {result2['imported']}"
     print(f"  Duplicate skip: {result2['skipped']} skipped")
     
-    # Clean up
-    if corpus_import_dir.exists():
-        shutil.rmtree(corpus_import_dir)
-    if nav_import_dir.exists():
-        shutil.rmtree(nav_import_dir)
+    # Clean up: scratch dirs only (see _scratch_import_dir).
+    for _d in (corpus_import_dir, nav_import_dir):
+        if _d.exists():
+            shutil.rmtree(_d)
     
     print("  PASS\n")
     return True

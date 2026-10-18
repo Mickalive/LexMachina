@@ -14,7 +14,6 @@ from typing import Dict, List, Optional, Set, Tuple, Any
 from pathlib import Path
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 from .corpus_loader import CorpusLoader
 from .map_loader import MapLoader
@@ -26,6 +25,31 @@ from .language_analyzer import LanguageAnalyzer
 from .tfidf_proximity import TFIDFProximity
 from .spatial_index import SpatialIndex
 from .lod_manager import LODManager
+
+
+def _sentence_transformer_class():
+    """Resolve the SentenceTransformer class LAZILY.
+
+    History: this module imported ``sentence_transformers`` at module scope while
+    the constructor docstring already promised lazy loading "to avoid loading the
+    ~400MB model at startup". The eager import defeated the promise twice over: it
+    pulled torch into the *import* of ``product/server.py`` (so the query fast
+    path could not even be imported without the dense-embedding stack), and it
+    made the whole server surface uncollectable in any environment that lacks the
+    optional dense stack - which silently darkened 18 product test modules,
+    including the HTTP API integration tests.
+
+    The model is only ever needed for legacy 174k user-corpus imports and
+    incremental updates (``_get_embedding_model``), never by the query-specific
+    bundle/map path. Resolving it here keeps the failure mode it always intended:
+    an absent optional dependency degrades to ``None`` at call time instead of
+    being fatal at import time.
+    """
+    try:
+        from sentence_transformers import SentenceTransformer
+    except Exception:
+        return None
+    return SentenceTransformer
 
 
 class UnifiedDecisionSource:
@@ -83,12 +107,37 @@ class NavigationAPI:
     # Embedding model used by the fractal-map baseline
     EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
 
-    def __init__(self, corpus_dir: str, results_dir: str):
+    def __init__(self, corpus_dir: str, results_dir: str, write_dir: Optional[str] = None):
+        """Create the navigation API.
+
+        ``write_dir`` is the directory this object is allowed to MUTATE (jurist
+        feedback, imported positions). It defaults to ``results_dir``, which
+        preserves the historical behaviour exactly.
+
+        Why the seam exists: ``results_dir`` is simultaneously the READ side (map
+        artifacts, section modes, embeddings) and the WRITE side. Any caller that
+        points it at a real artifact tree - the committed
+        ``product/results/fractal_map``, for instance - therefore mutates tracked
+        files on every call. That is how pytest residue became a cycle's entire
+        committed delta (run 39073545280), and it is a product hazard, not only a
+        test one: there is no reason a reader should ever need write access to the
+        directory it reads from. Splitting the two lets callers grant write access
+        to a scratch directory while still reading the real artifacts.
+        """
+        self._write_dir = Path(write_dir) if write_dir else Path(results_dir)
         # Use the 1k vertical slice for fast startup (matches baseline map artifacts).
         # Full bge_20*.jsonl (174k decisions, 2000-2026) takes 60s+ startup.
         # For production 174k corpus, change file_pattern to "bge_20*.jsonl".
         # Factory direction v29: corpus mount path gap resolved for 174k map artifacts.
-        self.corpus = CorpusLoader(corpus_dir, file_pattern="bger_2000plus_slice_1000.jsonl")
+        self.corpus = CorpusLoader(
+            corpus_dir,
+            file_pattern="bger_2000plus_slice_1000.jsonl",
+            # READ side stays at the historical location (committed user-import
+            # fixtures must remain loadable); only the WRITE side moves when a
+            # caller opts into a separate write_dir.
+            user_import_write_dir=(str(self._write_dir / "corpus_user_imports")
+                                   if write_dir else None),
+        )
         # Search index will be built in initialize() after full corpus and user imports are loaded
         self.map_loader = MapLoader(results_dir, corpus_dir=corpus_dir)
         self.section_modes = SectionModeLoader(
@@ -123,9 +172,13 @@ class NavigationAPI:
         # User import map artifacts
         self._base_embeddings: Optional[np.ndarray] = None
         self._base_decision_ids: List[str] = []
-        self._embedding_model: Optional[SentenceTransformer] = None
+        self._embedding_model: Optional["Any"] = None
         self._import_positions_file: Optional[Path] = None
         self._imported_positions: Dict[Tuple[str, str], Dict] = {}  # (decision_id, representation) -> {x, y, cluster, zoom_level, representation}
+
+    def _feedback_dir(self) -> Path:
+        """Writable jurist-feedback directory (see the ``write_dir`` seam)."""
+        return self._write_dir / "jurist_feedback"
 
     def _get_map_decision_meta(self, decision_id: str) -> Dict:
         """Get metadata for a map decision not in the corpus (from baseline or 174k metadata)."""
@@ -200,7 +253,7 @@ class NavigationAPI:
         self._load_base_embeddings()
         
         # Set up user import positions file
-        self._import_positions_file = Path(self.map_loader.results_dir) / "user_imports" / "imported_positions.jsonl"
+        self._import_positions_file = self._write_dir / "user_imports" / "imported_positions.jsonl"
         self._import_positions_file.parent.mkdir(parents=True, exist_ok=True)
         self._load_imported_positions()
 
@@ -243,11 +296,14 @@ class NavigationAPI:
             self._base_decision_ids = []
             self._embedding_model = None
 
-    def _get_embedding_model(self) -> Optional[SentenceTransformer]:
+    def _get_embedding_model(self) -> Optional["Any"]:
         """Get the embedding model, loading it lazily on first use.
         
         This avoids loading the ~400MB model at startup, which takes ~30s.
         The model is only needed for user corpus imports and incremental updates.
+        The dependency itself is optional: if ``sentence_transformers`` is not
+        installed the caller degrades to "no embeddings", which is the same
+        behaviour this method already had for every other load failure.
         """
         if self._embedding_model is not None:
             return self._embedding_model
@@ -256,7 +312,10 @@ class NavigationAPI:
             return None
         
         try:
-            self._embedding_model = SentenceTransformer(self.EMBEDDING_MODEL)
+            model_cls = _sentence_transformer_class()
+            if model_cls is None:
+                return None
+            self._embedding_model = model_cls(self.EMBEDDING_MODEL)
             return self._embedding_model
         except Exception:
             return None
@@ -275,7 +334,7 @@ class NavigationAPI:
         loaded_from_disk = 0
         rebuilt = 0
         
-        persist_dir = Path(self.map_loader.results_dir) / "spatial_indices"
+        persist_dir = self._write_dir / "spatial_indices"
         persist_dir.mkdir(parents=True, exist_ok=True)
         
         for rep in self.map_loader.get_available_representations():
@@ -311,7 +370,7 @@ class NavigationAPI:
         # Build on demand if not pre-built
         zl = self.map_loader.get_zoom_level(representation, 1)
         if zl and zl.positions:
-            persist_dir = Path(self.map_loader.results_dir) / "spatial_indices"
+            persist_dir = self._write_dir / "spatial_indices"
             persist_path = persist_dir / f"spatial_{representation.replace('/', '_')}"
             expected_size = len(zl.positions)
             
@@ -1957,7 +2016,7 @@ class NavigationAPI:
         from pathlib import Path
         
         # Feedback storage directory
-        feedback_dir = Path(self.map_loader.results_dir) / "jurist_feedback"
+        feedback_dir = self._feedback_dir()
         feedback_dir.mkdir(parents=True, exist_ok=True)
         feedback_file = feedback_dir / "feedback.jsonl"
 
@@ -1989,7 +2048,7 @@ class NavigationAPI:
             return {"error": "Not initialized"}
 
         from pathlib import Path
-        feedback_dir = Path(self.map_loader.results_dir) / "jurist_feedback"
+        feedback_dir = self._feedback_dir()
         feedback_file = feedback_dir / "feedback.jsonl"
 
         if not feedback_file.exists():
@@ -2044,7 +2103,7 @@ class NavigationAPI:
             return {"error": "Not initialized"}
 
         from pathlib import Path
-        feedback_dir = Path(self.map_loader.results_dir) / "jurist_feedback"
+        feedback_dir = self._feedback_dir()
         feedback_file = feedback_dir / "feedback.jsonl"
 
         if not feedback_file.exists():
@@ -2103,7 +2162,7 @@ class NavigationAPI:
             return {"error": "Not initialized"}
 
         from pathlib import Path
-        feedback_dir = Path(self.map_loader.results_dir) / "jurist_feedback"
+        feedback_dir = self._feedback_dir()
         feedback_file = feedback_dir / "feedback.jsonl"
 
         if not feedback_file.exists():
@@ -2176,7 +2235,7 @@ class NavigationAPI:
         import csv
         import io
 
-        feedback_dir = Path(self.map_loader.results_dir) / "jurist_feedback"
+        feedback_dir = self._feedback_dir()
         feedback_file = feedback_dir / "feedback.jsonl"
 
         if not feedback_file.exists():

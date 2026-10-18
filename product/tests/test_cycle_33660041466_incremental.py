@@ -16,14 +16,30 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.navigation import NavigationAPI
 from app.incremental_updater import IncrementalUpdater
+import tempfile
 
+
+#: Scratch write directory handed to the most recently created NavigationAPI.
+#: Recorded so idempotency helpers can clear RUNTIME state without touching the
+#: tracked ``product/results/`` tree (CYCLE_39097705922).
+LAST_SCRATCH_WRITE_DIR = Path(tempfile.mkdtemp(prefix="lex_nav_write_"))
+
+
+def _scratch_import_dir():
+    """A throwaway user-import directory.
+
+    Replaces the pre-39097705922 behaviour of deleting the committed
+    ``product/results/**/user_imports`` directory "for idempotency" - which
+    deleted tracked fixtures rather than merely dirtying them.
+    """
+    return Path(tempfile.mkdtemp(prefix="lex_nav_write_")) / "user_imports"
 
 def _get_api():
     """Create and initialize a fresh NavigationAPI instance."""
     base_dir = Path(__file__).parent.parent
     corpus_dir = str(base_dir / "results" / "corpus" / "normalization" / "canonical")
     results_dir = str(base_dir / "results" / "fractal_map")
-    api = NavigationAPI(corpus_dir, results_dir)
+    api = NavigationAPI(corpus_dir, results_dir, write_dir=str(LAST_SCRATCH_WRITE_DIR))
     api.initialize()
     return api
 
@@ -47,9 +63,15 @@ def _get_incremental_test_representation(api):
 
 
 def _clean_import_state():
-    """Clean user import state before tests."""
-    base_dir = Path(__file__).parent.parent
-    nav_import_dir = base_dir / "results" / "fractal_map" / "user_imports"
+    """Clean user import state before tests.
+
+    CYCLE_39097705922: the tracked ``product/results/fractal_map/user_imports``
+    tree is READ-only for these tests - NavigationAPI persists import positions
+    into a per-call scratch ``write_dir``. This function is retained because the
+    incremental-updater deltas it used to wipe are still state that must not leak
+    between runs, but it now wipes the scratch directory the API was handed.
+    """
+    nav_import_dir = LAST_SCRATCH_WRITE_DIR / "user_imports"
     if nav_import_dir.exists():
         shutil.rmtree(nav_import_dir)
 

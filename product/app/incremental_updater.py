@@ -32,7 +32,9 @@ class IncrementalUpdater:
     def _ensure_delta_dir(self) -> Path:
         """Return (and lazily create) the delta directory."""
         if self._delta_dir is None:
-            self._delta_dir = Path(self._nav_api.map_loader.results_dir) / "user_imports" / "deltas"
+            self._delta_dir = Path(
+            getattr(self._nav_api, "_write_dir", self._nav_api.map_loader.results_dir)
+        ) / "user_imports" / "deltas"
             self._delta_dir.mkdir(parents=True, exist_ok=True)
         return self._delta_dir
 

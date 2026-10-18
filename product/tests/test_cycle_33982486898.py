@@ -28,6 +28,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from app.corpus_loader import CorpusLoader
 from app.map_loader import MapLoader
 from app.navigation import NavigationAPI
+import tempfile
 
 # Fixed RNG seed for reproducible jitter in position generation
 FIXED_RNG_SEED = 42
@@ -90,33 +91,33 @@ def _get_api():
     base_dir = Path(__file__).parent.parent
     corpus_dir = str(base_dir / "results" / "corpus" / "normalization" / "canonical")
     results_dir = str(base_dir / "results" / "fractal_map")
-    api = NavigationAPI(corpus_dir, results_dir)
+    api = NavigationAPI(corpus_dir, results_dir, write_dir=tempfile.mkdtemp(prefix="lex_nav_write_"))
     api.initialize()
     return api
 
 
 def _clean_all_imports(base_dir):
-    """Remove both user_imports directories for fully idempotent test execution.
-    
-    This removes BOTH the corpus and fractal_map user_imports directories.
-    Use this for tests that need a completely clean state.
+    """Prepare a clean import state for fully idempotent test execution.
+
+    CYCLE_39097705922: this used to ``shutil.rmtree`` BOTH tracked user_imports
+    directories under ``product/results/`` - deleting a COMMITTED fixture - in
+    order to make the test repeatable. That is the destructive form of the same
+    defect class the residue guard was written for. Idempotency is now provided
+    by the per-call scratch ``write_dir``; this helper only clears scratch state
+    and leaves the tracked tree read-only.
     """
-    corpus_import_dir = base_dir / "results" / "corpus" / "normalization" / "user_imports"
-    nav_import_dir = base_dir / "results" / "fractal_map" / "user_imports"
-    if corpus_import_dir.exists():
-        shutil.rmtree(corpus_import_dir)
-    if nav_import_dir.exists():
-        shutil.rmtree(nav_import_dir)
+    corpus_import_dir = Path(tempfile.mkdtemp(prefix="lex_nav_write_")) / "corpus_user_imports"
+    nav_import_dir = Path(tempfile.mkdtemp(prefix="lex_nav_write_")) / "user_imports"
     return corpus_import_dir, nav_import_dir
 
 
 def _clean_fractal_map_only(base_dir):
-    """Remove only the fractal_map user_imports directory (runtime state).
-    
-    Preserves the corpus user_imports directory which contains the COMMITTED FIXTURE.
-    Use this for tests that need the committed fixture to persist.
+    """Clear scratch nav-side import state, preserving committed fixtures.
+
+    CYCLE_39097705922: the committed corpus user_imports fixture is READ-only
+    here; NavigationAPI persists into a scratch write_dir.
     """
-    nav_import_dir = base_dir / "results" / "fractal_map" / "user_imports"
+    nav_import_dir = Path(tempfile.mkdtemp(prefix="lex_nav_write_")) / "user_imports"
     if nav_import_dir.exists():
         shutil.rmtree(nav_import_dir)
 

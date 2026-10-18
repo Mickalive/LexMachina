@@ -528,7 +528,7 @@ class TestCorpusSearchIntegration:
 class TestNavigationSpatialIntegration:
     """Test spatial index integration with NavigationAPI."""
 
-    def test_navigation_initializes_spatial_indices(self):
+    def test_navigation_initializes_spatial_indices(self, tmp_path):
         """NavigationAPI builds spatial indices during initialization."""
         from app.navigation import NavigationAPI
         
@@ -539,13 +539,13 @@ class TestNavigationSpatialIntegration:
         if not Path(corpus_dir).exists() or not Path(results_dir).exists():
             pytest.skip("Data directories not available")
         
-        nav = NavigationAPI(corpus_dir, results_dir)
+        nav = NavigationAPI(corpus_dir, results_dir, write_dir=str(tmp_path))
         nav.initialize()
         
         # Should have spatial indices built
         assert len(nav._spatial_indices) > 0
 
-    def test_webgl_data_with_spatial_index(self):
+    def test_webgl_data_with_spatial_index(self, tmp_path):
         """WebGL data endpoint uses spatial index for viewport queries."""
         from app.navigation import NavigationAPI
         
@@ -556,7 +556,7 @@ class TestNavigationSpatialIntegration:
         if not Path(corpus_dir).exists() or not Path(results_dir).exists():
             pytest.skip("Data directories not available")
         
-        nav = NavigationAPI(corpus_dir, results_dir)
+        nav = NavigationAPI(corpus_dir, results_dir, write_dir=str(tmp_path))
         nav.initialize()
         
         # Get WebGL data with viewport bbox

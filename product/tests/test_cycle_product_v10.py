@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from app.map_loader import MapLoader
 from app.evaluation_loader import EvaluationLoader
 from app.navigation import NavigationAPI
+import tempfile
 
 
 # ---------------------------------------------------------------------------
@@ -302,7 +303,7 @@ def _init_nav():
     base = Path(__file__).parent.parent
     corpus_dir = str(base / "results" / "corpus" / "normalization" / "canonical")
     results_dir = str(base / "results" / "fractal_map")
-    api = NavigationAPI(corpus_dir, results_dir)
+    api = NavigationAPI(corpus_dir, results_dir, write_dir=tempfile.mkdtemp(prefix="lex_nav_write_"))
     api.initialize()
     return api
 

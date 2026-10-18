@@ -153,13 +153,13 @@ def test_tfidf_proximity():
     return True
 
 
-def test_navigation_new_endpoints():
+def test_navigation_new_endpoints(tmp_path):
     """Test new navigation API endpoints."""
     print("=== Test: Navigation New Endpoints ===")
     
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    nav = NavigationAPI(str(corpus_dir), str(results_dir))
+    nav = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     nav.initialize()
     
     # Test zoom coherence summary

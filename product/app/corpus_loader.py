@@ -82,7 +82,9 @@ class Decision:
 class CorpusLoader:
     """Loads and indexes canonical JSONL corpus files."""
 
-    def __init__(self, corpus_dir: str, file_pattern: str = "*.jsonl"):
+    def __init__(self, corpus_dir: str, file_pattern: str = "*.jsonl",
+                 user_import_dir: Optional[str] = None,
+                 user_import_write_dir: Optional[str] = None):
         """
         Initialize the corpus loader.
         
@@ -91,13 +93,29 @@ class CorpusLoader:
             file_pattern: Glob pattern for files to load. Defaults to all year files
                 (bge_*.jsonl) for full corpus loading. Use "bger_2000plus_slice_1000.jsonl"
                 for the 1k vertical slice.
+            user_import_dir: Directory to READ previously imported records from.
+                Defaults to ``corpus_dir.parent/user_imports`` (historical behaviour).
+            user_import_write_dir: Directory to WRITE newly imported records to.
+                Defaults to ``user_import_dir``.
+        
+        Why the read/write split: the user-import directory is both a committed
+        fixture (tests and deployments read it) and an append target. A caller
+        that only wants to READ must not be forced to also hold write access to
+        that directory - and in the test suite the collision was destructive
+        rather than merely dirty: helpers "cleaned" the directory for idempotency
+        and ``shutil.rmtree``-ed a tracked fixture.
         """
         self.corpus_dir = Path(corpus_dir)
         self.file_pattern = file_pattern
         self.decisions: Dict[str, Decision] = {}
         self._loaded = False
         self._user_import_count = 0
-        self._user_import_dir = self.corpus_dir.parent / "user_imports"
+        self._user_import_dir = (
+            Path(user_import_dir) if user_import_dir else self.corpus_dir.parent / "user_imports"
+        )
+        self._user_import_write_dir = (
+            Path(user_import_write_dir) if user_import_write_dir else self._user_import_dir
+        )
         self._schema_validator = SchemaValidator()
         self._search_index = InvertedIndex()
         self._search_index_built = False
@@ -317,8 +335,9 @@ class CorpusLoader:
         if not self._loaded:
             self.load()
 
-        # Ensure user import directory exists
-        self._user_import_dir.mkdir(parents=True, exist_ok=True)
+        # Ensure the user import WRITE directory exists (the read directory
+        # must not be created on a read-only call).
+        self._user_import_write_dir.mkdir(parents=True, exist_ok=True)
 
         imported = 0
         skipped = 0
@@ -367,7 +386,7 @@ class CorpusLoader:
 
         # Persist imported records
         if imported > 0:
-            import_file = self._user_import_dir / "user_corpus.jsonl"
+            import_file = self._user_import_write_dir / "user_corpus.jsonl"
             with open(import_file, "a", encoding="utf-8") as f:
                 for did in imported_ids:
                     d = self.decisions[did]

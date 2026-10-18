@@ -195,13 +195,13 @@ def test_proximity_feature_weights():
     return True
 
 
-def test_cluster_coherence():
+def test_cluster_coherence(tmp_path):
     """Test cluster coherence analysis."""
     print("=== Test: Cluster Coherence ===")
     
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
     
     # Get cluster coherence for first cluster at zoom 1
@@ -225,13 +225,13 @@ def test_cluster_coherence():
     return True
 
 
-def test_cluster_coherence_all_clusters():
+def test_cluster_coherence_all_clusters(tmp_path):
     """Test coherence for multiple clusters."""
     print("=== Test: Cluster Coherence (all clusters) ===")
     
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
     
     # Get map data to find all cluster IDs
@@ -250,13 +250,13 @@ def test_cluster_coherence_all_clusters():
     return True
 
 
-def test_proximity_api_endpoint():
+def test_proximity_api_endpoint(tmp_path):
     """Test the proximity API endpoint through NavigationAPI."""
     print("=== Test: Proximity API Endpoint ===")
     
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
     
     # Get two decisions from the map
@@ -282,13 +282,13 @@ def test_proximity_api_endpoint():
     return True
 
 
-def test_language_filter():
+def test_language_filter(tmp_path):
     """Test language-aware map data filtering."""
     print("=== Test: Language Filter ===")
     
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
-    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
     api.initialize()
     
     # Get unfiltered data
