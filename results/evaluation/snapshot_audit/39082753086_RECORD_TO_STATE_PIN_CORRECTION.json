@@ -1,0 +1,28 @@
+{
+ "schema": "lex-evaluation-record-to-state-pin-correction/1",
+ "corrects": "results/evaluation/snapshot_audit/39082753086.json",
+ "audit": "results/audit/evaluation/CYCLE_39082753086_GATE.json",
+ "audit_fix": "F2 (MEDIUM)",
+ "finding": "the readiness record of run 39082753086 publishes deliverable_sha256['state/evaluation.json'] = a digest that is not the file's bytes. The record hashes state/evaluation.json, then state is rewritten to carry the record's own readiness_record_sha256, so the record's pin is stale BY CONSTRUCTION once state is updated. The cycle's second commit (86f4341) repaired the opposite direction (state's pin of the record, now correct) and left this one stale; the mismatch was disclosed nowhere.",
+ "record_pin_state_evaluation_json": "a90b766d75c05fa03e72c2a419b185de67086088d2837fef7fc7559532d9c470",
+ "actual_sha256_of_state_evaluation_json_in_this_tree": "47ba6da625b07b15133e718d540c068cd2fcc047c8a4ccd054b88b01b4d951c5",
+ "mismatch": true,
+ "control_check": {
+  "state_pin_of_record": "0fbd31051dd52d308aba7f4618bf9818a7307fcac89df068c336022fb2cc93de",
+  "actual_record_sha256": "0fbd31051dd52d308aba7f4618bf9818a7307fcac89df068c336022fb2cc93de",
+  "matches": true,
+  "reading": "the discrepancy is DIRECTIONAL, not a hashing error"
+ },
+ "structural_fix": {
+  "changed": "evaluation/snapshot_audit/run_snapshot_audit.py :: DELIVERABLE_MANIFEST_PATHS",
+  "what": "'state/evaluation.json' removed from the record's own manifest, with the reason declared in the new module-level MANIFEST_EXCLUSIONS and published in check 6's detail on every run (both PASS and FAIL branches)",
+  "kept": "the REVERSE pin (state -> record) stays and is verified by re-hashing the committed artifact in _post_write_state_claim / the state's readiness_record_sha256_note"
+ },
+ "why_this_sidecar_and_not_an_edit": "AGENTS.md rule 6 forbids overwriting claim-bearing historical results. The record of run 39082753086 is claim-bearing and is the exact artifact the independent audit judged (gate=REVISE). It is therefore left BYTE-INTACT and the correction is published here beside it, referenced from state/evaluation.json and from the repair report. A stale digest may not be read as verified; it is read as superseded by this file.",
+ "scope": "no frozen rubric, threshold, bar, incumbent verdict, baseline, query set or success rule is touched by this correction. human_gate_ready is unchanged at false.",
+ "reproduce": [
+  "sha256(state/evaluation.json)",
+  "jq -r '.deliverable_sha256[\"state/evaluation.json\"]' results/evaluation/snapshot_audit/39082753086.json",
+  "python -c \"import json,sys;sys.path.insert(0,'.');from evaluation.snapshot_audit.run_snapshot_audit import DELIVERABLE_MANIFEST_PATHS,MANIFEST_EXCLUSIONS;assert 'state/evaluation.json' not in DELIVERABLE_MANIFEST_PATHS and 'state/evaluation.json' in MANIFEST_EXCLUSIONS;print('excluded with reason')\""
+ ]
+}

@@ -598,7 +598,16 @@ def run_pytest(log: _Log) -> None:
          # against the accepted label-lineage sweep. The original record is
          # pinned as preserved history; no frozen benchmark, rubric, incumbent
          # or success rule is touched by adding the file.
-         "tests/evaluation/test_rebuild_preflight.py"],
+         "tests/evaluation/test_rebuild_preflight.py",
+         # run 39086856920 (disclosed scope extension, not a re-freeze): the
+         # served-bundle scope falsifier's frozen-hypothesis pin, per-field
+         # non-vacuity controls, NOT_APPLICABLE-is-not-a-pass refusals and the
+         # executed record of record. POST-FREEZE ADDITION in the sense of
+         # evaluation/retrieval_gate/id_hygiene.py: no gate is added to any
+         # frozen verdict file, no accepted verdict is overwritten and no
+         # frozen benchmark, rubric, incumbent or success rule is touched by
+         # adding the file.
+         "tests/evaluation/test_served_bundle_scope.py"],
         cwd=str(_LANE_ROOT), capture_output=True, text=True, timeout=900)
     tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
     log.add("active lane pytest suite", proc.returncode == 0, tail[0])

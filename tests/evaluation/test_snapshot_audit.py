@@ -1106,3 +1106,133 @@ def test_check21_is_environment_limited_not_silent_pass_when_mount_absent():
                 os.environ["LEX_PRODUCT_MOUNT"] = old
         assert out["status"] == "FAIL"
         assert out.get("environment_limited") is True
+
+
+# ------------------- audit CYCLE_39082753086 F1-F3: pinned regressions -------
+
+def test_check21_state_scan_is_order_independent_at_head_and_tail():
+    """F3 negative control (a): the audit measured that a bare negative claim
+    placed at the HEAD of the state scope survived with 0 negatives, because the
+    scope was serialized on ONE physical line so the documented line anchor could
+    never engage. The same shape must be caught at head AND at tail."""
+    import json as _json
+    defect = {"verdict": "NO_NEW_PACKET", "direction_item_1_trigger_fires": False,
+              "note": "The direction item (1) trigger does not fire this cycle."}
+    scope = {"cycle_status": "DELIVERED", "verdict": "ADJUDICATE_REQUIRED",
+             "n_checks": 21}
+    for shaped in ({**{"injected": defect}, **scope}, {**scope, "injected": defect}):
+        hits = [h for k in shaped
+                for h in rsa._scan_trigger_claims(
+                    _json.dumps({k: shaped[k]}, indent=2), k, machine=True)
+                if h["claim"] in rsa.NEGATIVE_CLAIM_LABELS]
+        assert len(hits) == 3, (hits, shaped.keys())
+
+
+def test_check21_state_scan_catches_an_assertion_sharing_a_line_with_a_retraction_cue():
+    """F3 negative control (b): the audit measured that a live assertion sharing a
+    line with any retraction cue was excused and the check returned PASS. A cue in
+    a DIFFERENT sentence must not excuse the claim it is not attached to."""
+    import json as _json
+    shaped = {"live": ("A prior claim was false. The trigger does not fire this cycle; "
+                       "NO_NEW_PACKET stands")}
+    hits = [h for h in rsa._scan_trigger_claims(
+        _json.dumps(shaped, indent=2), "state", machine=True)
+        if h["claim"] in rsa.NEGATIVE_CLAIM_LABELS]
+    assert hits, "a cue two sentences away must not excuse a live assertion"
+
+
+def test_check21_sibling_boolean_false_never_excuses_a_claim():
+    """F3 root cause: ``false`` as a RETRACTION_MARKER matched a bare JSON boolean
+    in a SIBLING field, so any field carrying false excused a claim anywhere near
+    it. A machine source masks bare literals; quoted prose 'false' still counts."""
+    import json as _json
+    sibling = {"flag": {"value": False}, "claim": {"verdict": "NO_NEW_PACKET"}}
+    hits = [h for k in sibling
+            for h in rsa._scan_trigger_claims(
+                _json.dumps({k: sibling[k]}, indent=2), k, machine=True)
+            if h["claim"] in rsa.NEGATIVE_CLAIM_LABELS]
+    assert hits, "a sibling boolean must not excuse a claim in another field"
+    prose = _json.dumps({"v": "the prior claim was false; NO_NEW_PACKET is withdrawn"},
+                        indent=2)
+    assert not [h for h in rsa._scan_trigger_claims(prose, "s", machine=True)
+                if h["claim"] in rsa.NEGATIVE_CLAIM_LABELS]
+
+
+def test_state_file_is_excluded_from_the_record_manifest_with_a_stated_reason():
+    """F2: a record cannot pin the sha256 of the file that carries the record's own
+    sha256; the pin is stale by construction once state is updated. The exclusion
+    must be declared with its reason, not silently dropped."""
+    assert "state/evaluation.json" not in rsa.DELIVERABLE_MANIFEST_PATHS
+    assert "state/evaluation.json" in rsa.MANIFEST_EXCLUSIONS
+    assert "stale by construction" in rsa.MANIFEST_EXCLUSIONS["state/evaluation.json"]
+
+
+def test_manifest_check_publishes_the_exclusion_reason():
+    import tempfile
+    from pathlib import Path as _P
+    with tempfile.TemporaryDirectory() as td:
+        res = rsa.check_manifest(_P(td))
+        assert "excluded from the pin with stated reason" in res["detail"]
+        assert "state/evaluation.json" in res["excluded_with_reason"]
+
+
+def test_report_post_write_claim_reconciliation_parses_both_fields():
+    text = ("post-write self-reference **VERIFIED** (...), post-write state claim "
+            "**VERIFIED**.")
+    got = rsa._report_declared_post_write(text)
+    assert got == {"post_write_self_reference": "VERIFIED", "post_write_state_claim": "VERIFIED"}
+
+
+def test_report_post_write_claim_reconciliation_catches_the_39082753086_defect(tmp_path):
+    """F1 end to end: the report says NOT_APPLICABLE while the record says
+    VERIFIED. Check 19 must go FAIL and the record must not be ready."""
+    import json as _json
+    (tmp_path / "reports/evaluation").mkdir(parents=True)
+    (tmp_path / "reports/evaluation/CYCLE_999.md").write_text(
+        "READY (21/21 checks PASS), post-write self-reference NOT_APPLICABLE "
+        "(no declared self-reference), post-write state claim VERIFIED.", encoding="utf-8")
+    record = {"schema": rsa.SCHEMA, "run_id": "999", "n_checks": 21, "n_passed": 21,
+              "ready_for_independent_audit": True,
+              "checks": [rsa._check("readiness_claims_match_record", True, "ok"),
+                         rsa._check("some_other_check", True, "ok")],
+              "post_write_self_reference": {"status": "VERIFIED"},
+              "post_write_state_claim": {"status": "VERIFIED"}}
+    out = rsa._post_write_report_claims(tmp_path, "999", record)
+    assert out["status"] == "FAILED"
+    assert any("NOT_APPLICABLE" in p for p in out["problems"])
+    assert record["ready_for_independent_audit"] is False
+    assert record["failing_checks"] == ["readiness_claims_match_record"]
+
+
+def test_report_post_write_claim_reconciliation_passes_on_an_agreeing_report(tmp_path):
+    import json as _json
+    (tmp_path / "reports/evaluation").mkdir(parents=True)
+    (tmp_path / "reports/evaluation/CYCLE_999.md").write_text(
+        "READY (21/21 checks PASS), post-write self-reference VERIFIED, "
+        "post-write state claim VERIFIED.", encoding="utf-8")
+    record = {"schema": rsa.SCHEMA, "run_id": "999", "n_checks": 21, "n_passed": 21,
+              "ready_for_independent_audit": True,
+              "checks": [rsa._check("readiness_claims_match_record", True, "ok")],
+              "post_write_self_reference": {"status": "VERIFIED"},
+              "post_write_state_claim": {"status": "VERIFIED"}}
+    out = rsa._post_write_report_claims(tmp_path, "999", record)
+    assert out["status"] == "VERIFIED", out
+    assert record["ready_for_independent_audit"] is True
+
+
+def test_report_post_write_claim_ignores_quoted_code_but_keeps_real_declarations():
+    """F1 follow-up measured this cycle: a repair report that QUOTES the sentence
+    it corrected (`post-write self-reference NOT_APPLICABLE` inside backticks) must
+    not be read as declaring that status. Inline code is masked; declarations
+    outside it are still reconciled, and two disagreeing declarations are a FAIL
+    rather than a silent first-wins."""
+    import json as _json
+    quoted = ("the report said `post-write self-reference NOT_APPLICABLE (no declared "
+              "self-reference)`, which the record contradicted. It now reads post-write "
+              "self-reference **VERIFIED**, post-write state claim **VERIFIED**.")
+    got = rsa._report_declared_post_write(quoted)
+    assert got == {"post_write_self_reference": "VERIFIED",
+                   "post_write_state_claim": "VERIFIED"}
+    conflicting = ("post-write self-reference **VERIFIED**. post-write self-reference "
+                   "NOT_APPLICABLE. post-write state claim **VERIFIED**.")
+    assert "__conflicts__" in rsa._report_declared_post_write(conflicting)

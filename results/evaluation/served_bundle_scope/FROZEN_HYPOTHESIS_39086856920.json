@@ -1,0 +1,68 @@
+{
+  "schema": "lex-evaluation-served-bundle-scope-hypothesis/1",
+  "run_id": "39086856920",
+  "lane": "evaluation",
+  "direction_version": 56,
+  "frozen_before_execution": true,
+  "frozen_at_utc": "2026-10-18T02:05:00Z",
+  "why_this_benchmark_exists": "The independent audit gate CYCLE_39082753086_GATE.json (gate=REVISE) closed with an explicit unresolved observation carried forward: '173/642 served decisions pre-date 2000 ... and 120/642 are adversarial-seeded (ocl:adversarial.*, 40 per bundle) ... NO frozen gate family measures corpus scope or adversarial-seed contamination, so GEOMETRY_UNSOUND 0/3 is NOT evidence about either and must not be read as covering them.' This is the smallest executable instrument that closes that named hole on the artifact the product actually serves. It is a POST-FREEZE ADDITION in the sense already established by evaluation/retrieval_gate/id_hygiene.py: it does NOT touch RULES_LABEL.json, RULES_GEOMETRY.json, VERDICT_CONTRACT.json, the reality benchmark ff57f556, or any incumbent verdict, and it adds no gate to any existing frozen verdict file.",
+  "question": "On the ACCEPTED served query-map artifact, are the source-identity and corpus-scope facts the product's own bundle structure implies actually true?",
+  "input_of_record": {
+    "product_mount": "/tmp/lex_accepted/product",
+    "served_packet": "results/product/gate_packet/rebuilt-39027045675",
+    "bundles": [
+      "questions/de-kapitalverletzung.bundle.json",
+      "questions/fr-bail-entretien.bundle.json",
+      "questions/it-responsabilita-medica.bundle.json"
+    ],
+    "note": "the mount head is the accepted lab/product tip named by the direction; the module reads whatever is committed there and records the sha256 of each bundle it reads"
+  },
+  "success_rule": "FROZEN BEFORE ANY ROW WAS READ. Verdict is BENCHMARK_VALID_WITH_FALSIFICATION when at least one falsifier fires; BENCHMARK_VALID_NO_FALSIFICATION only when every falsifier below is refuted. A falsifier that cannot be evaluated from the artifact is reported not_measurable with a reason and is NEVER counted as a pass. NOT_APPLICABLE is not a pass.",
+  "falsifiers": [
+    {
+      "id": "source::canonical_url_not_opencaselaw",
+      "rule": "count(decisions whose canonical_url is absent, or scheme != https, or host != mcp.opencaselaw.ch) == 0",
+      "falsified_if_count_gt": 0,
+      "why": "the product claim under test is a SOURCE-LINKED bundle; a jurist click must land on the real OpenCaseLaw decision record"
+    },
+    {
+      "id": "source::decision_id_unusable",
+      "rule": "count(decisions whose decision_id is empty/whitespace, or matches a known upstream placeholder/HTML-fragment shape) == 0",
+      "falsified_if_count_gt": 0,
+      "why": "a decision id is the map point key, the citation anchor and the dedupe key; an unusable id is silently unusable as all three",
+      "reused_from": "evaluation/retrieval_gate/id_hygiene.py documents the two upstream placeholder shapes (ge_gerichte_[pjdoc NNNN] template placeholders and raw ch_vb__td_class__... HTML fragments); the shapes are re-listed here and not re-derived"
+    },
+    {
+      "id": "map::point_missing_geometry_or_cluster",
+      "rule": "count(decisions missing any of x, y, cluster_id) == 0",
+      "falsified_if_count_gt": 0,
+      "why": "the clickable map is the product; a decision with no coordinates and no cluster cannot be placed or inspected"
+    },
+    {
+      "id": "scope::outside_mission_date_window",
+      "rule": "count(decisions with a parseable decision_date before 2000-01-01) == 0",
+      "falsified_if_count_gt": 0,
+      "why": "the master prompt scopes the base map to 'from 2000 onward'. This is a DISCLOSED scope measurement, not a frozen bar: the mission text states the window but no accepted gate family measures it, and a pre-2000 hit is not automatically wrong (Swiss case law has no 2000 cut-off in law). The falsification is of the PRODUCT's retrieval relevance claim, not of the corpus.",
+      "interpretation_rule": "a non-zero count FALSIFIES the claim that the served top-rank set is scoped to the mission window. It does NOT by itself falsify source validity, and it MUST NOT be reported as a frozen-bar failure."
+    },
+    {
+      "id": "scope::adversarial_seed_contamination",
+      "rule": "count(decisions whose provenance field carries an 'adversarial' marker) == 0 in a PRODUCTION served packet",
+      "falsified_if_count_gt": 0,
+      "why": "ocl:adversarial.* rows exist so the benchmark battery has hostile cases. If they survive into the packet the product serves, then every recall/geometry number computed over that packet is computed partly over synthetic rows. This is the single most product-relevant falsifier in this instrument.",
+      "interpretation_rule": "a non-zero count means the served artifact is not a clean production observation. It does NOT mean the product's retrieval is bad; it means the artifact cannot be read as a production observation."
+    }
+  ],
+  "explicitly_not_gates": [
+    "no jurist-usefulness claim (human gate; human_gate_ready stays false)",
+    "no label soundness claim (RULES_LABEL 4457e971 is untouched; the counter-label verdict LABEL_UNSOUND 5/65 stands)",
+    "no geometry bar claim (RULES_GEOMETRY a7452748 is untouched; GEOMETRY_UNSOUND 0/3 at 11/11 stands)",
+    "no corpus rebuild and no 174k work",
+    "no network and no Product import"
+  ],
+  "frozen_bars_untouched": {
+    "RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633"
+  },
+  "claim_ceiling": "This instrument can only say whether the served artifact's source identity, id usability, map completeness, date scope and adversarial-seed cleanliness hold ON THE ACCEPTED MOUNT. It cannot say the map helps a jurist, and it cannot move any accepted bar."
+}

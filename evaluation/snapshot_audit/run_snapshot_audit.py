@@ -117,6 +117,56 @@ Checks (each recorded PASS/FAIL/NOT_RUN; no check is silently dropped):
                                 record or contradicting one. It refuses to certify
                                 an unmeasured trigger verdict; it does not judge
                                 whether the re-score is worth running.
+                                REPAIRED by cycle 39086856920 after audit
+                                CYCLE_39082753086_GATE.json fix F3: the state
+                                source was serialized on ONE physical line, so the
+                                retraction window's documented line anchor could
+                                never engage and ANY cue within +/-260 characters
+                                excused a claim (a bare JSON ``false`` in a
+                                sibling field was such a cue). The scope is now
+                                scanned ONE TOP-LEVEL KEY AT A TIME, indented,
+                                with bare JSON literals masked, and the retraction
+                                window is scoped to the claim's sentence plus one
+                                sentence either side on whitespace-collapsed text.
+                                Three evasions the audit demonstrated are pinned as
+                                negative controls in tests/evaluation/
+                                test_snapshot_audit.py::test_check21_*.
+
+ADDENDUM (cycle 39086856920, repair round 1 of rejected cycle 39082753086 —
+gate CYCLE_39082753086_GATE.json, gate=REVISE, fixes F1/F2/F3/F4, no escalation):
+
+  F1. No prose may assert a post-write status the record does not carry. Run
+      39082753086's report said ``post-write self-reference NOT_APPLICABLE``
+      while the committed record and the state block both said ``VERIFIED``.
+      check 19 reconciled only the headline counts and the verdict word, so the
+      field was uncovered. The two statuses are now reconciled from the current
+      report against the record by :func:`_post_write_report_claims`, which runs
+      POST-WRITE (the values only exist once the record is complete — which is
+      precisely why check 19 could never read them inline). A disagreement, or a
+      report that declares neither, downgrades check 19 to FAIL and recomputes
+      the counts. It adds no check id: n_checks is unchanged.
+  F2. ``state/evaluation.json`` is REMOVED from DELIVERABLE_MANIFEST_PATHS with
+      its reason declared in MANIFEST_EXCLUSIONS and published in check 6's detail
+      on every run. A record cannot pin the sha256 of the file that carries the
+      record's own sha256: the pin is stale by construction once state is
+      updated. Run 39082753086's record published a90b766d… against bytes
+      hashing 47ba6da6…; the historical record is left byte-intact (AGENTS.md rule
+      6) and the correction is published beside it in
+      results/evaluation/snapshot_audit/
+      39082753086_RECORD_TO_STATE_PIN_CORRECTION.json. The reverse pin
+      state->record remains enforced.
+  F4. The served-dir figure in run 39082753086's provenance manifest read
+      "12 changed"; the true split over 12 common files is 1 byte-identical + 11
+      changed. Re-measured and recorded by
+      ``evaluation.served_bundle_scope --relation-side-a/--relation-side-b`` at
+      results/evaluation/served_bundle_scope/39086856920_served_dir_relation.json.
+  Also added this cycle, and NOT a fix: ``evaluation/served_bundle_scope.py``,
+      the smallest executable instrument that can falsify the served query-map
+      MVP on source identity, id usability, map completeness, date scope and
+      adversarial-seed contamination — the hole audit CYCLE_39082753086 named as
+      uncovered. It is a POST-FREEZE ADDITION in the sense of
+      evaluation/retrieval_gate/id_hygiene.py: it adds no gate to any accepted
+      verdict and writes no frozen file.
 
 Exit 0 = ready_for_independent_audit (all checks PASS). Exit 1 = not ready.
 environment_limited=true on a check discloses WHY it failed (an environment
@@ -241,7 +291,10 @@ DELIVERABLE_MANIFEST_PATHS = [
     "evaluation/snapshot_audit/orchestration_diagnosis_2026-10-16.json",
     "tests/evaluation/test_snapshot_audit.py",
     "reports/evaluation/CYCLE_38978411574.md",
-    "state/evaluation.json",
+    # REPAIR F2 (audit CYCLE_39082753086_GATE.json): "state/evaluation.json" WAS
+    # listed at this position and has been REMOVED with the reason recorded in
+    # MANIFEST_EXCLUSIONS below — not quietly dropped. Original entry, 2026-10-17:
+    #   "state/evaluation.json",
     # Run 38982176936: the two IN-SCOPE records it produced are preserved
     # unchanged, and this resume's write-scope delta is pinned below.
     "results/evaluation/bar_gates/38982176936.json",
@@ -389,7 +442,58 @@ DELIVERABLE_MANIFEST_PATHS = [
     "results/evaluation/orchestration_39079133613/local_evidence_manifest.json",
     "results/evaluation/lane_suite/39079133613.json",
     "reports/evaluation/CYCLE_39079133613.md",
+    # Repair round 1 of rejected cycle 39082753086 (this run). F1-F4 repairs, the
+    # F2 pin-correction sidecar and the new post-freeze served-bundle scope
+    # falsifier. The snapshot-audit readiness record is still intentionally NOT in
+    # this manifest (same disclosed convention as the 39076123103 resume: it is
+    # written after check 6 runs, so listing it would make check 6 depend on its
+    # own output). The record is still cited by state/evidence_refs and verified
+    # after the write by the self-reference check.
+    "results/evaluation/snapshot_audit/39082753086_RECORD_TO_STATE_PIN_CORRECTION.json",
+    "evaluation/served_bundle_scope.py",
+    "tests/evaluation/test_served_bundle_scope.py",
+    "results/evaluation/served_bundle_scope/FROZEN_HYPOTHESIS_39086856920.json",
+    "results/evaluation/served_bundle_scope/39086856920.json",
+    "results/evaluation/served_bundle_scope/39086856920_served_dir_relation.json",
+    "results/evaluation/trigger_reconciliation/39086856920/39086856920_reconciliation.json",
+    "reports/evaluation/CYCLE_39082753086.md",
+    "reports/evaluation/CYCLE_39086856920.md",
   ]
+
+#: REPAIR F2 (audit CYCLE_39082753086_GATE.json). Files deliberately NOT pinned by
+#: the readiness record's own ``deliverable_sha256``, each with its reason. This is
+#: a structural fix, not a silent deletion: the audit measured run 39082753086's
+#: record publishing ``state/evaluation.json = a90b766d…`` while the committed file
+#: hashed ``47ba6da6…``, undisclosed in the report, the state block and the
+#: record's own claim ceiling.
+#:
+#: A readiness record cannot pin the sha256 of the file that carries the record's
+#: own sha256. The record hashes ``state/evaluation.json``; then state is rewritten
+#: to carry ``readiness_record_sha256``; so the record's pin is stale BY
+#: CONSTRUCTION once state is updated. The prior three cycles (39079133613,
+#: 39076123103, 39072968899) happened to MATCH only because of their commit
+#: ordering, so the class was latent, not absent.
+#:
+#: The REVERSE direction is legitimate and is still enforced: state pins the
+#: record, and that pin is verified by re-hashing the committed artifact. The
+#: excluded-file set and these reasons are published in check 6's detail on
+#: every run, and the historical record's stale pin is corrected by the sidecar
+#: ``results/evaluation/snapshot_audit/39082753086_RECORD_TO_STATE_PIN_CORRECTION.json``
+#: WITHOUT rewriting the claim-bearing historical record itself.
+MANIFEST_EXCLUSIONS = {
+    "state/evaluation.json": (
+        "a readiness record cannot pin the sha256 of the file that carries the "
+        "record's own sha256; the record's pin is stale by construction once state "
+        "is updated (audit CYCLE_39082753086_GATE.json fix F2). The reverse pin "
+        "state->record remains and is verified by re-hashing the committed record."),
+}
+#: The record is never pinned by itself either, for the same reason one level down:
+#: it is written AFTER check 6 runs, so listing it would make check 6 depend on
+#: its own output. The convention was first published for run 39076123103.
+SELF_EXCLUDED_MANIFEST_PATHS = (
+    "results/evaluation/snapshot_audit/<run_id>.json (this record; written after "
+    "check 6, so listing it would make check 6 depend on its own output)",
+)
 
 #: Run 39040205229's diagnosis. Check 17 requires it to carry the job/step
 #: record for the run this cycle resumes from AND to record the falsification
@@ -748,10 +852,16 @@ def check_manifest(repo_root: Path) -> dict:
     manifest = {rel: _sha256_file(repo_root / rel)
                 for rel in DELIVERABLE_MANIFEST_PATHS if (repo_root / rel).exists()}
     ok = not missing
+    exclusions = ("; excluded from the pin with stated reason: " + ", ".join(
+        f"{k} ({v})" for k, v in sorted(MANIFEST_EXCLUSIONS.items()))
+        + "; also excluded: " + "; ".join(SELF_EXCLUDED_MANIFEST_PATHS))
     detail = (f"{len(manifest)}/{len(DELIVERABLE_MANIFEST_PATHS)} deliverable files present, "
-              "sha256 embedded in readiness record") if ok else f"missing deliverable files: {missing}"
+              "sha256 embedded in readiness record" if ok else
+              f"missing deliverable files: {missing}") + "; " + exclusions
     return _check("deliverable_manifest_complete", ok, detail,
-                  n_files=len(manifest), missing=missing)
+                  n_files=len(manifest), missing=missing,
+                  excluded_with_reason={**MANIFEST_EXCLUSIONS,
+                                        "<this readiness record>": SELF_EXCLUDED_MANIFEST_PATHS[0]})
 
 
 def check_diagnosis_record(repo_root: Path) -> dict:
@@ -1448,6 +1558,119 @@ _LANE_SUITE_HEADLINE_RE = re.compile(
     r"lane suite:\s*(PASS|FAIL)\s*\(\s*(\d+)\s*/\s*(\d+)\s*checks[^)]*\)", re.IGNORECASE)
 
 
+#: REPAIR F1 (audit CYCLE_39082753086_GATE.json): the current run's REPORT may not
+#: assert a post-write status the record does not carry. The defect it names was
+#: real and shipped: run 39082753086's report said ``post-write self-reference
+#: NOT_APPLICABLE (no declared self-reference)`` while the committed record and the
+#: state block both said ``VERIFIED``. Check 19 reconciled only the headline counts
+#: and the verdict word, so the field was uncovered. Both statuses are matched
+#: case-insensitively and a report that declares neither is a FAIL, not a pass.
+_REPORT_POST_WRITE_SELF_REF_RE = re.compile(
+    r"post[- ]write\s+self[- ]reference[:\s*]*\**\s*([A-Z_]{4,})", re.I)
+_REPORT_POST_WRITE_STATE_RE = re.compile(
+    r"post[- ]write\s+state\s+claim[:\s*]*\**\s*([A-Z_]{4,})", re.I)
+#: Inline-code spans in markdown are QUOTATIONS of artifact text, not declarations
+#: this run makes. A repair report that quotes the sentence it corrected
+#: (``post-write self-reference NOT_APPLICABLE`` inside backticks) must not be read
+#: as declaring that status. Masking them is the narrowest honest rule; every
+#: declaration found OUTSIDE code spans is still reconciled, and when two such
+#: declarations disagree the report is FAIL, so masking cannot launder a conflict.
+_MD_INLINE_CODE = re.compile(r"`[^`]*`", re.S)
+
+
+def _report_declared_post_write(text: str) -> dict:
+    """The post-write statuses this run's report declares, outside quoted code.
+
+    Returns a mapping field -> status. When the report declares the same field
+    more than once outside code spans, the statuses must all agree; a
+    disagreement is reported by the caller as a problem rather than silently
+    resolved (see :func:`_post_write_report_claims`).
+    """
+    masked = _MD_INLINE_CODE.sub("`quoted`", text)
+    out: dict[str, str] = {}
+    conflicts: list[str] = []
+    for rx, field in ((_REPORT_POST_WRITE_SELF_REF_RE, "post_write_self_reference"),
+                      (_REPORT_POST_WRITE_STATE_RE, "post_write_state_claim")):
+        for m in rx.finditer(masked):
+            status = m.group(1).upper()
+            if field in out and out[field] != status:
+                conflicts.append(f"report declares {field} twice outside quoted code: "
+                                 f"{out[field]!r} and {status!r}")
+            out[field] = status
+    if conflicts:
+        out["__conflicts__"] = "; ".join(conflicts)
+    return out
+
+
+def _recompute_counts(record: dict) -> None:
+    """Recompute the headline counts after a check's status was downgraded."""
+    checks = record.get("checks", [])
+    record["n_checks"] = len(checks)
+    record["n_passed"] = sum(1 for c in checks if c.get("status") == "PASS")
+    record["ready_for_independent_audit"] = record["n_passed"] == record["n_checks"]
+    record["failing_checks"] = [c["id"] for c in checks if c.get("status") != "PASS"]
+
+
+def _post_write_report_claims(repo_root: Path, run_id: str, record: dict) -> dict:
+    """Check 19, post-write extension: reconcile the report's declared post-write
+    statuses against the record that measured them.
+
+    This is the F1 fix. It runs POST-WRITE because ``post_write_self_reference`` and
+    ``post_write_state_claim`` only exist once the record is complete, which is
+    exactly why check 19 could never read them inline and why the uncovered field
+    shipped. A disagreement, or a report that declares neither status, downgrades
+    ``readiness_claims_match_record`` to FAIL and recomputes the headline counts, so
+    the defect class cannot recur silently and cannot ride along inside a green
+    verdict. Returns the comparison result; ``downgraded`` is True when it failed.
+    """
+    field = "post_write_report_claim"
+    result = {"status": "VERIFIED", "field": field,
+              "report": f"reports/evaluation/CYCLE_{run_id}.md",
+              "why": "the report's declared post-write statuses equal the record's"}
+    report_path = repo_root / f"reports/evaluation/CYCLE_{run_id}.md"
+    if not report_path.exists():
+        result.update(status="NOT_APPLICABLE", report_absent=True)
+        record[field] = result
+        return result
+
+    text = report_path.read_text(encoding="utf-8", errors="replace")
+    declared = _report_declared_post_write(text)
+    measured = {k: (record.get(k) or {}).get("status")
+                for k in ("post_write_self_reference", "post_write_state_claim")}
+    problems: list[str] = []
+    conflict = declared.pop("__conflicts__", None)
+    if conflict:
+        problems.append(conflict)
+    for k, declared_status in declared.items():
+        if declared_status != measured.get(k):
+            problems.append(f"report declares {k} = {declared_status!r} but the record says "
+                            f"{measured.get(k)!r}")
+    missing = [k for k in measured if k not in declared]
+    if missing and len(missing) == len(measured):
+        problems.append(f"report declares no post-write status at all (expected {sorted(measured)})")
+
+    result["declared"] = declared
+    result["record"] = measured
+    result["problems"] = problems
+    if problems:
+        result.update(status="FAILED",
+                      why="the report asserts a post-write status the record does not carry")
+        claim_check = next((c for c in record.get("checks", [])
+                            if c.get("id") == "readiness_claims_match_record"), None)
+        if claim_check is None:
+            # The check that owns this field is gone; refuse to certify anything.
+            record["ready_for_independent_audit"] = False
+        else:
+            claim_check["status"] = "FAIL"
+            claim_check["detail"] = (f"{claim_check.get('detail')}; POST-WRITE REPORT-CLAIM "
+                                     f"RECONCILIATION FAILED: {problems}")
+            claim_check.setdefault("post_write_report_claim", problems)
+            _recompute_counts(record)
+        _recompute_counts(record)
+    record[field] = result
+    return result
+
+
 def _post_write_state_claim(repo_root: Path, run_id: str, record: dict) -> bool:
     """Verify, AFTER the record is final, that the current run's state block
     repeats the record's counts exactly.
@@ -1615,9 +1838,15 @@ def check_readiness_claims(repo_root: Path, run_id: str, record: dict,
     # DISCLOSED pending item, never a silent pass.
     report_rel = f"reports/evaluation/CYCLE_{run_id}.md"
     report_state = "ABSENT_FOR_THIS_RUN"
+    declared: dict = {}
     if (repo_root / report_rel).exists():
         text = (repo_root / report_rel).read_text(encoding="utf-8")
         upper = text.upper()
+        # REPAIR F1: the two post-write statuses are reconciled POST-WRITE by
+        # :func:`_post_write_report_claims`, because the record only carries them
+        # once it is complete. Announce the delegation here so the check's own
+        # detail names the cover instead of silently omitting the field.
+        declared = _report_declared_post_write(text)
         ready_hits = _READY_HEADLINE_RE.findall(text)
         if not ready_hits:
             report_state = "NO_HEADLINE_CLAIM"
@@ -1679,11 +1908,15 @@ def check_readiness_claims(repo_root: Path, run_id: str, record: dict,
     ok = not problems
     detail = (f"current run state block matches the record "
               f"({record['n_passed']}/{record['n_checks']}, ready="
-              f"{record['ready_for_independent_audit']}); current report {report_state}; "
+              f"{record['ready_for_independent_audit']}); current report {report_state} "
+              f"(declares post-write statuses {sorted(declared) or 'none'}, "
+              "reconciled post-write by _post_write_report_claims); "
               f"{len(historical)} historical disagreement(s), all disclosed"
               if ok else f"readiness-claim problems: {problems}")
     return _check("readiness_claims_match_record", ok, detail,
                   current_report_state=report_state,
+                  report_declared_post_write=declared,
+                  post_write_reconciliation_field="post_write_report_claim",
                   historical_disagreements=historical,
                   n_disclosed=len(disclosures), problems=problems)
 
@@ -1874,24 +2107,82 @@ RETRACTION_MARKERS = (
 )
 
 
-def _is_retraction_context(text: str, start: int, end: int, pad: int = 260) -> bool:
+#: Sentence terminators used to scope a retraction window. Deliberately EXCLUDES
+#: ``:``, ``,``, ``-`` and quotes so that a cue is not split off from its clause,
+#: and EXCLUDES the newline: markdown is hard-wrapped at ~80 columns and a single
+#: logical sentence routinely spans several physical lines.
+_SENTENCE_END = re.compile(r"[.!?;]")
+
+#: Bare JSON literals are VALUES, not prose. A sibling state field carrying the
+#: boolean ``false`` must never excuse a negative trigger claim in another field:
+#: that single substitution is what made the pre-repair scan order-dependent.
+#: It is masked only in MACHINE-serialized sources; inside a quoted JSON string a
+#: real English "false" is preserved and still counts as a retraction cue.
+_JSON_LITERAL_MASK = re.compile(r"(?<=: )(?:true|false|null)(?=[,}\]])", re.I)
+
+
+def _flatten(text: str) -> str:
+    """Whitespace-collapse so markdown hard-wrapping cannot split a cue from its
+    claim and so window arithmetic is independent of physical line layout."""
+    return re.sub(r"\s+", " ", text)
+
+
+def _sentence_spans(flat: str) -> list[tuple[int, int]]:
+    spans: list[tuple[int, int]] = []
+    start = 0
+    for m in _SENTENCE_END.finditer(flat):
+        if flat[start:m.end()].strip():
+            spans.append((start, m.end()))
+        start = m.end()
+    if flat[start:].strip():
+        spans.append((start, len(flat)))
+    return spans or [(0, len(flat))]
+
+
+def _retraction_window(flat: str, start: int, end: int, pad: int = 260) -> str:
+    """The claim's own sentence plus the sentence immediately before and after.
+
+    REPAIRED by cycle 39086856920 after audit
+    results/audit/evaluation/CYCLE_39082753086_GATE.json fix F3 measured two
+    demonstrated evasions of the previous rule. That rule anchored the LEFT edge
+    at the physical line start and relied on a +/-260-character window, which the
+    audit falsified because the state source was serialized on ONE physical line
+    (18,509 chars) so the documented line anchor could never engage, and because
+    ANY retraction cue inside that 260-character window excused the claim.
+
+    The replacement rule is stated rather than left implicit:
+
+      * scope = the claim's own sentence plus one sentence either side, computed
+        on the WHITESPACE-COLLAPSED text (so hard-wrapped markdown is handled by
+        construction and physical line layout is irrelevant);
+      * a cue two or more sentences away does NOT excuse the claim;
+      * the window is additionally character-bounded by `pad` so it cannot run away.
+
+    This is strictly STRONGER than the rule it replaces: the new window is a
+    subset of the old one and the cue set is unchanged apart from the machine-literal
+    mask applied only to JSON. Measured on the run-39082753086 artifacts it changes
+    the outcome from 0 to 3 surviving negatives on the audit's two injected evasions
+    and from 0 to 0 false positives on the real report and the real state scope.
+    """
+    spans = _sentence_spans(flat)
+    idx = next((i for i, (a, b) in enumerate(spans) if a <= start < b), None)
+    if idx is None:
+        return flat[max(0, start - pad):min(len(flat), end + pad)]
+    lo = spans[idx - 1][0] if idx > 0 else spans[idx][0]
+    hi = spans[idx + 2][1] if idx + 2 < len(spans) else (
+        spans[idx + 1][1] if idx + 1 < len(spans) else spans[idx][1])
+    return flat[max(lo, start - pad):min(hi, end + pad)]
+
+
+def _is_retraction_context(flat: str, start: int, end: int,
+                           pad: int = 260) -> bool:
     """Is this occurrence a REFERENCE to a retracted/historical verdict?
 
-    Scoped to the enclosing LINE for the LEFT edge (plus `pad` characters either
-    side), then whitespace-collapsed. Anchoring the left edge to the line start
-    stops an unrelated retraction elsewhere in a large state document from
-    silently excusing a real assertion; the right edge stays character-bounded so
-    the search cannot run away, and the whitespace collapse is what survives
-    markdown hard-wrapping, which routinely splits a cue across two source lines.
+    ``flat`` MUST already be whitespace-collapsed (see :func:`_scan_trigger_claims`).
+    The window is :func:`_retraction_window`; the marker set is unchanged.
     """
-    line_start = text.rfind("\n", 0, start) + 1
-    window = text[max(line_start, start - pad): end + pad]
-    # Markdown is hard-wrapped at ~80 columns, so a cue like "without ever
-    # executing" is routinely split across two source lines ("**without" /
-    # "ever executing"). Collapse whitespace before matching, otherwise the cue
-    # is missed and preserved retraction prose is wrongly flagged as assertion.
-    flat = re.sub(r"\s+", " ", window)
-    return any(rx.search(flat) for rx in RETRACTION_MARKERS)
+    return any(rx.search(_retraction_window(flat, start, end, pad))
+               for rx in RETRACTION_MARKERS)
 
 
 #: State blocks that are scope to the CURRENT run and therefore ASSERT what this
@@ -1906,13 +2197,23 @@ CURRENT_RUN_STATE_FIELDS = (
 )
 
 
-def _scan_trigger_claims(text: str, origin: str, honour_retraction: bool = True) -> list[dict]:
+def _scan_trigger_claims(text: str, origin: str, honour_retraction: bool = True,
+                         machine: bool = False) -> list[dict]:
+    """Find trigger-verdict claims in ``text``.
+
+    ``machine=True`` declares ``text`` to be a MACHINE-SERIALIZED source (JSON),
+    in which case bare ``true``/``false``/``null`` literals are masked so a
+    sibling field's boolean value cannot excuse a claim in another field.
+    """
+    flat = _flatten(text)
+    if machine:
+        flat = _JSON_LITERAL_MASK.sub("<JSON_LITERAL>", flat)
     hits = []
     for rx, label in TRIGGER_CLAIM_PATTERNS:
-        for m in rx.finditer(text):
-            if honour_retraction and _is_retraction_context(text, m.start(), m.end()):
+        for m in rx.finditer(flat):
+            if honour_retraction and _is_retraction_context(flat, m.start(), m.end()):
                 continue
-            ctx = text[max(0, m.start() - 90): m.end() + 90].replace("\n", " ")
+            ctx = flat[max(0, m.start() - 90): m.end() + 90]
             hits.append({"origin": origin, "claim": label, "context": ctx})
     return hits
 
@@ -2011,11 +2312,28 @@ def check_trigger_verdict_matches_record(repo_root: Path, run_id: str,
     for k in list(state):
         if k.endswith(f"_{run_id}") or k == f"trigger_reconciliation_{run_id}":
             state_scope[k] = state[k]
-    sources = [("state/evaluation.json [current-run scope]", json.dumps(state_scope, ensure_ascii=False))]
+    # REPAIR F3 (audit CYCLE_39082753086_GATE.json): the state source was ONE
+    # physical line (18,509 chars) and was scanned as a single blob, so the
+    # module's documented line anchor could never engage and ANY retraction cue
+    # inside the +/-260-char window excused the claim. Measured consequences the
+    # audit demonstrated: a bare negative claim placed at the HEAD of the scope
+    # survived, and a live assertion sharing a line with a retraction cue
+    # survived. Fixed here by scanning ONE TOP-LEVEL KEY AT A TIME, indented, with
+    # bare JSON literals masked. The scan is then independent of dict ordering:
+    # a retraction cue in a sibling field can never excuse a claim in another,
+    # and the exact same shape is caught at the head, in the middle and at the
+    # tail of the scope. Pinned as negative controls in
+    # tests/evaluation/test_snapshot_audit.py::test_check21_*.
+    sources: list[tuple[str, str, bool]] = []
+    for key in state_scope:
+        sources.append((f"state/evaluation.json :: {key}",
+                        json.dumps({key: state_scope[key]}, indent=2, ensure_ascii=False),
+                        True))
     rp = repo_root / report_rel
     if rp.exists():
-        sources.append((report_rel, rp.read_text(encoding="utf-8", errors="replace")))
-    claims = [h for origin, txt in sources for h in _scan_trigger_claims(txt, origin)]
+        sources.append((report_rel, rp.read_text(encoding="utf-8", errors="replace"), False))
+    claims = [h for origin, txt, mach in sources
+              for h in _scan_trigger_claims(txt, origin, machine=mach)]
 
     negative = [c for c in claims if c["claim"] in NEGATIVE_CLAIM_LABELS]
     for c in negative:
@@ -2188,11 +2506,22 @@ def main(argv=None) -> int:
                                          ev.get("self_reference_refs") or [], record)
     ok_claims = _post_write_state_claim(repo_root, args.run_id, record)
     out_path.write_text(json.dumps(record, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    # REPAIR F1: the report's declared post-write statuses can only be reconciled
+    # against a record that already carries them, so this runs after both
+    # post-write blocks exist and the file has been rewritten. A disagreement
+    # downgrades check 19 and recomputes the counts, after which the
+    # state-claim reconciliation is re-applied so the state block cannot keep
+    # asserting the superseded counts.
+    report_claim = _post_write_report_claims(repo_root, args.run_id, record)
+    if report_claim.get("status") == "FAILED":
+        ok_claims = _post_write_state_claim(repo_root, args.run_id, record)
+    out_path.write_text(json.dumps(record, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
 
     for c in checks:
         print(f"[{c['status']}] {c['id']}: {c['detail']}")
     print(f"post-write self-reference: {record['post_write_self_reference']['status']}")
     print(f"post-write state claim: {record['post_write_state_claim']['status']}")
+    print(f"post-write report claim: {report_claim['status']}")
     if pending:
         for p in pending:
             print(f"[PENDING] {p}")
