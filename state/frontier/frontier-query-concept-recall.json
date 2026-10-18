@@ -1,9 +1,12 @@
 {
   "charter_version": 1,
-  "continue_recommended": true,
-  "cycle_status": "INCOMPLETE",
   "direction_version": 57,
+  "team_id": "frontier-query-concept-recall",
+  "cycle_status": "COMPLETE",
+  "outcome": "OUTCOME_B_BOUNDED_NEGATIVE",
   "evidence_tier": "REPRODUCED",
+  "continue_recommended": false,
+  "continue_recommended_reason": "OUTCOME_B is terminal under the charter stop rule: the rules are frozen and any further threshold, lexicon or prompt tuning under this charter would be post-hoc and would invalidate the run. No same-charter cycle is justified. The admission-disclosure half of the original finding remains with Product (Core Product lane); the recall half is CLOSED here.",
   "run_history": [
     {
       "outcome": "OUTCOME_B_BOUNDED_NEGATIVE",
@@ -21,6 +24,63 @@
         "required_fr_it_cells": 2,
         "required_reduced_questions": 2
       }
+    },
+    {
+      "outcome": "OUTCOME_B_BOUNDED_NEGATIVE_PROVISIONAL_SUPERSEDED",
+      "run_id": "harness_1792359072",
+      "timestamp": "2026-10-18T21:31:12.868892+00:00",
+      "rules_digest": "aa28ab8c67c236beb9d04f3cd9df6fa9c786d3b27aaf2470aa2d2d19bb53ba4f",
+      "note": "first admissible measurement under the frozen amended RULES (baseline reproduced exactly; improved_fr_it_cells=0; reduced_under_covered=0). SUPERSEDED as a publication artifact only: its latency budget section under-disclosed the original live-call times (offline replay dropped envelope latencies, reporting max=0.0/'holds') and its producer crashed before state could be advanced. Claim-bearing numbers verified byte-identical by the resume verification run."
+    },
+    {
+      "outcome": "OUTCOME_B_BOUNDED_NEGATIVE",
+      "run_id": "harness_1792361062",
+      "timestamp": "2026-10-18T22:04:22.976363+00:00",
+      "rules_digest": "aa28ab8c67c236beb9d04f3cd9df6fa9c786d3b27aaf2470aa2d2d19bb53ba4f",
+      "rules_file_sha256": "c5447bac0605a8bcf8c3d1820bee56a5bb0e814365978ec1fa12ac189776ee9a",
+      "verdict": {
+        "accepted_baseline_reproduced": true,
+        "improved_fr_it_cells": 0,
+        "failing_fr_it_cells_total": 6,
+        "reduced_under_covered_questions": 0,
+        "any_vacuous": true,
+        "vacuity_adjudicated_true_null": true,
+        "regressed_gates": [],
+        "latency_budget_breach_named": true,
+        "n_calls_over_per_search_budget": 10,
+        "regression_suite_all_pass": true,
+        "outcome_a_coverage_bar_reachable": false,
+        "one_bounded_cause": "TERM-ONLY EXPANSION QUERIES ARE TOO NARROW FOR THE OPENCASELAW RELEVANCE INDEX. Each A1 search sent a bare mined-vocabulary term list (up to 12 tokens) with no natural-language question text, while every accepted baseline query is a full sentence and returned 50/50 results. Measured on the committed cache: the de-kapitalverletzung expansion returned HTTP 200 with 0 rows, the fr-bail-entretien expansion 1 row, and the corporate-criminal-liability::fr expansion 0 rows; across all measurable (leg, language) cells the candidate-only channel recovered 0 of 9 missing frozen authority ids."
+      },
+      "disposition": "FINAL - OUTCOME B closes the item per charter stop rule"
     }
-  ]
+  ],
+  "operational_resume_diagnosis": {
+    "resumed_from": "persisted Frontier producer snapshot 39168288007 (branch origin/cycle/frontier/frontier-query-concept-recall/39168288007/team, commit 8cccb4c)",
+    "operational_failures_found": [
+      "cli.py contained a duplicated verdict block that OVERWROTE the rich verdict and bound \"outcome\" to a live oci.SearchOutcome object; the final harness invocation crashed at json.dumps (TypeError) after measurement but before writing results, leaving state INCOMPLETE - this is the direct cause of the unfinished snapshot",
+      "the offline replay path (_outcome_from_env) did not disclose the cache envelope's original latency_seconds, so the committed results reported per_search_observed_max=0.0 and 'budget holds' while the cache envelopes show 10 of 15 added searches over the frozen <30s per-search budget (max 83.5s, measured sum 600.6s) - now disclosed and named per acceptance test (6)",
+      "regression_suite.py imported symbols that do not exist in the shipped expansion module (acceptance test (7) was not runnable) - rewritten against the current implementation, all 8 tests pass, network_calls=0",
+      "the original run committed RULES.json and all measurements in one root commit, making git-commit-time freeze ordering undemonstrable - disclosed in results/frontier/frontier-query-concept-recall/freeze_ordering.json; the resume cycle demonstrates ordering via the unchanged RULES blob (sha256 c5447bac0605a8bc...) committed at 2026-10-18T21:32:13Z, strictly before the verification measurements",
+      "the provisional 20:02 run recorded reduced_under_covered_questions=3, which is impossible under the charter's frozen zero-row coverage definition (fr/it questions start at zero under-covered concepts); it used a pre-amendment metric and is preserved in run_history marked SUPERSEDED, not used as the charter outcome",
+      "the producer stalled on the charter-internal tension between acceptance test (5)'s literal tie=>void clause and stop-rule OUTCOME B, which describes exactly the true-null case - adjudicated and recorded in the harness verdict's vacuity_reading and in integration_contract.json, with harness responsiveness proven by regression_suite.test_metric_sensitivity_non_vacuity and by the A1 channel moving 12 of 15 pools"
+    ],
+    "repairs": [
+      "cli.py: removed the verdict-overwrite crash; single rich verdict emitted",
+      "cli.py: offline replay now discloses original live-call latencies (budget breach named: 10/15 calls over 30s, max 83.5s)",
+      "cli.py: union_rows dedup key normalized to canonical_decision_id-or-decision_id (closes cross-shape duplicate hazard; measurement-neutral on frozen inputs, verified byte-identical claim-bearing numbers)",
+      "regression_suite.py: rewritten, 8/8 tests pass offline"
+    ],
+    "claim_bearing_numbers_verified_identical": true
+  },
+  "artifacts": {
+    "rules": "results/frontier/frontier-query-concept-recall/RULES.json (sha256 c5447bac0605a8bcf8c3d1820bee56a5bb0e814365978ec1fa12ac189776ee9a, UNTOUCHED)",
+    "harness_results": "results/frontier/frontier-query-concept-recall/harness_results.json",
+    "regression_results": "results/frontier/frontier-query-concept-recall/regression_results.json",
+    "integration_contract": "results/frontier/frontier-query-concept-recall/integration_contract.json",
+    "freeze_ordering": "results/frontier/frontier-query-concept-recall/freeze_ordering.json",
+    "runnable_harness": "python -m frontier_query_concept_recall.cli --bundle <path> --out <dir> [--offline]",
+    "runnable_regression_suite": "python -m frontier_query_concept_recall.regression_suite --out <dir>"
+  },
+  "owner_attention_note": "zero owner action required: no paid API, no provisioning, no rubric/bar/threshold/frozen-file/packet/admission change; Product owns the adoption decision under factory-wide requirement 21 and the admission-disclosure half of the original finding"
 }

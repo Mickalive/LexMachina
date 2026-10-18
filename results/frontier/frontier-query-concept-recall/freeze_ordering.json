@@ -1,0 +1,38 @@
+{
+ "charter_version": 1,
+ "historical_disclosure": {
+  "finding": "ORIGINAL RUN FREEZE-ORDERING VIOLATION: producer snapshot 39168288007 (commit 8cccb4c) is a single root commit that co-committed RULES.json AND all measurements, so git-commit-time ordering is undemonstrable for the original 21:31 harness run. Disclosed, not smoothed over.",
+  "snapshot_commit": {
+   "committed_at_utc": "2026-10-18T21:32:13Z",
+   "sha": "8cccb4c33f4f3edb8ff982cfa1a272250a7e0fe3",
+   "subject": "Frontier frontier-query-concept-recall v1 run 39165259194"
+  }
+ },
+ "requirement": "acceptance test (1): RULES.json committed BEFORE computing anything; freeze ordering demonstrated from the git commit time of the RULES.json commit versus the first commit containing any measurement; a hand-written frozen_at_utc field is NOT evidence",
+ "resume_cycle_ordering": {
+  "code_repairs_commit_no_measurements": {
+   "committed_at_utc": "2026-10-18T22:04:03Z",
+   "sha": "0157a7fb2dc119e42d8adafe3d1794770f4ed42c",
+   "subject": "Frontier frontier-query-concept-recall v1 operational resume: fix harness crash, disclose original live-call latencies, rewrite regression suite (RULES.json untouched)"
+  },
+  "no_threshold_edit_after_number": "RULES.json bytes are sha256-identical to the snapshot; the repairs touched only harness reporting (crash fix, latency disclosure, regression suite rewrite) and the dedup key normalization, all measurement-neutral on the frozen inputs as verified by byte-identical claim-bearing numbers versus the committed 21:31 run",
+  "rules_last_touched_commit": {
+   "committed_at_utc": "2026-10-18T21:32:13Z",
+   "sha": "8cccb4c33f4f3edb8ff982cfa1a272250a7e0fe3",
+   "subject": "Frontier frontier-query-concept-recall v1 run 39165259194"
+  },
+  "verification_run": {
+   "generated_at": "2026-10-18T22:04:22.976363+00:00",
+   "ordering_claim": "the frozen RULES.json blob (sha256 c5447bac0605a8bc...) entered the tree at 2026-10-18T21:32:13Z and was not modified by the repairs commit or the verification run; the verification measurements are therefore computed under a RULES blob whose git commit time strictly precedes them. Post-commit verification: `git log --format for the commit carrying harness_results.json` must show a commit time > 2026-10-18T21:32:13Z",
+   "rules_file_sha256_in_results": "c5447bac0605a8bcf8c3d1820bee56a5bb0e814365978ec1fa12ac189776ee9a",
+   "rules_unchanged_since": "8cccb4c33f4f3edb8ff982cfa1a272250a7e0fe3",
+   "run_id": 1792361062
+  }
+ },
+ "rules_blob": {
+  "identical_in_package_and_results_dir": true,
+  "modified_since_snapshot": false,
+  "sha256": "c5447bac0605a8bcf8c3d1820bee56a5bb0e814365978ec1fa12ac189776ee9a"
+ },
+ "schema": "frontier_query_concept_recall.freeze_ordering.v1"
+}
