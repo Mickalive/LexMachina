@@ -479,6 +479,8 @@ DELIVERABLE_MANIFEST_PATHS = [
     "results/evaluation/served_packet_transfer/39092033997.json",
     "results/evaluation/orchestration/39091660737_ref_check.json",
     "results/evaluation/orchestration/39092033997_pytest_shim.json",
+    "results/evaluation/trigger_reconciliation/39092033997/39092033997_reconciliation.json",
+    "results/evaluation/trigger_reconciliation/39092033997/39092033997_trigger.json",
     "reports/evaluation/CYCLE_39092033997.md",
   ]
 

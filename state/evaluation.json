@@ -692,7 +692,9 @@
   "results/evaluation/orchestration/39091660737_ref_check.json",
   "results/evaluation/orchestration/39092033997_pytest_shim.json",
   "results/evaluation/lane_suite/39092033997.json",
-  "reports/evaluation/CYCLE_39092033997.md"
+  "reports/evaluation/CYCLE_39092033997.md",
+  "results/evaluation/trigger_reconciliation/39092033997/39092033997_reconciliation.json",
+  "results/evaluation/trigger_reconciliation/39092033997/39092033997_trigger.json"
  ],
  "evidence_tier": "REPRODUCED",
  "execution_records_38951152192": {
@@ -2990,5 +2992,34 @@
   "M5_readiness_record_after_state_update": "APPLIED THIS CYCLE - the record is written after state/evaluation.json is updated so check 5 measures the committed evidence_refs and the record never lists itself",
   "M6_environment_limited_branch": "APPLIED; the mount dependency of the READY verdict is carried in snapshot_claims_not_certified",
   "nothing_rerun": "frozen-bar gates, the reality benchmark, the rebuilt-packet adjudication, the universal-174k suites, the BJR leg and both DO-NOT-SERVE verdicts were NOT re-run over unchanged accepted bytes; that is the forbidden byte-identical re-measurement"
+ },
+ "trigger_reconciliation_39092033997": {
+  "command": "python -m evaluation.trigger_reconciliation --run-id 39092033997",
+  "record": "results/evaluation/trigger_reconciliation/39092033997/39092033997_reconciliation.json",
+  "trigger_record": "results/evaluation/trigger_reconciliation/39092033997/39092033997_trigger.json",
+  "trigger_record_sha256": "69d7e74940e67bb0c5da573abf6c21b4c6480447fa9e14946bc81d60cf5bb30b",
+  "mechanism": "python -m evaluation.newhead_recompute --mode trigger",
+  "verdict": "TRIGGER_FIRES__SCORED_CLAIM_MOVEMENT_NOT_MEASURED",
+  "trigger_verdict": "ADJUDICATE_REQUIRED",
+  "re_run_forbidden": false,
+  "reason": "served-packet claim population differs from the pinned baseline; direction items (1)-(3) fire",
+  "scored_claim_change": null,
+  "scored_claim_movement_half": "NOT_MEASURED",
+  "scored_claim_movement_note": "Re-deriving it needs the product fetch deepened to the baseline head cc719eebf and it measures bytes that have not moved since 39082753086 published 12/13 byte-identical + additively-changed disclosures.json + zero scored-row-id movement. That finding is PRESERVED and hash-pinned, not recomputed. A half that is not measured is labelled not measured and is never rounded up to the previous cycle's value; the published headline therefore differs from 39086856920's on purpose.",
+  "what_this_does_and_does_not_claim": "The trigger half executes and returns ADJUDICATE_REQUIRED again, so the 39082753086 retraction of NO_NEW_PACKET still stands. This check does not judge whether the re-score is worth running; it refuses to certify an unmeasured trigger verdict."
+ },
+ "snapshot_audit_39092033997": {
+  "command": "python -m evaluation.snapshot_audit.run_snapshot_audit --run-id 39092033997",
+  "record": "results/evaluation/snapshot_audit/39092033997.json",
+  "n_checks": 21,
+  "n_passed": 21,
+  "verdict": "READY",
+  "ready_for_independent_audit": true,
+  "post_write_state_claim": "VERIFIED",
+  "post_write_self_reference": "VERIFIED",
+  "n_checks_note": "unchanged at 21: this cycle added no check id, so n_checks did not move",
+  "environment_limit_resolved_this_cycle": "The resume image was seeded with only three remote refs and origin/lab/evaluation was absent, so check 18 returned environment_limited FAIL on the first attempt. `git fetch origin lab/evaluation` SUCCEEDED over HTTPS in this cycle (resolved 09970e838a2c8b1252d6e6f07f6b74cfa525a310, the accepted base named throughout this lane's records), so the limit was resolved by FETCHING THE REF and not by weakening the check. The recorded lesson is narrower and now standing: the REST API returns HTTP 403 from this lane's images, but git-over-HTTPS does NOT, so 'no network' must never be used as a blanket excuse - the fetch path must be tried before an environment limit is recorded.",
+  "gate_path_for_the_auditor": "results/audit/evaluation/CYCLE_39092033997_GATE.json (UPPERCASE _GATE.json, relative to the audit-job checkout, NOT /tmp/lex_team)",
+  "report_path_for_the_auditor": "reports/audit/evaluation/CYCLE_39092033997.md"
  }
 }
