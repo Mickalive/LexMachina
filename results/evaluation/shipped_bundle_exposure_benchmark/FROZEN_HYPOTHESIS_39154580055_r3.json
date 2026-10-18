@@ -1,0 +1,80 @@
+{
+  "schema": "lex-evaluation-frozen-hypothesis/1",
+  "run_id": "39154580055",
+  "revision": "r3",
+  "supersedes": ["FROZEN_HYPOTHESIS_39154580055.json (r1)", "FROZEN_HYPOTHESIS_39154580055_r2.json (r2)"],
+  "direction_version": 56,
+  "frozen_at": "2026-10-18T19:03:00Z",
+  "frozen_before_execution": true,
+  "lineage_of_retirements": {
+    "r1": {
+      "record": "results/evaluation/shipped_bundle_exposure_benchmark/39154580055_r1_RETIRED_PROBE.json",
+      "verdict": "ENVIRONMENT_OR_VACUOUS",
+      "exit_code": 2,
+      "classification": "EXPLORATORY_PROBE_CONTROL_DESIGN_DEFECT",
+      "why": "the F5 control applied a CONCEAL-only mutation and the F5 quantity was already at its floor on the shipped de/it bundles, so it could not move",
+      "status": "RETIRED, preserved byte-intact, NOT accepted evidence, NOT a product verdict"
+    },
+    "r2": {
+      "record": "results/evaluation/shipped_bundle_exposure_benchmark/39154580055_r2_RECORD.json",
+      "verdict": "BENCHMARK_VALID_FALSIFIERS_FIRED_ON_SHIPPED_BUNDLES",
+      "exit_code": 1,
+      "non_vacuity_all_hold": true,
+      "classification": "VALID_VERDICT_WITH_AN_INCOMPLETE_FIRED_LIST",
+      "why_retired": "r2's per-bundle counts were correct and its verdict and exit code were correct, but its aggregated `falsifiers_fired` list was INCOMPLETE: F1 (47/214 unclustered on de, 49/217 fr, 47/211 it) and F4 (50, 37, 47 unassigned languages) each published a non-zero `n_fired` count but no `fired` BOOLEAN, while the aggregator keys on `fired`. The record therefore named only [F2, F3, F5] as fired and silently omitted F1 and F4.",
+      "what_r2_still_establishes": "its verdict, exit code, success-rule outcome, non-vacuity matrix and all per-bundle counts stand and are preserved unchanged",
+      "status": "RETIRED as the claim-bearing record, preserved byte-intact; NOT deleted, NOT overwritten"
+    }
+  },
+  "question": "On the SHIPPED product bundles (rebuilt-39027045675), are the contrary/limiting authorities structurally discoverable, is the cluster panel complete, and is the retrieved population multilingual - or does the shipped map conceal what the answer relies on?",
+  "question_is_unchanged_from_r1_and_r2": true,
+  "change_in_r3": {
+    "the_only_change": "Every falsifier now publishes a `fired` BOOLEAN and a `fired_semantics` string, so the aggregated `falsifiers_fired` list is complete. This is a REPORTING-COMPLETENESS fix that brings the aggregator into line with the metric definitions that were ALREADY frozen in r1 and r2.",
+    "why_this_is_not_a_metric_change": "The r1/r2 frozen metric text already defined F1 as a COUNT of unclustered points and F4 as a COUNT of unassigned languages, and the frozen firing convention is already stated in both freezes as 'a falsifier fires when its count is non-zero, or on a set relation that is not identity'. r2's aggregator simply failed to read two of its own falsifiers' counts. r3 makes the code match the frozen definition; the frozen definition is not touched.",
+    "not_a_success_rule_change": "The success rule is byte-identical to r2. r2 already returned exit 1 because F2/F3/F5 fired; r3 returns exit 1 because at least one falsifier fires. The exit code and verdict class are unchanged by this fix.",
+    "not_a_population_change": "All three bundles, every decision, all frozen pins, unchanged.",
+    "not_a_non_vacuity_change": "The r2 bidirectional-control rule and the NOT_APPLICABLE_ZERO_POPULATION handling are carried over verbatim.",
+    "introduces_no_threshold_bar_rubric_or_predicate": true
+  },
+  "population_frozen": {
+    "packet": "results/product/gate_packet/rebuilt-39027045675",
+    "mount": "/tmp/lex_accepted/product",
+    "packet_json_raw_sha256": "2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170",
+    "n_bundles_expected": 3,
+    "sampling": "ALL bundles of the packet. No subsampling, no selection, no exclusion. No decision is dropped.",
+    "frozen_before": "the r3 execution"
+  },
+  "frozen_pins_rehashed_before_use": {
+    "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+    "evaluation/frozen_bars/LABEL_LINEAGE_VERDICT.json": "016bffe5914ffc9074c948c9e452d05c79639735ed32f6c82aefd3751afcca18"
+  },
+  "metrics_frozen": "UNCHANGED from r1 and r2, verbatim: F1 map::unclustered_point_mass; F2 map::cluster_panel_coverage (set relation, both differences); F3 map::cluster_size_member_len_divergence (published only, not a bar, explicitly not a re-raise of the accepted closed item); F4 multilingual::language_unassigned; F5 counter::emitted_label_placement; F6 counter::issued_population_reconciliation.",
+  "success_rule_frozen": {
+    "exit_0_BENCHMARK_VALID_NO_FALSIFICATION": "frozen pins all re-hash AND packet.json matches the direction pin AND every falsifier count is zero on every bundle",
+    "exit_1_PRODUCT_FALSIFIED": "frozen pins all re-hash AND packet.json matches the direction pin AND at least one falsifier fires on the shipped bytes",
+    "exit_2_ENVIRONMENT_OR_VACUOUS": "a pin fails to re-hash, OR packet.json sha differs from the pin, OR a bundle is unmeasurable, OR any non-vacuity control fails to move on a falsifier that HAS a measurable population. NEVER a product pass."
+  },
+  "non_vacuity_rule_frozen_r3": "CARRIED OVER FROM r2 VERBATIM: each falsifier runs hostile mutations in BOTH directions where applicable and passes when AT LEAST ONE moves; an empty baseline population is recorded NOT_APPLICABLE_ZERO_POPULATION, does not by itself force exit 2, and is NEVER reported as a pass.",
+  "set_relation_discipline": "No two counted sets are compared by matching cardinality. Every set statement is accompanied by its two differences, per factory-wide requirement 16.",
+  "instrument_reuse_frozen": [
+    "evaluation.retrieval_gate.id_hygiene.id_defects (accepted)",
+    "evaluation.served_bundle_scope.measure_bundle (accepted; cross-check only, against the accepted record results/evaluation/served_bundle_scope/39086856920.json)"
+  ],
+  "no_new_thresholds": "Zero thresholds, bars, rubrics or predicates are introduced. Every falsifier fires on a non-zero COUNT or on a SET RELATION that is not identity. Nothing here can claim any frozen bar is met or unmet.",
+  "still_not_run": [
+    "the closed universal-174k suite",
+    "the frozen reality benchmark ff57f556",
+    "the CLOSED BJR leg",
+    "any candidate (classifier, layout) rebuild",
+    "the accepted benchmark_retrieval_counter_authority.py instrument, which is left byte-unchanged"
+  ],
+  "explicit_non_claims": [
+    "Does NOT score, move, re-derive or re-tune any frozen bar.",
+    "Does NOT re-measure either closed Frontier candidate.",
+    "Says NOTHING about jurist usefulness; human_gate_ready stays false.",
+    "Does NOT relax the standing accepted DO-NOT-SERVE orders on any packet.",
+    "A fired falsifier is a preserved NEGATIVE result about the shipped map, not a claim that the product is unusable."
+  ],
+  "change_policy": "If any metric, population, pin, success rule or non-vacuity rule changes after THIS execution, this file is RETIRED, the run is reported as an exploratory probe, and a NEW hypothesis with a NEW digest is frozen before any further execution. Nothing is edited in place after observation."
+}

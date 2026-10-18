@@ -190,6 +190,10 @@ def f1_unclustered_point_mass(bundle: dict) -> dict:
         "share": _fraction(len(hits), len(decisions)),
         "by_reason": by_reason,
         "example_ids": [h["decision_id"] for h in hits[:5]],
+        "fired": bool(hits),
+        "fired_semantics": ("fires when at least one shipped map point belongs to "
+                            "no declared cluster, i.e. carries no cluster label "
+                            "and no cluster membership"),
     }
 
 
@@ -216,6 +220,10 @@ def f2_cluster_panel_coverage(bundle: dict) -> dict:
         "examples_only_in_decision_list": only_decisions[:5],
         "fired": bool(only_members or only_decisions),
         "compared_as": "set relation with both differences computed, never by matching cardinality",
+        "fired_semantics": ("fires when the cluster panel's member_ids union and "
+                            "the decision list are not the same set, i.e. a map "
+                            "consumer reading member_ids cannot recover the full "
+                            "retrieved set"),
     }
 
 
@@ -245,6 +253,10 @@ def f3_cluster_size_member_len_divergence(bundle: dict) -> dict:
         "n_rows_omitted_from_panel": omitted,
         "divergent": divergent,
         "fired": bool(divergent),
+        "fired_semantics": ("fires when any declared cluster's size disagrees with "
+                            "its own member_ids length; PUBLISHED ONLY, never a "
+                            "bar, and explicitly not a re-raise of the accepted "
+                            "closed item"),
     }
 
 
@@ -272,6 +284,10 @@ def f4_language_unassigned(bundle: dict) -> dict:
         "n_missing_that_are_also_F1_unclustered": overlap_unclustered,
         "share_of_missing_also_unclustered": _fraction(overlap_unclustered, len(missing)),
         "example_ids": missing[:5],
+        "fired": bool(missing),
+        "fired_semantics": ("fires when at least one shipped decision carries no "
+                            "language; no language bar is applied and this is a "
+                            "coverage count only"),
     }
 
 

@@ -356,3 +356,27 @@ def test_shipped_packet_json_matches_the_pin():
     import hashlib
     pj = MOUNT / "results/product/gate_packet/rebuilt-39027045675/packet.json"
     assert hashlib.sha256(pj.read_bytes()).hexdigest() == PACKET_JSON_SHA256
+
+def test_every_falsifier_reports_a_fired_flag():
+    """r2 defect, regression-guarded.
+
+    r2 recorded `falsifiers_fired` as only [F2,F3,F5] even though F1 fired at
+    47/214 and F4 at 50/214, because F1 and F4 emitted a non-zero `n_fired`
+    count but no `fired` BOOLEAN, while the aggregator keys on `fired`. That
+    silently under-reported which falsifiers fired. Every falsifier must now
+    publish `fired` so the aggregate is complete.
+    """
+    m = measure(_bundle(), None)
+    for key, res in m.items():
+        assert "fired" in res, f"{key} publishes no 'fired' flag"
+        assert isinstance(res["fired"], bool), f"{key} 'fired' is not a bool"
+        assert "fired_semantics" in res, f"{key} publishes no 'fired_semantics'"
+
+
+def test_f1_and_f4_fired_flags_are_true_on_non_zero_counts():
+    b = _bundle()
+    m = measure(b, None)
+    assert m["f1_unclustered_point_mass"]["n_fired"] == 2
+    assert m["f1_unclustered_point_mass"]["fired"] is True
+    assert m["f4_language_unassigned"]["n_fired"] == 0
+    assert m["f4_language_unassigned"]["fired"] is False
