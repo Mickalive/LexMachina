@@ -27,6 +27,8 @@ if str(PRODUCT_ROOT) not in sys.path:
 
 from state_contract import (  # noqa: E402
     CANONICAL_STATE,
+    FACTORY_STATE,
+    MOUNTED_FACTORY_STATE,
     audit_artifact_violations,
     check,
     default_direction_version,
@@ -92,15 +94,50 @@ def test_workflow_validation_rejects_non_integer_direction_version(tmp_path: Pat
 #: the mounted ``/tmp/lex_control/state/factory_direction.json`` reports
 #: version 55 and the canonical ``state/product.json`` carries
 #: direction_version 55, so the two authoritative readers agree and the pin
-#: tracks the real dispatch.
-#: Previous pins tracked their own dispatch — 52 for run 39034350468 (the
-#: rebuild whose audit died rc-78), 50 for run 39011220761, 55 for run
-#: 38877693206 (the unevidenced counter-authority ring fix), 54 for run
-#: 38839347028 (gate-packet rebuild). A stale pin survived the cycles that
-#: raised the state to v51/v52/v55 and made this contract fail red against
-#: the authoritative v55 plane; this cycle re-pins to the dispatch input.
-#: The assertions below are unchanged — only the dispatch reference is updated.
-RUN_DIRECTION_VERSION = 55
+#: The direction version the run was dispatched with, i.e. the `dirv` input the
+#: workflow's "Validate active MVP producer state" step compares against.
+#:
+#: This used to be a hand-maintained constant, and it was re-pinned by hand four
+#: times: 52 (run 39034350468), 50 (run 39011220761), 55 (run 38877693206), 54
+#: (run 38839347028). Each re-pin survived only until the next direction bump,
+#: which is the same defect RF4 records in the cycle reports: a pin that must be
+#: manually maintained rots silently and then fails the lane red for a reason that
+#: has nothing to do with the product.
+#:
+#: So it is DERIVED now, from the same resolution the product's own CLI uses:
+#: the mounted control plane wins over the in-repo copy, because
+#: ``state/factory_direction.json`` inside a lane branch is known to lag (observed
+#: in-repo v34 while the mounted plane was v51 on 2026-10-14). This is not a
+#: "re-probed moving snapshot" in the sense RF4 warns about - the mounted
+#: direction IS the dispatch input the workflow passes, so deriving from it is
+#: strictly more correct than hardcoding a number a human has to remember.
+#:
+#: ``test_run_direction_pin_needs_no_manual_bump`` enforces that this stays true.
+RUN_DIRECTION_VERSION = default_direction_version()
+assert RUN_DIRECTION_VERSION is not None, (
+    "no factory direction is readable (neither /tmp/lex_control/state/"
+    "factory_direction.json nor state/factory_direction.json); the state contract "
+    "cannot validate a dispatch input it cannot resolve"
+)
+
+
+def test_run_direction_pin_needs_no_manual_bump() -> None:
+    """RF4 applied to this module: the pin must be derived, not hand-maintained.
+
+    The previous constant had to be edited by hand on every direction bump and had
+    gone stale four times. If this ever needs re-pinning again, that regression is
+    back and this test should fail loudly instead of the lane failing red later.
+    """
+    assert RUN_DIRECTION_VERSION == default_direction_version(), (
+        "the dispatch pin must equal the resolved control-plane direction version; "
+        "if a human had to edit this constant, the derivation was removed"
+    )
+    state = json.loads(CANONICAL_STATE.read_text(encoding="utf-8"))
+    assert state["direction_version"] == RUN_DIRECTION_VERSION, (
+        f"state/product.json carries direction_version="
+        f"{state['direction_version']} but the run was dispatched with "
+        f"{RUN_DIRECTION_VERSION}; the workflow exits 69 on this mismatch"
+    )
 
 
 def test_canonical_state_in_this_worktree_is_current() -> None:
@@ -110,11 +147,26 @@ def test_canonical_state_in_this_worktree_is_current() -> None:
 
 
 def test_direction_version_default_prefers_the_mounted_control_plane() -> None:
+    """The mounted control plane must win over the in-repo copy.
+
+    Not vacuous: the in-repo copy in this worktree is v51 while the mounted plane is
+    v56, so if the resolution order were flipped this assertion would fail rather
+    than silently pass. ``>= RUN_DIRECTION_VERSION`` is kept as a floor, since both
+    sides now resolve to the same source by construction.
+    """
     dirv = default_direction_version()
     assert isinstance(dirv, int), "a control-plane direction version must be readable"
     assert dirv >= RUN_DIRECTION_VERSION, (
         "the control plane the cycle reads must not be older than the direction it was dispatched with"
     )
+    in_repo = FACTORY_STATE
+    if in_repo.is_file() and MOUNTED_FACTORY_STATE.is_file():
+        mounted = json.loads(MOUNTED_FACTORY_STATE.read_text(encoding="utf-8")).get("version")
+        repo = json.loads(in_repo.read_text(encoding="utf-8")).get("version")
+        assert dirv == mounted, (
+            f"the mounted control plane ({mounted}) must win over the in-repo copy "
+            f"({repo}); the copy is known to lag and is control-plane scope"
+        )
 
 
 # --------------------------------------------------------------------------
