@@ -291,8 +291,8 @@ def expand_query_bundle(
     counter-authority stages remain the separate ``enrich_query_bundle`` job.
     """
     from .pipeline import (
-        _candidate_to_product, _map_bundle, _merge_relations, _retrieve,
-        _retrieval_config, typed_citation_relations,
+        _candidate_to_product, _map_bundle, _merge_relations, _relations_provenance,
+        _retrieve, _retrieval_config, typed_citation_relations,
     )
 
     base_errors = validate_bundle(initial_bundle)
@@ -324,10 +324,8 @@ def expand_query_bundle(
     # so it re-derives the typed citation edges from its own candidate set: a
     # relation revealed only after expansion must not be lost, and an edge whose
     # second endpoint never reached the map is dropped rather than dangling.
-    relations = _merge_relations(
-        typed_citation_relations(list(candidate.get("candidates") or []), decisions),
-        shared_relations,
-    )
+    typed_relations = typed_citation_relations(list(candidate.get("candidates") or []), decisions)
+    relations = _merge_relations(typed_relations, shared_relations)
     for d in decisions:
         d["counter_status"] = d.get("counter_status") or "none"
         d["counter_evidence"] = d.get("counter_evidence") or ""
@@ -357,6 +355,15 @@ def expand_query_bundle(
         provenance=copy.deepcopy(initial_bundle.get("provenance") or {}),
     )
     prov = out["provenance"]
+    # The expansion changed the decision set, so the relation channel must be
+    # re-measured: a first-page disclosure would otherwise keep describing a map
+    # that no longer exists (and vice versa).
+    prov["relations_provenance"] = _relations_provenance(
+        list(candidate.get("candidates") or []),
+        typed_relations,
+        shared_relations,
+        decisions,
+    )
     had_answer = (initial_bundle.get("answer") or {}).get("status") in {"ready", "degraded"}
     prov["phase"] = "complete" if had_answer else "map_expanded"
     prov["retrieval_first_page"] = prov.get("retrieval_first_page") or prov.get("retrieval")

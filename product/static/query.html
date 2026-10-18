@@ -146,6 +146,11 @@ h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#737b88;ma
   <div id="mapWrap">
     <canvas id="cv"></canvas><div id="detail"></div>
     <div id="legend">couleur = cluster · gris = contexte non regroupé (hors cluster) · contour rouge = contre-autorité étayée · contour pointillé ambré = non étayée (conservée pour visibilité) · or = citée · anneau cyan = trouvée par la passe contradictoire indépendante (provenance de recherche, pas une qualification) · point pâle = outlier</div>
+    <!-- Relation-channel disclosure. MVP §7 asks for "citation/relation edges
+         available on selection". When the channel is genuinely empty the jurist
+         must be told WHY at the point of use, with the measured counts — an
+         omitted panel is indistinguishable from a broken feature. -->
+    <div id="relationChannel" class="muted"></div>
   </div>
   <div id="lexListView" hidden></div>
 </main>
@@ -170,6 +175,16 @@ function colorFor(clusterId){
 const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
 let BUNDLE=null,PTS=[],RUN_ID=null,VIEW={scale:1,ox:0,oy:0};
 
+/* Retrieval rank on every counter/discovery card.  The whole product thesis is
+   that contrary and minority authority sits BELOW the ranked list's fold; if the
+   rank is not on the card, the jurist cannot see that it was ever out of view.
+   Rows that are not in the ranked pool at all are labelled as such rather than
+   given a made-up rank. */
+function rankPill(d){
+  const r=d&&d.rank;
+  if(r==null||r==="")return '<span class="pill">hors pool classé</span>';
+  return '<span class="pill">rang '+esc(r)+"</span>";
+}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 let LAST_STATUS={text:"Prêt.",phase:""};
 function viewPhase(){const s=window.__LEX_GATE_SWITCH__;return s?'<span class="phase">vue '+(s.controller.viewMode==="list"?"liste":"carte")+"</span>":""}
@@ -256,7 +271,7 @@ cv.onclick=e=>{
 };
 
 function renderBundle(b){
-  BUNDLE=b;renderAnswer();renderCounters();renderAdversarial();renderClusters();draw();
+  BUNDLE=b;renderAnswer();renderCounters();renderAdversarial();renderClusters();renderRelationChannel();draw();
   /* accepted harness contract: the conventional list must follow every bundle
      replacement, otherwise it would show the previous query's results */
   if(window.LexGateSwitch)LexGateSwitch.notifyBundleChanged();
@@ -328,7 +343,7 @@ function renderCounters(){
   const cs=(BUNDLE?.decisions||[]).filter(isCounter);
   const head=counterHead();
   document.getElementById("counterList").innerHTML=(head?'<div class="muted" style="margin-bottom:6px">'+esc(head)+"</div>":"")+(cs.length?cs.slice(0,20).map(d=>
-    '<div class="card counter"><a href="#" data-id="'+esc(d.decision_id)+'">'+esc(d.decision_id)+'</a> <b>'+esc(d.counter_status)+'</b>'+(counterEvidenced(d)?'':' <span class="pill amber">non étayée · conservée pour visibilité</span>')+'<br>'+esc(d.counter_evidence||d.snippet).slice(0,260)+'</div>'
+    '<div class="card counter"><a href="#" data-id="'+esc(d.decision_id)+'">'+esc(d.decision_id)+'</a> <b>'+esc(d.counter_status)+'</b> '+rankPill(d)+(counterEvidenced(d)?'':' <span class="pill amber">non étayée · conservée pour visibilité</span>')+'<br>'+esc(d.counter_evidence||d.snippet).slice(0,260)+'</div>'
   ).join(""):'<span class="muted">Aucune contre-autorité qualifiée à ce stade.</span>');
   document.querySelectorAll("#counterList a[data-id]").forEach(a=>a.onclick=e=>{e.preventDefault();showDetail(a.dataset.id)});
 }
@@ -364,7 +379,7 @@ function renderAdversarial(){
   document.getElementById("adversarialList").innerHTML=(head?'<div class="muted" style="margin-bottom:6px">'+esc(head)+"</div>":"")
     +(shown.length?shown.map(d=>{
         const st=advState(d);
-        return '<div class="card disc"><a href="#" data-id="'+esc(d.decision_id)+'" onclick="return openDiscovered(this.dataset.id)">'+esc(d.decision_id)+"</a> "
+        return '<div class="card disc"><a href="#" data-id="'+esc(d.decision_id)+'" onclick="return openDiscovered(this.dataset.id)">'+esc(d.decision_id)+"</a> "+rankPill(d)+" "
           +advChannels(d).map(c=>'<span class="pill disc">'+esc(advLabel(c))+"</span>").join("")
           +(st.cls?'<span class="pill '+st.cls+'">'+esc(st.txt)+"</span>":'<span class="pill">'+esc(st.txt)+"</span>")
           +"<br>"+esc(d.snippet||"").slice(0,240)+"</div>";
@@ -379,6 +394,38 @@ function renderClusters(){
   document.getElementById("clusterList").innerHTML=cs.map(c=>
     '<div class="card cluster"><span class="dot" style="background:'+colorFor(c.cluster_id)+'"></span><div><b>C'+c.cluster_id+'</b> · '+c.size+' décisions<br>'+esc(c.label)+'</div></div>'
   ).join("");
+}
+/* Relation-channel state, published server-side by
+   product/query/relation_channel.py from MEASURED counts on the rows actually on
+   the map.  The browser never derives it: if the bundle predates the field the
+   panel says the state is unknown rather than guessing "empty". */
+function relationChannel(){
+  const rp=BUNDLE?.provenance?.relations_provenance||{};
+  return {state:rp.channel_state||"",after:rp.channel_after_hydration||null,added:rp.relations_added_by_hydration};
+}
+const CHANNEL_FR={
+  POPULATED:c=>c.n_relations+" arête(s) de relation sur la carte.",
+  EMPTY_NO_SHARED_AUTHORITY:c=>"Aucune arête de relation : "+c.measured.n_rows_with_citation+" des "
+    +c.measured.n_decisions+" décisions retrieved citent une autorité, mais aucune ne cite la même qu'une autre — il n'y a donc aucune autorité commune à relier.",
+  EMPTY_NO_CITATIONS_DETECTED:c=>"Aucune arête de relation : aucune des "+c.measured.n_decisions
+    +" décisions retrieved ne cite une autorité dans une forme que ce produit détecte. Rien n'est masqué ici : l'ensemble retrieved ne porte simplement aucune citation à relier.",
+  EMPTY_NO_DECISIONS:"Aucune décision sur la carte : il n'y a rien à relier."
+};
+function relationChannelNote(){
+  const rc=relationChannel();
+  if(!rc.state)return "";
+  const src=rc.after&&rc.after.state?rc.after:null;
+  const ch=src||{state:rc.state,measured:(BUNDLE.provenance.relations_provenance.channel||{}).measured||{},n_relations:(BUNDLE.relations||[]).length};
+  const txt=(CHANNEL_FR[ch.state]||(()=>"État du canal de relations : "+ch.state))(ch);
+  const hydrated=rc.after&&rc.after.state?true:false;
+  return txt+(hydrated?" (mesuré après hydratation de la preuve)":"")
+    +(typeof rc.added==="number"&&rc.added>0?" · +"+rc.added+" arête(s) révélée(s) par l'hydratation":"");
+}
+function renderRelationChannel(){
+  const el=document.getElementById("relationChannel");
+  if(!el)return;
+  const note=relationChannelNote();
+  el.innerHTML=note?'<div class="card">'+esc(note)+"</div>":"";
 }
 function showDetail(id){
   const d=BUNDLE?.decisions.find(x=>x.decision_id===id);if(!d)return;
@@ -405,7 +452,8 @@ function showDetail(id){
        esc(advChannels(d).map(advLabel).join(", "))+' ('+esc(advChannels(d).join(", "))+'). '+
        esc(advState(d).txt)+' — ce marqueur indique comment la décision a été retrouvée, pas son effet juridique.</p>':"")+
     (c?'<p><b>Cluster :</b> '+esc(c.label)+'</p>':"")+
-    (rels.length?'<p><b>Relations :</b><br>'+rels.map(relLine).join("<br>")+"</p>":"")+
+    (rels.length?'<p><b>Relations :</b><br>'+rels.map(relLine).join("<br>")+"</p>":''+
+      (relationChannelNote()?'<p><b>Relations :</b> '+esc(relationChannelNote())+"</p>":""))+
     (cites?'<p><b>Citation :</b><br>'+cites+"</p>":"")+
     (d.canonical_url?'<p><a target="_blank" rel="noopener" href="'+esc(d.canonical_url)+'">Ouvrir la source ↗</a></p>':"");
 }

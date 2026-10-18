@@ -17,7 +17,8 @@ from .answer import build_answer, counter_authority_pass
 from .answer_contract import ensure_coverage
 from .answer_gap import ensure_cited_answer
 from .bundle import build_bundle, validate_bundle
-from .qmap import build_map
+from .qmap import _body, build_map, find_citations, shared_citation_relations
+from . import relation_channel
 from .qmap_variants import apply_geometry_variant, selected_variant
 from .relevance import rerank_product_bundle
 from .adversarial_retrieval import (
@@ -424,19 +425,32 @@ def _merge_relations(typed: list[dict], shared: list[dict], limit: int = 500) ->
     return out
 
 
-def _relations_provenance(candidates: list[dict] | None, typed: list[dict], shared: list[dict]) -> dict:
-    """How the relation list was built, exported so an auditor need not infer it."""
+def _relations_provenance(candidates: list[dict] | None, typed: list[dict], shared: list[dict],
+                          mapped: list[dict] | None = None) -> dict:
+    """How the relation list was built, exported so an auditor need not infer it.
+
+    ``channel`` is the honest answer to "why is there no edge on the map?". It is
+    measured from the rows actually on the map (see
+    :mod:`product.query.relation_channel`) rather than inferred, so an empty
+    relations panel is a stated measurement instead of a silent omission.
+    """
     candidates = list(candidates or [])
     citation_rows = sum(
         1 for c in candidates if set(c.get("channels") or ()) & CITE_CHANNELS
     )
     ids = {r["source"] for r in typed} | {r["target"] for r in typed}
+    channel = relation_channel.classify(
+        relation_channel.coverage(list(mapped or []), lambda d: find_citations(_body(d)[:20000])),
+        n_relations=len(shared) + len(typed),
+    )
     return {
         "typed_citation_relations": len(typed),
         "shared_citation_relations": len(shared),
         "citation_channel_rows": citation_rows,
         "decisions_with_typed_relation": len(ids),
         "typed_source": "ocl_adapter provenance_events (endpoint=/citations, seed_decision_id + direction)",
+        "channel_state": channel["state"],
+        "channel": channel,
         "claim_ceiling": (
             "typed edges are the upstream citation channel's own seed/direction records for this "
             "query; they are not a verified citation graph and are not re-derived from decision text"
@@ -495,7 +509,9 @@ def _map_bundle(product_bundle: dict, started_at: float, n_clusters: int = 0,
         "geometry_variant": geometry_variant or "incumbent",
         "axis_metadata": provenance_axes,
         "fixture_mode": False,
-        "relations_provenance": _relations_provenance(candidates, typed_relations, shared_relations),
+        "relations_provenance": _relations_provenance(
+            candidates, typed_relations, shared_relations, mapped
+        ),
     })
     return build_bundle(
         query=product_bundle["query"],
@@ -754,6 +770,33 @@ def adversarial_retrieval_pass(
         return out
 
 
+def _refresh_relation_channel(bundle: dict, *, limit: int = 500) -> dict:
+    """Re-measure the relation channel from hydrated text and publish both passes.
+
+    Two measurements are kept side by side rather than one overwriting the other:
+    ``channel`` (map build, pre-hydration) and ``channel_after_hydration``.  A
+    reader can therefore see whether the map's edges were thin because the set
+    genuinely had no shared authority or only because the evidence had not been
+    fetched yet — a distinction the earlier disclosure could not make.
+    """
+    prov = bundle.setdefault("provenance", {})
+    rel_prov = prov.setdefault("relations_provenance", {})
+    before = dict(rel_prov.get("channel") or {})
+    found = shared_citation_relations(bundle.get("decisions") or [], limit=limit)
+    merged = _merge_relations(list(bundle.get("relations") or []), found, limit=limit)
+    added = len(merged) - len(bundle.get("relations") or [])
+    meas = relation_channel.coverage(
+        bundle.get("decisions") or [], lambda d: find_citations(_body(d)[:20000])
+    )
+    meas["phase"] = "after_hydration"
+    after = relation_channel.classify(meas, n_relations=len(merged))
+    rel_prov["channel_after_hydration"] = after
+    rel_prov["relations_added_by_hydration"] = max(0, added)
+    rel_prov["channel_state"] = after["state"]
+    bundle["relations"] = merged
+    return {"before": before, "after": after, "added": max(0, added)}
+
+
 def enrich_query_bundle(
     initial_bundle: dict,
     *,
@@ -868,6 +911,15 @@ def enrich_query_bundle(
     for d in audited["decisions"]:
         if d["decision_id"] in original_geo:
             d["x"], d["y"], d["cluster_id"], d["is_outlier"] = original_geo[d["decision_id"]]
+
+    # Post-hydration relation refresh.  The map is built from PRE-hydration rows
+    # so it can render before generation (QUERY_MAP_MVP 9A), which means its
+    # shared-authority edges are derived from regeste/snippet text only.  Once
+    # the evidence subset is hydrated the same rule finds strictly more, and
+    # "relation edges on selection" (MVP section 7) has something to reveal.
+    # This ADDS edges and re-states the disclosure; it never removes an existing
+    # edge, and it never touches geometry.
+    _refresh_relation_channel(audited)
 
     audited.setdefault("provenance", {})["phase"] = "complete"
     audited["provenance"]["product_audit_seam"] = AUDIT_SEAM

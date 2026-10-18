@@ -461,6 +461,65 @@ setTimeout(async () => {
   check(discHtml.indexOf("qualifiée et étayée") !== -1,
         "a discovered AND qualified row states both facts");
 
+  /* --- relation-channel disclosure -----------------------------------------
+   * MVP section 7 asks for citation/relation edges "available on selection". A
+   * bundle with zero edges used to render no Relations line at all, which a
+   * jurist cannot distinguish from a broken feature. The page must therefore
+   * state the channel state WITH its measured counts, and must stay silent when
+   * the bundle carries no channel field rather than guessing. */
+  const chanHtml = documentShim.getElementById("relationChannel").innerHTML;
+  check(chanHtml === "",
+        "a bundle without a published channel state renders no relation claim");
+
+  const chanSynth = JSON.parse(JSON.stringify(discSynth));
+  chanSynth.provenance = {relations_provenance: {
+    channel_state: "EMPTY_NO_SHARED_AUTHORITY",
+    channel: {state: "EMPTY_NO_SHARED_AUTHORITY", n_relations: 0, measured: {
+      n_decisions: 3, n_rows_with_citation: 2, n_distinct_references: 2,
+      n_pairs_sharing_citation: 0, n_rows_in_a_shared_pair: 0, shared_reference_sample: []}},
+    channel_after_hydration: {state: "EMPTY_NO_SHARED_AUTHORITY", n_relations: 0, measured: {
+      n_decisions: 3, n_rows_with_citation: 3, phase: "after_hydration"}},
+    relations_added_by_hydration: 0}};
+  page.evaluate("renderBundle(" + JSON.stringify(chanSynth) + ");");
+  const chanText = documentShim.getElementById("relationChannel").innerHTML;
+  check(chanText.indexOf("Aucune arête de relation") !== -1
+        && chanText.indexOf("3 des 3") !== -1,
+        "an empty relation channel is stated on the map with its measured counts");
+  check(chanText.indexOf("après hydratation") !== -1,
+        "the post-hydration measurement is labelled as such, not as the map-build one");
+  const detailChan = page.evaluate("(function(){ showDetail('plain-row');"
+    + "return document.getElementById('detail').innerHTML; })()");
+  check(detailChan.indexOf("Relations") !== -1
+        && detailChan.indexOf("Aucune arête de relation") !== -1,
+        "the decision detail states the channel state instead of omitting the section");
+  /* Non-vacuity: the panel must be driven by the published measurement, not by a
+   * hard-coded empty string. A bundle whose channel IS populated must say so. */
+  const chanPop = JSON.parse(JSON.stringify(chanSynth));
+  chanPop.relations = [{source: "a", target: "b", kind: "shared_citation", shared: ["BGE 1 II 1"]}];
+  chanPop.provenance.relations_provenance.channel_after_hydration =
+    {state: "POPULATED", n_relations: 1, measured: {n_decisions: 3, n_rows_with_citation: 3}};
+  chanPop.provenance.relations_provenance.relations_added_by_hydration = 1;
+  page.evaluate("renderBundle(" + JSON.stringify(chanPop) + ");");
+  const popText = documentShim.getElementById("relationChannel").innerHTML;
+  check(popText.indexOf("arête") !== -1 && popText.indexOf("+1") !== -1,
+        "a populated channel reports its edge count and what hydration added");
+
+  /* --- retrieval rank on counter and discovery cards ----------------------
+   * The product thesis is that contrary/minority authority sits BELOW the ranked
+   * list's fold. If the rank is not on the card, the jurist cannot see that the
+   * row was ever out of view in a conventional list. */
+  const rankSynth = JSON.parse(JSON.stringify(discSynth));
+  rankSynth.decisions[1].rank = 57;
+  page.evaluate("renderBundle(" + JSON.stringify(rankSynth) + ");");
+  const rankHtml = documentShim.getElementById("counterList").innerHTML;
+  check(rankHtml.indexOf("rang 57") !== -1,
+        "a counter-authority below the list fold shows its retrieval rank");
+  const noRankHtml = page.evaluate("(function(){ renderBundle("
+    + JSON.stringify(discSynth) + ");"
+    + "return rankPill({decision_id:'x'}); })()");
+  check(noRankHtml.indexOf("hors pool") !== -1,
+        "a row outside the ranked pool is labelled as such instead of given a rank");
+
   const cfDisc = documentShim.getElementById("counterFilter");
   cfDisc.value = "counter";
   const counterView = page.evaluate("(function(){ draw(); return PTS.length; })()");

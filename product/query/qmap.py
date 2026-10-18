@@ -258,19 +258,33 @@ def _finalise(ranked: list[dict], decisions: list[dict], clusters: list[dict]
         d.setdefault("is_outlier", False)
         d.pop("_outlier_dist", None)
 
+    return decisions, clusters, shared_citation_relations(ranked)
+
+
+def shared_citation_relations(ranked: list[dict], limit: int = 500) -> list[dict]:
+    """Pairs of retrieved decisions that reference the same authority.
+
+    Extracted from :func:`_finalise` so the map builder and the post-hydration
+    refresh in ``enrich`` compute edges by *exactly* one rule.  At map-build time
+    the input rows are pre-hydration, so this usually finds nothing; after the
+    evidence subset is hydrated it can find real edges, which is why it is
+    callable twice against the same bundle.
+    """
+    ranked = list(ranked or [])
     cit_of = {d["decision_id"]: set(find_citations(_body(d)[:20000])) for d in ranked}
+    ids = [d["decision_id"] for d in ranked]
     relations = []
-    for i in range(n):
-        for j in range(i + 1, n):
-            shared = sorted(cit_of[ranked[i]["decision_id"]] & cit_of[ranked[j]["decision_id"]])
+    for i in range(len(ids)):
+        for j in range(i + 1, len(ids)):
+            shared = sorted(cit_of[ids[i]] & cit_of[ids[j]])
             if shared:
                 relations.append({
-                    "source": ranked[i]["decision_id"],
-                    "target": ranked[j]["decision_id"],
+                    "source": ids[i],
+                    "target": ids[j],
                     "kind": "shared_citation",
                     "shared": shared[:5],
                 })
-    return decisions, clusters, relations[:500]
+    return relations[:limit]
 
 
 #: Cluster-label term means are rounded to this many decimals before ranking, and
