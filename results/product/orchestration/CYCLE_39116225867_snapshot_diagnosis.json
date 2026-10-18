@@ -88,8 +88,11 @@
       },
       {
         "claim": "only the two pre-scope regression artifacts can produce that claim pair",
-        "how": "check_regression_set_relation logic applied to all eight committed CYCLE_*_regression_scope.json artifacts",
+        "how": "check_regression_set_relation logic applied to all committed CYCLE_*_regression_scope.json artifacts",
+        "how_reproducible": "python3 product/regression_set_relation_matrix.py --json (the predicate is IMPORTED from product/cycle_verify.py::regression_set_relation_rows, never copied)",
+        "list_semantics": "produce_pass_pass is a POINT-IN-TIME record of run 39119287975 (run_id_diagnosing). Artifacts committed afterwards are ADDITIVE: the ledger check 'regression_matrix' enforces published ⊆ actually-PASS/PASS (the false-claim direction) and completeness for every artifact that existed at run_id_diagnosing, and DISCLOSES the later ones by name in its own output instead of requiring them back into this historical record. Enforcing the reverse direction was tried and is wrong: it made this very repair's own regression run fail its own suite when it committed a new clean artifact - the self-referential class this diagnosis is about.",
         "observed": {
+          "n_committed_artifacts_at_recompute": 9,
           "produce_the_recorded_pair": [
             "CYCLE_39048942749_regression_scope.json",
             "CYCLE_39051003925_regression_scope.json"
@@ -100,9 +103,19 @@
             "CYCLE_39087917357_regression_scope.json",
             "CYCLE_39094983039_regression_scope.json",
             "CYCLE_39097705922_regression_scope.json",
+            "CYCLE_39119287975_regression_scope.json"
+          ],
+          "produce_at_least_one_FAIL": [
+            "CYCLE_39048942749_regression_scope.json",
+            "CYCLE_39051003925_regression_scope.json",
             "CYCLE_39116225867_regression_scope.json"
           ]
-        }
+        },
+        "corrections_this_cycle": [
+          "DEFECT B (audit CYCLE_39119287975): CYCLE_39116225867_regression_scope.json was previously published in produce_pass_pass. That is FALSE - the artifact records n_repaired_only=1, so 'the run under test introduces no failing test id absent from the baseline' FAILs and the per-claim verdict is FAIL/PASS/PASS. It is removed from produce_pass_pass and recorded under produce_at_least_one_FAIL. The cause-space conclusion (the FAIL ledger came from a pre-scope/empty-scope artifact) is unchanged and is independently supported: the two artifacts in produce_the_recorded_pair are exactly the two whose set_relation/arithmetic/scope blocks are null.",
+          "The list above is now RE-DERIVABLE rather than hand-written, and is enforced by product/cycle_verify.py::check_regression_matrix_matches_diagnosis (ledger check 'regression_matrix'). The original list was produced by copying the gate's three expressions into an ad-hoc script; the copy drifted. There is now exactly one definition and it is imported.",
+          "Refinement, measured not assumed: the two pre-scope artifacts yield three FAIL claims each (claim 1 and claim 2 fail on ABSENT schema/1 and schema/3 fields, not only on the null scope block), so 'produce that exact claim pair' describes the RECORDED assertion message, which quoted two of the three failing lines - not a two-claim ledger. This does not change which artifacts can produce the recorded message."
+        ]
       },
       {
         "claim": "the recorded new failure does not reproduce on the tree",
@@ -125,12 +138,19 @@
       },
       {
         "claim": "the FAIL-ledger poisoning path is closed",
-        "how": "product/cycle_verify.py --only regression --run-id 99999999999 --write (live) plus three new tests",
+        "how": "product/cycle_verify.py --only regression --regression-dir product/data/regression_fail_fixture --run-id 99999999999 --write (live) plus three new tests",
         "observed": {
           "exit_code": 1,
           "canonical_dir_written": false,
+          "ledger_verdict": "FAIL (2/3 claims)",
+          "pinned_failing_artifact": "product/data/regression_fail_fixture/CYCLE_39116225867_regression_scope.json",
           "tests": "product/tests/test_cycle_verify_is_a_gate.py::test_a_failing_ledger_is_refused_from_the_canonical_directory (+ explicit-out-dir keep, + PASS non-vacuity)"
-        }
+        },
+        "corrections_this_cycle": [
+          "DEFECT A (audit CYCLE_39119287975): the original demonstration ran `--only regression --run-id 99999999999 --write` with NO artifact pinned, and recorded exit_code 1 / canonical_dir_written false. That invocation FAILs only while the NEWEST regression artifact records a new failure. The newest artifact is now CYCLE_39119287975 (clean), so the same command writes its file and exits 0 - the auditor reproduced exactly that. The refusal MECHANISM was never in doubt and is unchanged; the demonstration was time-dependent.",
+          "The demonstration is now pinned to a committed artifact set that GENUINELY FAILS the gate: product/data/regression_fail_fixture/ holds a byte-identical copy of CYCLE_39116225867_regression_scope.json (the artifact that records n_repaired_only=1). The check is repointed at it by the new --regression-dir flag, so the command FAILs deterministically, for ever, whatever a later cycle commits. Exit 1, nothing written to the canonical directory, verified live and in a subprocess.",
+          "The dependency is recorded rather than hidden: the unpinned invocation is asserted to be a PASS against the canonical directory in product/tests/test_regression_set_relation_matrix.py::test_the_original_time_dependent_invocation_is_now_a_documented_pass."
+        ]
       }
     ],
     "inference": [

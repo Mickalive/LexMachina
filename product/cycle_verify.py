@@ -47,6 +47,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -75,6 +76,22 @@ DIAGNOSIS_39086926860_ARTIFACT = (
     REPO_ROOT / "results" / "product" / "orchestration" / "CYCLE_39086926860_orchestration.json"
 )
 REGRESSION_DIR = REPO_ROOT / "results" / "product" / "regression"
+#: The 39119287975 snapshot diagnosis of the 39116225867 producer snapshot.
+#: Pinned BY NAME (not "newest") because it is a historical record whose
+#: artifact classification must stay checkable after later runs exist.
+DIAGNOSIS_39116225867_ARTIFACT = (
+    REPO_ROOT / "results" / "product" / "orchestration"
+    / "CYCLE_39116225867_snapshot_diagnosis.json"
+)
+#: Set by ``--regression-dir`` for the duration of one ``main()`` invocation so
+#: the FAIL-refusal invariant is demonstrable against a pinned artifact set.
+REGRESSION_DIR_OVERRIDE: Path | None = None
+#: A committed artifact set whose newest artifact GENUINELY FAILS the three
+#: set-relation claims (a byte copy of the 39116225867 regression artifact,
+#: which records n_repaired_only = 1).  This is what ``--regression-dir``
+#: points at to produce a reproducible FAIL ledger; see
+#: product/tests/test_regression_set_relation_matrix.py.
+FAIL_FIXTURE_DIR = REPO_ROOT / "product" / "data" / "regression_fail_fixture"
 
 #: Posture the accepted verdicts pin. Hard-coded HERE on purpose: a ledger that
 #: reads its own expectations out of the file it is checking verifies nothing.
@@ -486,24 +503,21 @@ def check_orchestration_diagnosis_39086926860() -> list[dict]:
     return rows
 
 
-def check_regression_set_relation() -> list[dict]:
-    """The newest regression artifact must be a SET relation that closes.
+def regression_set_relation_rows(art: Path, data: Any) -> list[dict]:
+    """The three set-relation claims, as a PURE function of ONE artifact.
 
-    Counts alone are how this lane once published "+7 tests".  The claims here
-    are the two differences of the failing-ID sets plus the arithmetic identity,
-    all read from the artifact ``product/regression_scope`` wrote.
+    Extracted from :func:`check_regression_set_relation` (cycle 39123358661) so
+    that every committed artifact can be classified by the SAME predicate the
+    newest-artifact gate uses.  Before the split, "which artifact produces
+    PASS/PASS" could only be answered by copying the three expressions into an
+    ad-hoc script, and a copied expression silently diverged from the gate:
+    cycle 39119287975 published ``CYCLE_39116225867_regression_scope.json`` in
+    a PASS/PASS list while the gate actually FAILs it (that artifact records
+    ``n_repaired_only = 1``).  One definition, many artifacts - no copies.
     """
-    candidates = sorted(REGRESSION_DIR.glob("CYCLE_*_regression_scope.json"))
-    if not candidates:
-        return [_fail("a regression-scope artifact exists", "none found")]
-    art = candidates[-1]
-    try:
-        data = json.loads(art.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        return [_fail("the regression artifact parses", repr(exc))]
-    rel = data.get("set_relation") or {}
-    arith = data.get("arithmetic") or {}
-    scope = data.get("scope") or {}
+    rel = (data or {}).get("set_relation") or {}
+    arith = (data or {}).get("arithmetic") or {}
+    scope = (data or {}).get("scope") or {}
     return [
         _pass_or_fail(
             rel.get("set_difference_repaired_only_NEW_FAILURES") == [],
@@ -525,6 +539,54 @@ def check_regression_set_relation() -> list[dict]:
              "baseline_at": scope.get("baseline_checkout_root"),
              "declared_label": scope.get("declared_label")}),
     ]
+
+
+def classify_regression_artifact(art: Path) -> dict:
+    """One committed artifact -> its three verdicts, or the error that stopped it."""
+    try:
+        data = json.loads(art.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return {"artifact": _repo_relative(art), "name": art.name,
+                "verdicts": ["FAIL"] * 3, "reads": f"{type(exc).__name__}: {exc}"}
+    rows = regression_set_relation_rows(art, data)
+    return {
+        "artifact": _repo_relative(art),
+        "name": art.name,
+        "schema": (data or {}).get("schema"),
+        "verdicts": [r["status"] for r in rows],
+        "all_pass": all(r["status"] == "PASS" for r in rows),
+        "any_fail": [r["claim"] for r in rows if r["status"] != "PASS"],
+        "reads": "ok",
+    }
+
+
+def check_regression_set_relation() -> list[dict]:
+    """The newest regression artifact must be a SET relation that closes.
+
+    Counts alone are how this lane once published "+7 tests".  The claims here
+    are the two differences of the failing-ID sets plus the arithmetic identity,
+    all read from the artifact ``product/regression_scope`` wrote.
+
+    ``--regression-dir`` repoints this check at another committed artifact set
+    (cycle 39123358661).  That exists so the FAIL-refusal invariant can be
+    demonstrated against a PINNED failing artifact instead of against whatever
+    happens to be newest - the previous live demonstration was time-dependent
+    and stopped reproducing the moment a clean artifact landed, which made a
+    true invariant unprovable in a report (audit CYCLE_39119287975 DEFECT A).
+    """
+    directory = REGRESSION_DIR_OVERRIDE or REGRESSION_DIR
+    candidates = sorted(directory.glob("CYCLE_*_regression_scope.json"))
+    if not candidates:
+        return [_fail("a regression-scope artifact exists", f"none found in {_repo_relative(directory)}")]
+    art = candidates[-1]
+    try:
+        data = json.loads(art.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [_fail("the regression artifact parses", repr(exc))]
+    rows = regression_set_relation_rows(art, data)
+    for row in rows:
+        row["regression_dir"] = _repo_relative(directory)
+    return rows
 
 
 def _pass_or_fail(ok: bool, claim: str, observed: Any, definition_source: str | None = None) -> dict:
@@ -626,6 +688,128 @@ def check_relation_direction() -> list[dict]:
     ]
 
 
+def _find_key(node: Any, key: str) -> list[Any]:
+    """Every value stored under ``key`` anywhere in a parsed JSON tree.
+
+    The diagnosis grew its per-artifact classification over cycles, so the key's
+    nesting depth is not a stable contract; searching for it is.  This is what
+    makes the DEFECT B guard survive a reshuffle of the artifact.
+    """
+    found: list[Any] = []
+    if isinstance(node, dict):
+        for k, v in node.items():
+            if k == key:
+                found.append(v)
+            found.extend(_find_key(v, key))
+    elif isinstance(node, list):
+        for item in node:
+            found.extend(_find_key(item, key))
+    return found
+
+
+def check_regression_matrix_matches_diagnosis() -> list[dict]:
+    """The 39116225867 diagnosis's artifact classification must be the truth.
+
+    Audit CYCLE_39119287975 DEFECT B: the diagnosis listed
+    ``CYCLE_39116225867_regression_scope.json`` among the artifacts that
+    "produce PASS/PASS" for ``check_regression_set_relation``.  It does not -
+    that artifact records ``n_repaired_only = 1``, so the newest-artifact gate
+    FAILs it.  The defect was possible because the classification lived in prose
+    written by hand, over a set that changes every cycle.
+
+    This check recomputes the classification with the gate's own predicate and
+    compares it to the list the artifact publishes, so the next hand-edited
+    list fails the ledger instead of an auditor's re-derivation.
+
+    Direction matters, and cycle 39123358661 learned it the hard way.  The
+    diagnosis is a point-in-time record of run 39119287975; artifacts committed
+    afterwards are ADDITIVE and must not force an edit to a historical record.
+    So the enforced direction is ``published ⊆ actually-PASS/PASS`` (the DEFECT B
+    direction: a claim that is false), plus completeness as of the diagnosing
+    run.  The reverse direction - "everything passing today is listed" - is
+    PUBLISHED as a named disclosure and is expected to be non-empty for ever.
+    """
+    from product.regression_set_relation_matrix import classify_all  # local: no import cycle
+
+    if not DIAGNOSIS_39116225867_ARTIFACT.is_file():
+        return [_fail("the snapshot-diagnosis artifact is present",
+                      f"missing: {_repo_relative(DIAGNOSIS_39116225867_ARTIFACT)}")]
+    try:
+        diag = json.loads(DIAGNOSIS_39116225867_ARTIFACT.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [_fail("the snapshot-diagnosis artifact parses", repr(exc))]
+
+    observed = classify_all()
+    published_lists = _find_key(diag, "produce_pass_pass")
+    if not published_lists:
+        return [_fail("the diagnosis publishes a per-artifact PASS/PASS list",
+                      "no produce_pass_pass key anywhere in the artifact")]
+    if len(published_lists) != 1:
+        return [_fail("the diagnosis publishes exactly one PASS/PASS artifact list",
+                      f"{len(published_lists)} produce_pass_pass lists found")]
+
+    published = list(published_lists[0])
+    recomputed = sorted(row["name"] for row in observed["rows"] if row["all_pass"])
+    failing_names = sorted(row["name"] for row in observed["rows"] if not row["all_pass"])
+
+    falsely_published = sorted(set(published) - set(recomputed))
+    never_listed = sorted(set(recomputed) - set(published))
+    diagnosing_run = _run_id_of(diag.get("run_id_diagnosing"))
+    if diagnosing_run is None:
+        return [_fail("the diagnosis states which run it was written at",
+                      f"run_id_diagnosing={diag.get('run_id_diagnosing')!r}")]
+    later_than_diagnosis = [n for n in never_listed
+                            if (rid := _run_id_of(n)) is not None and rid > diagnosing_run]
+    dropped = sorted(set(never_listed) - set(later_than_diagnosis))
+
+    return [
+        _pass_or_fail(
+            published == sorted(published),
+            "the diagnosis publishes its PASS/PASS artifact list sorted, "
+            "so a set comparison cannot hide a reordering",
+            {"listed": published},
+            "cycle 39123358661 (audit CYCLE_39119287975 DEFECT B)"),
+        _pass_or_fail(
+            not falsely_published,
+            "every artifact the diagnosis calls PASS/PASS really produces "
+            "PASS/PASS under the gate's own predicate",
+            {"published_but_not_pass_pass": falsely_published,
+             "n_published": len(published), "n_recomputed": len(recomputed),
+             "predicate": "product/cycle_verify.py::regression_set_relation_rows"},
+            "product/cycle_verify.py::regression_set_relation_rows "
+            "(one definition, applied by product/regression_set_relation_matrix.py)"),
+        _pass_or_fail(
+            not set(published) & set(failing_names),
+            "no artifact that actually FAILs the set-relation gate is published "
+            "as PASS/PASS",
+            {"published_failers": sorted(set(published) & set(failing_names)),
+             "failing_artifacts": failing_names},
+            "product/cycle_verify.py::regression_set_relation_rows"),
+        _pass_or_fail(
+            not dropped,
+            "the published list is complete for every artifact that existed when "
+            "the diagnosis was written (artifacts committed later are additive "
+            "and are disclosed below, never required back into the record)",
+            {"run_id_diagnosing": diagnosing_run,
+             "not_listed_and_not_later": dropped,
+             "committed_after_the_diagnosis": later_than_diagnosis},
+            "the diagnosis is a point-in-time record (run_id_diagnosing)"),
+        _pass_or_fail(
+            observed["newest"]["all_pass"],
+            "the newest regression artifact still passes the set-relation gate",
+            {"artifact": observed["newest"]["name"], "verdicts": observed["newest"]["verdicts"]},
+            "product/cycle_verify.py::check_regression_set_relation"),
+    ]
+
+
+def _run_id_of(name: Any) -> int | None:
+    """The run id embedded in a ``CYCLE_<id>_...``-style name, or given as a number."""
+    if isinstance(name, int):
+        return name
+    m = re.search(r"CYCLE_(\d+)", str(name))
+    return int(m.group(1)) if m else None
+
+
 CHECKS: dict[str, Callable[[], list[dict]]] = {
     "slice": check_slice_and_page_contract,
     "counter": check_counter_authority_counts,
@@ -637,6 +821,7 @@ CHECKS: dict[str, Callable[[], list[dict]]] = {
     "orchestration": check_orchestration_classification,
     "diagnosis": check_orchestration_diagnosis_39086926860,
     "regression": check_regression_set_relation,
+    "regression_matrix": check_regression_matrix_matches_diagnosis,
     "scope": check_git_scope,
 }
 
@@ -695,10 +880,29 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--run-id", default=None, help="stamped into the artifact")
     ap.add_argument("--only", default=None, help="comma-separated subset of checks")
     ap.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR))
+    ap.add_argument(
+        "--regression-dir", default=None,
+        help="repoint the regression check at another committed artifact set "
+             "(e.g. product/data/regression_fail_fixture) - used to demonstrate "
+             "the FAIL-write refusal against a PINNED failing artifact")
     ap.add_argument("--write", action="store_true")
     ap.add_argument("--json", action="store_true", help="machine-readable output only")
     args = ap.parse_args(argv)
 
+    global REGRESSION_DIR_OVERRIDE
+    previous_override = REGRESSION_DIR_OVERRIDE
+    if args.regression_dir:
+        REGRESSION_DIR_OVERRIDE = Path(args.regression_dir)
+    try:
+        return _run_and_write(args)
+    finally:
+        # A demonstration flag must never change what a LATER invocation in the
+        # same process reads; restoring here (not leaving it set) is what keeps
+        # the suite honest about the ordinary path.
+        REGRESSION_DIR_OVERRIDE = previous_override
+
+
+def _run_and_write(args: argparse.Namespace) -> int:
     ledger = run([s for s in (args.only or "").split(",") if s] or None)
     if args.run_id:
         ledger["run_id"] = int(args.run_id)

@@ -1,0 +1,422 @@
+{
+  "checks_run": [
+    "slice",
+    "counter",
+    "relation",
+    "relation_direction",
+    "posture",
+    "owner_question",
+    "tracked",
+    "orchestration",
+    "diagnosis",
+    "regression",
+    "regression_matrix",
+    "scope"
+  ],
+  "claim_ceiling": "This verifies the product lane's OWN shipped behaviour and posture from committed artifacts and live runs of the product's own code. It scores no frozen bar, reads no Frontier verdict, and promotes nothing. A PASS here is not an audit verdict and is not a human-gate input.",
+  "claims": [
+    {
+      "check": "slice",
+      "claim": "the query_result_bundle validates against its own contract",
+      "definition_source": "product/query/bundle.py::validate_bundle",
+      "observed": "validate_bundle returned no errors",
+      "status": "PASS"
+    },
+    {
+      "check": "slice",
+      "claim": "the shipped page honours its DOM contract on a live bundle",
+      "definition_source": "product/verify_query_page.js",
+      "observed": "PASS 65 assertions",
+      "status": "PASS"
+    },
+    {
+      "check": "slice",
+      "claim": "the slice renders a map of decisions with coordinates and clusters",
+      "definition_source": "product/offline_slice.py::summarise",
+      "observed": {
+        "answer_status": "ready",
+        "n_clusters": 8,
+        "n_decisions": 100,
+        "rows_with_source_url": 100,
+        "rows_with_xy": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "slice",
+      "claim": "every mapped decision carries a source link",
+      "observed": "100/100",
+      "status": "PASS"
+    },
+    {
+      "check": "slice",
+      "claim": "enrichment preserved the geometry the map already rendered",
+      "observed": true,
+      "status": "PASS"
+    },
+    {
+      "check": "counter",
+      "claim": "'counter authorities' is measured with the accepted single source of truth, never counter_status != 'none'",
+      "definition_source": "product/query/counter_status.py (re-exported by gate_admissibility, object identity preserved); evidenced = counter_evidenced(), the Python twin of product/static/query.html::counterEvidenced",
+      "note": "both counts are published side by side on purpose; the broad one is provenance, not a legal finding, and the flag-only evidenced reading is published beside the shared predicate so any disagreement between the two notions is a measured finding, never a silent choice",
+      "observed": {
+        "by_status": {
+          "candidate-limiting": 1,
+          "cited": 4,
+          "none": 95
+        },
+        "counter_authorities": 1,
+        "counter_status_bearing_rows": 5,
+        "evidenced_counter_rows": [
+          "ju_gerichte_CC_2021_44"
+        ],
+        "n_evidenced_counter_rows": 1,
+        "n_unevidenced_counter_rows": 0,
+        "non_counter_statuses": [
+          "''",
+          "'cited'",
+          "'context'",
+          "'none'",
+          "'supporting-candidate'",
+          "'unclassified'",
+          "None"
+        ],
+        "unevidenced_counter_rows": [],
+        "verified_flag_only_counter_rows": [
+          "ju_gerichte_CC_2021_44"
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "counter",
+      "claim": "the counter count can never exceed the status-bearing count",
+      "observed": "1 <= 5",
+      "status": "PASS"
+    },
+    {
+      "check": "relation",
+      "claim": "the bundle publishes a named relation-channel state",
+      "definition_source": "product/query/relation_channel.py",
+      "observed": {
+        "channel_state": "EMPTY_NO_SHARED_AUTHORITY",
+        "n_decisions": 100,
+        "n_relations": 0,
+        "n_rows_with_citation": 2
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "relation",
+      "claim": "the published state agrees with the edge count it describes",
+      "observed": "state=EMPTY_NO_SHARED_AUTHORITY n_relations=0",
+      "status": "PASS"
+    },
+    {
+      "check": "relation",
+      "claim": "the channel is re-measured after evidence hydration, and both measurements are kept",
+      "observed": {
+        "after_hydration_rows_with_citation": 8,
+        "map_build_rows_with_citation": 2,
+        "relations_added_by_hydration": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "relation_direction",
+      "claim": "the real shared_citation bundle passes the page contract",
+      "observed": {
+        "last_line": "PASS 67 assertions",
+        "n_shared_citation_edges": 8,
+        "returncode": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "relation_direction",
+      "claim": "the detail panel states the citation direction",
+      "definition_source": "product/verify_query_page.js section 5",
+      "observed": "assertion label present as ok in the page contract output",
+      "status": "PASS"
+    },
+    {
+      "check": "relation_direction",
+      "claim": "a shared_citation edge states the co-citation in French, never the raw machine token",
+      "definition_source": "product/static/query.html relLine (shared_citation branch)",
+      "observed": "both synthetic line-level assertions present as ok",
+      "status": "PASS"
+    },
+    {
+      "check": "posture",
+      "claim": "state/product.json parses and is anchored to a direction version",
+      "observed": {
+        "cycle_status": "REPAIR_ROUND_1_OF_REJECTED_CYCLE_39119287975__AUDIT_CYCLE_39119287975_GATE_REVIS",
+        "direction_version": 56
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "posture",
+      "claim": "admission stays fail-closed and no owner session is authorised",
+      "definition_source": "direction v56: the accepted serve verdict carries owner_decision_required=false, so nothing may raise a gate",
+      "observed": {
+        "human_gate_ready": false,
+        "machine_gate_ready": false,
+        "packet_admitted": false,
+        "ready_for_owner_session": false
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "posture",
+      "claim": "the lane still recommends continuing",
+      "observed": true,
+      "status": "PASS"
+    },
+    {
+      "check": "owner_question",
+      "claim": "no owner question is staged or fired from the accepted verdict",
+      "observed": {
+        "owner_question": null,
+        "question_deleted": true,
+        "route_around": "RECORDED_FAIL_CLOSED_NO_OWNER_QUESTION"
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "owner_question",
+      "claim": "the record states the accepted verdict's owner_decision_required",
+      "observed": false,
+      "status": "PASS"
+    },
+    {
+      "check": "owner_question",
+      "claim": "the withdrawn firing stays NAMED so the correction is auditable",
+      "observed": "TRIGGERED_AND_FIRED",
+      "status": "PASS"
+    },
+    {
+      "check": "tracked",
+      "claim": "running the product does not write into the tracked results tree",
+      "definition_source": "RF3 (audit CYCLE_39069382456): test residue shipped as cycle delta",
+      "observed": {
+        "path": "product/results/fractal_map/jurist_feedback/feedback.jsonl",
+        "sha256_after": "5d6ccf197d97ef6c",
+        "sha256_before": "5d6ccf197d97ef6c"
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "orchestration",
+      "claim": "the recorded death class is reproducible from the recorded evidence",
+      "definition_source": "product/orchestration_evidence.py::classify",
+      "observed": {
+        "recomputed": "AUDIT_STEP_CANCELLED_NO_GATE",
+        "stated": "AUDIT_STEP_CANCELLED_NO_GATE"
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "orchestration",
+      "claim": "the rc-78 work-quantum class is excluded by arithmetic, not by prose",
+      "observed": {
+        "agent_step_duration_s": 3299.0,
+        "wrapper_quantum_s": 2700
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "orchestration",
+      "claim": "the producing snapshot survived and no verdict exists",
+      "observed": {
+        "audit_branch_exists": false,
+        "team": "success"
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "diagnosis",
+      "claim": "the 39086926860 death class re-derives from the recorded job record",
+      "definition_source": "product/orchestration_evidence.py::classify",
+      "observed": {
+        "recomputed": "AUDIT_STEP_FAILED_NO_GATE",
+        "stated": "AUDIT_STEP_FAILED_NO_GATE"
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "diagnosis",
+      "claim": "the exit code is taken from a public check-run annotation, not from a guess",
+      "definition_source": "product/orchestration_evidence.py::parse_exit_code (job logs are admin-only; annotations are public)",
+      "observed": {
+        "annotations_collected": true,
+        "recomputed_exit_code": 1,
+        "recorded_exit_code": 1
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "diagnosis",
+      "claim": "the surviving wrapper branches re-derive from the recorded exit code and timings",
+      "definition_source": "product/orchestration_evidence.py::wrapper_exit_candidates",
+      "observed": {
+        "recomputed": [],
+        "recorded": []
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "diagnosis",
+      "claim": "no branch is ruled out without published evidence for the ruling",
+      "observed": {
+        "branches_without_evidence": [],
+        "n_named_branches": 8
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "diagnosis",
+      "claim": "the wrapper's pre-opencode preflight still replays clean on the staged inputs",
+      "definition_source": "product/orchestration_evidence.py::replay_wrapper_preflight",
+      "observed": {
+        "control_plane_source": "/tmp/lex_control",
+        "recomputed": true,
+        "recorded": true
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "diagnosis",
+      "claim": "the diagnosis publishes a cause space, never a gate or a product verdict",
+      "observed": {
+        "audit_branch_exists": false,
+        "forbidden_keys_present": [],
+        "verdict_exists": false
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "regression",
+      "claim": "the run under test introduces no failing test id absent from the baseline",
+      "definition_source": "product/regression_scope.py (set relation, never counts alone)",
+      "observed": {
+        "artifact": "results/product/regression/CYCLE_39123358661_regression_scope.json",
+        "n_baseline_only": 0,
+        "repaired_only_new_failures": []
+      },
+      "regression_dir": "results/product/regression",
+      "status": "PASS"
+    },
+    {
+      "check": "regression",
+      "claim": "the published pass/fail arithmetic closes on the set relation it measured",
+      "observed": {
+        "collected_delta": 31,
+        "identity": "passed_r - passed_b == collected_delta - net_unique_failing_delta - skipped_delta",
+        "notes": [],
+        "passed_delta": 31
+      },
+      "regression_dir": "results/product/regression",
+      "status": "PASS"
+    },
+    {
+      "check": "regression",
+      "claim": "both roots the set relation was measured at are published with it",
+      "observed": {
+        "baseline_at": "/tmp/lex_baseline_453a873",
+        "declared_label": "repair of rejected cycle 39119287975: DEFECT A + DEFECT B",
+        "measured_at": "/home/runner/work/LexMachina/LexMachina"
+      },
+      "regression_dir": "results/product/regression",
+      "status": "PASS"
+    },
+    {
+      "check": "regression_matrix",
+      "claim": "the diagnosis publishes its PASS/PASS artifact list sorted, so a set comparison cannot hide a reordering",
+      "definition_source": "cycle 39123358661 (audit CYCLE_39119287975 DEFECT B)",
+      "observed": {
+        "listed": [
+          "CYCLE_39060279436_regression_scope.json",
+          "CYCLE_39063665073_regression_scope.json",
+          "CYCLE_39087917357_regression_scope.json",
+          "CYCLE_39094983039_regression_scope.json",
+          "CYCLE_39097705922_regression_scope.json",
+          "CYCLE_39119287975_regression_scope.json"
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "regression_matrix",
+      "claim": "every artifact the diagnosis calls PASS/PASS really produces PASS/PASS under the gate's own predicate",
+      "definition_source": "product/cycle_verify.py::regression_set_relation_rows (one definition, applied by product/regression_set_relation_matrix.py)",
+      "observed": {
+        "n_published": 6,
+        "n_recomputed": 7,
+        "predicate": "product/cycle_verify.py::regression_set_relation_rows",
+        "published_but_not_pass_pass": []
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "regression_matrix",
+      "claim": "no artifact that actually FAILs the set-relation gate is published as PASS/PASS",
+      "definition_source": "product/cycle_verify.py::regression_set_relation_rows",
+      "observed": {
+        "failing_artifacts": [
+          "CYCLE_39048942749_regression_scope.json",
+          "CYCLE_39051003925_regression_scope.json",
+          "CYCLE_39116225867_regression_scope.json"
+        ],
+        "published_failers": []
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "regression_matrix",
+      "claim": "the published list is complete for every artifact that existed when the diagnosis was written (artifacts committed later are additive and are disclosed below, never required back into the record)",
+      "definition_source": "the diagnosis is a point-in-time record (run_id_diagnosing)",
+      "observed": {
+        "committed_after_the_diagnosis": [
+          "CYCLE_39123358661_regression_scope.json"
+        ],
+        "not_listed_and_not_later": [],
+        "run_id_diagnosing": 39119287975
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "regression_matrix",
+      "claim": "the newest regression artifact still passes the set-relation gate",
+      "definition_source": "product/cycle_verify.py::check_regression_set_relation",
+      "observed": {
+        "artifact": "CYCLE_39123358661_regression_scope.json",
+        "verdicts": [
+          "PASS",
+          "PASS",
+          "PASS"
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "scope",
+      "claim": "this cycle's working tree stays inside the lane's write scope",
+      "definition_source": "core-lane.yml 'Enforce lane write scope'",
+      "observed": "no out-of-scope path in git status",
+      "status": "PASS"
+    }
+  ],
+  "environment": {
+    "cwd": "/home/runner/work/LexMachina/LexMachina",
+    "numpy": "2.5.4",
+    "python": "3.12.3",
+    "scikit_learn": "1.9.1",
+    "scipy": "1.18.1"
+  },
+  "n_claims": 38,
+  "n_failed": 0,
+  "run_id": 39123358661,
+  "schema": "product-cycle-verify/1",
+  "verdict": "PASS"
+}
