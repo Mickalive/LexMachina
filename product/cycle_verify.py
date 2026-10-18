@@ -353,6 +353,65 @@ def check_no_owner_question() -> list[dict]:
     ]
 
 
+def check_query_runtime_declared() -> list[dict]:
+    """The fast path's third-party runtime must be declared AND importable.
+
+    Measured failure this guards (run 39128456801): on a fresh runner no step of
+    ``.github/workflows/core-lane.yml`` installs
+    ``product/requirements-query.txt``, so ``numpy``/``sklearn`` are absent and
+    the slice, counter, relation, relation_direction and tracked checks all die
+    with ``ModuleNotFoundError`` - five red claims that say nothing about the
+    product.  ``.github/**`` is control-plane scope and is never edited from this
+    lane, so the fix has to live here: the runtime is declared in
+    ``product/query_env.py``, installable in one command
+    (``product/bootstrap_query_env.sh``), and checked below.
+
+    Fail-closed: a missing dependency is a FAIL with the remedy attached, never
+    a skip and never a silent pass.
+    """
+    from product import query_env
+
+    probe = query_env.probe()
+    pins = query_env.requirements_pins()
+    declared_missing = sorted(
+        m for m in query_env.REQUIRED if query_env.requirement_name(m) not in pins)
+    return [
+        {
+            "claim": "the query fast path's third-party runtime is importable, so the "
+                     "vertical slice's own checks can run instead of dying on "
+                     "ModuleNotFoundError",
+            "status": "PASS" if probe["ok"] else "FAIL",
+            "observed": {
+                "python": probe["python"],
+                "required": probe["required"],
+                "installed": probe["installed"],
+                "missing": probe["missing"],
+                "remedy": probe["remedy"],
+            },
+            "definition_source": "product/query_env.py::probe",
+            "note": probe["workflow_gap"],
+        },
+        {
+            "claim": "every module the fast path imports is declared in "
+                     "product/requirements-query.txt",
+            "status": "PASS" if not declared_missing else "FAIL",
+            "observed": {"requirements_pins": pins, "undeclared": declared_missing},
+            "definition_source": "product/query_env.py::REQUIRED vs "
+                                 "product/query_env.py::requirements_pins",
+        },
+        {
+            "claim": "the measured numeric environment is published beside this ledger",
+            "status": "PASS",
+            "observed": {"pinned": probe["pinned"],
+                         "installed_matches_pin": probe["installed_matches_pin"],
+                         "bootstrap": _repo_relative(query_env.BOOTSTRAP)},
+            "definition_source": "product/query_env.py::PINNED (standing numeric rule: "
+                                 "the environment travels with every sha; versions are "
+                                 "recorded, never rounded to force identity)",
+        },
+    ]
+
+
 def check_tracked_results_not_mutated() -> list[dict]:
     """RF3's guard, re-run: a full slice must not touch the tracked results tree."""
     import hashlib
@@ -817,6 +876,7 @@ CHECKS: dict[str, Callable[[], list[dict]]] = {
     "relation_direction": check_relation_direction,
     "posture": check_fail_closed_posture,
     "owner_question": check_no_owner_question,
+    "environment": check_query_runtime_declared,
     "tracked": check_tracked_results_not_mutated,
     "orchestration": check_orchestration_classification,
     "diagnosis": check_orchestration_diagnosis_39086926860,

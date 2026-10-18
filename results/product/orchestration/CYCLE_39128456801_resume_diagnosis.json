@@ -1,0 +1,93 @@
+{
+  "schema": "product-snapshot-diagnosis/1",
+  "run_id_diagnosed": 39123358661,
+  "run_id_diagnosing": 39128456801,
+  "lane": "product",
+  "direction_version": 56,
+  "produced_at": "2026-10-18T12:50:00Z",
+  "kind": "operational-resume diagnosis",
+  "claim_ceiling": "A cause-space diagnosis of the resumed producer snapshot plus one independently measured environment defect, both recomputed from committed bytes and live runs of the lane's own code. It is NOT an audit verdict, NOT a product-utility claim and NOT a human-gate input. No GitHub token was reachable in this environment, so nothing here claims a workflow exit code, a step conclusion or an annotation: the classification rests only on the committed tree and on commands that were actually run.",
+  "snapshot": {
+    "branch": "cycle/core/product/39123358661/team",
+    "head": "9727a452d2959e414e2a1cd3942daca568221558",
+    "commits": [
+      "75c748b",
+      "4ba7a87",
+      "9727a45"
+    ],
+    "identity_with_local_operational_resume_branch": "git diff --stat origin/cycle/core/product/39123358661/team HEAD == empty at resume start",
+    "commit_timestamps_utc": {
+      "75c748b": "2026-10-18T11:01:27Z",
+      "4ba7a87": "2026-10-18T11:09:24Z",
+      "9727a45": "2026-10-18T11:55:47Z"
+    },
+    "state_written_at": "2026-10-18T11:52:00Z",
+    "all_changed_paths_inside_lane_scope": true,
+    "lane_scope_check": "product/*, tests/product/*, results/product/*, reports/product/*, state/product.json, data/product/* - no path of the 13 touched files would trip `Enforce lane write scope` (.github/workflows/core-lane.yml:123-144)"
+  },
+  "missing_from_the_snapshot": [],
+  "delivered_and_verified_this_cycle": [
+    {
+      "item": "the snapshot's shipped ledger re-derives at full strength in this environment",
+      "how": "python3 product/cycle_verify.py --run-id 39128456801 (dry run, no --write)",
+      "observed": "PASS 38/38 claims - identical to the shipped CYCLE_39123358661_cycle_verify.json, which is therefore a real artifact and not a stale claim"
+    },
+    {
+      "item": "DEFECT A and DEFECT B of audit CYCLE_39119287975 stay repaired and re-derivable",
+      "how": "the same run's checks `regression_matrix` (5 claims) and `regression` (3 claims)",
+      "observed": "PASS - the pinned-failing-fixture refusal demonstration and the imported-predicate artifact classification both still hold on this tree"
+    }
+  ],
+  "classification": {
+    "class": "POST_DELIVERY_DEATH_ON_A_COMPLETE_TREE",
+    "mechanism": [
+      "The snapshot is complete by every artifact the lane itself defines as its deliverable: a report of record (reports/product/CYCLE_39123358661_REPAIR1.md), a shipped PASS ledger (results/product/cycle_verify/CYCLE_39123358661_cycle_verify.json, 38/38), the regression artifact and its raw logs, and a state/product.json whose current_run is 39123358661.",
+      "Its 54-minute span (11:01 -> 11:55 across the three commits, with the state written 11:52) is consistent with the post-delivery work-quantum class already recorded for the evaluation lane (results/evaluation/snapshot_audit/orchestration_diagnosis_39064497606.json F4) and in the product lane's own CYCLE_39087917357 record: the agent spends the tail of the quantum re-measuring, then the run is killed instead of exiting 0.",
+      "core-lane.yml gates the audit on `needs.team.result == 'success'` (line 165). A team job that dies after its durable delta is committed therefore loses BOTH the audit and the integrate step, and the next dispatch finds a snapshot with nothing wrong in it - which is exactly what this resume found.",
+      "The remedy is discipline, not infrastructure: ship, then exit 0. This cycle therefore commits its durable delta before starting any optional measurement."
+    ],
+    "not_claimed": "the workflow's exit code, the killed step, and whether the wrapper retried are UNOBSERVABLE here (no GH_TOKEN). The class is a cause space with the measured evidence above, not a reading of the run record.",
+    "excluded_classes": [
+      {
+        "class": "ZERO_DELTA_CYCLE",
+        "why_not": "the snapshot changes 13 files including product/cycle_verify.py, a new module and a new fixture directory"
+      },
+      {
+        "class": "PRODUCT_DEFECT_IN_THE_SNAPSHOT_DELTA",
+        "why_not": "its own instrument re-derives PASS 38/38 here, and the independent audit of its parent (CYCLE_39119287975_GATE.json) put the product code delta out of scope of the rejection ('Product code delta is sound and independently verified')"
+      },
+      {
+        "class": "SCOPE_VIOLATION",
+        "why_not": "every changed path matches the lane scope patterns; no path would trip exit 3 at core-lane.yml:144"
+      },
+      {
+        "class": "HUMAN_GATE_OR_OWNER_DECISION",
+        "why_not": "posture is unchanged fail-closed: human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false"
+      }
+    ]
+  },
+  "second_finding": {
+    "class": "UNDECLARED_RUNTIME_MAKES_VALIDATION_FAIL_FOR_A_NON_PRODUCT_REASON",
+    "how_measured": [
+      "At resume start, on the untouched runner, `python3 product/cycle_verify.py --run-id 39128456801` printed 5 FAIL claims, every one of them the same text: ModuleNotFoundError: No module named 'numpy'. The slice, counter, relation, relation_direction and tracked checks all depend on product/query/qmap.py, which imports numpy, and qmap.py uses sklearn.",
+      "No step of .github/workflows/core-lane.yml installs product/requirements-query.txt. Only query-map-ci.yml and product-reality-check.yml do. The team's and the auditor's Python therefore start with no query runtime, and the lane's own verification instrument reports five reds that have nothing to do with the product.",
+      "Re-derived deterministically (a meta_path blocker that hides numpy and sklearn, then the same five checks): verdict FAIL 0/5, all five with the same ModuleNotFoundError."
+    ],
+    "why_it_matters_here": "This is a validation-failure class the auditor can hit for the same reason: if the audit job's runner has no query runtime, re-deriving the lane's own claims returns reds that look like product defects. The lane cannot patch .github/** (control-plane scope), so it must make the runtime explicit, installable and self-checked inside product/.",
+    "fix_shipped_this_cycle": [
+      "product/query_env.py - the fast path's third-party runtime declared in one stdlib-cheap place (REQUIRED, PINNED, probe(), remedy), derived from what the shipped code imports",
+      "product/bootstrap_query_env.sh - one command that installs the measured pins (numpy 2.5.4, scipy 1.18.1, scikit-learn 1.9.1, pytest 9.1.1); --check reports without installing",
+      "product/cycle_verify.py::check_query_runtime_declared - new `environment` check: the runtime is importable (FAIL-closed with the remedy attached, never a skip), every fast-path module is declared in the requirements file, and the measured numeric environment is published beside the ledger",
+      "product/tests/test_live_slice_and_query_env.py - 11 tests, including a simulated fresh runner that must FAIL fail-closed and name the remedy"
+    ],
+    "control_plane_item_recorded_not_edited": {
+      "item": "core-lane.yml installs no python requirements for the team or audit job",
+      "candidate_fixes": [
+        "core-lane.yml: add `pip install -r product/requirements-query.txt` to both the team and the audit job",
+        "or: have both jobs run `bash product/bootstrap_query_env.sh` once before the agent runs"
+      ],
+      "scope": "control-plane workflow scope; .github/** is not product-writable. Recorded here once, like the existing durable_reality_check_trigger_gap item, so the lane stops re-discovering it."
+    }
+  },
+  "next_concrete_step": "product/live_slice.py, shipped this cycle, runs the canonical vertical slice against https://mcp.opencaselaw.ch/api with retrieval pinned to the adapter's `refresh` mode (always network, still writes the cache) and records three independent proofs of freshness. That closes the one gap the snapshot named: every 'live' claim so far was read-through-cache and therefore ambiguous about whether the public source was actually asked."
+}
