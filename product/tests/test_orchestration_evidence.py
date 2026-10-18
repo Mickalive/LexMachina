@@ -287,3 +287,212 @@ def test_audit_branch_probe_targets_the_lane_scoped_branch(tmp_path, monkeypatch
     monkeypatch.setattr(subprocess, "run", fake_run)
     oe._audit_branch_exists(39082232157, "product", "Mickalive/LexMachina")
     assert "refs/heads/cycle/core/product/39082232157/audit" in calls["cmd"]
+
+
+# --------------------------------------------------------------------------
+# cause-space narrowing: public annotations + wrapper preflight replay
+# (cycle 39087917357, diagnosis of run 39086926860)
+# --------------------------------------------------------------------------
+
+def _ann(job, conclusion, message, level="failure"):
+    return {"job_id": 1, "job": job, "job_conclusion": conclusion,
+            "annotation_level": level, "message": message}
+
+
+def test_annotations_are_read_from_the_public_check_run_record(monkeypatch):
+    """Job logs are admin-only; the check-run annotations are not.
+
+    If this fetch silently returned [], every diagnosis below would degrade to
+    "exit code unknown", which is the exact ambiguity this capability removes.
+    """
+    seen = []
+
+    def fake_fetch(url):
+        seen.append(url)
+        if "/jobs" in url:
+            return 200, {"jobs": [{"id": 42, "name": "audit", "conclusion": "failure"}]}
+        return 200, [{"annotation_level": "failure",
+                      "message": "Process completed with exit code 1."}]
+
+    rows = oe.observe_annotations(39086926860, fetch=fake_fetch)
+    assert len(rows) == 1
+    assert rows[0]["job"] == "audit"
+    assert any("check-runs/42/annotations" in u for u in seen)
+
+
+def test_observe_annotations_is_never_fatal(monkeypatch):
+    def boom(_url):
+        raise RuntimeError("no network")
+
+    assert oe.observe_annotations(1, fetch=boom) == []
+    assert oe.observe_annotations(1, fetch=lambda _u: (500, {})) == []
+
+
+def test_exit_code_is_taken_only_from_a_failing_job():
+    """A skipped gate-reader job annotating code 0 must not mask the real code."""
+    anns = [_ann("audit", "failure", "Process completed with exit code 1."),
+            _ann("resilience", "success", "Process completed with exit code 0.",
+                 level="notice")]
+    assert oe.parse_exit_code(anns) == {
+        "exit_code": 1,
+        "evidence": "audit job annotation: 'Process completed with exit code 1'"}
+
+
+def test_absent_exit_code_is_unknown_and_never_zero():
+    parsed = oe.parse_exit_code([_ann("audit", "failure", "something else")])
+    assert parsed["exit_code"] is None
+    assert "no annotation" in parsed["evidence"]
+
+
+def test_quantum_exit_is_ruled_out_by_arithmetic_not_by_narrative():
+    """A 16 s step cannot have been stopped by a 2700 s watchdog."""
+    res = oe.wrapper_exit_candidates(78, step_duration_s=16.0, quantum_s=2700,
+                                     retry={"max_attempts": 8, "retry_delay_s": 90})
+    quantum = next(c for c in res["named_branches"] if c["rc"] == 78)
+    assert quantum["ruled_out"] is True
+    assert any("2700" in e for e in quantum["ruled_out_evidence"])
+
+
+def test_quantum_exit_survives_when_the_step_actually_outran_the_budget():
+    res = oe.wrapper_exit_candidates(78, step_duration_s=3299.0, quantum_s=2700,
+                                     retry={"max_attempts": 8, "retry_delay_s": 90})
+    quantum = next(c for c in res["named_branches"] if c["rc"] == 78)
+    assert quantum["ruled_out"] is False
+
+
+def test_retry_exhaustion_is_ruled_out_when_one_attempt_cannot_have_finished():
+    """One retry attempt needs a 90 s sleep; a 16 s step cannot contain one."""
+    res = oe.wrapper_exit_candidates(75, step_duration_s=16.0, quantum_s=2700,
+                                     retry={"max_attempts": 8, "retry_delay_s": 90})
+    retry = next(c for c in res["named_branches"] if c["rc"] == 75)
+    assert retry["ruled_out"] is True
+    assert any("retry delay" in e for e in retry["ruled_out_evidence"])
+
+
+def test_rc_1_rules_out_every_named_wrapper_exit_and_names_the_passthrough():
+    """Exit 1 is not one of the wrapper's own codes: that is the finding."""
+    res = oe.wrapper_exit_candidates(1, step_duration_s=16.0, quantum_s=2700,
+                                     retry={"max_attempts": 8, "retry_delay_s": 90})
+    assert res["surviving_named_branches"] == []
+    assert res["generic_passthrough_possible"] is True
+    assert "without transient signature" in res["generic_passthrough_note"]
+
+
+def test_an_unknown_exit_code_never_rules_anything_out():
+    res = oe.wrapper_exit_candidates(None, step_duration_s=None, quantum_s=2700)
+    assert res["exit_code"] is None
+    assert all(c["ruled_out"] for c in res["named_branches"])  # "no exit code observed"
+    assert res["generic_passthrough_possible"] is False
+
+
+def test_preflight_replay_reproduces_a_card_count_mismatch(tmp_path):
+    """validate_registry is the only way to get exit 64/66 before opencode runs."""
+    control = tmp_path / "control"
+    (control / "docs" / "agents").mkdir(parents=True)
+    (control / "docs" / "agents" / "AGENT_CARDS.md").write_text(
+        "<!-- AGENT_CARD: independent_auditor status=ACTIVE_AUDITOR lane=ALL -->\n"
+        "<!-- AGENT_CARD: product_engineer status=ACTIVE lane=product -->\n"
+        "<!-- AGENT_CARD: product_engineer status=ACTIVE lane=product -->\n",
+        encoding="utf-8")
+    agents = tmp_path / "agents"
+    agents.mkdir()
+    (agents / "independent_auditor.md").write_text("x", encoding="utf-8")
+    (agents / "product_engineer.md").write_text("x", encoding="utf-8")
+
+    res = oe.replay_wrapper_preflight(control, agents)
+    assert res["registry"]["pass"] is False
+    assert res["would_exit"] == 66
+    assert res["all_pass"] is False
+
+
+def test_preflight_replay_reproduces_an_unusable_model_health(tmp_path):
+    control = tmp_path / "control"
+    (control / "docs" / "agents").mkdir(parents=True)
+    (control / "docs" / "agents" / "AGENT_CARDS.md").write_text(
+        "<!-- AGENT_CARD: independent_auditor status=ACTIVE lane=ALL -->\n",
+        encoding="utf-8")
+    (control / "state").mkdir()
+    (control / "state" / "model_health.json").write_text(
+        json.dumps({"healthy": False, "resolved_model": ""}), encoding="utf-8")
+    agents = tmp_path / "agents"
+    agents.mkdir()
+    (agents / "independent_auditor.md").write_text("x", encoding="utf-8")
+
+    res = oe.replay_wrapper_preflight(control, agents)
+    assert res["model_health"]["pass"] is False
+    assert "LEX_NO_HEALTHY_FREE_TOOL_MODEL" in " ".join(res["model_health"]["problems"])
+    assert res["would_exit"] == 76
+
+
+def test_preflight_replay_passes_on_a_complete_fixture(tmp_path):
+    control = tmp_path / "control"
+    (control / "docs" / "agents").mkdir(parents=True)
+    (control / "docs" / "agents" / "AGENT_CARDS.md").write_text(
+        "<!-- AGENT_CARD: independent_auditor status=ACTIVE lane=ALL -->\n",
+        encoding="utf-8")
+    (control / "state").mkdir()
+    (control / "state" / "model_health.json").write_text(
+        json.dumps({"healthy": True, "resolved_model": "opencode/x"}), encoding="utf-8")
+    agents = tmp_path / "agents"
+    agents.mkdir()
+    (agents / "independent_auditor.md").write_text("x", encoding="utf-8")
+
+    res = oe.replay_wrapper_preflight(control, agents)
+    assert res["all_pass"] is True and res["would_exit"] is None
+
+
+def test_diagnosis_rules_out_preflight_exits_only_when_the_replay_passes():
+    control = Path(__file__).resolve().parents[2]
+    control_plane = oe.default_control_dir()
+    pre = oe.replay_wrapper_preflight(control_plane, control / ".opencode" / "agents")
+    anns = [_ann("audit", "failure", "Process completed with exit code 1.")]
+    diag = oe.diagnose(annotations=anns,
+                       steps=[_step("audit", AUDIT_AGENT, "failure", 16.0)],
+                       quantum_s=2700, preflight=pre, annotations_collected=True)
+    assert diag["exit_code"] == 1
+    assert diag["audit_agent_step_duration_s"] == 16.0
+    if pre["all_pass"]:
+        for rc in (64, 65, 66, 76, 77):
+            cand = next(c for c in diag["candidates"]["named_branches"] if c["rc"] == rc)
+            assert cand["ruled_out"] is True, rc
+            assert any("preflight" in e for e in cand["ruled_out_evidence"])
+    assert diag["candidates"]["claim_ceiling"].startswith("This narrows")
+
+
+def test_diagnosis_marks_uncollected_annotations_as_uncollected_not_as_zero():
+    diag = oe.diagnose(annotations=[], steps=[], quantum_s=2700,
+                       preflight={"all_pass": True, "would_exit": None},
+                       annotations_collected=False)
+    assert diag["annotations_collected"] is False
+    assert diag["exit_code"] is None
+    assert "not collected" in diag["exit_code_evidence"]
+
+
+def test_diagnosis_never_claims_an_innermost_cause():
+    """The lane still cannot read job logs; the ceiling must say so."""
+    source = Path(oe.__file__).read_text(encoding="utf-8")
+    assert "job logs stay admin-only" in source
+    assert "does not name opencode's internal error" in source
+
+
+def test_wrapper_script_sources_distinguishes_a_real_read_from_the_fallback(tmp_path):
+    """'Read from the wrapper' is only honest when the wrapper actually says it."""
+    modern = tmp_path / "modern" / ".github" / "scripts"
+    modern.mkdir(parents=True)
+    (modern / "run-ox-with-retry.sh").write_text(
+        'WORK_QUANTUM_SECONDS="${LEX_AGENT_QUANTUM_SECONDS:-2700}"\n'
+        'MAX_ATTEMPTS="${OX_MAX_ATTEMPTS:-8}"\n', encoding="utf-8")
+    src = oe.wrapper_script_sources(tmp_path / "modern")
+    assert src["quantum_source"] == "script" and src["retry_source"] == "script"
+
+    stale = tmp_path / "stale" / ".github" / "scripts"
+    stale.mkdir(parents=True)
+    (stale / "run-ox-with-retry.sh").write_text(
+        'MAX_ATTEMPTS="${OX_MAX_ATTEMPTS:-8}"\n', encoding="utf-8")
+    src = oe.wrapper_script_sources(tmp_path / "stale")
+    assert src["quantum_source"].startswith("default_fallback")
+    assert "origin/main" in src["quantum_source"]
+    assert src["retry_source"] == "script"
+
+    src = oe.wrapper_script_sources(tmp_path / "nothing")
+    assert src["present"] is False

@@ -67,6 +67,14 @@ TRACKED_FEEDBACK = REPO_ROOT / "product" / "results" / "fractal_map" / "jurist_f
 ORCHESTRATION_ARTIFACT = (
     REPO_ROOT / "results" / "product" / "orchestration" / "CYCLE_39082232157_orchestration.json"
 )
+#: The run this cycle diagnosed.  Pinned by name (not "newest") because it is a
+#: historical fact that must keep being verified the same way after later runs
+#: exist; the regression artifact below deliberately IS "newest", because each
+#: cycle replaces it.
+DIAGNOSIS_39086926860_ARTIFACT = (
+    REPO_ROOT / "results" / "product" / "orchestration" / "CYCLE_39086926860_orchestration.json"
+)
+REGRESSION_DIR = REPO_ROOT / "results" / "product" / "regression"
 
 #: Posture the accepted verdicts pin. Hard-coded HERE on purpose: a ledger that
 #: reads its own expectations out of the file it is checking verifies nothing.
@@ -375,6 +383,141 @@ def check_orchestration_classification() -> list[dict]:
     ]
 
 
+def check_orchestration_diagnosis_39086926860() -> list[dict]:
+    """The diagnosis of run 39086926860 must re-derive from its own record.
+
+    That run's producer snapshot survived its audit job's death, so the lane owes
+    a *cause-space* answer rather than a story.  Every claim here is recomputed
+    with ``product/orchestration_evidence.py`` from the artifact's OWN recorded
+    inputs (steps, annotations, exit code) - never read back as a conclusion.
+    """
+    art = DIAGNOSIS_39086926860_ARTIFACT
+    if not art.is_file():
+        return [_fail("the 39086926860 orchestration artifact exists", "missing")]
+    try:
+        data = json.loads(art.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [_fail("the orchestration artifact parses", repr(exc))]
+    from product import orchestration_evidence as oe
+
+    diag = data.get("diagnosis") or {}
+    cand = diag.get("candidates") or {}
+    rows: list[dict] = []
+
+    recomputed_class = oe.classify(
+        observation=data.get("observation"),
+        jobs=data.get("job_conclusions") or {},
+        steps=data.get("steps") or [],
+    )["class"]
+    rows.append(_pass_or_fail(
+        recomputed_class == (data.get("classification") or {}).get("class"),
+        "the 39086926860 death class re-derives from the recorded job record",
+        {"stated": (data.get("classification") or {}).get("class"),
+         "recomputed": recomputed_class},
+        "product/orchestration_evidence.py::classify"))
+
+    parsed = oe.parse_exit_code(diag.get("annotations") or [])["exit_code"]
+    rows.append(_pass_or_fail(
+        diag.get("annotations_collected") is True and parsed is not None
+        and parsed == diag.get("exit_code"),
+        "the exit code is taken from a public check-run annotation, not from a guess",
+        {"annotations_collected": diag.get("annotations_collected"),
+         "recorded_exit_code": diag.get("exit_code"), "recomputed_exit_code": parsed},
+        "product/orchestration_evidence.py::parse_exit_code "
+        "(job logs are admin-only; annotations are public)"))
+
+    re_narrowed = oe.wrapper_exit_candidates(
+        diag.get("exit_code"),
+        step_duration_s=diag.get("audit_agent_step_duration_s"),
+        quantum_s=cand.get("quantum_s") or oe.read_wrapper_quantum(),
+        retry=cand.get("retry_params") or oe.read_wrapper_retry_params(),
+    )
+    rows.append(_pass_or_fail(
+        re_narrowed["surviving_named_branches"] == cand.get("surviving_named_branches"),
+        "the surviving wrapper branches re-derive from the recorded exit code and timings",
+        {"recorded": cand.get("surviving_named_branches"),
+         "recomputed": re_narrowed["surviving_named_branches"]},
+        "product/orchestration_evidence.py::wrapper_exit_candidates"))
+
+    no_evidence = [
+        c.get("branch") for c in (cand.get("named_branches") or [])
+        if not c.get("ruled_out") and not c.get("ruled_out_evidence")
+    ]
+    rows.append(_pass_or_fail(
+        cand.get("named_branches") and not no_evidence,
+        "no branch is ruled out without published evidence for the ruling",
+        {"branches_without_evidence": no_evidence,
+         "n_named_branches": len(cand.get("named_branches") or [])}))
+
+    control = Path(diag.get("control_plane_source") or "/tmp/lex_control")
+    replay = oe.replay_wrapper_preflight(control, REPO_ROOT / ".opencode" / "agents")
+    rows.append(_pass_or_fail(
+        replay["all_pass"] is True and replay["all_pass"] == (diag.get("preflight") or {}).get("all_pass"),
+        "the wrapper's pre-opencode preflight still replays clean on the staged inputs",
+        {"recorded": (diag.get("preflight") or {}).get("all_pass"),
+         "recomputed": replay["all_pass"], "control_plane_source": str(control)},
+        "product/orchestration_evidence.py::replay_wrapper_preflight"))
+
+    forbidden = [k for k in ("gate", "safe_to_integrate", "human_gate_ready",
+                            "ready_for_owner_session", "packet_admitted") if k in data]
+    rows.append(_pass_or_fail(
+        not forbidden and (data.get("classification") or {}).get("verdict_exists") is False
+        and data.get("audit_branch_exists") is False,
+        "the diagnosis publishes a cause space, never a gate or a product verdict",
+        {"forbidden_keys_present": forbidden,
+         "verdict_exists": (data.get("classification") or {}).get("verdict_exists"),
+         "audit_branch_exists": data.get("audit_branch_exists")}))
+    return rows
+
+
+def check_regression_set_relation() -> list[dict]:
+    """The newest regression artifact must be a SET relation that closes.
+
+    Counts alone are how this lane once published "+7 tests".  The claims here
+    are the two differences of the failing-ID sets plus the arithmetic identity,
+    all read from the artifact ``product/regression_scope`` wrote.
+    """
+    candidates = sorted(REGRESSION_DIR.glob("CYCLE_*_regression_scope.json"))
+    if not candidates:
+        return [_fail("a regression-scope artifact exists", "none found")]
+    art = candidates[-1]
+    try:
+        data = json.loads(art.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [_fail("the regression artifact parses", repr(exc))]
+    rel = data.get("set_relation") or {}
+    arith = data.get("arithmetic") or {}
+    scope = data.get("scope") or {}
+    return [
+        _pass_or_fail(
+            rel.get("set_difference_repaired_only_NEW_FAILURES") == [],
+            "the run under test introduces no failing test id absent from the baseline",
+            {"artifact": _repo_relative(art),
+             "repaired_only_new_failures": rel.get("set_difference_repaired_only_NEW_FAILURES"),
+             "n_baseline_only": rel.get("n_baseline_only")},
+            "product/regression_scope.py (set relation, never counts alone)"),
+        _pass_or_fail(
+            arith.get("arithmetic_reconciles") is True,
+            "the published pass/fail arithmetic closes on the set relation it measured",
+            {"identity": arith.get("identity"), "notes": arith.get("notes"),
+             "passed_delta": arith.get("passed_delta"),
+             "collected_delta": arith.get("collected_delta")}),
+        _pass_or_fail(
+            bool(scope.get("measured_at_checkout_root")) and bool(scope.get("baseline_checkout_root")),
+            "both roots the set relation was measured at are published with it",
+            {"measured_at": scope.get("measured_at_checkout_root"),
+             "baseline_at": scope.get("baseline_checkout_root"),
+             "declared_label": scope.get("declared_label")}),
+    ]
+
+
+def _pass_or_fail(ok: bool, claim: str, observed: Any, definition_source: str | None = None) -> dict:
+    row = {"claim": claim, "status": "PASS" if ok else "FAIL", "observed": observed}
+    if definition_source:
+        row["definition_source"] = definition_source
+    return row
+
+
 def check_git_scope() -> list[dict]:
     """The lane's own write scope, checked the same way the workflow checks it."""
     code = "product"
@@ -410,6 +553,8 @@ CHECKS: dict[str, Callable[[], list[dict]]] = {
     "owner_question": check_no_owner_question,
     "tracked": check_tracked_results_not_mutated,
     "orchestration": check_orchestration_classification,
+    "diagnosis": check_orchestration_diagnosis_39086926860,
+    "regression": check_regression_set_relation,
     "scope": check_git_scope,
 }
 

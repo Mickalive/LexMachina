@@ -69,18 +69,70 @@ def _summary(run_id: int = 38600271324, **overrides) -> dict:
     return base
 
 
+#: The LEGACY prose of this file.  It is deliberately kept, because it is the
+#: measurable proof that the ``_report`` prose change below was necessary rather
+#: than cosmetic: with the counter-evidence and latency fields already correct,
+#: this string still fails the real structural gate (French-synthesis markers)
+#: and, if that were patched, the real rent-default truth gate (Art. 257d(2)
+#: 30-day-to-month-end notice).  See
+#: ``test_the_three_structural_gates_this_repair_had_to_satisfy``.
 PASSING = ("Le bailleur respecte un delai de 30 jours, la fin d'un mois, sous peine "
            "d'abus de droit; la bonne foi limite ce pretention.")
 
 
-def _report(slug: str, prose: str) -> dict:
+def _report(slug: str, mode: str, top_n: int, evidence_count: int, max_cites: int) -> dict:
+    """Stub leg report matching run_legs' actual ``leg_runner`` call shape.
+
+    Why this stub changed in cycle 39087917357 (reproduced, not guessed)
+    --------------------------------------------------------------------
+    ``test_runner_records_both_dispatch_and_workspace_shas`` was FAILING at the
+    resumed snapshot HEAD 351f388 (``assert 1 == 0``), and at both heads before
+    it (``ec622c6``, ``68bdae8``) - so it is a pre-existing failure of this
+    lane's own suite, not a regression introduced by the resume.  ``run_legs``
+    stops a structural gate list at its FIRST failure, which hides the ones
+    behind it, so the repair was made by exposing them one at a time and
+    recording each verbatim message:
+
+    1. HEAD as shipped -> ``[FAIL] structural - surfaced counter lacks verified
+       evidence: bge_142_II_369``.  ``reality_check.structural_gates`` requires
+       every surfaced counter row to carry ``counter_evidence_verified is True``
+       AND non-empty ``counter_evidence``; the stub declared
+       ``counter_status: candidate-limiting`` with neither.
+    2. fixing (1) only -> ``[FAIL] structural - answer is not synthesized in the
+       user's language``.  The gate counts French markers and needs >= 3; the
+       legacy ``PASSING`` string above scores 2.
+    3. fixing (1)+(2) only -> ``[FAIL] structural - full product answer too
+       slow: Nones``.  The gate needs a ``total_seconds`` below 300.
+
+    Only after all three does the leg reach ``truth::rent-default``, which the
+    original ``PASSING`` prose would also fail (its ``30 jours, la fin d'un
+    mois`` lacks the ``(pour|jusqu.a|sur)`` bridge the Art. 257d(2) notice
+    pattern requires) - measured in
+    ``test_the_three_structural_gates_this_repair_had_to_satisfy``.
+
+    THE GATES THEMSELVES ARE NOT TOUCHED.  This is a wiring fixture whose only
+    job is to satisfy the real gates so the test can reach its real assertions
+    (``run_head_sha`` / ``head_sha``).  Every change here makes the stub conform
+    to an existing gate; ``product/reality_check.py`` is byte-unchanged.
+    """
+    prose = ("Le bailleur doit respecter un delai de conge de 30 jours "
+             "jusqu'a la fin d'un mois, sous peine d'abus de droit; "
+             "la bonne foi limite cette pretention.")
     return {
         "slug": slug, "mode": "live", "validation_errors": [],
+        # structural gate 3: a full answer must be timed and under 300 s.
+        "total_seconds": 120.0,
         "bundle": {
             "decisions": [{"decision_id": "bge_142_II_369", "rank": 1, "citation": "BGE 142 II 369",
                            "language": "de", "counter_status": "candidate-limiting",
+                           # structural gate 1: surfaced counters need verified,
+                           # non-empty evidence.
+                           "counter_evidence_verified": True,
+                           "counter_evidence": "BGE 142 II 369 abs. 2 legt die Beweislast um.",
                            "canonical_url": "https://x", "snippet": "s"}],
             "clusters": [{"cluster_id": "c0", "label": "c", "size": 1}],
+            # structural gate 2 + the rent-default truth gate: >=3 French
+            # markers, and the distinct Art. 257d(2) 30-day-to-month-end notice.
             "answer": {"status": "ready", "method": "generative_audit_llm_v2", "prose": prose,
                        "cited_decision_ids": ["bge_142_II_369"], "model": "m"},
             "provenance": {"generative_audit": {"provider_error": None,
@@ -358,8 +410,78 @@ def test_runner_records_both_dispatch_and_workspace_shas(monkeypatch, tmp_path):
     monkeypatch.setenv("GITHUB_SHA", "a" * 40)
     summary, code = ci.run_legs(
         "38600271324", mode="live", slugs=["rent-default"], out_dir=tmp_path,
-        leg_runner=lambda *a, **k: _report("rent-default", PASSING),
+        leg_runner=lambda *a, **k: _report(*a),
         monotonic=lambda: 0.0, wall=lambda: 1_700_000_000.0, deadline_seconds=10_000)
     assert code == 0
     assert summary["run_head_sha"] == "a" * 40
     assert summary["head_sha"] and summary["head_sha"] != "a" * 40
+
+
+# --------------------------------------------------------------------------
+# The repair's necessity proof (cycle 39087917357)
+#
+# A fixture that was simply edited until it went green proves nothing: the same
+# edit could have been a hidden gate weakening.  These three cases assert the
+# OPPOSITE direction - each individual gate still rejects its broken input - and
+# the last one keeps the legacy prose in the file as a permanently failing
+# control, so a future "simplification" of the gates fails here first.
+# --------------------------------------------------------------------------
+
+def _leg_gates(report: dict, monkeypatch, tmp_path) -> tuple[int, list[dict]]:
+    import ci_reality_legs as ci
+
+    monkeypatch.setenv("GITHUB_SHA", "a" * 40)
+    summary, code = ci.run_legs(
+        "38600271324", mode="live", slugs=["rent-default"], out_dir=tmp_path,
+        leg_runner=lambda *a, **k: report,
+        monotonic=lambda: 0.0, wall=lambda: 1_700_000_000.0, deadline_seconds=10_000)
+    return code, [g for leg in summary.get("legs", []) for g in leg.get("gates", [])]
+
+
+def _detail_text(gates: list[dict]) -> str:
+    return json.dumps(gates, sort_keys=True)
+
+
+def test_gate_1_still_rejects_a_surfaced_counter_without_verified_evidence(
+        monkeypatch, tmp_path):
+    report = _report("rent-default", "live", 10, 1, 10)
+    row = report["bundle"]["decisions"][0]
+    row["counter_evidence_verified"] = False
+    code, gates = _leg_gates(report, monkeypatch, tmp_path)
+    assert code == 1
+    assert "surfaced counter lacks verified evidence" in _detail_text(gates)
+
+
+def test_gate_2_still_rejects_a_non_french_synthesis(monkeypatch, tmp_path):
+    report = _report("rent-default", "live", 10, 1, 10)
+    report["bundle"]["answer"]["prose"] = PASSING  # French markers = 2, gate needs 3
+    code, gates = _leg_gates(report, monkeypatch, tmp_path)
+    assert code == 1
+    assert "answer is not synthesized in the user's language" in _detail_text(gates)
+
+
+def test_gate_3_still_rejects_an_untimed_answer(monkeypatch, tmp_path):
+    report = _report("rent-default", "live", 10, 1, 10)
+    report.pop("total_seconds")
+    code, gates = _leg_gates(report, monkeypatch, tmp_path)
+    assert code == 1
+    assert "full product answer too slow" in _detail_text(gates)
+
+
+def test_the_legacy_passing_prose_would_also_fail_the_truth_gate(
+        monkeypatch, tmp_path):
+    """Control run: the prose change was needed by the GATE, not by the test.
+
+    The legacy string scores 2 French markers (structural gate 2), so it never
+    reached the truth gate on its own.  Here it is promoted past that gate by
+    hand - by appending a third marker - so that the Art. 257d(2) notice pattern
+    is the only thing left to judge, and it is still rejected.
+    """
+    report = _report("rent-default", "live", 10, 1, 10)
+    # +1 French marker ("selon") gets the structural language gate green while
+    # leaving the legacy notice wording untouched.
+    report["bundle"]["answer"]["prose"] = PASSING + " La solution selon la loi."
+    code, gates = _leg_gates(report, monkeypatch, tmp_path)
+    assert code == 1
+    text = _detail_text(gates)
+    assert "missing distinct Art. 257d(2) 30-day notice to month-end" in text

@@ -210,3 +210,98 @@ def test_cli_is_runnable_as_one_command():
     )
     assert out.returncode == 0, out.stdout + out.stderr
     assert "[PASS]" in out.stdout
+
+
+# --------------------------------------------------------------------------
+# the two checks this cycle added must be able to FAIL
+# --------------------------------------------------------------------------
+
+def _diagnosis_artifact() -> dict:
+    return json.loads(
+        cv.DIAGNOSIS_39086926860_ARTIFACT.read_text(encoding="utf-8"))
+
+
+def test_diagnosis_check_fails_when_the_artifact_is_missing(monkeypatch, tmp_path):
+    monkeypatch.setattr(cv, "DIAGNOSIS_39086926860_ARTIFACT", tmp_path / "nope.json")
+    rows = cv.check_orchestration_diagnosis_39086926860()
+    assert len(rows) == 1 and rows[0]["status"] == "FAIL"
+
+
+def test_diagnosis_check_rejects_an_exit_code_that_was_never_collected(
+        monkeypatch, tmp_path):
+    """'No annotation collected' must not read as 'the cause is unknown but fine'."""
+    data = _diagnosis_artifact()
+    data["diagnosis"]["annotations_collected"] = False
+    data["diagnosis"]["exit_code"] = None
+    victim = tmp_path / "diag.json"
+    victim.write_text(json.dumps(data), encoding="utf-8")
+    monkeypatch.setattr(cv, "DIAGNOSIS_39086926860_ARTIFACT", victim)
+
+    rows = cv.check_orchestration_diagnosis_39086926860()
+    failed = {r["claim"]: r for r in rows if r["status"] == "FAIL"}
+    assert any("public check-run annotation" in c for c in failed)
+
+
+def test_diagnosis_check_rejects_a_branch_ruled_out_without_evidence(
+        monkeypatch, tmp_path):
+    data = _diagnosis_artifact()
+    data["diagnosis"]["candidates"]["named_branches"][0]["ruled_out"] = True
+    data["diagnosis"]["candidates"]["named_branches"][0]["ruled_out_evidence"] = []
+    victim = tmp_path / "diag.json"
+    victim.write_text(json.dumps(data), encoding="utf-8")
+    monkeypatch.setattr(cv, "DIAGNOSIS_39086926860_ARTIFACT", victim)
+
+    rows = cv.check_orchestration_diagnosis_39086926860()
+    failed = [r for r in rows if r["status"] == "FAIL"]
+    assert any("ruled out without published evidence" in r["claim"] for r in failed)
+
+
+def test_diagnosis_check_rejects_a_pretty_conclusion_that_is_not_reproducible(
+        monkeypatch, tmp_path):
+    """Re-derivation, not restatement: flip the recorded exit code."""
+    data = _diagnosis_artifact()
+    data["diagnosis"]["exit_code"] = 78
+    victim = tmp_path / "diag.json"
+    victim.write_text(json.dumps(data), encoding="utf-8")
+    monkeypatch.setattr(cv, "DIAGNOSIS_39086926860_ARTIFACT", victim)
+
+    rows = cv.check_orchestration_diagnosis_39086926860()
+    failed = [r for r in rows if r["status"] == "FAIL"]
+    assert failed, "a non-re-deriving exit code must fail the ledger"
+    assert all(r["status"] in ("PASS", "FAIL") for r in rows)
+
+
+def test_regression_check_fails_when_no_artifact_exists(monkeypatch, tmp_path):
+    monkeypatch.setattr(cv, "REGRESSION_DIR", tmp_path)
+    rows = cv.check_regression_set_relation()
+    assert len(rows) == 1 and rows[0]["status"] == "FAIL"
+
+
+def test_regression_check_rejects_a_new_failure(monkeypatch, tmp_path):
+    art = tmp_path / "CYCLE_99999999999_regression_scope.json"
+    art.write_text(json.dumps({
+        "schema": "product-regression-evidence/2", "run_id": 99999999999,
+        "scope": {"measured_at_checkout_root": "/a", "baseline_checkout_root": "/b"},
+        "arithmetic": {"arithmetic_reconciles": True},
+        "set_relation": {"set_difference_repaired_only_NEW_FAILURES":
+                         ["product/tests/x.py::test_x"], "n_baseline_only": 0},
+    }), encoding="utf-8")
+    monkeypatch.setattr(cv, "REGRESSION_DIR", tmp_path)
+    rows = cv.check_regression_set_relation()
+    assert rows[0]["status"] == "FAIL"
+    assert rows[1]["status"] == "PASS"
+
+
+def test_regression_check_rejects_arithmetic_that_does_not_close(monkeypatch, tmp_path):
+    art = tmp_path / "CYCLE_99999999999_regression_scope.json"
+    art.write_text(json.dumps({
+        "schema": "product-regression-evidence/2", "run_id": 99999999999,
+        "scope": {"measured_at_checkout_root": "/a", "baseline_checkout_root": "/b"},
+        "arithmetic": {"arithmetic_reconciles": False, "notes": ["REFUSED"]},
+        "set_relation": {"set_difference_repaired_only_NEW_FAILURES": [],
+                         "n_baseline_only": 1},
+    }), encoding="utf-8")
+    monkeypatch.setattr(cv, "REGRESSION_DIR", tmp_path)
+    rows = cv.check_regression_set_relation()
+    assert rows[1]["status"] == "FAIL"
+    assert "REFUSED" in json.dumps(rows[1]["observed"])
