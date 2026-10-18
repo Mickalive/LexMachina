@@ -1,0 +1,63 @@
+{
+  "schema": "lex-evaluation-orchestration-diagnosis/1",
+  "run_id": "39098571937",
+  "lane": "evaluation",
+  "direction_version": 56,
+  "subject_of_resume": "39098499696 (Core evaluation dirV56 repair1) - operational resume: the subject's team job died 16 s into 'Run lane cycle', so its persisted producer snapshot 0a2bf970 carries ZERO new delta over its resume base; this cycle verifies the already-delivered readiness record and exits 0 so the audit job runs.",
+  "generated_at_utc": "2026-10-18T05:05:00Z",
+  "query_method": "GitHub REST API, re-probed live this run (unauthenticated, public repo Mickalive/LexMachina): GET /repos/Mickalive/LexMachina/actions/runs/39098499696 and /actions/runs/39098499696/jobs -> HTTP 200 with per-job per-step status/conclusion/timestamps; same for runs 39094283962 and 39098571937. Job LOGS remain HTTP 403 unauthenticated from this image, so every provider-cause statement below is a hedged candidate set, never a read log line. git-over-HTTPS works locally (refs verified).",
+  "run_facts_measured_via_rest_api": {
+    "39098499696": {
+      "name": "Core evaluation dirV56 repair1",
+      "created_at": "2026-10-18T04:50:42Z",
+      "conclusion": "failure",
+      "team_job": {
+        "conclusion": "failure",
+        "step_6_run_lane_cycle": "04:51:31Z -> 04:51:47Z (16 s) conclusion=FAILURE",
+        "steps_7_9": "validate/write-scope SKIPPED (success()-gated); clean success; persist SUCCESS 04:51:47Z -> 04:51:49Z pushing tree 0a2bf970 == resume base = ZERO durable delta from this run"
+      },
+      "audit_job": "SKIPPED (gated on needs.team == success)",
+      "integrate_job": "SKIPPED",
+      "resilience_job": "success (04:51:54Z -> 04:52:02Z; 'Recover failed chain and wake supervisor' 04:51:56Z -> 04:52:00Z) - the wake path that produced this resume dispatch",
+      "duration_class": "16 s immediate first-invocation death class - identical signature to runs 39091660737 (team) and 39092033997 (audit). NOT the 2700 s work quantum, NOT retry exhaustion.",
+      "cause_status": "hedged candidate set (provider auth/rotation/overload or wrapper setup failure on first invocation); job logs HTTP 403, wrapper rc never read"
+    },
+    "39094283962": {
+      "name": "evaluation 39094283962 (resume of audit-starved 39092033997)",
+      "created_at": "2026-10-18T03:37:32Z",
+      "conclusion": "failure",
+      "team_job": {
+        "conclusion": "success",
+        "step_6_run_lane_cycle": "03:38:20Z -> 04:04:36Z (1576 s) - delivered the full durable delta: snapshot audit READY 21/21, state block, cycle report, trigger reconciliation; all validate/clean/write-scope steps green"
+      },
+      "audit_job": {
+        "conclusion": "failure",
+        "step_5_independent_audit": "04:05:27Z -> 04:50:31Z = 45 m 04 s = 2704 s EXACTLY = the 45-minute job timeout (LEX_WORK_QUANTUM_EXPIRED class), the same signature that killed the four dirV55 repair producers at ~2704 s",
+        "steps_6_7": "SKIPPED - no gate file written, no audit ref persisted (refs/heads/cycle/core/evaluation/39094283962/audit does NOT exist on origin)"
+      },
+      "integrate_job": "SKIPPED (gated on needs.audit == success)",
+      "duration_class": "POST-DELIVERY AUDIT QUANTUM DEATH: the producer exited 0 inside the quantum with a complete deliverable; the AUDITOR agent then consumed the full 45-minute audit-job quantum and died at the timeout before writing the gate",
+      "structural_note": "the audit job's plan (digest the 300 KB state/evaluation.json + 86 KB mounted direction + prior cycle reports, then independently recompute) exceeds the 2700 s quantum; this is the audit-side twin of the producer-side quantum deaths, and it is control-plane scope (.github/** is recorded, not edited)"
+    },
+    "39098571937": {
+      "name": "Core evaluation dirV56 repair1",
+      "created_at": "2026-10-18T04:51:59Z",
+      "status": "in_progress at diagnosis time; team job step 6 started 04:52:05Z",
+      "resume_base": "origin/cycle/core/evaluation/39098499696/team = 0a2bf970 (zero subject delta; the tree already carries the complete 39094283962 deliverable)"
+    }
+  },
+  "findings": [
+    "AUDIT STARVATION CHAIN, now measured end-to-end: runs 39094283962 (team success, audit quantum death at 2704 s) and 39098499696 (team 16 s first-invocation death) both delivered/rescued trees that sit UNGATED. The newest evaluation audit ref on origin remains 39033797087-era; the gate of record for the 39094283962 deliverable (results/audit/evaluation/CYCLE_39094283962_GATE.json) does not exist and cannot be produced retroactively - only the audit job of a live run writes it.",
+    "TWO DISTINCT DEATH CLASSES ALTERNATE: (a) ~2704 s LEX_WORK_QUANTUM_EXPIRED at the 45-minute job timeout (four dirV55 producers + the 39094283962 audit job); (b) 16 s immediate first-invocation death (39091660737 team, 39092033997 audit, 39098499696 team). Class (b) is provider-side and outside lane control; class (a) means the agent's plan exceeds the quantum, which the lane mitigates by shipping the SMALLEST gate-able deliverable and exiting 0 early.",
+    "THE RESUME BASE WAS INTACT: 39098499696's persist step (if: always()) rescued its full tree at 0a2bf970 despite the 16 s team death - the same rescue class recorded for 39060704006 (67d2910a) and 39040205229 (483c32c9). Nothing was lost; this cycle resumes from a complete deliverable.",
+    "NO PRODUCT DEFECT, NO HUMAN-GATE PROBLEM: every failure in the chain is workflow/provider-side. The lane's obligation is to exit 0 well inside the quantum with a small durable delta so the audit job - gated on needs.team == success - is actually invoked."
+  ],
+  "routearound_executed_this_cycle": "Minimal-delta resume: (1) re-probe the REST facts; (2) execute the direction item-(1) trigger for this run id (ADJUDICATE_REQUIRED, product mount still 03a4cabb, no scored claim movement); (3) verify the delivered snapshot audit reproduces READY on this tree for run id 39098571937; (4) publish the diagnosis + readiness record + compact report; (5) commit and stop - no trailing verification sweep, no frozen-artifact re-measurement, no benchmark re-run.",
+  "control_plane_hardening_items_recorded_not_patched": [
+    "The audit job shares the 2700 s quantum with the producer job; an auditor plan that digests the full 300 KB state/evaluation.json plus the 86 KB mounted direction plus prior reports and then independently recomputes cannot finish inside it. Intended upstream fix: give the audit job a larger timeout, or make the auditor's mounted inputs compact. .github/** is control-plane scope and is NOT edited from this lane.",
+    "The audit persist step has no if: always() (unlike the team persist step), so an audit-job death leaves no artifact at all - not even a partial gate. Intended upstream fix: persist whatever the auditor wrote before the timeout.",
+    "Job logs remain HTTP 403 unauthenticated from lane images; every 16 s-class cause in this record is a hedged candidate set. Intended upstream fix: an artifact-preserving log upload inside run-ox-with-retry.sh."
+  ],
+  "human_blocker": false,
+  "claim_ceiling": "This diagnosis measures job/step orchestration facts via the REST API. It does not re-verify any frozen gate, rubric, bar or benchmark; those are re-derived by the snapshot audit on this same tree (READY 21/21 checks at 39094283962, reproduced for this run id). No product claim, readiness verdict or promotion follows from this record; only results/audit/evaluation/CYCLE_39098571937_GATE.json written by the independent audit job is a gate of record."
+}

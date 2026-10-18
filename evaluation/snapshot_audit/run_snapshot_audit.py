@@ -498,6 +498,16 @@ DELIVERABLE_MANIFEST_PATHS = [
     "results/evaluation/trigger_reconciliation/39094283962/39094283962_reconciliation.json",
     "results/evaluation/lane_suite/39094283962.json",
     "reports/evaluation/CYCLE_39094283962.md",
+    # Run 39098571937 (operational resume of the audit-starved 39098499696):
+    # the REST-measured step-level diagnosis of the 16 s team death (39098499696)
+    # and the 2704 s audit quantum death (39094283962), this run's item-(1)
+    # trigger records, the lane-suite record, and the cycle report. Same
+    # disclosed convention: the readiness record is written after check 6.
+    "evaluation/snapshot_audit/orchestration_diagnosis_39098571937.json",
+    "results/evaluation/trigger_reconciliation/39098571937/39098571937_trigger.json",
+    "results/evaluation/trigger_reconciliation/39098571937/39098571937_reconciliation.json",
+    "results/evaluation/lane_suite/39098571937.json",
+    "reports/evaluation/CYCLE_39098571937.md",
   ]
 
 #: REPAIR F2 (audit CYCLE_39082753086_GATE.json). Files deliberately NOT pinned by
