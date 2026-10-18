@@ -441,7 +441,7 @@ def check_orchestration_diagnosis_39086926860() -> list[dict]:
 
     no_evidence = [
         c.get("branch") for c in (cand.get("named_branches") or [])
-        if not c.get("ruled_out") and not c.get("ruled_out_evidence")
+        if c.get("ruled_out") is True and not c.get("ruled_out_evidence")
     ]
     rows.append(_pass_or_fail(
         cand.get("named_branches") and not no_evidence,
@@ -458,8 +458,7 @@ def check_orchestration_diagnosis_39086926860() -> list[dict]:
          "recomputed": replay["all_pass"], "control_plane_source": str(control)},
         "product/orchestration_evidence.py::replay_wrapper_preflight"))
 
-    forbidden = [k for k in ("gate", "safe_to_integrate", "human_gate_ready",
-                            "ready_for_owner_session", "packet_admitted") if k in data]
+    forbidden = oe.forbidden_verdict_keys(data)
     rows.append(_pass_or_fail(
         not forbidden and (data.get("classification") or {}).get("verdict_exists") is False
         and data.get("audit_branch_exists") is False,

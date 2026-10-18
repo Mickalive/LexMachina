@@ -122,6 +122,43 @@ def test_team_failure_precedes_any_audit_class():
     assert out["producing_snapshot_survived"] is False
 
 
+def test_cancelled_team_is_its_own_class_and_not_a_failure():
+    out = oe.classify(
+        observation={"conclusion": "cancelled"},
+        jobs={"team": "cancelled", "audit": "cancelled", "integrate": "cancelled"},
+        steps=[],
+        team_branch_exists=True,
+    )
+    assert out["class"] == "TEAM_JOB_CANCELLED"
+    # The lane lever differs from a failure: the product survived on the branch.
+    assert out["producing_snapshot_survived"] is True
+    assert out["verdict_exists"] is False
+
+
+def test_cancelled_team_without_its_branch_did_not_survive():
+    out = oe.classify(
+        observation={"conclusion": "cancelled"},
+        jobs={"team": "cancelled"},
+        steps=[],
+        team_branch_exists=False,
+    )
+    assert out["class"] == "TEAM_JOB_CANCELLED"
+    assert out["producing_snapshot_survived"] is False
+
+
+def test_unknown_team_branch_is_not_reported_as_survival():
+    """A probe that failed must not read as 'the snapshot exists'."""
+    out = oe.classify(
+        observation={"conclusion": "cancelled"},
+        jobs={"team": "cancelled"},
+        steps=[],
+        team_branch_exists=None,
+    )
+    assert out["class"] == "TEAM_JOB_CANCELLED"
+    assert out["producing_snapshot_survived"] is False
+    assert out["team_branch_exists"] is None
+
+
 def test_missing_observation_is_unobservable_not_success():
     out = oe.classify(observation=None, jobs={}, steps=[])
     assert out["class"] == "UNOBSERVABLE"
@@ -202,6 +239,7 @@ def test_build_report_degrades_to_unobservable_when_the_api_is_unreachable(monke
 
     monkeypatch.setattr(oe, "observe_run", boom)
     monkeypatch.setattr(oe, "_audit_branch_exists", lambda *a, **k: None)
+    monkeypatch.setattr(oe, "_team_branch_exists", lambda *a, **k: None)
     report = oe.build_report(39082232157)
     assert report["classification"]["class"] == "UNOBSERVABLE"
     assert report["classification"]["verdict_exists"] is False
@@ -213,6 +251,7 @@ def test_build_report_never_fabricates_a_verdict_when_jobs_are_unreadable(monkey
     monkeypatch.setattr(oe, "observe_jobs", lambda *a, **k: {})
     monkeypatch.setattr(oe, "observe_steps", lambda *a, **k: [])
     monkeypatch.setattr(oe, "_audit_branch_exists", lambda *a, **k: None)
+    monkeypatch.setattr(oe, "_team_branch_exists", lambda *a, **k: None)
     report = oe.build_report(1)
     assert report["classification"]["class"] == "NO_AUDIT_JOB"
     assert report["classification"]["verdict_exists"] is False
@@ -224,6 +263,7 @@ def test_build_report_uses_injected_steps_without_touching_the_network(monkeypat
     monkeypatch.setattr(oe, "observe_jobs", lambda *a, **k: {
         "team": "success", "audit": "cancelled"})
     monkeypatch.setattr(oe, "_audit_branch_exists", lambda *a, **k: False)
+    monkeypatch.setattr(oe, "_team_branch_exists", lambda *a, **k: True)
     report = oe.build_report(
         39082232157,
         steps=[_step("audit", AUDIT_AGENT, "cancelled", 3299.0)],
@@ -287,6 +327,32 @@ def test_audit_branch_probe_targets_the_lane_scoped_branch(tmp_path, monkeypatch
     monkeypatch.setattr(subprocess, "run", fake_run)
     oe._audit_branch_exists(39082232157, "product", "Mickalive/LexMachina")
     assert "refs/heads/cycle/core/product/39082232157/audit" in calls["cmd"]
+
+
+def test_team_branch_probe_targets_the_producer_snapshot_branch(monkeypatch):
+    """The cancelled-team survival verdict rests on this branch name."""
+    calls = {}
+
+    class _Result:
+        returncode = 0
+        stdout = "abc\trefs/heads/cycle/core/product/39087917357/team\n"
+
+    def fake_run(cmd, **_k):
+        calls["cmd"] = cmd
+        return _Result()
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    assert oe._team_branch_exists(39087917357, "product", "Mickalive/LexMachina") is True
+    assert "refs/heads/cycle/core/product/39087917357/team" in calls["cmd"]
+
+
+def test_remote_branch_probe_reads_absent_as_false_not_unknown(monkeypatch):
+    class _Result:
+        returncode = 2  # `git ls-remote --exit-code` when nothing matches
+        stdout = ""
+
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: _Result())
+    assert oe._remote_branch_exists("refs/heads/nope") is False
 
 
 # --------------------------------------------------------------------------

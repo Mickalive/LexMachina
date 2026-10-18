@@ -83,9 +83,27 @@ CLASSES = (
     "AUDIT_STEP_FAILED_NO_GATE",
     "AUDIT_FINISHED_BUT_NO_GATE",
     "TEAM_JOB_FAILED",
+    "TEAM_JOB_CANCELLED",
     "NO_AUDIT_JOB",
     "UNOBSERVABLE",
 )
+
+#: Keys a core-lane artifact must NEVER carry: a gate decision or an owner-session
+#: flag.  This belongs with the artifact schema, not in the ledger module: a
+#: caller that publishes "the artifact carries no gate" consumes this list, and
+#: the ledger module that verifies it must not itself look like a gate consumer.
+FORBIDDEN_VERDICT_KEYS = (
+    "gate",
+    "safe_to_integrate",
+    "human_gate_ready",
+    "ready_for_owner_session",
+    "packet_admitted",
+)
+
+
+def forbidden_verdict_keys(data: dict) -> list[str]:
+    """Keys of ``data`` that no core-lane artifact is allowed to carry."""
+    return [k for k in FORBIDDEN_VERDICT_KEYS if k in data]
 
 
 def _parse_ts(value: Any) -> Any:
@@ -142,8 +160,17 @@ def observe_steps(run_id: int | str, repo: str = DEFAULT_REPO, fetch: Callable =
     return steps
 
 
-def classify(*, observation: dict | None, jobs: dict, steps: list[dict]) -> dict:
-    """Name the death class of a core-lane run. Pure function of its record."""
+def classify(*, observation: dict | None, jobs: dict, steps: list[dict],
+             team_branch_exists: bool | None = None) -> dict:
+    """Name the death class of a core-lane run. Pure function of its record.
+
+    ``team_branch_exists`` is the ONE fact this function cannot read out of a job
+    record: a cancelled producer can still have committed its deliverable and
+    pushed ``cycle/core/<lane>/<run>/team``.  Whether the snapshot survived is a
+    property of the REMOTE BRANCH, so it is passed in (and published) rather than
+    inferred from the job's ``conclusion``, which a cancellation flips to a value
+    that would otherwise read as "produced nothing".
+    """
     evidence: list[str] = []
     if not observation:
         return {
@@ -198,7 +225,15 @@ def classify(*, observation: dict | None, jobs: dict, steps: list[dict]) -> dict
 
     # The ordering that discriminates the classes: the agent step's own
     # conclusion, then whether the workflow's reader step ever ran.
-    if team in ("failure", "cancelled", "timed_out"):
+    if team == "cancelled":
+        klass = "TEAM_JOB_CANCELLED"
+        why = (
+            "the producer job was cancelled (by the Actions bot or the platform), "
+            "so the audit never became eligible. Unlike a failure this carries no "
+            "wrapper exit code; the producing snapshot may still have survived, "
+            "and that is read from the team branch, never from this conclusion."
+        )
+    elif team in ("failure", "timed_out"):
         klass = "TEAM_JOB_FAILED"
         why = "the producer job did not succeed, so the audit never became eligible"
     elif audit_step is None and audit is None:
@@ -233,11 +268,16 @@ def classify(*, observation: dict | None, jobs: dict, steps: list[dict]) -> dict
         "class": klass,
         "why": why,
         "evidence": evidence,
-        "producing_snapshot_survived": team == "success",
+        # A succeeded producer trivially survived; a failed OR cancelled one is
+        # decided by whether its snapshot branch was actually pushed, never by
+        # the job conclusion alone (39087917357: team 'cancelled', branch exists).
+        "producing_snapshot_survived": bool(team == "success" or team_branch_exists is True),
+        "team_branch_exists": team_branch_exists,
         "verdict_exists": klass not in (
             "UNOBSERVABLE",
             "NO_AUDIT_JOB",
             "TEAM_JOB_FAILED",
+            "TEAM_JOB_CANCELLED",
             "AUDIT_STEP_CANCELLED_NO_GATE",
             "AUDIT_STEP_FAILED_NO_GATE",
         ),
@@ -651,6 +691,28 @@ def diagnose(*, annotations: list[dict], steps: list[dict], quantum_s: int,
     }
 
 
+def _remote_branch_exists(ref: str, repo: str = DEFAULT_REPO) -> bool | None:
+    """Is ``ref`` present on the remote?  ``None`` when it cannot be observed.
+
+    Network-tolerant by construction: ``git ls-remote`` may fail, and a failure
+    must read as UNKNOWN rather than as "branch absent", so a cancelled run is
+    never mislabelled as having lost its snapshot.
+    """
+    import subprocess  # local import: only this probe shells out
+
+    try:
+        out = subprocess.run(  # noqa: S603
+            ["git", "ls-remote", "--exit-code", "--heads",
+             "https://github.com/" + repo, ref],
+            capture_output=True, text=True, timeout=30, check=False,
+        )
+    except Exception:  # pragma: no cover - network resilience, never fatal
+        return None
+    if out.returncode not in (0, 2):  # 0 = found; 2 = ls-remote --exit-code: absent
+        return None
+    return out.returncode == 0 and bool(out.stdout.strip())
+
+
 def _audit_branch_exists(run_id: int | str, lane: str = "product",
                          repo: str = DEFAULT_REPO) -> bool | None:
     """Does the remote carry the audit branch for this run?  ``None`` if unknown.
@@ -660,19 +722,19 @@ def _audit_branch_exists(run_id: int | str, lane: str = "product",
     also the single most useful fact for the next dispatch (the work is pending,
     not rejected).
     """
-    import subprocess  # local import: only this probe shells out
+    return _remote_branch_exists(f"refs/heads/cycle/core/{lane}/{run_id}/audit", repo)
 
-    try:
-        out = subprocess.run(  # noqa: S603
-            ["git", "ls-remote", "--heads", "https://github.com/" + repo,
-             f"refs/heads/cycle/core/{lane}/{run_id}/audit"],
-            capture_output=True, text=True, timeout=30, check=False,
-        )
-    except Exception:  # pragma: no cover - network resilience, never fatal
-        return None
-    if out.returncode != 0:
-        return None
-    return bool(out.stdout.strip())
+
+def _team_branch_exists(run_id: int | str, lane: str = "product",
+                        repo: str = DEFAULT_REPO) -> bool | None:
+    """Does the remote carry the PRODUCER snapshot branch for this run?
+
+    The producer's keep-branch name mirrors the workflow's "Persist team
+    snapshot" step.  Its presence is what makes a cancelled team job's product
+    recoverable, so it — not the job conclusion — decides whether the snapshot
+    survived.
+    """
+    return _remote_branch_exists(f"refs/heads/cycle/core/{lane}/{run_id}/team", repo)
 
 
 def default_control_dir() -> Path:
@@ -726,6 +788,12 @@ def build_report(run_id: int | str, *, repo: str = DEFAULT_REPO,
     key existed.  The CLI passes real annotations so the published artifact
     carries the public exit-code evidence.
     """
+    # The two remote branches are read FIRST: they are the observation that no
+    # REST record contains, and the producer branch is what decides whether a
+    # cancelled team job's product survived.
+    team_branch_exists = _team_branch_exists(run_id, lane, repo)
+    audit_branch_exists = _audit_branch_exists(run_id, lane, repo)
+
     try:
         observation = observe_run(run_id, repo=repo)
     except RunNotFound as exc:
@@ -736,14 +804,15 @@ def build_report(run_id: int | str, *, repo: str = DEFAULT_REPO,
     quantum_s = read_wrapper_quantum()
     if observation.get("resolvable") is False:
         verdict = {"class": "UNOBSERVABLE", "why": str(observation.get("error")),
-                   "evidence": [], "producing_snapshot_survived": False,
-                   "verdict_exists": False}
+                   "evidence": [], "producing_snapshot_survived": team_branch_exists is True,
+                   "team_branch_exists": team_branch_exists, "verdict_exists": False}
         jobs: dict[str, Any] = {}
         step_rows: list[dict] = []
     else:
         jobs = observe_jobs(run_id, repo=repo)
         step_rows = steps if steps is not None else observe_steps(run_id, repo=repo)
-        verdict = classify(observation=observation, jobs=jobs, steps=step_rows)
+        verdict = classify(observation=observation, jobs=jobs, steps=step_rows,
+                           team_branch_exists=team_branch_exists)
 
     control = default_control_dir()
     diagnosis = diagnose(
@@ -761,7 +830,8 @@ def build_report(run_id: int | str, *, repo: str = DEFAULT_REPO,
         "lane": lane,
         "observation": observation,
         "job_conclusions": jobs,
-        "audit_branch_exists": _audit_branch_exists(run_id, lane, repo),
+        "team_branch_exists": team_branch_exists,
+        "audit_branch_exists": audit_branch_exists,
         "quantum_analysis": quantum_analysis(step_rows, quantum_s),
         "wrapper_script": wrapper_script_sources(),
         "steps": step_rows,
