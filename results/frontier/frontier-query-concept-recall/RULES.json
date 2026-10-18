@@ -57,8 +57,18 @@
         "path": "/tmp/lex_accepted/core/evaluation/results/evaluation/subject_match_audit/39113690481.json",
         "content_sha256": "0adb78762e91090670728cf1441b75f14719a6066eb0a8ca8bfdf90a83845f61",
         "run_id": 39113690481
+      },
+      "subject_match_audit.py": {
+        "path": "/tmp/lex_accepted/core/evaluation/evaluation/subject_match_audit.py",
+        "note": "the normative concept-coverage implementation, imported by file path"
       }
     }
+  },
+
+  "accepted_baseline_reproduction_requirement": {
+    "coverage": "A0 must reproduce accepted record 39113690481 question_native_coverage exactly: concept lists, per-concept row counts, zero-row sets and row counts on all three served questions.",
+    "authority_recall": "A0 must reproduce accepted record 39117425713 authority::baseline_lang_recall measured.hits and measured.n_rows on all measurable cells.",
+    "on_failure": "a non-reproduction IS the headline finding and ends the run as a bounded negative; it is never smoothed over by a candidate result"
   },
 
   "authority_recall_definition": {
@@ -76,12 +86,19 @@
   },
 
   "concept_coverage_definition": {
-    "implementation": "DELEGATED, byte-identical: product.query.concept_coverage.coverage_report(query, decisions). This harness never re-implements concept extraction or matching.",
-    "concepts": "content_concepts(question_text) — de-accented lowercase alnum tokens, length >= MIN_CONCEPT_CHARS (5), accepted generic STOPWORDS removed, order preserved, capped at MAX_CONCEPTS (8)",
-    "row_text": "decision_text(row) = norm(full_text + regeste + snippet + title), NFKD de-accented casefolded",
-    "covered": "rows_per_concept[concept] >= MIN_ROWS_PER_CONCEPT (2); under_covered is the complement",
+    "AMENDED_2026_pre_measurement": "Amended BEFORE any candidate number was computed. The original text delegated coverage to product.query.concept_coverage.content_concepts/coverage_report, which caps concepts at 8, applies the PRODUCT stoplist (which drops begrenzen/blossen/entscheidungen) and prefix-matches at >= 6 chars. That is the PRODUCT self-check, not the accepted audit. The charter's own acceptance test (1) specifies the audit definition, so the original text was a mis-transcription and is corrected here. No threshold moved in the permissive direction: the corrected definition is the one that reproduces accepted record 39113690481 exactly (verified: concept lists, per-concept row counts, zero-row sets and row counts identical on all three served questions). The superseded values are retained below for provenance.",
+    "implementation": "DELEGATED, byte-identical: evaluation.subject_match_audit.question_concepts + row_match_text + deaccent, and its build_coverage counting rule. This harness never re-implements concept extraction or matching.",
+    "concepts": "question_concepts(question_text) = content_tokens = de-accented, lowercased, alnum-split tokens of the question text with len >= MIN_CONCEPT_LENGTH (5) and the frozen GENERIC_STOPWORDS removed, order preserved, de-duplicated, UNCAPPED",
+    "row_text": "row_match_text(row) = title + regeste + snippet + full_text + citation + decision_id, de-accented and lowercased",
+    "covered": "concept_row_counts[c] >= 1 (permissive >= 1-of-set semantics, as in the accepted gates); concepts_with_zero_rows is the under-covered set",
     "measured_on": "THE QUESTION'S OWN TEXT IN EVERY ARM. Expansion terms are appended to the QUERY STRING SENT TO RETRIEVAL, never to the text whose concepts are scored. Scoring expansion terms as if they were the question's concepts is a defect, not a result.",
-    "charter_permissive_note": "per-concept raw row counts are published alongside the >= 2 covered/uncovered verdict so the permissive >= 1-of-set reading is also visible"
+    "charter_permissive_note": "conservative direction: substring containment can only over-report coverage",
+    "superseded_definition": {
+      "implementation": "product.query.concept_coverage.coverage_report",
+      "concepts": "content_concepts, capped at MAX_CONCEPTS=8, product STOPWORDS",
+      "covered": "rows_per_concept[c] >= MIN_ROWS_PER_CONCEPT (2), prefix match",
+      "why_rejected": "it does not reproduce accepted record 39113690481 (e.g. arbeitgebers 38 vs accepted 30) because it drops concepts the accepted audit keeps and matches on a prefix"
+    }
   },
 
   "arms": {
