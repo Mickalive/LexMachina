@@ -77,9 +77,22 @@ REUSE-FIRST (no re-implementation of an accepted predicate)
 
 NON-VACUITY BATTERY
 
-Each falsifier is paired with a hostile in-memory mutation of the shipped bytes.
-A falsifier whose hostile control does not move its count is VACUOUS and forces
+Each falsifier is paired with hostile in-memory mutations of the shipped bytes.
+A falsifier whose hostile controls do not move its quantity is VACUOUS and forces
 exit 2.  A benchmark that cannot fail is not evidence.
+
+  r2 (binding; r1 is RETIRED and preserved as an exploratory probe at
+  results/evaluation/shipped_bundle_exposure_benchmark/39154580055_r1_RETIRED_PROBE.json):
+  controls run in BOTH directions and pass when EITHER moves.  r1 shipped a
+  CONCEAL-only control for F5, which could not move on the shipped de/it bundles
+  because the F5 quantity is already at its floor there, so r1 returned
+  ENVIRONMENT_OR_VACUOUS.  That was a CONTROL-DESIGN defect, not a product
+  verdict and not a vacuous falsifier: F5 reads cluster_id/is_outlier and fires
+  on de and it.  r2 accepts either direction, which is strictly stronger than
+  r1's single direction, and still fails closed if neither mutation moves.
+  A falsifier whose BASELINE POPULATION IS EMPTY is recorded
+  NOT_APPLICABLE_ZERO_POPULATION, does not by itself force exit 2, and is NEVER
+  reported as a pass.
 
 EXIT CODES (aligned with evaluation/benchmark_retrieval_counter_authority.py)
 
@@ -438,35 +451,101 @@ def _hostile_emit(b: dict) -> dict:
     return h
 
 
+def _hostile_reveal(b: dict) -> dict:
+    """F5 REVEAL control: force every emitted adversarial row INTO a declared
+    cluster and mark it an outlier.
+
+    r2 addition. r1 shipped a CONCEAL-only control, which cannot prove a
+    falsifier whose real-data value is already extremal (on the shipped de/it
+    bundles the F5 quantity is already 0 in-declared-clusters / 0 outliers, so
+    concealing further had nowhere to move and the control failed to move). The
+    control now runs in BOTH directions and passes when EITHER moves, which is
+    strictly stronger than r1's single direction: r1 required one specific
+    mutation to move, r2 accepts either, and still fails closed if neither does.
+    """
+    h = copy.deepcopy(b)
+    declared = sorted({c["cluster_id"] for c in h.get("clusters", [])})
+    if not declared:
+        return h
+    target = declared[0]
+    for d in h["decisions"]:
+        if _status(d) in ADVERSARIAL_EMITTED:
+            d["cluster_id"] = target
+            d["unclustered"] = False
+            d["is_outlier"] = True
+    return h
+
+
 HOSTILE_CONTROLS = (
-    ("F1", "map::unclustered_point_mass", f1_unclustered_point_mass, _hostile_uncluster),
-    ("F2", "map::cluster_panel_coverage", f2_cluster_panel_coverage, _hostile_cover),
+    ("F1", "map::unclustered_point_mass", f1_unclustered_point_mass, (_hostile_uncluster,)),
+    ("F2", "map::cluster_panel_coverage", f2_cluster_panel_coverage, (_hostile_cover,)),
     ("F3", "map::cluster_size_member_len_divergence",
-     f3_cluster_size_member_len_divergence, _hostile_size),
-    ("F4", "multilingual::language_unassigned", f4_language_unassigned, _hostile_language),
-    ("F5", "counter::emitted_label_placement", f5_emitted_label_placement, _hostile_emit),
+     f3_cluster_size_member_len_divergence, (_hostile_size,)),
+    ("F4", "multilingual::language_unassigned", f4_language_unassigned, (_hostile_language,)),
+    ("F5", "counter::emitted_label_placement", f5_emitted_label_placement,
+     (_hostile_emit, _hostile_reveal)),
 )
+
+# Falsifiers whose baseline population can legitimately be empty on a bundle.
+# A control over an empty population is NOT_APPLICABLE, never a pass.
+ZERO_POP_PROBES = {
+    "F5": lambda r: r["n_emitted_adversarial"] == 0,
+}
 
 
 def non_vacuity(bundle: dict) -> dict:
-    """Each falsifier must MOVE on its hostile input, else it is vacuous."""
-    controls, all_hold = [], True
-    for tag, name, fn, mutate in HOSTILE_CONTROLS:
+    """Each falsifier must MOVE on at least one hostile input, else it is vacuous.
+
+    r2: multiple opposite mutations per falsifier; a falsifier with an EMPTY
+    baseline population is recorded NOT_APPLICABLE_ZERO_POPULATION and does not
+    force exit 2, but it is never reported as a pass (see the frozen r2
+    non-vacuity rule)."""
+    controls, all_hold, any_not_applicable = [], True, False
+    for tag, name, fn, mutates in HOSTILE_CONTROLS:
         baseline = fn(bundle)
-        hostile = fn(mutate(bundle))
         base_key = _movement_key(tag, baseline)
-        host_key = _movement_key(tag, hostile)
-        moved = base_key != host_key
+        if tag in ZERO_POP_PROBES and ZERO_POP_PROBES[tag](baseline):
+            controls.append({
+                "control": tag, "falsifier": name,
+                "baseline_quantity": base_key,
+                "status": "NOT_APPLICABLE_ZERO_POPULATION",
+                "moved": None,
+                "reading": ("this bundle emitted ZERO adversarial rows, so the "
+                            "placement falsifier has no population here. This is "
+                            "NOT a pass and NOT evidence the falsifier is live on "
+                            "this bundle; it is a property of the shipped bundle."),
+            })
+            any_not_applicable = True
+            continue
+        attempts, moved_by = [], None
+        for mutate in mutates:
+            hostile = fn(mutate(bundle))
+            host_key = _movement_key(tag, hostile)
+            attempts.append({"mutation": mutate.__name__,
+                             "baseline_quantity": base_key,
+                             "hostile_quantity": host_key,
+                             "moved": base_key != host_key})
+            if moved_by is None and base_key != host_key:
+                moved_by = mutate.__name__
+        moved = moved_by is not None
         all_hold = all_hold and moved
         controls.append({
             "control": tag, "falsifier": name,
-            "baseline_quantity": base_key, "hostile_quantity": host_key,
+            "baseline_quantity": base_key,
+            "status": "MOVED" if moved else "VACUOUS",
             "moved": moved,
+            "moved_by": moved_by,
+            "attempts": attempts,
             "reading": ("the falsifier reads the shipped field and is not vacuous"
                         if moved else
-                        "VACUOUS: the falsifier did not move on its hostile control"),
+                        "VACUOUS: no hostile mutation moved the falsifier quantity"),
         })
-    return {"all_hold": all_hold, "n_controls": len(controls), "controls": controls}
+    return {"all_hold": all_hold, "n_controls": len(controls),
+            "n_not_applicable_zero_population": sum(
+                1 for c in controls
+                if c.get("status") == "NOT_APPLICABLE_ZERO_POPULATION"),
+            "not_applicable_is_not_a_pass": True,
+            "controls": controls}
 
 
 def _movement_key(tag: str, res: dict) -> object:

@@ -1,0 +1,71 @@
+{
+  "schema": "lex-evaluation-frozen-hypothesis/1",
+  "run_id": "39154580055",
+  "revision": "r2",
+  "supersedes": "FROZEN_HYPOTHESIS_39154580055.json (r1)",
+  "direction_version": 56,
+  "frozen_at": "2026-10-18T18:52:00Z",
+  "frozen_before_execution": true,
+  "why_r1_was_retired_and_not_edited": {
+    "r1_record": "results/evaluation/shipped_bundle_exposure_benchmark/39154580055_r1_RETIRED_PROBE.json",
+    "r1_verdict": "ENVIRONMENT_OR_VACUOUS",
+    "r1_exit_code": 2,
+    "r1_failure": "non-vacuity control F5 did not move on any of the three shipped bundles",
+    "classification": "EXPLORATORY_PROBE_CONTROL_DESIGN_DEFECT — NOT a product verdict and NOT a falsification of the product",
+    "diagnosis": "The F5 control applied a CONCEALMENT mutation (force emitted rows out of declared clusters and clear is_outlier). On the shipped bytes the F5 quantity is already at its floor (n_emitted_in_declared_clusters=0, n_emitted_flagged_outlier=0 for de and it), so the concealment control had nowhere further to move and correctly failed to prove the falsifier live. The falsifier itself is NOT vacuous: it reads cluster_id and is_outlier and it FIRES on de and it. The defect is that a one-directional control cannot prove a falsifier whose real-data value is already extremal.",
+    "frozen_change_policy_honoured": "r1 was RETIRED, not edited in place, and is preserved byte-intact as an exploratory probe. This r2 is a NEW freeze with a NEW digest. No falsifier, metric, population, pin, success rule or firing semantics is changed.",
+    "what_this_fix_is_NOT": [
+      "It is NOT a relaxation of the success rule. exit 2 on a failed control is UNCHANGED.",
+      "It is NOT a weakening of the non-vacuity requirement. It STRENGTHENS it: the control now requires that AT LEAST ONE of two opposite mutations moves the quantity, where r1 required that one specific mutation move it.",
+      "It is NOT a change to any falsifier definition, firing rule or quantity.",
+      "It introduces no threshold, bar, rubric or predicate."
+    ]
+  },
+  "question": "On the SHIPPED product bundles (rebuilt-39027045675), are the contrary/limiting authorities structurally discoverable, is the cluster panel complete, and is the retrieved population multilingual - or does the shipped map conceal what the answer relies on?",
+  "question_is_unchanged_from_r1": true,
+  "population_frozen": {
+    "packet": "results/product/gate_packet/rebuilt-39027045675",
+    "mount": "/tmp/lex_accepted/product",
+    "packet_json_raw_sha256": "2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170",
+    "n_bundles_expected": 3,
+    "sampling": "ALL bundles of the packet. No subsampling, no selection, no exclusion. No decision is dropped.",
+    "frozen_before": "the r2 execution; r1 observed counts were NOT used to choose the population"
+  },
+  "frozen_pins_rehashed_before_use": {
+    "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+    "evaluation/frozen_bars/LABEL_LINEAGE_VERDICT.json": "016bffe5914ffc9074c948c9e452d05c79639735ed32f6c82aefd3751afcca18"
+  },
+  "metrics_frozen": "UNCHANGED from r1, verbatim: F1 map::unclustered_point_mass; F2 map::cluster_panel_coverage (set relation, both differences); F3 map::cluster_size_member_len_divergence (published only, not a bar, explicitly not a re-raise); F4 multilingual::language_unassigned; F5 counter::emitted_label_placement; F6 counter::issued_population_reconciliation.",
+  "success_rule_frozen": {
+    "exit_0_BENCHMARK_VALID_NO_FALSIFICATION": "frozen pins all re-hash AND packet.json matches the direction pin AND every falsifier count is zero on every bundle",
+    "exit_1_PRODUCT_FALSIFIED": "frozen pins all re-hash AND packet.json matches the direction pin AND at least one falsifier fires on the shipped bytes",
+    "exit_2_ENVIRONMENT_OR_VACUOUS": "a pin fails to re-hash, OR packet.json sha differs from the pin, OR a bundle is unmeasurable, OR any non-vacuity control fails to move on a falsifier that HAS a measurable population. NEVER a product pass."
+  },
+  "non_vacuity_rule_frozen_r2": {
+    "change_from_r1": "Each falsifier is paired with TWO opposite hostile mutations of the shipped bytes (CONCEAL and REVEAL for F5; single-direction for F1-F4, whose real-data values are not extremal in both directions). The control PASSES when at least one mutation moves the falsifier's quantity. A falsifier whose BASELINE POPULATION IS EMPTY (F5 on a bundle that emitted zero adversarial rows) is recorded as NOT_APPLICABLE_ZERO_POPULATION with moved=null and does NOT by itself force exit 2 — but it is ALSO recorded as NOT A PASS and is published beside the falsifier's own reading.",
+    "rationale": "A one-directional control cannot prove a falsifier whose real-data value is already extremal. Requiring one of two opposite mutations to move STRICTLY STRENGTHENS the requirement: r1 could be satisfied by moving in only one direction; r2 accepts either direction, and still fails closed if neither moves.",
+    "not_applicable_is_not_a_pass": "A NOT_APPLICABLE_ZERO_POPULATION control is explicitly NOT evidence that the falsifier is live on that bundle, and is never reported as a pass."
+  },
+  "set_relation_discipline": "No two counted sets are compared by matching cardinality. Every set statement is accompanied by its two differences, per factory-wide requirement 16.",
+  "instrument_reuse_frozen": [
+    "evaluation.retrieval_gate.id_hygiene.id_defects (accepted)",
+    "evaluation.served_bundle_scope.measure_bundle (accepted; cross-check only, against the accepted record results/evaluation/served_bundle_scope/39086856920.json)"
+  ],
+  "no_new_thresholds": "Zero thresholds, bars, rubrics or predicates are introduced. Every falsifier fires on a non-zero COUNT or on a SET RELATION that is not identity. Nothing here can claim any frozen bar is met or unmet.",
+  "still_not_run": [
+    "the closed universal-174k suite",
+    "the frozen reality benchmark ff57f556",
+    "the CLOSED BJR leg",
+    "any candidate (classifier, layout) rebuild",
+    "the accepted benchmark_retrieval_counter_authority.py instrument, which is left byte-unchanged"
+  ],
+  "explicit_non_claims": [
+    "Does NOT score, move, re-derive or re-tune any frozen bar.",
+    "Does NOT re-measure either closed Frontier candidate.",
+    "Says NOTHING about jurist usefulness; human_gate_ready stays false.",
+    "Does NOT relax the standing accepted DO-NOT-SERVE orders on any packet.",
+    "A fired falsifier is a preserved NEGATIVE result about the shipped map, not a claim that the product is unusable."
+  ],
+  "change_policy": "If any metric, population, pin, success rule or non-vacuity rule changes after THIS execution, this file is RETIRED, the run is reported as an exploratory probe, and a NEW hypothesis with a NEW digest is frozen before any further execution. Nothing is edited in place after observation."
+}

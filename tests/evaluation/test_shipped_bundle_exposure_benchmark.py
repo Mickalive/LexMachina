@@ -235,6 +235,72 @@ def test_non_vacuity_battery_holds_on_a_synthetic_bundle():
     assert nv["n_controls"] == 5
     assert nv["all_hold"] is True
     assert all(c["moved"] for c in nv["controls"])
+    assert nv["n_not_applicable_zero_population"] == 0
+
+
+def test_r2_control_moves_in_the_reveal_direction_when_conceal_is_saturated():
+    """The r1 defect, regression-guarded.
+
+    r1 shipped a CONCEAL-only F5 control. On a bundle whose emitted rows are
+    ALREADY unclustered and unflagged, concealing further cannot move the
+    quantity, so r1 failed closed with ENVIRONMENT_OR_VACUOUS. r2 adds the
+    REVEAL mutation so the battery is proven live in that situation too.
+    """
+    b = _bundle()
+    # saturate: every emitted row already unclustered and not an outlier
+    for d in b["decisions"]:
+        if d.get("counter_status") in ADVERSARIAL_EMITTED:
+            d["cluster_id"] = -1
+            d["unclustered"] = True
+            d["is_outlier"] = False
+    saturated = f5_emitted_label_placement(b)
+    assert saturated["n_emitted_in_declared_clusters"] == 0
+    assert saturated["n_emitted_flagged_outlier"] == 0
+
+    nv = non_vacuity(b)
+    f5 = next(c for c in nv["controls"] if c["control"] == "F5")
+    assert f5["status"] == "MOVED"
+    assert f5["moved"] is True
+    assert f5["moved_by"] == "_hostile_reveal"
+    assert nv["all_hold"] is True
+
+
+def test_r2_declares_an_empty_population_not_applicable_and_never_a_pass():
+    """A bundle that emitted zero adversarial rows cannot prove F5 live."""
+    b = _bundle()
+    for d in b["decisions"]:
+        if d.get("counter_status") in ADVERSARIAL_EMITTED:
+            d["counter_status"] = "none"
+            d["counter_anchor_label"] = None
+    nv = non_vacuity(b)
+    f5 = next(c for c in nv["controls"] if c["control"] == "F5")
+    assert f5["status"] == "NOT_APPLICABLE_ZERO_POPULATION"
+    assert f5["moved"] is None
+    assert "NOT a pass" in f5["reading"]
+    assert nv["n_not_applicable_zero_population"] == 1
+    # a NOT_APPLICABLE control must not be silently counted as holding
+    assert nv["all_hold"] is True  # the other four still moved
+    assert nv["not_applicable_is_not_a_pass"] is True
+
+
+def test_r2_still_fails_closed_when_no_direction_moves():
+    """If both mutations fail to move, the battery must report VACUOUS."""
+    import evaluation.shipped_bundle_exposure_benchmark as mod
+    saved = mod.HOSTILE_CONTROLS
+    # replace F5's mutations with two that provably change nothing
+    mod.HOSTILE_CONTROLS = tuple(
+        (tag, name, fn, (lambda b: b, lambda b: b))
+        if tag == "F5" else (tag, name, fn, muts)
+        for tag, name, fn, muts in saved)
+    try:
+        b = _bundle()
+        nv = non_vacuity(b)
+        f5 = next(c for c in nv["controls"] if c["control"] == "F5")
+        assert f5["status"] == "VACUOUS"
+        assert f5["moved"] is False
+        assert nv["all_hold"] is False
+    finally:
+        mod.HOSTILE_CONTROLS = saved
 
 
 def test_measure_covers_every_declared_falsifier():
