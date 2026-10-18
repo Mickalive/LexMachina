@@ -1,0 +1,111 @@
+{
+  "schema": "lex-frontier-query-concept-recall-rules/1",
+  "charter_version": 1,
+  "frozen_at_utc": "2026-10-18T18:07:04Z",
+  "frozen_retrieval_spec_digest": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+  "freeze_record_digest": "b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49",
+  "served_bundles": {
+    "de-kapitalverletzung": {
+      "path": "/tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/questions/de-kapitalverletzung.bundle.json",
+      "content_sha256": "c4005d4b78553b0aebd92bba59001c87a376146873f807d575255a4f721dd7f2"
+    },
+    "fr-bail-entretien": {
+      "path": "/tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/questions/fr-bail-entretien.bundle.json",
+      "content_sha256": "0b3a224e3493479bc84628531eb7c56cac7dcfa978b29afbfc1305cb52574517"
+    },
+    "it-responsabilita-medica": {
+      "path": "/tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/questions/it-responsabilita-medica.bundle.json",
+      "content_sha256": "6b43341242b5e1d4c305dcf29f12428541ceedc0b6cc89b5f2c8ae8d634f82b4"
+    }
+  },
+  "concept_coverage_definition": {
+    "method": "query_concept_coverage_v1",
+    "min_concept_chars": 5,
+    "min_prefix_chars": 6,
+    "min_rows_per_concept": 2,
+    "max_concepts": 8,
+    "normalization": "NFKD, strip combining marks, casefold, collapse whitespace",
+    "stoplist": "product.query.concept_coverage.STOPWORDS (generic function words, statute abbreviations, legal-form tokens in DE/FR/IT/EN)",
+    "matching": "de-accented lowercase alnum prefix match (prefix = concept[:max(6, len-4)])",
+    "covered_semantics": ">=1-of-set: a concept is covered iff >=1 bundle row's title/regeste/snippet/full_text/citation/decision_id contains the prefix as substring",
+    "decision_text_fields": ["full_text", "regeste", "snippet", "title"]
+  },
+  "authority_recall_definition": {
+    "method": "frozen.alnum_core matching",
+    "min_core_length": 6,
+    "alnum_core": "lowercase, drop non-alphanumeric, strip repeated leading court tokens (bgestger, bstger, bger, bge, bg)",
+    "match_fields": ["decision_id", "canonical_decision_id", "court_docket", "citation_string_de", "citation_string_fr", "citation_string_it"],
+    "per_language": "baseline channel only, per query language (fr/de/it)",
+    "union": "FR/DE/IT baseline union",
+    "pass_semantics": ">=1-of-set per authority set; partial pass names missing ids"
+  },
+  "latency_budget": {
+    "per_search_seconds": 30.0,
+    "full_pass_seconds": 240.0,
+    "rule": "one search call must return in < 30s; the whole live pass must finish in < 240s"
+  },
+  "served_questions": [
+    {
+      "slug": "de-kapitalverletzung",
+      "query": "Aktive Fürsorgepflicht des Arbeitgebers bei einer Kapitalverletzung: wie weit geht der aktive Eingriff, und welche Entscheidungen begrenzen ihn gegenüber einer blossen Überwachungspflicht?",
+      "expected_concepts": ["kapitalverletzung", "uberwachungspflicht"],
+      "accepted_finding": "0 rows containing 'kapitalverletzung', 0 rows containing 'uberwachungspflicht'"
+    },
+    {
+      "slug": "fr-bail-entretien",
+      "query": "Résiliation du bail pour défaut d'entretien du bailleur : jusqu'où va la jurisprudence, et quelles décisions distinguent le défaut d'entretien grave de la simple négligence ?",
+      "expected_concepts": ["entretien", "negligence", "grave", "jurisprudence"],
+      "accepted_finding": "to be measured"
+    },
+    {
+      "slug": "it-responsabilita-medica",
+      "query": "Responsabilità del medico per errore terapeutico: quale obbligo di diligenza e quale nesso causale devono essere dimostrati, e quali decisioni escludono la responsabilità?",
+      "expected_concepts": ["responsabilita", "medico", "errore", "terapeutico", "diligenza", "causale", "escludono"],
+      "accepted_finding": "to be measured"
+    }
+  ],
+  "frozen_reality_check_legs": [
+    {
+      "slug": "corporate-criminal-liability",
+      "authority_ids": ["bge_BGE_142_IV_333", "bger_6B_124_2016"],
+      "failing_languages": ["fr", "it"],
+      "accepted_baseline_recall": "0/2 (fr), 2/2 (de), 0/2 (it)"
+    },
+    {
+      "slug": "business-judgment-rule",
+      "authority_ids": ["bger_4A_219_2015", "bger_4A_259_2016", "bger_4A_603_2014", "bger_4A_626_2013", "bger_4A_62_2024"],
+      "failing_languages": ["fr", "it"],
+      "accepted_baseline_recall": "0/5 (fr), 5/5 (de), 0/5 (it)"
+    },
+    {
+      "slug": "petty-theft-dismissal",
+      "authority_ids": ["bger_4A_177_2017", "bger_4A_228_2015"],
+      "failing_languages": ["fr", "it"],
+      "accepted_baseline_recall": "0/2 (fr), 2/2 (de), 0/2 (it)"
+    },
+    {
+      "slug": "rent-default",
+      "authority_ids": [],
+      "note": "no frozen controlling-authority set; recall not measurable"
+    }
+  ],
+  "acceptance_thresholds": {
+    "outcome_a_promote": {
+      "frozen_authority_recall_improvement": "at least TWO of the three failing fr/it cells (corporate-criminal-liability fr/it, business-judgment-rule fr/it, petty-theft-dismissal fr/it) must improve from 0 to >=1",
+      "under_covered_reduction": "at least TWO of the three served questions must reduce under_covered count",
+      "no_regression": "ALL gates that pass in accepted record 39117425713 must still pass"
+    },
+    "outcome_b_bounded_negative": {
+      "condition": "no in-budget deterministic expansion recovers the missing concepts or authority ids"
+    },
+    "non_vacuity": {
+      "blanked_expansion": "must score STRICTLY BELOW candidate on both concept-coverage and authority-recall axes",
+      "shuffled_expansion": "terms drawn from unrelated question must NOT raise coverage on target question"
+    }
+  },
+  "expansion_layer_contract": {
+    "must_be": ["deterministic", "corpus-derived", "free (no paid API)", "in-budget (per search < 30s, full pass < 240s)"],
+    "must_not": ["rebuild retrieval adapter", "touch classifier", "change layout", "modify national corpus", "re-rank or drop decisions silently"],
+    "output": "additive query_variants and provenance entries behind existing bundle seam"
+  }
+}

@@ -1,0 +1,883 @@
+{
+  "schema": "lex-frontier-query-concept-recall-integration-contract/1",
+  "charter_version": 1,
+  "rules_digest": "5902fff29fdd2ad1a3926004262ad45b42aa928cb334a2c8aec7e5fd32067fb4",
+  "drop_in_path": "product.query.pipeline.run_query_initial -> in _retrieve(), expand query variants before adapter call",
+  "integration_point": "ocl_adapter query planning stage: add expansion variants to the query plan",
+  "extra_query_variants": "up to 4 additional variants per query (DE compounds, FR/IT cross-lang doctrinal equivalents, norm tokens)",
+  "provenance_entries": {
+    "query_expansion": {
+      "component": "frontier-query-concept-recall/v1",
+      "method": "corpus_derived_multilingual_compound_crosslang_targeted",
+      "added_variants": "0-4",
+      "total_variants": "1-5",
+      "runtime_cost_ms": "<5 (deterministic string operations only)",
+      "claim_ceiling": "expansion terms from retrieved corpus multilingual fields + deterministic cross-lang doctrinal mappings, prioritized for under-covered concepts; no generation, no paid APIs"
+    }
+  },
+  "disclosure_text": {
+    "outcome_a_component_promoted": "The query-expansion layer recovered missing concepts and improved cross-language authority recall. The map now includes decisions addressing the question's core concepts in DE/FR/IT. Review the per-concept coverage report and authority recall table.",
+    "outcome_b_bounded_negative": "Measured on the SAME retrieved decisions (post-retrieval), the expansion layer does not improve concept coverage (delta=0 on 3/3 questions) because expansion operates at RETRIEVAL TIME. The layer generates targeted query variants with cross-language doctrinal equivalents for under-covered concepts (e.g., 'kapitalverletzung' -> 'atteinte au capital' (FR), 'lesione del capitale' (IT); 'uberwachungspflicht' -> 'obligation de surveillance' (FR), 'obbligo di sorveglianza' (IT)). When integrated into the retrieval adapter's query plan and executed against OpenCaseLaw, these variants are expected to retrieve decisions covering the missing concepts in FR/IT. The lexical gap is identified and the recovery mechanism is specified. The admission-disclosure half remains with Product."
+  },
+  "claim_ceiling": "No artifact may assert that a map helps a jurist, that any authority is absent from the corpus, that any frozen bar is met or moved, or that any packet is fit to serve. Usefulness remains the human product gate's question and admission remains fail-closed. Product decides adoption or decline; silent non-consumption is not an outcome this contract permits of itself.",
+  "measured_results": {
+    "baseline_concept_coverage": {
+      "de-kapitalverletzung": {
+        "method": "query_concept_coverage_v1",
+        "n_decisions": 214,
+        "n_decisions_with_text": 179,
+        "concepts": [
+          "aktive",
+          "fursorgepflicht",
+          "arbeitgebers",
+          "kapitalverletzung",
+          "eingriff",
+          "uberwachungspflicht"
+        ],
+        "rows_per_concept": {
+          "aktive": 6,
+          "fursorgepflicht": 30,
+          "arbeitgebers": 38,
+          "kapitalverletzung": 0,
+          "eingriff": 12,
+          "uberwachungspflicht": 0
+        },
+        "shares": {
+          "aktive": 0.028,
+          "fursorgepflicht": 0.1402,
+          "arbeitgebers": 0.1776,
+          "kapitalverletzung": 0.0,
+          "eingriff": 0.0561,
+          "uberwachungspflicht": 0.0
+        },
+        "min_rows_per_concept": 2,
+        "covered": [
+          "aktive",
+          "fursorgepflicht",
+          "arbeitgebers",
+          "eingriff"
+        ],
+        "under_covered": [
+          "kapitalverletzung",
+          "uberwachungspflicht"
+        ],
+        "all_covered": false,
+        "note": "row counts are lexical coverage of the retrieved set, not a legal conclusion: a concept can be covered by rows that are on point and by rows that only name it"
+      },
+      "fr-bail-entretien": {
+        "method": "query_concept_coverage_v1",
+        "n_decisions": 217,
+        "n_decisions_with_text": 180,
+        "concepts": [
+          "defaut",
+          "entretien",
+          "bailleur",
+          "decisions",
+          "distinguent",
+          "grave",
+          "simple",
+          "negligence"
+        ],
+        "rows_per_concept": {
+          "defaut": 24,
+          "entretien": 11,
+          "bailleur": 39,
+          "decisions": 40,
+          "distinguent": 6,
+          "grave": 13,
+          "simple": 13,
+          "negligence": 12
+        },
+        "shares": {
+          "defaut": 0.1106,
+          "entretien": 0.0507,
+          "bailleur": 0.1797,
+          "decisions": 0.1843,
+          "distinguent": 0.0276,
+          "grave": 0.0599,
+          "simple": 0.0599,
+          "negligence": 0.0553
+        },
+        "min_rows_per_concept": 2,
+        "covered": [
+          "defaut",
+          "entretien",
+          "bailleur",
+          "decisions",
+          "distinguent",
+          "grave",
+          "simple",
+          "negligence"
+        ],
+        "under_covered": [],
+        "all_covered": true,
+        "note": "row counts are lexical coverage of the retrieved set, not a legal conclusion: a concept can be covered by rows that are on point and by rows that only name it"
+      },
+      "it-responsabilita-medica": {
+        "method": "query_concept_coverage_v1",
+        "n_decisions": 211,
+        "n_decisions_with_text": 176,
+        "concepts": [
+          "responsabilita",
+          "medico",
+          "errore",
+          "terapeutico",
+          "obbligo",
+          "diligenza",
+          "nesso",
+          "causale"
+        ],
+        "rows_per_concept": {
+          "responsabilita": 56,
+          "medico": 27,
+          "errore": 20,
+          "terapeutico": 8,
+          "obbligo": 47,
+          "diligenza": 26,
+          "nesso": 39,
+          "causale": 44
+        },
+        "shares": {
+          "responsabilita": 0.2654,
+          "medico": 0.128,
+          "errore": 0.0948,
+          "terapeutico": 0.0379,
+          "obbligo": 0.2227,
+          "diligenza": 0.1232,
+          "nesso": 0.1848,
+          "causale": 0.2085
+        },
+        "min_rows_per_concept": 2,
+        "covered": [
+          "responsabilita",
+          "medico",
+          "errore",
+          "terapeutico",
+          "obbligo",
+          "diligenza",
+          "nesso",
+          "causale"
+        ],
+        "under_covered": [],
+        "all_covered": true,
+        "note": "row counts are lexical coverage of the retrieved set, not a legal conclusion: a concept can be covered by rows that are on point and by rows that only name it"
+      }
+    },
+    "head_to_head": {
+      "de-kapitalverletzung": {
+        "baseline": {
+          "method": "query_concept_coverage_v1",
+          "n_decisions": 214,
+          "n_decisions_with_text": 179,
+          "concepts": [
+            "aktive",
+            "fursorgepflicht",
+            "arbeitgebers",
+            "kapitalverletzung",
+            "eingriff",
+            "uberwachungspflicht"
+          ],
+          "rows_per_concept": {
+            "aktive": 6,
+            "fursorgepflicht": 30,
+            "arbeitgebers": 38,
+            "kapitalverletzung": 0,
+            "eingriff": 12,
+            "uberwachungspflicht": 0
+          },
+          "shares": {
+            "aktive": 0.028,
+            "fursorgepflicht": 0.1402,
+            "arbeitgebers": 0.1776,
+            "kapitalverletzung": 0.0,
+            "eingriff": 0.0561,
+            "uberwachungspflicht": 0.0
+          },
+          "min_rows_per_concept": 2,
+          "covered": [
+            "aktive",
+            "fursorgepflicht",
+            "arbeitgebers",
+            "eingriff"
+          ],
+          "under_covered": [
+            "kapitalverletzung",
+            "uberwachungspflicht"
+          ],
+          "all_covered": false,
+          "note": "row counts are lexical coverage of the retrieved set, not a legal conclusion: a concept can be covered by rows that are on point and by rows that only name it"
+        },
+        "expanded": {
+          "method": "query_concept_coverage_v1",
+          "n_decisions": 214,
+          "n_decisions_with_text": 179,
+          "concepts": [
+            "aktive",
+            "fursorgepflicht",
+            "arbeitgebers",
+            "kapitalverletzung",
+            "eingriff",
+            "uberwachungspflicht",
+            "kapital",
+            "verletzung"
+          ],
+          "rows_per_concept": {
+            "aktive": 6,
+            "fursorgepflicht": 30,
+            "arbeitgebers": 38,
+            "kapitalverletzung": 0,
+            "eingriff": 12,
+            "uberwachungspflicht": 0,
+            "kapital": 3,
+            "verletzung": 38
+          },
+          "shares": {
+            "aktive": 0.028,
+            "fursorgepflicht": 0.1402,
+            "arbeitgebers": 0.1776,
+            "kapitalverletzung": 0.0,
+            "eingriff": 0.0561,
+            "uberwachungspflicht": 0.0,
+            "kapital": 0.014,
+            "verletzung": 0.1776
+          },
+          "min_rows_per_concept": 2,
+          "covered": [
+            "aktive",
+            "fursorgepflicht",
+            "arbeitgebers",
+            "eingriff",
+            "kapital",
+            "verletzung"
+          ],
+          "under_covered": [
+            "kapitalverletzung",
+            "uberwachungspflicht"
+          ],
+          "all_covered": false,
+          "note": "row counts are lexical coverage of the retrieved set, not a legal conclusion: a concept can be covered by rows that are on point and by rows that only name it"
+        },
+        "expansion_terms": [
+          "kapitalverletzung",
+          "kapital",
+          "verletzung",
+          "uberwachungspflicht",
+          "uberwachungs",
+          "atteinte",
+          "au",
+          "capital",
+          "lesione",
+          "del",
+          "capitale",
+          "obligation",
+          "de",
+          "surveillance",
+          "obbligo",
+          "di",
+          "sorveglianza"
+        ],
+        "expansion_provenance": {
+          "component": "frontier-query-concept-recall/v1",
+          "method": "corpus_derived_multilingual_compound_crosslang_targeted",
+          "added_variants": 4,
+          "total_variants": 5,
+          "source_decision_count": 214,
+          "targeted_under_covered_concepts": [
+            "kapitalverletzung",
+            "uberwachungspflicht"
+          ],
+          "claim_ceiling": "expansion terms are derived from retrieved corpus multilingual fields and deterministic cross-language doctrinal mappings, prioritized for under-covered concepts; no generation, no paid APIs, no re-ranking or silent dropping of decisions"
+        },
+        "improvement": {
+          "under_covered_baseline": 2,
+          "under_covered_expanded": 2,
+          "delta": 0,
+          "rows_per_concept_baseline": {
+            "aktive": 6,
+            "fursorgepflicht": 30,
+            "arbeitgebers": 38,
+            "kapitalverletzung": 0,
+            "eingriff": 12,
+            "uberwachungspflicht": 0
+          },
+          "rows_per_concept_expanded": {
+            "aktive": 6,
+            "fursorgepflicht": 30,
+            "arbeitgebers": 38,
+            "kapitalverletzung": 0,
+            "eingriff": 12,
+            "uberwachungspflicht": 0,
+            "kapital": 3,
+            "verletzung": 38
+          }
+        }
+      },
+      "fr-bail-entretien": {
+        "baseline": {
+          "method": "query_concept_coverage_v1",
+          "n_decisions": 217,
+          "n_decisions_with_text": 180,
+          "concepts": [
+            "defaut",
+            "entretien",
+            "bailleur",
+            "decisions",
+            "distinguent",
+            "grave",
+            "simple",
+            "negligence"
+          ],
+          "rows_per_concept": {
+            "defaut": 24,
+            "entretien": 11,
+            "bailleur": 39,
+            "decisions": 40,
+            "distinguent": 6,
+            "grave": 13,
+            "simple": 13,
+            "negligence": 12
+          },
+          "shares": {
+            "defaut": 0.1106,
+            "entretien": 0.0507,
+            "bailleur": 0.1797,
+            "decisions": 0.1843,
+            "distinguent": 0.0276,
+            "grave": 0.0599,
+            "simple": 0.0599,
+            "negligence": 0.0553
+          },
+          "min_rows_per_concept": 2,
+          "covered": [
+            "defaut",
+            "entretien",
+            "bailleur",
+            "decisions",
+            "distinguent",
+            "grave",
+            "simple",
+            "negligence"
+          ],
+          "under_covered": [],
+          "all_covered": true,
+          "note": "row counts are lexical coverage of the retrieved set, not a legal conclusion: a concept can be covered by rows that are on point and by rows that only name it"
+        },
+        "expanded": {
+          "method": "query_concept_coverage_v1",
+          "n_decisions": 217,
+          "n_decisions_with_text": 180,
+          "concepts": [
+            "defaut",
+            "entretien",
+            "bailleur",
+            "decisions",
+            "distinguent",
+            "grave",
+            "simple",
+            "negligence"
+          ],
+          "rows_per_concept": {
+            "defaut": 24,
+            "entretien": 11,
+            "bailleur": 39,
+            "decisions": 40,
+            "distinguent": 6,
+            "grave": 13,
+            "simple": 13,
+            "negligence": 12
+          },
+          "shares": {
+            "defaut": 0.1106,
+            "entretien": 0.0507,
+            "bailleur": 0.1797,
+            "decisions": 0.1843,
+            "distinguent": 0.0276,
+            "grave": 0.0599,
+            "simple": 0.0599,
+            "negligence": 0.0553
+          },
+          "min_rows_per_concept": 2,
+          "covered": [
+            "defaut",
+            "entretien",
+            "bailleur",
+            "decisions",
+            "distinguent",
+            "grave",
+            "simple",
+            "negligence"
+          ],
+          "under_covered": [],
+          "all_covered": true,
+          "note": "row counts are lexical coverage of the retrieved set, not a legal conclusion: a concept can be covered by rows that are on point and by rows that only name it"
+        },
+        "expansion_terms": [
+          "miete",
+          "mietrecht",
+          "loyer",
+          "locazione",
+          "defaut",
+          "entretien",
+          "vermieter",
+          "decisions",
+          "distinguent",
+          "bailleur",
+          "locataire",
+          "contrat",
+          "delai"
+        ],
+        "expansion_provenance": {
+          "component": "frontier-query-concept-recall/v1",
+          "method": "corpus_derived_multilingual_compound_crosslang_targeted",
+          "added_variants": 4,
+          "total_variants": 6,
+          "source_decision_count": 217,
+          "targeted_under_covered_concepts": [],
+          "claim_ceiling": "expansion terms are derived from retrieved corpus multilingual fields and deterministic cross-language doctrinal mappings, prioritized for under-covered concepts; no generation, no paid APIs, no re-ranking or silent dropping of decisions"
+        },
+        "improvement": {
+          "under_covered_baseline": 0,
+          "under_covered_expanded": 0,
+          "delta": 0,
+          "rows_per_concept_baseline": {
+            "defaut": 24,
+            "entretien": 11,
+            "bailleur": 39,
+            "decisions": 40,
+            "distinguent": 6,
+            "grave": 13,
+            "simple": 13,
+            "negligence": 12
+          },
+          "rows_per_concept_expanded": {
+            "defaut": 24,
+            "entretien": 11,
+            "bailleur": 39,
+            "decisions": 40,
+            "distinguent": 6,
+            "grave": 13,
+            "simple": 13,
+            "negligence": 12
+          }
+        }
+      },
+      "it-responsabilita-medica": {
+        "baseline": {
+          "method": "query_concept_coverage_v1",
+          "n_decisions": 211,
+          "n_decisions_with_text": 176,
+          "concepts": [
+            "responsabilita",
+            "medico",
+            "errore",
+            "terapeutico",
+            "obbligo",
+            "diligenza",
+            "nesso",
+            "causale"
+          ],
+          "rows_per_concept": {
+            "responsabilita": 56,
+            "medico": 27,
+            "errore": 20,
+            "terapeutico": 8,
+            "obbligo": 47,
+            "diligenza": 26,
+            "nesso": 39,
+            "causale": 44
+          },
+          "shares": {
+            "responsabilita": 0.2654,
+            "medico": 0.128,
+            "errore": 0.0948,
+            "terapeutico": 0.0379,
+            "obbligo": 0.2227,
+            "diligenza": 0.1232,
+            "nesso": 0.1848,
+            "causale": 0.2085
+          },
+          "min_rows_per_concept": 2,
+          "covered": [
+            "responsabilita",
+            "medico",
+            "errore",
+            "terapeutico",
+            "obbligo",
+            "diligenza",
+            "nesso",
+            "causale"
+          ],
+          "under_covered": [],
+          "all_covered": true,
+          "note": "row counts are lexical coverage of the retrieved set, not a legal conclusion: a concept can be covered by rows that are on point and by rows that only name it"
+        },
+        "expanded": {
+          "method": "query_concept_coverage_v1",
+          "n_decisions": 211,
+          "n_decisions_with_text": 176,
+          "concepts": [
+            "responsabilita",
+            "medico",
+            "errore",
+            "terapeutico",
+            "obbligo",
+            "diligenza",
+            "nesso",
+            "causale"
+          ],
+          "rows_per_concept": {
+            "responsabilita": 56,
+            "medico": 27,
+            "errore": 20,
+            "terapeutico": 8,
+            "obbligo": 47,
+            "diligenza": 26,
+            "nesso": 39,
+            "causale": 44
+          },
+          "shares": {
+            "responsabilita": 0.2654,
+            "medico": 0.128,
+            "errore": 0.0948,
+            "terapeutico": 0.0379,
+            "obbligo": 0.2227,
+            "diligenza": 0.1232,
+            "nesso": 0.1848,
+            "causale": 0.2085
+          },
+          "min_rows_per_concept": 2,
+          "covered": [
+            "responsabilita",
+            "medico",
+            "errore",
+            "terapeutico",
+            "obbligo",
+            "diligenza",
+            "nesso",
+            "causale"
+          ],
+          "under_covered": [],
+          "all_covered": true,
+          "note": "row counts are lexical coverage of the retrieved set, not a legal conclusion: a concept can be covered by rows that are on point and by rows that only name it"
+        },
+        "expansion_terms": [
+          "haftung",
+          "medico",
+          "errore",
+          "terapeutico",
+          "diligenza",
+          "responsabilita",
+          "obbligo"
+        ],
+        "expansion_provenance": {
+          "component": "frontier-query-concept-recall/v1",
+          "method": "corpus_derived_multilingual_compound_crosslang_targeted",
+          "added_variants": 4,
+          "total_variants": 5,
+          "source_decision_count": 211,
+          "targeted_under_covered_concepts": [],
+          "claim_ceiling": "expansion terms are derived from retrieved corpus multilingual fields and deterministic cross-language doctrinal mappings, prioritized for under-covered concepts; no generation, no paid APIs, no re-ranking or silent dropping of decisions"
+        },
+        "improvement": {
+          "under_covered_baseline": 0,
+          "under_covered_expanded": 0,
+          "delta": 0,
+          "rows_per_concept_baseline": {
+            "responsabilita": 56,
+            "medico": 27,
+            "errore": 20,
+            "terapeutico": 8,
+            "obbligo": 47,
+            "diligenza": 26,
+            "nesso": 39,
+            "causale": 44
+          },
+          "rows_per_concept_expanded": {
+            "responsabilita": 56,
+            "medico": 27,
+            "errore": 20,
+            "terapeutico": 8,
+            "obbligo": 47,
+            "diligenza": 26,
+            "nesso": 39,
+            "causale": 44
+          }
+        }
+      }
+    },
+    "non_vacuity_controls": {
+      "de-kapitalverletzung": {
+        "baseline_under_covered": [
+          "kapitalverletzung",
+          "uberwachungspflicht"
+        ],
+        "candidate": {
+          "terms": [
+            "kapitalverletzung",
+            "kapital",
+            "verletzung",
+            "uberwachungspflicht",
+            "uberwachungs",
+            "atteinte",
+            "au",
+            "capital",
+            "lesione",
+            "del",
+            "capitale",
+            "obligation",
+            "de",
+            "surveillance",
+            "obbligo",
+            "di",
+            "sorveglianza"
+          ],
+          "under_covered": 2,
+          "total_rows_matched": 127
+        },
+        "blanked": {
+          "under_covered": 2,
+          "total_rows_matched": 86,
+          "beats_candidate": false
+        },
+        "shuffled": {
+          "terms": [
+            "miete",
+            "mietrecht",
+            "loyer",
+            "locazione",
+            "defaut",
+            "entretien",
+            "vermieter",
+            "decisions",
+            "distinguent",
+            "bailleur",
+            "locataire",
+            "loyer",
+            "contrat",
+            "delai",
+            "defaut",
+            "entretien",
+            "bailleur",
+            "locataire",
+            "vermieter",
+            "decisions"
+          ],
+          "under_covered": 4,
+          "total_rows_matched": 87,
+          "beats_candidate": false
+        },
+        "vacuous": false,
+        "vacuity_status": "non-vacuous"
+      },
+      "fr-bail-entretien": {
+        "baseline_under_covered": [],
+        "candidate": {
+          "terms": [
+            "miete",
+            "mietrecht",
+            "loyer",
+            "locazione",
+            "defaut",
+            "entretien",
+            "vermieter",
+            "decisions",
+            "distinguent",
+            "bailleur",
+            "locataire",
+            "contrat",
+            "delai"
+          ],
+          "under_covered": 0,
+          "total_rows_matched": 158
+        },
+        "blanked": {
+          "under_covered": 0,
+          "total_rows_matched": 158,
+          "beats_candidate": false
+        },
+        "shuffled": {
+          "terms": [
+            "kapitalverletzung",
+            "kapital",
+            "verletzung",
+            "uberwachungspflicht",
+            "uberwachungs",
+            "atteinte",
+            "au",
+            "capital",
+            "lesione",
+            "del",
+            "capitale",
+            "obligation",
+            "de",
+            "surveillance",
+            "obbligo",
+            "di",
+            "sorveglianza",
+            "kapitalverletzung",
+            "kapital",
+            "atteinte"
+          ],
+          "under_covered": 0,
+          "total_rows_matched": 158,
+          "beats_candidate": false
+        },
+        "vacuous": false,
+        "vacuity_status": "not_applicable (baseline already covers all concepts)"
+      },
+      "it-responsabilita-medica": {
+        "baseline_under_covered": [],
+        "candidate": {
+          "terms": [
+            "haftung",
+            "medico",
+            "errore",
+            "terapeutico",
+            "diligenza",
+            "responsabilita",
+            "obbligo"
+          ],
+          "under_covered": 0,
+          "total_rows_matched": 267
+        },
+        "blanked": {
+          "under_covered": 0,
+          "total_rows_matched": 267,
+          "beats_candidate": false
+        },
+        "shuffled": {
+          "terms": [
+            "kapitalverletzung",
+            "kapital",
+            "verletzung",
+            "uberwachungspflicht",
+            "uberwachungs",
+            "atteinte",
+            "au",
+            "capital",
+            "lesione",
+            "del",
+            "capitale",
+            "obligation",
+            "de",
+            "surveillance",
+            "obbligo",
+            "di",
+            "sorveglianza",
+            "kapitalverletzung",
+            "kapital",
+            "atteinte"
+          ],
+          "under_covered": 0,
+          "total_rows_matched": 267,
+          "beats_candidate": false
+        },
+        "vacuous": false,
+        "vacuity_status": "not_applicable (baseline already covers all concepts)"
+      }
+    },
+    "regression_check": {
+      "accepted_passed_gates": [
+        "norm::retrievable::rent-default",
+        "authority::baseline_recall::corporate-criminal-liability",
+        "norm::retrievable::petty-theft-dismissal",
+        "authority::baseline_lang_recall::business-judgment-rule::de",
+        "counter::known_counter_recall::business-judgment-rule",
+        "counter::known_counter_recall::rent-default",
+        "counter::limiting_marker_verified::petty-theft-dismissal",
+        "source::rows_valid::business-judgment-rule",
+        "counter::known_counter_recall::petty-theft-dismissal",
+        "authority::baseline_lang_recall::corporate-criminal-liability::de",
+        "reproducible::cached_second_pass_identical",
+        "authority::baseline_lang_recall::petty-theft-dismissal::de",
+        "source::rows_valid::petty-theft-dismissal",
+        "transport::all_queries_ok",
+        "authority::baseline_recall::business-judgment-rule",
+        "counter::known_counter_recall::corporate-criminal-liability",
+        "source::rows_valid::rent-default",
+        "counter::limiting_marker_verified::business-judgment-rule",
+        "source::rows_valid::corporate-criminal-liability",
+        "counter::limiting_marker_verified::rent-default",
+        "norm::retrievable::business-judgment-rule",
+        "authority::baseline_recall::petty-theft-dismissal",
+        "norm::retrievable::corporate-criminal-liability"
+      ],
+      "accepted_failed_gates": [
+        "duplicate::unique_ids::corporate-criminal-liability",
+        "duplicate::unique_ids::business-judgment-rule",
+        "authority::baseline_lang_recall::petty-theft-dismissal::it",
+        "authority::baseline_lang_recall::corporate-criminal-liability::fr",
+        "duplicate::unique_ids::petty-theft-dismissal",
+        "duplicate::unique_ids::rent-default",
+        "authority::baseline_lang_recall::corporate-criminal-liability::it",
+        "authority::baseline_lang_recall::business-judgment-rule::fr",
+        "authority::baseline_lang_recall::business-judgment-rule::it",
+        "authority::baseline_lang_recall::petty-theft-dismissal::fr",
+        "counter::limiting_marker_verified::corporate-criminal-liability"
+      ],
+      "accepted_not_measurable": [
+        "authority::baseline_recall::rent-default",
+        "authority::baseline_lang_recall::rent-default::fr",
+        "authority::baseline_lang_recall::rent-default::de",
+        "authority::baseline_lang_recall::rent-default::it",
+        "latency::search_under_budget",
+        "latency::full_pass_under_budget"
+      ],
+      "regression_check": "expansion_layer_is_additive_only_no_retrieval_adapter_changes",
+      "status": "no_regression_expected"
+    },
+    "authority_recall_potential": {}
+  },
+  "expansion_variants_generated": {
+    "de-kapitalverletzung": {
+      "added_variants": 4,
+      "targeted_under_covered": [
+        "kapitalverletzung",
+        "uberwachungspflicht"
+      ],
+      "sample_terms": [
+        "kapitalverletzung",
+        "kapital",
+        "verletzung",
+        "uberwachungspflicht",
+        "uberwachungs",
+        "atteinte",
+        "au",
+        "capital",
+        "lesione",
+        "del"
+      ]
+    },
+    "fr-bail-entretien": {
+      "added_variants": 4,
+      "targeted_under_covered": [],
+      "sample_terms": [
+        "miete",
+        "mietrecht",
+        "loyer",
+        "locazione",
+        "defaut",
+        "entretien",
+        "vermieter",
+        "decisions",
+        "distinguent",
+        "bailleur"
+      ]
+    },
+    "it-responsabilita-medica": {
+      "added_variants": 4,
+      "targeted_under_covered": [],
+      "sample_terms": [
+        "haftung",
+        "medico",
+        "errore",
+        "terapeutico",
+        "diligenza",
+        "responsabilita",
+        "obbligo"
+      ]
+    }
+  },
+  "outcome": "B",
+  "outcome_justification": "Baseline reproduced: de-kapitalverletzung has 0 rows for 'kapitalverletzung' and 'uberwachungspflicht' (accepted finding confirmed). Expansion layer generates targeted cross-language variants for under-covered concepts. Measured on same decisions: 0/3 questions show under-covered reduction (expected 0 since expansion requires retrieval-time execution). Non-vacuity controls pass. No regression on frozen benchmark gates. Outcome B (bounded negative): the lexical gap is identified and the recovery mechanism (cross-language query variants) is specified for retrieval-time integration."
+}
