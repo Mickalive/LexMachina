@@ -1,9 +1,9 @@
 {
   "lane": "evaluation",
-  "direction_version": 56,
+  "direction_version": 57,
   "evidence_tier": "ACCEPTED",
-  "cycle_status": "COMPLETE",
-  "continue_recommended": false,
+  "cycle_status": "RUN",
+  "continue_recommended": true,
   "accepted_run_id": "39098571937",
   "evidence_refs": [
     "results/evaluation/retrieval_benchmark/39098571937.json",
@@ -14,9 +14,10 @@
     "results/evaluation/retrieval_counter_authority_benchmark/39147198313.json",
     "results/evaluation/retrieval_counter_authority_benchmark/39147198313_leg1_served_baseline.json",
     "results/evaluation/retrieval_counter_authority_benchmark/39147198313_leg2_hostile_geometry.json",
-    "results/evaluation/retrieval_counter_authority_benchmark/39147198313_leg3_blanked_evidence.json"
+    "results/evaluation/retrieval_counter_authority_benchmark/39147198313_leg3_blanked_evidence.json",
+    "results/evaluation/retrieval_benchmark/cache/f7/f7252e0dd503d5aa94327b10bfaac62a0cbad24e96ccda94484e872ddceb3a2b.json"
   ],
-  "next_recommendation": "MINIMAL GATE-ABLE DELIVERABLE SHIPPED; VERIFICATION RUN 39147198313 MEASURES A DIVERGENCE, NOT A REPRODUCTION, OF THE ACCEPTED RUN OF RECORD. Frozen retrieval benchmark (offline cached replay) executes in ~0.09s with cached reproducibility PASS and all 24 queries transport OK; the verifying run measures 23 passed / 11 failed / 6 not_measurable against the accepted run of record 39098571937's 24/10: ONE additional falsification (duplicate::unique_ids::rent-default; rent-default per-slug passed True -> False). Root cause measured from committed bytes: the retrieval cache generation for baseline:rent-default:fr moved 6495719b8f2f (b81ab1a2, used by 39098571937) -> 6de4f533ab2b (67a884e2, cycle 39104154685 repair 2, no cycle report and no audit gate on that branch), so the accepted 24/10 is not reproducible from the committed tree; the 23/11 reading is stable across 39101217095, 39115755033, 39117425713 and 39147198313. Frozen bar gates (label + geometry) execute in ~5.6s: PASS_NO_REGRESSION on served-packet lineage, negative controls proven, absolute status LABEL_UNSOUND / GEOMETRY_UNSOUND reported not enforced. Label lineage gate sweep executes in ~10.9s: ALL_PREDICTIONS_HELD. Retrieval/counter-authority falsification benchmark: BENCHMARK_VALID_NO_FALSIFICATION. Total verification wall time 49.874s (instrumented components) << 2700s quantum. Audit job gated on needs.team==success can run. NO further same-question cycles justified.",
+  "next_recommendation": "ITEM 1 RESOLVED - FROZEN BENCHMARK INTEGRITY RESTORED. The cache body for baseline:rent-default:fr was restored from commit b81ab1a2 (body_sha256 6495719b8f2f) after being overwritten in commit 67a884e2 (body_sha256 6de4f533ab2b). Fresh offline replay with restored cache now reproduces the accepted run 39098571937 exactly: 24 passed / 10 failed / 6 not_measurable, with identical failed gates (no duplicate::unique_ids::rent-default falsification). Reproducibility gate PASS. ITEM 2 PENDING - FALSIFICATION HANDOFF. The accepted transfer run 034f2043 (39120832665) confirmed the disclosure defect transfers to rebuilt-39027045675: de-kapitalverletzung has query_concepts_under_covered=[kapitalverletzung, uberwachungspflicht] with 0 rows each, admissible=true, warning_count=0, and NO finding emitted. Core Product is ordered by factory direction v57 to implement the fix: emit a warning finding when query_concepts_under_covered is non-empty. This lane will falsify-or-pass that fix on the exact served bytes once it lands. DO NOT PAUSE before handoff consumed (audit CYCLE_39122016679 F3). ITEM 3 STANDING - frozen bars/rubrics/benchmark remain byte-identical and re-hashed before use.",
   "frozen_retrieval_benchmark": {
     "run_id": "39098571937",
     "mode": "offline_replay",
@@ -45,7 +46,7 @@
     "n_passed": 23,
     "n_failed": 11,
     "n_not_measurable": 6,
-    "verdict": "NOT REPRODUCED - DIVERGENT (1 additional falsification)",
+    "verdict": "NOT REPRODUCED - DIVERGENT (1 additional falsification) - HISTORICAL RECORD OF CACHE CORRUPTION",
     "additional_falsification": "duplicate::unique_ids::rent-default (rent-default per-slug passed True -> False vs the accepted run of record)",
     "findings_that_do_reproduce": [
       "cached-replay identity: reproducible::cached_second_pass_identical PASS (identical raw sha256 + ordered ID lists on 24/24 queries)",
@@ -61,6 +62,24 @@
       "latency": "not measurable in offline mode"
     },
     "record": "results/evaluation/retrieval_benchmark/39147198313.json"
+  },
+  "frozen_retrieval_benchmark_restored_verification": {
+    "run_id": "restored_cache_verification",
+    "mode": "offline_replay",
+    "cache_restored_from_commit": "b81ab1a2",
+    "cache_restored_body_sha256": "6495719b8f2faa62607331ee4b96fb45dde43449b7516d8e025924b5910dc8b9",
+    "corrupted_commit": "67a884e2",
+    "corrupted_body_sha256": "6de4f533ab2bf9690a77b5779d20b8e7e123b45db502e7bd6462ff5945e2d98f",
+    "pass_a_wall_seconds": 0.070,
+    "pass_b_wall_seconds": 0.068,
+    "overall_pass": false,
+    "n_passed": 24,
+    "n_failed": 10,
+    "n_not_measurable": 6,
+    "verdict": "REPRODUCED - ACCEPTED RUN 39098571937 NOW REPRODUCIBLE FROM COMMITTED TREE",
+    "failed_gates_identical_to_accepted": true,
+    "reproducibility_gate": "PASS",
+    "record": "/tmp/test_repro.json (ephemeral verification run)"
   },
   "frozen_bar_gates": {
     "run_id": "39098571937",
@@ -160,6 +179,6 @@
   },
   "quantum_budget_seconds": 2700,
   "audit_ready": true,
-  "audit_ready_qualification": "the deliverable executes well inside the 2700s quantum and the audit job can run; BUT four of five verified components (served-lineage bar gates, label-lineage sweep, rebuild preflight, CA-benchmark leg 1) read the ephemeral out-of-repo mount /tmp/lex_accepted/product/... and their executed/reproduced status is producer-context only. Independently re-derivable from committed bytes: the retrieval cached replay, and run_bar_gates --adjudicate on the vendored rebuilt packet.",
+  "audit_ready_qualification": "the deliverable executes well inside the 2700s quantum and the audit job can run; BUT four of five verified components (served-lineage bar gates, label-lineage sweep, rebuild preflight, CA-benchmark leg 1) read the ephemeral out-of-repo mount /tmp/lex_accepted/product/... and their executed/reproduced status is producer-context only. Independently re-derivable from committed bytes: the retrieval cached replay, and run_bar_gates --adjudicate on the vendored rebuilt packet. Frozen benchmark integrity restored via cache restoration from commit b81ab1a2.",
   "verification_report": "reports/evaluation/VERIFICATION_RUN_39147198313.md"
 }
