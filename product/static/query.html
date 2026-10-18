@@ -432,10 +432,25 @@ function showDetail(id){
   const c=BUNDLE.clusters.find(x=>x.cluster_id===d.cluster_id);
   const rels=BUNDLE.relations.filter(r=>r.source===id||r.target===id).slice(0,8);
   // A typed citation edge has a direction the jurist cares about: whether this
-  // decision cites the other one, or is cited by it.
-  const relLine=r=>r.kind==="citation"
-    ?(r.source===id?"→ cite ":"← cité par ")+esc(r.target)+(r.confidence!=null?" (conf "+esc(r.confidence)+")":"")
-    :"↔ "+esc(r.source===id?r.target:r.source)+" · "+esc(r.kind);
+  // decision cites the other one, or is cited by it.  A shared_citation edge
+  // is symmetric by nature — BOTH endpoints cite the named authority — so the
+  // honest statement is "cite en commun", never the raw machine token: the
+  // old fallback printed `shared_citation` in a French jurist-facing panel
+  // and stated no citation semantics at all (offline slice 20261018T095123Z:
+  // petty-theft-dismissal and corporate-criminal-liability failed the page
+  // contract's "detail panel states the citation direction" assertion).
+  const relLine=r=>{
+    if(r.kind==="citation")
+      return (r.source===id?"→ cite ":"← cité par ")+esc(r.target)
+        +(r.confidence!=null?" (conf "+esc(r.confidence)+")":"");
+    if(r.kind==="shared_citation"){
+      const shared=Array.isArray(r.shared)&&r.shared.length
+        ?esc(r.shared.join(", ")):"";
+      return "↔ "+esc(r.source===id?r.target:r.source)+" · cite en commun"
+        +(shared?" « "+shared+" »":"");
+    }
+    return "↔ "+esc(r.source===id?r.target:r.source)+" · "+esc(r.kind);
+  };
   const cites=Array.isArray(d.citation)?d.citation.join("<br>"):esc(d.citation||"");
   const panel=document.getElementById("detail");panel.style.display="block";
   panel.innerHTML='<button class="close" onclick="this.parentElement.style.display=\'none\'">×</button>'+

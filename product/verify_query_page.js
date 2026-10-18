@@ -495,7 +495,8 @@ setTimeout(async () => {
   /* Non-vacuity: the panel must be driven by the published measurement, not by a
    * hard-coded empty string. A bundle whose channel IS populated must say so. */
   const chanPop = JSON.parse(JSON.stringify(chanSynth));
-  chanPop.relations = [{source: "a", target: "b", kind: "shared_citation", shared: ["BGE 1 II 1"]}];
+  chanPop.relations = [{source: "plain-row", target: "disc-only",
+                        kind: "shared_citation", shared: ["BGE 1 II 1"]}];
   chanPop.provenance.relations_provenance.channel_after_hydration =
     {state: "POPULATED", n_relations: 1, measured: {n_decisions: 3, n_rows_with_citation: 3}};
   chanPop.provenance.relations_provenance.relations_added_by_hydration = 1;
@@ -503,6 +504,20 @@ setTimeout(async () => {
   const popText = documentShim.getElementById("relationChannel").innerHTML;
   check(popText.indexOf("arête") !== -1 && popText.indexOf("+1") !== -1,
         "a populated channel reports its edge count and what hydration added");
+  /* A shared_citation edge is symmetric: BOTH endpoints cite the named
+   * authority. The detail panel must state that in French ("cite en commun")
+   * and name the shared authority - never print the raw machine token in a
+   * jurist-facing panel. Found by the offline slice 20261018T095123Z: the
+   * petty-theft-dismissal and corporate-criminal-liability bundles carry only
+   * shared_citation edges and failed "detail panel states the citation
+   * direction" because the fallback line was "↔ X · shared_citation". */
+  const sharedDetail = page.evaluate("(function(){ showDetail('plain-row');"
+    + "return document.getElementById('detail').innerHTML; })()");
+  check(sharedDetail.indexOf("cite en commun") !== -1
+        && sharedDetail.indexOf("BGE 1 II 1") !== -1,
+        "a shared_citation edge states the co-citation in French and names the shared authority");
+  check(sharedDetail.indexOf("shared_citation") === -1,
+        "the raw relation-kind token never reaches the jurist-facing panel");
 
   /* --- retrieval rank on counter and discovery cards ----------------------
    * The product thesis is that contrary/minority authority sits BELOW the ranked
