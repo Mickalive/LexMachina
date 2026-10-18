@@ -1,0 +1,77 @@
+{
+  "baseline": {
+    "commit": "03a4cabb72df5cb38b5228c65ca9fb3fd1a04974",
+    "errors": 0,
+    "failed": 45,
+    "passed": 562,
+    "run_id": "39065274887",
+    "seconds": 0.0,
+    "skipped": 2,
+    "total_collected": 609
+  },
+  "claim_ceiling": [
+    "This is a local measurement at the two named commits, on this machine. It is not a universal claim about the test suite.",
+    "A passing count does not license a claim that the product works; it only bounds the code change between two commits.",
+    "The excluded modules are still unexecuted. Their RF3 tracked-results writer defect is recorded separately in results/product/regression/tracked_results_writer_inventory.json."
+  ],
+  "collection_scope": {
+    "command_shape": "python3 -m pytest tests/ -q --ignore=<module> ...",
+    "cwd": "product",
+    "n_uncollectable_modules": 18,
+    "uncollectable_modules_excluded": [
+      "tests/test_cycle_174k_simulation.py",
+      "tests/test_cycle_33032746334.py",
+      "tests/test_cycle_33033658714.py",
+      "tests/test_cycle_33304668621.py",
+      "tests/test_cycle_33660041466_health.py",
+      "tests/test_cycle_33660041466_incremental.py",
+      "tests/test_cycle_33660041466_lod.py",
+      "tests/test_cycle_33974964520.py",
+      "tests/test_cycle_33982486898.py",
+      "tests/test_cycle_product_scale.py",
+      "tests/test_cycle_product_v10.py",
+      "tests/test_cycle_product_v11.py",
+      "tests/test_cycle_scale_readiness.py",
+      "tests/test_cycle_v17_validate_reps.py",
+      "tests/test_cycle_v17_webgl_vectorized.py",
+      "tests/test_cycle_v18_product.py",
+      "tests/test_http_api_integration.py",
+      "tests/test_product.py"
+    ],
+    "why_excluded": "These modules import sentence_transformers/torch, which is not installed in the CI or bare image. They are excluded identically at baseline and at head, so the comparison is a set relation over the same population. Excluding a DIFFERENT set at baseline and head would invalidate the delta."
+  },
+  "delta": {
+    "derived_not_asserted": "net_new_passing_tests is head.passed - baseline.passed, computed here. It is never written into a report by hand; RF2's '+7' defect was a hand-written delta that disagreed with the two counts it came from.",
+    "net_change_in_collected": 60,
+    "net_new_errors": 0,
+    "net_new_failing_tests": -2,
+    "net_new_passing_tests": 62,
+    "per_outcome": {
+      "errors": 0,
+      "failed": -2,
+      "passed": 62,
+      "skipped": 0
+    }
+  },
+  "head": {
+    "commit": "ec622c6ba0ed0664fcb11be7d3e46d645a89cf79",
+    "errors": 0,
+    "failed": 43,
+    "passed": 624,
+    "run_id": "39082232157",
+    "seconds": 0.0,
+    "skipped": 2,
+    "total_collected": 669
+  },
+  "numeric_environment": {
+    "numpy": "2.5.4",
+    "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "scipy": "1.18.1",
+    "sklearn": "1.9.1",
+    "warning": "Recorded because a from-source rebuild is environment-scoped, not byte-identical across machines (BLAS reduction order). A count that differs run-to-run on the SAME commit is an environment signal, not evidence of a code change - re-measure before publishing a delta."
+  },
+  "pinning_rule": "A pin names a run id and a commit sha. It is never a timestamp and never a re-probed moving snapshot, because a timestamp names an instant rather than a tree: the same command re-run later legitimately differs, so the pin cannot be checked and rots silently. If a pin cannot be made correct, this tool exits non-zero instead of repinning.",
+  "schema": "product-test-accounting/1",
+  "what_this_is": "Commit-anchored test accounting. Replaces both the hand-written delta (RF2: '+7' published where the measured change was '+10') and the timestamp pin (RF4: a 21:30:00Z snapshot was already stale against a 22:24:12Z re-probe). Every delta below is computed from the two measured counts, never written by hand."
+}

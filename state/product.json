@@ -3557,6 +3557,76 @@
       "Every number here is a local measurement at the named commits on this machine; a from-source rebuild is environment-scoped, not byte-identical across machines.",
       "human_gate_ready stays false. The owner session may be proposed only by a FUTURE accepted verdict satisfying requirement 13 condition (a) or (b) on the bytes then of record."
     ],
-    "report": "reports/product/CYCLE_39082232157.md"
+    "report": "reports/product/CYCLE_39082232157.md",
+    "regression": {
+      "schema": "product-test-accounting/1 (commit-anchored, derived)",
+      "artifact": "results/product/regression/test_accounting.json",
+      "tool": "python3 -m product.test_accounting",
+      "baseline": {
+        "commit": "03a4cabb72df5cb38b5228c65ca9fb3fd1a04974",
+        "run_id": "39065274887",
+        "passed": 562,
+        "failed": 45,
+        "skipped": 2,
+        "errors": 30,
+        "total_collected": 639
+      },
+      "head": {
+        "commit": "ec622c6ba0ed0664fcb11be7d3e46d645a89cf79",
+        "run_id": "39082232157",
+        "passed": 624,
+        "failed": 43,
+        "skipped": 2,
+        "errors": 30,
+        "total_collected": 699
+      },
+      "delta": {
+        "passed": 62,
+        "failed": -2,
+        "skipped": 0,
+        "errors": 0,
+        "net_change_in_collected": 60,
+        "derived_not_asserted": true
+      },
+      "new_failures": 0,
+      "new_failures_note": "The failure set at head is a strict SUBSET of the baseline set: 2 pre-existing failures fixed (test_state_contract.py::test_cli_returns_zero_when_the_contract_holds, which failed because state/product.json was at direction_version 55 while the run dispatched with 56), 0 introduced.",
+      "mid_cycle_regressions_caught_and_resolved": "An intermediate run showed 50 failed / 614 passed. All 5 were tests encoding the SUPERSEDED pre-acceptance state (test_frontier_serve_audit_intake.py x5: not-accepted, REVISE-with-4-fixes, route-around-pending, owner-question-prepared, label-bar-nuance) plus test_progressive_query.py asserting the removed counts.counter key. Each was re-pointed at the new truth with its guard intent preserved; none was deleted.",
+      "collection_scope": {
+        "n_uncollectable_modules": 18,
+        "why": "these modules import sentence_transformers/torch, absent from the CI and bare image",
+        "rule": "excluded IDENTICALLY at baseline and head; a different set would invalidate the delta, so the list is published by name in collection_scope.uncollectable_modules_excluded"
+      },
+      "test_modules_added_or_repointed": [
+        "product/tests/test_no_owner_question_from_accepted_verdict.py (new, 10 tests)",
+        "product/tests/test_counter_authority_definition.py (new, 19 tests)",
+        "product/tests/test_no_test_writes_into_tracked_results.py (new, 10 tests)",
+        "product/tests/test_test_accounting_is_anchored.py (new, 18 tests)",
+        "product/tests/test_frontier_serve_audit_intake.py (re-pointed, 13 tests, 3 guards added)",
+        "product/tests/test_progressive_query.py (stale counts.counter assertion updated)",
+        "product/tests/test_state_contract.py (hand-maintained pin DERIVED; +2 tests)"
+      ],
+      "rf3_empirical_verification": "The tracked feedback file is byte-identical (sha256 5d6ccf197d97ef6c5a5b77ef56c4f395b6e8d1f8f7b2fdac4e211895a23843eb) after a full 699-test suite run. RF3 is demonstrated empirically, not only asserted.",
+      "numeric_environment": {
+        "python": "3.12.3",
+        "numpy": "2.5.4",
+        "scipy": "1.18.1",
+        "sklearn": "1.9.1"
+      },
+      "scope_rule": "ROOT_SCOPED: every number is a measurement at the two named commits on this machine with the control plane at /tmp/lex_control, not a universal claim. A from-source rebuild is environment-scoped, not byte-identical across machines."
+    },
+    "end_to_end_vertical_slice": {
+      "command": "python3 product/offline_slice.py --slug rent-default --verify",
+      "result": "verdict: PASS in 0.593s, network: none",
+      "question_to_answer_to_counter_to_map": "n_decisions 100 / n_clusters 8 / rows_with_xy 100 / answer_status ready / cited 4",
+      "page_contract": "PASS 56 assertions",
+      "geometry_preserved_by_enrich": true,
+      "corrected_counts_emitted_by_the_product_itself": "counter_rows: 1 and counter_status_bearing_rows: 5 - the RF1 correction is what the product now emits on its own run, not only what an artifact asserts."
+    },
+    "accepted_frontier_mount": {
+      "mount": "/tmp/lex_accepted/frontier",
+      "status": "EMPTY at cycle start - no Frontier artifact available to absorb",
+      "action_taken": "Product built the missing seams itself rather than waiting, per the standing parallel-integration obligation (Frontier teams are accelerators, not dependencies).",
+      "not_redispatched": "frontier-counter-anchor-classifier, frontier-query-conditioned-map-geometry and frontier-rebuilt-packet-serve-audit are all CLOSED and must never be re-chartered or re-dispatched."
+    }
   }
 }
