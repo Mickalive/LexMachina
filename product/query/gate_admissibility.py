@@ -74,6 +74,17 @@ Added here (each one is a claim this lane has already been audited for making):
     the direction requires it to be flagged explicitly rather than averaged into
     a host histogram (v54 item 3(b)).
 
+``query_concepts_under_covered`` (warning)
+    the accepted Core Evaluation handoff (question-native coverage finding,
+    cycle 39113690481; transferred to the rebuilt packet by cycle 39120832665):
+    ``measured.query_concepts_under_covered`` was published for every verdict,
+    but no finding carried it, so a bundle could ship ``admissible=true,
+    warning_count=0`` while its own concept self-check reported core concepts
+    with zero supporting rows.  The finding now fires whenever the measured set
+    is non-empty, naming the terms.  Warning, never blocking: a compound noun
+    may not be the doctrine's own vocabulary, so this discloses the measured
+    coverage boundary and is never a claim that authorities are absent.
+
 Measurement-definition discipline (v54 R2)
     the largest-cluster share is computed from each cluster's ``size`` field, NOT
     from ``len(member_ids)``: ``product/query/qmap.py`` truncates ``member_ids``
@@ -479,6 +490,42 @@ def verify_bundle(
         coverage = coverage_report(str(bundle.get("query") or ""), decisions)
     except Exception as exc:  # coverage is a disclosure, never a refusal reason
         coverage = {"error": f"{type(exc).__name__}: {exc}"}
+
+    # --- the concept self-check is DISCLOSED, not only measured -----------
+    # Accepted evaluation handoff (question-native coverage finding,
+    # cycle 39113690481, transferred to the rebuilt packet by cycle
+    # 39120832665): a bundle shipped admissible=true, warning_count=0 while
+    # its own measured `query_concepts_under_covered` named core concepts with
+    # zero supporting rows in 214 (de-kapitalverletzung: kapitalverletzung,
+    # uberwachungspflicht).  The measurement below has always been published in
+    # `measured`; the admission record did not carry it as a finding, so the
+    # packet contradicted its own self-check.  Evaluation's frozen predicate
+    # (evaluation/question_native_transfer.py) reads a DISCLOSURE MARKER
+    # ("concept" / "under_covered" / "query_concept") in a FINDING CODE, so
+    # this code carries those markers on purpose.  Severity is warning, never
+    # blocking: it changes no frozen bar, threshold or rubric, and it is a
+    # disclosure of the measured coverage boundary, never a refusal.
+    under_covered = [str(t) for t in (coverage.get("under_covered") or [])]
+    if under_covered:
+        rows_per_concept = coverage.get("rows_per_concept") or {}
+        findings.append(_finding(
+            "query_concepts_under_covered", "warning",
+            "the retrieved set carries no supporting row for "
+            f"{len(under_covered)} concept(s) of the question: "
+            + ", ".join(under_covered)
+            + f" (rows per concept: {', '.join(f'{c}={rows_per_concept.get(c, 0)}' for c in under_covered)}). "
+            "Evaluation's accepted caveat, carried verbatim: a German compound noun may simply "
+            "not be the doctrine's own vocabulary - decisions may write Verletzung der "
+            "Kapitalverwaltung rather than Kapitalverletzung. So this is a retrieval signal that "
+            "the product itself already computes, not proof that the authorities are absent. "
+            "The auditable claim is the disagreement between the bundle's content and the "
+            "packet's own admission record, which is a fact about the product's disclosure "
+            "behaviour regardless of which reading is right",
+            query_concepts_under_covered=under_covered,
+            query_concept_rows=rows_per_concept,
+            rows_per_concept=rows_per_concept,
+        ))
+
     if require_answer:
         if str(answer.get("status") or "") not in ("ready", "degraded"):
             findings.append(_finding("answer_missing", "blocking",

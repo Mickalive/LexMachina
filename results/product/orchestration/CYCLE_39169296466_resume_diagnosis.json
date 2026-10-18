@@ -1,0 +1,49 @@
+{
+ "schema": "product-resume-diagnosis/1",
+ "run_id": 39169296466,
+ "resumed_from_run_id": 39165792159,
+ "measured_by": "product lane producer (operational resume), 2026-10-18T22:20:00Z",
+ "question": "Why did product runs 39164340874 and 39165792159 both end without an audit, and what repairs the loop without discarding their work?",
+ "evidence": [
+  {
+   "fact": "the two runs' team branches are byte-identical",
+   "how": "git ls-remote origin refs/heads/cycle/core/product/*/team",
+   "observed": {
+    "39164340874/team": "4acd59503d1177ed49fdd4bd108dd14fbdb5b8a3",
+    "39165792159/team": "4acd59503d1177ed49fdd4bd108dd14fbdb5b8a3",
+    "39165792159/team-attempt-1": "4acd59503d1177ed49fdd4bd108dd14fbdb5b8a3"
+   }
+  },
+  {
+   "fact": "4acd595 adds only retrieval-cache bodies over the accepted base",
+   "how": "git show --stat 4acd595; git diff --stat bcb1217 4acd595",
+   "observed": "19 files, all results/product/query_cache/**.json, +19/-0; no code, no report, no state/product.json change"
+  },
+  {
+   "fact": "the audit job never ran for either run",
+   "how": "git ls-remote origin refs/heads/cycle/core/product/*/audit",
+   "observed": "no cycle/core/product/39164340874/audit and no cycle/core/product/39165792159/audit branch exists; the workflow gates audit on needs.team == success"
+  },
+  {
+   "fact": "the resumed tree fails the producer-state validation the workflow enforces",
+   "how": "python3 -m pytest product/tests/test_state_contract.py at snapshot 4acd595 (run 39169296466)",
+   "observed": "4 failed / 25 passed; every failure names direction_version 56 != run input 57",
+   "artifact": "results/product/orchestration/CYCLE_39169296466_state_contract_BEFORE.txt"
+  },
+  {
+   "fact": "the workflow assertion that fails is exactly the state contract",
+   "how": ".github/workflows/core-lane.yml lines 167-184 (read from origin/main; .github/** is control-plane scope, recorded not edited)",
+   "observed": "jq '(.direction_version // -1) == $dirv and (.cycle_status // \"INITIALIZED\") != \"INITIALIZED\"' against state/product.json; mismatch exits 69"
+  }
+ ],
+ "classification": "ORCHESTRATION/VALIDATION failure, not a product defect. Both runs died at the producer-state gate before any audit could evaluate the capability. The product's own instrument (test_state_contract.py) already detects this class; the producer runs did not run it.",
+ "what_is_valid_and_kept": "The 19 committed OpenCaseLaw query-cache bodies of 4acd595 are real retrieval-cache evidence and remain in tree. Nothing else from the two runs existed to keep: no code, no report, no state delta.",
+ "repair_applied_by_this_run": [
+  "state/product.json direction_version 56 -> 57, derived from the mounted control plane (product/state_contract.py::default_direction_version), with current_run / state_updated_by_run / state_updated_at / cycle_status naming this run",
+  "state/product.json re-validated: the same suite measures 29 passed / 0 failed after the fix",
+  "the v57 ordered work (1) Evaluation handoff disclosure re-applied to product/query/gate_admissibility.py with product/tests/test_query_concept_disclosure.py (5 offline tests, all passing)",
+  "the test-delta attribution regenerated for this tree and the pytest pin re-pointed with a recorded reason (audit CYCLE_39160624523_GATE.json D1 named this remedy); the historical artifact CYCLE_39149741259_test_delta_attribution.json is untouched on disk and now guarded by test_the_previous_pin_artifact_is_preserved_as_history"
+ ],
+ "not_done_deliberately": "No live-slice measurement, no new instrument, no report expansion (direction v57 ordered work (2) and audit CYCLE_39160624523_GATE.json D7: the cycle that closes the fix list opens nothing new). No frozen bar, rubric, threshold, .github/** file or historical artifact was modified.",
+ "claim_ceiling": "A diagnosis of two failed workflow chains re-derived from the git refs, the committed diff and this tree's own test output. It says nothing about the capability of the product, about any frozen bar, or about run 39169296466's own audit outcome, which does not exist yet."
+}

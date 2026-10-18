@@ -1,0 +1,76 @@
+.....FF....................FF                                            [100%]
+=================================== FAILURES ===================================
+_________________ test_run_direction_pin_needs_no_manual_bump __________________
+
+    def test_run_direction_pin_needs_no_manual_bump() -> None:
+        """RF4 applied to this module: the pin must be derived, not hand-maintained.
+    
+        The previous constant had to be edited by hand on every direction bump and had
+        gone stale four times. If this ever needs re-pinning again, that regression is
+        back and this test should fail loudly instead of the lane failing red later.
+        """
+        assert RUN_DIRECTION_VERSION == default_direction_version(), (
+            "the dispatch pin must equal the resolved control-plane direction version; "
+            "if a human had to edit this constant, the derivation was removed"
+        )
+        state = json.loads(CANONICAL_STATE.read_text(encoding="utf-8"))
+>       assert state["direction_version"] == RUN_DIRECTION_VERSION, (
+            f"state/product.json carries direction_version="
+            f"{state['direction_version']} but the run was dispatched with "
+            f"{RUN_DIRECTION_VERSION}; the workflow exits 69 on this mismatch"
+        )
+E       AssertionError: state/product.json carries direction_version=56 but the run was dispatched with 57; the workflow exits 69 on this mismatch
+E       assert 56 == 57
+
+product/tests/test_state_contract.py:136: AssertionError
+_______________ test_canonical_state_in_this_worktree_is_current _______________
+
+    def test_canonical_state_in_this_worktree_is_current() -> None:
+        """The live guard: the canonical state must satisfy the real run assertion."""
+        ok, message = workflow_validation(RUN_DIRECTION_VERSION, CANONICAL_STATE)
+>       assert ok, message
+E       AssertionError: /home/runner/work/LexMachina/LexMachina/state/product.json: direction_version 56 != run input 57 (workflow exits 69). Write the canonical state file, not a copy.
+E       assert False
+
+product/tests/test_state_contract.py:146: AssertionError
+________________ test_cli_returns_zero_when_the_contract_holds _________________
+
+    def test_cli_returns_zero_when_the_contract_holds() -> None:
+        result = subprocess.run(
+            [sys.executable, str(PRODUCT_ROOT / "state_contract.py"), "--check"],
+            cwd=str(REPO_ROOT),
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+>       assert result.returncode == 0, result.stdout + result.stderr
+E       AssertionError: [FAIL] Validate active MVP producer state: /home/runner/work/LexMachina/LexMachina/state/product.json: direction_version 56 != run input 57 (workflow exits 69). Write the canonical state file, not a copy.
+E         [PASS] Enforce lane write scope: 5 path(s) checked
+E         [PASS] Independent audit artifact ownership: pending=[] committed=['reports/audit/product/CYCLE_38559540834.md', 'reports/audit/product/CYCLE_38604340726.md', 'reports/audit/product/CYCLE_38641080245.md', 'reports/audit/product/CYCLE_38660218975.md', 'reports/audit/product/CYCLE_38665681083.md', 'reports/audit/product/CYCLE_38740365477.md', 'reports/audit/product/CYCLE_38754777366.md', 'reports/audit/product/CYCLE_38789874982.md', 'reports/audit/product/CYCLE_38807538467.md', 'reports/audit/product/CYCLE_38812599575.md', 'reports/audit/product/CYCLE_38860652237.md', 'reports/audit/product/CYCLE_38862025900.md', 'reports/audit/product/CYCLE_38877693206.md', 'reports/audit/product/CYCLE_38892001925.md', 'reports/audit/product/CYCLE_38924869286.md', 'reports/audit/product/CYCLE_38939730386.md', 'reports/audit/product/CYCLE_38969438223.md', 'reports/audit/product/CYCLE_39003037673.md', 'reports/audit/product/CYCLE_39006211027.md', 'reports/audit/product/CYCLE_39019268074.md', 'reports/audit/product/CYCLE_39051003925.md', 'reports/audit/product/CYCLE_39056694835.md', 'reports/audit/product/CYCLE_39065274887.md', 'reports/audit/product/CYCLE_39097705922.md', 'reports/audit/product/CYCLE_39149741259.md', 'results/audit/product/CYCLE_38559540834_GATE.json', 'results/audit/product/CYCLE_38604340726_GATE.json', 'results/audit/product/CYCLE_38641080245_GATE.json', 'results/audit/product/CYCLE_38660218975_GATE.json', 'results/audit/product/CYCLE_38665681083_GATE.json', 'results/audit/product/CYCLE_38740365477_GATE.json', 'results/audit/product/CYCLE_38754777366_GATE.json', 'results/audit/product/CYCLE_38789874982_GATE.json', 'results/audit/product/CYCLE_38807538467_GATE.json', 'results/audit/product/CYCLE_38812599575_GATE.json', 'results/audit/product/CYCLE_38860652237_GATE.json', 'results/audit/product/CYCLE_38862025900_GATE.json', 'results/audit/product/CYCLE_38877693206_GATE.json', 'results/audit/product/CYCLE_38892001925_GATE.json', 'results/audit/product/CYCLE_38924869286_GATE.json', 'results/audit/product/CYCLE_38939730386_GATE.json', 'results/audit/product/CYCLE_38969438223_GATE.json', 'results/audit/product/CYCLE_39003037673_GATE.json', 'results/audit/product/CYCLE_39006211027_GATE.json', 'results/audit/product/CYCLE_39019268074_GATE.json', 'results/audit/product/CYCLE_39051003925_GATE.json', 'results/audit/product/CYCLE_39056694835_GATE.json', 'results/audit/product/CYCLE_39065274887_GATE.json', 'results/audit/product/CYCLE_39097705922_GATE.json', 'results/audit/product/CYCLE_39149741259_GATE.json']
+E         
+E       assert 68 == 0
+E        +  where 68 = CompletedProcess(args=['/usr/bin/python3', '/home/runner/work/LexMachina/LexMachina/product/state_contract.py', '--che...results/audit/product/CYCLE_39097705922_GATE.json', 'results/audit/product/CYCLE_39149741259_GATE.json']\n", stderr='').returncode
+
+product/tests/test_state_contract.py:282: AssertionError
+____________________ test_check_report_is_machine_readable _____________________
+
+    def test_check_report_is_machine_readable() -> None:
+        report = check(RUN_DIRECTION_VERSION, paths=["product/x.py"])
+>       assert report["ok"] is True
+E       assert False is True
+
+product/tests/test_state_contract.py:287: AssertionError
+=========================== short test summary info ============================
+FAILED product/tests/test_state_contract.py::test_run_direction_pin_needs_no_manual_bump - AssertionError: state/product.json carries direction_version=56 but the run was dispatched with 57; the workflow exits 69 on this mismatch
+assert 56 == 57
+FAILED product/tests/test_state_contract.py::test_canonical_state_in_this_worktree_is_current - AssertionError: /home/runner/work/LexMachina/LexMachina/state/product.json: direction_version 56 != run input 57 (workflow exits 69). Write the canonical state file, not a copy.
+assert False
+FAILED product/tests/test_state_contract.py::test_cli_returns_zero_when_the_contract_holds - AssertionError: [FAIL] Validate active MVP producer state: /home/runner/work/LexMachina/LexMachina/state/product.json: direction_version 56 != run input 57 (workflow exits 69). Write the canonical state file, not a copy.
+  [PASS] Enforce lane write scope: 5 path(s) checked
+  [PASS] Independent audit artifact ownership: pending=[] committed=['reports/audit/product/CYCLE_38559540834.md', 'reports/audit/product/CYCLE_38604340726.md', 'reports/audit/product/CYCLE_38641080245.md', 'reports/audit/product/CYCLE_38660218975.md', 'reports/audit/product/CYCLE_38665681083.md', 'reports/audit/product/CYCLE_38740365477.md', 'reports/audit/product/CYCLE_38754777366.md', 'reports/audit/product/CYCLE_38789874982.md', 'reports/audit/product/CYCLE_38807538467.md', 'reports/audit/product/CYCLE_38812599575.md', 'reports/audit/product/CYCLE_38860652237.md', 'reports/audit/product/CYCLE_38862025900.md', 'reports/audit/product/CYCLE_38877693206.md', 'reports/audit/product/CYCLE_38892001925.md', 'reports/audit/product/CYCLE_38924869286.md', 'reports/audit/product/CYCLE_38939730386.md', 'reports/audit/product/CYCLE_38969438223.md', 'reports/audit/product/CYCLE_39003037673.md', 'reports/audit/product/CYCLE_39006211027.md', 'reports/audit/product/CYCLE_39019268074.md', 'reports/audit/product/CYCLE_39051003925.md', 'reports/audit/product/CYCLE_39056694835.md', 'reports/audit/product/CYCLE_39065274887.md', 'reports/audit/product/CYCLE_39097705922.md', 'reports/audit/product/CYCLE_39149741259.md', 'results/audit/product/CYCLE_38559540834_GATE.json', 'results/audit/product/CYCLE_38604340726_GATE.json', 'results/audit/product/CYCLE_38641080245_GATE.json', 'results/audit/product/CYCLE_38660218975_GATE.json', 'results/audit/product/CYCLE_38665681083_GATE.json', 'results/audit/product/CYCLE_38740365477_GATE.json', 'results/audit/product/CYCLE_38754777366_GATE.json', 'results/audit/product/CYCLE_38789874982_GATE.json', 'results/audit/product/CYCLE_38807538467_GATE.json', 'results/audit/product/CYCLE_38812599575_GATE.json', 'results/audit/product/CYCLE_38860652237_GATE.json', 'results/audit/product/CYCLE_38862025900_GATE.json', 'results/audit/product/CYCLE_38877693206_GATE.json', 'results/audit/product/CYCLE_38892001925_GATE.json', 'results/audit/product/CYCLE_38924869286_GATE.json', 'results/audit/product/CYCLE_38939730386_GATE.json', 'results/audit/product/CYCLE_38969438223_GATE.json', 'results/audit/product/CYCLE_39003037673_GATE.json', 'results/audit/product/CYCLE_39006211027_GATE.json', 'results/audit/product/CYCLE_39019268074_GATE.json', 'results/audit/product/CYCLE_39051003925_GATE.json', 'results/audit/product/CYCLE_39056694835_GATE.json', 'results/audit/product/CYCLE_39065274887_GATE.json', 'results/audit/product/CYCLE_39097705922_GATE.json', 'results/audit/product/CYCLE_39149741259_GATE.json']
+  
+assert 68 == 0
+ +  where 68 = CompletedProcess(args=['/usr/bin/python3', '/home/runner/work/LexMachina/LexMachina/product/state_contract.py', '--che...results/audit/product/CYCLE_39097705922_GATE.json', 'results/audit/product/CYCLE_39149741259_GATE.json']\n", stderr='').returncode
+FAILED product/tests/test_state_contract.py::test_check_report_is_machine_readable - assert False is True
+4 failed, 25 passed in 0.16s
