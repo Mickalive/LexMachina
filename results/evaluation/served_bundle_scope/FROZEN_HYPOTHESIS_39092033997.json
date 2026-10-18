@@ -1,0 +1,95 @@
+{
+ "schema": "lex-evaluation-served-bundle-scope-hypothesis/1",
+ "run_id": "39092033997",
+ "lane": "evaluation",
+ "direction_version": 56,
+ "frozen_before_execution": true,
+ "frozen_at_utc": "2026-10-18T03:12:00Z",
+ "frozen_by": "operational resume of the zero-delta producer run 39091660737, from persisted snapshot b293c45a",
+ "why_this_measurement_exists": "Cycle 39086856920 froze and ran the five-falsifier served-artifact benchmark against ONE accepted served packet (rebuilt-39027045675) and three of the five falsifiers FIRED. A single-packet firing does not tell the product what to do: if the defect is a property of the SERVE PIPELINE it must be repaired upstream of every served packet, and if it is a property of that one packet it is not an ingestion defect at all. The accepted direction states explicitly that the DO-NOT-SERVE order on served packet 38839347028 'is NOT superseded by the rebuilt-packet verdict; both stand', so 38839347028 is a SECOND accepted served packet of record, not the same bytes. Measuring the SAME frozen falsifier family against it is therefore a discriminating cross-packet experiment on different bytes, not a forbidden byte-identical re-measurement.",
+ "question": "On the SECOND accepted served query-map packet (38839347028), do the falsifiers that fired on the rebuilt-39027045675 packet fire again? I.e. is the falsification a property of the serve pipeline (systemic, upstream ingestion defect) or of that one packet (artifact-specific)?",
+ "product_decision_unlocked": "Whether Product must add an upstream id-hygiene / adversarial-seed / date-scope ingestion repair that applies to every served packet, or whether the three fired falsifiers are confined to the rebuilt packet and must instead be handled inside the rebuilt-packet serve gate. The direction's Product lane carries an ordered repair list (RF1..RF5) that does not currently include a served-bundle ingestion repair; this measurement is what would put one there or rule it out.",
+ "input_of_record": {
+  "product_mount": "/tmp/lex_accepted/product",
+  "product_mount_tip": "03a4cabb72df5cb38b5228c65ca9fb3fd1a04974",
+  "served_packet": "results/product/gate_packet/38839347028",
+  "bundles": [
+   "questions/de-kapitalverletzung.bundle.json",
+   "questions/fr-bail-entretien.bundle.json",
+   "questions/it-responsabilita-medica.bundle.json"
+  ],
+  "what_was_known_at_freeze_time": "ONLY that the directory exists and contains exactly these three bundle filenames. No decision row, no counter_status, no coordinate, no year and no provenance string of this packet was read before this file was written and committed. The three bundle sha256 values are recorded in the produced record, not asserted here.",
+  "transfer_anchor": {
+   "prior_record": "results/evaluation/served_bundle_scope/39086856920.json",
+   "prior_record_sha256": "68c3f7cfffd107b0a35d349baa1b6875945ba6b8ac62d1b16edd52532bbe1323",
+   "prior_hypothesis_sha256": "48dfcc8362c63059b53c9e762b7a064e5a16df116a64c3c22327536be2c5f482",
+   "prior_packet": "results/product/gate_packet/rebuilt-39027045675",
+   "prior_verdict": "BENCHMARK_VALID_WITH_FALSIFICATION",
+   "prior_fired_falsifiers": [
+    "source::decision_id_unusable",
+    "scope::outside_mission_date_window",
+    "scope::adversarial_seed_contamination"
+   ],
+   "instrument_sha256": "c0848418e02f7c1c21bfadb1df6153ca2ed9a4a429155caeee0ff964afd03f87",
+   "instrument_note": "the instrument is used BYTE-IDENTICALLY; the falsifier ids and rules below are re-stated verbatim from the accepted hypothesis and no instrument code is changed by this cycle, so the 39086856920 record stays reproducible."
+  }
+ },
+ "success_rule": "FROZEN BEFORE ANY ROW WAS READ. Verdict is BENCHMARK_VALID_WITH_FALSIFICATION when at least one falsifier fires; BENCHMARK_VALID_NO_FALSIFICATION only when every falsifier below is refuted. A falsifier that cannot be evaluated from the artifact is reported not_measurable with a reason and is NEVER counted as a pass. NOT_APPLICABLE is not a pass. THIS RUN'S SUCCESS RULE IS THE TRANSFER QUESTION, WHICH IS NOT IN THE INSTRUMENT: the instrument emits a per-packet verdict, and the transfer verdict (SYSTEMIC / PACKET_SPECIFIC / INCONCLUSIVE) is derived by comparing the two accepted per-packet records and is published beside both, never in place of them.",
+ "falsifiers": [
+  {
+   "id": "source::canonical_url_not_opencaselaw",
+   "rule": "count(decisions whose canonical_url is absent, or scheme != https, or host != mcp.opencaselaw.ch) == 0",
+   "falsified_if_count_gt": 0,
+   "why": "the product claim under test is a SOURCE-LINKED bundle; a jurist click must land on the real OpenCaseLaw decision record"
+  },
+  {
+   "id": "source::decision_id_unusable",
+   "rule": "count(decisions whose decision_id is empty/whitespace, or matches a known upstream placeholder/HTML-fragment shape) == 0",
+   "falsified_if_count_gt": 0,
+   "why": "a decision id is the map point key, the citation anchor and the dedupe key; an unusable id is silently unusable as all three",
+   "reused_from": "evaluation/retrieval_gate/id_hygiene.py documents the two upstream placeholder shapes (ge_gerichte_[pjdoc NNNN] template placeholders and raw ch_vb__td_class__... HTML fragments); the shapes are re-listed in the instrument and not re-derived"
+  },
+  {
+   "id": "map::point_missing_geometry_or_cluster",
+   "rule": "count(decisions missing any of x, y, cluster_id) == 0",
+   "falsified_if_count_gt": 0,
+   "why": "the clickable map is the product; a decision with no coordinates and no cluster cannot be placed or inspected"
+  },
+  {
+   "id": "scope::outside_mission_date_window",
+   "rule": "count(decisions with a parseable decision_date before 2000-01-01) == 0",
+   "falsified_if_count_gt": 0,
+   "why": "the master prompt scopes the base map to 'from 2000 onward'. This is a DISCLOSED scope measurement, not a frozen bar: the mission text states the window but no accepted gate family measures it, and a pre-2000 hit is not automatically wrong (Swiss case law has no 2000 cut-off in law). The falsification is of the PRODUCT's retrieval relevance claim, not of the corpus.",
+   "interpretation_rule": "a non-zero count FALSIFIES the claim that the served top-rank set is scoped to the mission window. It does NOT by itself falsify source validity, and it MUST NOT be reported as a frozen-bar failure."
+  },
+  {
+   "id": "scope::adversarial_seed_contamination",
+   "rule": "count(decisions whose provenance field carries an 'adversarial' marker) == 0 in a PRODUCTION served packet",
+   "falsified_if_count_gt": 0,
+   "why": "ocl:adversarial.* rows exist so the benchmark battery has hostile cases. If they survive into the packet the product serves, then every recall/geometry number computed over that packet is computed partly over synthetic rows. This is the single most product-relevant falsifier in this instrument.",
+   "interpretation_rule": "a non-zero count means the served artifact is not a clean production observation. It does NOT mean the product's retrieval is bad; it means the artifact cannot be read as a production observation."
+  }
+ ],
+ "transfer_rule": {
+  "SYSTEMIC": "a falsifier FIRES on BOTH accepted served packets -> the defect is a property of the serve pipeline and needs an upstream repair that applies to every served packet",
+  "PACKET_SPECIFIC": "a falsifier FIRES on exactly one accepted served packet -> the defect belongs to that packet's own serve gate and is NOT an ingestion defect",
+  "INCONCLUSIVE": "a falsifier is NOT_MEASURED on either packet -> no transfer claim is made and the falsifier is reported as not measured, never as passed",
+  "note": "two packets is a small population. A SYSTEMIC label is the operative one because it demands an upstream fix; a PACKET_SPECIFIC label is provisional on the second packet. The population size is disclosed beside every transfer verdict and is NOT upgraded by repetition."
+ },
+ "explicitly_not_gates": [
+  "no jurist-usefulness claim (human gate; human_gate_ready stays false)",
+  "no label soundness claim (RULES_LABEL 4457e971 is untouched; the counter-label verdict LABEL_UNSOUND 5/65 stands)",
+  "no geometry bar claim (RULES_GEOMETRY a7452748 is untouched; GEOMETRY_UNSOUND 0/3 at 11/11 stands)",
+  "no corpus rebuild and no 174k work",
+  "no network and no Product import",
+  "no new frozen rubric, threshold, bar, verdict contract or benchmark",
+  "no re-scoring of the rebuilt packet and no change to either accepted DO-NOT-SERVE order"
+ ],
+ "frozen_bars_untouched": {
+  "RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+  "RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+  "VERDICT_CONTRACT.json": "b9cdb894",
+  "LABEL_LINEAGE_VERDICT.json": "016bffe5"
+ },
+ "claim_ceiling": "This instrument can only say whether a served packet's source identity, id usability, map completeness, date scope and adversarial-seed cleanliness hold, and whether those findings TRANSFER across the two accepted served packets. It cannot say the map helps a jurist, cannot move any accepted bar, and cannot say that two packets establish a pipeline-wide property."
+}
