@@ -1,614 +1,345 @@
-"""Deterministic, corpus-derived, free query-expansion primitives.
+"""Deterministic, corpus-derived, multilingual query-expansion layer.
 
-This module provides the expansion layer that runs BEFORE retrieval (at the
-bundle seam) to close the accepted query-concept coverage gap on the served
-retrieval path for DE, FR, IT.
+Drop-in behind the existing bundle seam: it emits ONE extra query variant per
+(question, target language) and one additive ``provenance.query_expansion``
+object.  It does not touch the retrieval adapter, the cache, pagination,
+normalisation, dedup, the classifier, the geometry or the layout, and it issues
+no counter-authority label.
 
-All primitives are:
-- Deterministic (no randomness, no models)
-- Corpus-derived (from OpenCaseLaw multilingual regestes and accepted lexicon)
-- Free (no API calls, no paid services)
-- In-budget (string operations only, <5ms per query)
+Determinism
+-----------
+Every function here is a pure function of (corpus sample, question text,
+language).  No randomness, no model call, no network.  The same inputs always
+produce the same terms, in the same order.
+
+Corpus derivation
+-----------------
+Terms are mined from the read-only corpus sample (served bundle rows + the
+accepted benchmark record's embedded cached rows) with a plain conditional
+document-frequency ratio, per target language.  Nothing is hand-typed per
+question: the accepted product ``EXPANSION`` lexicon is consulted only as an
+additional exact-token synonym source, exactly as the product already does.
 """
 from __future__ import annotations
 
 import re
 import unicodedata
-from dataclasses import dataclass
-from typing import Dict, List, Optional, Set, Tuple
+from dataclasses import dataclass, field
+from typing import Any, Iterable
 
-# ---------------------------------------------------------------------------
-# Normalization & tokenization (charter-defined)
-# ---------------------------------------------------------------------------
+TOKEN_RE = re.compile(r"[^\W\d_]+", re.UNICODE)
 
-_TOKEN_RE = re.compile(r"[^\W\d_]+", re.UNICODE)
-_STOPLIST = frozenset({
-    # Generic stoplist (accepted gates)
-    "und", "oder", "aber", "denn", "sondern", "the", "and", "or", "but",
-    "et", "ou", "mais", "car", "ni", "e", "o", "ma", "però",
-    "der", "die", "das", "des", "dem", "den", "ein", "eine", "eines",
-    "le", "la", "les", "un", "une", "des", "du", "de", "au", "aux",
-    "il", "lo", "la", "i", "gli", "le", "un", "uno", "una", "dei", "degli",
-    "delle", "del", "dello", "della", "in", "auf", "für", "mit", "von",
-    "zu", "im", "am", "zum", "zur", "sur", "dans", "pour", "avec",
-    "par", "en", "dans", "che", "di", "da", "per", "con", "su", "tra",
-    "fra", "si", "se", "non", "ne", "ci", "vi", "mi", "ti", "si",
-    "wie", "was", "wo", "wann", "wer", "welche", "welcher", "welches",
-    "que", "quoi", "où", "quand", "qui", "quel", "quelle", "quels",
-    "che", "cosa", "dove", "quando", "chi", "quale", "quali",
-    "nach", "vor", "über", "unter", "zwischen", "durch", "gegen",
-    "sans", "avec", "sous", "sur", "vers", "depuis", "pendant",
-    "senza", "con", "sotto", "sopra", "verso", "durante", "contro",
-    "art", "artikel", "article", "articolo", "abs", "al", "alinéa",
-    "cpv", "comma", "stgb", "cp", "or", "co", "zgb", "cc", "zpo",
-    "cpc", "stpo", "cpp", "ltf", "bgg", "absatz", "alinéa", "comma",
-    "satz", "phrase", "frase", "paragraph", "paragraphe", "paragrafo",
-})
+#: Frozen parameters (see RULES.json).  Changing any of these is a threshold
+#: edit and invalidates a run that has already seen a number.
+N_TERMS_PER_CONCEPT = 4
+MAX_QUERY_TERMS = 12
+MIN_TERM_CHARS = 5
+#: A mined term must be carried by at least this many documents of the target
+#: language, otherwise it is corpus noise rather than corpus vocabulary.
+MIN_TERM_DF = 2
 
-def norm_token(text: str) -> str:
-    """Charter normalization: NFKD, strip diacritics, lowercase, alnum-only."""
-    if not text:
-        return ""
-    # NFKD decomposition
-    text = unicodedata.normalize("NFKD", text)
-    # Strip combining marks (diacritics)
-    text = "".join(c for c in text if not unicodedata.combining(c))
-    # Lowercase
-    text = text.casefold()
-    # Keep only alphanumeric
-    text = re.sub(r"[^a-z0-9]", "", text)
-    return text
+LANGUAGES = ("de", "fr", "it")
 
-def tokenize(text: str) -> List[str]:
-    """Charter tokenization: de-accented lowercase alnum tokens, length >= 5, stoplist removed."""
-    if not text:
-        return []
-    tokens = _TOKEN_RE.findall(text)
-    out = []
-    for t in tokens:
-        nt = norm_token(t)
-        if len(nt) >= 5 and nt not in _STOPLIST:
-            out.append(nt)
-    return out
-
-# ---------------------------------------------------------------------------
-# German compound splitting (deterministic, corpus-anchored)
-# ---------------------------------------------------------------------------
-
-# Common German legal compound boundaries (from corpus observation)
-_COMPOUND_SPLIT_POINTS = frozenset({
-    "pflicht", "recht", "gesetz", "vertrag", "klage", "entscheid",
-    "gericht", "gerichtes", "gerichts", "verfahrens", "verfahrens",
-    "anspruch", "anspruchs", "verletzung", "verletzungs", "verletzung",
-    "aufgabe", "aufgaben", "einsatz", "einsatzes", "einsatz",
-    "überwachung", "uberwachung", "pflicht", "pflichten", "pflichts",
-    "kapital", "kapitals", "kapital", "verletzung", "verletzungs",
-    "sorgfalt", "sorgfalts", "sorgfalt", "pflicht", "pflichten",
-    "arbeitgeber", "arbeitgebers", "arbeitgeber", "pflicht", "pflichten",
-    "fristlose", "fristlosen", "fristloser", "fristloses",
-    "kündigung", "kuendigung", "kündigungs", "kuendigungs",
-    "mietzins", "mietzinses", "mietzins", "rückstand", "rueckstand",
-    "zahlung", "zahlungs", "zahlung", "verzug", "verzugs",
-    "entschädigung", "entschaedigung", "entschädigungs",
-    "schadenersatz", "schadensersatz", "schaden", "ersatz",
-    "treuepflicht", "treuepflichts", "treuepflicht",
-    "organisationsmangel", "organisationsmangels", "organisationsmangel",
-    "organisationsmassnahmen", "organisationsmassnahmes",
-    "unternehmensstrafbarkeit", "unternehmensstrafbarkeits",
-    "business", "judgment", "rule", "verwaltungsrat", "interessenkonflikt",
-    "informationsbasis", "informationspflicht", "unternehmerischer",
-    "entscheid", "entscheids", "entscheidung", "entscheidungs",
-    "haftung", "haftungs", "verantwortlichkeit", "verantwortlichkeits",
-    "subsidiär", "subsidiar", "primär", "primar", "ausnahme", "ausnahmen",
-    "grenze", "grenzen", "einschränkung", "einschraenkung",
-    "eigenständig", "eigenstaendig", "keine", "kein", "nicht",
-    "delimitation", "abgrenzung", "abgrenzungs",
-    "proportionalität", "proportionalitaet", "verhältnismässig",
-    "verhaeltnismaessig", "billigkeit", "angemessen", "angemessene",
-    "treu", "glauben", "buona", "fede", "buona", "fede",
-})
-
-def split_german_compound(token: str) -> List[str]:
-    """Split German compound nouns at known legal boundaries.
-    
-    Deterministic: only splits at known corpus-anchored boundaries.
-    Returns [original, split1, split2, ...] with original first.
-    """
-    if not token:
-        return []
-    nt = norm_token(token)
-    if len(nt) < 10:  # Too short to be a compound
-        return [nt]
-    
-    parts = [nt]
-    # Try to find known split points
-    for split_point in _COMPOUND_SPLIT_POINTS:
-        if split_point in nt and nt != split_point:
-            # Found a boundary - split
-            idx = nt.find(split_point)
-            if idx > 3 and idx < len(nt) - 3:  # Not at start/end
-                before = nt[:idx]
-                after = nt[idx:]
-                if len(before) >= 4 and len(after) >= 4:
-                    # Valid split found
-                    parts = [nt, before, after]
-                    # Recursively try to split further
-                    if before in _COMPOUND_SPLIT_POINTS or after in _COMPOUND_SPLIT_POINTS:
-                        pass  # Already atomic enough
-                    return parts
-    return parts
-
-
-# ---------------------------------------------------------------------------
-# Cross-language doctrinal term mapping (corpus-derived, frozen)
-# ---------------------------------------------------------------------------
-
-# Frozen cross-language doctrinal equivalents derived from OpenCaseLaw
-# multilingual regestes and the accepted lexicon. These are the exact
-# term pairs/triplets that bridge the lexical gap identified in the charter.
-CROSS_LANG_DOCTRINAL: Dict[str, Dict[str, str]] = {
-    # de-kapitalverletzung core concepts
-    "kapitalverletzung": {
-        "fr": "atteinte au capital",
-        "it": "lesione del capitale",
-    },
-    "uberwachungspflicht": {
-        "fr": "obligation de surveillance",
-        "it": "obbligo di sorveglianza",
-    },
-    "aktive": {
-        "fr": "active",
-        "it": "attiva",
-    },
-    "fursorgepflicht": {
-        "fr": "obligation de diligence",
-        "it": "obbligo di diligenza",
-    },
-    "arbeitgebers": {
-        "fr": "de l'employeur",
-        "it": "del datore di lavoro",
-    },
-    "eingriff": {
-        "fr": "intervention",
-        "it": "intervento",
-    },
-    "begrenzen": {
-        "fr": "limiter",
-        "it": "limitare",
-    },
-    "blossen": {
-        "fr": "simple",
-        "it": "semplice",
-    },
-    
-    # fr-bail-entretien core concepts (already well-covered, but included for completeness)
-    "resiliation": {
-        "de": "kündigung",
-        "it": "risoluzione",
-    },
-    "defaut": {
-        "de": "mangel",
-        "it": "difetto",
-    },
-    "entretien": {
-        "de": "instandhaltung",
-        "it": "manutenzione",
-    },
-    "bailleur": {
-        "de": "vermieter",
-        "it": "locatore",
-    },
-    "jusqu": {
-        "de": "bis",
-        "it": "fino",
-    },
-    "distinguent": {
-        "de": "unterscheiden",
-        "it": "distinguono",
-    },
-    "grave": {
-        "de": "schwer",
-        "it": "grave",
-    },
-    "simple": {
-        "de": "einfach",
-        "it": "semplice",
-    },
-    "negligence": {
-        "de": "fahrlässigkeit",
-        "it": "negligenza",
-    },
-    
-    # it-responsabilita-medica core concepts
-    "responsabilita": {
-        "de": "haftung",
-        "fr": "responsabilité",
-    },
-    "medico": {
-        "de": "arzt",
-        "fr": "médecin",
-    },
-    "errore": {
-        "de": "fehler",
-        "fr": "erreur",
-    },
-    "terapeutico": {
-        "de": "therapeutisch",
-        "fr": "thérapeutique",
-    },
-    "obbligo": {
-        "de": "pflicht",
-        "fr": "obligation",
-    },
-    "diligenza": {
-        "de": "sorgfalt",
-        "fr": "diligence",
-    },
-    "nesso": {
-        "de": "zusammenhang",
-        "fr": "lien",
-    },
-    "causale": {
-        "de": "kausal",
-        "fr": "causal",
-    },
-    "devono": {
-        "de": "müssen",
-        "fr": "doivent",
-    },
-    "essere": {
-        "de": "sein",
-        "fr": "être",
-    },
-    "dimostrati": {
-        "de": "bewiesen",
-        "fr": "prouvés",
-    },
-    "escludono": {
-        "de": "ausschliessen",
-        "fr": "excluent",
-    },
-    
-    # Frozen leg concepts (corporate-criminal-liability)
-    "unternehmensstrafbarkeit": {
-        "fr": "responsabilité pénale de l'entreprise",
-        "it": "responsabilità penale dell'impresa",
-    },
-    "organisationsmangel": {
-        "fr": "défaut d'organisation",
-        "it": "difetto di organizzazione",
-    },
-    "organisationsmassnahmen": {
-        "fr": "mesures d'organisation",
-        "it": "misure organizzative",
-    },
-    "subsidiar": {
-        "fr": "subsidiaire",
-        "it": "sussidiaria",
-    },
-    "primar": {
-        "fr": "primaire",
-        "it": "primaria",
-    },
-    
-    # Frozen leg concepts (business-judgment-rule)
-    "businessjudgmentrule": {
-        "fr": "règle de l'appréciation commerciale",
-        "it": "business judgment rule",
-    },
-    "verwaltungsrat": {
-        "fr": "conseil d'administration",
-        "it": "consiglio di amministrazione",
-    },
-    "interessenkonflikt": {
-        "fr": "conflit d'intérêts",
-        "it": "conflitto di interessi",
-    },
-    "informationspflicht": {
-        "fr": "obligation d'information",
-        "it": "obbligo di informazione",
-    },
-    
-    # Frozen leg concepts (petty-theft-dismissal)
-    "fristlose": {
-        "fr": "immediat",
-        "it": "immediato",
-    },
-    "kuendigung": {
-        "fr": "licenciement",
-        "it": "licenziamento",
-    },
-    "geringfugig": {
-        "fr": "de faible valeur",
-        "it": "di lieve entità",
-    },
-    "bagatell": {
-        "fr": "bagatelle",
-        "it": "bagatellare",
-    },
-    "diebstahl": {
-        "fr": "vol",
-        "it": "furto",
-    },
-    "verhaeltnismaessigkeit": {
-        "fr": "proportionnalité",
-        "it": "proporzionalità",
-    },
-    "treuundglauben": {
-        "fr": "bonne foi",
-        "it": "buona fede",
-    },
-    
-    # Frozen leg concepts (rent-default)
-    "zahlungsrueckstand": {
-        "fr": "retard de paiement",
-        "it": "ritardo di pagamento",
-    },
-    "mietzinsrueckstand": {
-        "fr": "arriéré de loyer",
-        "it": "arretrato di affitto",
-    },
-    "rechtsmissbrauch": {
-        "fr": "abus de droit",
-        "it": "abuso del diritto",
-    },
-    "art257d": {
-        "fr": "art. 257d",
-        "it": "art. 257d",
-    },
+#: Frozen head-noun suffixes per language, longest-first at match time.
+SUFFIXES: dict[str, tuple[str, ...]] = {
+    "de": (
+        "lichkeit", "schaft", "keit", "heit", "ung", "nis", "tion", "ität",
+        "anz", "enz", "ent", "tum", "ler", "bar", "sam", "haft", "los",
+        "reich", "voll", "ig", "lich", "isch", "end", "ern", "ung",
+    ),
+    "fr": (
+        "isation", "isation", "issement", "ement", "ation", "ance", "ence",
+        "ité", "ette", "age", "eur", "euse", "ier", "ière", "al",
+    ),
+    "it": (
+        "izzazione", "azione", "imento", "anza", "enza", "ità", "aggio",
+        "ismo", "ista", "abile", "ivo", "ale",
+    ),
 }
 
-# Inverse mapping for lookup
-def _build_inverse() -> Dict[str, Dict[str, str]]:
-    inv: Dict[str, Dict[str, str]] = {}
-    for de_term, translations in CROSS_LANG_DOCTRINAL.items():
-        for lang, term in translations.items():
-            if lang not in inv:
-                inv[lang] = {}
-            inv[lang][norm_token(term)] = de_term
-    return inv
 
-_INVERSE_DOCTRINAL = _build_inverse()
+def norm(value: Any) -> str:
+    """NFKD, strip combining marks, casefold, collapse whitespace.
 
-@dataclass(frozen=True)
-class ExpansionVariant:
-    """A single query variant produced by the expansion layer."""
-    variant_id: str
-    text: str
-    kind: str  # "original" | "compound_split" | "cross_lang" | "statute_alias"
-    language_filter: Optional[str] = None
-    source_concepts: Tuple[str, ...] = ()
-    added_terms: Tuple[str, ...] = ()
-    note: str = ""
+    Byte-identical to the accepted ``concept_coverage.norm`` so the mined
+    lexicon and the coverage metric can never disagree about what a word is.
+    """
+    text = unicodedata.normalize("NFKD", str(value or ""))
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    return " ".join(text.casefold().split())
 
-    def to_dict(self) -> dict:
+
+def tokens(text: str) -> list[str]:
+    return TOKEN_RE.findall(norm(text))
+
+
+# --------------------------------------------------------------------------- #
+# Corpus sample
+# --------------------------------------------------------------------------- #
+@dataclass
+class CorpusSample:
+    """Per-language document frequency over the read-only corpus sample."""
+
+    stoplist: frozenset[str]
+    docs: dict[str, list[frozenset[str]]] = field(default_factory=dict)
+    joined: dict[str, list[str]] = field(default_factory=dict)
+    n_rows: dict[str, int] = field(default_factory=dict)
+
+    @classmethod
+    def build(cls, *, stoplist: Iterable[str], bundle_rows: Iterable[dict],
+              benchmark_rows: Iterable[dict]) -> "CorpusSample":
+        stop = frozenset(stoplist)
+        raw: dict[str, list[str]] = {lang: [] for lang in LANGUAGES}
+        counts: dict[str, int] = {lang: 0 for lang in LANGUAGES}
+
+        for row in bundle_rows:
+            lang = str(row.get("language") or "").lower()
+            if lang not in raw:
+                continue
+            text = " \n ".join(str(row.get(field) or "") for field in (
+                "regeste", "title", "snippet", "citation", "docket_number"))
+            raw[lang].append(text)
+            counts[lang] += 1
+
+        for row in benchmark_rows:
+            lang = str(row.get("language") or "").lower()
+            if lang not in raw:
+                continue
+            text = " \n ".join(str(row.get(field) or "") for field in (
+                "text_head", "citation_string_de", "citation_string_fr",
+                "citation_string_it", "docket_number"))
+            raw[lang].append(text)
+            counts[lang] += 1
+
+        docs: dict[str, list[frozenset[str]]] = {}
+        joined: dict[str, list[str]] = {}
+        for lang, texts in raw.items():
+            out: list[frozenset[str]] = []
+            flat: list[str] = []
+            for text in texts:
+                toks = frozenset(
+                    t for t in tokens(text)
+                    if len(t) >= MIN_TERM_CHARS and t.isalpha() and t not in stop
+                )
+                if toks:
+                    out.append(toks)
+                    flat.append(" ".join(sorted(toks)))
+            docs[lang] = out
+            joined[lang] = flat
+        return cls(stoplist=stop, docs=docs, joined=joined, n_rows=counts)
+
+    # -- mining ----------------------------------------------------------- #
+    def df(self, token: str, language: str) -> int:
+        return sum(1 for doc in self.docs.get(language) or [] if token in doc)
+
+    def vocabulary(self, language: str, *, min_df: int = 1) -> frozenset[str]:
+        """Tokens that actually occur in this language's corpus sample."""
+        counts: dict[str, int] = {}
+        for doc in self.docs.get(language) or []:
+            for tok in doc:
+                counts[tok] = counts.get(tok, 0) + 1
+        return frozenset(t for t, n in counts.items() if n >= min_df)
+
+    def mine(self, concept_prefix: str, language: str, *,
+             limit: int = N_TERMS_PER_CONCEPT) -> list[tuple[str, float]]:
+        """Top-``limit`` terms associated with ``concept_prefix`` in ``language``.
+
+        Score is the conditional document frequency ratio
+        ``df(t | concept) / df(t)``: a term that co-occurs with the concept far
+        more often than chance, i.e. the corpus's own vocabulary for the
+        concept rather than a hand-written translation.
+
+        Three authoring constraints keep the output well-formed:
+
+        * ``df_L(t) >= MIN_TERM_DF (2)`` - a term the corpus barely uses cannot
+          carry a doctrinal association;
+        * ``t`` is not morphologically the concept itself (``concept_prefix in t``
+          or ``t in concept_prefix``), so ``arbeitgeberseitig`` is not offered as
+          an expansion of ``arbeitgebers``;
+        * ties on score are broken by corpus support DESCENDING then token
+          ascending.  Breaking ties alphabetically instead selects the
+          alphabetically-first noise word, which is a generator defect, not a
+          finding.
+        """
+        docs = self.docs.get(language) or []
+        flats = self.joined.get(language) or []
+        if not docs or not concept_prefix:
+            return []
+        holders = [d for d, flat in zip(docs, flats) if concept_prefix in flat]
+        if not holders:
+            return []
+        n_cond = len(holders)
+        cond_counts: dict[str, int] = {}
+        for doc in holders:
+            for tok in doc:
+                cond_counts[tok] = cond_counts.get(tok, 0) + 1
+        df: dict[str, int] = {}
+        for doc in docs:
+            for tok in doc:
+                df[tok] = df.get(tok, 0) + 1
+        scored: list[tuple[str, float, int]] = []
+        for tok, c in cond_counts.items():
+            if tok in self.stoplist or len(tok) < MIN_TERM_CHARS or not tok.isalpha():
+                continue
+            if concept_prefix in tok or tok in concept_prefix:
+                continue
+            total = df.get(tok, 0)
+            if total < MIN_TERM_DF:
+                continue
+            scored.append((tok, c / total, total))
+        # Deterministic: score desc, corpus support desc, token ascending.
+        scored.sort(key=lambda t: (-round(t[1], 6), -t[2], t[0]))
+        return [(t, s) for t, s, _ in scored[:limit]]
+
+    def summary(self) -> dict[str, Any]:
         return {
-            "variant_id": self.variant_id,
-            "text": self.text,
-            "kind": self.kind,
-            "language_filter": self.language_filter,
-            "source_concepts": list(self.source_concepts),
-            "added_terms": list(self.added_terms),
-            "note": self.note,
+            "documents_per_language": {k: len(v) for k, v in self.docs.items()},
+            "rows_per_language": dict(self.n_rows),
+            "token_stoplist_size": len(self.stoplist),
         }
 
 
-def build_expansion_variants(
-    query: str,
-    *,
-    language_filters: Tuple[str, ...] = ("de", "fr", "it"),
-    max_compound_splits: int = 6,
-    max_cross_lang: int = 12,
-) -> List[ExpansionVariant]:
-    """Build deterministic expansion variants for a query.
-    
-    This is the core expansion function. It takes a query and produces
-    a list of query variants that should be sent to retrieval.
-    
-    The variants are:
-    1. Original query (unchanged)
-    2. Compound-split variants (for German queries)
-    3. Cross-language doctrinal variants (DE→FR/IT, FR→DE/IT, IT→DE/FR)
-    4. Language-filtered variants (server-side language filter)
-    
-    All variants are deterministic and provenance-tracked.
+# --------------------------------------------------------------------------- #
+# Compound decomposition
+# --------------------------------------------------------------------------- #
+def compound_stems(concept: str, language: str,
+                    vocabulary: frozenset[str] | None = None) -> list[str]:
+    """Deterministic head/modifier stem split of a German/French/Italian compound.
+
+    Strips the longest matching frozen head-noun suffix and keeps the resulting
+    head stem plus the modifier prefix, dropping anything shorter than
+    ``MIN_TERM_CHARS``.
+
+    When a corpus vocabulary is supplied, a stem is kept **only if the corpus
+    actually uses it**.  Without that guard the splitter emits truncated
+    pseudo-words (``kapitalverletz``, ``resili``, ``baill``) that match nothing;
+    emitting a string the corpus never contains is a generator defect, not a
+    lexical finding.
     """
-    query = (query or "").strip()
-    if not query:
-        raise ValueError("empty query")
-    
-    variants: List[ExpansionVariant] = []
-    
-    # 1. Original query
-    variants.append(ExpansionVariant(
-        variant_id=f"original:{hash(query) & 0xffffffff:08x}",
-        text=query,
-        kind="original",
-        note="user query, unmodified",
-    ))
-    
-    # Extract concepts from query
-    query_tokens = tokenize(query)
-    query_concepts = set(query_tokens)
-    
-    # Also get compound splits for German compounds
-    compound_sources: Set[str] = set()
-    for tok in query_tokens:
-        splits = split_german_compound(tok)
-        if len(splits) > 1:
-            compound_sources.update(splits[1:])  # Skip original
-    
-    # 2. Compound split variants (for DE queries primarily)
-    if compound_sources:
-        # Limit splits
-        split_list = sorted(compound_sources)[:max_compound_splits]
-        if split_list:
-            expanded = query + " " + " ".join(split_list)
-            variants.append(ExpansionVariant(
-                variant_id=f"compound_split:{hash(expanded) & 0xffffffff:08x}",
-                text=expanded,
-                kind="compound_split",
-                source_concepts=tuple(split_list),
-                added_terms=tuple(split_list),
-                note="German compound noun splits from corpus-anchored boundaries",
-            ))
-    
-    # 3. Cross-language doctrinal variants
-    cross_lang_added: List[str] = []
-    for concept in query_concepts:
-        norm_concept = norm_token(concept)
-        if norm_concept in CROSS_LANG_DOCTRINAL:
-            translations = CROSS_LANG_DOCTRINAL[norm_concept]
-            for lang, term in translations.items():
-                if term not in cross_lang_added and len(cross_lang_added) < max_cross_lang:
-                    cross_lang_added.append(term)
-    
-    # Also check inverse mapping (FR/IT query → DE terms)
-    for concept in query_concepts:
-        norm_concept = norm_token(concept)
-        for lang in ("fr", "it"):
-            if norm_concept in _INVERSE_DOCTRINAL.get(lang, {}):
-                de_term = _INVERSE_DOCTRINAL[lang][norm_concept]
-                if de_term not in cross_lang_added and len(cross_lang_added) < max_cross_lang:
-                    cross_lang_added.append(de_term)
-    
-    if cross_lang_added:
-        expanded = query + " " + " ".join(cross_lang_added)
-        variants.append(ExpansionVariant(
-            variant_id=f"cross_lang:{hash(expanded) & 0xffffffff:08x}",
-            text=expanded,
-            kind="cross_lang",
-            source_concepts=tuple(query_concepts),
-            added_terms=tuple(cross_lang_added),
-            note="Cross-language doctrinal equivalents from frozen corpus-derived map",
-        ))
-    
-    # 4. Language-filtered variants (server-side filter, not translation)
-    for lang in language_filters:
-        variants.append(ExpansionVariant(
-            variant_id=f"language_filter:{lang}:{hash(query) & 0xffffffff:08x}",
-            text=query,
-            kind="language_filter",
-            language_filter=lang,
-            note=f"server-side OpenCaseLaw language={lang} filter (not a translation)",
-        ))
-    
-    return variants
+    out: list[str] = []
+    for suffix in sorted(SUFFIXES.get(language, ()), key=len, reverse=True):
+        if concept.endswith(suffix) and len(concept) - len(suffix) >= MIN_TERM_CHARS:
+            head = concept[: len(concept) - len(suffix)]
+            out.append(head)
+            if head != concept:
+                out.append(suffix)
+            break
+    stems = [t for t in out if len(t) >= MIN_TERM_CHARS]
+    if vocabulary is not None:
+        stems = [t for t in stems if t in vocabulary]
+    return stems
 
 
-def get_expansion_terms(query: str) -> Dict[str, List[str]]:
-    """Get just the expansion terms added by each variant kind.
-    
-    Returns dict with keys: compound_split, cross_lang
+# --------------------------------------------------------------------------- #
+# The layer
+# --------------------------------------------------------------------------- #
+@dataclass
+class Expansion:
+    language: str
+    query: str
+    terms: list[str]
+    concepts: list[str]
+    per_concept: dict[str, dict[str, Any]]
+    lexicon_synonyms: list[str]
+
+    def provenance(self) -> dict[str, Any]:
+        return {
+            "layer": "frontier-query-concept-recall/concept_recall_expansion_v1",
+            "deterministic": True,
+            "corpus_derived": True,
+            "model_calls": 0,
+            "network_calls": 0,
+            "target_language": self.language,
+            "concepts": list(self.concepts),
+            "terms": list(self.terms),
+            "n_terms": len(self.terms),
+            "per_concept": self.per_concept,
+            "accepted_lexicon_synonyms": list(self.lexicon_synonyms),
+            "note": (
+                "additive query variants only; no decision is removed, re-ranked "
+                "out of existence or labelled by this layer"
+            ),
+        }
+
+
+def build_expansion(question: str, language: str, sample: CorpusSample, *,
+                    concept_prefix_fn, content_concepts_fn,
+                    accepted_lexicon: dict[str, list[str]] | None = None,
+                    shuffle_terms: list[str] | None = None,
+                    blank: bool = False) -> Expansion:
+    """Build the one expansion query for ``(question, language)``.
+
+    ``blank=True`` produces the frozen A2 control (empty term set).
+    ``shuffle_terms`` carries the frozen A3 control (another question's terms).
     """
-    variants = build_expansion_variants(query)
-    out = {"compound_split": [], "cross_lang": []}
-    for v in variants:
-        if v.kind == "compound_split":
-            out["compound_split"] = list(v.added_terms)
-        elif v.kind == "cross_lang":
-            out["cross_lang"] = list(v.added_terms)
-    return out
+    concepts = list(content_concepts_fn(question))
+
+    if blank:
+        return Expansion(language, "", [], concepts, {}, [])
+
+    if shuffle_terms is not None:
+        return Expansion(language, " ".join(shuffle_terms), list(shuffle_terms),
+                         concepts, {"shuffled_control": {"terms": list(shuffle_terms)}}, [])
+
+    accepted = dict(accepted_lexicon or {})
+    ordered: list[str] = []
+    per_concept: dict[str, dict[str, Any]] = {}
+    lexicon_synonyms: list[str] = []
+
+    def add(term: str) -> None:
+        if term and term not in ordered:
+            ordered.append(term)
+
+    question_tokens = set(tokens(question))
+    for concept in concepts:
+        prefix = concept_prefix_fn(concept)
+        mined = sample.mine(prefix, language)
+        stems = compound_stems(concept, language, sample.vocabulary(language))
+        synonyms: list[str] = []
+        for tok in tokens(concept):
+            for syn in accepted.get(tok, []):
+                if syn not in question_tokens and syn not in synonyms:
+                    synonyms.append(syn)
+        lexicon_synonyms.extend(synonyms)
+        per_concept[concept] = {
+            "prefix": prefix,
+            "mined": [t for t, _ in mined],
+            "mined_scores": {t: round(s, 6) for t, s in mined},
+            "stems": stems,
+            "accepted_lexicon_synonyms": synonyms,
+        }
+        # Order: exact accepted synonyms, then mined corpus vocabulary, then stems.
+        for term in [*synonyms, *[t for t, _ in mined], *stems]:
+            add(norm(term))
+
+    terms = ordered[:MAX_QUERY_TERMS]
+    return Expansion(language, " ".join(terms), terms, concepts, per_concept,
+                     sorted(set(lexicon_synonyms)))
 
 
-# ---------------------------------------------------------------------------
-# Frozen authority ID sets (from frozen_retrieval_benchmark.json)
-# ---------------------------------------------------------------------------
+def blanked(expansion: Expansion) -> Expansion:
+    """A2: the same algorithm with an empty term set."""
+    return Expansion(expansion.language, "", [], expansion.concepts, {}, [])
 
-FROZEN_AUTHORITY_IDS = {
-    "corporate-criminal-liability": frozenset([
-        "bge_BGE_142_IV_333",
-        "bger_6B_124_2016",
-    ]),
-    "business-judgment-rule": frozenset([
-        "bger_4A_219_2015",
-        "bger_4A_259_2016",
-        "bger_4A_603_2014",
-        "bger_4A_626_2013",
-        "bger_4A_62_2024",
-    ]),
-    "petty-theft-dismissal": frozenset([
-        "bger_4A_177_2017",
-        "bger_4A_228_2015",
-    ]),
-    "rent-default": frozenset([]),  # No authority_ids in frozen spec
-}
 
-FROZEN_LEG_SLUGS = (
-    "rent-default",
-    "corporate-criminal-liability", 
-    "business-judgment-rule",
-    "petty-theft-dismissal",
-)
-
-# Served question IDs (from the accepted packet)
-SERVED_QUESTIONS = (
-    "de-kapitalverletzung",
-    "fr-bail-entretien",
-    "it-responsabilita-medica",
-)
-
-# Frozen baseline queries per leg per language (from frozen_retrieval_benchmark.json)
-FROZEN_BASELINE_QUERIES = {
-    "rent-default": {
-        "fr": "Sous quelles conditions un bailleur peut-il résilier un bail d'habitation pour retard dans le paiement du loyer selon le droit suisse, et quelles exceptions ou limites jurisprudentielles existent ?",
-        "de": "Unter welchen Voraussetzungen kann der Vermieter einen Wohnmietvertrag wegen Zahlungsverzug kündigen, und welche Ausnahmen oder Grenzen der Rechtsprechung bestehen nach Schweizer Recht?",
-        "it": "In quali condizioni il locatore può risolvere un contratto di locazione per ritardo nel pagamento dell'affitto secondo il diritto svizzero, e quali eccezioni o limiti giurisprudenziali esistono?",
-    },
-    "corporate-criminal-liability": {
-        "fr": "La responsabilité pénale de l'entreprise selon l'art. 102 CP est-elle subsidiaire ou primaire, et pour quelles infractions ? Quelles exigences d'organisation doivent être prouvées ?",
-        "de": "Ist die Verantwortlichkeit des Unternehmens nach Art. 102 StGB subsidiär oder primär, und für welche Straftaten? Welche Organisationspflichten müssen nachgewiesen werden?",
-        "it": "La responsabilità penale dell'impresa ex art. 102 CP è sussidiaria o primaria, e per quali reati? Quali esigenze organizzative devono essere provate?",
-    },
-    "business-judgment-rule": {
-        "fr": "Dans quelles conditions le juge suisse s'abstient-il de revoir une décision commerciale d'un conseil d'administration au titre de la business judgment rule, et quelles exceptions ou limites ressortent de la jurisprudence ?",
-        "de": "Unter welchen Bedingungen enthält sich der Schweizer Richter der Überprüfung eines Geschäftsentscheids des Verwaltungsrats aufgrund der Business Judgment Rule, und welche Ausnahmen oder Grenzen ergeben sich aus der Rechtsprechung?",
-        "it": "In quali condizioni il giudice svizzero si astiene dal riesaminare una decisione commerciale del consiglio di amministrazione in applicazione della business judgment rule, e quali eccezioni o limiti discendono dalla giurisprudenza?",
-    },
-    "petty-theft-dismissal": {
-        "fr": "Un vol de faible valeur commis par un employé justifie-t-il un licenciement immédiat selon l'art. 337 CO ? Quelles circonstances font varier la réponse ?",
-        "de": "Rechtfertigt ein geringfügiger Diebstahl durch einen Arbeitnehmer die fristlose Kündigung nach Art. 337 OR? Welche Umstände verändern die Antwort?",
-        "it": "Un furto di lieve entità commesso da un dipendente giustifica il licenziamento immediato ex art. 337 CO? Quali circostanze modificano la risposta?",
-    },
-}
-
-# Served questions (from the rebuilt packet)
-SERVED_QUERIES = {
-    "de-kapitalverletzung": "Aktive Fürsorgepflicht des Arbeitgebers bei einer Kapitalverletzung: wie weit geht der aktive Eingriff, und welche Entscheidungen begrenzen ihn gegenüber einer blossen Überwachungspflicht?",
-    "fr-bail-entretien": "Résiliation du bail pour défaut d'entretien du bailleur : jusqu'où va la jurisprudence, et quelles décisions distinguent le défaut d'entretien grave de la simple négligence ?",
-    "it-responsabilita-medica": "Responsabilità del medico per errore terapeutico: quale obbligo di diligenza e quale nesso causale devono essere dimostrati, e quali decisioni escludono la responsabilità?",
-}
-
-# Served question core concepts (from subject_match_audit)
-SERVED_CORE_CONCEPTS = {
-    "de-kapitalverletzung": frozenset([
-        "aktive", "fursorgepflicht", "arbeitgebers", "kapitalverletzung",
-        "eingriff", "begrenzen", "blossen", "uberwachungspflicht",
-    ]),
-    "fr-bail-entretien": frozenset([
-        "resiliation", "defaut", "entretien", "bailleur",
-        "jusqu", "distinguent", "grave", "simple", "negligence",
-    ]),
-    "it-responsabilita-medica": frozenset([
-        "responsabilita", "medico", "errore", "terapeutico",
-        "quale", "obbligo", "diligenza", "nesso", "causale",
-        "devono", "essere", "dimostrati", "escludono",
-    ]),
-}
+def shuffled(source: Expansion) -> Expansion:
+    """A3: another question's term set, used on the wrong question."""
+    return Expansion(expansion.language, source.query, list(source.terms),
+                     [], {"shuffled_control": {"terms": list(source.terms)}}, [])
 
 
 __all__ = [
-    "norm_token",
-    "tokenize",
-    "split_german_compound",
-    "CROSS_LANG_DOCTRINAL",
-    "ExpansionVariant",
-    "build_expansion_variants",
-    "get_expansion_terms",
-    "FROZEN_AUTHORITY_IDS",
-    "FROZEN_LEG_SLUGS",
-    "SERVED_QUESTIONS",
-    "FROZEN_BASELINE_QUERIES",
-    "SERVED_QUERIES",
-    "SERVED_CORE_CONCEPTS",
+    "LANGUAGES",
+    "N_TERMS_PER_CONCEPT",
+    "MAX_QUERY_TERMS",
+    "MIN_TERM_CHARS",
+    "MIN_TERM_DF",
+    "CorpusSample",
+    "Expansion",
+    "build_expansion",
+    "blanked",
+    "shuffled",
+    "compound_stems",
+    "norm",
+    "tokens",
 ]
