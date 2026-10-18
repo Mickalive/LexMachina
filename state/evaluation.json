@@ -1,13 +1,13 @@
 {
  "accepted_base_gate_coverage_recorded": {
-  "accepted_branch_head": "904aff83480b4483be81ef32a6460d3f1c5bcfe8",
+  "accepted_branch_head": "a11a674b058b8d41c8b0ec2354de0c8052d5a696",
   "action": "DISCLOSED, NOT REWRITTEN; rewriting lab/evaluation is outside a lane's write scope and would destroy the measured history",
   "all_belong_to_run": "39027041693",
   "commits_above_that_accept_commit": 5,
-  "finding": "origin/lab/evaluation currently carries one UNAUDITED cycle at its head: five producer commits of run 39027041693 sit above the newest accept commit and no CYCLE_39027041693_GATE.json exists on the branch. UNVERIFIED, not UNSOUND - a different statement.",
+  "finding": "origin/lab/evaluation HEAD is a11a674b ('accept evaluation cycle 39140489344', audit CYCLE_39140489344_GATE.json gate=PASS, safe_to_integrate=true, required_fixes=[]). The newest 'accept evaluation cycle' commit is now that same commit, so ZERO run ids sit above it; the historical 39027041693 ungated run is now BELOW the newest accept commit and is no longer 'at the head'. UNVERIFIED (that run still has no gate of record), not UNSOUND.",
   "gate_of_record_for_39027041693": null,
   "guard": "snapshot-audit check 18 re-derives the ungated run set from git and requires the disclosure to match, so a NEW ungated run at the accepted head goes RED",
-  "newest_accept_commit": "904aff83 'accept evaluation cycle 39123055362'",
+  "newest_accept_commit": "a11a674b 'accept evaluation cycle 39140489344'",
   "not_claimed": [
    "the frozen-bar gates are NOT affected: all eight accepted gate files (38971202786, 38978411574, 38989947869, 38993062549, 39007294442, 39012970379, 39018005027, 39020603510) are PRESENT on the accepted branch",
    "this is NOT a claim that the 39027041693 work is wrong",
@@ -15,11 +15,11 @@
    "how those commits reached the branch is not distinguishable from this checkout and is not asserted"
   ],
   "record": "results/evaluation/accepted_base_gate_coverage_39043684319.json",
-  "republished_by": "39137732712",
-  "republished_at_utc": "2026-10-18T15:42:00Z",
-  "republication_note": "Measured fields re-derived from git per the record's designed behaviour after the head moved to 904aff8 (accept evaluation cycle 39123055362). The 39118290208 snapshot is preserved verbatim under superseded_snapshot_39118290208 of the record; no historical finding is retracted.",
+  "republished_by": "39143711195",
+  "republished_at_utc": "2026-10-18T16:35:45Z",
+  "republication_note": "Measured fields re-derived from git per the record's designed behaviour after the head moved to a11a674b (accept evaluation cycle 39140489344). The 39137732712 snapshot (head 904aff83) is preserved verbatim under the record's superseded_snapshot_39137732712; no historical finding is retracted.",
   "derived_ungated_runs_at_this_head": [],
-  "n_gates_on_accepted_branch": 17
+  "n_gates_on_accepted_branch": 18
  },
  "accepted_run_id": "39117425713",
  "accepted_run_id_correction_note": "POINTER CORRECTION this cycle (39118290208). The pointer had said 39020603510 since cycle 39043684319. Re-derived from git: the newest 'accept evaluation cycle' commit on origin/lab/evaluation is 09cd5c7d = accept evaluation cycle 39117425713, and results/audit/evaluation/CYCLE_39117425713_GATE.json (gate=PASS, safe_to_integrate=true, required_fixes=[]) is present on that branch. The pointer is therefore 39117425713. Acceptance itself still moves only via an audit gate; this field is a pointer, never a promotion. The prior correction note is preserved verbatim in accepted_run_id_history_prior.",
@@ -779,7 +779,8 @@
   "results/evaluation/trigger_reconciliation/39140489344/39140489344_trigger.json",
   "results/evaluation/trigger_reconciliation/39140489344/39140489344_reconciliation.json",
   "results/evaluation/snapshot_audit/39140489344.json",
-  "reports/evaluation/CYCLE_39140489344.md"
+  "reports/evaluation/CYCLE_39140489344.md",
+  "results/evaluation/snapshot_audit/39143711195.json"
  ],
  "evidence_tier": "EXPLORATORY",
  "execution_records_38951152192": {
@@ -3919,5 +3920,37 @@
   "post_write_state_claim": "VERIFIED",
   "note": "the full lane suite is executed INSIDE check 4 of this record; no lane_suite_39140489344 block is published so no suite number is predicted before it is measured.",
   "pytest_disclosure_still_standing": "pytest is ABSENT in this image; the lane suite's pytest pass is therefore [SKIP]ped and the stdlib checks are authoritative. READY is CONDITIONAL on that absence, per the accepted R2 disclosure of audit CYCLE_39064597912_GATE.json."
+ },
+ "trigger_reconciliation_39143711195": {
+  "command": "python -m evaluation.trigger_reconciliation --run-id 39143711195",
+  "record": "results/evaluation/trigger_reconciliation/39143711195/39143711195_reconciliation.json",
+  "trigger_record": "results/evaluation/trigger_reconciliation/39143711195/39143711195_trigger.json",
+  "trigger_record_sha256": "69d7e74940e67bb0c5da573abf6c21b4c6480447fa9e14946bc81d60cf5bb30b",
+  "mechanism": "python -m evaluation.newhead_recompute --mode trigger (frozen, direction-pinned baseline manifest results/evaluation/newhead_recompute_39027041693/served_packet_baseline_39027041693.json)",
+  "verdict": "TRIGGER_FIRES__SCORED_CLAIM_MOVEMENT_NOT_MEASURED",
+  "trigger_verdict": "ADJUDICATE_REQUIRED",
+  "re_run_forbidden": false,
+  "scored_claim_change": null,
+  "reason": "identical to the accepted verdicts of cycles 39109815075, 39111232991, 39113690481, 39137732712, 39140489344: the product mount has not moved (still 453a873f, re-verified this run), so the served-packet claim population still differs from the pinned 56-file baseline (n_current 69, 55 byte-identical, 1 changed, 13 added) and direction item (1) fires with no scored claim movement",
+  "scored_claim_movement_half": "NOT_MEASURED",
+  "scored_claim_movement_note": "Re-deriving it needs the product fetch deepened to the baseline head cc719eebf and it measures bytes that have not moved; the half is labelled NOT_MEASURED and is never rounded up.",
+  "what_this_does_and_does_not_claim": "The trigger half executes and returns ADJUDICATE_REQUIRED again, so the 39082753086 retraction of NO_NEW_PACKET still stands. This check does not judge whether the re-score is worth running; it refuses to certify an unmeasured trigger verdict."
+ },
+ "snapshot_audit_39143711195": {
+  "command": "python -m evaluation.snapshot_audit.run_snapshot_audit --run-id 39143711195",
+  "record": "results/evaluation/snapshot_audit/39143711195.json",
+  "n_checks": 21,
+  "n_passed": 21,
+  "verdict": "READY",
+  "ready_for_independent_audit": true,
+  "post_write_self_reference": "VERIFIED",
+  "post_write_state_claim": "VERIFIED",
+  "post_write_report_claim": "VERIFIED",
+  "note": "the full lane suite is executed INSIDE check 4 of this record; no lane_suite_39143711195 block is published so no suite number is predicted before it is measured.",
+  "pytest_disclosure_still_standing": "pytest is ABSENT in this image; the lane suite's pytest pass is therefore [SKIP]ped and the stdlib checks are authoritative. READY is CONDITIONAL on that absence, per the accepted R2 disclosure of audit CYCLE_39064597912_GATE.json.",
+  "gate_path_for_the_auditor": "results/audit/evaluation/CYCLE_39143711195_GATE.json (UPPERCASE _GATE.json, relative to the audit-job checkout, never /tmp/lex_team)",
+  "report_path_for_the_auditor": "reports/audit/evaluation/CYCLE_39143711195.md",
+  "readiness_record_sha256": "f7a432b183c5f3652c2f15dbb5ce1b361c7f3353b4fb7524503a678d4ee0d72e",
+  "readiness_record_sha256_note": "sha256 of the FINAL committed readiness record. Deliberately NOT re-run afterwards: the record embeds generated_at_utc so any further run would change its bytes and make this pin stale by construction. Verified instead by re-hashing the committed artifact."
  }
 }

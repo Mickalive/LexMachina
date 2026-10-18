@@ -1,15 +1,15 @@
 {
   "acceptance_rule_applied": "factory-wide requirement 8: a cycle counts as accepted only when BOTH a gate with gate=PASS and safe_to_integrate=true AND an 'accept <lane> cycle <run_id>' commit exist. This check measures the second half plus gate-file presence; it does not read gate contents.",
-  "accepted_branch_head": "904aff83480b4483be81ef32a6460d3f1c5bcfe8",
+  "accepted_branch_head": "a11a674b058b8d41c8b0ec2354de0c8052d5a696",
   "action_taken": "DISCLOSED, NOT REWRITTEN. The record's own measurement fields were re-derived from git exactly as evaluation.snapshot_audit.run_snapshot_audit's check 18 recomputes them, and every prior measurement is preserved verbatim under its superseded_snapshot_* key. No commit was rewritten, no branch was pushed to and no historical finding was deleted.",
   "claim_ceiling": "This record establishes, at the named accepted branch head, which run ids sit above the newest 'accept evaluation cycle' commit and whether each has a gate file of record on that branch. It does NOT establish that the accepted evidence is sound, does NOT read gate contents, does NOT quantify how much of the head depends on any one cycle, and does NOT propose a rollback or a rewrite of the branch.",
   "control_plane_gap_recorded_not_patched": ".github/** is control-plane scope and was NOT edited from this lane. Recorded for the control plane: the persist step pushes the producer tree to cycle/core/<lane>/<run>/team only, so nothing in the workflow explains unaudited producer commits arriving on lab/<lane>; a lane-side guard (e.g. refusing a push to lab/ that is not the integrate job's identity) or an audit-side check that the newest accept commit is the branch head would surface this immediately.",
   "finding": {
-    "statement": "STATUS UPDATE run 39137732712, 2026-10-18: origin/lab/evaluation HEAD is 904aff8 ('accept evaluation cycle 39123055362'). The newest 'accept evaluation cycle' commit is now that same commit, so ZERO run ids sit above it and the unaudited-head condition reported by run 39043684319 does not hold at this head either. 17 gate files are present on the accepted branch. The earlier measurements (head 09970e83 unaudited run 39027041693, preserved under superseded_snapshot_39043684319; head 3c2fcab6 under superseded_snapshot_39111232991; head 09cd5c7d under superseded_snapshot_39118290208) are preserved verbatim and are NOT retracted or rewritten.",
+    "statement": "STATUS UPDATE run 39143711195, 2026-10-18: origin/lab/evaluation HEAD is a11a674b ('accept evaluation cycle 39140489344', audit CYCLE_39140489344_GATE.json gate=PASS, safe_to_integrate=true, required_fixes=[]). The newest 'accept evaluation cycle' commit is now that same commit, so ZERO run ids sit above it and the unaudited-head condition reported by run 39043684319 does not hold at this head either. 18 gate files are present on the accepted branch. The earlier measurements (head 09970e83 unaudited run 39027041693, preserved under superseded_snapshot_39043684319; head 3c2fcab6 under superseded_snapshot_39111232991; head 09cd5c7d under superseded_snapshot_39118290208; head 904aff83 under superseded_snapshot_39137732712) are preserved verbatim and are NOT retracted or rewritten.",
     "ungated": [],
     "what_is_NOT_claimed": [
       "this is NOT a claim that every accepted cycle on the branch was audited to the same depth; the coverage measure reads commit subjects and gate-file PRESENCE and does not read gate contents",
-      "this is NOT a claim about the newest accepted cycle (39123055362) beyond its gate file being present on the branch",
+      "this is NOT a claim about the newest accepted cycle (39140489344) beyond its gate file being present on the branch",
       "the historical 39043684319 finding that the accepted branch carried one UNAUDITED cycle at its head is SUPERSEDED AS PRESENT TENSE, not deleted",
       "an empty derived ungated set says nothing about whether future cycles will be gated; it is a point-in-time coverage reading at the named head",
       "the branch head moves on every accepted cycle, so check 18 will go red again until the next republication; that is the record's designed behaviour and is NOT a defect in the underlying coverage"
@@ -32,12 +32,13 @@
     "39109815075",
     "39117425713",
     "39118290208",
-    "39123055362"
+    "39123055362",
+    "39140489344"
   ],
   "lane": "evaluation",
   "newest_accept_commit": {
-    "sha": "904aff83",
-    "subject": "accept evaluation cycle 39123055362",
+    "sha": "a11a674b",
+    "subject": "accept evaluation cycle 39140489344",
     "committer": "lex-integrator"
   },
   "purpose": "Measure whether every run whose producer commits sit at the HEAD of the ACCEPTED evaluation branch origin/lab/evaluation is covered by a gate of record on that branch. Found by cycle 39043684319 while diagnosing the run it resumes from; recorded so the gap is disclosed and cannot be forgotten.",
@@ -190,9 +191,9 @@
     "preserved_verbatim": true,
     "why": "The 39111232991 measurement is history and is preserved under this key by the 39118290208 republication. It is NOT deleted, reworded or re-scoped."
   },
-  "republished_by": "39137732712",
-  "republished_at_utc": "2026-10-18T15:42:00Z",
-  "republication_reason": "check 18 of the readiness verifier re-derives this disclosure from git and fails when the recorded head does not equal the re-derived head. Since the 39118290208 republication two more evaluation cycles were accepted onto the branch, moving the head to 904aff8. Re-publishing the measured fields is the record's designed behaviour, not a rewrite of a verdict; the previous measurement is preserved verbatim under superseded_snapshot_39118290208.",
+  "republished_by": "39143711195",
+  "republished_at_utc": "2026-10-18T16:35:45Z",
+  "republication_reason": "check 18 of the readiness verifier re-derives this disclosure from git and fails when the recorded head does not equal the re-derived head. Since the 39137732712 republication one more evaluation cycle was accepted onto the branch, moving the head to a11a674b. Re-publishing the measured fields is the record's designed behaviour, not a rewrite of a verdict; the previous measurement is preserved verbatim under superseded_snapshot_39137732712.",
   "preserved_verbatim": true,
   "superseded_snapshot_39118290208": {
     "accepted_branch_head": "09cd5c7d2b1529a3540d244479e016e54f8fee87",
@@ -233,5 +234,48 @@
     "as_recorded_by_run": "39118290208",
     "preserved_verbatim": true,
     "why": "The 39118290208 measurement is history and is preserved under this key by the 39137732712 republication. It is NOT deleted, reworded or re-scoped."
+  },
+  "superseded_snapshot_39137732712": {
+    "accepted_branch_head": "904aff83480b4483be81ef32a6460d3f1c5bcfe8",
+    "finding": {
+      "statement": "STATUS UPDATE run 39137732712, 2026-10-18: origin/lab/evaluation HEAD is 904aff8 ('accept evaluation cycle 39123055362'). The newest 'accept evaluation cycle' commit is now that same commit, so ZERO run ids sit above it and the unaudited-head condition reported by run 39043684319 does not hold at this head either. 17 gate files are present on the accepted branch. The earlier measurements (head 09970e83 unaudited run 39027041693, preserved under superseded_snapshot_39043684319; head 3c2fcab6 under superseded_snapshot_39111232991; head 09cd5c7d under superseded_snapshot_39118290208) are preserved verbatim and are NOT retracted or rewritten.",
+      "ungated": [],
+      "what_is_NOT_claimed": [
+        "this is NOT a claim that every accepted cycle on the branch was audited to the same depth; the coverage measure reads commit subjects and gate-file PRESENCE and does not read gate contents",
+        "this is NOT a claim about the newest accepted cycle (39123055362) beyond its gate file being present on the branch",
+        "the historical 39043684319 finding that the accepted branch carried one UNAUDITED cycle at its head is SUPERSEDED AS PRESENT TENSE, not deleted",
+        "an empty derived ungated set says nothing about whether future cycles will be gated; it is a point-in-time coverage reading at the named head",
+        "the branch head moves on every accepted cycle, so check 18 will go red again until the next republication; that is the record's designed behaviour and is NOT a defect in the underlying coverage"
+      ]
+    },
+    "gates_present_on_accepted_branch": [
+      "38918468438",
+      "38928722878",
+      "38934722443",
+      "38951152192",
+      "38966576940",
+      "38971202786",
+      "38978411574",
+      "38989947869",
+      "38993062549",
+      "39007294442",
+      "39012970379",
+      "39018005027",
+      "39020603510",
+      "39109815075",
+      "39117425713",
+      "39118290208",
+      "39123055362"
+    ],
+    "newest_accept_commit": {
+      "sha": "904aff83",
+      "subject": "accept evaluation cycle 39123055362",
+      "committer": "lex-integrator"
+    },
+    "runs_above_newest_accept_commit": {},
+    "ungated_runs_above_the_newest_accept_commit": [],
+    "as_recorded_by_run": "39137732712",
+    "preserved_verbatim": true,
+    "why": "The 39137732712 measurement (head 904aff83) is history and is preserved under this key by the 39143711195 republication. It is NOT deleted, reworded or re-scoped."
   }
 }
