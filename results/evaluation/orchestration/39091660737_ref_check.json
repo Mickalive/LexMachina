@@ -1,0 +1,172 @@
+{
+ "schema": "lex-evaluation-orchestration-ref-check/1",
+ "environment_errors": null,
+ "lane": "evaluation",
+ "run_id": "39091660737",
+ "measured_at_utc": "2026-10-18T03:07:06Z",
+ "refs": {
+  "team_ref": "origin/cycle/core/evaluation/39091660737/team",
+  "team_head": "b293c45a7e010f3bc08ec90ddf6e36e8a83ca597",
+  "predecessor_ref": "b293c45a",
+  "predecessor_head": "b293c45a7e010f3bc08ec90ddf6e36e8a83ca597"
+ },
+ "zero_delta": {
+  "head_identical": true,
+  "tree_identical": true,
+  "team_tree": "ffbdfbf973a29b917185bf9d01fa4093a8541dd2",
+  "predecessor_tree": "ffbdfbf973a29b917185bf9d01fa4093a8541dd2",
+  "delta_commit": null,
+  "head_subject": "evaluation 39086856920: repair round 1 of rejected cycle 39082753086 - F1-F4 applied and pinned; new served-bundle falsifier FIRES"
+ },
+ "verdict": "ZERO_DURABLE_DELTA_PERSISTED",
+ "control_plane": {
+  "sha256": {
+   ".github/workflows/core-lane.yml": "64ffe9d50971e35c775cc5330b3e4da7e841fafc50387123cd7bd392c0290ed2",
+   ".github/scripts/run-ox-with-retry.sh": "5398375cc3bf7aedfbdd129b7c595cb726096c4195ab72fadcc73534d4094603"
+  },
+  "constructs": [
+   {
+    "id": "persist_step_is_always",
+    "key": "persist_step_always",
+    "source": ".github/workflows/core-lane.yml",
+    "pattern": "^\\s*- name: Persist team snapshot\\s*$",
+    "present": true,
+    "at": ".github/workflows/core-lane.yml:145"
+   },
+   {
+    "id": "persist_commit_is_soft",
+    "key": "persist_commit_soft",
+    "source": ".github/workflows/core-lane.yml",
+    "pattern": "git commit -m .*\\|\\| true",
+    "present": true,
+    "at": ".github/workflows/core-lane.yml:73"
+   },
+   {
+    "id": "persist_pushes_force",
+    "key": "persist_push_force",
+    "source": ".github/workflows/core-lane.yml",
+    "pattern": "git push --force origin",
+    "present": true,
+    "at": ".github/workflows/core-lane.yml:160"
+   },
+   {
+    "id": "audit_needs_team",
+    "key": "audit_needs_team",
+    "source": ".github/workflows/core-lane.yml",
+    "pattern": "^\\s*needs: team\\s*$",
+    "present": true,
+    "at": ".github/workflows/core-lane.yml:164"
+   },
+   {
+    "id": "audit_gated_on_team_success",
+    "key": "audit_gated_on_success",
+    "source": ".github/workflows/core-lane.yml",
+    "pattern": "if: needs\\.team\\.result == 'success'",
+    "present": true,
+    "at": ".github/workflows/core-lane.yml:165"
+   },
+   {
+    "id": "integrate_gated_on_audit",
+    "key": "integrate_gated_on_audit",
+    "source": ".github/workflows/core-lane.yml",
+    "pattern": "^\\s*needs: audit\\s*$",
+    "present": true,
+    "at": ".github/workflows/core-lane.yml:224"
+   },
+   {
+    "id": "zero_delta_guard_exists",
+    "key": "zero_delta_guard",
+    "source": ".github/scripts/run-ox-with-retry.sh",
+    "pattern": "LEX_ZERO_DELTA_REPAIR",
+    "present": true,
+    "at": ".github/scripts/run-ox-with-retry.sh:108"
+   },
+   {
+    "id": "zero_delta_guard_repair_only",
+    "key": "zero_delta_guard_repair_only",
+    "source": ".github/scripts/run-ox-with-retry.sh",
+    "pattern": "REPAIR_INTENT=true",
+    "present": true,
+    "at": ".github/scripts/run-ox-with-retry.sh:91"
+   }
+  ],
+  "constructs_all_present": true,
+  "missing_constructs": []
+ },
+ "validation_triage": [
+  {
+   "gate": "validate_registry",
+   "rc_on_failure": [
+    64,
+    65,
+    66
+   ],
+   "grade": "REFUTED",
+   "evidence": "registry /tmp/lex_control/docs/agents/AGENT_CARDS.md sha256 70c4c78e0c3186179fdd2d1918d28055248330e4922c9fd35737a595807cc36a; 7 agent definitions each carry exactly 1 card; 7 cards declared; duplicate_cards=[]; cards_without_definition=[]; disabled=[]",
+   "consequence": "this gate cannot have produced the zero-delta death: it passes against the mounted control plane and this repo"
+  },
+  {
+   "gate": "resolve_model_args",
+   "rc_on_failure": [
+    76
+   ],
+   "grade": "CANNOT_DETERMINE",
+   "evidence": "mounted model_health healthy=True resolved='opencode/nemotron-3-ultra-free' last_checked_run_id=39091676964 last_checked_at=2026-10-18T02:56:35Z",
+   "consequence": "the mounted file CANNOT be the one this run dispatched on if its last_checked_run_id is numerically greater than the run id under test, so this gate is neither refuted nor confirmed. It is the one validation gate whose input is not recoverable from the snapshot, and it is the only remaining candidate that would have exited BEFORE the agent started.",
+   "input_predates_run": false
+  },
+  {
+   "gate": "lane_write_scope_after_stage_control",
+   "rc_on_failure": [
+    3
+   ],
+   "grade": "REFUTED",
+   "evidence": "stage_control checks out origin/main over AGENTS.md and .opencode/agents; AGENTS.md identical=True; per-file drift=none",
+   "consequence": "the overlay restore is a byte-level no-op for this tree, so the scope step could not have failed on an overlay entry; the lane crossed no protected path"
+  },
+  {
+   "gate": "LEX_ZERO_DELTA_REPAIR",
+   "rc_on_failure": [
+    67
+   ],
+   "grade": "STRUCTURAL",
+   "evidence": "wrapper exports LEX_REQUIRE_DELTA=1 only inside the REPAIR_FROM branch of core-lane.yml: export_in_repair_branch=True; guard string present=True",
+   "consequence": "a dispatch carrying repair_from_run_id would have been HARD-FAILED by the guard rather than persisting a zero-delta ref silently; a supervisor fresh dispatch carries no guard and exits 0. This run's ref is the predecessor head, which is what BOTH produce, so the guard's coverage does not discriminate between them here."
+  },
+  {
+   "gate": "init_step_repair_branch_requires_both_refs",
+   "rc_on_failure": [
+    1
+   ],
+   "grade": "STRUCTURAL",
+   "evidence": "core-lane.yml's REPAIR_FROM branch runs `git fetch origin \"$TEAM:...\" \"$AUDIT:...\"` under `set -euo pipefail` (init_fetches_both_refs=True); it then `git worktree add /tmp/lex_prior_audit origin/$AUDIT`.",
+   "consequence": "a repair dispatch whose predecessor never produced an audit branch fails HERE, before the agent starts, and delivers zero delta. This is indistinguishable from the ref alone and is a CANDIDATE, not an established cause: establishing it needs the run's dispatch inputs and step log, which this lane cannot fetch (HTTP 403 on every REST attempt)."
+  }
+ ],
+ "structural_consequences": [
+  {
+   "id": "ref_inspection_cannot_distinguish_death_from_success",
+   "grade": "STRUCTURAL",
+   "evidence": "core-lane.yml persists with `if: always()`, `git commit ... || true` and `git push --force`, so a producer that dies with a clean worktree pushes its predecessor head verbatim.",
+   "consequence": "the persisted team ref is IDENTICAL for a successful cycle and for a cycle that did nothing. Any gate that reads refs to decide whether a cycle delivered is reading a constant."
+  },
+  {
+   "id": "audit_starvation_is_structural",
+   "grade": "STRUCTURAL",
+   "evidence": "audit job is `needs: team` AND `if: needs.team.result == 'success'`; integrate is `needs: audit`.",
+   "consequence": "every producer non-zero exit skips the audit, so the cycle cannot be gated or promoted. A cycle that dies after committing is operationally identical to one that never ran."
+  },
+  {
+   "id": "zero_delta_guard_does_not_cover_fresh_dispatches",
+   "grade": "STRUCTURAL",
+   "evidence": "run-ox-with-retry.sh sets REPAIR_INTENT=true only from a REPAIR argument or LEX_REQUIRE_DELTA=1; core-lane.yml sets that export only inside the `if [[ -n \"$REPAIR_FROM\" ]]` branch.",
+   "consequence": "a supervisor fresh dispatch (repair_from_run_id empty) gets NO rc-67 zero-delta guard, so a do-nothing cycle there exits 0 and is recorded as a clean success."
+  }
+ ],
+ "grade_key": {
+  "MEASURED": "recomputed from the persisted snapshot inside this run",
+  "STRUCTURAL": "read off the mounted control-plane workflow text, hashed above",
+  "CANDIDATE": "consistent with the evidence but NOT established by it"
+ },
+ "claim_ceiling": "This module can prove that a persisted producer ref is byte-identical to its predecessor and can state what the control plane does with that fact. It CANNOT recover the exit code, duration or step log of a past Actions run: the lane has no network (every REST attempt has returned HTTP 403) and no logs are fetched. It therefore names candidate causes and REFUTES the ones it can test; it never declares which one occurred."
+}

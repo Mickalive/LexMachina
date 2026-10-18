@@ -607,7 +607,18 @@ def run_pytest(log: _Log) -> None:
          # frozen verdict file, no accepted verdict is overwritten and no
          # frozen benchmark, rubric, incumbent or success rule is touched by
          # adding the file.
-         "tests/evaluation/test_served_bundle_scope.py"],
+         "tests/evaluation/test_served_bundle_scope.py",
+         # run 39092033997 (disclosed scope extension, not a re-freeze): the
+         # cross-packet TRANSFER falsifier. It pins the frozen transfer rule, the
+         # anchor record it transfers FROM, the byte-identity of the instrument
+         # used, NOT_MEASURED-is-not-a-pass at the transfer layer, the
+         # unresolvable-input refusals, and the executed negative result together
+         # with its one-retrieval-two-builds disclosure. Also the orchestration
+         # ref-check's self-verification. POST-FREEZE ADDITION in the sense of
+         # evaluation/retrieval_gate/id_hygiene.py: no gate is added to any frozen
+         # verdict file, no accepted verdict is overwritten and no frozen
+         # benchmark, rubric, incumbent or success rule is touched by adding it.
+         "tests/evaluation/test_served_packet_transfer.py"],
         cwd=str(_LANE_ROOT), capture_output=True, text=True, timeout=900)
     tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
     log.add("active lane pytest suite", proc.returncode == 0, tail[0])

@@ -1,0 +1,282 @@
+{
+ "schema": "lex-evaluation-served-packet-transfer/1",
+ "run_id": "39092033997",
+ "generated_at_utc": "2026-10-18T03:05:33Z",
+ "hypothesis_sha256": "dede7469d5c554b22a58ece2301a5f277e145090f4529540825a0009b3db2478",
+ "question": "On the SECOND accepted served query-map packet (38839347028), do the falsifiers that fired on the rebuilt-39027045675 packet fire again? I.e. is the falsification a property of the serve pipeline (systemic, upstream ingestion defect) or of that one packet (artifact-specific)?",
+ "success_rule": "FROZEN BEFORE ANY ROW WAS READ. Verdict is BENCHMARK_VALID_WITH_FALSIFICATION when at least one falsifier fires; BENCHMARK_VALID_NO_FALSIFICATION only when every falsifier below is refuted. A falsifier that cannot be evaluated from the artifact is reported not_measurable with a reason and is NEVER counted as a pass. NOT_APPLICABLE is not a pass. THIS RUN'S SUCCESS RULE IS THE TRANSFER QUESTION, WHICH IS NOT IN THE INSTRUMENT: the instrument emits a per-packet verdict, and the transfer verdict (SYSTEMIC / PACKET_SPECIFIC / INCONCLUSIVE) is derived by comparing the two accepted per-packet records and is published beside both, never in place of them.",
+ "transfer_rule_frozen": {
+  "SYSTEMIC": "a falsifier FIRES on BOTH accepted served packets -> the defect is a property of the serve pipeline and needs an upstream repair that applies to every served packet",
+  "PACKET_SPECIFIC": "a falsifier FIRES on exactly one accepted served packet -> the defect belongs to that packet's own serve gate and is NOT an ingestion defect",
+  "INCONCLUSIVE": "a falsifier is NOT_MEASURED on either packet -> no transfer claim is made and the falsifier is reported as not measured, never as passed",
+  "note": "two packets is a small population. A SYSTEMIC label is the operative one because it demands an upstream fix; a PACKET_SPECIFIC label is provisional on the second packet. The population size is disclosed beside every transfer verdict and is NOT upgraded by repetition."
+ },
+ "verdict": "SYSTEMIC_FALSIFICATION_REPRODUCED_ACROSS_SERVED_PACKETS",
+ "systemic_falsifiers": [
+  "scope::adversarial_seed_contamination",
+  "scope::outside_mission_date_window",
+  "source::decision_id_unusable"
+ ],
+ "packet_specific_falsifiers": [],
+ "falsification_proven": true,
+ "sides": {
+  "side_a": {
+   "label": "39086856920",
+   "packet": "results/product/gate_packet/rebuilt-39027045675",
+   "record": "results/evaluation/served_bundle_scope/39086856920.json",
+   "record_sha256": "68c3f7cfffd107b0a35d349baa1b6875945ba6b8ac62d1b16edd52532bbe1323",
+   "verdict": "BENCHMARK_VALID_WITH_FALSIFICATION",
+   "n_decisions_total": 642,
+   "bundle_sha256": {
+    "questions/de-kapitalverletzung.bundle.json": "c4005d4b78553b0aebd92bba59001c87a376146873f807d575255a4f721dd7f2",
+    "questions/fr-bail-entretien.bundle.json": "0b3a224e3493479bc84628531eb7c56cac7dcfa978b29afbfc1305cb52574517",
+    "questions/it-responsabilita-medica.bundle.json": "6b43341242b5e1d4c305dcf29f12428541ceedc0b6cc89b5f2c8ae8d634f82b4"
+   }
+  },
+  "side_b": {
+   "label": "39092033997",
+   "packet": "results/product/gate_packet/38839347028",
+   "record": "results/evaluation/served_bundle_scope/39092033997.json",
+   "record_sha256": "714626d294cf746a904524556a873e649b989ccf1d119f3aa6333a6c27c10a0d",
+   "verdict": "BENCHMARK_VALID_WITH_FALSIFICATION",
+   "n_decisions_total": 642,
+   "bundle_sha256": {
+    "questions/de-kapitalverletzung.bundle.json": "2441ff2b16722afcd22dca9ad39eafcbeb079b2dfc367d763fbe53fce1356f9c",
+    "questions/fr-bail-entretien.bundle.json": "6c5ea31d4b9af4abfa39e9f8025cfa3d34279ff1f04d0f643e571e27b23a2618",
+    "questions/it-responsabilita-medica.bundle.json": "76e7f7ad998f3878e7b08635663e2d594a7a77bdaeb33bcf5fa52d0af00b7aff"
+   }
+  }
+ },
+ "transfer_matrix": [
+  {
+   "id": "map::point_missing_geometry_or_cluster",
+   "count_side_a": 0,
+   "count_side_b": 0,
+   "verdict_side_a": "REFUTED",
+   "verdict_side_b": "REFUTED",
+   "transfer": "REFUTED_ON_BOTH",
+   "why": "does not fire on either packet; refuted on these two packets only",
+   "counted_field": "n_missing_geometry_or_cluster",
+   "row_property": false
+  },
+  {
+   "id": "scope::adversarial_seed_contamination",
+   "count_side_a": 120,
+   "count_side_b": 120,
+   "verdict_side_a": "FALSIFIED",
+   "verdict_side_b": "FALSIFIED",
+   "transfer": "SYSTEMIC",
+   "why": "fires on BOTH accepted served packets -> the defect is a property of the serve pipeline and needs an upstream repair that applies to every served packet, not a repair inside one packet's serve gate",
+   "counted_field": "n_adversarial_seeded",
+   "row_property": true
+  },
+  {
+   "id": "scope::outside_mission_date_window",
+   "count_side_a": 173,
+   "count_side_b": 173,
+   "verdict_side_a": "FALSIFIED",
+   "verdict_side_b": "FALSIFIED",
+   "transfer": "SYSTEMIC",
+   "why": "fires on BOTH accepted served packets -> the defect is a property of the serve pipeline and needs an upstream repair that applies to every served packet, not a repair inside one packet's serve gate",
+   "counted_field": "n_before_mission_window",
+   "row_property": true
+  },
+  {
+   "id": "source::canonical_url_not_opencaselaw",
+   "count_side_a": 0,
+   "count_side_b": 0,
+   "verdict_side_a": "REFUTED",
+   "verdict_side_b": "REFUTED",
+   "transfer": "REFUTED_ON_BOTH",
+   "why": "does not fire on either packet; refuted on these two packets only",
+   "counted_field": "n_bad_canonical_url",
+   "row_property": false
+  },
+  {
+   "id": "source::decision_id_unusable",
+   "count_side_a": 3,
+   "count_side_b": 3,
+   "verdict_side_a": "FALSIFIED",
+   "verdict_side_b": "FALSIFIED",
+   "transfer": "SYSTEMIC",
+   "why": "fires on BOTH accepted served packets -> the defect is a property of the serve pipeline and needs an upstream repair that applies to every served packet, not a repair inside one packet's serve gate",
+   "counted_field": "n_unusable_decision_id",
+   "row_property": true
+  }
+ ],
+ "membership": {
+  "measurable": true,
+  "n_rows_side_a": 642,
+  "n_rows_side_b": 642,
+  "decision_id_set_identical": true,
+  "row_order_identical": false,
+  "presentation_fields_that_moved": [
+   "cluster_id",
+   "legal_anchor_score",
+   "query_similarity",
+   "rank",
+   "score",
+   "x",
+   "y"
+  ],
+  "row_property_fields_that_moved": [
+   "counter_anchor_decision",
+   "counter_anchor_label",
+   "counter_reason_code",
+   "counter_status",
+   "counter_uncertainty",
+   "is_outlier",
+   "remote_head_recall",
+   "remote_safeguard",
+   "retrieval_score_raw",
+   "unclustered"
+  ],
+  "fields_differing_counts": {
+   "cluster_id": 577,
+   "counter_anchor_decision": 65,
+   "counter_anchor_label": 65,
+   "counter_reason_code": 65,
+   "counter_status": 60,
+   "counter_uncertainty": 61,
+   "is_outlier": 91,
+   "legal_anchor_score": 642,
+   "query_similarity": 642,
+   "rank": 639,
+   "remote_head_recall": 642,
+   "remote_safeguard": 642,
+   "retrieval_score_raw": 642,
+   "score": 642,
+   "unclustered": 642,
+   "x": 642,
+   "y": 642
+  },
+  "independent_builds": true,
+  "why_it_matters": "identical decision_id sets with differing rank/geometry/score prove the two packets are two presentations of ONE candidate set, so a falsifier that counts a ROW property cannot be downstream of the stage that differs. Without presentation movement the two packets are not independent builds and a transfer claim over them would be uninformative.",
+  "per_bundle": [
+   {
+    "bundle": "questions/de-kapitalverletzung.bundle.json",
+    "measurable": true,
+    "n_side_a": 214,
+    "n_side_b": 214,
+    "decision_id_set_identical": true,
+    "row_order_identical": false,
+    "fields_differing_on_shared_ids": {
+     "cluster_id": 197,
+     "counter_anchor_decision": 25,
+     "counter_anchor_label": 25,
+     "counter_reason_code": 25,
+     "counter_status": 23,
+     "counter_uncertainty": 25,
+     "is_outlier": 31,
+     "legal_anchor_score": 214,
+     "query_similarity": 214,
+     "rank": 214,
+     "remote_head_recall": 214,
+     "remote_safeguard": 214,
+     "retrieval_score_raw": 214,
+     "score": 214,
+     "unclustered": 214,
+     "x": 214,
+     "y": 214
+    }
+   },
+   {
+    "bundle": "questions/fr-bail-entretien.bundle.json",
+    "measurable": true,
+    "n_side_a": 217,
+    "n_side_b": 217,
+    "decision_id_set_identical": true,
+    "row_order_identical": false,
+    "fields_differing_on_shared_ids": {
+     "cluster_id": 182,
+     "counter_anchor_decision": 15,
+     "counter_anchor_label": 15,
+     "counter_reason_code": 15,
+     "counter_status": 15,
+     "counter_uncertainty": 11,
+     "is_outlier": 27,
+     "legal_anchor_score": 217,
+     "query_similarity": 217,
+     "rank": 214,
+     "remote_head_recall": 217,
+     "remote_safeguard": 217,
+     "retrieval_score_raw": 217,
+     "score": 217,
+     "unclustered": 217,
+     "x": 217,
+     "y": 217
+    }
+   },
+   {
+    "bundle": "questions/it-responsabilita-medica.bundle.json",
+    "measurable": true,
+    "n_side_a": 211,
+    "n_side_b": 211,
+    "decision_id_set_identical": true,
+    "row_order_identical": false,
+    "fields_differing_on_shared_ids": {
+     "cluster_id": 198,
+     "counter_anchor_decision": 25,
+     "counter_anchor_label": 25,
+     "counter_reason_code": 25,
+     "counter_status": 22,
+     "counter_uncertainty": 25,
+     "is_outlier": 33,
+     "legal_anchor_score": 211,
+     "query_similarity": 211,
+     "rank": 211,
+     "remote_head_recall": 211,
+     "remote_safeguard": 211,
+     "retrieval_score_raw": 211,
+     "score": 211,
+     "unclustered": 211,
+     "x": 211,
+     "y": 211
+    }
+   }
+  ]
+ },
+ "side_provenance": {
+  "measured_at": "execution time (not known at freeze; disclosed because it is load-bearing)",
+  "side_a": {
+   "known": true,
+   "packet_id": "rebuilt-39027045675",
+   "mode": "offline",
+   "generated_at": "2026-10-17T12:05:15Z",
+   "run_id": "39027045675",
+   "source_packet": "/home/runner/work/LexMachina/LexMachina/results/product/gate_packet/38839347028",
+   "packet_admitted": false,
+   "packet_admission_blocked": true
+  },
+  "side_b": {
+   "known": true,
+   "packet_id": "gate-packet-v1",
+   "mode": "live",
+   "generated_at": "2026-10-16T02:22:25Z",
+   "run_id": "38839347028",
+   "source_packet": null,
+   "packet_admitted": null,
+   "packet_admission_blocked": null
+  },
+  "relation": "ONE_RETRIEVAL_TWO_BUILDS: side A's own packet.json names side B as its source",
+  "one_retrieval_two_builds": true,
+  "why_it_matters": "If the two sides are ONE retrieval rendered into TWO builds, then identical falsifier counts are a CONSEQUENCE of a shared candidate set and are NOT independent corroboration of the falsification. The load-bearing evidence is then the MEMBERSHIP + PRESENTATION pair, not the count identity: the same rows under different rank/geometry/score values prove the differing stage cannot be the producer of the falsification. It does NOT generalise to an independent retrieval, which was not run."
+ },
+ "population_disclosure": "TWO accepted served packets. Their OWN packet.json files declare that side B (rebuilt-39027045675) was built FROM side A (38839347028), so these are ONE retrieval rendered into TWO builds, NOT two independent retrievals. Three consequences, all binding on how this record may be read: (1) the identical falsifier counts are a CONSEQUENCE of a shared candidate set and are NOT independent replication; (2) the load-bearing evidence is the membership + presentation pair, which rules OUT the rerank/geometry stage as the producer; (3) nothing here says the falsification survives an INDEPENDENT retrieval, which was not run, so the SYSTEMIC label is scoped to 'upstream of the stage that differs between these two builds' and is not upgraded by repetition.",
+ "claim_ceiling": "This instrument can only say whether a served packet's source identity, id usability, map completeness, date scope and adversarial-seed cleanliness hold, and whether those findings TRANSFER across the two accepted served packets. It cannot say the map helps a jurist, cannot move any accepted bar, and cannot say that two packets establish a pipeline-wide property.",
+ "explicitly_not_gates": [
+  "no jurist-usefulness claim (human gate; human_gate_ready stays false)",
+  "no label soundness claim (RULES_LABEL 4457e971 is untouched; the counter-label verdict LABEL_UNSOUND 5/65 stands)",
+  "no geometry bar claim (RULES_GEOMETRY a7452748 is untouched; GEOMETRY_UNSOUND 0/3 at 11/11 stands)",
+  "no corpus rebuild and no 174k work",
+  "no network and no Product import",
+  "no new frozen rubric, threshold, bar, verdict contract or benchmark",
+  "no re-scoring of the rebuilt packet and no change to either accepted DO-NOT-SERVE order"
+ ],
+ "frozen_bars_untouched": {
+  "RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+  "RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+  "VERDICT_CONTRACT.json": "b9cdb894",
+  "LABEL_LINEAGE_VERDICT.json": "016bffe5"
+ }
+}

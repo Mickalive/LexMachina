@@ -458,6 +458,28 @@ DELIVERABLE_MANIFEST_PATHS = [
     "results/evaluation/trigger_reconciliation/39086856920/39086856920_reconciliation.json",
     "reports/evaluation/CYCLE_39082753086.md",
     "reports/evaluation/CYCLE_39086856920.md",
+    # Operational resume of the zero-delta producer run 39091660737 (this run,
+    # 39092033997). Two additions and neither is a fix: the cross-packet TRANSFER
+    # falsifier, which re-runs the accepted five-falsifier family against the
+    # SECOND accepted served packet and reports SYSTEMIC / PACKET_SPECIFIC /
+    # INCONCLUSIVE under a rule frozen and committed BEFORE the second packet was
+    # measured; and the orchestration ref-check, which proves the persisted 39091660737
+    # snapshot is byte-identical to its predecessor and triages the validation gates
+    # that can and cannot be re-run offline. Both are POST-FREEZE ADDITIONS in the
+    # sense of evaluation/retrieval_gate/id_hygiene.py: no gate is added to any frozen
+    # verdict file, no accepted verdict is overwritten, and no frozen benchmark,
+    # rubric, incumbent, threshold or success rule is touched by adding them. The
+    # readiness record remains intentionally NOT in this manifest (it is written
+    # after check 6 runs).
+    "evaluation/served_packet_transfer.py",
+    "evaluation/orchestration_ref_check.py",
+    "tests/evaluation/test_served_packet_transfer.py",
+    "results/evaluation/served_bundle_scope/FROZEN_HYPOTHESIS_39092033997.json",
+    "results/evaluation/served_bundle_scope/39092033997.json",
+    "results/evaluation/served_packet_transfer/39092033997.json",
+    "results/evaluation/orchestration/39091660737_ref_check.json",
+    "results/evaluation/orchestration/39092033997_pytest_shim.json",
+    "reports/evaluation/CYCLE_39092033997.md",
   ]
 
 #: REPAIR F2 (audit CYCLE_39082753086_GATE.json). Files deliberately NOT pinned by
