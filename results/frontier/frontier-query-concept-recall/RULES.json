@@ -114,8 +114,8 @@
     "algorithm": [
       "1. concepts C = accepted content_concepts(question_text).",
       "2. Corpus sample S (read-only, zero network) = the three served bundles' decision rows (regeste/title/snippet/citation) + the accepted benchmark record's 24 embedded cached query rows (text_head/citation strings/language).",
-      "3. For each target language L and concept c, mine L-language expansion terms: documents of language L whose normalised text contains concept_prefix(c); score each candidate token t (alphabetic, len >= 5, not in the accepted STOPWORDS, t != c) by w(t) = df_L(t | contains c) / df_L(t); keep the top N_TERMS_PER_CONCEPT (4), tie-broken by token ascending.",
-      "4. Compound decomposition: strip the frozen per-language head-noun suffixes to obtain the modifier stem and head stem; keep stems of length >= 5.",
+      "3. For each target language L and concept c, mine L-language expansion terms: documents of language L whose normalised text contains concept_prefix(c); score each candidate token t (alphabetic, len >= 5, not in the accepted STOPWORDS, t != c) by w(t) = df_L(t | contains c) / df_L(t); require df_L(t) >= MIN_TERM_DF (2); exclude morphological self-variants (concept_prefix in t or t in concept_prefix); keep the top N_TERMS_PER_CONCEPT (4), ranked by w descending, then corpus support descending, then token ascending.",
+      "4. Compound decomposition: strip the frozen per-language head-noun suffixes to obtain the head stem and modifier stem; keep stems of length >= 5 that the corpus sample of that language actually uses.",
       "5. Merge accepted product EXPANSION synonyms (product.query.retrieval.EXPANSION) for exact token matches, then mined terms, then stems; de-duplicate preserving order.",
       "6. Emit ONE expansion query string = the joined terms, capped at MAX_QUERY_TERMS (12)."
     ],
@@ -138,6 +138,24 @@
     "latency_budget": {"per_search_seconds": 30.0, "full_live_pass_seconds": 240.0, "rule": "one search call must return in < 30 s; the whole live pass must finish in < 240 s; every added call is disclosed with its measured wall time and any breach is named"},
     "decision_count_bounds": "A1 may not drop any A0 decision id from the union pool; dedup by canonical_decision_id then decision_id; provenance and query_result_bundle contract fields must remain additive and backwards-compatible"
   },
+
+  "amendments": [
+    {
+      "id": "A1-coverage-definition",
+      "when": "before any candidate number was computed",
+      "what": "coverage delegated to evaluation.subject_match_audit instead of product.query.concept_coverage",
+      "why": "the charter's acceptance test (1) specifies the audit definition; the product self-check does not reproduce accepted record 39113690481",
+      "direction": "makes the run more faithful to accepted evidence; no threshold loosened"
+    },
+    {
+      "id": "A2-generator-wellformedness",
+      "when": "during the offline dry run, BEFORE any live retrieval and before any candidate outcome number existed",
+      "what": "mined terms require df_L(t) >= 2 and are not morphological self-variants of the concept; ties break on corpus support descending before token ascending; compound stems are emitted only when the target-language corpus actually uses them",
+      "why": "the first generator output was degenerate by construction: ties broke alphabetically, selecting rare noise words, and the suffix splitter emitted truncated pseudo-words (kapitalverletz, resmi, baill) that match nothing. Attributing a corpus gap to the corpus when the failure is in the team's own generator would be the dishonest outcome, not the honest negative.",
+      "direction": "affects only the candidate generator, never the A0 baseline, the coverage metric, the recall metric or any PASS/FAIL threshold"
+    }
+  ],
+  "amendment_discipline": "Amendments are declared here, in the committed file, with what/why/direction, and are visible in git history. After the first candidate outcome number exists, no further amendment of any kind is permitted: the run stops at its first outcome and post-hoc tuning invalidates it.",
 
   "claim_ceiling": "No artifact may assert that a map helps a jurist, that any authority is absent from the corpus, that any frozen bar is met or moved, or that any packet is fit to serve. Usefulness remains the human product gate's question and admission remains fail-closed. Concept-coverage counts are lexical coverage of a retrieved set, not a legal conclusion, and a zero count is a retrieval signal, not proof of corpus absence.",
 
