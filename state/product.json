@@ -1,5 +1,5 @@
 {
-  "accepted_run_id": "39144924680 (proposed; pending independent audit of this repair cycle)",
+  "accepted_run_id": "39149741259 (proposed; pending independent audit of this repair cycle). NOTE: 39144924680 (round 4) was REJECTED by audit CYCLE_39144924680_GATE.json (gate=REVISE, required_fixes RF-1 and RF-2) and is therefore NOT an accepted run.",
   "bjr_recall_durability": {
     "artifact": "results/product/reality_check/bjr_recall_durability_20261017.json",
     "claim_ceiling": "LOCAL_NOT_DURABLE: this is local live evidence only. The accepted frozen benchmark (frozen_sha256 ff57f556...) is Core Evaluation's recompute and remains RED (overall_pass=false at 38920872324 / 38934722443 / 38945976309) until that lane recomputes it on a run containing this repair. A durable Actions [reality-check] run is still required. No frozen gate, threshold, rubric or success rule was weakened or edited; the new local parity gate is STRICTER than the durable workflow gate.",
@@ -104,7 +104,7 @@
       "scope": "control-plane workflow scope; recorded, not edited from the lane"
     }
   ],
-  "current_run": "39144924680",
+  "current_run": "39149741259",
   "cycle_39056694835_frontier_serve_audit_intake": {
     "admission": "fail-closed",
     "claim_ceiling": [
@@ -511,7 +511,7 @@
     ],
     "state_block_added_by_run": "39094983039"
   },
-  "cycle_status": "REPAIR_ROUND_4_OF_REJECTED_39139648336_COMPLETE__ORDERED_FIX_APPLIED_(REPORT_CITED_COUNT_6_TO_5_RF2_SIDE_BY_SIDE)__DURABLE_GUARD_SHIPPED_(test_report_artifact_arithmetic_4_OF_4)__REGRESSION_SCOPE_ARTIFACT_SHIPPED_(REPAIRED_ONLY_0_BASELINE_ONLY_0)__LEDGER_PASS_41_OF_41__ADMISSION_FAIL_CLOSED__MACHINE_GATE_READY_FALSE__HUMAN_GATE_READY_FALSE",
+  "cycle_status": "REPAIR_ROUND_5_OF_REJECTED_39144924680_COMPLETE__RF1_ATTRIBUTION_MEASURED_NOT_TYPED__RF2_ESCAPE_PATHS_CLOSED_AND_SCOPE_PUBLISHED__ADMISSION_FAIL_CLOSED",
   "direction_version": 56,
   "evidence_refs": [
     "results/product/gate_packet/rebuilt-39027045675/packet.json",
@@ -581,7 +581,18 @@
     "results/product/live_slice/CYCLE_39128456801_live_bundle.json",
     "results/product/regression/CYCLE_39128456801_regression_scope.json",
     "results/product/regression/logs_39128456801/head_pytest.log",
-    "results/product/cycle_verify/CYCLE_39128456801_cycle_verify.json"
+    "results/product/cycle_verify/CYCLE_39128456801_cycle_verify.json",
+    "product/test_delta_attribution.py",
+    "product/tests/test_delta_attribution.py",
+    "product/tests/test_report_artifact_arithmetic.py",
+    "product/data/report_pre_repair_bytes/CYCLE_39139648336_pre_repair.md",
+    "results/product/regression/CYCLE_39149741259_test_delta_attribution.json",
+    "results/product/regression/CYCLE_39149741259_report_testcount_disclosure.json",
+    "reports/product/CYCLE_39149741259_REPAIR5.md",
+    "results/product/regression/CYCLE_39149741259_leakage_check.json",
+    "results/product/regression/logs_39149741259/round5_leakage_check.log",
+    "product/report_scope_measurement.py",
+    "results/product/cycle_verify/CYCLE_39149741259_cycle_verify.json"
   ],
   "evidence_tier": "REPRODUCED",
   "frontier_verdict_adoption": {
@@ -1087,7 +1098,7 @@
     "secondary_risk_noted": "Earlier cycles also wrote outside product scope (frontier/frontier-generative-audit/generative_audit/provider.py and results/frontier/frontier-query-retrieval/cache/*). Those writes are already committed in the snapshot; 'Enforce lane write scope' only inspects pending changes, so they cannot be cleaned without tripping the scope check in the same run. They are recorded as pre-existing snapshot content, not current-cycle work. Live-run cache by-products created inside a cycle are removed before the scope step (reports/product/CYCLE_38559540834.md section 4)."
   },
   "packet_admitted": false,
-  "prior_current_run": "39139648336",
+  "prior_current_run": "39144924680",
   "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
   "ready_for_owner_session": false,
   "reality_check_status": {
@@ -2235,8 +2246,8 @@
     "fixtures": "offline/test only; never merged into live results",
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
   },
-  "state_updated_at": "2026-10-18T16:55:05Z",
-  "state_updated_by_run": "39144924680",
+  "state_updated_at": "2026-10-18T18:40:00Z",
+  "state_updated_by_run": "39149741259",
   "state_updated_from_resumed_snapshot_run": "39136122746",
   "supersedes_claims": {
     "gate_ceremony_is_one_query_only": "SUPERSEDED BY RUN 38792650692: the packet pre-registers three questions (FR/DE/IT), re-verifies each bundle at run time and hands the owner one deep link per question. The single-query path still works (product/human_gate_session.py is unchanged) and is still the way ONE session is finalized.",
@@ -4261,7 +4272,9 @@
       "report_before_sha256": "d4cd8345319bab9f6c058d0b08bc9153741a5cb5acf8b026ba523c9c11144326",
       "report_after_sha256": "bee0728c5c34702ada373ff725ceaacaa2c5955e8cbf9509d4f90f06337043db",
       "fix": "published 5 as the report's citation count AND the superseded 6 beside it, explicitly marked as the pre-repair value - RF2 arithmetic discipline, the same side-by-side form as the F4 13->17 correction",
-      "diff_scope": "one paragraph of one report; no other number in the cycle changed (the audit fenced this with \"No other numbers in the cycle change\")"
+      "diff_scope": "one paragraph of one report; no other number in the cycle changed (the audit fenced this with \"No other numbers in the cycle change\")",
+      "report_after_sha256_round_5": "2bbff26404f1f36bfa92cc837a2e04c8d984c6fd81601d581ac9be99e8442702",
+      "report_after_sha256_note": "report_after_sha256 (bee0728c...) is the round-4 value; round 5 added corrections to that report, so the current bytes are report_after_sha256_round_5. Both are published because the round-4 value is what the round-4 cycle's own claim was about."
     },
     "durable_guard": {
       "module": "product/tests/test_report_artifact_arithmetic.py",
@@ -4269,7 +4282,10 @@
       "result": "4/4 pass",
       "what_it_enforces": "every citation-count claim in a report that cites a live-slice artifact equals that artifact's answer.n_cited, or is a supersession carrying BOTH a correction marker AND the true value in the same paragraph",
       "measured_negative_control": "the pre-repair bytes of the report of record (git show 2b0b902:...) replayed through the sweep FIRE on claimed=[6] expected=5; the corrected bytes produce no violation",
-      "non_vacuity": "controls pin the two weakening paths: a marker with no true value fires, and an unmarked wrong number beside the right one fires"
+      "non_vacuity_superseded_round4": "controls pin the two weakening paths: a marker with no true value fires, and an unmarked wrong number beside the right one fires",
+      "non_vacuity": "MEASURED SCOPE, not a completeness claim (audit RF-2 corrected this field, which had overstated it as 'the two ways'): the citation sweep covers 2 live-slice artifacts, 3 artifact/report pairs and 10 citation claims in the reports' own prose; 3 further claims sit inside blockquotes and are excluded, because a report documenting what a defect said is not the report asserting it. Published and re-measured in results/product/regression/CYCLE_39149741259_report_testcount_disclosure.json, which fails if it has rotted. Round 5 closed the three escape paths the auditor measured (inverted phrasing; a correction marker in an unrelated sentence; an identifier that merely contains a marker word) and added artifact-free decomposition arithmetic over every report. The remaining non-claims are named in that same artifact.",
+      "scope_claim_superseded_heading": "reports/product/CYCLE_39144924680_REPAIR4.md section 2 was headed 'The defect class is now machine-enforced'; the heading is superseded and the section now states the measured scope beside the superseded wording, which is retained.",
+      "sha256_after_round_5": "f6d11c8e72802ac6d4cfa750dc619ba960dbb2606f5eb4e356c26ec2e9f055a4"
     },
     "regression": {
       "artifact": "results/product/regression/CYCLE_39144924680_regression_scope.json",
@@ -4294,13 +4310,15 @@
         "collected_delta": 21,
         "passed_delta": 21
       },
-      "delta_decomposition": "+21 = +17 (the 17-test test_live_slice_and_query_env.py module from the predecessor cycle) + +4 (this cycle's guard module), both measured by collection, never by hand",
       "raw_logs": {
         "baseline": "results/product/regression/logs_39144924680/baseline_pytest.log (sha256 75a3b67fbff1b53b0495c891bf78c9801882be1be0162976ef9e9f755e8feb31)",
         "head": "results/product/regression/logs_39144924680/head_pytest.log (sha256 d7cc3f689f405c4bdf79cf0afb6320ff9dc4c82d1c65338d3abd6d1112c991be)"
       },
       "audit_note_3_discharged": true,
-      "remeasured_on_final_tree": "the artifact and both raw logs were re-generated AFTER the report and state edits of this cycle, so the head log is the measurement of the tree as shipped; the set relation is unchanged (159/159, repaired-only 0, baseline-only 0)"
+      "remeasured_on_final_tree": "the artifact and both raw logs were re-generated AFTER the report and state edits of this cycle, so the head log is the measurement of the tree as shipped; the set relation is unchanged (159/159, repaired-only 0, baseline-only 0)",
+      "delta_decomposition_superseded_round4": "+21 = +17 (the 17-test test_live_slice_and_query_env.py module from the predecessor cycle) + +4 (this cycle's guard module), both measured by collection, never by hand",
+      "delta_decomposition": "MEASURED, no longer typed: results/product/regression/CYCLE_39149741259_test_delta_attribution.json (product/test_delta_attribution.py, collection-only measurement at the named baseline commit 9727a45, at every commit that touched product/tests/, and at the range endpoint 1d0d481) reports 'collected-test delta 9727a45 -> head = +21 = +11 + +2 + +4 + +4  (db3891e=+11, c1bda4a=+2, 9bfd03f=+4, 1d0d481=+4)'. At cycle granularity: the +17 belongs to cycle 39128456801 across its three commits (+11/+2/+4); the rejected cycle 39139648336 (head 2b0b902) contributed +0 because it touched no file under product/tests/; this cycle contributed +4.",
+      "delta_decomposition_corrected_by": "audit RF-1 of cycle 39144924680 (CYCLE_39144924680_GATE.json, gate=REVISE): the immediate predecessor 39139648336 added ZERO tests and the module was added by db3891e in cycle 39128456801, two cycles back. The superseded sentence is retained verbatim in delta_decomposition_superseded_round4 rather than deleted (AGENTS.md rule 6)."
     },
     "ledger": {
       "artifact": "results/product/cycle_verify/CYCLE_39144924680_cycle_verify.json",
@@ -4335,5 +4353,134 @@
     "report_of_record": "reports/product/CYCLE_39144924680_REPAIR4.md",
     "claim_ceiling": "report-arithmetic repair, a committed regression guard, and a re-derived regression/ledger measurement on this tree. Scores no frozen bar, reads no Frontier verdict, makes no legal-usefulness claim, issues no serve recommendation.",
     "next_concrete_step": "independent audit of run 39144924680; on PASS the ordered set for direction v56 stands complete and independently verified, and the lane CONTINUES on the canonical query-map product (fail-closed) - a partial milestone is not a reason to stop, and no human product gate may be self-declared"
+  },
+  "repair_39139648336_round5": {
+    "kind": "repair round 5 of the rejected cycle 39144924680",
+    "run_id": 39149741259,
+    "base": "1d0d481 (rejected producer head of run 39144924680, the round-4 cycle)",
+    "audit_of_record": {
+      "path": "/tmp/lex_prior_audit/results/audit/product/CYCLE_39144924680_GATE.json",
+      "gate": "REVISE",
+      "safe_to_integrate": false,
+      "n_required_fixes": 2,
+      "terminal_condition": "apply RF-1 and RF-2 (either branch), fold in note N1 if RF-2(a) is taken, and re-run ONLY product/tests/test_report_artifact_arithmetic.py and product/cycle_verify.py. Do NOT re-run the regression measurement - the set relation against both 9727a45 and 453a873 is established in that audit and is reproducible from the committed sha256-pinned logs.",
+      "regression_remeasured_this_round": false,
+      "why_not": "the audit established the set relation against the declared baseline 9727a45 and the accepted base 453a873 and fenced re-measurement; re-running it would spend the round on a measurement that already exists in pinned, re-parsable form."
+    },
+    "rf1_attribution_repair": {
+      "defect": "reports/product/CYCLE_39144924680_REPAIR4.md section 4 attributed the +21 collected-test delta to the predecessor cycle 39139648336 (+17) and this cycle (+4). The predecessor touched no file under product/tests/ and contributed +0.",
+      "root_cause": "a decomposition typed into prose instead of measured from git",
+      "structural_remedy": "product/test_delta_attribution.py measures the collected count at the named baseline commit, at every commit in range that touches product/tests/, at the range endpoint and in the uncommitted working tree, attributes each step to the modules git reports, and REFUSES to publish (exit 2, no artifact) when the per-step deltas do not sum to the observed total or when the working tree collects tests no changed module accounts for.",
+      "artifact": "results/product/regression/CYCLE_39149741259_test_delta_attribution.json",
+      "measured_decomposition": "collected-test delta 9727a45 -> head = +21 = +11 + +2 + +4 + +4  (db3891e=+11, c1bda4a=+2, 9bfd03f=+4, 1d0d481=+4)",
+      "cycle_granularity": "cycle 39128456801 +17 across db3891e/c1bda4a/9bfd03f; cycle 39139648336 +0; cycle 39144924680 +4",
+      "correction_form": "side by side: the superseded sentence is retained in both the report (section 4a) and state (delta_decomposition_superseded_round4)",
+      "hardening": "product/tests/test_delta_attribution.py asserts the committed arithmetic closes, that the base total is corroborated by the independent full-run regression artifact, that the working-tree count still equals a live collection of this tree (the staleness detector), that the rejected cycle's head commit is credited with no step, and that every report citing the artifact quotes its canonical line verbatim, so the prose cannot become a second source of truth",
+      "artifact_sha256": "eada56a3103ca56a42bd713e526e93088d3b0670c678d742396d87e97b1b22f8",
+      "tool_sha256": "280695b834f3e8c391f709b3a1bce7a58b0a51cb676723493cff945440ea7a68",
+      "tests_sha256": "2baeedc5aa1e93b9de1d1e0d0d1e89f2c31e758e6c2201bca8aa02001cf542a8",
+      "working_tree_line": "working-tree collected delta 1d0d481 -> tree = +25 = +19 + +6  (test_delta_attribution.py=+19, test_report_artifact_arithmetic.py=+6)"
+    },
+    "rf2_scope_overclaim_repair": {
+      "defect": "the round-4 report and state claimed the guard 'pins THE TWO ways the sweep could be weakened' and headed section 2 'The defect class is now machine-enforced'; the auditor measured at least two further escape paths plus a scope gap",
+      "branch_taken": "both: the three measured escape paths are CLOSED in code, and the claim is narrowed to the measured scope published as an artifact",
+      "closed_escape_paths": [
+        "inverted phrasing ('the answer cited 9 decisions') - the round-4 regex demanded the count to precede the word",
+        "a correction marker in an unrelated SENTENCE of the same paragraph - markers are now word-boundary patterns and sentence-scoped to the claim they correct",
+        "an identifier that merely contains a marker word (e.g. correction_marker_present) - word-boundary matching removes that channel",
+        "test-count arithmetic, which the round-4 sweep could not see at all - decomposition_violations now checks the internal sum of every '+N = +a + +b' in every report, with no artifact required"
+      ],
+      "note_n1_folded_structurally": "the negative control now sweeps the REAL pre-repair bytes, committed once at product/data/report_pre_repair_bytes/CYCLE_39139648336_pre_repair.md and pinned by the sha256 the audit published for 'git show 2b0b902:reports/product/CYCLE_39139648336.md' (d4cd8345...). Round 4 transcribed the defective line by hand.",
+      "note_n2_applied": "the round-4 report's --baseline-ref refusal narrative said the delta 'is an ADDED test module', singular; the tool names two modules. Corrected with the superseded wording retained.",
+      "published_scope": "results/product/regression/CYCLE_39149741259_report_testcount_disclosure.json - 2 artifacts, 3 artifact/report pairs, 10 citation claims in the reports' own prose, 3 claims excluded as quotation, plus named non-claims and a fail-closed freshness assertion",
+      "named_non_claims": [
+        "a bare test-count claim in a report citing SEVERAL regression artifacts is not attributed to any of them; the report states numbers from its own artifact while citing older ones, so attribution is ambiguous by construction",
+        "a single-module pytest run inside a results table is not a suite count",
+        "the guard cannot verify that a number is the RIGHT number when no artifact carries it",
+        "a wrong number hidden inside a quotation is not detected (concealment, not drift)",
+        "which commit produced each part of a collected-test delta is measured by product/test_delta_attribution.py, not by this guard"
+      ],
+      "published_scope_artifact_sha256": "f5f31dbb3480cea1b445a262f19c2b1e53dfc0f3273a9b598613b26e99c7919c",
+      "scope_measurement_tool": "product/report_scope_measurement.py",
+      "scope_measurement_tool_sha256": "4aa8aeade3d61fb5fed8d5a32b77787b80aafe3ab6c2b1410d15ee071d6641e6",
+      "guard_sha256_after_round_5": "f6d11c8e72802ac6d4cfa750dc619ba960dbb2606f5eb4e356c26ec2e9f055a4",
+      "pinned_pre_repair_bytes": {
+        "path": "product/data/report_pre_repair_bytes/CYCLE_39139648336_pre_repair.md",
+        "sha256": "d4cd8345319bab9f6c058d0b08bc9153741a5cb5acf8b026ba523c9c11144326",
+        "is_the_audit_published_sha": true
+      },
+      "scope_artifact_note": "regenerated twice in this cycle: the freshness assertion fired when this cycle's own report edit changed the bare-test-count claim count, which is the detector doing its job."
+    },
+    "runnable_delta": {
+      "new_module": "product/test_delta_attribution.py",
+      "new_tests": "product/tests/test_delta_attribution.py",
+      "extended_tests": "product/tests/test_report_artifact_arithmetic.py",
+      "ledger_check": "product/cycle_verify.py::check_test_delta_attribution (registered as 'test_delta')",
+      "shape": "one command re-derives the decomposition and re-measures this tree's collection, so the report's quoted sentence, the committed artifact and the tree cannot drift apart",
+      "test_counts": {
+        "product/tests/test_delta_attribution.py": 19,
+        "product/tests/test_report_artifact_arithmetic.py": 10
+      },
+      "ledger": {
+        "artifact": "results/product/cycle_verify/CYCLE_39149741259_cycle_verify.json",
+        "sha256": "d90c30635b69d7a71eb3ca39976ce6396045b972441b7b4b1d858610750c7711",
+        "verdict": "PASS 44/44 (41 pre-existing claims + 3 new test_delta claims, none removed)",
+        "command": "python3 product/cycle_verify.py --run-id 39149741259"
+      },
+      "vertical_slice": {
+        "command": "python3 product/offline_slice.py --out /tmp/lex_slice_39149741259 --verify",
+        "verdict": "PASS, network=none (socket.connect booby-trapped)",
+        "shape": "question -> query_result_bundle -> sourced answer -> counter-authority pass -> source-linked clickable map: 100 decisions, 8 clusters, 100/100 rows with canonical_url, x/y and cluster_id, counter_rows 1 against counter_status_bearing_rows 5, page contract PASS 65 assertions"
+      }
+    },
+    "posture_unchanged": {
+      "machine_gate_ready": false,
+      "human_gate_ready": false,
+      "packet_admitted": false,
+      "ready_for_owner_session": false,
+      "continue_recommended": true,
+      "owner_decision_required": false,
+      "accepted_do_not_serve_orders_stand": true,
+      "requirement_13_supersession_conditions_met": false,
+      "owner_question": "NONE_STAGED_NONE_FIRED_NONE_READY_TO_FIRE"
+    },
+    "not_touched": [
+      "frozen gates, rubrics and bars (ff57f556 byte-unchanged)",
+      "packet bytes: served 38839347028 and rebuilt rebuilt-39027045675",
+      "every Frontier team (closed; none re-charterable, none re-dispatched)",
+      ".github/** (control-plane scope)",
+      "the round-4 regression measurement and its sha256-pinned logs (the audit fenced re-running it)",
+      "every other number in the round-4 cycle's report and state"
+    ],
+    "report_of_record": "reports/product/CYCLE_39149741259_REPAIR5.md",
+    "claim_ceiling": "report-arithmetic repair with a structural remedy (a measured attribution and an extended guard at a published scope). Scores no frozen bar, reads no Frontier verdict, makes no legal-usefulness claim, issues no serve recommendation, and re-measures no regression.",
+    "reports_corrected": {
+      "reports/product/CYCLE_39144924680_REPAIR4.md": {
+        "sections": [
+          "0 item 2",
+          "2 (heading + scope + negative control)",
+          "3 (N2)",
+          "4a (RF-1)"
+        ],
+        "sha256_before_round_5": "bee0728c5c34702ada373ff725ceaacaa2c5955e8cbf9509d4f90f06337043db",
+        "sha256_after_round_5": "2bbff26404f1f36bfa92cc837a2e04c8d984c6fd81601d581ac9be99e8442702",
+        "edit_form": "every superseded sentence is retained verbatim and marked; no number was deleted and no prior claim was overwritten silently"
+      }
+    },
+    "leakage_check": {
+      "kind": "LEAKAGE CHECK, not a regression re-measurement",
+      "why": "the round-4 audit's terminal condition forbids re-running the regression measurement; the round-4 regression artifact and its baseline comparison are untouched and remain the measurement of record. The narrow question this cycle's own 25 added tests raise - did they break anything that passed at the round-4 head - was measured as a set relation against the already-committed sha256-pinned round-4 head log, and nothing else.",
+      "artifact": "results/product/regression/CYCLE_39149741259_leakage_check.json",
+      "raw_log": "results/product/regression/logs_39149741259/round5_leakage_check.log",
+      "set_relation_vs_round_4_head": {
+        "intersection": 159,
+        "new_failing_ids": 0,
+        "fixed_ids": 0,
+        "identical_failing_sets": true
+      },
+      "summary_line": "159 failed, 995 passed, 15 skipped, 78 warnings in 75.22s (0:01:15)",
+      "arithmetic": "970 passed at the round-4 head + 25 tests added here = 995 passed; 1144 + 25 = 1169 collected",
+      "claim_ceiling": "a set relation between two pytest logs at this root and this environment; not a regression measurement, not an audit verdict, and no claim about the 159 pre-existing failures."
+    }
   }
 }

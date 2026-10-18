@@ -1,0 +1,188 @@
+# Product cycle 39139648336 — operational resume of 39136122746 (dirV56 repair 3)
+
+Lane: product · Run: 39139648336 · Kind: operational resume · Date: 2026-10-18
+Base: `9bfd03f` (persisted producer snapshot `cycle/core/product/39136122746/team`)
+Control plane: `/tmp/lex_control` at `factory_direction.json` **v56**.
+Accepted Frontier mounts under `/tmp/lex_accepted/frontier`: **empty** — nothing to absorb
+(the classifier `d236f599` and the geometry variant `be5eba7f`/`dc3ffc6c` are already vendored;
+no Frontier team may be re-chartered from this lane).
+
+Fail-closed posture is **unchanged**: `machine_gate_ready=false`, `human_gate_ready=false`,
+`packet_admitted=false`, `ready_for_owner_session=false`, `continue_recommended=true`.
+The accepted `DO-NOT-SERVE-UNCHANGED` verdict (run 39061330426, gate=PASS, accept `26582bc5`,
+`owner_decision_required=false`) and the `DO-NOT-SERVE` order on served packet `38839347028`
+both stand, unsuperseded. No owner question is staged, fired or ready to fire from this verdict.
+
+---
+
+## 0. What this cycle did, in one line each
+
+1. **Preserved** the resumed snapshot verbatim — the repair-3 producer's F1–F4 fix set
+   (commit `9bfd03f`) is kept byte-identical; nothing was restarted from scratch (§1).
+2. **Diagnosed** the orchestration failure that returned this tree as a snapshot:
+   `rc-78 LEX_WORK_QUANTUM_EXPIRED` class — post-delivery death on a *complete* tree, established
+   from public records (§2).
+3. **Verified the F1–F4 fixes empirically** on this tree: `live_slice.py::run()` executes
+   end-to-end against the live OpenCaseLaw API (no `NameError`), the `--ephemeral-cache` freshness
+   probe sees the network, `bootstrap_query_env.sh --check` exits 0, and the report arithmetic is
+   corrected (§3).
+4. **Completed F5** — this report of record plus the `state/product.json` update the dead run
+   never shipped (§4).
+5. **Shipped a re-derived PASS 41/41 ledger** and a failing-ID-set-identical regression
+   measurement on the final tree (§5), then stopped: no owner session is authorised (§6).
+
+---
+
+## 1. The snapshot's deliverable re-derives (nothing was restarted)
+
+The resumed tree is `9bfd03f` (`cycle/core/product/39136122746/team`). Its shipped ledger
+re-derives **PASS 41/41** on this tree:
+
+```
+$ python3 product/cycle_verify.py --run-id 39139648336        # dry run, no --write
+PASS: 41/41 claims verified
+```
+
+Re-shipped for this run as `results/product/cycle_verify/CYCLE_39139648336_cycle_verify.json`
+(`--write`), same 41 claims, PASS 41/41 on the final tree. The snapshot's own ledger
+(`CYCLE_39136122746_cycle_verify.json`, 41 claims) is unchanged and remains valid: this resume
+added verification artifacts and report/state on top; it changed no product code.
+
+`git diff 9bfd03f..HEAD` at resume start was **empty** — the snapshot delta (F1–F4 fixes:
+`product/live_slice.py`, `product/bootstrap_query_env.sh`,
+`product/tests/test_live_slice_and_query_env.py`, §4 of this report's predecessor) is preserved
+verbatim and is the product-code half of this repair.
+
+## 2. The orchestration failure class (diagnosed from public records)
+
+**Run record (public GitHub REST API):** run `39136122746` "Core product dirV56 repair3",
+conclusion `failure`. Team job window `2026-10-18T14:28:26Z → 15:15:11Z` (**2805 s**); step 6
+"Run lane cycle" failed; step 7 "Validate active MVP producer state" **skipped** (it never
+asserted anything); steps 8 and 10 succeeded (junk cleaned, snapshot persisted); `audit` and
+`integrate` **skipped** — no gate file exists for this run and nothing was promoted.
+
+**Ordering evidence:** the producer's final commit `9bfd03f` landed at `15:15:06Z` — **five
+seconds before** the job's failure timestamp — and it carries the complete F1–F4 fix set. The
+producer had nothing left to do but the non-product tail (report of record, state update, exit 0).
+
+**Class: `rc-78 LEX_WORK_QUANTUM_EXPIRED` — post-delivery death on a complete tree.**
+The wrapper's work-quantum constant is `LEX_AGENT_QUANTUM_SECONDS=2700 s` (recorded, and in force
+for this lane's wrapper); the job total of 2805 s = 2700 s quantum + ~105 s of wrapper overhead
+(steps 1–5: checkout, validate, mount, install). Death at the quantum boundary immediately after
+the final commit is exactly this class, already recorded for runs 38822688733 / 38822364429
+(factory-wide requirement 10) and for evaluation's 38945976309 (requirement 20). The repair chain
+context: repair 1 (`39128456801`) and repair 2 (`39132612111`) were both green chains whose audit
+gates returned **REVISE** (F1–F4, then F1–F6) — success runs that promoted nothing (requirement
+8) — so repair 3 was dispatched to land the named fixes, which its producer committed before
+dying.
+
+**What is deliberately *not* claimed:** job logs are admin-only (HTTP 403 unauthenticated), so no
+wrapper exit-code string is quoted from a log line. The class label `rc-78` is the established
+failure *class* from public arithmetic (timings + quantum constant + commit-vs-failure ordering),
+not a log citation; the same hedge the lane applied in cycle 38850844400's diagnosis. This is
+**not** a product failure, **not** a validation defect (step 7 never ran), **not** a human-gate
+problem, and the zero-delta guard (`rc-67`) could not have fired — `HEAD` moved in that run.
+
+## 3. The F1–F4 fixes, verified empirically on this tree
+
+The repair-2 audit (`CYCLE_39132612111_GATE.json`, gate=REVISE) ordered F1–F6. F1–F4 were
+committed by the dead run; this resume proves them on the shipped bytes:
+
+- **F1 (`run()` NameError) — EMPIRICAL PASS.** `run_query_initial` / `enrich_query_bundle` are now
+  imported at the call site (`product/live_slice.py:140`). Ran the report-of-record's own §4
+  command with the freshness mode the F2 fix targets:
+
+  ```
+  $ python3 product/live_slice.py --run-id CYCLE_39139648336_F1F2_VERIFY --n 150 --ephemeral-cache
+  [PASS] retrieval_mode_served_is_refresh / no_cache_hits_on_the_network_leg /
+         adapter_made_network_calls / independent_probe_saw_the_network / ... PASS: 10/10 checks
+  n_decisions=158 n_clusters=8 network_calls=8 cache_hits=0 cache_files_touched=32
+  counter_authorities=1 status_bearing=5      # RF1 single source of truth, not the broad count
+  upstream=124.5s local_map=0.15s total=405.4s
+  ```
+
+  Artifact: `results/product/live_slice/CYCLE_39139648336_F1F2_VERIFY.json` (+ `_bundle.json`).
+  The 158-decision vertical slice — retrieval → bundle → sourced answer (6 cited, live free model)
+  → counter-authority pass → clickable map — ran end to end with **0 cache reads** against
+  `https://mcp.opencaselaw.ch/api`. Counter counting on this run uses
+  `product/query/counter_status.py` (the RF1 source of truth): 1 evidenced counter authority
+  (`bger_6B_750_2020`) against 5 status-bearing rows — the broad count is published beside it
+  under its honest name.
+
+- **F2 (fingerprint root) — EMPIRICAL PASS.** `_cache_fingerprint()` now fingerprints the root it
+  is given (`product/live_slice.py:160-183` probes `pipeline.product_cache_dir()`), so
+  `--ephemeral-cache` reports `cache_files_touched=32` and the independent probe saw the network
+  (files_added listed in the artifact) instead of the old `cache_files_touched=0` on a genuine
+  fresh retrieval. The tracked product cache is no longer touched by the freshness mode.
+
+- **F3 (bootstrap re-check) — EMPIRICAL PASS.**
+  `bash product/bootstrap_query_env.sh --check` → exit 0, `query fast-path runtime: OK`. The
+  remedy path now re-checks with `exec bash` (not `"$PY"`), so a successful install no longer dies
+  with `SyntaxError` on `set -euo pipefail` (`product/bootstrap_query_env.sh:62`).
+
+- **F4 (report arithmetic) — CORRECTED.** `reports/product/CYCLE_39128456801.md` §0 item 4 and §6
+  said "13 tests"; the module collects **17** (13 original + 4 F1/F2/F3 verification tests that
+  repair 3 added: `test_run_imports_every_pipeline_name_it_calls`,
+  `test_main_executes_end_to_end_with_a_monkeypatched_refresh`,
+  `test_cache_fingerprint_fingerprints_the_root_it_is_given`,
+  `test_bootstrap_install_path_re_checks_with_bash_and_succeeds`). Both numbers are published side
+  by side in the report so the correction is auditable (RF2 arithmetic discipline). The module
+  passes **17/17** on this tree.
+
+- **Regression on the final tree** (scope `product/tests`, the accepted baseline's scope; the
+  top-level `tests/` tree adds 93 frontier tests and is not part of the comparison):
+  **1140 collected / 966 passed / 159 failed / 15 skipped**; failing-ID set **identical** to the
+  accepted baseline of cycle 39123358661 (159 == 159, 0 new, 0 fixed); +17 passed and +17
+  collected is exactly the collected count of the one new module (13 + 4). Raw log:
+  `results/product/regression/logs_39139648336/confirmation_pytest_final_tree.log`.
+  (Environment note: the pinned query runtime was bootstrapped this cycle via
+  `product/bootstrap_query_env.sh` — numpy 2.5.4 / scipy 1.18.1 / scikit-learn 1.9.1 / pytest
+  9.1.1 — the same declared pins the baseline measurement used.)
+
+## 4. F5 completed — report of record and state update
+
+The dead run shipped no report and no state update (audit F5). This cycle ships both:
+
+- this report: `reports/product/CYCLE_39139648336.md`;
+- `state/product.json`: `current_run=39139648336`, `accepted_run_id="39139648336 (proposed;
+  pending independent audit of this resume cycle)"`, `state_updated_by_run=39139648336`,
+  `state_updated_from_resumed_snapshot_run=39136122746`, `cycle_status` recording the resume and
+  the fail-closed gates, and a `resume_39139648336` section carrying the diagnosis, the repair-chain
+  context, the F1–F4 verification evidence and the regression measurement.
+
+## 5. Repair discipline (audit F6) and tree hygiene
+
+Named fixes first (already shipped at `9bfd03f`, preserved verbatim), then the verification
+measurement, then report + state, then exit 0. No fixture legs were re-run to manufacture delta.
+The verification pytest runs did bump `fetched_at` inside eleven tracked `query_cache` files and
+drop four untracked ones; that residue is **not** a deliverable, so the tracked cache was restored
+to its committed state and the untracked cache files removed before this report was written —
+the tracked-results guard (`product/tests/test_no_test_writes_into_tracked_results.py`) still
+passes and the feedback fixture still seeds from the historical file
+(`product/results/fractal_map/jurist_feedback/feedback.jsonl`, 1 historical line, untouched).
+
+## 6. Fail-closed posture is unchanged
+
+`machine_gate_ready=false`, `human_gate_ready=false`, `packet_admitted=false`,
+`ready_for_owner_session=false`, `continue_recommended=true`. Both accepted DO-NOT-SERVE orders
+stand (served packet `38839347028`; rebuilt packet `rebuilt-39027045675` — the latter
+`DO-NOT-SERVE-UNCHANGED`, charter outcome B, `owner_decision_required=false`). Requirement 13
+supersession conditions (a) and (b) are both unmet on the bytes of record, so **no owner session,
+owner card or owner question is produced, staged or authorised from this verdict**. The only
+future path is a FUTURE accepted verdict that independently satisfies (a) or (b) on the bytes then
+of record.
+
+## 7. Not touched (deliberately)
+
+Frozen gates/rubrics/bars (`ff57f556` byte-unchanged) · packet bytes · Frontier teams (closed;
+none re-charterable, none re-dispatched) · the frozen claim-cache manifest · `.github/**`
+(control-plane scope — the Actions run-gap class and the supervisor's dead `continue_recommended`
+guard are recorded in `state/product.json`, not patched from a lane) · universal-174k geometry,
+dense embeddings and corpus work (paused lanes; not on the critical path).
+
+## 8. Next concrete step
+
+Independent audit of this tree (`CYCLE_39139648336`), gated on `needs.team == 'success'`; on
+PASS the lane's `P0–P3 + D1/D2/A2 + RF0–RF6` ordered set for direction v56 is complete and
+independently verified. The lane then waits on Core Evaluation's frozen feedback and any future
+human product gate — it does not self-declare one.

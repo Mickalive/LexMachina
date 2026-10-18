@@ -76,6 +76,10 @@ DIAGNOSIS_39086926860_ARTIFACT = (
     REPO_ROOT / "results" / "product" / "orchestration" / "CYCLE_39086926860_orchestration.json"
 )
 REGRESSION_DIR = REPO_ROOT / "results" / "product" / "regression"
+#: Where product/test_delta_attribution.py writes. Same directory as the
+#: regression scope artifacts, named apart so the newest-artifact readers stay
+#: unambiguous (audit CYCLE_39123358661 pinned diagnostics by NAME for this reason).
+ATTRIBUTION_DIR = REGRESSION_DIR
 #: The 39119287975 snapshot diagnosis of the 39116225867 producer snapshot.
 #: Pinned BY NAME (not "newest") because it is a historical record whose
 #: artifact classification must stay checkable after later runs exist.
@@ -288,6 +292,69 @@ def check_relation_channel() -> list[dict]:
             },
         },
     ]
+
+
+def check_test_delta_attribution() -> list[dict]:
+    """The collected-test delta decomposition is re-derived here, not restated.
+
+    Audit RF-1 of rejected cycle 39144924680 was a report of record that attributed
+    a +21 collected-test delta to the cycle that did not produce it. Round 5 stopped
+    repairing that prose and made the decomposition a MEASUREMENT
+    (``product/test_delta_attribution.py``); this check is what keeps the report's
+    quoted sentence and the measurement from drifting apart, in the lane's
+    one-command gate rather than only in pytest.
+
+    It re-measures the CURRENT tree's collection count (collection-only, ~2s: a
+    full suite run here would re-spend the regression measurement the round-4
+    audit explicitly fenced) and compares it with what the committed artifact says.
+    """
+    candidates = sorted(ATTRIBUTION_DIR.glob("CYCLE_*_test_delta_attribution.json"))
+    if not candidates:
+        return [_fail("a test-delta attribution artifact exists",
+                      f"none found in {_repo_relative(ATTRIBUTION_DIR)}")]
+    art = candidates[-1]
+    try:
+        data = json.loads(art.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [_fail("the attribution artifact parses", repr(exc))]
+
+    steps = data.get("steps") or []
+    step_sum = sum(s.get("collected_delta_vs_previous_step", 0) for s in steps)
+    rows = [
+        _pass_or_fail(
+            step_sum == data.get("observed_collected_delta"),
+            "the per-commit deltas sum to the published collected-test delta",
+            {"step_sum": step_sum, "published": data.get("observed_collected_delta"),
+             "steps": [s.get("short") for s in steps]},
+            definition_source="product/test_delta_attribution.py (collection-only measurement)"),
+    ]
+
+    try:
+        from product.test_delta_attribution import collect_count
+        measured = collect_count(REPO_ROOT)
+    except Exception as exc:  # a check that cannot run is FAIL, never a pass
+        rows.append(_fail("this tree's collected count is re-measurable", repr(exc)))
+        return rows
+
+    tree = data.get("working_tree") or {}
+    rows.append(_pass_or_fail(
+        tree.get("collected_total") == measured,
+        "the attribution artifact's working-tree count still equals this tree's",
+        {"artifact": tree.get("collected_total"), "measured_now": measured,
+         "regenerate": "python3 product/test_delta_attribution.py --base "
+                       f"{str(data.get('base', {}).get('commit'))[:7]} --run-id <id> "
+                       "--out results/product/regression/CYCLE_<id>_test_delta_attribution.json"},
+        definition_source="pytest --collect-only -q, run live by this check"))
+
+    line = data.get("decomposition_line") or ""
+    quoting = [p for p in sorted((REPO_ROOT / "reports" / "product").glob("*.md"))
+               if art.name in p.read_text(encoding="utf-8")]
+    rows.append(_pass_or_fail(
+        bool(quoting) and all(line in p.read_text(encoding="utf-8") for p in quoting),
+        "every report citing the attribution quotes its decomposition line verbatim",
+        {"citing_reports": [p.name for p in quoting], "line": line},
+        definition_source="the tool's canonical sentence; prose is not a second source of truth"))
+    return rows
 
 
 def check_fail_closed_posture() -> list[dict]:
@@ -882,6 +949,7 @@ CHECKS: dict[str, Callable[[], list[dict]]] = {
     "diagnosis": check_orchestration_diagnosis_39086926860,
     "regression": check_regression_set_relation,
     "regression_matrix": check_regression_matrix_matches_diagnosis,
+    "test_delta": check_test_delta_attribution,
     "scope": check_git_scope,
 }
 
