@@ -1,0 +1,75 @@
+{
+  "charter_version": 1,
+  "frozen_at_utc": "2026-10-18T20:02:02.090652+00:00",
+  "frozen_retrieval_spec_digest": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+  "input_bundles": {
+    "de-kapitalverletzung.bundle": {
+      "content_sha256": "c4005d4b78553b0aebd92bba59001c87a376146873f807d575255a4f721dd7f2",
+      "path": "/tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/questions/de-kapitalverletzung.bundle.json"
+    },
+    "fr-bail-entretien.bundle": {
+      "content_sha256": "0b3a224e3493479bc84628531eb7c56cac7dcfa978b29afbfc1305cb52574517",
+      "path": "/tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/questions/fr-bail-entretien.bundle.json"
+    },
+    "it-responsabilita-medica.bundle": {
+      "content_sha256": "6b43341242b5e1d4c305dcf29f12428541ceedc0b6cc89b5f2c8ae8d634f82b4",
+      "path": "/tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/questions/it-responsabilita-medica.bundle.json"
+    }
+  },
+  "rules": {
+    "authority_recall_definition": {
+      "freeze_record_sha256": "b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49",
+      "frozen_spec_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+      "id_match_rules": "lowercase_alnum_drop_nonalnum_strip_leading_court_tokens",
+      "method": "alnum_core_match_per_frozen_spec_187b0e54",
+      "min_core_length": 6
+    },
+    "claim_ceiling": "no_artifact_may_assert_map_helps_jurist_or_authority_absent_or_frozen_bar_met_or_packet_fit_to_serve_usefulness_human_gate_admission_fail_closed",
+    "concept_definition": {
+      "covered_iff": ">=1 bundle row's title/regeste/snippet/full_text/citation/decision_id contains as substring",
+      "method": "de_accented_lowercase_alnum_tokens_len_ge_5_stoplist_removed",
+      "min_length": 5,
+      "semantics": "permissive_1_of_set",
+      "stoplist": "accepted_gates_generic",
+      "token_regex": "[^\\W\\d_]+"
+    },
+    "expansion_layer": {
+      "corpus_derived": true,
+      "deterministic": true,
+      "free": true,
+      "max_compound_splits": 6,
+      "max_cross_lang_terms": 12,
+      "no_generation": true,
+      "no_paid_api": true
+    },
+    "latency_budget": {
+      "full_pass_seconds": 240.0,
+      "per_search_seconds": 30.0,
+      "rule": "cached_replay_only_network_calls_0"
+    },
+    "outcome_rules": {
+      "no_post_hoc_tuning": true,
+      "outcome_a_promote": "candidate_raises_frozen_authority_recall_on_at_least_2_of_3_failing_fr_it_cells AND reduces_under_covered_on_at_least_2_of_3_served_questions",
+      "outcome_b_promote": "no_in_budget_deterministic_expansion_recovers_missing_concepts_or_authority_ids",
+      "stop_at_first_outcome": true
+    },
+    "regression_gates": {
+      "latency_budget_must_hold": true,
+      "required_passing": [
+        "duplicate::unique_ids",
+        "counter::known_counter_recall",
+        "source::rows_valid",
+        "transport::all_queries_ok"
+      ]
+    },
+    "vacuity_controls": {
+      "blanked_expansion": "empty_term_set_must_score_strictly_below_candidate_on_both_axes",
+      "shuffled_expansion": "terms_from_unrelated_question_must_not_raise_coverage_on_target",
+      "tie_is_vacuous": true,
+      "void_on_vacuous": true
+    }
+  },
+  "rules_digest": "b47a94749fc30f9c76c8c34ee0102bfd3161817a9e87dc9d81325e95e6808acc",
+  "schema": "lex-frontier-query-concept-recall-rules/1",
+  "team_id": "frontier-query-concept-recall"
+}
