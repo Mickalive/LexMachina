@@ -740,7 +740,12 @@
     "results/evaluation/retrieval_benchmark/39115755033.json",
     "results/evaluation/lane_suite/39115755033.json",
     "results/evaluation/subject_match_audit/39115755033.json",
-    "reports/evaluation/CYCLE_39115755033.md"
+    "reports/evaluation/CYCLE_39115755033.md",
+    "results/evaluation/lane_suite/39117425713.json",
+    "results/evaluation/retrieval_benchmark/39117425713.json",
+    "results/evaluation/subject_match_audit/39117425713.json",
+    "results/evaluation/lane_suite/gate_entry_point_repeat_invariance.json",
+    "reports/evaluation/CYCLE_39117425713.md"
   ],
   "evidence_tier": "REPRODUCED",
   "execution_records_38951152192": {
@@ -3577,5 +3582,81 @@
     "results/evaluation/subject_match_audit/39115755033.json (QUESTION_NATIVE_PRODUCT_DEFECT_ESTABLISHED, exit 1, mapping-free falsifier reproduced)",
     "reports/evaluation/CYCLE_39115755033.md (cycle report: SMALLEST_GATEABLE_DELIVERABLE_SHIPPED)",
     "state/evaluation.json (updated this run)"
-  ]
+  ],
+  "lane_suite_39117425713": {
+    "record": "results/evaluation/lane_suite/39117425713.json",
+    "verdict": "PASS",
+    "checks": "60/61",
+    "seconds": 221.863,
+    "pytest": "ABSENT in this image; the pytest sub-check is [SKIP]ped and the stdlib checks are authoritative. The single skip is the known disclosed item.",
+    "frozen_digests_verified": 7,
+    "committed_records_rescored": 5,
+    "cached_replay_latency_separation": true,
+    "falsification_matrix_families": 20,
+    "repeat_invariance": {
+      "run_bar_gates": {"n": 10, "invariant": true, "nonzero_rate": "0/10"},
+      "label_lineage_sweep": {"n": 10, "invariant": true, "nonzero_rate": "0/10"}
+    }
+  },
+  "retrieval_benchmark_replay_39117425713": {
+    "record": "results/evaluation/retrieval_benchmark/39117425713.json",
+    "mode": "offline_replay",
+    "verdict": "FAIL (23 passed, 11 failed, 6 not measurable)",
+    "frozen_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "direction_version": 49,
+    "transport_ok": true,
+    "reproducibility": "PASS (byte-identical replay)",
+    "latency_gates": "not_measurable (cached replay mode)",
+    "key_failures": [
+      "duplicate::unique_ids::rent-default (FR query)",
+      "authority::baseline_lang_recall::fr/it::corporate-criminal-liability (0/2)",
+      "counter::limiting_marker_verified::corporate-criminal-liability (0 hits)",
+      "duplicate::unique_ids::corporate-criminal-liability (FR query)",
+      "authority::baseline_lang_recall::fr/it::business-judgment-rule (0/5)",
+      "duplicate::unique_ids::business-judgment-rule (FR query)",
+      "authority::baseline_lang_recall::fr/it::petty-theft-dismissal (0/2)",
+      "duplicate::unique_ids::petty-theft-dismissal (FR query)"
+    ],
+    "key_passes": [
+      "norm::retrievable (all 4 questions)",
+      "counter::known_counter_recall (all 4 questions, >=1 hit each)",
+      "counter::limiting_marker_verified (3/4 questions)",
+      "source::rows_valid (all 4 questions, 0 offenders)",
+      "transport::all_queries_ok (24/24)"
+    ],
+    "claim_ceiling": "Measures plain OpenCaseLaw retrieval baseline (no query-map machinery). Failures are real retrieval limitations, not benchmark defects. Negative results preserved."
+  },
+  "subject_match_audit_39117425713": {
+    "record": "results/evaluation/subject_match_audit/39117425713.json",
+    "instrument_sha256": "c207fd819ae4605de704d2cdc4a30254f39a9840994a2e43ea4ef10fb5656342",
+    "frozen_hypothesis": "evaluation/PRODUCT_COUNTER_RECALL_HYPOTHESIS_V2_1.json (sha 4a1e5c6f2aa59dfa1893f95f8c1faba112b885b574d2d1a6ef2d95d2c8091940)",
+    "baseline_record": "results/evaluation/retrieval_benchmark/39101217095.json (sha 49dd60ad0ee96ed1de7225da4653b752c13fb058cfed05a613e0440d67c32ac9)",
+    "product_mount": "/tmp/lex_accepted/product (served packet 38839347028)",
+    "network_requests": 0,
+    "verdict": "QUESTION_NATIVE_PRODUCT_DEFECT_ESTABLISHED",
+    "exit_code": 1,
+    "n_gates": 13,
+    "n_passed": 11,
+    "n_failed": 2,
+    "n_not_measurable": 0,
+    "failed_gates": [
+      "question_native_concept_coverage::de-kapitalverletzung",
+      "admission::selfcheck_disagreement::de-kapitalverletzung"
+    ],
+    "subject_match_cells": 3,
+    "n_admissible_cells": 0,
+    "non_vacuity_all_hold": true,
+    "v1_harness_status": "STANDS_AS_A_HARNESS_RESULT; product_layer_claim_admissible=False",
+    "claim_ceiling": "Independent of any slug-to-served-question mapping, the served bundle for de-kapitalverletzung fails to retrieve two core legal concepts of its own question (kapitalverletzung, uberwachungspflicht -> 0 rows each), and the packet's admission record reports admissible=true with warning_count=0. The v1 harness result does NOT establish a product-layer recall defect because no cell is subject-matched. Does not re-score label/geometry bars, does not lift DO-NOT-SERVE orders, does not change human_gate_ready=false."
+  },
+  "durable_delta_39117425713": [
+    "results/evaluation/lane_suite/39117425713.json (PASS 60/61, 221.9s, schema lex-evaluation-lane-suite/2)",
+    "results/evaluation/retrieval_benchmark/39117425713.json (offline replay, 23 passed / 11 failed / 6 n-m, reproducibility PASS)",
+    "results/evaluation/subject_match_audit/39117425713.json (QUESTION_NATIVE_PRODUCT_DEFECT_ESTABLISHED, exit 1, mapping-free falsifier)",
+    "results/evaluation/lane_suite/gate_entry_point_repeat_invariance.json (repeat-invariance record)",
+    "reports/evaluation/CYCLE_39117425713.md (cycle report)",
+    "state/evaluation.json (this block and evidence_refs appended)"
+  ],
+  "continue_recommended": false,
+  "continue_recommended_reason": "false. The audit starvation blocker is resolved: this cycle's producer work completes in ~240s and emits three gate-able records (lane suite PASS, retrieval offline replay, subject-match audit). The independent audit job can now run on run_id 39117425713. The frozen retrieval benchmark (v49, sha 187b0e54...) and subject-match audit (v2.1, sha 4a1e5c6f...) are both executed and validated. The successor question — whether Product will serve the frozen questions or re-derive a frozen spec against served questions — is a Product-side decision. A dispatch with no new Product bytes and no successor deliverable would be a zero-delta cycle."
 }
