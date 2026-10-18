@@ -1,11 +1,11 @@
 # Retrieval / counter-authority falsification benchmark — run pytest_local
 
 - Schema: `lex-evaluation-retrieval-ca-benchmark/1`
-- Direction: v56 (derived from state/evaluation.json at run time; operational resume lineage of run 38986445355)
+- Direction: v57 (derived from state/evaluation.json at run time; operational resume lineage of run 38986445355)
 - Engine: `python -m evaluation.frozen_bars.run_bar_gates` (accepted entry point, reused as subprocess)
 - Combined verdict: **BENCHMARK_VALID_NO_FALSIFICATION** (exit 0)
 - Falsification proven: **True**
-- Elapsed: 28.651 s
+- Elapsed: 29.67 s
 
 ## Legs
 
