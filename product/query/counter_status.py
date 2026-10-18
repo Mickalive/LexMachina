@@ -116,3 +116,57 @@ def counter_status_histogram(decisions: Any) -> dict[str, int]:
         str(d.get("counter_status") or "none") for d in _rows(decisions)
     )
     return dict(sorted(hist.items()))
+
+
+def counter_evidenced(row: Any) -> bool:
+    """True only when a counter row carries BOTH a verified flag AND its text.
+
+    Python twin of ``counterEvidenced()`` in ``product/static/query.html``:
+
+        isCounter(d) && !!(d.counter_evidence||"").trim() && d.counter_evidence_verified===true
+
+    Audit ``CYCLE_39091749561`` F7: the product ledger counted a row as
+    "evidenced" from ``counter_evidence_verified is True`` alone, while the
+    researcher-facing page additionally requires non-empty ``counter_evidence``.
+    Those two predicates can disagree exactly on rows whose status name says the
+    reviewer abstained (``abstained_unevidenced``). Measured on the committed
+    live bundle they do NOT disagree - both abstained rows carry text - which is
+    a measurement of that bundle, not a guarantee about the next one; the shared
+    predicate exists so that any future disagreement is decided by one definition
+    instead of by whichever surface was edited last.
+
+    One predicate, shared, under this honest name. A surface that needs a
+    different question must ask it under a different name.
+    """
+    if not isinstance(row, dict):
+        return False
+    if not is_counter_status(row.get("counter_status")):
+        return False
+    has_text = bool(str(row.get("counter_evidence") or "").strip())
+    return has_text and row.get("counter_evidence_verified") is True
+
+
+def evidenced_counter_ids(decisions: Any) -> list[str]:
+    """Counter rows that are evidenced under :func:`counter_evidenced`, in order."""
+    return [
+        did
+        for did in (
+            str(d.get("decision_id") or "")
+            for d in _rows(decisions)
+            if counter_evidenced(d)
+        )
+        if did
+    ]
+
+
+def unevidenced_counter_ids(decisions: Any) -> list[str]:
+    """Counter rows kept for visibility WITHOUT evidence (amber ring in the UI)."""
+    return [
+        did
+        for did in (
+            str(d.get("decision_id") or "")
+            for d in _rows(decisions)
+            if is_counter_status(d.get("counter_status")) and not counter_evidenced(d)
+        )
+        if did
+    ]

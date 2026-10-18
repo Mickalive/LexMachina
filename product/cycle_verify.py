@@ -175,6 +175,8 @@ def check_counter_authority_counts() -> list[dict]:
         NON_COUNTER_STATUSES,
         counter_authority_count,
         counter_status_bearing_count,
+        evidenced_counter_ids,
+        unevidenced_counter_ids,
     )
 
     bundle = build_bundle("rent-default", 100, enrich=True)
@@ -185,7 +187,14 @@ def check_counter_authority_counts() -> list[dict]:
     for row in rows:
         key = str(row.get("counter_status") or "none")
         by_status[key] = by_status.get(key, 0) + 1
-    evidenced = [
+    # F7 (audit CYCLE_39091749561): the ledger's "evidenced" and the page's
+    # counterEvidenced() are now the SAME predicate, imported from the accepted
+    # single source of truth. The weaker flag-only reading is still published,
+    # labelled, so the difference between the two notions is visible rather than
+    # silently resolved in either direction.
+    evidenced = evidenced_counter_ids(rows)
+    unevidenced = unevidenced_counter_ids(rows)
+    flag_only = [
         r["decision_id"] for r in rows
         if str(r.get("counter_status") or "") not in NON_COUNTER_STATUSES
         and r.get("counter_evidence_verified") is True
@@ -200,12 +209,20 @@ def check_counter_authority_counts() -> list[dict]:
                 "counter_status_bearing_rows": bearing,
                 "by_status": by_status,
                 "evidenced_counter_rows": sorted(evidenced),
+                "n_evidenced_counter_rows": len(evidenced),
+                "unevidenced_counter_rows": sorted(unevidenced),
+                "n_unevidenced_counter_rows": len(unevidenced),
+                "verified_flag_only_counter_rows": sorted(flag_only),
                 "non_counter_statuses": sorted(repr(x) for x in NON_COUNTER_STATUSES),
             },
             "definition_source": "product/query/counter_status.py (re-exported by "
-                                 "gate_admissibility, object identity preserved)",
+                                 "gate_admissibility, object identity preserved); "
+                                 "evidenced = counter_evidenced(), the Python twin of "
+                                 "product/static/query.html::counterEvidenced",
             "note": "both counts are published side by side on purpose; the broad one is "
-                    "provenance, not a legal finding",
+                    "provenance, not a legal finding, and the flag-only evidenced reading "
+                    "is published beside the shared predicate so any disagreement between "
+                    "the two notions is a measured finding, never a silent choice",
         },
         {
             "claim": "the counter count can never exceed the status-bearing count",

@@ -39,6 +39,7 @@ refuses to invent a delta it cannot compute.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -50,16 +51,67 @@ REPO_ROOT = PRODUCT_ROOT.parent
 
 SCHEMA = "product-test-accounting/1"
 
-#: ``45 failed, 562 passed, 2 skipped, 30 errors in 82.92s (0:01:22)``
-_SUMMARY = re.compile(
-    r"(?:(?P<failed>\d+)\s+failed)?,?\s*"
-    r"(?:(?P<passed>\d+)\s+passed)?"
-    r"(?:,\s*(?P<skipped>\d+)\s+skipped)?"
-    r"(?:,\s*(?P<errors>\d+)\s+errors)?"
-    r"(?:\s+in\s+(?P<seconds>[\d.]+)s)?"
+#: Outcome clauses a ``pytest -q`` summary line can carry, in ANY interleaving.
+#:
+#: The historical single ordered regex required ``errors`` to follow ``skipped``
+#: directly, so a real line with a ``warnings`` clause in between parsed as
+#: ``errors 0`` / ``seconds 0.0`` / an under-counted total - audit
+#: CYCLE_39091749561 F1 proved it on the captured line
+#: ``43 failed, 623 passed, 3 skipped, 45 warnings, 30 errors in 67.91s``.
+#: Clauses are now read token-wise, so order and extra clauses cannot corrupt a
+#: count, and a count that is present in the line but absent from the result is
+#: refused instead of being recorded as zero.
+_CLAUSE = re.compile(
+    r"(?P<n>\d+)\s+(?P<label>"
+    r"failed|passed|skipped|errors?|warnings?|deselected|"
+    r"xfailed|xpassed|xfail|xpass|reruns?"
+    r")\b"
 )
 
+#: ``... 30 errors in 82.92s (0:01:22)`` - the duration is part of the summary,
+#: never optional: a zero duration is the same silent-zero defect as ``errors 0``.
+_DURATION = re.compile(r"\bin\s+(?P<seconds>[\d.]+)s\b")
+
+#: The last line carrying the outcome counts, matched INDEPENDENTLY of the
+#: clause reader above, so the cross-check below cannot pass vacuously by
+#: repeating the parser's own mistake.
+_KEY_PATTERN = {
+    "failed": r"failed",
+    "passed": r"passed",
+    "skipped": r"skipped",
+    "errors": r"errors?",
+}
+
+#: Singular/collective spellings that denote the same outcome bucket.
+_LABEL_ALIASES = {
+    "error": "errors",
+    "xfail": "xfailed",
+    "xpass": "xpassed",
+}
+
 _COUNT_KEYS = ("failed", "passed", "skipped", "errors")
+
+
+def _select_summary_line(lines: list[str]) -> str:
+    """The line that actually carries the terminal counts.
+
+    Preferred: the last line in the tail that both carries counts and carries a
+    duration, because that is the shape of a real ``pytest -q`` terminal line.
+    Fallback: the historical "last line mentioning passed/failed/error" heuristic,
+    so an atypical log still gets a chance to parse (and then to be refused by
+    the cross-check below rather than silently zeroed).
+    """
+    tail = lines[-1]
+    duration_first = [
+        ln for ln in reversed(lines[-12:])
+        if _DURATION.search(ln) and ("passed" in ln or "failed" in ln or "error" in ln)
+    ]
+    if duration_first:
+        return duration_first[0]
+    for line in reversed(lines[-12:]):
+        if "passed" in line or "failed" in line or "error" in line:
+            return line
+    return tail
 
 
 def parse_pytest_summary(text: str) -> dict:
@@ -68,23 +120,60 @@ def parse_pytest_summary(text: str) -> dict:
     Raises rather than guessing: an unparseable log means the measurement cannot
     be trusted, and a tool that silently returns zeros here is exactly how "+7"
     became a fabricated delta in the first place.
+
+    Contract (audit CYCLE_39091749561 F1):
+      * interleaved clauses (``warnings`` / ``deselected`` / ``xfailed`` between
+        ``skipped`` and ``errors``) are tolerated in any order;
+      * a count that is present in the line but missing from the parsed result
+        is REFUSED, never recorded as zero;
+      * a summary without a duration is refused, never recorded as ``0.0``.
     """
     lines = [ln for ln in text.splitlines() if ln.strip()]
     if not lines:
         raise SystemExit("empty pytest log: nothing to measure")
-    tail = lines[-1]
-    for line in reversed(lines[-12:]):
-        if "passed" in line or "failed" in line or "error" in line:
-            tail = line
-            break
-    m = _SUMMARY.search(tail)
-    if not m or not any(m.group(k) for k in _COUNT_KEYS):
+    tail = _select_summary_line(lines)
+
+    clauses: dict[str, int] = {}
+    for raw_n, raw_label in _CLAUSE.findall(tail):
+        key = _LABEL_ALIASES.get(raw_label, raw_label)
+        if key not in _COUNT_KEYS:
+            continue                       # warnings/deselected/... are not outcomes
+        if key in clauses and clauses[key] != int(raw_n):
+            raise SystemExit(
+                f"ambiguous pytest summary (two different '{key}' counts):\n"
+                f"  {tail!r}\nrefusing to record a delta that cannot be computed"
+            )
+        clauses[key] = int(raw_n)
+
+    if not clauses:
         raise SystemExit(
             f"could not parse a pytest summary from the log tail:\n  {tail!r}\n"
             "refusing to record a delta that cannot be computed"
         )
-    out = {k: int(m.group(k) or 0) for k in _COUNT_KEYS}
-    out["seconds"] = float(m.group("seconds") or 0.0)
+
+    out = {k: int(clauses.get(k, 0)) for k in _COUNT_KEYS}
+
+    # Independent cross-check: read each outcome back out of the SAME line with a
+    # separate pattern. A mismatch means the clause reader lost a count that the
+    # line plainly contains - the F1 defect - and that is refused, not zeroed.
+    for key, pattern in _KEY_PATTERN.items():
+        m = re.search(rf"(\d+)\s+(?:{pattern})\b", tail)
+        if m and int(m.group(1)) != out[key]:
+            raise SystemExit(
+                f"count present in the summary line is missing from the parsed "
+                f"result ('{key}': line says {m.group(1)}, parser says {out[key]}) "
+                f"for line:\n  {tail!r}\nrefusing to record a delta that cannot "
+                "be trusted (CYCLE_39091749561 F1)"
+            )
+
+    dur = _DURATION.search(tail)
+    if not dur:
+        raise SystemExit(
+            f"no duration in the pytest summary line:\n  {tail!r}\n"
+            "refusing to record a measurement whose runtime was lost (F1: a "
+            "silent 0.0s is not a measurement)"
+        )
+    out["seconds"] = float(dur.group("seconds"))
     out["total_collected"] = sum(out[k] for k in _COUNT_KEYS)
     return out
 
@@ -117,7 +206,8 @@ def _require_anchor(run_id: str, commit: str, label: str) -> dict:
     return {"run_id": str(run_id), "commit": commit}
 
 
-def build(baseline: dict, head: dict, delta: dict, ignore_list: list[str], env: dict) -> dict:
+def build(baseline: dict, head: dict, delta: dict, ignore_list: list[str], env: dict,
+          raw_logs: dict | None = None) -> dict:
     return {
         "schema": SCHEMA,
         "what_this_is": (
@@ -127,6 +217,15 @@ def build(baseline: dict, head: dict, delta: dict, ignore_list: list[str], env: 
             "22:24:12Z re-probe). Every delta below is computed from the two measured "
             "counts, never written by hand."
         ),
+        "parser_contract": (
+            "Counts come from product/test_accounting.py::parse_pytest_summary, "
+            "which tolerates interleaved summary clauses (warnings/deselected/"
+            "xfailed between skipped and errors) and REFUSES rather than emitting "
+            "zeros when a count present in the log line is missing from the parsed "
+            "result, or when the line carries no duration (CYCLE_39091749561 F1). "
+            "The raw logs pinned under 'raw_logs' are the evidence: every number "
+            "below is re-derivable from those bytes."
+        ),
         "pinning_rule": (
             "A pin names a run id and a commit sha. It is never a timestamp and never a "
             "re-probed moving snapshot, because a timestamp names an instant rather than "
@@ -135,8 +234,16 @@ def build(baseline: dict, head: dict, delta: dict, ignore_list: list[str], env: 
             "exits non-zero instead of repinning."
         ),
         "collection_scope": {
-            "command_shape": "python3 -m pytest tests/ -q --ignore=<module> ...",
-            "cwd": "product",
+            "command_shape": "python -m pytest product/tests/ -q -p no:cacheprovider "
+                             "--ignore=<module> ...",
+            "cwd": "<repository root>",
+            "same_command_both_roots": (
+                "Baseline and head are measured with the same command shape from "
+                "their own checkout roots (product/regression_scope.py), so a "
+                "mount-dependent test behaves the same way on both sides of the "
+                "comparison instead of being measured at one root and assumed at "
+                "another."
+            ),
             "uncollectable_modules_excluded": ignore_list,
             "n_uncollectable_modules": len(ignore_list),
             "why_excluded": (
@@ -144,6 +251,14 @@ def build(baseline: dict, head: dict, delta: dict, ignore_list: list[str], env: 
                 "in the CI or bare image. They are excluded identically at baseline and at "
                 "head, so the comparison is a set relation over the same population. "
                 "Excluding a DIFFERENT set at baseline and head would invalidate the delta."
+            ),
+        },
+        "raw_logs": raw_logs or {
+            "present": False,
+            "note": (
+                "No raw logs were supplied to this invocation; the counts below "
+                "cannot be re-parsed from this artifact alone. Prefer emitting this "
+                "artifact from product/regression_scope.py --raw-log-dir output."
             ),
         },
         "numeric_environment": {
@@ -219,6 +334,23 @@ def _numeric_environment() -> dict:
     return env
 
 
+def _raw_log_pin(path_str: str) -> dict:
+    """Pin a raw pytest log by sha256 so the published counts are re-derivable."""
+    p = Path(path_str)
+    if not p.is_absolute():
+        p = REPO_ROOT / p
+    data = p.read_bytes()
+    try:
+        shown = p.resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError:  # pragma: no cover - a log kept outside the checkout
+        shown = str(p)
+    return {
+        "path": shown,
+        "sha256": hashlib.sha256(data).hexdigest(),
+        "bytes": len(data),
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="product.test_accounting")
     ap.add_argument("--baseline-run-id", required=True)
@@ -284,6 +416,19 @@ def main(argv: list[str] | None = None) -> int:
         delta,
         ignore_list,
         _numeric_environment(),
+        raw_logs={
+            "parser": {
+                "module": "product/test_accounting.py",
+                "sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+            },
+            "baseline_log": _raw_log_pin(args.baseline_file),
+            "head_log": _raw_log_pin(args.head_file),
+            "re_parse_contract": (
+                "python -m product.test_accounting re-parses these two logs and "
+                "must reproduce every count below byte-for-byte; the counts are "
+                "not copied from any report."
+            ),
+        },
     )
     out = REPO_ROOT / args.out
     out.parent.mkdir(parents=True, exist_ok=True)

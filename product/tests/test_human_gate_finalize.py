@@ -499,6 +499,12 @@ def test_ceiling_regression_is_caught_end_to_end_through_the_cli(tmp_path: Path)
             "--simulated", "--out", str(out_dir),
         ],
         cwd=str(REPO_ROOT),
+        # The copy's own REPO_ROOT bootstrap resolves to tmp_path (it is derived
+        # from __file__), so the copy cannot import the repo's ``product`` package
+        # on its own. PYTHONPATH puts the real repo root back on the import path;
+        # without it this test measures ModuleNotFoundError rather than the
+        # claim-ceiling guard it exists to prove (audit CYCLE_39091749561 F2).
+        env={**os.environ, "PYTHONPATH": str(REPO_ROOT)},
         capture_output=True,
         text=True,
         timeout=120,

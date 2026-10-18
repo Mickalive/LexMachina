@@ -55,9 +55,12 @@ from product.query.counter_status import (  # noqa: E402
     NON_COUNTER_STATUSES,
     counter_authority_count,
     counter_authority_ids,
+    counter_evidenced,
     counter_status_bearing_count,
     counter_status_histogram,
+    evidenced_counter_ids,
     is_counter_status,
+    unevidenced_counter_ids,
 )
 
 #: The committed bundles RF1's corrected counts are measured on. Pinned by path
@@ -560,3 +563,101 @@ def test_generative_audit_reconciliation_is_verified_not_assumed():
         "different stages, different numbers: recorded as not-established"
     )
     assert "NOT shown to be the same set" in recon["reading"]
+
+# --------------------------------------------------------------------------
+# F7 (audit CYCLE_39091749561): ONE "evidenced" predicate, shared with the page
+# --------------------------------------------------------------------------
+
+QUERY_PAGE = PRODUCT_ROOT / "static" / "query.html"
+
+
+def _counter(id_: str, status: str, evidence: str, verified) -> dict:
+    return {
+        "decision_id": id_,
+        "counter_status": status,
+        "counter_evidence": evidence,
+        "counter_evidence_verified": verified,
+    }
+
+
+def test_counter_evidenced_requires_status_text_and_verified_flag():
+    """All three terms, never a subset: this is the page's own predicate."""
+    assert counter_evidenced(_counter("a", "candidate-limiting", "BGE 123", True)) is True
+    assert counter_evidenced(_counter("b", "abstained_unevidenced", "BGE 123", True)) is True
+    # flag without text: the page shows the amber "non étayée" ring, and so must we
+    assert counter_evidenced(_counter("c", "abstained_unevidenced", "", True)) is False
+    assert counter_evidenced(_counter("d", "candidate-limiting", "   ", True)) is False
+    # text without the flag is not evidence either
+    assert counter_evidenced(_counter("e", "candidate-limiting", "BGE 123", False)) is False
+    assert counter_evidenced(_counter("e", "candidate-limiting", "BGE 123", None)) is False
+    # a provenance row is never evidenced, however verified
+    assert counter_evidenced(_counter("f", "cited", "BGE 123", True)) is False
+    assert counter_evidenced(_counter("g", "none", "BGE 123", True)) is False
+    assert counter_evidenced("not a dict") is False
+
+
+def test_the_python_predicate_is_the_page_predicate_not_a_second_definition():
+    """Parity with product/static/query.html::counterEvidenced, checked on source.
+
+    F7 asked for ONE notion of "evidenced". The page keeps its JS twin (a jurist
+    clicks the page, not a Python module), so the guard is that both definitions
+    exist and name the same three terms in the same order - a silent edit of
+    either side is a red test, not a silent divergence.
+    """
+    src = QUERY_PAGE.read_text(encoding="utf-8")
+    m = re.search(r"function counterEvidenced\((\w+)\)\{(.*?)\}", src)
+    assert m, "counterEvidenced() is missing from product/static/query.html"
+    body = m.group(2)
+    assert "isCounter(" in body, body
+    assert "counter_evidence" in body, body
+    assert "counter_evidence_verified" in body, body
+    assert body.index("isCounter(") < body.index("counter_evidence_verified"), (
+        "the page predicate must test the status first, like is_counter_status")
+
+
+def test_evidenced_and_unevidenced_partition_the_counter_rows():
+    rows = [
+        _counter("a", "candidate-limiting", "BGE 123", True),   # evidenced
+        _counter("b", "abstained_unevidenced", "", True),      # unevidenced (F7 case)
+        _counter("c", "cited", "BGE 9", True),                 # provenance: neither
+        {"decision_id": "d"},                                  # untouched: neither
+    ]
+    assert evidenced_counter_ids(rows) == ["a"]
+    assert unevidenced_counter_ids(rows) == ["b"]
+    assert len(evidenced_counter_ids(rows)) + len(unevidenced_counter_ids(rows)) == (
+        counter_authority_count(rows)
+    ), "the two lists must partition the counter rows exactly"
+    assert "c" not in evidenced_counter_ids(rows) + unevidenced_counter_ids(rows)
+
+
+def test_the_live_bundle_agrees_under_both_evidenced_predicates_and_stays_abstained():
+    """F7, measured on the committed live bundle - with the real reading.
+
+    The audit's F7 was that the ledger's "evidenced" test (flag only) is WEAKER
+    than the page's counterEvidenced (flag AND text), so the two could disagree.
+    Measured here: on this bundle they do NOT disagree - both abstained rows carry
+    text - and that is published as a measurement, not assumed. What must hold
+    regardless is that "evidenced" never upgrades a classification: both rows
+    stay ``abstained_unevidenced`` with their disclosed uncertainty, and the
+    shared predicate changes nothing about the counter count.
+    """
+    live = json.loads(LIVE_BUNDLE.read_text(encoding="utf-8"))
+    rows = live.get("decisions") or []
+    counters = [r for r in rows if is_counter_status(r.get("counter_status"))]
+    assert len(counters) == 2, "the live bundle's corrected counter count is 2 (RF1)"
+    flag_only = {
+        r["decision_id"] for r in counters if r.get("counter_evidence_verified") is True
+    }
+    shared = set(evidenced_counter_ids(rows))
+    assert shared <= flag_only, "the shared predicate is strictly the flag-only test plus text"
+    # measured on THIS bundle: no disagreement; a future bundle may have one
+    assert flag_only - shared == set(), (
+        "rows the ledger counts as evidenced but the page would ring amber: "
+        f"{sorted(flag_only - shared)}")
+    for row in counters:
+        assert str(row.get("counter_status")) == "abstained_unevidenced", row
+        assert counter_evidenced(row) is True, row["decision_id"]
+        assert counter_authority_count([row]) == 1, (
+            "evidenced is an evidence statement, never a classification upgrade")
+    assert unevidenced_counter_ids(rows) == [], (
+        "empty on this bundle; a non-empty result is what the amber ring is for")

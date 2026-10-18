@@ -29,6 +29,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 PRODUCT_ROOT = Path(__file__).resolve().parent.parent
 REPO_ROOT = PRODUCT_ROOT.parent
 if str(REPO_ROOT) not in sys.path:
@@ -76,6 +78,82 @@ def test_refuses_an_unparseable_log_instead_of_returning_zeros():
             assert "could not parse" in str(exc) or "empty" in str(exc), str(exc)
         else:  # pragma: no cover - would be the defect
             raise AssertionError(f"unparseable log was accepted: {bad!r}")
+
+
+# --------------------------------------------------------------------------- #
+# F1 (CYCLE_39091749561): interleaved clauses must not zero a later count
+# --------------------------------------------------------------------------- #
+
+#: Captured from a real ``pytest -q`` run in this environment (audit
+#: CYCLE_39091749561 F1). The old ordered regex required ``errors`` to follow
+#: ``skipped`` directly, so the ``warnings`` clause in between broke the chain
+#: and this line parsed as errors 0 / seconds 0.0 / total 669.
+REAL_SUMMARY_WITH_WARNINGS_CLAUSE = (
+    "......................................................................\n"
+    "................ [100%]\n"
+    "43 failed, 623 passed, 3 skipped, 45 warnings, 30 errors in 67.91s (0:01:07)\n"
+)
+
+
+def test_parses_a_real_summary_line_that_carries_a_warnings_clause():
+    """F1's exact regression: the captured line, parsed correctly."""
+    got = ta.parse_pytest_summary(REAL_SUMMARY_WITH_WARNINGS_CLAUSE)
+    assert got["failed"] == 43
+    assert got["passed"] == 623
+    assert got["skipped"] == 3
+    assert got["errors"] == 30, "the warnings clause must not swallow the errors count"
+    assert got["seconds"] == 67.91, "the duration must not be lost either"
+    assert got["total_collected"] == 699, "43 + 623 + 3 + 30"
+
+
+def test_interleaved_clauses_are_tolerated_in_any_order():
+    """Clause order and non-outcome clauses are presentation, not measurement."""
+    variants = [
+        "10 passed, 5 warnings, 2 errors in 1.5s",
+        "2 errors, 10 passed, 5 warnings in 1.5s",
+        "10 passed, 2 errors, 5 warnings, 1 deselected in 1.5s",
+        "5 warnings, 10 passed, 1 deselected, 2 errors in 1.5s",
+    ]
+    for line in variants:
+        got = ta.parse_pytest_summary(line + "\n")
+        assert (got["passed"], got["errors"], got["seconds"]) == (10, 2, 1.5), line
+        assert got["total_collected"] == 12, line
+
+
+def test_a_count_present_in_the_line_is_never_recorded_as_zero(monkeypatch):
+    """Refuse rather than zero: the F1 corruption itself is the forbidden outcome.
+
+    The clause reader is deliberately weakened to the F1-era shape (blind to the
+    ``errors`` clause that a ``warnings`` clause separated from ``skipped``), and
+    the REAL ``parse_pytest_summary`` must then raise instead of returning the
+    zeros the old tool returned. The independent cross-check is what must catch
+    it, so this exercises the shipped guard rather than a copy of it.
+    """
+    monkeypatch.setattr(
+        ta, "_CLAUSE", re.compile(r"(?P<n>\d+)\s+(?P<label>failed|passed|skipped)\b")
+    )
+    with pytest.raises(SystemExit) as excinfo:
+        ta.parse_pytest_summary(REAL_SUMMARY_WITH_WARNINGS_CLAUSE)
+    message = str(excinfo.value)
+    assert "count present in the summary line is missing" in message, message
+    assert "'errors': line says 30" in message, message
+
+
+def test_a_singular_error_clause_still_lands_in_the_errors_bucket():
+    got = ta.parse_pytest_summary("7 passed, 4 failed, 1 error in 0.42s\n")
+    assert got["errors"] == 1
+    assert got["total_collected"] == 12
+
+
+def test_a_summary_without_a_duration_is_refused_not_zeroed():
+    """``seconds: 0.0`` was part of the F1 corruption; there is no such measurement."""
+    for bad in (
+        "43 failed, 623 passed, 3 skipped, 45 warnings, 30 errors\n",
+        "10 passed, 2 skipped\n",
+    ):
+        with pytest.raises(SystemExit) as excinfo:
+            ta.parse_pytest_summary(bad)
+        assert "duration" in str(excinfo.value), str(excinfo.value)
 
 
 # --------------------------------------------------------------------------- #

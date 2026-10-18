@@ -69,11 +69,18 @@ def uncollectable_modules(root: Path, test_dir: str = "product/tests") -> list[s
     return [m for m in mods if m.startswith(test_dir)]
 
 
-def _run(root: Path, ignores: list[str], test_dir: str = "product/tests") -> dict:
+def _run(root: Path, ignores: list[str], test_dir: str = "product/tests",
+         raw_log: Path | None = None) -> dict:
     cmd = [sys.executable, "-m", "pytest", test_dir, "-q", "-p", "no:cacheprovider",
            *sum((["--ignore", m] for m in ignores), [])]
     proc = subprocess.run(cmd, cwd=str(root), capture_output=True, text=True)
     out = proc.stdout + proc.stderr
+    # The raw log IS the measurement: it is what test_accounting parses and what
+    # an independent auditor re-parses. Persisting it next to the artifact means
+    # no published count can be re-derived only by re-running the suite.
+    if raw_log is not None:
+        raw_log.parent.mkdir(parents=True, exist_ok=True)
+        raw_log.write_text(out, encoding="utf-8")
     failed: set[str] = set()
     in_summary = False
     summary = ""
@@ -262,7 +269,8 @@ def environment() -> dict:
 
 def measure(root: Path, baseline_root: Path, *, run_id: str, label: str,
             baseline_label: str, baseline_ref: str | None = None,
-            repo: Path | None = None) -> dict:
+            repo: Path | None = None,
+            raw_log_dir: Path | None = None) -> dict:
     """Measure the blast radius of a repair as a set relation, with its scope.
 
     ``baseline_ref`` makes the BASELINE run happen in the SAME checkout root as
@@ -271,11 +279,38 @@ def measure(root: Path, baseline_root: Path, *, run_id: str, label: str,
     cwd of a pytest process, so this is how a root-local comparison stays
     root-local; the files the swap actually touched are published, so the claim
     "the swap is exactly the suite-visible delta" is checkable and not asserted.
+
+    ``raw_log_dir`` persists both runs' full pytest output beside the artifact,
+    with sha256 pins, so every count published here can be re-parsed offline by
+    ``product/test_accounting.py`` instead of being taken on trust.
     """
     ignores = uncollectable_modules(root)
     swap: dict = {"used": bool(baseline_ref), "ref": baseline_ref,
                   "mechanism": "byte injection of product/tests/** from the ref, "
                                "restored from saved bytes after the baseline run"}
+    raw_logs: dict = {"dir": str(raw_log_dir) if raw_log_dir else None,
+                      "files": {}}
+
+    def _log(name: str) -> Path | None:
+        return (raw_log_dir / name) if raw_log_dir else None
+
+    def _display(p: Path) -> str:
+        """Repo-relative when the file is inside the checkout, else disclosed abs."""
+        try:
+            return p.resolve().relative_to(root.resolve()).as_posix()
+        except ValueError:  # pragma: no cover - only for a foreign log dir
+            return str(p)
+
+    def _pin(path: Path | None, side: str, run_root: Path) -> None:
+        if path is None:
+            return
+        raw_logs["files"][side] = {
+            "path": _display(path),
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            "bytes": path.stat().st_size,
+            "measured_at_checkout_root": str(run_root),
+        }
+
     if baseline_ref:
         target = Path("product/tests")
         originals = {p: p.read_bytes() for p in sorted((root / target).rglob("*.py"))}
@@ -292,10 +327,11 @@ def measure(root: Path, baseline_root: Path, *, run_id: str, label: str,
                     "baseline_sha256": hashlib.sha256(new).hexdigest(),
                     "repaired_sha256": hashlib.sha256(blob).hexdigest()}
         try:
-            baseline = _run(root, ignores)
+            baseline = _run(root, ignores, raw_log=_log("baseline_pytest.log"))
         finally:
             for p, blob in originals.items():
                 p.write_bytes(blob)
+        _pin(_log("baseline_pytest.log"), "baseline", root)
         swap["files_injected"] = injected
         swap["files_injected_count"] = len(injected)
         swap["suite_visible_delta_against_ref"] = sorted(
@@ -306,8 +342,10 @@ def measure(root: Path, baseline_root: Path, *, run_id: str, label: str,
             p.read_bytes() == blob for p, blob in originals.items())
         swap["ref_bytes_resolved_from"] = str(repo) if repo else None
     else:
-        baseline = _run(baseline_root, ignores)
-    repaired = _run(root, ignores)
+        baseline = _run(baseline_root, ignores, raw_log=_log("baseline_pytest.log"))
+        _pin(_log("baseline_pytest.log"), "baseline", baseline_root)
+    repaired = _run(root, ignores, raw_log=_log("head_pytest.log"))
+    _pin(_log("head_pytest.log"), "head", root)
     rel = compare(baseline, repaired)
     rec = reconcile(baseline, repaired, rel)
     if baseline_ref:
@@ -349,6 +387,16 @@ def measure(root: Path, baseline_root: Path, *, run_id: str, label: str,
         },
         "baseline_run": {k: v for k, v in baseline.items()},
         "repaired_run": {k: v for k, v in repaired.items()},
+        "raw_pytest_logs": {
+            **raw_logs,
+            "why": (
+                "Both runs' full pytest output, written beside this artifact and "
+                "pinned by sha256, so every count here can be re-parsed offline by "
+                "product/test_accounting.py (or by hand) instead of being taken on "
+                "trust. product/test_accounting.py consumes these two files "
+                "directly; the two artifacts therefore describe the SAME two runs."
+            ),
+        },
         "set_relation": rel,
         "arithmetic": rec,
         "environment_limited": True,
@@ -367,16 +415,26 @@ def main(argv: list[str] | None = None) -> int:
                                   "--baseline-ref (default: auto-detect)")
     ap.add_argument("--label", default="producer_ci_root")
     ap.add_argument("--baseline-label", default="pristine_baseline")
+    ap.add_argument("--raw-log-dir", default=None,
+                    help="directory (relative to --root unless absolute) where both "
+                         "runs' full pytest output is written and sha256-pinned, so "
+                         "the published counts can be re-parsed offline")
     ap.add_argument("--out", required=True)
     args = ap.parse_args(argv)
     if not args.baseline_ref and not args.baseline_root:
         ap.error("one of --baseline-ref / --baseline-root is required")
 
+    raw_log_dir: Path | None = None
+    if args.raw_log_dir:
+        raw_log_dir = Path(args.raw_log_dir)
+        if not raw_log_dir.is_absolute():
+            raw_log_dir = Path(args.root) / raw_log_dir
     repo = Path(args.repo) if args.repo else _repo_for_refs()
     art = measure(Path(args.root), Path(args.baseline_root or args.root),
                   run_id=args.run_id,
                   label=args.label, baseline_label=args.baseline_label,
-                  baseline_ref=args.baseline_ref, repo=repo)
+                  baseline_ref=args.baseline_ref, repo=repo,
+                  raw_log_dir=raw_log_dir)
     if not art["arithmetic"]["arithmetic_reconciles"]:
         print(json.dumps(art["arithmetic"], indent=2))
         return 2
