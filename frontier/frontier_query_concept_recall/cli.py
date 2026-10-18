@@ -41,6 +41,7 @@ FRONTIER_ROOT = Path(__file__).resolve().parent
 if str(FRONTIER_ROOT.parent) not in sys.path:
     sys.path.insert(0, str(FRONTIER_ROOT.parent))
 
+from frontier_query_concept_recall import diagnostics as diag  # noqa: E402
 from frontier_query_concept_recall import expansion as exp  # noqa: E402
 from frontier_query_concept_recall import oci  # noqa: E402
 from frontier_query_concept_recall.loader import (  # noqa: E402
@@ -505,50 +506,9 @@ def run(bundles: dict[str, dict], out_dir: Path, *, offline: bool = False) -> di
         nid for v in legs.values() for c in v["per_language"].values()
         for nid in (c.get("newly_found_ids") or [])})
 
-    cause = None
-    if not outcome_a:
-        returned = {
-            "served": {qid: v["search"]["n_results"] for qid, v in served.items()},
-            "legs": {f"{slug}/{lang}": c["search"]["n_results"]
-                     for slug, v in legs.items()
-                     for lang, c in v["per_language"].items()},
-        }
-        empty = sum(1 for n in returned["served"].values() if n == 0)
-        thin = sum(1 for n in returned["served"].values() if 0 < n < 10)
-        cause = {
-            "one_bounded_cause": (
-                "TERM-ONLY EXPANSION QUERIES ARE TOO NARROW FOR THE OPENCASELAW "
-                "RELEVANCE INDEX. Each A1 search sent a bare mined-vocabulary term "
-                "list (up to 12 tokens) with no natural-language question text, "
-                "while every accepted baseline query is a full sentence and "
-                "returned 50/50 results. Measured on the committed cache: the "
-                "de-kapitalverletzung expansion returned HTTP 200 with 0 rows, the "
-                "fr-bail-entretien expansion 1 row, and the corporate-criminal-"
-                "liability::fr expansion 0 rows; across all measurable "
-                f"(leg, language) cells the candidate-only channel recovered "
-                f"{len(recovered_ids)} of {len(missing_authority_ids)} missing "
-                "frozen authority ids."),
-            "evidence": {
-                "served_n_results_of_50": returned["served"],
-                "served_zero_result_queries": empty,
-                "served_thin_queries_under_10": thin,
-                "candidate_only_recall_non_zero_cells": sum(
-                    1 for v in legs.values() for c in v["per_language"].values()
-                    if (c["A1_candidate_only"]["recall"] or 0) > 0),
-                "measurable_cells": measurable_leg_cells,
-                "mechanism_witness_cells_with_added_rows": cells_with_added_rows,
-                "mechanism_witness_cells_total": cells_total,
-                "latency_note": (
-                    "the same bare-term composition is also SLOW: the original live "
-                    "calls (disclosed in latency_budget.per_search_calls) include "
-                    "breaches of the frozen <30 s per-search budget, up to 83.5 s"),
-                "accepted_baseline_queries_returning_50_of_50": True,
-            },
-            "what_this_does_not_claim": (
-                "it does not claim the corpus lacks these authorities; a retrieval miss is "
-                "a retrieval signal, not proof of absence"),
-        }
-
+    # The ONE bounded cause is built AFTER the latency block below, because
+    # audit repair F2 requires it to quote the committed cache's own measured
+    # profile.  See the `bounded_cause` assignment following `budget`.
     verdict = {
         "outcome": "OUTCOME_A_PROMOTE" if outcome_a else "OUTCOME_B_BOUNDED_NEGATIVE",
         "accepted_baseline_reproduced": repro_ok,
@@ -569,25 +529,62 @@ def run(bundles: dict[str, dict], out_dir: Path, *, offline: bool = False) -> di
             "non_regression": not any_regression,
         },
         "outcome_a_structural_analysis": structural,
+        "acceptance_test_5_non_vacuity": {
+            "status": "UNMET_CEILINGED",
+            "meets_charter_test_5": False,
+            "harness_self_reported_any_vacuous": any_vacuous,
+            "vacuous_question_ids": sorted(
+                qid for qid, c in controls.items() if c["vacuous"]),
+            "charter_clause": (
+                "a blanked expansion must score STRICTLY BELOW the candidate and "
+                "a shuffled expansion must NOT raise coverage on the target; if "
+                "either control ties the candidate the harness is vacuous and "
+                "the run is void"),
+            "why_not_repaired": (
+                "the blanked control ties the candidate because the candidate "
+                "recovered nothing; demanding a strictly-below blanked control "
+                "would demand fabricating a positive, so the tie cannot be "
+                "repaired by re-running"),
+            "what_is_cited_instead": {
+                "responsiveness_witness": (
+                    f"the A1 channel changed the pooled row count on "
+                    f"{cells_with_added_rows} of {cells_total} retrieval cells"),
+                "metric_sensitivity_witness": (
+                    "regression_suite.test_metric_sensitivity_non_vacuity "
+                    "registers an injected concept-coverage improvement and an "
+                    "injected frozen-authority-id improvement on both axes"),
+                "a3_shuffled_control": (
+                    "raised no coverage on its target on any served question, "
+                    "but is only INFORMATIVE on de-kapitalverletzung: the other "
+                    "two questions start at zero under-covered concepts, so "
+                    "'A3 passed' there is structurally vacuous"),
+            },
+            "claim_forbidden": (
+                "no artifact may claim acceptance test (5) passed, or present "
+                "this run as a charter-clean nine-test OUTCOME B; the honest "
+                "formulation is that the measured layer recovered nothing and "
+                "the non-vacuity gate is UNMET and CEILINGED, not claimed"),
+        },
         "vacuity_reading": (
             "the frozen non-vacuity rule requires a blanked expansion to score STRICTLY "
             "BELOW the candidate. The candidate recovered nothing, so blanked ties it and "
-            "the rule reports vacuous=True; under the charter's literal tie clause this "
-            "would void a PROMOTION run. Adjudication, recorded rather than smoothed over: "
-            "(a) the tie is a TRUE NULL, not a broken harness - the A1 channel changed the "
-            f"pooled row count on {cells_with_added_rows} of {cells_total} retrieval cells "
-            "(served questions and legs), so the pooling and scoring machinery registers "
-            "improvements when the search returns them; (b) the A3 shuffled control passed "
-            "on every served question (no coverage raised on the target); (c) the frozen "
-            "RULES.json thresholds route ANY failure of an outcome-A criterion, including "
-            "this vacuity tie, to OUTCOME_B_BOUNDED_NEGATIVE, whose own charter definition "
-            "describes exactly the true-null case ('no in-budget deterministic expansion "
-            "recovers the missing concepts or authority ids'); (d) regression_suite.py "
+            "the rule reports vacuous=True. ACCEPTANCE TEST (5) IS UNMET AND IS CEILINGED, "
+            "NOT CLAIMED: under the charter's literal tie clause this run would be void, "
+            "and no artifact produced by this team claims test (5) passed or presents "
+            "this as a charter-clean nine-test OUTCOME B. The tie is a TRUE NULL, not a "
+            "broken harness - the A1 channel changed the pooled row count on "
+            f"{cells_with_added_rows} of {cells_total} retrieval cells (served questions "
+            "and legs), so the pooling and scoring machinery registers improvements when "
+            "the search returns them, and regression_suite.py "
             "test_metric_sensitivity_non_vacuity proves the coverage and recall axes "
-            "register an injected improvement directly. The negative verdict does not "
-            "depend on the vacuity rule: improved_fr_it_cells is 0 and reduced questions "
-            "is 0 regardless."),
-        "bounded_cause": cause,
+            "register an injected improvement directly. Precision point: the A3 shuffled "
+            "control raised no coverage on its target on any served question, but it is "
+            "only informative on de-kapitalverletzung, because fr-bail-entretien and "
+            "it-responsabilita-medica start at zero under-covered concepts and 'A3 "
+            "passed' there is structurally vacuous. The negative verdict does not depend "
+            "on the vacuity rule: improved_fr_it_cells is 0 and reduced questions is 0 "
+            "regardless."),
+        "bounded_cause": None,  # filled from committed-cache diagnostics below
     }
 
     # ================================================================== #
@@ -648,6 +645,69 @@ def run(bundles: dict[str, dict], out_dir: Path, *, offline: bool = False) -> di
     verdict["n_calls_over_per_search_budget"] = budget["n_calls_over_per_search_budget"]
     verdict["transport_all_ok"] = transport_ok
 
+    # ------------------------------------------------------------------ #
+    # 8b. THE ONE BOUNDED CAUSE - committed evidence only (audit repair F2)
+    # ------------------------------------------------------------------ #
+    # The previous statement ("term-only queries are too narrow for the
+    # relevance index") was WITHDRAWN by audit gate CYCLE_39171009594 F2
+    # because the committed cache contradicts it: the same term-only shape
+    # returned 50/50 rows on several cells.  What follows is derived ONLY from
+    # inputs committed before this cycle - the frozen corpus sample, the
+    # expansions the harness already emitted, the accepted benchmark record's
+    # embedded rows and the cache envelopes already disclosed in `budget`.
+    # It issues no new retrieval call and changes no claim-bearing coverage or
+    # recall number, and it is ceilinged to THIS layer as built.
+    if not outcome_a:
+        mining_gaps: dict[str, Any] = {}
+        for qid, bundle in bundles.items():
+            cov = baseline_repro["coverage"][qid]
+            under = list(cov["under_covered"])
+            covered = [c for c in cov["concepts"] if c not in under]
+            mining_gaps[qid] = diag.concept_mining_gap(
+                sample, served_expansions[qid], under, covered)
+        named_expansions = (
+            [(qid, e) for qid, e in served_expansions.items()]
+            + [(f"{slug}::{lang}", e)
+               for (slug, lang), e in sorted(leg_expansions.items())])
+        own_df = diag.own_language_document_frequency(
+            [row for bundle in bundles.values()
+             for row in (bundle.get("decisions") or [])],
+            bench.get("queries") or [])
+        citation = diag.citation_join_pollution(bench)
+        citation["sample_documents_per_language"] = (
+            sample.summary()["documents_per_language"])
+        citation["own_authored_documents_per_language"] = (
+            own_df["documents_per_language"])
+        yield_cells = (
+            [(qid, v["search"]["n_results"], v["search"]["status"])
+             for qid, v in served.items()]
+            + [(f"{slug}::{lang}", c["search"]["n_results"], c["search"]["status"])
+               for slug in sorted(legs)
+               for lang, c in sorted(legs[slug]["per_language"].items())])
+        verdict["bounded_cause"] = diag.build_bounded_cause(
+            de_gap=mining_gaps["de-kapitalverletzung"],
+            mining_gaps=mining_gaps,
+            cross_language=diag.cross_language_across_queries(
+                sample, own_df, named_expansions),
+            citation_pollution=citation,
+            yield_profile=diag.search_yield_profile(yield_cells),
+            latency=diag.latency_profile(budget),
+            recovered_ids=len(recovered_ids),
+            missing_ids=len(missing_authority_ids),
+        )
+        verdict["bounded_cause"]["recovered_vs_missing_authority_ids"] = {
+            "recovered": sorted(recovered_ids),
+            "missing_at_baseline": sorted(missing_authority_ids),
+            "candidate_only_recall_non_zero_cells": sum(
+                1 for v in legs.values() for c in v["per_language"].values()
+                if (c["A1_candidate_only"]["recall"] or 0) > 0),
+            "measurable_cells": measurable_leg_cells,
+            "responsiveness_witness": {
+                "cells_with_added_rows": cells_with_added_rows,
+                "cells_total": cells_total,
+            },
+        }
+
     record = {
         "schema": "frontier_query_concept_recall.harness_results.v2",
         "team_id": "frontier-query-concept-recall",
@@ -701,62 +761,244 @@ def _outcome_from_env(query: str, env: dict[str, Any], cache: oci.Cache) -> oci.
 def run_regression(gates_mod: Any, bench: dict, questions: dict,
                    a0_rows: dict, leg_expansions: dict, outcomes: dict,
                    accepted_gates: dict) -> dict[str, Any]:
-    """Re-check the four frozen gates with the candidate rows in the pool."""
+    """Re-check the four charter-named frozen gates with the candidate rows pooled.
+
+    AUDIT REPAIR F1 (gate CYCLE_39171009594, acceptance test 6)
+    -----------------------------------------------------------
+    The previous implementation passed synthetic query dicts WITHOUT
+    ``"status": 200`` to the accepted ``gates.unique_ids()``.  That gate skips
+    every query whose ``status != 200`` (``gates.py:281``), inspects ZERO rows
+    and returns ``passed=True`` - so the published "HOLDS" rested on a check
+    that never ran.  Every dict below now carries an explicit status, every
+    gate output records ``n_queries_checked`` as proof that rows were actually
+    inspected, and every verdict is stated AGAINST THE ACCEPTED PER-SLUG GATE
+    STATE of record 39117425713 instead of a bare HOLDS/REGRESSED binary: a
+    gate that already FAILS in the accepted record is reported as
+    ``FAILS_AS_ACCEPTED_NOT_A_REGRESSION`` and is never published as HOLDS.
+
+    Pooling rule: the accepted record's own queries are passed through
+    byte-identically; the candidate layer's rows are appended as ADDITIONAL
+    query dicts with their real transport status, so the gate sees exactly the
+    accepted pool plus the candidate channel.
+    """
+    accepted_queries = list(bench.get("queries") or [])
     verdicts: dict[str, str] = {}
+    repair: dict[str, Any] = {
+        "id": "F1",
+        "audit_gate": "CYCLE_39171009594",
+        "what_changed": (
+            "synthetic query dicts now carry an explicit 'status' (200 only for "
+            "rows that actually returned 200), every gate output records "
+            "n_queries_checked, and every verdict is reported against the "
+            "accepted per-slug gate state of record 39117425713"),
+        "pooling_rule": (
+            "accepted record queries pass through unchanged; candidate rows are "
+            "appended as extra query dicts carrying their real transport status"),
+    }
 
-    def gate(gate_name: str) -> bool | None:
-        return accepted_gates.get(gate_name, {}).get("passed")
+    def accepted_state(gate_name: str) -> bool | None:
+        gate = accepted_gates.get(gate_name)
+        return None if gate is None else gate.get("passed")
 
-    # -- duplicate::unique_ids ------------------------------------------- #
-    worst = []
+    def classify(now: bool | None, acc: bool | None) -> str:
+        """Verdict vs the ACCEPTED gate state, never a bare HOLDS binary."""
+        if acc is True and now is True:
+            return "HOLDS"
+        if acc is True and now is False:
+            return "REGRESSED"
+        if acc is False and now is False:
+            return "FAILS_AS_ACCEPTED_NOT_A_REGRESSION"
+        if acc is False and now is True:
+            return "IMPROVED_VS_ACCEPTED"
+        if acc is None and now is True:
+            return "HOLDS_NO_ACCEPTED_STATE_TO_COMPARE"
+        if acc is None and now is False:
+            return "FAILED_NOT_MEASURABLE_IN_ACCEPTED_RECORD"
+        return "NOT_MEASURABLE_IN_EITHER_RECORD"
+
+    # ------------------------------------------------------------------ #
+    # duplicate::unique_ids - non-vacuous per cell and per slug
+    # ------------------------------------------------------------------ #
+    candidate_queries: list[dict] = []
+    per_cell: dict[str, Any] = {}
     for (slug, language), rows in sorted(a0_rows.items()):
         expansion = leg_expansions.get((slug, language))
         outcome = outcomes.get(expansion.query) if expansion else None
-        pooled = union_rows(rows, outcome.rows if outcome else [])
-        gate_out = gates_mod.unique_ids(questions[slug], [{"slug": slug, "channel": "baseline",
-                                                           "language": language, "rows": pooled}])
-        if gate_out.get("passed") is False:
-            worst.append(gate_out)
-        verdicts[f"duplicate::unique_ids::{slug}::{language}"] = (
-            "REGRESSED" if gate_out.get("passed") is False else "HOLDS")
-    verdicts["duplicate::unique_ids"] = "REGRESSED" if worst else "HOLDS"
+        cand = list(outcome.rows) if outcome is not None and outcome.status == 200 else []
+        status = int(outcome.status) if outcome is not None else 0
+        if expansion is not None:
+            candidate_queries.append({
+                "slug": slug, "channel": "baseline", "language": language,
+                "status": status, "rows": cand,
+                "query_key": f"frontier_candidate::{slug}::{language}",
+            })
+        pooled = union_rows(rows, cand)
+        cell_out = gates_mod.unique_ids(questions[slug], [{
+            "slug": slug, "channel": "baseline", "language": language,
+            "status": 200, "rows": pooled,
+            "query_key": f"frontier_candidate_pooled::{slug}::{language}"}])
+        measured = cell_out.get("measured") or {}
+        per_cell[f"{slug}::{language}"] = {
+            "passed": cell_out.get("passed"),
+            "n_queries_checked": measured.get("n_queries_checked"),
+            "rows_actually_inspected": (
+                measured.get("n_queries_checked") or 0) > 0,
+            "n_rows_pooled": len(pooled),
+            "n_candidate_rows_added": len(cand),
+            "candidate_call_status": status,
+            "duplicate_examples": measured.get("examples") or [],
+            "detail": cell_out.get("detail"),
+        }
 
-    # -- source::rows_valid ---------------------------------------------- #
-    bad = []
-    for (slug, language), rows in sorted(a0_rows.items()):
-        expansion = leg_expansions.get((slug, language))
-        outcome = outcomes.get(expansion.query) if expansion else None
-        pooled = union_rows(rows, outcome.rows if outcome else [])
-        gate_out = gates_mod.source_rows_valid(
-            questions[slug], [{"slug": slug, "channel": "baseline",
-                               "language": language, "rows": pooled}])
-        if gate_out.get("passed") is False:
-            bad.append(gate_out)
-    verdicts["source::rows_valid"] = "REGRESSED" if bad else "HOLDS"
-
-    # -- counter::known_counter_recall (candidate must not damage it) ---- #
-    counter_bad = []
+    per_slug: dict[str, Any] = {}
+    reproduction: dict[str, Any] = {}
     for slug, question in questions.items():
-        base = gates_mod.known_counter_recall(question, bench["queries"])
-        if base.get("passed") is False:
-            counter_bad.append(slug)
-    verdicts["counter::known_counter_recall"] = "REGRESSED" if counter_bad else "HOLDS"
+        accepted_for_slug = [q for q in accepted_queries
+                             if q.get("slug") == slug]
+        repro = gates_mod.unique_ids(question, accepted_for_slug)
+        acc = accepted_state(f"duplicate::unique_ids::{slug}")
+        reproduction[slug] = {
+            "passed_without_candidate": repro.get("passed"),
+            "accepted_record_passed": acc,
+            "reproduces_accepted_state": repro.get("passed") == acc,
+            "n_queries_checked": (repro.get("measured") or {}).get(
+                "n_queries_checked"),
+        }
+        pooled_queries = accepted_for_slug + [
+            q for q in candidate_queries if q.get("slug") == slug]
+        now = gates_mod.unique_ids(question, pooled_queries)
+        now_measured = now.get("measured") or {}
+        per_slug[slug] = {
+            "passed_with_candidate": now.get("passed"),
+            "accepted_record_passed": acc,
+            "classification": classify(now.get("passed"), acc),
+            "n_queries_checked": now_measured.get("n_queries_checked"),
+            "rows_actually_inspected": (
+                now_measured.get("n_queries_checked") or 0) > 0,
+            "duplicate_examples": now_measured.get("examples") or [],
+        }
+        verdicts[f"duplicate::unique_ids::{slug}"] = classify(
+            now.get("passed"), acc)
+    verdicts["duplicate::unique_ids"] = (
+        "REGRESSED" if any(v == "REGRESSED" for k, v in verdicts.items()
+                           if k.startswith("duplicate::unique_ids::") and
+                           k.count("::") == 2)
+        else "NO_REGRESSION_VS_ACCEPTED_STATE")
+    for key, cell in per_cell.items():
+        verdicts[f"duplicate::unique_ids::{key}"] = (
+            "HOLDS" if cell["passed"] else
+            "FAILS_IN_POOL (no accepted per-cell gate exists; the charter "
+            "comparison is the per-slug state)")
 
-    # -- transport::all_queries_ok ---------------------------------------- #
-    # status 0 means the call never completed; it is a FAILURE, never a pass.
-    failed = [o for o in outcomes.values() if o.status != 200]
-    verdicts["transport::all_queries_ok"] = "REGRESSED" if failed else "HOLDS"
+    # ------------------------------------------------------------------ #
+    # source::rows_valid - per slug, non-vacuous
+    # ------------------------------------------------------------------ #
+    per_slug_rows_valid: dict[str, Any] = {}
+    for slug, question in questions.items():
+        pooled_queries = [q for q in accepted_queries if q.get("slug") == slug] + [
+            q for q in candidate_queries if q.get("slug") == slug]
+        out = gates_mod.source_rows_valid(question, pooled_queries)
+        acc = accepted_state(f"source::rows_valid::{slug}")
+        per_slug_rows_valid[slug] = {
+            "passed_with_candidate": out.get("passed"),
+            "accepted_record_passed": acc,
+            "classification": classify(out.get("passed"), acc),
+            "n_rows": (out.get("measured") or {}).get("n_rows"),
+            "detail": out.get("detail"),
+        }
+        verdicts[f"source::rows_valid::{slug}"] = classify(
+            out.get("passed"), acc)
+    verdicts["source::rows_valid"] = (
+        "REGRESSED" if any(v == "REGRESSED" for k, v in verdicts.items()
+                           if k.startswith("source::rows_valid::"))
+        else "NO_REGRESSION_VS_ACCEPTED_STATE")
 
+    # ------------------------------------------------------------------ #
+    # counter::known_counter_recall - candidate rows pooled in as well
+    # ------------------------------------------------------------------ #
+    per_slug_counter: dict[str, Any] = {}
+    for slug, question in questions.items():
+        pooled_queries = [q for q in accepted_queries if q.get("slug") == slug] + [
+            q for q in candidate_queries if q.get("slug") == slug]
+        out = gates_mod.known_counter_recall(question, pooled_queries)
+        acc = accepted_state(f"counter::known_counter_recall::{slug}")
+        per_slug_counter[slug] = {
+            "passed_with_candidate": out.get("passed"),
+            "accepted_record_passed": acc,
+            "classification": classify(out.get("passed"), acc),
+            "detail": out.get("detail"),
+            "measured": out.get("measured"),
+        }
+        verdicts[f"counter::known_counter_recall::{slug}"] = classify(
+            out.get("passed"), acc)
+    verdicts["counter::known_counter_recall"] = (
+        "REGRESSED" if any(v == "REGRESSED" for k, v in verdicts.items()
+                           if k.startswith("counter::known_counter_recall::"))
+        else "NO_REGRESSION_VS_ACCEPTED_STATE")
+
+    # ------------------------------------------------------------------ #
+    # transport::all_queries_ok - status 0 is a FAILURE, never a pass
+    # ------------------------------------------------------------------ #
+    failed = [{"query": o.query[:120], "status": o.status}
+              for o in outcomes.values() if o.status != 200]
+    accepted_transport = accepted_state("transport::all_queries_ok")
+    verdicts["transport::all_queries_ok"] = classify(
+        not failed, accepted_transport)
+    transport_detail = {
+        "n_added_searches": len(outcomes),
+        "n_failed": len(failed),
+        "failures": failed,
+        "accepted_record_passed": accepted_transport,
+    }
+
+    any_regression = [g for g, v in verdicts.items() if v == "REGRESSED"]
     return {
         "checked_against": "accepted record results/evaluation/retrieval_benchmark/39117425713.json",
         "required_gates": ["duplicate::unique_ids", "counter::known_counter_recall",
                            "source::rows_valid", "transport::all_queries_ok"],
-        "accepted_status": {name: gate(name) for name in (
-            "duplicate::unique_ids", "counter::known_counter_recall",
-            "source::rows_valid", "transport::all_queries_ok")},
+        "non_regression_rule": (
+            "acceptance test (6): every gate that PASSES in the accepted record "
+            "must still pass with the candidate layer in the pool; a gate that "
+            "already fails in the accepted record is reported as "
+            "FAILS_AS_ACCEPTED_NOT_A_REGRESSION and is never published as HOLDS"),
+        "repair": repair,
+        "gate_execution_proof": {
+            "duplicate_unique_ids_n_queries_checked_per_slug": {
+                slug: {"without_candidate": reproduction[slug]["n_queries_checked"],
+                       "with_candidate": per_slug[slug]["n_queries_checked"]}
+                for slug in reproduction},
+            "every_gate_inspected_at_least_one_row": all(
+                (per_slug[s]["n_queries_checked"] or 0) > 0 for s in per_slug),
+            "accepted_state_reproduced_without_candidate": all(
+                reproduction[s]["reproduces_accepted_state"] for s in reproduction),
+        },
+        "accepted_status": {
+            "duplicate::unique_ids_per_slug": {
+                slug: accepted_state(f"duplicate::unique_ids::{slug}")
+                for slug in questions},
+            "source::rows_valid_per_slug": {
+                slug: accepted_state(f"source::rows_valid::{slug}")
+                for slug in questions},
+            "counter::known_counter_recall_per_slug": {
+                slug: accepted_state(f"counter::known_counter_recall::{slug}")
+                for slug in questions},
+            "transport::all_queries_ok": accepted_transport,
+        },
+        "duplicate_unique_ids": {
+            "per_slug": per_slug,
+            "reproduction_without_candidate": reproduction,
+            "per_cell": per_cell,
+        },
+        "source_rows_valid_per_slug": per_slug_rows_valid,
+        "counter_known_counter_recall_per_slug": per_slug_counter,
+        "transport_all_queries_ok": transport_detail,
+        "regressed_gates": any_regression,
         "gates": verdicts,
-        "note": ("each gate re-computed by the accepted gates module with the A1 "
-                 "candidate rows pooled into the baseline rows"),
+        "note": (
+            "each gate re-computed by the accepted gates module with the A1 "
+            "candidate rows pooled into the accepted pool; duplicate::unique_ids "
+            "and source::rows_valid are computed per slug and per cell with an "
+            "explicit status so the accepted gate body inspects real rows"),
     }
 
 
