@@ -213,6 +213,61 @@ def test_cli_is_runnable_as_one_command():
 
 
 # --------------------------------------------------------------------------
+# a FAIL verdict may never become the newest shipped ledger
+# --------------------------------------------------------------------------
+
+def _main_write(monkeypatch, tmp_path, *, verdict_ok: bool, out_dir: Path) -> tuple[int, Path]:
+    """Run ``main`` with --write against a synthetic canonical directory.
+
+    ``DEFAULT_OUT_DIR`` is repointed at a temp directory so the test exercises
+    the real canonical-vs-scratch decision without ever writing into the
+    repository's shipped-ledger tree.
+    """
+    canonical = tmp_path / "canonical"
+    canonical.mkdir()
+    monkeypatch.setattr(cv, "DEFAULT_OUT_DIR", canonical)
+    monkeypatch.setitem(cv.CHECKS, "synthetic", lambda: [
+        {"claim": "a synthetic claim", "status": "PASS" if verdict_ok else "FAIL",
+         "observed": 1}])
+    rc = cv.main(["--only", "synthetic", "--run-id", "99999999999", "--write",
+                  "--json"] + (["--out-dir", str(out_dir)] if out_dir else []))
+    return rc, canonical
+
+
+def test_a_failing_ledger_is_refused_from_the_canonical_directory(monkeypatch, tmp_path):
+    """The 39116225867 failure class: a FAIL ledger written mid-cycle makes the
+    suite's newest-ledger assertion fail, and that false red is then recorded as
+    the cycle's only "new failing test id" - which in turn keeps the ledger from
+    ever passing. Refusal, not a silent write."""
+    rc, canonical = _main_write(monkeypatch, tmp_path, verdict_ok=False, out_dir=None)
+    assert rc == 1
+    assert list(canonical.glob("*.json")) == []
+    assert not (canonical / "CYCLE_99999999999_cycle_verify.json").exists()
+
+
+def test_a_failing_ledger_is_still_kept_when_the_out_dir_is_explicit(monkeypatch, tmp_path):
+    """Diagnosis must stay possible: an explicit non-canonical --out-dir keeps
+    the FAIL ledger so its claims can be inspected, without poisoning the
+    shipped-ledger directory."""
+    scratch = tmp_path / "scratch"
+    rc, canonical = _main_write(monkeypatch, tmp_path, verdict_ok=False, out_dir=scratch)
+    assert rc == 1
+    assert list(canonical.glob("*.json")) == []
+    kept = scratch / "CYCLE_99999999999_cycle_verify.json"
+    assert kept.is_file()
+    assert json.loads(kept.read_text(encoding="utf-8"))["verdict"] == "FAIL"
+
+
+def test_a_passing_ledger_still_writes_to_the_canonical_directory(monkeypatch, tmp_path):
+    """Non-vacuity: the refusal above must not block the normal PASS path."""
+    rc, canonical = _main_write(monkeypatch, tmp_path, verdict_ok=True, out_dir=None)
+    assert rc == 0
+    written = canonical / "CYCLE_99999999999_cycle_verify.json"
+    assert written.is_file()
+    assert json.loads(written.read_text(encoding="utf-8"))["verdict"] == "PASS"
+
+
+# --------------------------------------------------------------------------
 # the two checks this cycle added must be able to FAIL
 # --------------------------------------------------------------------------
 

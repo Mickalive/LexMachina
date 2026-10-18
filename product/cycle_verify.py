@@ -715,7 +715,33 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.write:
         name = f"CYCLE_{args.run_id}_cycle_verify.json" if args.run_id else "cycle_verify.json"
-        out = Path(args.out_dir) / name
+        out_dir = Path(args.out_dir)
+        # A FAIL ledger must never land in the CANONICAL results directory.
+        # ``test_cycle_verify_is_a_gate::test_committed_artifact_is_a_pass...``
+        # reads the NEWEST file in that directory as "the shipped ledger", so a
+        # fail-verdict file written mid-cycle turns the suite red on its own
+        # (the 39116225867 cycle recorded exactly that as its only "new
+        # failure": ``product/tests/test_cycle_verify_is_a_gate.py::
+        # test_committed_artifact_is_a_pass_and_says_what_it_is_not``, reported
+        # in results/product/regression/CYCLE_39116225867_regression_scope.json)
+        # and the false red then blocks the ledger from ever passing - a fixed
+        # point in which a cycle can ship no ledger at all. Refusing here keeps
+        # the canonical directory a set of PASS-only shipped ledgers; a FAIL
+        # ledger is still printed, still exits non-zero, and can still be
+        # persisted for diagnosis under an explicit non-canonical --out-dir.
+        if ledger["verdict"] != "PASS" and out_dir.resolve() == DEFAULT_OUT_DIR.resolve():
+            print(
+                "REFUSED: verdict is FAIL, so this ledger was NOT written to the "
+                f"canonical directory {_repo_relative(DEFAULT_OUT_DIR)} (it would "
+                "become the newest shipped ledger and fail "
+                "test_committed_artifact_is_a_pass_and_says_what_it_is_not). "
+                "The claims above stand and the exit code is non-zero; re-run "
+                "with an explicit --out-dir outside the canonical results tree "
+                "to keep a diagnostic copy.",
+                file=sys.stderr,
+            )
+            return 1
+        out = out_dir / name
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(ledger, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         if not args.json:

@@ -1,0 +1,150 @@
+{
+  "schema": "product-snapshot-diagnosis/1",
+  "run_id_diagnosed": 39116225867,
+  "run_id_diagnosing": 39119287975,
+  "lane": "product",
+  "direction_version": 56,
+  "produced_at": "2026-10-18T10:52:00Z",
+  "kind": "operational-resume snapshot diagnosis",
+  "claim_ceiling": "This is a cause-space diagnosis of a producer snapshot's missing deliverables, recomputed from committed bytes (pytest logs, regression artifacts, git history). It is NOT an audit verdict, NOT a product-utility claim and NOT a human-gate input. No job logs or check-run annotations were reachable in this environment (no GitHub token), so nothing here claims an exit code or a step conclusion from the workflow; the classification rests only on artifacts that are in the tree.",
+  "snapshot": {
+    "branch": "cycle/core/product/39116225867/team",
+    "head": "89b65527719b73660e5446d50913ca6d58d7002d",
+    "commits": [
+      "173bac1",
+      "89b6552"
+    ],
+    "accepted_base": "453a873",
+    "identity_with_local_operational_resume_branch": "git diff --stat origin/cycle/core/product/39116225867/team HEAD == empty at resume start"
+  },
+  "delivered_and_verified": [
+    {
+      "item": "shared_citation edges state the co-citation in French, never the raw machine token",
+      "where": "product/static/query.html (relLine shared_citation branch), product/verify_query_page.js (section 5), product/tests/test_relation_direction_render.py",
+      "verification": "python3 product/cycle_verify.py --only relation_direction: 3/3 PASS on the real petty-theft-dismissal bundle (node v22.23.3); the 3 integration tests pass in the suite"
+    },
+    {
+      "item": "the ledger can re-derive the shared_citation claim live",
+      "where": "product/cycle_verify.py::check_relation_direction",
+      "verification": "ledger dry run, claim-level PASS with the fixture's shared_citation edge count observed"
+    },
+    {
+      "item": "all four reality-leg offline slices pass the page contract",
+      "where": "results/product/offline_slice/20261018T101000Z/ (+ the two pre-fix negative-evidence bundles at 20261018T095123Z / 20261018T095432Z)",
+      "verification": "the suite's offline-slice / reality-legs / relation-direction modules all run in the re-measured head pass recorded in results/product/regression/CYCLE_39119287975_regression_scope.json"
+    }
+  ],
+  "missing_from_the_snapshot": [
+    "reports/product/CYCLE_39116225867.md",
+    "state/product.json update (still read current_run=39097705922, state_updated_by_run=39097705922)",
+    "results/product/cycle_verify/CYCLE_39116225867_cycle_verify.json"
+  ],
+  "classification": {
+    "class": "SELF_REFERENTIAL_LEDGER_DEADLOCK",
+    "excluded_classes": [
+      {
+        "class": "POST_DELIVERY_WORK_QUANTUM_EXPIRY (rc-78)",
+        "why_not": "no evidence of a quantum death in the snapshot; the snapshot's two commits are complete, reviewable file sets and the second commit is itself a repair round that stopped before producing a ledger/report/state"
+      },
+      {
+        "class": "ZERO_DELTA_CYCLE",
+        "why_not": "the snapshot carries a real code delta (query.html / verify_query_page.js / 3 new tests / new ledger check) plus 4 offline-slice artifacts"
+      },
+      {
+        "class": "PRODUCT_DEFECT_IN_THE_SNAPSHOT_DELTA",
+        "why_not": "the delivered delta passes its own page-contract and ledger checks on re-run"
+      },
+      {
+        "class": "HUMAN_GATE_OR_OWNER_DECISION",
+        "why_not": "posture is unchanged fail-closed; nothing in the snapshot raises a gate"
+      }
+    ],
+    "mechanism": [
+      "product/tests/test_cycle_verify_is_a_gate.py::test_committed_artifact_is_a_pass_and_says_what_it_is_not reads the NEWEST results/product/cycle_verify/CYCLE_*_cycle_verify.json and requires verdict==PASS.",
+      "A FAIL-verdict ledger written into that directory during the cycle therefore makes the suite red on its own.",
+      "product/regression_scope.py then records that test as the cycle's only failing test id absent from the baseline, and product/cycle_verify.py::check_regression_set_relation reads the NEWEST regression artifact - so a fresh ledger is now permanently FAIL: a fixed point in which the cycle cannot ship a ledger, a report or a state update."
+    ],
+    "evidence": [
+      {
+        "claim": "the head run's only new failing id is the newest-ledger test",
+        "how": "re-parsed results/product/regression/logs_39116225867/{baseline,head}_pytest.log with the same regex product/regression_scope.py uses",
+        "observed": {
+          "baseline_unique_failing_ids": 159,
+          "head_unique_failing_ids": 160,
+          "repaired_only": [
+            "product/tests/test_cycle_verify_is_a_gate.py::test_committed_artifact_is_a_pass_and_says_what_it_is_not"
+          ],
+          "baseline_only": []
+        },
+        "log_sha256": {
+          "baseline": "a0d10b73409da4b790f00cbe350e43931a08a7e754cf321dfdabad739f11cef6",
+          "head": "56f71aaea8e2fb1b61089cef3dbf2630520223d6541094c58884d1b37562a501"
+        }
+      },
+      {
+        "claim": "the recorded assertion message is reproducible from a ledger with exactly two FAIL claims (the regression set-relation claim and the published-roots claim with all three scope values null)",
+        "how": "synthetic pytest reproduction in this environment reproduced the AssertionError line byte-for-byte",
+        "observed": "match"
+      },
+      {
+        "claim": "only the two pre-scope regression artifacts can produce that claim pair",
+        "how": "check_regression_set_relation logic applied to all eight committed CYCLE_*_regression_scope.json artifacts",
+        "observed": {
+          "produce_the_recorded_pair": [
+            "CYCLE_39048942749_regression_scope.json",
+            "CYCLE_39051003925_regression_scope.json"
+          ],
+          "produce_pass_pass": [
+            "CYCLE_39060279436_regression_scope.json",
+            "CYCLE_39063665073_regression_scope.json",
+            "CYCLE_39087917357_regression_scope.json",
+            "CYCLE_39094983039_regression_scope.json",
+            "CYCLE_39097705922_regression_scope.json",
+            "CYCLE_39116225867_regression_scope.json"
+          ]
+        }
+      },
+      {
+        "claim": "the recorded new failure does not reproduce on the tree",
+        "how": "full-suite re-measurement against the same accepted base 453a873",
+        "observed": {
+          "artifact": "results/product/regression/CYCLE_39119287975_regression_scope.json",
+          "repaired_only_new_failures": [],
+          "n_baseline_only": 0,
+          "passed_delta": 6,
+          "arithmetic_reconciles": true,
+          "post_write_confirmation": {
+            "tree": "state update + report + diagnosis artifact + shipped ledger all present",
+            "run_summary": "159 failed, 924 passed, 15 skipped (1098 collected)",
+            "failing_id_set_identical_to_artifact_head": true,
+            "failing_id_set_identical_to_baseline": true,
+            "log": "results/product/regression/logs_39119287975/confirmation_pytest_final_tree.log",
+            "log_sha256": "e5d593cf7845fd2c3a4ffaafc9f28f137a8d80b854b610db46741a2c6e3563e4"
+          }
+        }
+      },
+      {
+        "claim": "the FAIL-ledger poisoning path is closed",
+        "how": "product/cycle_verify.py --only regression --run-id 99999999999 --write (live) plus three new tests",
+        "observed": {
+          "exit_code": 1,
+          "canonical_dir_written": false,
+          "tests": "product/tests/test_cycle_verify_is_a_gate.py::test_a_failing_ledger_is_refused_from_the_canonical_directory (+ explicit-out-dir keep, + PASS non-vacuity)"
+        }
+      }
+    ],
+    "inference": [
+      "The FAIL ledger the suite read was written by an invocation of product/cycle_verify.py --write against a results/product/regression/ tree that predated 39060279436 (the only trees whose newest artifact can produce the recorded claim pair), i.e. not against this cycle's own measurement. The ledger bytes are not in the snapshot - the workflow's Persist team snapshot step commits every untracked file, so a file present at persist time would be committed - therefore the FAIL file was removed before the snapshot was persisted. Both halves are consistent with a producer that generated a FAIL ledger early, watched the suite go red on its own newest-ledger assertion, and then could not escape the fixed point inside its remaining quantum."
+    ]
+  },
+  "repair_committed_this_resume": [
+    "product/cycle_verify.py::main - --write refuses to place a FAIL-verdict ledger into the canonical DEFAULT_OUT_DIR (exit 1 with the reason printed; an explicit non-canonical --out-dir still keeps a diagnostic copy; a PASS ledger still writes).",
+    "product/tests/test_cycle_verify_is_a_gate.py - three tests: refusal, diagnostic-keep, PASS non-vacuity."
+  ],
+  "posture": {
+    "human_gate_ready": false,
+    "machine_gate_ready": false,
+    "packet_admitted": false,
+    "ready_for_owner_session": false
+  }
+}
