@@ -658,9 +658,21 @@ def run_pytest(log: _Log) -> None:
           # id_hygiene.py: no gate is added to any frozen verdict file, no
           # accepted verdict is overwritten, no frozen rubric, threshold, bar or
           # incumbent is touched, and the accepted subject_match_audit
-          # instrument plus the rebuilt packet's committed bytes are read-only
-          # inputs.
-          "tests/evaluation/test_question_native_transfer.py"],
+          # instrument plus the rebuilt packet's bytes read from the EPHEMERAL
+          # dispatch mount /tmp/lex_accepted/product (repair F4 of audit
+          # CYCLE_39120832665: these packet bytes are NOT committed to this
+          # repository; the committed byte-identical secondary source is
+          # results/evaluation/rebuilt_packet_adjudication_39049030442/packet/
+          # and evaluation/secondary_source_fallback.py verifies it) are
+          # read-only inputs.
+          "tests/evaluation/test_question_native_transfer.py",
+          # run 39123055362 (repair F4 of audit CYCLE_39120832665, disclosed
+          # scope extension): the secondary-source fallback verifier's own
+          # regression test - in-repo, mount-absent execution must re-hash all
+          # 10 rebuilt-packet pins against the frozen hypothesis and match, and
+          # the primary record's pin COUNT must stay 13 (the false 14/14
+          # provenance claim of 034f2043 must not recur).
+          "tests/evaluation/test_secondary_source_fallback.py"],
         cwd=str(_LANE_ROOT), capture_output=True, text=True, timeout=900)
     tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
     log.add("active lane pytest suite", proc.returncode == 0, tail[0])
