@@ -1,0 +1,208 @@
+{
+ "charter_version": 1,
+ "checks": {
+  "bounded_cause_not_withdrawn": {
+   "check": "bounded_cause_not_withdrawn",
+   "note": "the harness record withdraws a cause; a contract that still ships that cause as its bounded cause is handing the integrator a retracted claim",
+   "pass": false,
+   "record_bounded_cause": "MEASURED CAUSE, CEILINGED TO THIS LAYER AS BUILT: the layer never asked about the gap. On de-kapitalverletzung it mined ZERO corpus vocabulary for both under-covered concepts (kapitalverletzung, uberwachungspflicht: mined == [] and stems == [] for each, with 0 holder documents for their prefixes in the miner's joined German view of 640 documents), so all 12 emitted terms expand concepts the baseline already covers (aktive, arbeitgebers, eingriff, fursorgepflicht); no emitted term derives from either gap concept. The per-language sample is cross-language polluted BY CONSTRUCTION: CorpusSample.build joins citation_string_de/fr/it into every benchmark row regardless of row language, so 960 of 960 benchmark rows carry a non-empty Italian citation string, 960 carry a French one and 960 a German one, and 1 of 180 emitted terms occur in NO own-authored document of their query's target language while occurring in another language's own text (e.g. petty-theft-dismissal::it:november); a further 11 of 180 terms are strictly more frequent in another language inside the miner's JOINED sample, which is exactly the join effect. The independent auditor's own witness (quoted, attributed, auditor-computed) records the same mechanism with named terms: \"CorpusSample.build() joins text_head + citation_string_de + citation_string_fr + citation_string_it into every benchmark row regardless of the row's language. Witness: 21 of 421 French documents in the sample carry Itali...\". Those bare-term queries DID return rows (10 of 15 added searches returned >=13 rows, 6 returned a full 50-row page), so the shape retrieves; it retrieves terms sourced from the wrong concepts and a language-polluted sample, and the composition is slow: 10 of 15 added calls breached the frozen <30.0s per-search budget (max 83.505s, sum 600.569s). Across the frozen legs the candidate-only channel recovered 0 of 9 missing frozen authority ids.",
+   "record_quotes_a_withdrawn_cause": false,
+   "withdrawn_cause": "TERM-ONLY EXPANSION QUERIES ARE TOO NARROW FOR THE OPENCASELAW RELEVANCE INDEX. Each A1 search sent a bare mined-vocabulary term list (up to 12 tokens) with no natural-language question text, while every accepted baseline query is a full sentence and returned 50/50 results.",
+   "withdrawn_reason": "contradicted by the committed cache: the same term-only shape returned 50/50 rows on several cells, both failing German concepts mined zero terms, and the per-language sample is cross-language polluted by the citation_string join"
+  },
+  "claim_ceiling_matches_frozen_rules": {
+   "check": "claim_ceiling_matches_frozen_rules",
+   "contract_ceiling": "No artifact may assert that a map helps a jurist, that any authority is absent from the corpus, that any frozen bar is met or moved, or that any packet is fit to serve. Usefulness remains the human product gate's question and admission remains fail-closed. Concept-coverage counts are lexical coverage of a retrieved set, not a legal conclusion, and a zero count is a retrieval signal, not proof of corpus absence.",
+   "matches_module_constant": true,
+   "matches_rules": true,
+   "pass": true,
+   "rules_ceiling": "No artifact may assert that a map helps a jurist, that any authority is absent from the corpus, that any frozen bar is met or moved, or that any packet is fit to serve. Usefulness remains the human product gate's question and admission remains fail-closed. Concept-coverage counts are lexical coverage of a retrieved set, not a legal conclusion, and a zero count is a retrieval signal, not proof of corpus absence.",
+   "rules_file_sha256": "c5447bac0605a8bcf8c3d1820bee56a5bb0e814365978ec1fa12ac189776ee9a"
+  },
+  "disclosure_text_present": {
+   "chars": 586,
+   "check": "disclosure_text_present",
+   "pass": true,
+   "present": true,
+   "product_decision_required": true,
+   "silent_non_consumption_not_permitted": true
+  },
+  "measured_outcome_matches_record": {
+   "check": "measured_outcome_matches_record",
+   "compared": {
+    "accepted_baseline_reproduced": true,
+    "improved_fr_it_cells": 0,
+    "reduced_under_covered_questions": 0,
+    "regressed_gates": []
+   },
+   "mismatches": {},
+   "pass": true,
+   "record_generated_at": "2026-10-19T00:17:09.820778+00:00",
+   "record_run_id": 1792369029,
+   "record_sha256": "a54f6a4fa64948652d04eab629436cf482d415f882160157bdc46431e0014c92",
+   "resolved": "results/frontier/frontier-query-concept-recall/harness_results_39179862363.json"
+  },
+  "product_seam_exists": {
+   "check": "product_seam_exists",
+   "declared_function": null,
+   "declared_product_file": null,
+   "pass": false,
+   "raw_drop_in_path": "product.query.pipeline.enrich_query_bundle (after initial retrieval, before rerank) - unchanged from v1; the seam is additive-only and regression-proven",
+   "resolved": false
+  },
+  "provenance_shape": {
+   "check": "provenance_shape",
+   "contract_declared_keys": null,
+   "contract_declared_keys_missing_from_code": [],
+   "emitted_keys": [
+    "accepted_lexicon_synonyms",
+    "concepts",
+    "corpus_derived",
+    "deterministic",
+    "layer",
+    "model_calls",
+    "n_terms",
+    "network_calls",
+    "note",
+    "per_concept",
+    "target_language",
+    "terms"
+   ],
+   "model_calls": 0,
+   "network_calls": 0,
+   "pass": true,
+   "required_missing": [],
+   "serialisable": true
+  },
+  "required_symbols_resolve": {
+   "check": "required_symbols_resolve",
+   "declared": [],
+   "missing": [],
+   "note": "an integration contract that names a symbol the layer does not export is not executable; an EMPTY declared list also fails so the contract can never silently stop being checked",
+   "pass": false,
+   "raw_drop_in_path": "product.query.pipeline.enrich_query_bundle (after initial retrieval, before rerank) - unchanged from v1; the seam is additive-only and regression-proven",
+   "resolved": {}
+  },
+  "runtime_cost": {
+   "budget_ms": 50.0,
+   "check": "runtime_cost",
+   "measured_build_ms_per_question": {
+    "de-kapitalverletzung": 28.586,
+    "fr-bail-entretien": 21.501,
+    "it-responsabilita-medica": 22.691
+   },
+   "model_calls": 0,
+   "network_calls": 0,
+   "note": "expansion construction is string work over an in-memory corpus sample; zero model calls and zero network calls at construction time. The retrieval cost of the emitted query is disclosed separately under runtime_cost.retrieval_cost.",
+   "pass": true,
+   "slowest_ms": 28.586
+  },
+  "seam_additivity": {
+   "check": "seam_additivity",
+   "note": "the layer is additive-only: it appends at most one query variant and exactly one provenance key, and changes nothing else",
+   "pass": true,
+   "per_question": {
+    "de-kapitalverletzung": {
+     "n_decisions_after": 214,
+     "n_decisions_before": 214,
+     "n_original_query_variants": 1,
+     "n_variants_after_seam": 2,
+     "new_provenance_keys": [
+      "query_expansion"
+     ],
+     "new_query_variants": [
+      "darunter definiert personenbezogenen unterstutzung betrieblichen insoweit pensionierung staatlichen angehorigen arbeitsvolumen effetti gewichtige"
+     ],
+     "no_decision_dropped_or_duplicated": true,
+     "non_expansion_fields_byte_identical": true,
+     "original_provenance_entries_unchanged": true,
+     "original_variants_prefix_preserved": true,
+     "pass": true,
+     "required_top_level_fields_present": []
+    },
+    "fr-bail-entretien": {
+     "n_decisions_after": 217,
+     "n_decisions_before": 217,
+     "n_original_query_variants": 2,
+     "n_variants_after_seam": 3,
+     "new_provenance_keys": [
+      "query_expansion"
+     ],
+     "new_query_variants": [
+      "conges affecte affectee casuistique resiliera signifier commerciaux echus charif feller generales argument"
+     ],
+     "no_decision_dropped_or_duplicated": true,
+     "non_expansion_fields_byte_identical": true,
+     "original_provenance_entries_unchanged": true,
+     "original_variants_prefix_preserved": true,
+     "pass": true,
+     "required_top_level_fields_present": []
+    },
+    "it-responsabilita-medica": {
+     "n_decisions_after": 211,
+     "n_decisions_before": 211,
+     "n_original_query_variants": 1,
+     "n_variants_after_seam": 2,
+     "new_provenance_keys": [
+      "query_expansion"
+     ],
+     "new_query_variants": [
+      "discolpa giustificazione paritetici risarcitorio astratto operatori parere paziente angelo assistente cessione condotto"
+     ],
+     "no_decision_dropped_or_duplicated": true,
+     "non_expansion_fields_byte_identical": true,
+     "original_provenance_entries_unchanged": true,
+     "original_variants_prefix_preserved": true,
+     "pass": true,
+     "required_top_level_fields_present": []
+    }
+   }
+  },
+  "stale_hyphenated_doc_symbols": {
+   "actual_public_api": [
+    "CorpusSample",
+    "Expansion",
+    "LANGUAGES",
+    "MAX_QUERY_TERMS",
+    "MIN_TERM_CHARS",
+    "MIN_TERM_DF",
+    "N_TERMS_PER_CONCEPT",
+    "blanked",
+    "build_expansion",
+    "compound_stems",
+    "norm",
+    "shuffled",
+    "tokens"
+   ],
+   "check": "stale_hyphenated_doc_symbols",
+   "documented_in": "frontier/frontier-query-concept-recall/INTEGRATION_CONTRACT.md",
+   "note": "the doc named four symbols, none of which the module has ever exported; a doc that instructs the integrator to import them is a trap, not a handoff",
+   "pass": true,
+   "present_in_shipped_module": {
+    "ExpansionConfig": false,
+    "QueryVariant": false,
+    "build_variants": false,
+    "search_variants": false
+   }
+  }
+ },
+ "claim_ceiling": "No artifact may assert that a map helps a jurist, that any authority is absent from the corpus, that any frozen bar is met or moved, or that any packet is fit to serve. Usefulness remains the human product gate's question and admission remains fail-closed. Concept-coverage counts are lexical coverage of a retrieved set, not a legal conclusion, and a zero count is a retrieval signal, not proof of corpus absence.",
+ "contract_executable": false,
+ "contract_path": "/home/runner/work/LexMachina/LexMachina/results/frontier/frontier-query-concept-recall/integration_contract.json",
+ "contract_sha256": "4abff138c4d1241f96046095992e55a5c197d7e24df13d3e743e2beb0bd7bae1",
+ "failed_checks": [
+  "bounded_cause_not_withdrawn",
+  "product_seam_exists",
+  "required_symbols_resolve"
+ ],
+ "generated_at": "2026-10-19T00:20:01.686132+00:00",
+ "harness_path": "/home/runner/work/LexMachina/LexMachina/results/frontier/frontier-query-concept-recall/harness_results_39179862363.json",
+ "model_calls": 0,
+ "n_checks": 10,
+ "n_failed": 3,
+ "network_calls": 0,
+ "note": "a contract that cannot be executed is not a contract; this record is the proof that the published handoff matches the shipped code, the mounted product seam and the frozen ceiling",
+ "rules_file_sha256": "c5447bac0605a8bcf8c3d1820bee56a5bb0e814365978ec1fa12ac189776ee9a",
+ "schema": "frontier_query_concept_recall.contract_check.v1",
+ "team_id": "frontier-query-concept-recall"
+}
