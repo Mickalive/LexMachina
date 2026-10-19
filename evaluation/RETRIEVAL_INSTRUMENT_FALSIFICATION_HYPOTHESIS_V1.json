@@ -1,0 +1,47 @@
+{
+  "schema": "lex-evaluation-retrieval-instrument-falsification-hypothesis/1",
+  "frozen_for_run": "39180276526",
+  "direction_version": 57,
+  "lane": "evaluation",
+  "committed_before_execution": "this file is committed to the cycle branch BEFORE any execution of evaluation.retrieval_instrument_falsification; the git commit time is the freeze evidence, not a hand-written timestamp field",
+  "question": "FAST MVP MODE: the smallest executable retrieval/counter-authority benchmark must be able to FALSIFY the product. The counter-authority half already can (evaluation.benchmark_retrieval_counter_authority legs 2-3 prove the label and geometry gates fail deliberately regressed packets). The retrieval half cannot yet: no executable leg proves the frozen retrieval instrument reproduces the accepted run of record AND can fail a deliberately regressed multilingual retrieval record. Does it?",
+  "product_decision_unlocked": "whether the factory may keep citing the frozen retrieval benchmark (spec 187b0e54...) as a live falsifier of retrieval regressions, especially on the FR/DE/IT authority-recall cells that the accepted frontier OUTCOME_B negative leaves unrecovered. If the reproduction leg diverges from the accepted run of record, the instrument itself is defective and must never be cited; if the falsification legs do not fire, the retrieval gates are vacuous and every past retrieval verdict is suspect.",
+  "inputs": {
+    "accepted_run_of_record": {
+      "path": "results/evaluation/retrieval_benchmark/39098571937.json",
+      "sha256": "aaf2587ad192a828c56cb082a74a2d5e944fbb4b2afc58df0b1e6a0f9b75dd66",
+      "accepted_reading": {"n_gates": 40, "n_passed": 24, "n_failed": 10, "n_not_measurable": 6, "overall_pass": false}
+    },
+    "frozen_retrieval_spec": {
+      "path": "evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
+      "sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72"
+    },
+    "frozen_freeze_record": {
+      "path": "evaluation/retrieval_gate/FREEZE_RECORD.json",
+      "sha256": "b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49"
+    }
+  },
+  "frozen_scoring_entry_point": "evaluation.retrieval_gate.gates.evaluate - a pure function (same spec + same record -> byte-identical verdict). No gate is re-implemented, no threshold is re-derived, no frozen file is written.",
+  "frozen_legs": {
+    "leg_a_reproduction": "re-score the accepted run of record through gates.evaluate; the failed-gate list, the not-measurable-gate list, the four counts and overall_pass must equal the accepted_reading exactly (lists compared as SETS, counts as integers)",
+    "leg_b_hostile_blank": "copy the accepted record and set rows/ids/n_results to empty on exactly the query_key baseline:corporate-criminal-liability:de (a currently PASSING multilingual cell, 2 hits); re-score; the failed-gate set must grow by EXACTLY {authority::baseline_lang_recall::corporate-criminal-liability::de, authority::baseline_recall::corporate-criminal-liability} and lose NOTHING; the de cells of the other two measurable legs (business-judgment-rule::de, petty-theft-dismissal::de) must remain passing",
+    "leg_c_hostile_duplicate": "copy the accepted record and append a deep copy of rows[0] to exactly the query_key counter:rent-default:fr (a leg whose duplicate gate currently PASSES); re-score; the failed-gate set must grow by EXACTLY {duplicate::unique_ids::rent-default} and lose NOTHING"
+  },
+  "success_rule": {
+    "exit_0": "REPRODUCTION_MATCHES_AND_FALSIFICATION_PROVEN - every pinned digest matches AND leg A matches the accepted reading AND leg B adds exactly its two named gates with the two named de cells still passing AND leg C adds exactly its one named gate",
+    "exit_1": "FALSIFICATION_OR_REPRODUCTION_FAILURE - a pinned digest matches but leg A diverges from the accepted reading (instrument defect: the accepted verdict does not reproduce) OR a hostile leg does not add its exact named gates (vacuous gate path) OR a hostile leg silently loses a previously failed gate",
+    "exit_2": "ENVIRONMENT - a pinned input is missing or its digest drifts; no leg is read",
+    "no_weakening": "the expected gate sets, the query keys, the transforms and the exit mapping are frozen here and may not be edited after commit; a changed accepted record is exit 2, never a silent re-pin"
+  },
+  "pre_observed_at_design": {
+    "disclosure": "the instrument designer, while building this hypothesis, executed both hostile transforms locally on the committed record through gates.evaluate and observed: leg B adds exactly {authority::baseline_lang_recall::corporate-criminal-liability::de, authority::baseline_recall::corporate-criminal-liability} and loses nothing; leg C adds exactly {duplicate::unique_ids::rent-default} and loses nothing. These exact expectations are frozen from that pre-observation (tier EXPLORATORY design probe, disclosed here); the claim-bearing run must reproduce them on a fresh execution with all pinned digests verified first.",
+    "not_pre_observed": "leg A's reproduction on a fresh gates.evaluate call inside the claim-bearing run was not separately recorded; the accepted_reading counts come from the accepted record of record and must be re-derived, never copied."
+  },
+  "claim_ceiling": "verdict vocabulary is REPRODUCTION_MATCHES_AND_FALSIFICATION_PROVEN / FALSIFICATION_OR_REPRODUCTION_FAILURE / ENVIRONMENT. This instrument decides ONE thing: whether the frozen retrieval instrument reproduces the accepted run of record and can fail two deliberately regressed multilingual retrieval records. It does NOT re-run any live search, does NOT change the accepted record, does NOT re-score any label or geometry bar, does NOT claim the absolute retrieval bars are met (the accepted reading itself is overall_pass=false with 10 failed gates, preserved verbatim), does NOT unblock the human gate, and authorises no owner question.",
+  "reuse": {
+    "multilingual_cells": "the falsification targets are the FR/DE/IT authority-recall gates of the accepted frozen retrieval benchmark - the same cells the frontier OUTCOME_B negative leaves unrecovered",
+    "provenance_cells": "the duplicate-injection leg targets the duplicate::unique_ids provenance gate",
+    "no_network": "the whole run is offline over committed bytes; latency gates stay not_measurable and are never counted as passes",
+    "no_universal_174k": "no universal-174k geometry benchmark is run"
+  }
+}

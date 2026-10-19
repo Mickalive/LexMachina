@@ -1,0 +1,88 @@
+{
+  "schema": "lex-evaluation-frontier-recall-handoff-hypothesis/1",
+  "frozen_for_run": "39180276526",
+  "direction_version": 57,
+  "lane": "evaluation",
+  "committed_before_execution": "this file is committed to the cycle branch BEFORE any execution of evaluation.frontier_recall_handoff; the git commit time is the freeze evidence, not a hand-written timestamp field",
+  "question": "The v57 evaluation-lane question charts the RECALL half of the accepted coverage finding to Frontier team frontier-query-concept-recall and orders this lane to publish its numbers BESIDE my own, never in place of them, with any divergence named as the headline. The team has now reached OUTCOME_B_BOUNDED_NEGATIVE and been independently accepted (audit gate PASS, accept commit bd1b4d73a). Does its baseline reproduction (A0) match this lane's own accepted numbers cell-by-cell on the served questions and the frozen multilingual authority-recall cells?",
+  "product_decision_unlocked": "whether the product's admission self-check question-concept extraction (the one that actually fires the ordered under-coverage disclosure) covers the same concept set as evaluation's mapping-free instrument on the same served bytes; and whether the accepted frontier negative sits on the identical baseline this lane measured. If a divergence exists, Product must know before the human gate; if none exists, the OUTCOME_B negative is directly inheritable by both lanes without reconciliation.",
+  "inputs": {
+    "frontier_harness_results": {
+      "path": "/tmp/lex_accepted/frontier/frontier-query-concept-recall/results/frontier/frontier-query-concept-recall/harness_results.json",
+      "sha256": "5004cdae54863e3e573c7886d61a3091a0ac0030d94adabb4532b2788f36aa67"
+    },
+    "frontier_integration_contract": {
+      "path": "/tmp/lex_accepted/frontier/frontier-query-concept-recall/results/frontier/frontier-query-concept-recall/integration_contract.json",
+      "sha256": "4abff138c4d1241f96046095992e55a5c197d7e24df13d3e743e2beb0bd7bae1"
+    },
+    "frontier_rules": {
+      "path": "/tmp/lex_accepted/frontier/frontier-query-concept-recall/results/frontier/frontier-query-concept-recall/RULES.json",
+      "sha256": "c5447bac0605a8bcf8c3d1820bee56a5bb0e814365978ec1fa12ac189776ee9a"
+    },
+    "frontier_audit_gate": {
+      "path": "/tmp/lex_accepted/frontier/frontier-query-concept-recall/results/audit/frontier/frontier-query-concept-recall/CYCLE_39178441123_GATE.json",
+      "sha256": "f2a5f01880b756de91fbbe1c182d99e88f90686877b7922a9d119eef9677f3ad",
+      "required_gate": "PASS",
+      "required_safe_to_integrate": true
+    },
+    "lane_subject_match_audit_accepted": {
+      "path": "results/evaluation/subject_match_audit/39113690481.json",
+      "sha256": "0adb78762e91090670728cf1441b75f14719a6066eb0a8ca8bfdf90a83845f61",
+      "role": "THIS LANE'S OWN mapping-free coverage numbers (question_native_concept_coverage gates)"
+    },
+    "lane_coverage_handoff_latest": {
+      "path": "results/evaluation/coverage_finding_falsification/39177046762.json",
+      "sha256": "328182d08d49e33dc8859e24d49890f52748f19916ae812a164b1385b709dff0",
+      "role": "THIS LANE'S OWN product-side admission self-check numbers (re-executed accepted product code)"
+    },
+    "lane_retrieval_benchmark_accepted_run_of_record": {
+      "path": "results/evaluation/retrieval_benchmark/39098571937.json",
+      "sha256": "aaf2587ad192a828c56cb082a74a2d5e944fbb4b2afc58df0b1e6a0f9b75dd66",
+      "role": "THIS LANE'S OWN accepted per-language authority-recall numbers (the run of record for the frozen retrieval benchmark)"
+    },
+    "lane_retrieval_benchmark_charter_cited": {
+      "path": "results/evaluation/retrieval_benchmark/39117425713.json",
+      "sha256": "f976d53a2b8481db42bb1d0dde5f673b1b5bd5284d2b6c5fe6dcc3115cdebd75",
+      "role": "the replay the Frontier charter cites for the 0/2, 0/5, 0/2 fr-it cells"
+    },
+    "frozen_retrieval_spec": {
+      "path": "evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
+      "sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72"
+    },
+    "frozen_freeze_record": {
+      "path": "evaluation/retrieval_gate/FREEZE_RECORD.json",
+      "sha256": "b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49"
+    }
+  },
+  "frozen_cells": {
+    "coverage_per_question": [
+      "n_bundle_rows: frontier A0 n_rows == lane subject_match_audit n_bundle_rows",
+      "under_covered_set: frontier A0 under_covered SET == lane subject_match_audit concepts_with_zero_rows SET == lane product-side measured_query_concepts_under_covered SET",
+      "concept_list: frontier A0 concepts == lane subject_match_audit concepts (full ordered list)",
+      "product_side_concept_count: lane product-side measured_query_concepts vs lane subject_match_audit concepts - DISCLOSED PRE-OBSERVED cell, see pre_observed_at_design"
+    ],
+    "recall_per_language_cell": [
+      "for every slug in {corporate-criminal-liability, business-judgment-rule, petty-theft-dismissal, rent-default} x lang in {de, fr, it}: frontier A0_baseline_shipped.hits SET == lane accepted-run-of-record authority::baseline_lang_recall::<slug>::<lang> measured.hits SET",
+      "for rent-default cells (frozen authority_ids empty): both sides must read measurable=false / passed=null with empty hits"
+    ],
+    "frontier_outcome_copy": [
+      "the instrument copies the frontier outcome fields verbatim (outcome, improved_fr_it_cells, reduced_under_covered_questions, any_vacuous, n_calls_over_per_search_budget, latency breach text) and verifies only that the audit gate says PASS; it issues no verdict on the candidate"
+    ]
+  },
+  "success_rule": {
+    "exit_0": "CONSUMED_NO_DIVERGENCE - every pinned digest matches AND the audit gate is PASS AND every frozen coverage cell and every frozen recall cell matches",
+    "exit_1": "DIVERGENCE_HEADLINE - every pinned digest matches AND the audit gate is PASS AND at least one frozen cell diverges; each divergence is the headline of the record and the report, never smoothed",
+    "exit_2": "ENVIRONMENT - a pinned input is missing or its digest drifts, or the audit gate is absent/not PASS; no cell comparison is read",
+    "no_weakening": "no cell, digest, set-comparison rule or exit mapping may be edited after this file is committed; a moved input is exit 2, never a silent re-pin"
+  },
+  "pre_observed_at_design": {
+    "disclosure": "the instrument designer, while building this hypothesis, compared the three-way concept table and the under-covered sets, and observed: lane subject_match_audit concepts de=8 fr=9 it=13; frontier A0 concepts de=8 fr=9 it=13; lane product-side self-check concepts de=6 fr=8 it=8; under-covered sets identical on all three sides; n_rows 214/217/211 identical on all three sides. The coverage concept-count cell is therefore a DISCLOSED PRE-OBSERVED cell, tiered as corroborating, not a discovery claim.",
+    "not_pre_observed": "the 12 per-language recall hit-list equalities were NOT compared id-by-id before this freeze (only gate pass/fail flags of the lane record were read); the digest integrity of all ten pinned inputs is verified only by the claim-bearing run; the frontier outcome field copy is verified only by the claim-bearing run."
+  },
+  "claim_ceiling": "verdict vocabulary is CONSUMED_NO_DIVERGENCE / DIVERGENCE_HEADLINE / ENVIRONMENT. This instrument decides ONE thing: whether the accepted frontier baseline-reproduction numbers equal this lane's own accepted numbers on the frozen cells. It does NOT re-score any frozen bar, does NOT adjudicate the frontier candidate, does NOT rebuild or re-dispatch any Frontier charter, does NOT change any packet byte or admission record, does NOT meet any absolute LABEL_SOUND / GEOMETRY_SOUND bar, does NOT unblock the human gate (both accepted DO-NOT-SERVE orders stand), and authorises no owner question (owner_decision_required stays false).",
+  "reuse": {
+    "no_candidate_built": "this lane does not build or re-score any query-expansion candidate; frontier-query-concept-recall is closed (cycle_status COMPLETE, continue_recommended=false) and is consumed read-only",
+    "no_universal_174k": "no universal-174k geometry benchmark is run",
+    "mapping_free": "no analyst slug, no frozen id set, no baseline record and no mapping of any kind is introduced; the comparison is pure set-equality on the frozen cells above"
+  }
+}
