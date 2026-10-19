@@ -150,10 +150,10 @@ def _fixture(tmp_root: Path, a1_ids=None, a1_rows=None, a1_status=200,
                         "A1_candidate_only": {
                             "n_rows": a1_rows,
                             "required": ["bger_A", "bger_B"],
-                            "search": {"status": a1_status},
                             "newly_found_ids": list(a1_ids),
                         },
                         "A1_union": {"n_rows": 50 + a1_rows},
+                        "search": {"status": a1_status},
                     },
                 },
             },
@@ -165,10 +165,10 @@ def _fixture(tmp_root: Path, a1_ids=None, a1_rows=None, a1_status=200,
                         "A0_baseline_shipped": {"hits": [], "n_rows": 50},
                         "A1_candidate_only": {
                             "n_rows": 0, "required": ["bger_C"],
-                            "search": {"status": 200},
                             "newly_found_ids": [],
                         },
                         "A1_union": {"n_rows": 50},
+                        "search": {"status": 200},
                     },
                 },
             },
@@ -251,6 +251,47 @@ def test_falsifier_c2_fires_on_unclaimed_envelope():
         assert out["bijection_ok"] is False
 
 
+def test_build_cells_reads_status_from_the_sibling_search_block():
+    """Regression for run-1's extraction bug: status lives beside
+    A1_candidate_only, not inside it."""
+    harness = {"frozen_legs": {"leg-x": {"authority_ids": ["a"],
+        "per_language": {"fr": {
+            "expansion_query": "q", "A0_baseline_shipped": {"hits": [], "n_rows": 1},
+            "A1_candidate_only": {"n_rows": 1, "required": ["a"]},
+            "search": {"status": 200}}}}}, "served_questions": {}}
+    cells = fbr.build_cells(harness)
+    assert cells[0]["a1_status"] == 200
+
+
+def test_c5_union_shrink_is_named_as_an_anomaly():
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        _fixture(root)
+        cache = root / "cache"
+        harness = {
+            "frozen_legs": {"business-judgment-rule": {
+                "authority_ids": ["bger_A"],
+                "per_language": {"fr": {
+                    "expansion_query": "exp leg fr",
+                    "A0_baseline_shipped": {"hits": ["bger_A"], "n_rows": 50},
+                    "A1_candidate_only": {"n_rows": 0, "required": ["bger_A"],
+                                          "newly_found_ids": []},
+                    "A1_union": {"n_rows": 45},
+                    "search": {"status": 200}}}}},
+            "served_questions": {},
+            "latency_budget": {"per_search_calls": [
+                {"query": "exp leg fr", "latency_seconds": 31.0, "status": 200}]},
+        }
+        spec = {"questions": [{"slug": "business-judgment-rule",
+                               "authority_ids": ["bger_A"]}]}
+        dur = {"F3_language_recall_gate_stability": {"accepted_status": {},
+                                                     "live_status": {}}}
+        out = fbr.run_comparisons(harness, spec, dur, fbr.load_envelopes(cache))
+        assert any("union_shrink_anomaly" in d for d in out["divergences"])
+        assert out["C5_witness_cells_added_semantics"] == 0
+        assert out["C5_witness_cells"] == 1
+
+
 def test_falsifier_c3_fires_when_named_row_count_changes():
     with tempfile.TemporaryDirectory() as td:
         root = Path(td)
@@ -270,9 +311,9 @@ def test_falsifier_c3_fires_when_named_row_count_changes():
                         "A0_baseline_shipped": {"hits": [], "n_rows": 50},
                         "A1_candidate_only": {"n_rows": 0,
                                               "required": ["bger_A", "bger_B"],
-                                              "search": {"status": 200},
                                               "newly_found_ids": []},
                         "A1_union": {"n_rows": 50},
+                        "search": {"status": 200},
                     }},
                 }},
             "served_questions": {"fr-bail-entretien": {
@@ -312,9 +353,9 @@ def test_c4_divergence_names_sum_disagreement_with_published_values():
                     "expansion_query": "exp leg fr",
                     "A0_baseline_shipped": {"hits": ["bger_A"], "n_rows": 50},
                     "A1_candidate_only": {"n_rows": 0, "required": ["bger_A"],
-                                          "search": {"status": 200},
                                           "newly_found_ids": []},
-                    "A1_union": {"n_rows": 50}}}}},
+                    "A1_union": {"n_rows": 50},
+                    "search": {"status": 200}}}}},
             "served_questions": {"q": {
                 "expansion_query": "exp served q",
                 "A0_baseline_shipped": {"n_rows": 10},

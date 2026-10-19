@@ -167,14 +167,22 @@ def load_envelopes(cache_root: Path) -> dict[str, dict]:
 
 
 def build_cells(harness: dict) -> list[dict]:
-    """The 15 cells: 12 frozen-leg (slug x lang) + 3 served questions."""
+    """The 15 cells: 12 frozen-leg (slug x lang) + 3 served questions.
+
+    CORRECTION (run 39195084218 r2, recorded not silent): the harness stores
+    the per-cell search block as a SIBLING of A1_candidate_only, not inside it.
+    Run 1 extracted A1_candidate_only.search (always absent => status null) and
+    therefore fired 12 spurious C2 status divergences. The frozen rule text
+    ('search.status') always meant the sibling block; this is an extraction bug
+    fix, not a rule change. Run 1's artifact is preserved verbatim.
+    """
     cells: list[dict] = []
     legs = harness.get("frozen_legs") or {}
     for slug, leg in legs.items():
         for lang, block in (leg.get("per_language") or {}).items():
             a0 = block.get("A0_baseline_shipped") or {}
             a1 = block.get("A1_candidate_only") or {}
-            search = a1.get("search") or {}
+            search = block.get("search") or {}
             cells.append({
                 "kind": "leg",
                 "cell": f"{slug}::{lang}",
@@ -199,6 +207,10 @@ def build_cells(harness: dict) -> list[dict]:
             "lang": None,
             "expansion_query": block.get("expansion_query"),
             "a0_n_rows": a0.get("n_rows"),
+            # frozen-rule-as-written comparison field: A1_candidate.n_rows is the
+            # POOLED COVERAGE set (A0 ∪ candidate), not the expansion response
+            # length; kept so the frozen cell still fires as written, with the
+            # corrected response-length reading supplied by C3 (cache bodies).
             "a1_n_rows": a1.get("n_rows"),
         })
     return cells
@@ -259,9 +271,14 @@ def run_comparisons(harness: dict, spec: dict, durability: dict,
         lat_ok = _round3(env["latency_seconds"]) == ps.get("latency_seconds")
         cell_ok = bool(status_ok and rows_ok and lat_ok)
         if not cell_ok:
+            kind_note = ""
+            if c["kind"] == "served" and not rows_ok:
+                kind_note = (" (frozen-rule-as-written: A1_candidate.n_rows is the "
+                             "pooled coverage set, not the expansion response; the "
+                             "corrected response-length reading is C3)")
             divergences.append(
                 f"C2::{c['cell']}::status_ok={status_ok},rows_ok={rows_ok},"
-                f"latency_ok={lat_ok}")
+                f"latency_ok={lat_ok}{kind_note}")
         c2_rows.append({
             "cell": c["cell"], "ok": cell_ok,
             "cache_status": env["status"], "record_status": c.get("a1_status"),
@@ -366,20 +383,42 @@ def run_comparisons(harness: dict, spec: dict, durability: dict,
             f"{EXPECTED_SUM_AUDIT_3DP!r} (rounding-level, named)")
 
     # --- C5: mechanism-witness count (record-internal, disclosed) -----------
-    witness = 0
+    # DUAL SEMANTICS, both published: the frozen rule compares the changed-cell
+    # count (!=) to the verdict evidence value 12; the evidence field is named
+    # mechanism_witness_cells_with_added_rows (>), so both counts are emitted.
+    witness_changed = 0
+    witness_added = 0
+    union_shrink_cells: list[dict] = []
     for c in cells:
         if c["kind"] == "leg":
-            if (c.get("a1_union_n_rows") is not None
-                    and c.get("a0_n_rows") is not None
-                    and c["a1_union_n_rows"] != c["a0_n_rows"]):
-                witness += 1
+            u, b = c.get("a1_union_n_rows"), c.get("a0_n_rows")
+            if u is not None and b is not None:
+                if u != b:
+                    witness_changed += 1
+                if u > b:
+                    witness_added += 1
+                if u < b:
+                    union_shrink_cells.append(
+                        {"cell": c["cell"], "a0_n_rows": b,
+                         "a1_union_n_rows": u,
+                         "a1_candidate_only_n_rows": c.get("a1_n_rows")})
         else:
-            if (c.get("a1_n_rows") is not None and c.get("a0_n_rows") is not None
-                    and c["a1_n_rows"] != c["a0_n_rows"]):
-                witness += 1
+            u, b = c.get("a1_n_rows"), c.get("a0_n_rows")
+            if u is not None and b is not None:
+                if u != b:
+                    witness_changed += 1
+                if u > b:
+                    witness_added += 1
+    witness = witness_changed
     if witness != EXPECTED_WITNESS_CELLS:
         divergences.append(
-            f"C5::witness_cells={witness} expected {EXPECTED_WITNESS_CELLS}")
+            f"C5::witness_cells_changed={witness} expected {EXPECTED_WITNESS_CELLS} "
+            f"(added-only semantics yield {witness_added})")
+    for anom in union_shrink_cells:
+        divergences.append(
+            f"C5::union_shrink_anomaly::{anom['cell']} a0={anom['a0_n_rows']} "
+            f"union={anom['a1_union_n_rows']} a1_only="
+            f"{anom['a1_candidate_only_n_rows']} (a set union cannot shrink)")
 
     # --- C6: FR/IT side-by-side ---------------------------------------------
     f3 = (durability.get("F3_language_recall_gate_stability") or {})
@@ -428,6 +467,8 @@ def run_comparisons(harness: dict, spec: dict, durability: dict,
         "C3_named_responses": named,
         "C4_latency": c4,
         "C5_witness_cells": witness,
+        "C5_witness_cells_added_semantics": witness_added,
+        "C5_union_shrink_anomalies": union_shrink_cells,
         "C6_fr_it_side_by_side": c6_rows,
         "divergences": divergences,
         "n_divergences": len(divergences),
@@ -442,6 +483,9 @@ def main(argv: list[str] | None = None) -> int:
                     help="result JSON path (default: committed claim-bearing tree)")
     ap.add_argument("--report-dir", default=None)
     ap.add_argument("--run-id", default=None)
+    ap.add_argument("--tag", default="",
+                    help="optional suffix for the result filename, e.g. '_r2'; "
+                         "used so a correction run never overwrites run 1")
     args = ap.parse_args(argv)
 
     hyp_path = Path(args.hypothesis)
@@ -451,7 +495,8 @@ def main(argv: list[str] | None = None) -> int:
     run_id = args.run_id or hyp.get("frozen_for_run") or "scratch"
     claim_bearing = args.out is None and args.report_dir is None
     out_path = (Path(args.out) if args.out else _REPO_ROOT / "results" / "evaluation"
-                / "frontier_bounded_cause_reproduction" / f"{run_id}.json")
+                / "frontier_bounded_cause_reproduction"
+                / f"{run_id}{args.tag}.json")
     report_dir = (Path(args.report_dir) if args.report_dir else _REPO_ROOT
                   / "reports" / "evaluation")
 
@@ -504,6 +549,20 @@ def main(argv: list[str] | None = None) -> int:
         "lane": "evaluation",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "commit_at_execution": None,
+        "correction_provenance": (
+            None if not args.tag else {
+                "tag": args.tag,
+                "corrects_run": run_id,
+                "what_changed": (
+                    "build_cells now reads the per-cell search block as a SIBLING "
+                    "of A1_candidate_only (the frozen rule's 'search.status'); run 1 "
+                    "extracted A1_candidate_only.search (always absent) and fired 12 "
+                    "spurious C2 status divergences. C5 now also emits added-only "
+                    "witness semantics and the union-shrink anomaly list. The frozen "
+                    "cells, expectations, digests and exit mappings are unchanged; "
+                    "run 1's artifact is preserved verbatim and never overwritten."
+                ),
+            }),
         "hypothesis_path": str(hyp_path),
         "hypothesis_sha256": _sha256_file(hyp_path),
         "amendment_path": str(amendment_path),
@@ -534,7 +593,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if claim_bearing:
         report_dir.mkdir(parents=True, exist_ok=True)
-        rep = report_dir / f"FRONTIER_BOUNDED_CAUSE_REPRODUCTION_{run_id}.md"
+        rep = report_dir / f"FRONTIER_BOUNDED_CAUSE_REPRODUCTION_{run_id}{args.tag}.md"
         div = comparisons["divergences"]
         lines = [
             f"# Frontier bounded-cause reproduction — run {run_id}",
@@ -551,7 +610,9 @@ def main(argv: list[str] | None = None) -> int:
             f" sum_round3={comparisons['C4_latency']['sum_round3']}"
             f" (vs harness {EXPECTED_SUM_HARNESS_3DP},"
             f" vs audit {EXPECTED_SUM_AUDIT_3DP})",
-            f"- C5 witness cells: {comparisons['C5_witness_cells']}/15",
+            f"- C5 witness cells: changed={comparisons['C5_witness_cells']}/15,"
+            f" added-only={comparisons['C5_witness_cells_added_semantics']}/15,"
+            f" union-shrink anomalies={len(comparisons['C5_union_shrink_anomalies'])}",
             f"- C6 FR/IT side-by-side rows: {len(comparisons['C6_fr_it_side_by_side'])}"
             f" (all FAIL/empty expected)",
             "",
