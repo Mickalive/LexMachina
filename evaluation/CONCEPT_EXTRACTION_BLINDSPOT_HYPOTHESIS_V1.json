@@ -1,0 +1,74 @@
+{
+  "schema": "lex-evaluation-concept-extraction-blindspot-hypothesis/1",
+  "frozen_for_run": "39187646807",
+  "direction_version": 57,
+  "lane": "evaluation",
+  "committed_before_execution": "this file is committed to the cycle branch BEFORE any execution of evaluation.concept_extraction_blindspot; the git commit time is the freeze evidence, not a hand-written timestamp field",
+  "question": "The accepted frontier recall handoff (consumed by delivered cycle 39180276526, DIVERGENCE_HEADLINE) established that the product-side concept extraction (product/query/concept_coverage.py::content_concepts) returns a STRICT SUBSET or NEAR-SUBSET of this lane's mapping-free question_concepts on all three served questions, because the product's STOPWORDS list filters legal-sounding tokens (begrenzen, blossen, resiliation, jusqu, quale, devono, esse, dimostrati, escludono) that the eval-side instrument retains as core concepts. On today's served bundles every filtered-out concept happens to carry >=1 supporting row, so the under-covered SETS still match and the ordered query_concepts_under_covered disclosure (accepted handoff question_native_coverage_39113690481, consumed by accepted cycle 39177046762) fires correctly on the concepts it measures. The open falsification question is whether this divergence is MATERIAL: does the product's stoplist create a STRUCTURAL BLIND SPOT in which a core legal concept of the question has zero supporting rows and the product's disclosure can never name it?",
+  "product_decision_unlocked": "whether the coverage-disclosure fix that Item 2 consumed is COMPLETE (it discloses under-coverage for every core concept of the question) or only PARTIAL (it discloses under-coverage for the subset of core concepts the product's stoplist happens to keep). If the blind spot is ACTIVE on served bytes, the product has a real disclosure defect; if LATENT, the product has a structural fragility the owner should know before the human gate. Either way Product must know before any serve recommendation.",
+  "inputs": {
+    "question_native_coverage": {
+      "path": "evaluation/subject_match_audit/QUESTION_NATIVE_COVERAGE.json",
+      "sha256": "d91a1902d1abb5faa6592edb2123cce8fc0f0a442057a3a4b456a1b094a94de3",
+      "role": "THIS LANE'S OWN accepted mapping-free concept lists and per-concept row counts (the eval-side baseline)"
+    },
+    "frontier_recall_handoff_record": {
+      "path": "results/evaluation/frontier_recall_handoff/39180276526.json",
+      "role": "the accepted-delivered DIVERGENCE_HEADLINE that named the product-side concept-count divergence; this instrument PUBLISHES BESIDE it and never replaces it"
+    },
+    "coverage_finding_falsification_accepted": {
+      "path": "results/evaluation/coverage_finding_falsification/39177046762.json",
+      "sha256": "328182d08d49e33dc8859e24d49890f52748f19916ae812a164b1385b709dff0",
+      "role": "the accepted Item-2 consumption (HANDOFF_CONSUMED on all 3 bundles); its per-bundle PASS verdicts are the baseline this instrument does not re-litigate"
+    },
+    "product_concept_coverage_module": {
+      "path": "/tmp/lex_accepted/product/product/query/concept_coverage.py",
+      "role": "the product's own content_concepts / coverage_report; loaded read-only from the accepted product mount by file path (importlib), never by package import (numpy absent); re-hashed at run time and the digest published in the record"
+    },
+    "served_question_jsons": {
+      "path": "/tmp/lex_accepted/product/results/product/gate_packet/rebuilt-39027045675/questions/",
+      "files": ["de-kapitalverletzung.question.json", "fr-bail-entretien.question.json", "it-responsabilita-medica.question.json"],
+      "role": "the exact served question texts both extractors are run on"
+    },
+    "served_bundles": {
+      "path": "/tmp/lex_accepted/product/results/product/gate_packet/rebuilt-39027045675/questions/",
+      "files": ["de-kapitalverletzung.bundle.json", "fr-bail-entretien.bundle.json", "it-responsabilita-medica.bundle.json"],
+      "role": "the served rows the counterfactual row-removal leg operates on"
+    },
+    "frozen_retrieval_spec": {
+      "path": "evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
+      "sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72"
+    },
+    "frozen_freeze_record": {
+      "path": "evaluation/retrieval_gate/FREEZE_RECORD.json",
+      "sha256": "b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49"
+    },
+    "rules_label": {
+      "path": "evaluation/frozen_bars/RULES_LABEL.json",
+      "sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608"
+    },
+    "rules_geometry": {
+      "path": "evaluation/frozen_bars/RULES_GEOMETRY.json",
+      "sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633"
+    }
+  },
+  "frozen_cells": {
+    "leg_A_extraction_divergence": "for every served question qid: product_concepts = content_concepts(served_question_text); eval_concepts = QUESTION_NATIVE_COVERAGE[qid].concepts; filtered_out = eval_concepts MINUS product_concepts; added = product_concepts MINUS eval_concepts; both sets are published cell-by-cell, never smoothed",
+    "leg_B_active_blindspot": "for every served question qid and every concept c in filtered_out: the accepted coverage record's concept_row_counts[c] is read; if ANY such c has row_count == 0, the blind spot is ACTIVE on served bytes and the record names it",
+    "leg_C_counterfactual": "for every served question qid whose filtered_out set is non-empty and whose blind spot is not already ACTIVE: pick the lowest-row-count concept c in filtered_out; build a counterfactual decision list by REMOVING every served row whose normalised text contains c (substring, the same matching the eval-side coverage record used); re-run the product's OWN coverage_report(query_text, counterfactual_decisions); the blind spot is proven LATENT-by-counterfactual iff (i) c does NOT appear in the product's under_covered (it cannot: content_concepts never emits it) AND (ii) c DOES appear in an eval-side re-count of the counterfactual rows as a zero-row concept. Both conditions must hold on the counterfactual; either failing means no blind spot on that cell",
+    "leg_D_frozen_inputs": "every pinned sha256 above is re-hashed before any measurement; a drift is exit 2 ENVIRONMENT, never a silent re-pin"
+  },
+  "success_rule": {
+    "exit_0": "the instrument ran and wrote a record; the record's verdict is one of BLIND_SPOT_ACTIVE, BLIND_SPOT_LATENT_COUNTERFACTUAL_PROVEN, NO_BLIND_SPOT - a falsification is a RESULT and exits 0",
+    "exit_2": "a pinned input is missing or its digest drifts, or the accepted product mount is absent; no cell is measured",
+    "falsification_proven": "true iff verdict is BLIND_SPOT_ACTIVE or BLIND_SPOT_LATENT_COUNTERFACTUAL_PROVEN",
+    "no_weakening": "no cell, digest, set-operation or exit mapping may be edited after this file is committed; a moved input is exit 2, never a silent re-pin"
+  },
+  "claim_ceiling": "verdict vocabulary is BLIND_SPOT_ACTIVE / BLIND_SPOT_LATENT_COUNTERFACTUAL_PROVEN / NO_BLIND_SPOT / ENVIRONMENT. This instrument decides ONE thing: whether the product's stoplist-filtered concept extraction creates a structural blind spot in the query_concepts_under_covered disclosure. It does NOT re-score any frozen bar, does NOT re-execute the Item-2 handoff consumption (accepted at 39177046762), does NOT re-dispatch or re-score any Frontier charter, does NOT change any packet byte or admission record, does NOT meet any absolute LABEL_SOUND / GEOMETRY_SOUND bar, does NOT unblock the human gate (both accepted DO-NOT-SERVE orders stand), and authorises no owner question (owner_decision_required stays false).",
+  "reuse": {
+    "no_candidate_built": "no query-expansion candidate is built or re-scored; frontier-query-concept-recall stays closed (OUTCOME_B_BOUNDED_NEGATIVE, accepted bd1b4d73a) and is consumed read-only",
+    "no_universal_174k": "no universal-174k geometry benchmark is run",
+    "mapping_free": "the concept sets are the two extractors' OWN outputs on the same question text; there is no analyst slug, no frozen decision-id set, no baseline record and no mapping of any kind",
+    "publishes_beside_frontier": "the accepted DIVERGENCE_HEADLINE of 39180276526 is republished beside this instrument's materiality verdict; this instrument never replaces it"
+  }
+}
