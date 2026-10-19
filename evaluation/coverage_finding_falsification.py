@@ -53,7 +53,7 @@ if str(_LANE_ROOT) not in sys.path:
     sys.insert(0, str(_LANE_ROOT))
 
 SERVED_PACKET = "results/product/gate_packet/rebuilt-39027045675"
-FROZEN_PRODUCT_HEAD = "e21eac360652ffe5bac1b3b07d16a191f48e8063"
+FROZEN_PRODUCT_HEAD = "577efeb836757b0b0eee22f7bc2436c52e2addbb"
 REEXEC_SCRIPT = """
 import json, sys
 from product.query.gate_admissibility import verify_bundle
