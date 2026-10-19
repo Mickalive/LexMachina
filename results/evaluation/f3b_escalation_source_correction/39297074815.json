@@ -1,0 +1,61 @@
+{
+  "schema": "lex-eval-f3b-escalation-source-correction/1",
+  "lane": "evaluation",
+  "direction_version": 58,
+  "run_id": "39297074815",
+  "generated_at_utc": "2026-10-19T18:15:00Z",
+  "question": "The accepted adjudication record of run 39225862749 (results/evaluation/f3b_adjudication/39225862749.json) carries the finding CITED_ESCALATION_SOURCE_DOES_NOT_EXIST for results/audit/evaluation/CYCLE_39199651952_GATE.json. A full-fetch environment now finds that file at refs/remotes/origin/cycle/core/evaluation/39199651952/audit. Which reading is correct, and does the correction change any accepted verdict?",
+  "verdict": "BOTH_READINGS_TRUE_IN_THEIR_ENVIRONMENTS — the historical finding was a PROBE REF-COVERAGE ARTIFACT, not tampering and not a valid universal negative; the cited escalation gate DID exist on the remote audit ref since 2026-10-19T04:39:18Z (commit 97894bba), which is 4h25m BEFORE the adjudication run's freeze commit (c9d97b50, 2026-10-19T09:04:30Z). The v57 escalation's CITATION WAS VALID. The accepted adjudication record is PRESERVED UNMODIFIED; this artifact is a NEW run-namespaced correction alongside it. The director's F-3B ruling (factory-wide requirement 30) and the v58 disposition stand unchanged: the ruling never depended on the source's absence — it rested on the constitutional append-only-evidence basis (AGENTS.md items 5/6).",
+  "cited_escalation_source": "results/audit/evaluation/CYCLE_39199651952_GATE.json",
+  "reading_1_historical_adjudication_env": {
+    "artifact": "results/evaluation/f3b_adjudication/39225862749.json",
+    "artifact_sha256_pinned": "5271024e6fa73b5e3fbbe38e75658a8f88031c16b6086126060ae4ddee494a90",
+    "finding_recorded": "CITED_ESCALATION_SOURCE_DOES_NOT_EXIST",
+    "probe_behaviour": "evaluation/f3b_record_adjudication.path_exists_anywhere scans LOCAL refs via git for-each-ref (module lines 129-148)",
+    "environment_fact": "the core-lane CI checkout fetches only the CURRENT run's team/audit refs plus lab/* branches (.github/workflows/core-lane.yml team job lines 42-64: git fetch origin $TEAM $AUDIT; audit job lines 171-182: git fetch origin $ACC $TEAM). Historical cycle audit refs such as origin/cycle/core/evaluation/39199651952/audit are NOT fetched, so the probe correctly reported absence FROM ITS REF SET while the file existed on the remote",
+    "status": "preserved as historical record; its universal-negative phrasing ('absent from every ref and was never added in any commit') is CORRECTED by reading 2"
+  },
+  "reading_2_live_full_fetch_env": {
+    "probe": "git fetch --prune (all refs) then evaluation.f3b_record_adjudication.path_exists_anywhere",
+    "exists_at_any_ref": true,
+    "refs_containing_it": ["refs/remotes/origin/cycle/core/evaluation/39199651952/audit"],
+    "ever_added_in_history": true,
+    "audit_ref_commit": "97894bbace99575eccccca158b21df777322f345",
+    "audit_ref_commit_at_utc": "2026-10-19T04:39:18Z",
+    "audit_ref_commit_message": "audit evaluation cycle 39199651952",
+    "gate_content_sha256": "206a9376e2ef71252590dc2e8ae1d4e4d3c926928cf6d1b248fd8c15c77ccb2f",
+    "gate": "REVISE",
+    "safe_to_integrate": false,
+    "f3b_fix_entry": {
+      "id": "F-3b",
+      "severity": "escalate",
+      "title": "Owner adjudication required: 39164900837.json vs 39164900837_pre_restore.json"
+    },
+    "meaning": "the gate the v57 lane cited was REAL and said exactly what an escalation needed: severity=escalate, in_lane_repairable=false. The lane's citation was honest; only the probe's ref coverage was incomplete."
+  },
+  "timeline_proof": {
+    "audit_branch_committed_at": "2026-10-19T04:39:18Z (97894bba)",
+    "adjudication_freeze_commit_at": "2026-10-19T09:04:30Z (c9d97b50, 'evaluation 39225862749: FREEZE-FIRST ...')",
+    "gap": "4h25m — the audit ref predates the adjudication run; the absence cannot be explained by push-after-probe timing",
+    "conclusion": "ref-coverage artifact in the CI checkout, established by the core-lane.yml fetch contract, not by narrative"
+  },
+  "what_is_NOT_changed": {
+    "accepted_adjudication_record": "results/evaluation/f3b_adjudication/39225862749.json remains byte-identical (sha256 5271024e...); its finding stays as written, corrected in context by THIS artifact rather than edited (AGENTS.md items 5/6: no overwriting of claim-bearing records)",
+    "director_ruling": "factory-wide requirement 30 F-3B ruling stands as written; it was decided on the constitutional append-only basis and never asserted the cited source was absent",
+    "v58_disposition": "the restore + re-home disposition of run 39287274485 stands; its proof results/evaluation/f3b_restore_disposition/39287274485.json is untouched",
+    "frozen_bars": "RULES_LABEL.json / RULES_GEOMETRY.json / frozen_retrieval_benchmark.json / FREEZE_RECORD.json all re-hash to pinned digests, unchanged"
+  },
+  "downstream_effect_on_tests": {
+    "test": "tests/evaluation/test_f3b_record_adjudication.py::test_cited_escalation_source_is_proven_absent",
+    "old_behaviour": "asserts the live probe reports absence — fails in any full-fetch environment (the defect this correction repairs)",
+    "new_behaviour": "dual-pin: (a) the accepted adjudication record still carries the historical finding and is byte-pinned; (b) the live probe is executed and, when the audit ref is present, must find the gate with gate=REVISE and F-3b escalate; when the ref is absent (CI-style partial fetch), the content pin is SKIPPED with an explicit reason naming the missing ref — never a silent pass",
+    "claim_ceiling": "the dual-pin test certifies both readings and their environment dependence; it does not re-open the adjudication, the ruling or the disposition"
+  },
+  "claim_ceiling": "This artifact corrects ONE historical probe finding's universal-negative phrasing by publishing the live full-fetch reading beside it, with the CI fetch contract as the mechanism. It does NOT certify any frozen absolute bar, does NOT unblock any gate (human_gate_ready, machine_gate_ready, packet_admitted, ready_for_owner_session stay false), authorises no owner question (owner_decision_required stays false), and both DO-NOT-SERVE orders stand unchanged.",
+  "reproduce": [
+    "git fetch --prune origin",
+    "python3 -c \"import sys; sys.path.insert(0,'.'); from evaluation import f3b_record_adjudication as F; import json; print(json.dumps(F.path_exists_anywhere(F.CITED_ESCALATION_SOURCE), indent=2))\"",
+    "git show origin/cycle/core/evaluation/39199651952/audit:results/audit/evaluation/CYCLE_39199651952_GATE.json | sha256sum  # 206a9376...",
+    "sha256sum results/evaluation/f3b_adjudication/39225862749.json  # 5271024e... unchanged"
+  ]
+}

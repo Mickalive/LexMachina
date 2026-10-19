@@ -127,12 +127,97 @@ def test_accepted_adjudication_record_preserved_unmodified():
 
 
 # --------------------------------------------------------------------------- #
-# 3. the cited escalation source is tested, not assumed
+# 3. the cited escalation source is tested, not assumed — DUAL-PIN (run 39297074815)
+#
+# HISTORY: the accepted adjudication (run 39225862749) probed the cited source
+# in the core-lane CI checkout, which fetches ONLY the current run's team/audit
+# refs plus lab/* branches (.github/workflows/core-lane.yml team job lines
+# 42-64, audit job lines 171-182).  The probe therefore recorded absence FROM
+# ITS REF SET (finding CITED_ESCALATION_SOURCE_DOES_NOT_EXIST).  A full-fetch
+# environment finds the gate at refs/remotes/origin/cycle/core/evaluation/
+# 39199651952/audit (commit 97894bba, 2026-10-19T04:39:18Z — 4h25m BEFORE the
+# adjudication freeze commit c9d97b50), content gate=REVISE with F-3b escalate.
+# The citation was VALID; the universal-negative phrasing was a ref-coverage
+# artifact.  The accepted record is NOT edited (AGENTS.md items 5/6); the
+# correction is published as a NEW run-namespaced artifact:
+# results/evaluation/f3b_escalation_source_correction/39297074815.json.
+# Both readings are pinned here — historical (from the accepted record) and
+# live (environment-honest: content pin when the audit ref is present, an
+# explicit skip naming the missing ref otherwise — never a silent pass).
 # --------------------------------------------------------------------------- #
-def test_cited_escalation_source_is_proven_absent():
+ACCEPTED_ADJ_SHA = "5271024e6fa73b5e3fbbe38e75658a8f88031c16b6086126060ae4ddee494a90"
+AUDIT_REF = "refs/remotes/origin/cycle/core/evaluation/39199651952/audit"
+AUDIT_REF_COMMIT = "97894bbace99575eccccca158b21df777322f345"
+GATE_SHA256 = "206a9376e2ef71252590dc2e8ae1d4e4d3c926928cf6d1b248fd8c15c77ccb2f"
+CORRECTION_ARTIFACT = (REPO / "results/evaluation/f3b_escalation_source_correction"
+                       / "39297074815.json")
+
+
+def test_accepted_adjudication_record_still_pins_the_historical_absence_finding():
+    """The accepted adjudication record is preserved BYTE-EXACT and still
+    carries the historical finding; this cycle corrects it by publication,
+    never by editing the record."""
+    assert ACCEPTED_RECORD.is_file()
+    assert hashlib.sha256(ACCEPTED_RECORD.read_bytes()).hexdigest() == ACCEPTED_ADJ_SHA
+    rec = json.loads(ACCEPTED_RECORD.read_text(encoding="utf-8"))
+    findings = [f["finding"] for f in rec.get("findings", [])]
+    assert "CITED_ESCALATION_SOURCE_DOES_NOT_EXIST" in findings
+
+
+def test_cited_escalation_source_live_probe_dual_pin():
+    """Live probe with environment-honest semantics (see header)."""
     rec_probe = F.path_exists_anywhere(F.CITED_ESCALATION_SOURCE)
-    assert rec_probe["exists_at_any_ref"] is False
-    assert rec_probe["ever_added_in_history"] is False
+    ref_present = AUDIT_REF in rec_probe.get("refs_containing_it", [])
+    if not ref_present:
+        # A partial-fetch (CI-style) environment: the content pin cannot be
+        # evaluated.  SKIP with an explicit reason — never a silent pass, and
+        # never a false failure for an environment contract the probe cannot
+        # control.  The historical reading is pinned by the previous test.
+        pytest.skip(
+            f"{AUDIT_REF} is not fetched in this environment (core-lane CI "
+            f"checkout fetches only the current run's team/audit refs + lab "
+            f"branches); live content pin not evaluable here. Historical "
+            f"reading pinned in the accepted adjudication record.")
+    # Full-fetch environment: the gate must exist AND carry what the
+    # escalation cited — gate=REVISE, F-3b severity=escalate.
+    assert rec_probe["exists_at_any_ref"] is True
+    assert rec_probe["ever_added_in_history"] is True
+    rc, out = F.git("show", f"{AUDIT_REF}:{F.CITED_ESCALATION_SOURCE}")
+    assert rc == 0, "the cited gate must be readable at the audit ref"
+    gate_bytes = out.encode("utf-8") if isinstance(out, str) else out
+    # git show returns text; re-hash via the raw blob to avoid newline munging
+    rc2, blob = F.git("rev-parse", f"{AUDIT_REF}:{F.CITED_ESCALATION_SOURCE}")
+    assert rc2 == 0
+    rc3, raw = F.git("cat-file", "blob", blob.strip())
+    assert rc3 == 0
+    raw_bytes = raw.encode("utf-8") if isinstance(raw, str) else raw
+    assert hashlib.sha256(raw_bytes).hexdigest() == GATE_SHA256
+    gate = json.loads(raw)
+    assert gate["gate"] == "REVISE"
+    assert gate["safe_to_integrate"] is False
+    f3b = [f for f in gate.get("required_fixes", []) if f.get("id") == "F-3b"]
+    assert len(f3b) == 1
+    assert f3b[0]["severity"] == "escalate"
+
+
+def test_correction_artifact_publishes_both_readings():
+    """The NEW correction artifact exists, matches this run, and publishes
+    both readings beside each other with the CI fetch contract as mechanism."""
+    assert CORRECTION_ARTIFACT.is_file(), (
+        "the dual-pin correction artifact of run 39297074815 must be committed")
+    art = json.loads(CORRECTION_ARTIFACT.read_text(encoding="utf-8"))
+    assert art["run_id"] == "39297074815"
+    assert art["cited_escalation_source"] == F.CITED_ESCALATION_SOURCE
+    h = art["reading_1_historical_adjudication_env"]
+    assert h["finding_recorded"] == "CITED_ESCALATION_SOURCE_DOES_NOT_EXIST"
+    assert h["artifact_sha256_pinned"] == ACCEPTED_ADJ_SHA
+    v = art["reading_2_live_full_fetch_env"]
+    assert v["exists_at_any_ref"] is True
+    assert v["gate"] == "REVISE"
+    assert v["f3b_fix_entry"]["severity"] == "escalate"
+    assert v["audit_ref_commit"] == AUDIT_REF_COMMIT
+    assert "core-lane.yml" in art["timeline_proof"]["conclusion"] or (
+        "ref-coverage" in art["timeline_proof"]["conclusion"])
 
 
 # --------------------------------------------------------------------------- #
