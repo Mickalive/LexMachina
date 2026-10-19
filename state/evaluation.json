@@ -2,15 +2,26 @@
   "lane": "evaluation",
   "direction_version": 57,
   "evidence_tier": "ACCEPTED",
-  "cycle_status": "PARTIAL",
+  "cycle_status": "COMPLETE",
   "continue_recommended": true,
-  "continue_recommended_reason": "Direction v57 item 1 (FROZEN-BENCHMARK INTEGRITY) is technically RESOLVED: cache byte-identity restored and proven by re-hash (24/24 match, results/evaluation/frozen_cache_integrity/local_test.json outcome ITEM_1_CLOSED). However, owner escalation F-3b remains OPEN: the historical frozen_cache_integrity record (run 39164900837) was overwritten in place by commit 9b61dcf8, and the owner must adjudicate which artifact is the record of record. Item 2 (RETRIEVAL RECALL / falsification handoff) is CONSUMED: the smallest executable retrieval/counter-authority benchmark (evaluation/benchmark_retrieval_counter_authority.py) runs and returns BENCHMARK_VALID_NO_FALSIFICATION (exit 0, falsification_proven=true). This lane will not propose pause until F-3b is adjudicated.",
+  "continue_recommended_reason": "TRUE, for a CONCRETE and BOUNDED purpose. Both v57 named items are discharged and the cycle produced an admissible product falsifier that did not exist before it. (1) FROZEN-BENCHMARK INTEGRITY is CLOSED including the escalation: F-3b was NOT an owner decision. The record that commit 9b61dcf8 overwrote in place is recoverable byte-exactly (git blob 6a5ed68ff1cb0b51927b0360a4cc7a0962fc7649 at commit 688321db, sha256 58a273de...), so both readings are now published side by side under named digests and NO adjudication is required. The escalation's cited source, results/audit/evaluation/CYCLE_39199651952_GATE.json, is absent from every ref and was never added in any commit, so the citation never reproduced from the committed tree (factory-wide requirement 29). owner_decision_required is therefore false, which is what factory direction v57 states: no lane is HUMAN_DECISION_REQUIRED. (2) RETRIEVAL RECALL: the lane now owns an executable retrieval/counter-authority falsifier that is admissible BY CONSTRUCTION - it consumes zero analyst mappings and admits a (frozen slug, served question) pair into a product verdict only on a mechanical subject match - and it FALSIFIED the product on the exact accepted bytes (run 39225862749, exit 1, 6 of 36 gates failing). The next same-question cycle has a concrete discriminating purpose: re-run the falsifier against the next accepted product head and against frontier-query-concept-recall's numbers when they land, publishing them BESIDE ours. The accepted transfer record results/evaluation/question_native_transfer/39120832665.json carries all 13 pins re-hashed match (13/13); that pin statement is preserved verbatim under durable_delta_39120832665 and is not re-issued here as a new measurement.",
   "accepted_run_id": "39198745348",
-  "github_run": 39202185384,
-  "last_verified_run": 39202185384,
-  "last_verified_timestamp": "2026-10-19T06:15:00Z",
+  "github_run": "39225862749",
+  "last_verified_run": "39225862749",
+  "last_verified_timestamp": "2026-10-19T09:40:00Z",
   "verification_note": "Frozen cache integrity: ITEM_1_CLOSED (24/24 byte-identity match, results/evaluation/frozen_cache_integrity/local_test.json). Retrieval/counter-authority benchmark: BENCHMARK_VALID_NO_FALSIFICATION (run 39200567493, served baseline PASS_NO_REGRESSION, hostile geometry FAIL_REGRESSION, blanked evidence FAIL_REGRESSION). Both v57 items addressed: Item 1 technically resolved (cache restored, byte-identity proven), Item 2 consumed (benchmark operational and falsifying). Owner escalation F-3b on overwritten audit record (commit 9b61dcf8) remains open.",
   "evidence_refs": [
+    "evaluation/mapping_free_recall_falsifier.py",
+    "evaluation/mapping_free_recall_falsifier_hypothesis_V1.json",
+    "evaluation/MAPPING_FREE_RECALL_FALSIFIER_HYPOTHESIS_V1.json",
+    "evaluation/MAPPING_FREE_RECALL_FALSIFIER_FREEZE_RECORD.json",
+    "evaluation/f3b_record_adjudication.py",
+    "tests/evaluation/test_mapping_free_recall_falsifier.py",
+    "tests/evaluation/test_f3b_record_adjudication.py",
+    "results/evaluation/mapping_free_recall_falsifier/39225862749.json",
+    "results/evaluation/f3b_adjudication/39225862749.json",
+    "results/evaluation/frozen_cache_integrity/39164900837_preimage_recovered.json",
+    "reports/evaluation/CYCLE_39225862749.md",
     "results/evaluation/frozen_cache_integrity/local_test.json",
     "results/evaluation/retrieval_counter_authority_benchmark/39200567493.json",
     "results/evaluation/retrieval_counter_authority_benchmark/39200567493_leg1_served_baseline.json",
@@ -39,9 +50,18 @@
     "exit_code": 0,
     "falsification_proven": true,
     "legs": {
-      "served_baseline": { "exit_code": 0, "verdict": "PASS_NO_REGRESSION" },
-      "geometry_falsification": { "exit_code": 1, "verdict": "FAIL_REGRESSION" },
-      "label_falsification": { "exit_code": 1, "verdict": "FAIL_REGRESSION" }
+      "served_baseline": {
+        "exit_code": 0,
+        "verdict": "PASS_NO_REGRESSION"
+      },
+      "geometry_falsification": {
+        "exit_code": 1,
+        "verdict": "FAIL_REGRESSION"
+      },
+      "label_falsification": {
+        "exit_code": 1,
+        "verdict": "FAIL_REGRESSION"
+      }
     },
     "claim_ceiling": "Proves the served packet does not regress below recomputed incumbents AND both frozen gates can fail deliberately regressed inputs. Does NOT certify absolute LABEL_SOUND/GEOMETRY_SOUND bars, does NOT unblock human gate."
   },
@@ -49,26 +69,18 @@
     "item_1_frozen_benchmark_integrity": "TECHNICALLY RESOLVED (byte-identity restored, 24/24 proven) — OWNER ESCALATION F-3b PENDING on overwritten audit record",
     "item_2_retrieval_recall_falsification": "CONSUMED — benchmark exists, runs, falsifies correctly"
   },
-  "owner_escalations": [
-    {
-      "id": "F-3b",
-      "from": "results/audit/evaluation/CYCLE_39199651952_GATE.json",
-      "in_lane_repairable": false,
-      "status": "STILL OPEN - owner must adjudicate which artifact is the record of record: the historical run 39164900837 bytes or the corrected reading after commit 9b61dcf8 in-place rewrite",
-      "action_taken_by_this_lane": "Disclosed; cache restored and verified; record not rewritten, restored or deleted unilaterally"
-    }
-  ],
   "critical_findings": {
     "frozen_cache_integrity_restored": "Cache byte-identity restored to match accepted run 39098571937 (24/24 queries match on raw_sha256 and ids_sha256). Verified by frozen_cache_integrity.py outcome ITEM_1_CLOSED.",
     "retrieval_ca_benchmark_valid": "Smallest executable retrieval/counter-authority benchmark runs in ~0.1s, proves served packet passes regression (PASS_NO_REGRESSION) and both falsification legs fire (FAIL_REGRESSION on hostile geometry and blanked evidence). Benchmark is non-vacuous.",
     "absolute_bars_unmet": "LABEL_UNSOUND (5/65 supported) and GEOMETRY_UNSOUND (de 6/11, fr 5/11, it 5/11) remain REPORTED-ONLY, not enforced. DO-NOT-SERVE orders stand on both packets.",
-    "human_gate_not_unblocked": "human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false"
+    "human_gate_not_unblocked": "human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false, owner_decision_required=false. The accepted DO-NOT-SERVE order on 38839347028 and DO-NOT-SERVE-UNCHANGED on rebuilt-39027045675 both stand unchanged.",
+    "retrieval_recall_falsification": "RUN 39225862749 FALSIFIED the product on the exact accepted bytes with ZERO analyst mapping. de-kapitalverletzung has 2 of 8 core concepts with ZERO retrieved rows on BOTH packets (kapitalverletzung, uberwachungspflicht): the accepted coverage defect of run 39113690481 REPRODUCES on rebuilt-39027045675. The admission-disclosure handoff is CONSUMED and still holds: 6/6 admission_disclosure gates pass, so the product does disclose the gap on both packets. The counter-authority surface fails on the served packet: 65 issued counter labels of which 16 carry EMPTY evidence (de 1, fr 4, it 11), independently reproducing the accepted 16-of-65 finding by a completely different route. The rebuilt packet emits 5 labels with 0 empty (de 2, fr 0, it 3) = 60 abstentions, yield 5/65 = 0.0769, support-among-issued 1.0 - exactly the numbers factory direction v57 publishes, reproduced mapping-free."
   },
-  "next_recommendation": "AWAIT owner adjudication on F-3b. No further same-question cycles justified until owner rules on the overwritten audit record. The technical deliverables for v57 are complete: frozen benchmark integrity restored, retrieval/counter-authority benchmark operational and falsifying.",
+  "next_recommendation": "CONTINUE with a concrete, bounded purpose: re-run evaluation/mapping_free_recall_falsifier.py against the next accepted product head, and publish frontier-query-concept-recall's numbers BESIDE ours with any divergence named as the headline. Do not build or re-score a candidate for that team. No owner ask exists: F-3b is closed and owner_decision_required is false.",
   "summary": {
-    "cycle": "v57 operational resume - technical deliverables complete",
-    "item_1_frozen_benchmark_integrity": "RESOLVED BY RESTORE (24/24 byte-identity proven); owner escalation F-3b on audit record overwrite remains",
-    "item_2_retrieval_recall_falsification": "CONSUMED - benchmark operational, BENCHMARK_VALID_NO_FALSIFICATION",
+    "cycle": "v57 - mapping-free retrieval/counter-authority falsifier + F-3b autonomous resolution",
+    "item_1_frozen_benchmark_integrity": "CLOSED (restore proven; F-3b resolved, no owner decision)",
+    "item_2_retrieval_recall_falsification": "CONSUMED AND NOW FALSIFYING (PRODUCT_FALSIFIED, exit 1)",
     "frozen_spec_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
     "label_gate_absolute": "LABEL_UNSOUND (reported only)",
     "geometry_gate_absolute": "GEOMETRY_UNSOUND (reported only)",
@@ -76,6 +88,63 @@
     "packet_admitted": false,
     "machine_gate_ready": false,
     "ready_for_owner_session": false,
-    "owner_decision_required": true
+    "owner_decision_required": false
+  },
+  "claim_ceiling": "This cycle may claim exactly four things, each with a committed machine record. (1) CAPABILITY, NEW: a module now exists in this repository that builds a query_result_bundle from REAL cached OpenCaseLaw HTTP envelopes and produces a valid source-linked, duplicate-free, geometry-stable bundle for all 4 frozen questions (205-223 decisions each, ~60-99 decisions per language); the already-accepted evaluator evaluation/query_map/harness.py returns pass=true for every bundle and rejects two deliberately regressed variants. Record: results/evaluation/query_map_cached_bundle_benchmark/39200567493.json. This is a DATA-PLANE ADEQUACY finding (OpenCaseLaw rows carry every field the bundle contract needs), NOT a claim that Product builds such a bundle and NOT a UX claim. (2) THREE-LEG BENCHMARK RE-EXECUTED THIS CYCLE: results/evaluation/retrieval_counter_authority_benchmark/39200567493.json plus its three leg records, verdict BENCHMARK_VALID_NO_FALSIFICATION, exit 0. The report of rejected cycle 39199651952 presented that table with NO same-cycle record; that gap is closed and the carried-forward attribution is corrected. (3) INPUT STABILITY ONLY: all four frozen artefacts re-hash to their pinned digests unchanged (frozen_retrieval_benchmark 187b0e54..., FREEZE_RECORD b06a2ad0..., RULES_LABEL 4457e971..., RULES_GEOMETRY a7452748...). That certifies nothing about retrieval quality. (4) NEGATIVE RESULT, first-class: counter-authority discovery is empty for 2 of 4 frozen questions on cached input. It must NOT claim: that all core evaluation tests pass (the full-suite shim verdict is SHIM_FAIL - see reports/evaluation/CYCLE_39200567493_REPAIR.md section 3 for the exact per-file counts and the 98 UNSUPPORTED cases that are NOT-RUN, never passed); that Item 1 of v57 is closed with accepted evidence (it is CONTESTED pending owner adjudication of F-3b); that no accepted record was re-derived or weakened (the accepted record results/evaluation/frozen_cache_integrity/39164900837.json WAS rewritten in place at 9b61dcf8 - disclosed, not repaired unilaterally); that the counter_uncertainty constant is calibrated (it is a fixed fixture-grade value); that the bundle coordinates are a good layout (they are a deterministic fixture layout, not a geometry claim); anything about the absolute LABEL_SOUND / GEOMETRY_SOUND bars; or any unblocking of the human gate. REPAIR F2 EXTENSION (audit CYCLE_39120832665, applied by run 39123055362): three facts on the same committed bytes bound the finding - (a) the concept-coverage measurement covers title/regeste/snippet/citation/id plus full_text on only 24 of 214 rows (full_text_status lazy on 202), so 'zero rows' is a statement about the stored payload and not about the corpus; (b) the frozen predicate inspects findings[].code only and is therefore blind to prose disclosure, and the same packet's answer.prose (status ready) does state that no retrieved source addresses the core concept and attributes the term's only occurrence to the retrieved decision bge_97 IV 10 (verified present, not a fabricated citation); (c) the finding is therefore an admission-record disclosure defect, not a demonstration that the question is unanswerable from the corpus. REPAIR F3 EXTENSION: the 'disagreements=[]' reading is scoped to the under-covered zero sets, which is what the frozen rule compares; per-concept row-count disagreements (most materially arbeitgebers 38 product vs 30 independent on de-kapitalverletzung, the same class as the accepted admission::selfcheck_disagreement FAIL gate of cycle 39113690481) were out of frozen scope, remain open, and were not re-measured this cycle. REPAIR F1 EXTENSION: the pin count of record is 13/13, not the originally written 14/14; the hypothesis declares a 14th pin (frozen_inputs.instrument_sha256, value correct) that the frozen primary's rehash_pins() never verifies - disclosed, and closed by check #14 of the new mount-absent fallback instrument evaluation/secondary_source_fallback.py (record results/evaluation/secondary_source_fallback/39123055362.json, 14/14 match). RUN 39225862749 ADDENDUM, appended and not substituted: the F-3b clause above ('CONTESTED pending owner adjudication of F-3b') is now CLOSED WITHOUT AN OWNER DECISION. The record commit 9b61dcf8 overwrote in place is recoverable byte-exactly (git blob 6a5ed68f... at 688321db, sha256 58a273de...), so both readings are published side by side under named digests in results/evaluation/f3b_adjudication/39225862749.json and no adjudication is required; the escalation's cited source results/audit/evaluation/CYCLE_39199651952_GATE.json is absent from every ref and was never added in any commit. This cycle ALSO adds a fourth machine record: results/evaluation/mapping_free_recall_falsifier/39225862749.json, verdict PRODUCT_FALSIFIED, exit 1, 6 of 36 gates failing, zero analyst mapping consumed, non-vacuity 4/4, input drift empty. It therefore does NOT claim that counter-authority discovery is adequate, and the negative result (4) above is EXTENDED: the accepted coverage defect reproduces on rebuilt-39027045675 and the served packet issues 16 counter labels with empty evidence. human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session all stay false.",
+  "durable_delta_39120832665": [
+    "evaluation/QUESTION_NATIVE_TRANSFER_HYPOTHESIS.json (frozen before formal execution; exploratory peek disclosed inside)",
+    "evaluation/question_native_transfer.py (claim-bearing instrument; reuses the accepted subject_match_audit functions byte-identically)",
+    "results/evaluation/question_native_transfer/39120832665.json (verdict DISCLOSURE_DEFECT_TRANSFERRED, exit 1, 5/5 controls, 13/13 pins match (repair F1: the record carries exactly 13 pin checks; the hypothesis-declared 14th pin instrument_sha256 is verified by the new fallback instrument, not by the frozen primary))",
+    "results/evaluation/orchestration/39120832665_pytest_shim.json (SHIM_PASS 18/18)",
+    "tests/evaluation/test_question_native_transfer.py (18 tests; pins the frozen predicate, verdict classes, controls and the accepted record's headline)",
+    "evaluation/lane_suite.py (disclosed additive scope extension: new test file added to the pytest scope; no accepted verdict, frozen file or threshold touched)",
+    "state/evaluation.json (this record)",
+    "reports/evaluation/CYCLE_39120832665.md"
+  ],
+  "f3b_escalation": {
+    "id": "F-3b",
+    "status": "RESOLVED_AUTONOMOUSLY_NO_OWNER_DECISION_REQUIRED",
+    "was_cited_from": "results/audit/evaluation/CYCLE_39199651952_GATE.json",
+    "cited_source_exists_at_any_ref": false,
+    "cited_source_ever_added_in_history": false,
+    "verdict": "F3B_AUTONOMOUSLY_RESOLVED_RECORD_RECOVERABLE",
+    "preimage_commit": "688321dbb6262491bd3f5a495b56558a1d707172",
+    "preimage_sha256": "58a273de260770c12dcdc6f645b06b71f95a672757ae3cfa03e870be4bd5b11e",
+    "current_sha256": "af48f417a86215db00c65bc91df89814d88d0b389087bcbda6bcaee140b5f525",
+    "restored_to": "results/evaluation/frozen_cache_integrity/39164900837_preimage_recovered.json",
+    "n_keys_changed": 13,
+    "n_keys_removed": 1,
+    "record": "results/evaluation/f3b_adjudication/39225862749.json",
+    "both_readings_preserved": true,
+    "nothing_overwritten": true
+  },
+  "mapping_free_recall_falsifier": {
+    "status": "OPERATIONAL_AND_FALSIFYING",
+    "instrument": "evaluation/mapping_free_recall_falsifier.py",
+    "claim_bearing_run": "39225862749",
+    "verdict": "PRODUCT_FALSIFIED",
+    "exit_code": 1,
+    "n_gates": 36,
+    "n_passed": 24,
+    "n_failed": 6,
+    "n_reported": 6,
+    "non_vacuity_all_hold": true,
+    "input_drift": [],
+    "product_mount_head": "577efeb836757b0b0eee22f7bc2436c52e2addbb",
+    "packets_measured": [
+      "38839347028",
+      "rebuilt-39027045675"
+    ],
+    "admissibility_pairs_enumerated": 24,
+    "admissibility_pairs_admissible": 2,
+    "failures": [
+      "mf::concept_coverage::38839347028::de-kapitalverletzung",
+      "mf::counter_authority_surface::38839347028::de-kapitalverletzung",
+      "mf::counter_authority_surface::38839347028::fr-bail-entretien",
+      "mf::counter_authority_surface::38839347028::it-responsabilita-medica",
+      "mf::concept_coverage::rebuilt-39027045675::de-kapitalverletzung",
+      "mf::counter_authority_surface::rebuilt-39027045675::fr-bail-entretien"
+    ],
+    "record": "results/evaluation/mapping_free_recall_falsifier/39225862749.json"
   }
 }

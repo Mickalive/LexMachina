@@ -692,6 +692,23 @@ def run_pytest(log: _Log) -> None:
           # No frozen benchmark, rubric, incumbent or success rule is touched by
           # adding the file.
           "tests/evaluation/test_v57_resume_delivery.py",
+          # run 39225862749 (disclosed scope extension, not a re-freeze): the
+          # mapping-free retrieval/counter-authority FALSIFIER that closes the hole
+          # left by the RETRACTED 39111232991 parity harness, plus the F-3b
+          # autonomous adjudication. They pin the frozen admissibility predicate
+          # (SAME_NORM AND SAME_SUBJECT_TERMS, no analyst mapping), the
+          # mapping-free gates, the non-vacuity battery, the claim ceiling, the
+          # zero-mapping guarantee, the byte-exact recovery proof and the
+          # write-scope confinement. Both files are pure plus committed-record
+          # pinning and need NO network; the mount-dependent tests skip cleanly
+          # without an accepted product mount. POST-FREEZE ADDITION in the sense
+          # of evaluation/retrieval_gate/id_hygiene.py: no gate is added to any
+          # frozen verdict file, no accepted verdict is overwritten, no frozen
+          # rubric, threshold, bar or incumbent is touched, and the frozen
+          # retrieval spec, the frozen label rubric and both accepted packet
+          # bundles are read-only inputs.
+          "tests/evaluation/test_mapping_free_recall_falsifier.py",
+          "tests/evaluation/test_f3b_record_adjudication.py",
           # run 39167917715 (disclosed scope extension, not a re-freeze): the
           # v57 open-items regression tests - frozen-benchmark input-integrity
           # pins (24/24 cache match, gate-by-gate reproduction, the 21/24 drift
