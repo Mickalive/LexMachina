@@ -1,0 +1,723 @@
+{
+ "schema": "lex-evaluation-orchestration-failure-diagnosis/1",
+ "lane": "evaluation",
+ "direction_version": 58,
+ "run_id": "39310054437",
+ "generated_at_utc": "2026-10-19T19:35:49Z",
+ "question": "Why did runs 39304290407 and 39308720556 (chain recovery after audit REVISE of 39297074815) end with no audit branch and no promotion, and what does that imply for the resume run 39310054437?",
+ "verdict": "PRODUCER_NO_DELTA_UNDER_GUARD (rc 67 LEX_ZERO_DELTA_REPAIR), NOT a provider failure, NOT a lane-work defect and NOT a gate-placement defect for these two runs. Both runs' team job died at step 6 'Run lane cycle' with exit code 67; because the wrapper emits 67 only on the child-rc==0 branch when HEAD is unchanged and the tree is clean, the producer model sessions COMPLETED CLEANLY AND WROTE NOTHING. The audit job (needs: team success) and integrate were therefore skipped, no audit branch was created, and origin/lab/evaluation stayed at 2ebdf895.",
+ "evidence": {
+  "api_retrieval": {
+   "source": "unauthenticated GitHub REST (public repo), retrieved this run",
+   "endpoints": [
+    "/actions/runs/{id}",
+    "/actions/runs/{id}/jobs",
+    "/check-runs/{job_id}/annotations"
+   ],
+   "note": "job LOG endpoint /actions/jobs/{id}/logs returns HTTP 403 unauthenticated in this producer image; the session transcripts of the two failed producers are therefore UNAVAILABLE here (labelled UNDETERMINED below)."
+  },
+  "runs": {
+   "39304290407": {
+    "name": "Core evaluation dirV58 repair1",
+    "workflow_path": ".github/workflows/core-lane.yml",
+    "head_sha": "110ae1048578ca58eb68d5567cf6163dd6d9d704",
+    "event": "workflow_dispatch",
+    "run_attempt": 1,
+    "created_at": "2026-10-19T18:39:08Z",
+    "updated_at": "2026-10-19T19:10:26Z",
+    "conclusion": "failure",
+    "status": "completed",
+    "jobs": [
+     {
+      "id": 118237304740,
+      "name": "team",
+      "conclusion": "failure",
+      "status": "completed",
+      "started_at": "2026-10-19T18:39:24Z",
+      "completed_at": "2026-10-19T19:10:11Z",
+      "steps": [
+       {
+        "n": 1,
+        "name": "Set up job",
+        "conclusion": "success"
+       },
+       {
+        "n": 2,
+        "name": "Run actions/checkout@v6",
+        "conclusion": "success"
+       },
+       {
+        "n": 3,
+        "name": "Validate lane and initialize working base",
+        "conclusion": "success"
+       },
+       {
+        "n": 4,
+        "name": "Mount accepted peer evidence",
+        "conclusion": "success"
+       },
+       {
+        "n": 5,
+        "name": "Install Ox/OpenCode",
+        "conclusion": "success"
+       },
+       {
+        "n": 6,
+        "name": "Run lane cycle",
+        "conclusion": "failure"
+       },
+       {
+        "n": 7,
+        "name": "Validate active MVP producer state",
+        "conclusion": "skipped"
+       },
+       {
+        "n": 8,
+        "name": "Clean generated junk",
+        "conclusion": "success"
+       },
+       {
+        "n": 9,
+        "name": "Enforce lane write scope",
+        "conclusion": "skipped"
+       },
+       {
+        "n": 10,
+        "name": "Persist team snapshot",
+        "conclusion": "success"
+       },
+       {
+        "n": 20,
+        "name": "Post Run actions/checkout@v6",
+        "conclusion": "success"
+       },
+       {
+        "n": 21,
+        "name": "Complete job",
+        "conclusion": "success"
+       }
+      ]
+     },
+     {
+      "id": 118252359114,
+      "name": "resilience",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-10-19T19:10:14Z",
+      "completed_at": "2026-10-19T19:10:25Z",
+      "steps": [
+       {
+        "n": 1,
+        "name": "Set up job",
+        "conclusion": "success"
+       },
+       {
+        "n": 2,
+        "name": "Run actions/checkout@v6",
+        "conclusion": "success"
+       },
+       {
+        "n": 3,
+        "name": "Recover failed chain and wake supervisor",
+        "conclusion": "success"
+       },
+       {
+        "n": 6,
+        "name": "Post Run actions/checkout@v6",
+        "conclusion": "success"
+       },
+       {
+        "n": 7,
+        "name": "Complete job",
+        "conclusion": "success"
+       }
+      ]
+     },
+     {
+      "id": 118252360424,
+      "name": "audit",
+      "conclusion": "skipped",
+      "status": "completed",
+      "started_at": "2026-10-19T19:10:11Z",
+      "completed_at": "2026-10-19T19:10:11Z",
+      "steps": []
+     },
+     {
+      "id": 118252361289,
+      "name": "integrate",
+      "conclusion": "skipped",
+      "status": "completed",
+      "started_at": "2026-10-19T19:10:11Z",
+      "completed_at": "2026-10-19T19:10:11Z",
+      "steps": []
+     }
+    ]
+   },
+   "39308720556": {
+    "name": "Core evaluation dirV58 repair1",
+    "workflow_path": ".github/workflows/core-lane.yml",
+    "head_sha": "110ae1048578ca58eb68d5567cf6163dd6d9d704",
+    "event": "workflow_dispatch",
+    "run_attempt": 1,
+    "created_at": "2026-10-19T19:10:21Z",
+    "updated_at": "2026-10-19T19:19:50Z",
+    "conclusion": "failure",
+    "status": "completed",
+    "jobs": [
+     {
+      "id": 118252482906,
+      "name": "team",
+      "conclusion": "failure",
+      "status": "completed",
+      "started_at": "2026-10-19T19:10:28Z",
+      "completed_at": "2026-10-19T19:19:36Z",
+      "steps": [
+       {
+        "n": 1,
+        "name": "Set up job",
+        "conclusion": "success"
+       },
+       {
+        "n": 2,
+        "name": "Run actions/checkout@v6",
+        "conclusion": "success"
+       },
+       {
+        "n": 3,
+        "name": "Validate lane and initialize working base",
+        "conclusion": "success"
+       },
+       {
+        "n": 4,
+        "name": "Mount accepted peer evidence",
+        "conclusion": "success"
+       },
+       {
+        "n": 5,
+        "name": "Install Ox/OpenCode",
+        "conclusion": "success"
+       },
+       {
+        "n": 6,
+        "name": "Run lane cycle",
+        "conclusion": "failure"
+       },
+       {
+        "n": 7,
+        "name": "Validate active MVP producer state",
+        "conclusion": "skipped"
+       },
+       {
+        "n": 8,
+        "name": "Clean generated junk",
+        "conclusion": "success"
+       },
+       {
+        "n": 9,
+        "name": "Enforce lane write scope",
+        "conclusion": "skipped"
+       },
+       {
+        "n": 10,
+        "name": "Persist team snapshot",
+        "conclusion": "success"
+       },
+       {
+        "n": 20,
+        "name": "Post Run actions/checkout@v6",
+        "conclusion": "success"
+       },
+       {
+        "n": 21,
+        "name": "Complete job",
+        "conclusion": "success"
+       }
+      ]
+     },
+     {
+      "id": 118256919456,
+      "name": "resilience",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-10-19T19:19:40Z",
+      "completed_at": "2026-10-19T19:19:49Z",
+      "steps": [
+       {
+        "n": 1,
+        "name": "Set up job",
+        "conclusion": "success"
+       },
+       {
+        "n": 2,
+        "name": "Run actions/checkout@v6",
+        "conclusion": "success"
+       },
+       {
+        "n": 3,
+        "name": "Recover failed chain and wake supervisor",
+        "conclusion": "success"
+       },
+       {
+        "n": 6,
+        "name": "Post Run actions/checkout@v6",
+        "conclusion": "success"
+       },
+       {
+        "n": 7,
+        "name": "Complete job",
+        "conclusion": "success"
+       }
+      ]
+     },
+     {
+      "id": 118256920113,
+      "name": "audit",
+      "conclusion": "skipped",
+      "status": "completed",
+      "started_at": "2026-10-19T19:19:37Z",
+      "completed_at": "2026-10-19T19:19:36Z",
+      "steps": []
+     },
+     {
+      "id": 118256921573,
+      "name": "integrate",
+      "conclusion": "skipped",
+      "status": "completed",
+      "started_at": "2026-10-19T19:19:37Z",
+      "completed_at": "2026-10-19T19:19:36Z",
+      "steps": []
+     }
+    ]
+   },
+   "39297074815": {
+    "name": "Core evaluation dirV58 repair0",
+    "workflow_path": ".github/workflows/core-lane.yml",
+    "head_sha": "60265d9735605091fcce065e31a63d7379b83f45",
+    "event": "workflow_dispatch",
+    "run_attempt": 1,
+    "created_at": "2026-10-19T17:47:03Z",
+    "updated_at": "2026-10-19T18:39:22Z",
+    "conclusion": "success",
+    "status": "completed",
+    "jobs": [
+     {
+      "id": 118212273490,
+      "name": "team",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-10-19T17:47:10Z",
+      "completed_at": "2026-10-19T18:26:41Z",
+      "steps": [
+       {
+        "n": 1,
+        "name": "Set up job",
+        "conclusion": "success"
+       },
+       {
+        "n": 2,
+        "name": "Run actions/checkout@v6",
+        "conclusion": "success"
+       },
+       {
+        "n": 3,
+        "name": "Validate lane and initialize working base",
+        "conclusion": "success"
+       },
+       {
+        "n": 4,
+        "name": "Mount accepted peer evidence",
+        "conclusion": "success"
+       },
+       {
+        "n": 5,
+        "name": "Install Ox/OpenCode",
+        "conclusion": "success"
+       },
+       {
+        "n": 6,
+        "name": "Run lane cycle",
+        "conclusion": "success"
+       },
+       {
+        "n": 7,
+        "name": "Validate active MVP producer state",
+        "conclusion": "success"
+       },
+       {
+        "n": 8,
+        "name": "Clean generated junk",
+        "conclusion": "success"
+       },
+       {
+        "n": 9,
+        "name": "Enforce lane write scope",
+        "conclusion": "success"
+       },
+       {
+        "n": 10,
+        "name": "Persist team snapshot",
+        "conclusion": "success"
+       },
+       {
+        "n": 20,
+        "name": "Post Run actions/checkout@v6",
+        "conclusion": "success"
+       },
+       {
+        "n": 21,
+        "name": "Complete job",
+        "conclusion": "success"
+       }
+      ]
+     },
+     {
+      "id": 118231167421,
+      "name": "audit",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-10-19T18:26:44Z",
+      "completed_at": "2026-10-19T18:39:00Z",
+      "steps": [
+       {
+        "n": 1,
+        "name": "Set up job",
+        "conclusion": "success"
+       },
+       {
+        "n": 2,
+        "name": "Run actions/checkout@v6",
+        "conclusion": "success"
+       },
+       {
+        "n": 3,
+        "name": "Checkout accepted base and mount team",
+        "conclusion": "success"
+       },
+       {
+        "n": 4,
+        "name": "Install Ox/OpenCode",
+        "conclusion": "success"
+       },
+       {
+        "n": 5,
+        "name": "Independent audit",
+        "conclusion": "success"
+       },
+       {
+        "n": 6,
+        "name": "Enforce audit scope and read gate",
+        "conclusion": "success"
+       },
+       {
+        "n": 7,
+        "name": "Persist audit snapshot",
+        "conclusion": "success"
+       },
+       {
+        "n": 14,
+        "name": "Post Run actions/checkout@v6",
+        "conclusion": "success"
+       },
+       {
+        "n": 15,
+        "name": "Complete job",
+        "conclusion": "success"
+       }
+      ]
+     },
+     {
+      "id": 118237120320,
+      "name": "integrate",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-10-19T18:39:03Z",
+      "completed_at": "2026-10-19T18:39:09Z",
+      "steps": [
+       {
+        "n": 1,
+        "name": "Set up job",
+        "conclusion": "success"
+       },
+       {
+        "n": 2,
+        "name": "Run actions/checkout@v6",
+        "conclusion": "success"
+       },
+       {
+        "n": 3,
+        "name": "Promote, repair, or block",
+        "conclusion": "success"
+       },
+       {
+        "n": 6,
+        "name": "Post Run actions/checkout@v6",
+        "conclusion": "success"
+       },
+       {
+        "n": 7,
+        "name": "Complete job",
+        "conclusion": "success"
+       }
+      ]
+     },
+     {
+      "id": 118237201635,
+      "name": "resilience",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-10-19T18:39:13Z",
+      "completed_at": "2026-10-19T18:39:21Z",
+      "steps": [
+       {
+        "n": 1,
+        "name": "Set up job",
+        "conclusion": "success"
+       },
+       {
+        "n": 2,
+        "name": "Run actions/checkout@v6",
+        "conclusion": "success"
+       },
+       {
+        "n": 3,
+        "name": "Recover failed chain and wake supervisor",
+        "conclusion": "success"
+       },
+       {
+        "n": 6,
+        "name": "Post Run actions/checkout@v6",
+        "conclusion": "success"
+       },
+       {
+        "n": 7,
+        "name": "Complete job",
+        "conclusion": "success"
+       }
+      ]
+     }
+    ]
+   },
+   "39310054437": {
+    "name": "Core evaluation dirV58 repair1",
+    "workflow_path": ".github/workflows/core-lane.yml",
+    "head_sha": "166b50a7752a8048b573a09540d1a015877f2d72",
+    "event": "workflow_dispatch",
+    "run_attempt": 1,
+    "created_at": "2026-10-19T19:19:45Z",
+    "updated_at": "2026-10-19T19:20:02Z",
+    "conclusion": null,
+    "status": "in_progress",
+    "jobs": [
+     {
+      "id": 118257028781,
+      "name": "team",
+      "conclusion": null,
+      "status": "in_progress",
+      "started_at": "2026-10-19T19:20:01Z",
+      "completed_at": null,
+      "steps": [
+       {
+        "n": 1,
+        "name": "Set up job",
+        "conclusion": "success"
+       },
+       {
+        "n": 2,
+        "name": "Run actions/checkout@v6",
+        "conclusion": "success"
+       },
+       {
+        "n": 3,
+        "name": "Validate lane and initialize working base",
+        "conclusion": "success"
+       },
+       {
+        "n": 4,
+        "name": "Mount accepted peer evidence",
+        "conclusion": "success"
+       },
+       {
+        "n": 5,
+        "name": "Install Ox/OpenCode",
+        "conclusion": "success"
+       },
+       {
+        "n": 6,
+        "name": "Run lane cycle",
+        "conclusion": null
+       },
+       {
+        "n": 7,
+        "name": "Validate active MVP producer state",
+        "conclusion": null
+       },
+       {
+        "n": 8,
+        "name": "Clean generated junk",
+        "conclusion": null
+       },
+       {
+        "n": 9,
+        "name": "Enforce lane write scope",
+        "conclusion": null
+       },
+       {
+        "n": 10,
+        "name": "Persist team snapshot",
+        "conclusion": null
+       },
+       {
+        "n": 20,
+        "name": "Post Run actions/checkout@v6",
+        "conclusion": null
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "annotations": {
+   "39304290407": [
+    {
+     "path": ".github",
+     "blob_href": "https://github.com/Mickalive/LexMachina/blob/110ae1048578ca58eb68d5567cf6163dd6d9d704/.github",
+     "start_line": 1537,
+     "start_column": null,
+     "end_line": 1537,
+     "end_column": null,
+     "annotation_level": "failure",
+     "title": "",
+     "message": "Process completed with exit code 67.",
+     "raw_details": ""
+    },
+    {
+     "path": ".github",
+     "blob_href": "https://github.com/Mickalive/LexMachina/blob/110ae1048578ca58eb68d5567cf6163dd6d9d704/.github",
+     "start_line": 1536,
+     "start_column": null,
+     "end_line": 1536,
+     "end_column": null,
+     "annotation_level": "failure",
+     "title": "",
+     "message": "LEX_ZERO_DELTA_REPAIR",
+     "raw_details": ""
+    },
+    {
+     "path": ".github",
+     "blob_href": "https://github.com/Mickalive/LexMachina/blob/110ae1048578ca58eb68d5567cf6163dd6d9d704/.github",
+     "start_line": 1,
+     "start_column": null,
+     "end_line": 1,
+     "end_column": null,
+     "annotation_level": "notice",
+     "title": "",
+     "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\"",
+     "raw_details": ""
+    }
+   ],
+   "39308720556": [
+    {
+     "path": ".github",
+     "blob_href": "https://github.com/Mickalive/LexMachina/blob/110ae1048578ca58eb68d5567cf6163dd6d9d704/.github",
+     "start_line": 3136,
+     "start_column": null,
+     "end_line": 3136,
+     "end_column": null,
+     "annotation_level": "failure",
+     "title": "",
+     "message": "Process completed with exit code 67.",
+     "raw_details": ""
+    },
+    {
+     "path": ".github",
+     "blob_href": "https://github.com/Mickalive/LexMachina/blob/110ae1048578ca58eb68d5567cf6163dd6d9d704/.github",
+     "start_line": 3135,
+     "start_column": null,
+     "end_line": 3135,
+     "end_column": null,
+     "annotation_level": "failure",
+     "title": "",
+     "message": "LEX_ZERO_DELTA_REPAIR",
+     "raw_details": ""
+    },
+    {
+     "path": ".github",
+     "blob_href": "https://github.com/Mickalive/LexMachina/blob/110ae1048578ca58eb68d5567cf6163dd6d9d704/.github",
+     "start_line": 1,
+     "start_column": null,
+     "end_line": 1,
+     "end_column": null,
+     "annotation_level": "notice",
+     "title": "",
+     "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\"",
+     "raw_details": ""
+    }
+   ]
+  },
+  "git": {
+   "HEAD_at_diagnosis": "984e2df17b7a1f09381f9ed12aa64d84bccc76eb",
+   "team_39304290407": "98c7058510bc0a1922061ad6e61df1562d87eff2",
+   "team_attempt_39304290407": "98c7058510bc0a1922061ad6e61df1562d87eff2",
+   "team_39308720556": "98c7058510bc0a1922061ad6e61df1562d87eff2",
+   "team_attempt_39308720556": "98c7058510bc0a1922061ad6e61df1562d87eff2",
+   "team_39297074815": "98c7058510bc0a1922061ad6e61df1562d87eff2",
+   "lab_evaluation": "2ebdf89599be49424738267cd693d55359b73d5f",
+   "audit_branch_exists_39304290407": false,
+   "audit_branch_exists_39308720556": false,
+   "audit_branch_exists_39297074815": true
+  },
+  "wrapper_guard_evidence": {
+   "control_plane_ref": "origin/main head 110ae1048578ca58eb68d5567cf6163dd6d9d704 (the head_sha recorded on both failed runs)",
+   "file": ".github/scripts/run-ox-with-retry.sh",
+   "matching_lines": [
+    [
+     25,
+     "REPAIR_INTENT=false"
+    ],
+    [
+     160,
+     "for arg in \"${RUN_ARGS[@]}\"; do if [[ \"$arg\" == REPAIR\\ * || \"$arg\" == *\" REPAIR \"* ]]; then REPAIR_INTENT=true; break; fi; done"
+    ],
+    [
+     161,
+     "[[ \"${LEX_REQUIRE_DELTA:-0}\" == 1 ]] && REPAIR_INTENT=true"
+    ],
+    [
+     211,
+     "  if [[ \"$rc\" -eq 0 ]]; then"
+    ],
+    [
+     213,
+     "    if [[ \"$REPAIR_INTENT\" == true ]]; then"
+    ],
+    [
+     216,
+     "      if [[ \"$cur\" == \"$START_HEAD\" && -z \"$delta\" ]]; then echo \"::error::LEX_ZERO_DELTA_REPAIR\"; exit 67; fi"
+    ]
+   ],
+   "semantics": "rc 67 is reachable ONLY from the branch reached when run_once returned rc==0 (line 211). Lines 213-216 compare HEAD with START_HEAD and require an EMPTY `git status --porcelain`; otherwise the wrapper would have returned 75 (network/stall), 76 (auth pool exhausted), 78 (quantum expired) or the child's own rc, none of which is 67."
+  }
+ },
+ "mechanism_chain": [
+  "39297074815: team success -> audit success (gate=REVISE, required_fixes=[D-1]) -> integrate dispatched same-cycle repair round 1 with repair_from_run_id=39297074815 (core-lane.yml 'Promote, repair, or block' REVISE branch) -> run 39304290407.",
+  "39304290407 (repair1): team step 6 exit 67 LEX_ZERO_DELTA_REPAIR; persist step (if: always()) pushed the UNCHANGED head to cycle/core/evaluation/39304290407/team and .../team-attempt-1; audit and integrate SKIPPED; resilience dispatched resume_from_run_id=39304290407 -> run 39308720556.",
+  "39308720556 (repair round 1, resume mode): identical failure signature (exit 67), identical unchanged snapshot pushed, audit/integrate skipped; resilience dispatched resume_from_run_id=39308720556 -> run 39310054437 (THIS run, operational-resume branch tracking 39308720556/team).",
+  "No state/blockers/evaluation.json exists on origin/main, so no AUDIT_BLOCKED blocker was written; the lane is stalled by repetition of the same zero-delta exit, not by a block."
+ ],
+ "why_zero_delta_is_not_a_lane_work_failure": "The independent audit of 39297074815 DID run and DID produce exactly one required fix (D-1, reports/evaluation/CYCLE_39297074815.md section 4 claiming 71/71 PASS against a shim record of 68 passed + 3 NOT-RUN). That fix is a small, well-specified report edit which this resume run applies verbatim (freeze record evaluation/V58_OPERATIONAL_RESUME_HYPOTHESIS_V2.json rule S1). Nothing in the F-3B disposition or the R-1..R-3 repairs of 39297074815 was retracted by either failure.",
+ "undetermined": [
+  "WHY each producer model session exited 0 without writing a byte (its transcript lives in the job log, which the log endpoint refuses unauthenticated: HTTP 403). Not resolvable from this image; bounded by the exit-code analysis above: quantum expiry (78), network stall (75) and auth failure (76) are EXCLUDED by construction because the guard is only evaluated after rc==0.",
+  "Whether run 39304290407 was dispatched in repair mode (repair_from, /tmp/lex_prior_audit mounted) or resume mode: the run-name carries only repair_round; both modes start from the same 98c70585 snapshot, so the git record does not discriminate."
+ ],
+ "control_plane_items_recorded_not_edited": [
+  "rc 67 costs a full run (~30 min) whenever a producer exits 0 with no delta; a cheaper contract would be for the wrapper to echo the producer's last log lines before exit 67 so the next resume prompt can name the missing deliverable. .github/** is control-plane scope and is recorded, not edited (factory-wide requirement).",
+  "The gate of record for 39297074815 lives at origin/cycle/core/evaluation/39297074815/audit (commit 9216d771c) with the correct UPPERCASE _GATE.json filename at the correct audit path; no placement defect exists for that run."
+ ],
+ "resumed_snapshot": {
+  "branch": "operational-resume",
+  "tracks": "refs/heads/cycle/core/evaluation/39308720556/team",
+  "head": "98c7058510bc0a1922061ad6e61df1562d87eff2",
+  "identity": "byte-identical to origin/cycle/core/evaluation/39297074815/team, i.e. the fully repaired producer work of 39297074815"
+ },
+ "claim_ceiling": "Diagnosis only. It does not judge the REVISE verdict (D-1 remains binding), does not promote 39287274485 or 39297074815, and asserts nothing about LABEL/GEOMETRY bars or any gate."
+}
