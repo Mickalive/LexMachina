@@ -215,8 +215,16 @@ def test_every_committed_record_discloses_its_stages_or_is_named_by_the_amendmen
             f"{name} publishes verdict {payload.get('verdict')!r} against "
             f"canonical_chain={stages['canonical_chain']}")
 
-    assert checked == 0, (
-        "no staged record exists yet, so the post-fix branch of this test is "
+    # Debt marker flipped by repair round 1 of rejected cycle 39286804530
+    # (audit F3: "the test's post-fix branch requires an actual staged record,
+    # so an audit-side regeneration alone is insufficient").  The tree now
+    # holds one - results/product/live_slice/20261019T153744Z.json, a STAGED
+    # record with stages_executed - so the post-fix branch above (the three
+    # asserts on canonical_chain against the record's own bytes) runs for real.
+    # The assertion is STRENGTHENED, not relaxed: it now requires the branch to
+    # be exercised, where before it required that it never be.
+    assert checked >= 1, (
+        "no staged record exists, so the post-fix branch of this test is "
         "unexercised - the 'agrees with its own bytes' assertion never ran")
 
 
