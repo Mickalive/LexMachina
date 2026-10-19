@@ -1,0 +1,206 @@
+{
+ "schema": "lex-evaluation-concept-extraction-blindspot/1",
+ "run_id": "39187646807",
+ "direction_version": 57,
+ "generated_at_utc": "2026-10-19T02:32:26Z",
+ "hypothesis_path": "/home/runner/work/LexMachina/LexMachina/evaluation/CONCEPT_EXTRACTION_BLINDSPOT_HYPOTHESIS_V1.json",
+ "hypothesis_sha256": "2230577358cf04d8db25b4318ec66714b936338bad2e8e3ec9ff4c75947d300c",
+ "product_concept_coverage_sha256": "ad4d768da915d7ddbfdb1ef2c11df1092316aca91760a51cf5ce296adad0f64d",
+ "input_digests_verified": [
+  "coverage_finding_falsification_accepted",
+  "frontier_recall_handoff_record",
+  "frozen_freeze_record",
+  "frozen_retrieval_spec",
+  "product_concept_coverage_module",
+  "question_native_coverage",
+  "rules_geometry",
+  "rules_label",
+  "served_bundles",
+  "served_question_jsons"
+ ],
+ "input_digest_problems": [],
+ "verdict": "BLIND_SPOT_LATENT_COUNTERFACTUAL_PROVEN",
+ "headline": "the product's stoplist filters core concepts that today have >=1 row, but a minimal counterfactual row-removal proves the disclosure stays silent while an eval-side re-count flags the concept as zero-row",
+ "falsification_proven": true,
+ "n_filtered_out_total": 9,
+ "divergences": [
+  "de-kapitalverletzung::filtered_out ['begrenzen', 'blossen'] (product 6 vs eval 8)",
+  "de-kapitalverletzung::COUNTERFACTUAL_BLIND_SPOT target=begrenzen removed=1 rows; product never emits it, eval-side re-count is 0",
+  "fr-bail-entretien::filtered_out ['resiliation', 'jusqu'] (product 8 vs eval 9)",
+  "fr-bail-entretien::added ['decisions'] (product-only concepts)",
+  "fr-bail-entretien::COUNTERFACTUAL_BLIND_SPOT target=jusqu removed=21 rows; product never emits it, eval-side re-count is 0",
+  "it-responsabilita-medica::filtered_out ['quale', 'devono', 'essere', 'dimostrati', 'escludono'] (product 8 vs eval 13)",
+  "it-responsabilita-medica::COUNTERFACTUAL_BLIND_SPOT target=escludono removed=3 rows; product never emits it, eval-side re-count is 0"
+ ],
+ "cells": [
+  {
+   "question": "de-kapitalverletzung",
+   "product_concepts": [
+    "aktive",
+    "fursorgepflicht",
+    "arbeitgebers",
+    "kapitalverletzung",
+    "eingriff",
+    "uberwachungspflicht"
+   ],
+   "eval_concepts": [
+    "aktive",
+    "fursorgepflicht",
+    "arbeitgebers",
+    "kapitalverletzung",
+    "eingriff",
+    "begrenzen",
+    "blossen",
+    "uberwachungspflicht"
+   ],
+   "filtered_out": [
+    "begrenzen",
+    "blossen"
+   ],
+   "added": [],
+   "n_product": 6,
+   "n_eval": 8
+  },
+  {
+   "question": "fr-bail-entretien",
+   "product_concepts": [
+    "defaut",
+    "entretien",
+    "bailleur",
+    "decisions",
+    "distinguent",
+    "grave",
+    "simple",
+    "negligence"
+   ],
+   "eval_concepts": [
+    "resiliation",
+    "defaut",
+    "entretien",
+    "bailleur",
+    "jusqu",
+    "distinguent",
+    "grave",
+    "simple",
+    "negligence"
+   ],
+   "filtered_out": [
+    "resiliation",
+    "jusqu"
+   ],
+   "added": [
+    "decisions"
+   ],
+   "n_product": 8,
+   "n_eval": 9
+  },
+  {
+   "question": "it-responsabilita-medica",
+   "product_concepts": [
+    "responsabilita",
+    "medico",
+    "errore",
+    "terapeutico",
+    "obbligo",
+    "diligenza",
+    "nesso",
+    "causale"
+   ],
+   "eval_concepts": [
+    "responsabilita",
+    "medico",
+    "errore",
+    "terapeutico",
+    "quale",
+    "obbligo",
+    "diligenza",
+    "nesso",
+    "causale",
+    "devono",
+    "essere",
+    "dimostrati",
+    "escludono"
+   ],
+   "filtered_out": [
+    "quale",
+    "devono",
+    "essere",
+    "dimostrati",
+    "escludono"
+   ],
+   "added": [],
+   "n_product": 8,
+   "n_eval": 13
+  }
+ ],
+ "active_blindspot_cells": [],
+ "counterfactual_cells": [
+  {
+   "question": "de-kapitalverletzung",
+   "target_concept": "begrenzen",
+   "served_row_count": 1,
+   "rows_removed": 1,
+   "rows_kept": 213,
+   "product_concepts_on_counterfactual": [
+    "aktive",
+    "fursorgepflicht",
+    "arbeitgebers",
+    "kapitalverletzung",
+    "eingriff",
+    "uberwachungspflicht"
+   ],
+   "product_under_covered_on_counterfactual": [
+    "kapitalverletzung",
+    "uberwachungspflicht"
+   ],
+   "eval_side_count_on_counterfactual": 0,
+   "blind_spot_proven_on_cell": true
+  },
+  {
+   "question": "fr-bail-entretien",
+   "target_concept": "jusqu",
+   "served_row_count": 21,
+   "rows_removed": 21,
+   "rows_kept": 196,
+   "product_concepts_on_counterfactual": [
+    "defaut",
+    "entretien",
+    "bailleur",
+    "decisions",
+    "distinguent",
+    "grave",
+    "simple",
+    "negligence"
+   ],
+   "product_under_covered_on_counterfactual": [],
+   "eval_side_count_on_counterfactual": 0,
+   "blind_spot_proven_on_cell": true
+  },
+  {
+   "question": "it-responsabilita-medica",
+   "target_concept": "escludono",
+   "served_row_count": 3,
+   "rows_removed": 3,
+   "rows_kept": 208,
+   "product_concepts_on_counterfactual": [
+    "responsabilita",
+    "medico",
+    "errore",
+    "terapeutico",
+    "obbligo",
+    "diligenza",
+    "nesso",
+    "causale"
+   ],
+   "product_under_covered_on_counterfactual": [],
+   "eval_side_count_on_counterfactual": 0,
+   "blind_spot_proven_on_cell": true
+  }
+ ],
+ "any_blind_spot_active": false,
+ "counterfactual_proven": true,
+ "publishes_beside_frontier": "the accepted DIVERGENCE_HEADLINE of delivered cycle 39180276526 (results/evaluation/frontier_recall_handoff/39180276526.json) is the naming of the concept-count divergence; this record is the MATERIALITY verdict on that divergence and never replaces it",
+ "claim_ceiling": "verdict vocabulary is BLIND_SPOT_ACTIVE / BLIND_SPOT_LATENT_COUNTERFACTUAL_PROVEN / NO_BLIND_SPOT / ENVIRONMENT. This instrument decides ONE thing: whether the product's stoplist-filtered concept extraction creates a structural blind spot in the query_concepts_under_covered disclosure. It does NOT re-score any frozen bar, does NOT re-execute the Item-2 handoff consumption (accepted at 39177046762), does NOT re-dispatch or re-score any Frontier charter, does NOT change any packet byte or admission record, does NOT meet any absolute LABEL_SOUND / GEOMETRY_SOUND bar, does NOT unblock the human gate (both accepted DO-NOT-SERVE orders stand), and authorises no owner question (owner_decision_required stays false).",
+ "human_gate_ready": false,
+ "owner_decision_required": false
+}
