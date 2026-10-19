@@ -1,0 +1,180 @@
+{
+  "gate": "BLOCKED",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    {
+      "id": "R1",
+      "severity": "blocking",
+      "actor": "factory director / workflow owner",
+      "defect": "RECURRING DISPATCH PATHOLOGY. The charter reached its terminal outcome OUTCOME_B_BOUNDED_NEGATIVE at run 39178441123 (audit gate PASS) and was audited PASS again at 39181670816, whose integration constraint read 'Do NOT dispatch another Frontier producer cycle for this team'. Eight post-outcome dispatches have followed (recomputed from the public Actions API): 39178978102 failure at audit step 'Validate and persist audit', 39179862363 failure at team step 'Enforce team scope', 39180403192 failure at 'Execute Frontier charter' (launcher LEX_ZERO_DELTA_REPAIR exit 67), 39181469609 failure at 'Execute Frontier charter' (same guard), 39181670816 SUCCESS (audit PASS, F1-F5), 39182826179 failure at team step 'Validate Frontier producer delta and state' (exit 67, never audited), 39184014244 failure at the same step (never audited), 39186013380 this cycle (first auditable since PASS; only artifact does not run). Six of the eight concluded failure, four of them inside the two complementary halves of the same zero-delta guard, and only two ever reached an audit. state/frontier/frontier-query-concept-recall.json still reads cycle_status=COMPLETE, continue_recommended=false, closure.closed=true while state/frontier_portfolio.json in BOTH the mounted control plane and origin/main still reads status=RUN, run_history=[], continue_recommended=true.",
+      "repair": "End the dispatch: either apply the packaged handoff results/frontier/frontier-query-concept-recall/portfolio_status_handoff.json (portfolio entry status RUN -> PAUSE or TERMINATED; the file's own --check currently returns stale:false, VALID, exit 0), or make the frontier-team.yml:58 dispatch selector and the zero-delta guard honour a verified terminal closure. Do not re-dispatch this team under this charter.",
+      "why_not_self_repairable": "state/frontier_portfolio.json is outside the Frontier scope guard (frontier-team.yml:161) and inside the director's; charter acceptance test (9) forbids this team to write it. Every remaining action in the loop requires an external actor."
+    },
+    {
+      "id": "R2",
+      "severity": "blocking",
+      "actor": "workflow owner (maintenance context, not a producer cycle under this charter)",
+      "defect": "F1 + F2: the cycle's only new artifact frontier/frontier-query-concept-recall/zero_delta_fix.py does not compile (SyntaxError, line 355 opened '{' closed ')' at line 366), and after a one-character scratch repair it exits 1 with an emitted patch that is destructive: _insert_base_echo (line 171) omits the trailing newline and merges the injected 'echo LEX_BASE_HEAD=...' into '- name: Mount accepted evidence' (deleting that step and appending junk to $GITHUB_ENV), while _replace_condition (line 177) computes the line number from double-newline-joined keepends text and therefore replaces the workflow's LAST line instead of the zero-delta predicate at frontier-team.yml:144, leaving a dangling 'if' with no 'fi'. validate_patch (211-252) never asserts that the target predicate was touched.",
+      "repair": "Before this module is run or its patch applied anywhere: fix the syntax error; add the missing newline in _insert_base_echo; make _replace_condition index against the keepends-free line list; add a validate_patch assertion that frontier-team.yml:144's condition is present in the added payload; and add a test that EXECUTES the emitted patch against a workflow copy and asserts that the 'Mount accepted evidence' step, the 'exit 67' line, the ::error message and the scope-guard line all survive.",
+      "why_not_self_repairable": "The repair is technically in-scope, but issuing REVISE would dispatch repair_round=1, i.e. a ninth post-outcome producer cycle under a charter whose stop rule forbids continuing and whose rules are frozen. Per the workflow instruction, recurring repair pathology must become BLOCKED rather than infinite REVISE. The repair belongs to a maintenance context outside this charter."
+    },
+    {
+      "id": "R3",
+      "severity": "medium",
+      "actor": "whoever next touches the shipped test suites (maintenance)",
+      "defect": "F4: running tests/frontier/frontier-query-concept-recall/test_closeout_handoff.py rewrites the COMMITTED file results/frontier/frontier-query-concept-recall/portfolio_status_handoff.json in the worktree (auditor observed run_id 1792374309 -> 1792376301, git.head a1367ca -> d58dc78, branch operational-resume -> HEAD, n_commits_visible 2 -> 1689), contradicting the suite's own docstring that nothing writes outside a temporary directory and silently defeating the handoff's own staleness detector. Introduced by cycle 39184014244. The auditor restored the file and verified the worktree clean.",
+      "repair": "Point the test at a temp output directory; assert against a copy."
+    },
+    {
+      "id": "R4",
+      "severity": "medium",
+      "actor": "Core Product (factory-wide requirement 21)",
+      "defect": "The OUTCOME_B integration contract still carries product_decision_required=true and silent_non_consumption_not_permitted=true with no adoption-or-decline decision recorded; the admission-disclosure half of the original finding remains open with Product.",
+      "repair": "Record adoption or decline on results/frontier/frontier-query-concept-recall/integration_contract_39179862363.json. This is unaffected by BLOCKED and is not a reason to re-dispatch the team."
+    }
+  ],
+  "claim_ceiling": "No artifact may assert that a map helps a jurist, that any authority is absent from the corpus, that any frozen bar is met or moved, or that any packet is fit to serve. Usefulness remains the human product gate's question and admission remains fail-closed. Concept-coverage counts are lexical coverage of a retrieved set, not a legal conclusion, and a zero count is a retrieval signal, not proof of corpus absence.",
+  "evidence_summary": {
+    "cycle_under_audit": {
+      "run_id": 39186013380,
+      "team_id": "frontier-query-concept-recall",
+      "charter_version": 1,
+      "direction_version": 57,
+      "producer_head": "d58dc78b2b483aa3e35e32c0a5fdaa1fb18e32e2",
+      "auditor_base": "c242127 (accept Frontier frontier-query-concept-recall 39181670816)",
+      "files_changed_by_this_cycle": [
+        "A frontier/frontier-query-concept-recall/zero_delta_fix.py (506 lines)",
+        "M results/frontier/frontier-query-concept-recall/portfolio_status_handoff.json (volatile fields + team_state sha256)"
+      ],
+      "claim_bearing_numbers_changed": false,
+      "network_calls": 0,
+      "no_producer_cycle_report_or_state_entry": "no file in the tree contains '39186013380'; state run_history still ends at github-39184014244 and the state file was not touched"
+    },
+    "smoke_test_of_produced_component": {
+      "as_shipped": "FAILS TO COMPILE. `PYTHONDONTWRITEBYTECODE=1 python3 frontier/frontier-query-concept-recall/zero_delta_fix.py --out <dir>` -> SyntaxError line 366 ('}' written as ')' for the EXPECTED dict opened at line 355), exit 1. No zero_delta_fix.json, no patch, no discrimination record, no github_untouched proof exists anywhere. py_compile over every frontier/** and tests/** file fails on exactly this one file. No test file for it.",
+      "after_one_character_scratch_repair": "RUNS AND EXITS 1. patch_valid=false with errors ['patch does not keep exit 67','patch does not keep the ::error zero-delta message']; github_untouched=true; discrimination.all_pass=true (5/5).",
+      "emitted_patch_is_destructive": "hunk 1 merges 'echo \"LEX_BASE_HEAD=$(git rev-parse HEAD)\" >> \"$GITHUB_ENV\"' with the following '- name: Mount accepted evidence' line (no newline injected by _insert_base_echo line 171 against keepends=True input), deleting that step and appending extra echo arguments into $GITHUB_ENV; hunk 2 replaces the LAST line of frontier-team.yml instead of the zero-delta predicate at line 144 (_replace_condition line 177 joins keepends lines with an extra newline, doubling line numbers), leaving a dangling 'if { ... }; then' with no 'fi'.",
+      "what_is_sound": "The diagnosis and the proposed CONDITION are correct: CURRENT_PREDICATE_MARKER matches frontier-team.yml:144 verbatim and exactly once; exit 67 block at 145-146; run-ox-with-retry.sh:163 START_HEAD and :216 LEX_ZERO_DELTA_REPAIR; LEX_REQUIRE_DELTA=1 exported unconditionally at frontier-team.yml:122. The 5-scenario bash discrimination demo passes: producer_self_commit (shipped ZERO_DELTA / proposed DELTA = defect reproduced and fixed), true_zero_delta (ZERO_DELTA/ZERO_DELTA = not weakened), uncommitted_work and staged_only_work (DELTA/DELTA), missing_base (ZERO_DELTA/ZERO_DELTA = fail-safe).",
+      "verdict": "The cycle ships no runnable component and nothing to integrate; its underlying control-plane diagnosis is real and is credited in full."
+    },
+    "charter_contract_reexecution_by_auditor": {
+      "mount": "workflow mount absent, so the auditor mounted the charter's own fallback: shallow clones of origin/lab/product @ e21eac3 and origin/lab/evaluation @ 3fb5ffd into /tmp/lex_accepted/core/{product,evaluation}; all runs offline",
+      "anchors_rehashed": {
+        "packet.json": "2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170 == charter",
+        "frozen_retrieval_benchmark.json": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72 == charter",
+        "FREEZE_RECORD.json": "b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49 == charter",
+        "RULES.json": "c5447bac0605a8bcf8c3d1820bee56a5bb0e814365978ec1fa12ac189776ee9a in both canonical copies"
+      },
+      "test_2_baseline_reproduced": "de-kapitalverletzung 214 rows, kapitalverletzung 0, uberwachungspflicht 0; fr-bail-entretien 217 rows / 0 under-covered; it-responsabilita-medica 211 rows / 0 under-covered; every field reproduces_accepted.ALL=true",
+      "test_3_runnable_harness": "PASS for the in-scope entry points: run_harness.py --offline exit 0 (verdict OUTCOME_B_BOUNDED_NEGATIVE, accepted_baseline_reproduced=true); cli_entry.py --bundle <one served bundle> --offline exit 0, disclosing served_questions_completed_from_pinned_readonly_mount=[fr-bail-entretien, it-responsabilita-medica]. The charter-named `python -m frontier_query_concept_recall.cli --bundle <one> --out <dir>` STILL raises KeyError 'fr-bail-entretien' at cli.py:418 - the preserved negative R4 inside the accepted, already-audited package, not a regression.",
+      "test_4_head_to_head": "12/12 recall cells reproduces_accepted=true; the six failing fr/it cells still 0.0 (corporate-criminal-liability, business-judgment-rule, petty-theft-dismissal x fr/it); de cells 1.0 / 0.4 / 0.5; rent-default not measurable (null), as accepted",
+      "test_6_no_regression": "regressed_gates=[]; counter::known_counter_recall_per_slug true x4, source::rows_valid_per_slug true x4, transport::all_queries_ok true, duplicate::unique_ids_per_slug false x4 - identical to the accepted per-slug state. Latency breach still disclosed, not laundered: n_searches=15, n_cache_hits_this_run=15, n_network_calls_this_run=0, n_calls_over_per_search_budget=10, max 83.505 s, original sum 600.569 s, full_pass_holds=true.",
+      "test_7_regression_suite": "8/8 true, network_calls=0 (decision_count_bounds, dedup_invariant, determinism, inputs_and_offline, metric_sensitivity_non_vacuity, no_silent_drop, provenance_additive, query_result_bundle_contract)",
+      "unit_tests": "37 passed, 12 skipped (tests/frontier/frontier-query-concept-recall)",
+      "handoff_check": "closeout_handoff.py --check -> stale:false, verdict VALID, portfolio_status_now=RUN, already_applied:false, exit 0",
+      "test_1_freeze_integrity": "RULES blob 408f6ad2 identical at ff5933f1 (2026-10-18T21:25:57Z) and HEAD; first measurement commit 6c7b8a7 at 2026-10-18T22:07:18Z strictly later; no threshold edit after numbers seen",
+      "test_9_zero_out_of_scope_writes": "SATISFIED for this cycle: both changed paths are inside frontier/$TEAM/* and results/frontier/$TEAM/* per frontier-team.yml:161; nothing under product/, evaluation/, results/product/, results/evaluation/, state/, directives/, .github/ or product/static/; .github bytes untouched (workflow sha256 identical before/after the scratch run); state/frontier/frontier-query-concept-recall.json still records charter_version, direction_version, cycle_status, evidence_tier and run_history (it was simply not advanced for this run)"
+    },
+    "auditor_independent_recomputation": {
+      "fresh_replay_identity": "fresh offline harness run compared leaf-by-leaf against published harness_results_39179862363.json: 3037 leaves, exactly 2 differing values (generated_at, run_id) plus the resume_provenance block that the publication step adds and the harness never writes; 0 claim-bearing differences",
+      "accepted_package_untouched": "git diff --stat c242127 HEAD on frontier/frontier_query_concept_recall/ and results/frontier/frontier-query-concept-recall/harness_results*.json is empty",
+      "input_integrity": "10/10 declared pins re-hash match:true",
+      "freeze_ordering": "recomputed from real commit times and blob identity, not read from the record",
+      "latency_breach": "recomputed from the record: 15 searches, 15 cache hits, 0 network, 10 over 30 s, max 83.505 s, sum 600.569 s - matches the disclosure exactly",
+      "handoff_staleness_repair": "cycle 39184014244 committed a handoff recording team_state sha ab18e046... while the state file committed in the SAME commit hashes 67e49c68...; this cycle's regeneration records 67e49c68... and --check now returns VALID. A real, if tiny, repair."
+    },
+    "control_plane_corroboration_from_public_actions_api": {
+      "method": "unauthenticated https://api.github.com/repos/Mickalive/LexMachina/actions/runs/<id>/jobs (no token required for this public repo); job logs themselves are 403 without admin rights and were not used",
+      "run_39182826179": "team job FAILURE; 'Execute Frontier charter' success, 'Validate Frontier producer delta and state' FAILURE (the only failing step), 'Enforce team scope' skipped, 'Persist team snapshot' success; audit job skipped; resilience job success (re-dispatch). Team branch exists on the remote, audit branch does not.",
+      "run_39184014244": "identical shape: charter step success, validation step FAILURE, audit skipped, resilience success; team branch present, audit branch absent.",
+      "why_exit_67_is_the_only_branch": "the state file committed at 1d59f84 and a1367ca reads charter_version=1, cycle_status=COMPLETE, evidence_tier=REPRODUCED, so the step's exit 68/69 branches are excluded and only the zero-delta exit 67 remains",
+      "run_39186013380": "team job SUCCESS through 'Persist team snapshot' (the producer left zero_delta_fix.py uncommitted at validation time, so the worktree was dirty and the guard passed); audit job in progress (this audit)",
+      "control_plane_still_run": "/tmp/lex_control/state/frontier_portfolio.json and origin/main both read status=RUN, run_history=[], continue_recommended=true, created_at=2026-10-18T18:07:04Z for this team - the director's write has never happened",
+      "conclusion": "the producer's claimed defect is REAL and its two named victim runs are confirmed; the producer did not invent it"
+    },
+    "post_outcome_dispatch_record": {
+      "source": "https://api.github.com/repos/Mickalive/LexMachina/actions/runs/<id> and /jobs, unauthenticated",
+      "outcome_accepted_at": "39178441123 (success, repair2, audit gate PASS)",
+      "dispatches_since": [
+        {"run": 39178978102, "conclusion": "failure", "failing_step": "audit: Validate and persist audit", "audited": false},
+        {"run": 39179862363, "conclusion": "failure", "failing_step": "team: Enforce team scope", "audited": false},
+        {"run": 39180403192, "conclusion": "failure", "failing_step": "team: Execute Frontier charter (launcher LEX_ZERO_DELTA_REPAIR exit 67)", "audited": false},
+        {"run": 39181469609, "conclusion": "failure", "failing_step": "team: Execute Frontier charter (same launcher guard)", "audited": false},
+        {"run": 39181670816, "conclusion": "success", "failing_step": null, "audited": true, "audit_gate": "PASS"},
+        {"run": 39182826179, "conclusion": "failure", "failing_step": "team: Validate Frontier producer delta and state (exit 67)", "audited": false},
+        {"run": 39184014244, "conclusion": "failure", "failing_step": "team: Validate Frontier producer delta and state (exit 67)", "audited": false},
+        {"run": 39186013380, "conclusion": "in_progress", "failing_step": null, "audited": "this audit"}
+      ],
+      "totals": "8 dispatches; 6 failure, 1 success, 1 in progress; only 2 ever reached an audit job; 4 of the 6 failures sit inside the two complementary halves of the same zero-delta guard"
+    },
+    "claim_ceiling_compliance": "CLEAN. No artifact of this cycle asserts that a map helps a jurist, that any authority is absent from the corpus, that any frozen bar is met or moved, or that any packet is fit to serve. zero_delta_fix.py carries a paraphrase of the ceiling verbatim in force and confines itself to control-plane mechanics; the harness verdict still carries acceptance_test_5_non_vacuity as UNMET_CEILINGED with an explicit claim_forbidden string; no legal, corpus-absence, bar or serve claim appears anywhere.",
+    "audit_attack_surface": {
+      "post_hoc_metric_tuning": "NONE. RULES.json blob unchanged ff5933f1 -> HEAD (408f6ad2); this cycle introduced no measurement and no threshold.",
+      "benchmark_gaming": "NONE. Frozen spec 187b0e54 and freeze record b06a2ad0 re-hashed and matched; bars and anchor sets reused read-only; published numbers sit beside accepted numbers, never in place of them.",
+      "weak_baseline": "NOT PRESENT. A0 is the shipped product query verbatim and reproduces the accepted finding exactly; the team reports its own null against an unweakened baseline.",
+      "prettiness_as_quality": "NONE. No map/layout/geometry artifact or claim.",
+      "leakage": "NONE. Replay is offline (15 cache hits, 0 network); A1/A2/A3 arms use separate new query text; the new module performs no network I/O at all.",
+      "boilerplate_confounding": "NONE. The claim ceiling appears in the module, the verdict, the integration contract, the closure record and the state file, and is honoured in each.",
+      "retracted_evidence_reuse": "NONE. The retracted 39111232991 parity claim and the withdrawn bounded cause remain marked withdrawn; bounded_cause_resolution.json untouched.",
+      "zero_cost_and_source_validity_claims": "TRUE AS STATED. network_calls=0 is recorded per expansion_provenance and in latency_budget.n_network_calls_this_run=0; the original live-call breach (10/15 over 30 s, max 83.5 s, sum 600.6 s) is disclosed rather than laundered into 'budget holds'; the frozen spec and packet anchors match the charter byte-for-byte.",
+      "scope_gaming": "NONE. Both changed paths are in scope; the module explicitly refuses to write .github/ and asserts github_untouched (re-verified by the auditor in a scratch copy)."
+    },
+    "material_findings": [
+      {
+        "id": "F1",
+        "severity": "blocking",
+        "where": "frontier/frontier-query-concept-recall/zero_delta_fix.py:355/366",
+        "finding": "The cycle's only new artifact does not compile (SyntaxError); no test, no results record, no cycle report, no state entry for run 39186013380. Zero runnable delta against an engineering charter."
+      },
+      {
+        "id": "F2",
+        "severity": "blocking",
+        "where": "zero_delta_fix.py:171 (_insert_base_echo), :177 (_replace_condition), :188, :211-252 (validate_patch)",
+        "finding": "After a one-character scratch repair the module emits a destructive patch: the LEX_BASE_HEAD echo is merged into '- name: Mount accepted evidence' (step deleted, $GITHUB_ENV polluted) and the zero-delta predicate at frontier-team.yml:144 is never touched because the line number is computed from double-newline-joined keepends text, so the workflow's last line is replaced with a dangling 'if' and no 'fi'. validate_patch never asserts the target predicate was replaced. Exit 1."
+      },
+      {
+        "id": "F3",
+        "severity": "blocking by characterisation",
+        "where": "charter acceptance test (9) + frontier-team.yml:161 + state/frontier_portfolio.json",
+        "finding": "Every remaining action is outside this team: the patch target .github/ is out of scope so the team can emit but never apply or CI-validate the fix; the loop-breaking portfolio write is a director write this team is forbidden to make and has still not happened (control plane and origin/main both still status=RUN); Product's requirement-21 adoption decision is also external."
+      },
+      {
+        "id": "F4",
+        "severity": "medium",
+        "where": "tests/frontier/frontier-query-concept-recall/test_closeout_handoff.py",
+        "finding": "Running the shipped test suite rewrites the committed results/.../portfolio_status_handoff.json; the auditor restored it and verified the worktree clean. Introduced by cycle 39184014244, not this cycle."
+      },
+      {
+        "id": "F5",
+        "severity": "low, credited",
+        "where": "results/frontier/frontier-query-concept-recall/portfolio_status_handoff.json",
+        "finding": "This cycle's only substantive repair: the previous handoff recorded a team_state sha256 (ab18e046...) that did not match the state file committed alongside it (67e49c68...); the regenerated handoff matches and --check returns VALID."
+      },
+      {
+        "id": "F6",
+        "severity": "context, pre-existing",
+        "where": "frontier/frontier_query_concept_recall/loader.py (accepted package)",
+        "finding": "Mount-dependent entry points raise an unhandled FileNotFoundError when /tmp/lex_accepted is absent (already-open F1 from audit 39181670816, unchanged). With the charter's documented fallback mount installed, both ran to completion."
+      }
+    ],
+    "gate_rationale": "BLOCKED, not PASS and not REVISE. NOT PASS: the cycle's entire durable delta is a file that does not compile, with no test, no record, no report and no state entry, so there is no runnable component to smoke-test successfully and nothing to integrate (safe_to_integrate=false). NOT REVISE: although F1 and F2 are individually concrete and small, a REVISE makes the integrate job dispatch repair_round=1, a NINTH post-outcome producer cycle under a charter whose stop rule says 'PROMOTE at the FIRST outcome reached; the charter ends there and MUST NOT continue', whose state already reads cycle_status=COMPLETE with continue_recommended=false and closure.closed=true, and about which the previously accepted audit wrote an explicit 'Do NOT dispatch another Frontier producer cycle for this team'; with RULES.json frozen since before the first measurement, such a cycle could only re-verify or (forbidden) tune. That is repetitive by construction, which is the workflow instruction's definition of when repair pathology must become BLOCKED rather than infinite REVISE. The pathology is also empirically recurrent: eight post-outcome dispatches, six of which concluded failure (four of them inside the two complementary halves of the same zero-delta guard) and only two of which ever reached an audit, plus the class 'shipped code does not run under audit' now recurring for the fourth time (R4 KeyError, verify.py fabricated finding, closure/run_harness FileNotFoundError, this cycle's SyntaxError). BLOCKED does not retract anything: the accepted OUTCOME_B evidence, both PASS gates, the baseline reproduction, the six zero-recall fr/it cells, the disclosed latency breach and regressed_gates=[] all re-derive exactly under an independent fresh replay (3037 leaves, 0 claim-bearing differences), and the underlying control-plane defect the producer reports is TRUE and independently corroborated from the public Actions API. BLOCKED here means 'stop dispatching this team under this charter'; the integrator will record state/blockers/frontier/frontier-query-concept-recall.json with reason=AUDIT_BLOCKED and requires_human=false, which finally terminates the loop without asking an owner to babysit it, while the packaged director handoff and F2's advisory patch stay in the tree for their respective external actors.",
+    "outcome": "OUTCOME_B_BOUNDED_NEGATIVE - unchanged, valid, still accepted; no measurement claim added or altered by cycle 39186013380",
+    "bounded_cause_of_record": "MEASURED CAUSE, CEILINGED TO THIS LAYER AS BUILT: the layer never asked about the gap. On de-kapitalverletzung it mined ZERO corpus vocabulary for both under-covered concepts (kapitalverletzung, uberwachungspflicht); its added queries are bare mined-term lists, and across all measurable (leg, language) cells the candidate-only channel recovered 0 of 9 missing frozen authority ids. A retrieval miss is a retrieval signal, not proof that any authority or concept is absent from the corpus.",
+    "audit_reproduction_commands": [
+      "cd /tmp/lex_team && PYTHONDONTWRITEBYTECODE=1 python3 frontier/frontier-query-concept-recall/zero_delta_fix.py --out /tmp/opencode/zdf   # SyntaxError, exit 1",
+      "cd /tmp/lex_team && python3 - <<'PY'   # writes nothing; `python -m py_compile` would drop __pycache__/*.pyc into the worktree and trip the scope guard\nimport ast, pathlib\nfor p in sorted(pathlib.Path('.').glob('frontier/**/*.py'))+sorted(pathlib.Path('.').glob('tests/**/*.py')):\n    try: ast.parse(p.read_text(), filename=str(p))\n    except SyntaxError as e: print('SYNTAX_FAIL', p, e.lineno, e.msg)\nPY",
+      "curl -s https://api.github.com/repos/Mickalive/LexMachina/actions/runs/39182826179/jobs | jq -r '.jobs[]|\"\\(.name) \\(.conclusion)\",(.steps[]|\"   \\(.name) -> \\(.conclusion)\")'",
+      "curl -s https://api.github.com/repos/Mickalive/LexMachina/actions/runs/39184014244/jobs | jq -r '.jobs[]|\"\\(.name) \\(.conclusion)\",(.steps[]|\"   \\(.name) -> \\(.conclusion)\")'",
+      "cd /tmp/lex_team && git ls-remote origin 'refs/heads/cycle/frontier/frontier-query-concept-recall/*' | sort -k2",
+      "sha256sum /tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/packet.json",
+      "sha256sum /tmp/lex_accepted/core/evaluation/evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
+      "cd /tmp/lex_team && git rev-parse ff5933f1:frontier/frontier_query_concept_recall/RULES.json HEAD:frontier/frontier_query_concept_recall/RULES.json",
+      "cd /tmp/lex_team && git diff --stat c242127 HEAD -- results/frontier/frontier-query-concept-recall/harness_results*.json frontier/frontier_query_concept_recall/",
+      "cd /tmp/lex_team && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=frontier python3 frontier/frontier-query-concept-recall/run_harness.py --out /tmp/opencode/rh --offline",
+      "cd /tmp/lex_team && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=frontier python3 -m frontier_query_concept_recall.regression_suite --out /tmp/opencode/regsuite",
+      "cd /tmp/lex_team && PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/frontier/frontier-query-concept-recall -q",
+      "cd /tmp/lex_team && PYTHONDONTWRITEBYTECODE=1 python3 frontier/frontier-query-concept-recall/closeout_handoff.py --out results/frontier/frontier-query-concept-recall --check",
+      "jq -c '.teams[]|select(.team_id==\"frontier-query-concept-recall\")|{status,run_history:(.run_history|length),continue_recommended}' /tmp/lex_control/state/frontier_portfolio.json"
+    ]
+  }
+}
