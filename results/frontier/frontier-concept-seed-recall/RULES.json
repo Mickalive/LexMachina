@@ -1,0 +1,960 @@
+{
+ "acceptance_tests_1_to_9": {
+  "1_freeze_first": "this file is committed before any search; ordering is demonstrated from real git commit times, and a hand-written frozen_at_utc is NOT evidence",
+  "2_reproduce_first": "the accepted coverage finding and the accepted OUTCOME_B headline numbers are reproduced BEFORE any new measurement; a non-reproduction is the headline and ends the run as a bounded negative",
+  "3_runnable_offline_harness": "the harness emits per-bundle rows_per_concept, under_covered and frozen-authority recall per language in the accepted record shape, so accepted and new numbers publish in ONE side-by-side table",
+  "4_head_to_head": "A0 and A1 in the same run on identical inputs, same endpoint parameters, same top_k, same cache, published beside the accepted benchmark cells",
+  "5_non_vacuity_proven": "A2 blanked reproduces A0 exactly; A3 rotated does not raise coverage on its target; neither is asserted, both are measured",
+  "6_no_frozen_regression": "read-only re-scoring of the accepted frozen gates",
+  "7_regression_suite": "pins per-bundle decision-count bounds, dedup behaviour, provenance channel fields, every query_result_bundle contract field, and the invariant that no decision is dropped, duplicated or re-ranked out of existence by the additive arm",
+  "8_integration_contract": "see integration_contract_<run>.json",
+  "9_write_scope": "nothing under product/, evaluation/, results/product/, results/evaluation/, state/, directives/, .github/ or product/static/"
+ },
+ "amendment_discipline": "Amendments are declared here, in the committed file, with what/why/direction, and are visible in git history. After the first candidate outcome number exists, no further amendment of any kind is permitted: the run stops at its first outcome and post-hoc tuning invalidates it.",
+ "amendments": [
+  {
+   "direction": "affects ONLY the concept-seeded variant strings, never the A0 baseline, the coverage metric, the recall metric, any threshold and no frozen accepted file",
+   "id": "A1-morphology-rule-tables",
+   "what": "the German, French and Italian plural rules were replaced with declared per-language rule tables (-ung/-heit/-keit/-schaft/-pflicht take -en; -al takes -aux; -eau takes -x; an already s/x/z-final French surface is idempotent with its singular emitted separately; Italian -o drops the -o and takes -i, -a takes -e, -e drops the -e and takes -i)",
+   "when": "during the offline dry run, before this file was committed and before any search was issued",
+   "why": "the first rule set emitted non-words ('Kapitalverletzungn', 'Uberwachungspflichte', 'prouveeses', 'furtoe', 'astienee'). Emitting non-words into the query string would have measured the team's own generator rather than the hypothesis, and attributing that to the corpus would be the dishonest outcome rather than the honest negative"
+  }
+ ],
+ "arms": {
+  "A0_baseline_shipped": "the accepted baseline verbatim, byte-reused from accepted artefacts; never re-queried for a claim-bearing number",
+  "A1_natural_language_concept_seeded": "A0 plus, per target unit, ONE additional OpenCaseLaw search per under-covered concept (cap 2), with the frozen NLCS-1 variant string and endpoint parameters identical to A0 except for the query string",
+  "A2_blanked_control": "the same harness with an EMPTY variant string set; MUST reproduce A0 exactly -- every coverage count, every recall number and every row count. This charter does NOT inherit the predecessor's tie=>void clause: a tie between blanked and candidate is a BOUNDED NEGATIVE result, not a void and not a reason to re-run.",
+  "A3_rotated_control": "unit i seeded with unit j's frozen variant strings, where j is the next unit in the sorted unit order (wrapping); MUST NOT raise coverage or recall on unit i",
+  "A4_corpus_presence_diagnostic": "AUXILIARY DIAGNOSTIC, NOT A CANDIDATE ARM. One bare-concept search per served under-covered concept, to separate a query-format gap from a corpus-side gap. Its numbers are NEVER eligible for OUTCOME_A, are never an adoptable arm and are never presented as a candidate result. It exists because the charter calls a zero-row natural-language result load-bearing only if the corpus-side alternative is also measured."
+ },
+ "charter_version": 1,
+ "claim_ceiling": "No artifact may assert that a map helps a jurist, that any authority is absent from the corpus, that any frozen bar is met or moved, or that any packet is fit to serve. Usefulness remains the human product gate's question and admission remains fail-closed. Concept-coverage counts are lexical coverage of a retrieved set, not a legal conclusion; a zero count is a retrieval signal, not proof of corpus absence. A zero-row natural-language concept-seeded search means: 'a natural-language search for the missing concept returned no rows - a retrieval signal, not proof of corpus absence'. Product decides adoption or decline under factory-wide requirement 21 and records the decision; silent non-consumption is not permitted.",
+ "definitions": {
+  "authority_id_set": "frozen.question_by_slug(spec)[slug]['authority_ids'] from frozen_retrieval_benchmark.json, sha256 187b0e54..., never regenerated.",
+  "authority_recall": "DELEGATED byte-identical to evaluation.retrieval_gate.gates.match_authorities(authority_ids, rows, min_len=6) over the frozen authority_ids of frozen_retrieval_benchmark.json; recall = hits / len(authority_ids); a cell with authority_ids == [] is NOT MEASURABLE and is never counted as a pass. Per-language cells score the rows of that language's own query pool; the union cell scores all rows.",
+  "concept_extraction": "DELEGATED byte-identical to evaluation.subject_match_audit.question_concepts: de-accented, lowercased, alnum-split tokens of the question text with len >= 5 and the frozen generic stoplist removed; order preserved; de-duplicated; UNCAPPED. This harness re-implements nothing.",
+  "frozen_leg_row_coverage": "DECLARED for this run, in the accepted permissive direction: text = deaccent(decision_id + citation_string_de + citation_string_fr + citation_string_it + text_head).lower(); a concept is COVERED iff >= 1 row's text contains it as a substring. Frozen-leg search rows carry no title/regeste/snippet/full_text, so the accepted field set cannot be used; this substitution is declared before measurement and is never adjusted afterwards. It is used ONLY to pick the concept seeds, never to report a served-bundle coverage number.",
+  "pools": {
+   "A0_baseline_shipped": "served: the accepted bundle's own decisions, byte-reused from the accepted mount; frozen legs: the accepted benchmark record's own cached channel=='baseline' rows for (slug, language), byte-reused.",
+   "A1_candidate_only": "the frozen variant's rows alone (secondary).",
+   "A1_union": "A0 rows plus the variant rows, deduplicated by canonical_decision_id then decision_id -- the product's own identity order; the headline cell number."
+  },
+  "served_row_coverage": "DELEGATED byte-identical to evaluation.subject_match_audit.build_coverage: text = deaccent(row_match_text(row)).lower(); a concept is COVERED iff >= 1 row's text contains it as a substring. Substring containment can only over-report coverage, which is the conservative direction. concepts_with_zero_rows is the under-covered set. UNCHANGED from the accepted definition."
+ },
+ "direction_version": null,
+ "freeze_discipline": "Committed before any search. Ordering is demonstrated from git commit times, not from a hand-written timestamp. Any edit after the first candidate result exists invalidates the run and must be declared as an amendment with what, why and direction. The run stops at its FIRST outcome; there is no threshold, phrasing or prompt tuning afterwards.",
+ "frozen_missing_authority_ids": [
+  "bge_BGE_142_IV_333",
+  "bger_4A_177_2017",
+  "bger_4A_219_2015",
+  "bger_4A_228_2015",
+  "bger_4A_259_2016",
+  "bger_4A_603_2014",
+  "bger_4A_626_2013",
+  "bger_4A_62_2024",
+  "bger_6B_124_2016"
+ ],
+ "hypothesis": "Yes, plausibly, because the accepted bounded cause of the CLOSED frontier-query-concept-recall layer indicts the QUERY FORMAT, not the concept choice: that layer issued bare mined-term lists with no natural-language question text and returned 0 rows on de-kapitalverletzung, whereas the identical endpoint answers every accepted full-sentence baseline query with 50/50 rows. A full-sentence variant that says what the question asks and names the missing concept as phrased text is the untested input the accepted cause names. A bounded negative is an acceptable and expected outcome wherever the corpus genuinely lacks the concept; a zero-row result is itself load-bearing evidence separating a query-format gap from a corpus-side gap.",
+ "inputs": {
+  "accepted_benchmark_record": {
+   "path": "/tmp/lex_accepted/core/evaluation/results/evaluation/retrieval_benchmark/39117425713.json",
+   "run_id": 39117425713,
+   "sha256": "f976d53a2b8481db42bb1d0dde5f673b1b5bd5284d2b6c5fe6dcc3115cdebd75"
+  },
+  "accepted_question_native_coverage": {
+   "path": "/tmp/lex_accepted/core/evaluation/results/evaluation/subject_match_audit/39113690481.json",
+   "run_id": 39113690481,
+   "sha256": "0adb78762e91090670728cf1441b75f14719a6066eb0a8ca8bfdf90a83845f61"
+  },
+  "digests": {
+   "FREEZE_RECORD.json": {
+    "expected_sha256": "b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49",
+    "match": true,
+    "path": "/tmp/lex_accepted/core/evaluation/evaluation/retrieval_gate/FREEZE_RECORD.json",
+    "present": true,
+    "sha256": "b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49"
+   },
+   "concept_coverage.py": {
+    "expected_sha256": "ad4d768da915d7ddbfdb1ef2c11df1092316aca91760a51cf5ce296adad0f64d",
+    "match": true,
+    "path": "/tmp/lex_accepted/core/product/product/query/concept_coverage.py",
+    "present": true,
+    "sha256": "ad4d768da915d7ddbfdb1ef2c11df1092316aca91760a51cf5ce296adad0f64d"
+   },
+   "de-kapitalverletzung.bundle.json": {
+    "expected_sha256": "c4005d4b78553b0aebd92bba59001c87a376146873f807d575255a4f721dd7f2",
+    "match": true,
+    "path": "/tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/questions/de-kapitalverletzung.bundle.json",
+    "present": true,
+    "sha256": "c4005d4b78553b0aebd92bba59001c87a376146873f807d575255a4f721dd7f2"
+   },
+   "de-kapitalverletzung.question.json": {
+    "expected_sha256": null,
+    "match": null,
+    "path": "/tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/questions/de-kapitalverletzung.question.json",
+    "present": true,
+    "sha256": "7a8fe2cf982b6acfedb2f3923c0b06ffacfbae832bb2ee7ddf8f131825f04e63"
+   },
+   "fr-bail-entretien.bundle.json": {
+    "expected_sha256": "0b3a224e3493479bc84628531eb7c56cac7dcfa978b29afbfc1305cb52574517",
+    "match": true,
+    "path": "/tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/questions/fr-bail-entretien.bundle.json",
+    "present": true,
+    "sha256": "0b3a224e3493479bc84628531eb7c56cac7dcfa978b29afbfc1305cb52574517"
+   },
+   "fr-bail-entretien.question.json": {
+    "expected_sha256": null,
+    "match": null,
+    "path": "/tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/questions/fr-bail-entretien.question.json",
+    "present": true,
+    "sha256": "4efd36295786721520c680543970363d879559b62b9cab588f129f5eac925297"
+   },
+   "frozen_retrieval_benchmark.json": {
+    "expected_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "match": true,
+    "path": "/tmp/lex_accepted/core/evaluation/evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
+    "present": true,
+    "sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72"
+   },
+   "gates.py": {
+    "expected_sha256": null,
+    "match": null,
+    "path": "/tmp/lex_accepted/core/evaluation/evaluation/retrieval_gate/gates.py",
+    "present": true,
+    "sha256": "f9bbbc7d61c927e9b687cfbcf140371d08fa6069509b0a1b6466d514ea37a6d9"
+   },
+   "it-responsabilita-medica.bundle.json": {
+    "expected_sha256": "6b43341242b5e1d4c305dcf29f12428541ceedc0b6cc89b5f2c8ae8d634f82b4",
+    "match": true,
+    "path": "/tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/questions/it-responsabilita-medica.bundle.json",
+    "present": true,
+    "sha256": "6b43341242b5e1d4c305dcf29f12428541ceedc0b6cc89b5f2c8ae8d634f82b4"
+   },
+   "it-responsabilita-medica.question.json": {
+    "expected_sha256": null,
+    "match": null,
+    "path": "/tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/questions/it-responsabilita-medica.question.json",
+    "present": true,
+    "sha256": "c7f7188977dd43a34e2bc0ddfa3f5a55a774cf9c757568b78acdb8010d40eb1a"
+   },
+   "retrieval_benchmark/39117425713.json": {
+    "expected_sha256": "f976d53a2b8481db42bb1d0dde5f673b1b5bd5284d2b6c5fe6dcc3115cdebd75",
+    "match": true,
+    "path": "/tmp/lex_accepted/core/evaluation/results/evaluation/retrieval_benchmark/39117425713.json",
+    "present": true,
+    "sha256": "f976d53a2b8481db42bb1d0dde5f673b1b5bd5284d2b6c5fe6dcc3115cdebd75"
+   },
+   "subject_match_audit.py": {
+    "expected_sha256": null,
+    "match": null,
+    "path": "/tmp/lex_accepted/core/evaluation/evaluation/subject_match_audit.py",
+    "present": true,
+    "sha256": "c207fd819ae4605de704d2cdc4a30254f39a9840994a2e43ea4ef10fb5656342"
+   },
+   "subject_match_audit/39113690481.json": {
+    "expected_sha256": "0adb78762e91090670728cf1441b75f14719a6066eb0a8ca8bfdf90a83845f61",
+    "match": true,
+    "path": "/tmp/lex_accepted/core/evaluation/results/evaluation/subject_match_audit/39113690481.json",
+    "present": true,
+    "sha256": "0adb78762e91090670728cf1441b75f14719a6066eb0a8ca8bfdf90a83845f61"
+   }
+  },
+  "freeze_record_sha256": "b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49",
+  "frozen_retrieval_spec_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+  "read_only_mounts": {
+   "evaluation": "/tmp/lex_accepted/core/evaluation",
+   "product": "/tmp/lex_accepted/core/product"
+  }
+ },
+ "latency_budget": {
+  "full_live_pass_seconds": 240.0,
+  "min_interval_seconds": 0.4,
+  "per_search_seconds": 30.0
+ },
+ "n_targeted_units": 7,
+ "n_units": 9,
+ "n_variants": 14,
+ "pre_freeze_transport_probes": {
+  "conclusion": "distinct query strings produce distinct totals and distinct ordered id heads, so the query parameter is load-bearing and a zero-row or zero-hit natural-language result is a property of the query and not of a dead parameter",
+  "disclosure": "Before this file was committed, FIVE free, key-less OpenCaseLaw GET /decisions probes were issued to establish that the endpoint is query-sensitive and to size the latency budget. They are disclosed here in full, with their exact query strings. NONE of them is a frozen candidate variant: the candidate strings below all append an apposition that no probe used, so no probe result is a candidate result and no probe number enters any coverage, recall, gate or verdict figure. The frozen template was fixed by the charter's own recipe (question text + concept + morphological variants), not by any probe's row counts or totals.",
+  "latency_observed_range_seconds": [
+   5.74,
+   20.6
+  ],
+  "n_probes": 5,
+  "observed": [
+   {
+    "http_status": 200,
+    "id_head_sha256_prefix": "568b8c4941a0",
+    "label": "A0 de question (the accepted shipped query)",
+    "latency_seconds": 12.27,
+    "returned": 50,
+    "total": 254
+   },
+   {
+    "http_status": 200,
+    "id_head_sha256_prefix": null,
+    "label": "de natural-language probe (discarded, not a frozen variant)",
+    "latency_seconds": 8.793,
+    "returned": 50,
+    "total": 254
+   },
+   {
+    "http_status": 200,
+    "id_head_sha256_prefix": "b3e1410ce7f8",
+    "label": "SENSE-1 nonsense token control",
+    "latency_seconds": 5.74,
+    "returned": 50,
+    "total": 194
+   },
+   {
+    "http_status": 200,
+    "id_head_sha256_prefix": "5edf30b2eea5",
+    "label": "SENSE-2 accepted fr baseline query for business-judgment-rule",
+    "latency_seconds": 20.6,
+    "returned": 50,
+    "total": 377
+   },
+   {
+    "http_status": 200,
+    "id_head_sha256_prefix": "7668e2cb1200",
+    "label": "SENSE-3 bare de concept token list",
+    "latency_seconds": 6.68,
+    "returned": 50,
+    "total": 252
+   }
+  ],
+  "purpose": "transport control only: is the query parameter load-bearing, and what is the per-search latency distribution"
+ },
+ "predecessor_record": {
+  "accepted_tip": "c242127a7f42293adcdda797d6973ed2ed45fc90",
+  "bounded_cause_verbatim": "TERM-ONLY EXPANSION QUERIES ARE TOO NARROW FOR THE OPENCASELAW RELEVANCE INDEX",
+  "harness_results": "harness_results_39179862363.json",
+  "harness_results_sha256": "a54f6a4fa64948652d04eab629436cf482d415f882160157bdc46431e0014c92",
+  "integration_contract": "integration_contract_39179862363.json",
+  "integration_contract_sha256": "08c64784673bdb09209bce4104af3c715900f9c714d85cd4a49a30c3a2139589",
+  "prior_accept": "bd1b4d73aac1d26224f34584140135a99ece3bb1",
+  "reproduction_targets": {
+   "de_added_search_n_results": 0,
+   "de_added_search_status": 200,
+   "de_baseline_n_rows": 214,
+   "de_under_covered": [
+    "kapitalverletzung",
+    "uberwachungspflicht"
+   ],
+   "failing_fr_it_cells": [
+    "corporate-criminal-liability::fr",
+    "corporate-criminal-liability::it",
+    "business-judgment-rule::fr",
+    "business-judgment-rule::it",
+    "petty-theft-dismissal::fr",
+    "petty-theft-dismissal::it"
+   ],
+   "improved_fr_it_cells": 0,
+   "missing_frozen_authority_ids": [
+    "bge_BGE_142_IV_333",
+    "bger_4A_177_2017",
+    "bger_4A_219_2015",
+    "bger_4A_228_2015",
+    "bger_4A_259_2016",
+    "bger_4A_603_2014",
+    "bger_4A_626_2013",
+    "bger_4A_62_2024",
+    "bger_6B_124_2016"
+   ],
+   "reduced_under_covered_questions": 0
+  },
+  "rules_sha256": "c5447bac0605a8bcf8c3d1820bee56a5bb0e814365978ec1fa12ac189776ee9a",
+  "status": "CLOSED / OUTCOME_B_BOUNDED_NEGATIVE",
+  "team_id": "frontier-query-concept-recall",
+  "what_this_charter_does_not_do": "The declined layer is NOT re-run, re-scored, re-dispatched or 'improved'. Its A1 numbers appear here only as the historical comparator, published BESIDE this run's numbers and never in place of them. Any divergence from an accepted number is the headline."
+ },
+ "question": "Does ONE deterministic, additive, free, in-budget natural-language concept-seeded retrieval arm, issuing full-sentence OpenCaseLaw variant queries that explicitly mention the question's frozen under-covered core concepts in each target language, raise (i) per-concept row coverage of those under-covered concepts on the bundles where the accepted baseline records zero, and/or (ii) recall of the frozen controlling-authority id sets on the cells the accepted frozen benchmark records as failing, with zero regression on any frozen retrieval gate, zero owner cost and no change to any rubric, bar, threshold, frozen file, packet byte or admission record?",
+ "schema": "frontier_concept_seed_recall.RULES.v1",
+ "search_params": {
+  "fields": "full",
+  "include_pinpoint": "false",
+  "language_filter": null,
+  "limit": "50",
+  "offset": "0",
+  "path": "/decisions",
+  "sort": "relevance"
+ },
+ "team_id": "frontier-concept-seed-recall",
+ "template_id": "NLCS-1",
+ "thresholds": {
+  "latency_rule": "every added call is disclosed with its measured wall time; a per-search or full-pass breach is NAMED in the verdict, never hidden and never made to invalidate a content number",
+  "no_vacuity_void_clause": "THIS CHARTER DOES NOT INHERIT THE PREDECESSOR'S TIE=>VOID CLAUSE. A blanked control that ties the candidate is a measured bounded negative. The controls are reported honestly whatever they show.",
+  "non_regression_gates": [
+   "duplicate::unique_ids",
+   "counter::known_counter_recall",
+   "source::rows_valid",
+   "transport::all_queries_ok",
+   "authority::baseline_lang_recall",
+   "authority::baseline_recall",
+   "norm::retrievable",
+   "counter::limiting_marker_verified",
+   "reproducible::cached_second_pass_identical"
+  ],
+  "outcome_A": {
+   "acceptance_tests": "(1) through (9) satisfied",
+   "coverage": "A1 adds >= 1 row carrying 'kapitalverletzung' or 'uberwachungspflicht' to the de-kapitalverletzung pool (accepted definition: >= 1 row whose de-accented row text contains the concept as a substring)",
+   "non_regression": "every frozen gate that PASSES in accepted record results/evaluation/retrieval_benchmark/39117425713.json still passes with the A1 rows in the pool, recomputed with the accepted evaluation.retrieval_gate.gates.evaluate on the accepted frozen spec",
+   "recall": "A1 recovers >= 1 of the 9 missing frozen authority ids on any accepted-failing cell"
+  },
+  "outcome_B_bounded_negative": "A1 adds zero concept-carrying rows to de-kapitalverletzung AND recovers zero missing frozen authority ids. Publish the exact zero-result cells with HTTP status and measured latency, beside -- never in place of -- the accepted predecessor record, and stop."
+ },
+ "units": [
+  {
+   "a0_rows": 50,
+   "accepted_concept_row_counts": {
+    "abstient": 0,
+    "administration": 11,
+    "business": 3,
+    "commerciale": 6,
+    "conditions": 6,
+    "conseil": 4,
+    "judgment": 0,
+    "ressortent": 2,
+    "revoir": 2,
+    "titre": 4
+   },
+   "accepted_gate_passed": false,
+   "accepted_missing_ids": [
+    "bger_4A_219_2015",
+    "bger_4A_259_2016",
+    "bger_4A_603_2014",
+    "bger_4A_626_2013",
+    "bger_4A_62_2024"
+   ],
+   "accepted_question_concepts": [
+    "conditions",
+    "abstient",
+    "revoir",
+    "commerciale",
+    "conseil",
+    "administration",
+    "titre",
+    "business",
+    "judgment",
+    "ressortent"
+   ],
+   "accepted_under_covered": [
+    "abstient",
+    "judgment"
+   ],
+   "channel": "baseline",
+   "frozen_authority_ids": [
+    "bger_4A_219_2015",
+    "bger_4A_259_2016",
+    "bger_4A_603_2014",
+    "bger_4A_626_2013",
+    "bger_4A_62_2024"
+   ],
+   "kind": "frozen_recall",
+   "language": "fr",
+   "question_text": "Dans quelles conditions le juge suisse s'abstient-il de revoir une décision commerciale d'un conseil d'administration au titre de la business judgment rule, et quelles exceptions ou limites ressortent de la jurisprudence ?",
+   "slug": "business-judgment-rule",
+   "target_languages": [
+    "fr"
+   ],
+   "unit_id": "frozen::business-judgment-rule::fr",
+   "variants": [
+    {
+     "concept": "abstient",
+     "morph_variants": [
+      "abstient",
+      "abstients"
+     ],
+     "n_chars": 247,
+     "query": "Dans quelles conditions le juge suisse s'abstient-il de revoir une décision commerciale d'un conseil d'administration au titre de la business judgment rule, et quelles exceptions ou limites ressortent de la jurisprudence ? — abstient (abstients) ?",
+     "question_text": "Dans quelles conditions le juge suisse s'abstient-il de revoir une décision commerciale d'un conseil d'administration au titre de la business judgment rule, et quelles exceptions ou limites ressortent de la jurisprudence ?",
+     "surface_form": "abstient",
+     "target_language": "fr",
+     "template_id": "NLCS-1"
+    },
+    {
+     "concept": "judgment",
+     "morph_variants": [
+      "judgment",
+      "judgments"
+     ],
+     "n_chars": 247,
+     "query": "Dans quelles conditions le juge suisse s'abstient-il de revoir une décision commerciale d'un conseil d'administration au titre de la business judgment rule, et quelles exceptions ou limites ressortent de la jurisprudence ? — judgment (judgments) ?",
+     "question_text": "Dans quelles conditions le juge suisse s'abstient-il de revoir une décision commerciale d'un conseil d'administration au titre de la business judgment rule, et quelles exceptions ou limites ressortent de la jurisprudence ?",
+     "surface_form": "judgment",
+     "target_language": "fr",
+     "template_id": "NLCS-1"
+    }
+   ]
+  },
+  {
+   "a0_rows": 50,
+   "accepted_concept_row_counts": {
+    "amministrazione": 6,
+    "applicazione": 5,
+    "astiene": 0,
+    "business": 0,
+    "commerciale": 1,
+    "condizioni": 8,
+    "consiglio": 5,
+    "dalla": 11,
+    "decisione": 15,
+    "discendono": 0,
+    "eccezioni": 3,
+    "giudice": 11,
+    "judgment": 0,
+    "riesaminare": 1
+   },
+   "accepted_gate_passed": false,
+   "accepted_missing_ids": [
+    "bger_4A_219_2015",
+    "bger_4A_259_2016",
+    "bger_4A_603_2014",
+    "bger_4A_626_2013",
+    "bger_4A_62_2024"
+   ],
+   "accepted_question_concepts": [
+    "condizioni",
+    "giudice",
+    "astiene",
+    "riesaminare",
+    "decisione",
+    "commerciale",
+    "consiglio",
+    "amministrazione",
+    "applicazione",
+    "business",
+    "judgment",
+    "eccezioni",
+    "discendono",
+    "dalla"
+   ],
+   "accepted_under_covered": [
+    "astiene",
+    "business",
+    "judgment",
+    "discendono"
+   ],
+   "channel": "baseline",
+   "frozen_authority_ids": [
+    "bger_4A_219_2015",
+    "bger_4A_259_2016",
+    "bger_4A_603_2014",
+    "bger_4A_626_2013",
+    "bger_4A_62_2024"
+   ],
+   "kind": "frozen_recall",
+   "language": "it",
+   "question_text": "In quali condizioni il giudice svizzero si astiene dal riesaminare una decisione commerciale del consiglio di amministrazione in applicazione della business judgment rule, e quali eccezioni o limiti discendono dalla giurisprudenza?",
+   "slug": "business-judgment-rule",
+   "target_languages": [
+    "it"
+   ],
+   "unit_id": "frozen::business-judgment-rule::it",
+   "variants": [
+    {
+     "concept": "astiene",
+     "morph_variants": [
+      "astiene",
+      "astieni"
+     ],
+     "n_chars": 252,
+     "query": "In quali condizioni il giudice svizzero si astiene dal riesaminare una decisione commerciale del consiglio di amministrazione in applicazione della business judgment rule, e quali eccezioni o limiti discendono dalla giurisprudenza? — astiene (astieni)?",
+     "question_text": "In quali condizioni il giudice svizzero si astiene dal riesaminare una decisione commerciale del consiglio di amministrazione in applicazione della business judgment rule, e quali eccezioni o limiti discendono dalla giurisprudenza?",
+     "surface_form": "astiene",
+     "target_language": "it",
+     "template_id": "NLCS-1"
+    },
+    {
+     "concept": "business",
+     "morph_variants": [
+      "business"
+     ],
+     "n_chars": 243,
+     "query": "In quali condizioni il giudice svizzero si astiene dal riesaminare una decisione commerciale del consiglio di amministrazione in applicazione della business judgment rule, e quali eccezioni o limiti discendono dalla giurisprudenza? — business?",
+     "question_text": "In quali condizioni il giudice svizzero si astiene dal riesaminare una decisione commerciale del consiglio di amministrazione in applicazione della business judgment rule, e quali eccezioni o limiti discendono dalla giurisprudenza?",
+     "surface_form": "business",
+     "target_language": "it",
+     "template_id": "NLCS-1"
+    }
+   ]
+  },
+  {
+   "a0_rows": 50,
+   "accepted_concept_row_counts": {
+    "doivent": 3,
+    "entreprise": 6,
+    "exigences": 3,
+    "infractions": 6,
+    "organisation": 5,
+    "penale": 23,
+    "primaire": 0,
+    "prouvees": 0,
+    "responsabilite": 7,
+    "selon": 5,
+    "subsidiaire": 3
+   },
+   "accepted_gate_passed": false,
+   "accepted_missing_ids": [
+    "bge_BGE_142_IV_333",
+    "bger_6B_124_2016"
+   ],
+   "accepted_question_concepts": [
+    "responsabilite",
+    "penale",
+    "entreprise",
+    "selon",
+    "subsidiaire",
+    "primaire",
+    "infractions",
+    "exigences",
+    "organisation",
+    "doivent",
+    "prouvees"
+   ],
+   "accepted_under_covered": [
+    "primaire",
+    "prouvees"
+   ],
+   "channel": "baseline",
+   "frozen_authority_ids": [
+    "bge_BGE_142_IV_333",
+    "bger_6B_124_2016"
+   ],
+   "kind": "frozen_recall",
+   "language": "fr",
+   "question_text": "La responsabilité pénale de l'entreprise selon l'art. 102 CP est-elle subsidiaire ou primaire, et pour quelles infractions ? Quelles exigences d'organisation doivent être prouvées ?",
+   "slug": "corporate-criminal-liability",
+   "target_languages": [
+    "fr"
+   ],
+   "unit_id": "frozen::corporate-criminal-liability::fr",
+   "variants": [
+    {
+     "concept": "primaire",
+     "morph_variants": [
+      "primaire",
+      "primaires"
+     ],
+     "n_chars": 206,
+     "query": "La responsabilité pénale de l'entreprise selon l'art. 102 CP est-elle subsidiaire ou primaire, et pour quelles infractions ? Quelles exigences d'organisation doivent être prouvées ? — primaire (primaires) ?",
+     "question_text": "La responsabilité pénale de l'entreprise selon l'art. 102 CP est-elle subsidiaire ou primaire, et pour quelles infractions ? Quelles exigences d'organisation doivent être prouvées ?",
+     "surface_form": "primaire",
+     "target_language": "fr",
+     "template_id": "NLCS-1"
+    },
+    {
+     "concept": "prouvees",
+     "morph_variants": [
+      "prouvées",
+      "prouvees",
+      "prouvée"
+     ],
+     "n_chars": 214,
+     "query": "La responsabilité pénale de l'entreprise selon l'art. 102 CP est-elle subsidiaire ou primaire, et pour quelles infractions ? Quelles exigences d'organisation doivent être prouvées ? — prouvées (prouvees, prouvée) ?",
+     "question_text": "La responsabilité pénale de l'entreprise selon l'art. 102 CP est-elle subsidiaire ou primaire, et pour quelles infractions ? Quelles exigences d'organisation doivent être prouvées ?",
+     "surface_form": "prouvées",
+     "target_language": "fr",
+     "template_id": "NLCS-1"
+    }
+   ]
+  },
+  {
+   "a0_rows": 50,
+   "accepted_concept_row_counts": {
+    "devono": 1,
+    "esigenze": 0,
+    "essere": 9,
+    "impresa": 7,
+    "organizzative": 0,
+    "penale": 18,
+    "primaria": 2,
+    "provate": 0,
+    "reati": 6,
+    "responsabilita": 18,
+    "sussidiaria": 2
+   },
+   "accepted_gate_passed": false,
+   "accepted_missing_ids": [
+    "bge_BGE_142_IV_333",
+    "bger_6B_124_2016"
+   ],
+   "accepted_question_concepts": [
+    "responsabilita",
+    "penale",
+    "impresa",
+    "sussidiaria",
+    "primaria",
+    "reati",
+    "esigenze",
+    "organizzative",
+    "devono",
+    "essere",
+    "provate"
+   ],
+   "accepted_under_covered": [
+    "esigenze",
+    "organizzative",
+    "provate"
+   ],
+   "channel": "baseline",
+   "frozen_authority_ids": [
+    "bge_BGE_142_IV_333",
+    "bger_6B_124_2016"
+   ],
+   "kind": "frozen_recall",
+   "language": "it",
+   "question_text": "La responsabilità penale dell'impresa ex art. 102 CP è sussidiaria o primaria, e per quali reati? Quali esigenze organizzative devono essere provate?",
+   "slug": "corporate-criminal-liability",
+   "target_languages": [
+    "it"
+   ],
+   "unit_id": "frozen::corporate-criminal-liability::it",
+   "variants": [
+    {
+     "concept": "esigenze",
+     "morph_variants": [
+      "esigenze",
+      "esigenzi"
+     ],
+     "n_chars": 172,
+     "query": "La responsabilità penale dell'impresa ex art. 102 CP è sussidiaria o primaria, e per quali reati? Quali esigenze organizzative devono essere provate? — esigenze (esigenzi)?",
+     "question_text": "La responsabilità penale dell'impresa ex art. 102 CP è sussidiaria o primaria, e per quali reati? Quali esigenze organizzative devono essere provate?",
+     "surface_form": "esigenze",
+     "target_language": "it",
+     "template_id": "NLCS-1"
+    },
+    {
+     "concept": "organizzative",
+     "morph_variants": [
+      "organizzative",
+      "organizzativi"
+     ],
+     "n_chars": 182,
+     "query": "La responsabilità penale dell'impresa ex art. 102 CP è sussidiaria o primaria, e per quali reati? Quali esigenze organizzative devono essere provate? — organizzative (organizzativi)?",
+     "question_text": "La responsabilità penale dell'impresa ex art. 102 CP è sussidiaria o primaria, e per quali reati? Quali esigenze organizzative devono essere provate?",
+     "surface_form": "organizzative",
+     "target_language": "it",
+     "template_id": "NLCS-1"
+    }
+   ]
+  },
+  {
+   "a0_rows": 50,
+   "accepted_concept_row_counts": {
+    "circonstances": 2,
+    "commis": 1,
+    "employe": 18,
+    "faible": 0,
+    "immediat": 37,
+    "justifie": 9,
+    "licenciement": 12,
+    "reponse": 2,
+    "selon": 7,
+    "valeur": 0,
+    "varier": 0
+   },
+   "accepted_gate_passed": false,
+   "accepted_missing_ids": [
+    "bger_4A_177_2017",
+    "bger_4A_228_2015"
+   ],
+   "accepted_question_concepts": [
+    "faible",
+    "valeur",
+    "commis",
+    "employe",
+    "justifie",
+    "licenciement",
+    "immediat",
+    "selon",
+    "circonstances",
+    "varier",
+    "reponse"
+   ],
+   "accepted_under_covered": [
+    "faible",
+    "valeur",
+    "varier"
+   ],
+   "channel": "baseline",
+   "frozen_authority_ids": [
+    "bger_4A_177_2017",
+    "bger_4A_228_2015"
+   ],
+   "kind": "frozen_recall",
+   "language": "fr",
+   "question_text": "Un vol de faible valeur commis par un employé justifie-t-il un licenciement immédiat selon l'art. 337 CO ? Quelles circonstances font varier la réponse ?",
+   "slug": "petty-theft-dismissal",
+   "target_languages": [
+    "fr"
+   ],
+   "unit_id": "frozen::petty-theft-dismissal::fr",
+   "variants": [
+    {
+     "concept": "faible",
+     "morph_variants": [
+      "faible",
+      "faibles"
+     ],
+     "n_chars": 174,
+     "query": "Un vol de faible valeur commis par un employé justifie-t-il un licenciement immédiat selon l'art. 337 CO ? Quelles circonstances font varier la réponse ? — faible (faibles) ?",
+     "question_text": "Un vol de faible valeur commis par un employé justifie-t-il un licenciement immédiat selon l'art. 337 CO ? Quelles circonstances font varier la réponse ?",
+     "surface_form": "faible",
+     "target_language": "fr",
+     "template_id": "NLCS-1"
+    },
+    {
+     "concept": "valeur",
+     "morph_variants": [
+      "valeur",
+      "valeurs"
+     ],
+     "n_chars": 174,
+     "query": "Un vol de faible valeur commis par un employé justifie-t-il un licenciement immédiat selon l'art. 337 CO ? Quelles circonstances font varier la réponse ? — valeur (valeurs) ?",
+     "question_text": "Un vol de faible valeur commis par un employé justifie-t-il un licenciement immédiat selon l'art. 337 CO ? Quelles circonstances font varier la réponse ?",
+     "surface_form": "valeur",
+     "target_language": "fr",
+     "template_id": "NLCS-1"
+    }
+   ]
+  },
+  {
+   "a0_rows": 50,
+   "accepted_concept_row_counts": {
+    "circostanze": 0,
+    "commesso": 0,
+    "dipendente": 0,
+    "entita": 0,
+    "furto": 0,
+    "giustifica": 0,
+    "immediato": 1,
+    "licenziamento": 0,
+    "lieve": 0,
+    "modificano": 0,
+    "risposta": 0
+   },
+   "accepted_gate_passed": false,
+   "accepted_missing_ids": [
+    "bger_4A_177_2017",
+    "bger_4A_228_2015"
+   ],
+   "accepted_question_concepts": [
+    "furto",
+    "lieve",
+    "entita",
+    "commesso",
+    "dipendente",
+    "giustifica",
+    "licenziamento",
+    "immediato",
+    "circostanze",
+    "modificano",
+    "risposta"
+   ],
+   "accepted_under_covered": [
+    "furto",
+    "lieve",
+    "entita",
+    "commesso",
+    "dipendente",
+    "giustifica",
+    "licenziamento",
+    "circostanze",
+    "modificano",
+    "risposta"
+   ],
+   "channel": "baseline",
+   "frozen_authority_ids": [
+    "bger_4A_177_2017",
+    "bger_4A_228_2015"
+   ],
+   "kind": "frozen_recall",
+   "language": "it",
+   "question_text": "Un furto di lieve entità commesso da un dipendente giustifica il licenziamento immediato ex art. 337 CO? Quali circostanze modificano la risposta?",
+   "slug": "petty-theft-dismissal",
+   "target_languages": [
+    "it"
+   ],
+   "unit_id": "frozen::petty-theft-dismissal::it",
+   "variants": [
+    {
+     "concept": "furto",
+     "morph_variants": [
+      "furto",
+      "furti"
+     ],
+     "n_chars": 163,
+     "query": "Un furto di lieve entità commesso da un dipendente giustifica il licenziamento immediato ex art. 337 CO? Quali circostanze modificano la risposta? — furto (furti)?",
+     "question_text": "Un furto di lieve entità commesso da un dipendente giustifica il licenziamento immediato ex art. 337 CO? Quali circostanze modificano la risposta?",
+     "surface_form": "furto",
+     "target_language": "it",
+     "template_id": "NLCS-1"
+    },
+    {
+     "concept": "lieve",
+     "morph_variants": [
+      "lieve",
+      "lievi"
+     ],
+     "n_chars": 163,
+     "query": "Un furto di lieve entità commesso da un dipendente giustifica il licenziamento immediato ex art. 337 CO? Quali circostanze modificano la risposta? — lieve (lievi)?",
+     "question_text": "Un furto di lieve entità commesso da un dipendente giustifica il licenziamento immediato ex art. 337 CO? Quali circostanze modificano la risposta?",
+     "surface_form": "lieve",
+     "target_language": "it",
+     "template_id": "NLCS-1"
+    }
+   ]
+  },
+  {
+   "accepted_question_concepts": [
+    "aktive",
+    "fursorgepflicht",
+    "arbeitgebers",
+    "kapitalverletzung",
+    "eingriff",
+    "begrenzen",
+    "blossen",
+    "uberwachungspflicht"
+   ],
+   "accepted_under_covered": [
+    "kapitalverletzung",
+    "uberwachungspflicht"
+   ],
+   "bundle_n_rows": 214,
+   "bundle_path": "/tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/questions/de-kapitalverletzung.bundle.json",
+   "bundle_sha256": "c4005d4b78553b0aebd92bba59001c87a376146873f807d575255a4f721dd7f2",
+   "kind": "served_coverage",
+   "language": "de",
+   "question_id": "de-kapitalverletzung",
+   "question_text": "Aktive Fürsorgepflicht des Arbeitgebers bei einer Kapitalverletzung: wie weit geht der aktive Eingriff, und welche Entscheidungen begrenzen ihn gegenüber einer blossen Überwachungspflicht?",
+   "target_languages": [
+    "de"
+   ],
+   "unit_id": "served::de-kapitalverletzung",
+   "variants": [
+    {
+     "concept": "kapitalverletzung",
+     "morph_variants": [
+      "Kapitalverletzung",
+      "Kapitalverletzungen"
+     ],
+     "n_chars": 231,
+     "query": "Aktive Fürsorgepflicht des Arbeitgebers bei einer Kapitalverletzung: wie weit geht der aktive Eingriff, und welche Entscheidungen begrenzen ihn gegenüber einer blossen Überwachungspflicht? – Kapitalverletzung (Kapitalverletzungen)?",
+     "question_text": "Aktive Fürsorgepflicht des Arbeitgebers bei einer Kapitalverletzung: wie weit geht der aktive Eingriff, und welche Entscheidungen begrenzen ihn gegenüber einer blossen Überwachungspflicht?",
+     "surface_form": "Kapitalverletzung",
+     "target_language": "de",
+     "template_id": "NLCS-1"
+    },
+    {
+     "concept": "uberwachungspflicht",
+     "morph_variants": [
+      "Überwachungspflicht",
+      "Überwachungspflichten",
+      "Ueberwachungspflicht",
+      "Uberwachungspflicht"
+     ],
+     "n_chars": 278,
+     "query": "Aktive Fürsorgepflicht des Arbeitgebers bei einer Kapitalverletzung: wie weit geht der aktive Eingriff, und welche Entscheidungen begrenzen ihn gegenüber einer blossen Überwachungspflicht? – Überwachungspflicht (Überwachungspflichten, Ueberwachungspflicht, Uberwachungspflicht)?",
+     "question_text": "Aktive Fürsorgepflicht des Arbeitgebers bei einer Kapitalverletzung: wie weit geht der aktive Eingriff, und welche Entscheidungen begrenzen ihn gegenüber einer blossen Überwachungspflicht?",
+     "surface_form": "Überwachungspflicht",
+     "target_language": "de",
+     "template_id": "NLCS-1"
+    }
+   ]
+  },
+  {
+   "accepted_question_concepts": [
+    "resiliation",
+    "defaut",
+    "entretien",
+    "bailleur",
+    "jusqu",
+    "distinguent",
+    "grave",
+    "simple",
+    "negligence"
+   ],
+   "accepted_under_covered": [],
+   "bundle_n_rows": 217,
+   "bundle_path": "/tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/questions/fr-bail-entretien.bundle.json",
+   "bundle_sha256": "0b3a224e3493479bc84628531eb7c56cac7dcfa978b29afbfc1305cb52574517",
+   "kind": "served_coverage",
+   "language": "fr",
+   "question_id": "fr-bail-entretien",
+   "question_text": "Résiliation du bail pour défaut d'entretien du bailleur : jusqu'où va la jurisprudence, et quelles décisions distinguent le défaut d'entretien grave de la simple négligence ?",
+   "target_languages": [
+    "fr"
+   ],
+   "unit_id": "served::fr-bail-entretien",
+   "variants": []
+  },
+  {
+   "accepted_question_concepts": [
+    "responsabilita",
+    "medico",
+    "errore",
+    "terapeutico",
+    "quale",
+    "obbligo",
+    "diligenza",
+    "nesso",
+    "causale",
+    "devono",
+    "essere",
+    "dimostrati",
+    "escludono"
+   ],
+   "accepted_under_covered": [],
+   "bundle_n_rows": 211,
+   "bundle_path": "/tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/questions/it-responsabilita-medica.bundle.json",
+   "bundle_sha256": "6b43341242b5e1d4c305dcf29f12428541ceedc0b6cc89b5f2c8ae8d634f82b4",
+   "kind": "served_coverage",
+   "language": "it",
+   "question_id": "it-responsabilita-medica",
+   "question_text": "Responsabilità del medico per errore terapeutico: quale obbligo di diligenza e quale nesso causale devono essere dimostrati, e quali decisioni escludono la responsabilità?",
+   "target_languages": [
+    "it"
+   ],
+   "unit_id": "served::it-responsabilita-medica",
+   "variants": []
+  }
+ ],
+ "variant_construction": {
+  "literals": {
+   "de": {
+    "CLOSE": ")",
+    "JOIN": " – ",
+    "OPEN": " (",
+    "SEP": ", ",
+    "TAIL": "?"
+   },
+   "fr": {
+    "CLOSE": ")",
+    "JOIN": " — ",
+    "OPEN": " (",
+    "SEP": ", ",
+    "TAIL": " ?"
+   },
+   "it": {
+    "CLOSE": ")",
+    "JOIN": " — ",
+    "OPEN": " (",
+    "SEP": ", ",
+    "TAIL": "?"
+   }
+  },
+  "max_concepts_per_unit": 2,
+  "max_total_searches": 16,
+  "prohibited": [
+   "any synonym, translation or paraphrase not present in the accepted text",
+   "any corpus mining or post-hoc vocabulary selection",
+   "any model call",
+   "any language for which no ACCEPTED question text exists",
+   "any edit after this file is committed"
+  ],
+  "rule": "V = question_text + JOIN[lang] + surface(concept) + variants-apposition + TAIL[lang]; surface() recovers the concept's own spelling from the accepted question text by de-accented case-insensitive token match; variants are the concept's own morphological forms (de plural -n and ae/oe/ue/ss spelling, fr/it plural rules, plus the NFKD accent-stripped form), de-duplicated.",
+  "template_id": "NLCS-1"
+ }
+}
