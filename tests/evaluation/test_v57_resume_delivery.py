@@ -254,7 +254,7 @@ def test_benchmark_record_of_this_run_is_a_claim_bearing_result():
     for lg in legs.values():
         assert lg["exit_code_matches_expectation"] is True
     # the record may never claim an absolute bar
-    assert "does NOT meet the absolute" in rec["absolute_status_note"]
+    assert "does NOT certify the absolute" in rec["absolute_status_note"]
     assert (out_dir / f"{RUN_ID}_leg1_served_baseline.json").is_file()
     assert (out_dir / f"{RUN_ID}_leg2_hostile_geometry.json").is_file()
     assert (out_dir / f"{RUN_ID}_leg3_blanked_evidence.json").is_file()
