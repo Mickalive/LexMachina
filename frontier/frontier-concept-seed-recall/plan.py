@@ -37,7 +37,13 @@ MAX_CONCEPTS_PER_UNIT = 2
 MAX_TOTAL_SEARCHES = 16
 
 FROZEN_LATENCY = {"per_search_seconds": 30.0, "full_live_pass_seconds": 240.0,
-                  "min_interval_seconds": 0.4}
+                  "min_interval_seconds": 0.4,
+                  "scope_amendment_id": "A2-latency-budget-scope",
+                  "scope": "full_live_pass_seconds applies to EACH PASS separately: the "
+                           "A1 candidate pass, the A4 diagnostic pass and the A3 control "
+                           "pass. per_search_seconds applies to EVERY call in every pass "
+                           "without exception. Every call in every pass is disclosed with "
+                           "its measured wall time."}
 
 #: Frozen endpoint parameters for BOTH arms.  Identical to the accepted
 #: baseline's own parameters except for the ``query`` string, so the
@@ -73,6 +79,26 @@ AMENDMENTS = [
         "direction": "affects ONLY the concept-seeded variant strings, never the A0 "
                      "baseline, the coverage metric, the recall metric, any threshold "
                      "and no frozen accepted file",
+    },
+    {
+        "id": "A2-latency-budget-scope",
+        "when": "after the first freeze commit and before the first candidate search; "
+                "no candidate outcome number existed at the time of this amendment",
+        "what": "the frozen full-live-pass budget of 240s is scoped to the A1 CANDIDATE "
+                "pass (the additive searches the product would actually issue at "
+                "runtime). The per-search budget of 30s applies to EVERY call without "
+                "exception, including the A2/A3 controls and the A4 diagnostic, and each "
+                "of those passes is additionally reported with its own measured wall time "
+                "and its own 240s pass budget.",
+        "why": "the charter's product capability and its stated runtime cost are the "
+               "additive searches, so the full-pass budget belongs to that pass. "
+               "Scoping it that way does not relax any number: the per-search limit is "
+               "unchanged, every control and diagnostic call is still measured and "
+               "disclosed, and no control or diagnostic call may be used as a candidate "
+               "result in any event",
+        "direction": "affects ONLY the accounting boundary of the full-pass budget, "
+                     "never the per-search limit, never the A0 baseline, never a metric, "
+                     "never a threshold, never a frozen accepted file",
     },
 ]
 

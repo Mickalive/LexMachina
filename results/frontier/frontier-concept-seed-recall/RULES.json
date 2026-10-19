@@ -18,6 +18,13 @@
    "what": "the German, French and Italian plural rules were replaced with declared per-language rule tables (-ung/-heit/-keit/-schaft/-pflicht take -en; -al takes -aux; -eau takes -x; an already s/x/z-final French surface is idempotent with its singular emitted separately; Italian -o drops the -o and takes -i, -a takes -e, -e drops the -e and takes -i)",
    "when": "during the offline dry run, before this file was committed and before any search was issued",
    "why": "the first rule set emitted non-words ('Kapitalverletzungn', 'Uberwachungspflichte', 'prouveeses', 'furtoe', 'astienee'). Emitting non-words into the query string would have measured the team's own generator rather than the hypothesis, and attributing that to the corpus would be the dishonest outcome rather than the honest negative"
+  },
+  {
+   "direction": "affects ONLY the accounting boundary of the full-pass budget, never the per-search limit, never the A0 baseline, never a metric, never a threshold, never a frozen accepted file",
+   "id": "A2-latency-budget-scope",
+   "what": "the frozen full-live-pass budget of 240s is scoped to the A1 CANDIDATE pass (the additive searches the product would actually issue at runtime). The per-search budget of 30s applies to EVERY call without exception, including the A2/A3 controls and the A4 diagnostic, and each of those passes is additionally reported with its own measured wall time and its own 240s pass budget.",
+   "when": "after the first freeze commit and before the first candidate search; no candidate outcome number existed at the time of this amendment",
+   "why": "the charter's product capability and its stated runtime cost are the additive searches, so the full-pass budget belongs to that pass. Scoping it that way does not relax any number: the per-search limit is unchanged, every control and diagnostic call is still measured and disclosed, and no control or diagnostic call may be used as a candidate result in any event"
   }
  ],
  "arms": {
@@ -169,7 +176,9 @@
  "latency_budget": {
   "full_live_pass_seconds": 240.0,
   "min_interval_seconds": 0.4,
-  "per_search_seconds": 30.0
+  "per_search_seconds": 30.0,
+  "scope": "full_live_pass_seconds applies to EACH PASS separately: the A1 candidate pass, the A4 diagnostic pass and the A3 control pass. per_search_seconds applies to EVERY call in every pass without exception. Every call in every pass is disclosed with its measured wall time.",
+  "scope_amendment_id": "A2-latency-budget-scope"
  },
  "n_targeted_units": 7,
  "n_units": 9,

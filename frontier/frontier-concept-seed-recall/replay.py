@@ -110,6 +110,10 @@ class Searcher:
         self.network_calls = 0
         self._live_seconds = 0.0
         self._last_live_end: float | None = None
+        self._pass = "default"
+        self._pass_start_index = 0
+        self._pass_seconds: dict[str, float] = {}
+        self._pass_network: dict[str, int] = {}
 
     # -- key / envelope --------------------------------------------------
     def request_key(self, path: str, params: dict | None) -> str:
@@ -132,6 +136,13 @@ class Searcher:
                 if isinstance(env, dict) and env.get("cache_version") == CACHE_VERSION:
                     return env, str(p)
         return None, None
+
+    def begin_pass(self, name: str) -> None:
+        """Start a budgeted pass.  The full-pass budget is per pass, not per run."""
+        self._pass = name
+        self._pass_start_index = len(self.calls)
+        self._pass_seconds.setdefault(name, 0.0)
+        self._pass_network.setdefault(name, 0)
 
     # -- the search ------------------------------------------------------
     @staticmethod
@@ -175,12 +186,12 @@ class Searcher:
                                 env=None, status=None, from_cache=False,
                                 cache_source=None, latency_s=0.0,
                                 live_refused="live retrieval disabled by --offline")
-        if self._live_seconds >= self.full_pass_budget_s:
+        if self._pass_seconds.get(self._pass, 0.0) >= self.full_pass_budget_s:
             return self._record(query_key=query_key, params=params, url=url, key=key,
                                 env=None, status=None, from_cache=False,
                                 cache_source=None, latency_s=0.0,
-                                live_refused=(f"full live pass budget "
-                                              f"{self.full_pass_budget_s}s exhausted"))
+                                live_refused=(f"live budget for pass {self._pass!r} "
+                                              f"({self.full_pass_budget_s}s) exhausted"))
 
         if self._last_live_end is not None:
             gap = self._min_gap_remaining()
@@ -197,8 +208,10 @@ class Searcher:
             body, status, err = "", None, f"{type(exc).__name__}: {exc}"[:200]
         latency = self._time() - started
         self._live_seconds += latency
+        self._pass_seconds[self._pass] = self._pass_seconds.get(self._pass, 0.0) + latency
         self._last_live_end = self._time()
         self.network_calls += 1
+        self._pass_network[self._pass] = self._pass_network.get(self._pass, 0) + 1
 
         env = None
         if body:
@@ -259,7 +272,25 @@ class Searcher:
     # -- reporting -------------------------------------------------------
     def budget_report(self) -> dict:
         over = [c["query_key"] for c in self.calls if c.get("over_per_search_budget")]
+        per_pass = {}
+        for name, secs in sorted(self._pass_seconds.items()):
+            calls = [c for c in self.calls
+                     if c["query_key"].split("::")[0] == name.split("::")[0]
+                     and c["query_key"].startswith(name.split("::")[0] + "::")]
+            per_pass[name] = {
+                "measured_live_seconds": round(secs, 3),
+                "network_calls": self._pass_network.get(name, 0),
+                "n_calls": len(calls),
+                "n_from_cache": sum(1 for c in calls if c.get("from_cache")),
+                "pass_budget_breached": secs > self.full_pass_budget_s,
+                "calls_over_per_search_budget": [
+                    c["query_key"] for c in calls if c.get("over_per_search_budget")],
+            }
         return {
+            "budget_scope": "per-search limit applies to EVERY call; the full-pass limit "
+                            "applies to EACH PASS separately (amendment "
+                            "A2-latency-budget-scope)",
+            "per_pass": per_pass,
             "per_search_budget_seconds": self.per_search_budget_s,
             "full_live_pass_budget_seconds": self.full_pass_budget_s,
             "network_calls": self.network_calls,
@@ -268,7 +299,10 @@ class Searcher:
             "n_from_cache": sum(1 for c in self.calls if c.get("from_cache")),
             "calls_over_per_search_budget": over,
             "per_search_budget_breached": bool(over),
-            "full_pass_budget_breached": self._live_seconds > self.full_pass_budget_s,
+            "full_pass_budget_breached": any(
+                v["pass_budget_breached"] for v in per_pass.values()),
+            "any_pass_budget_breached": any(
+                v["pass_budget_breached"] for v in per_pass.values()),
             "live_refused_calls": [
                 {"query_key": c["query_key"], "reason": c["live_refused"]}
                 for c in self.calls if c.get("live_refused")],
