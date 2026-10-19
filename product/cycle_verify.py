@@ -314,6 +314,38 @@ def check_slice_and_page_contract() -> list[dict]:
     return out
 
 
+def check_served_slice() -> list[dict]:
+    """The SERVED composition is executed here: HTTP handler -> bundle -> page.
+
+    ``check_slice_and_page_contract`` runs the pipeline with no server at all and
+    the page contract against a bundle written to a temp file; neither proves that
+    what the shipped ``query_app.Handler`` actually serves over a socket is the
+    bundle the shipped page can render. ``product/server_slice.py`` closes that
+    seam (one command, fixture providers, every non-loopback connect trapped), and
+    this check re-runs it so the ledger cannot pass on a stale printed summary.
+    """
+    from product.server_slice import execute
+
+    result = execute("Kündigung Mietvertrag Mietrecht", 100)
+    result.pop("_served_bundle", None)
+    result.pop("_first_page_bundle", None)
+    rows = list(result.get("checks") or [])
+    rows.append({
+        "claim": "the served slice as a whole passes on this run",
+        "status": "PASS" if result.get("verdict") == "PASS" else "FAIL",
+        "observed": {
+            "verdict": result.get("verdict"),
+            "failures": result.get("failures"),
+            "counts": result.get("counts"),
+            "timing_s": result.get("timing_s"),
+            "reproduce": "python3 product/server_slice.py --no-write",
+        },
+        "definition_source": "product/server_slice.py::execute",
+        "claim_ceiling": result.get("claim_ceiling"),
+    })
+    return rows
+
+
 def check_counter_authority_counts() -> list[dict]:
     """RF1's number, recomputed from a live bundle.
 
@@ -1293,6 +1325,7 @@ def _run_id_of(name: Any) -> int | None:
 
 CHECKS: dict[str, Callable[[], list[dict]]] = {
     "slice": check_slice_and_page_contract,
+    "served_slice": check_served_slice,
     "counter": check_counter_authority_counts,
     "relation": check_relation_channel,
     "relation_direction": check_relation_direction,
