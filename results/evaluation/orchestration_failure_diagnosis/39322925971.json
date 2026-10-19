@@ -1,0 +1,91 @@
+{
+  "schema": "lex-evaluation-orchestration-failure-diagnosis/1",
+  "run_id": "39322925971",
+  "direction_version": 58,
+  "lane": "evaluation",
+  "generated_at": "2026-10-19T21:22:00Z",
+  "diagnosed_run": {
+    "github_run": "39322068783",
+    "name": "Core evaluation dirV58 repair0",
+    "event": "workflow_dispatch",
+    "head_branch": "main",
+    "run_attempt": 1,
+    "created_at": "2026-10-19T20:46:07Z",
+    "completed_at": "2026-10-19T20:52:29Z",
+    "conclusion": "failure",
+    "evidence_source": "GitHub REST API /repos/Mickalive/LexMachina/actions/runs/39322068783 and its job list, plus the downloaded run log archive logs_39322068783.zip step file team/6_Run lane cycle.txt (57,346 bytes)"
+  },
+  "job_chain": {
+    "team": {
+      "conclusion": "failure",
+      "started_at": "2026-10-19T20:46:12Z",
+      "completed_at": "2026-10-19T20:52:17Z",
+      "steps": {
+        "1 Set up job": "success",
+        "2 Run actions/checkout@v6": "success",
+        "3 Validate lane and initialize working base": "success",
+        "4 Mount accepted peer evidence": "success",
+        "5 Install Ox/OpenCode": "success",
+        "6 Run lane cycle": "failure",
+        "7 Validate active MVP producer state": "skipped",
+        "8 Clean generated junk": "success",
+        "9 Enforce lane write scope": "skipped",
+        "10 Persist team snapshot": "success"
+      }
+    },
+    "audit": "skipped",
+    "integrate": "skipped",
+    "resilience": {
+      "conclusion": "success",
+      "started_at": "2026-10-19T20:52:20Z",
+      "completed_at": "2026-10-19T20:52:29Z",
+      "action": "dispatched this run 39322925971 with resume_from_run_id=39322068783 from the surviving snapshot cycle/core/evaluation/39322068783/team, then woke factory-supervisor"
+    }
+  },
+  "root_cause": {
+    "classification": "PRODUCER_SESSION_ENDED_WITH_ZERO_DURABLE_DELTA (rc-67 LEX_ZERO_DELTA_REPAIR class)",
+    "not": [
+      "a verdict",
+      "a product defect",
+      "an audit finding",
+      "a human-gate problem",
+      "an evidence or claim-path failure"
+    ],
+    "mechanism": {
+      "wrapper": ".github/scripts/run-ox-with-retry.sh on origin/main, post-run guard: if rc==0 AND REPAIR_INTENT==true AND `git rev-parse HEAD` == START_HEAD AND `git status --porcelain` is empty -> echo '::error::LEX_ZERO_DELTA_REPAIR'; exit 67",
+      "observed_log_tail": [
+        "2026-10-19T20:52:05Z ##[warning]permission requested: external_directory (/home/runner/.config/gh/*); auto-rejecting",
+        "2026-10-19T20:52:12Z ##[error]LEX_ZERO_DELTA_REPAIR",
+        "2026-10-19T20:52:12Z ##[error]Process completed with exit code 67."
+      ],
+      "session_length": "team job ran 20:46:12Z -> 20:52:17Z (365 s); step 6 is the only long step, so the producer session itself was ~5.5 minutes and ended with the agent returning rc=0 to the wrapper while HEAD was still 2095d33a and the worktree was clean"
+    },
+    "why_the_session_produced_nothing": "the producer agent spent its budget on orientation reads (gate files, product state, packet directory listing, the accepted stand-ready probe record) and one out-of-repo permission request that the sandbox auto-rejected; it never reached a FREEZE-FIRST commit. The auto-reject is NOT the blocking cause — the requested path (~/.config/gh hosts file) is not needed for any deliverable in this lane — but it is the last observable action before the session ended, and it is recorded here because a producer that reaches outside the repo for credential state is a symptom of an agent still deciding what to do rather than one executing a frozen plan.",
+    "contributing_defect": "the lane question as written on v58 could be read as SATISFIED with zero new work: ordered work (1) the F-3B disposition was already COMPLETE and accepted (proof results/evaluation/f3b_restore_disposition/39287274485.json), ordered work (2) STAND READY was already delivered by the accepted cycle 39315343123, and no new served packet had landed. An agent that correctly reads the question as 'nothing to do until Product serves' has no concrete deliverable, so it produces nothing, so the guard fires. That is the rc-67 route-around the factory-wide requirements already mandate: the QUESTION must carry the concrete deliverable, not the agent's initiative."
+  },
+  "snapshot_integrity": {
+    "snapshot_branch": "origin/cycle/core/evaluation/39322068783/team",
+    "snapshot_tip": "2095d33ac20bbe909b5b68e67e3cae1aaba2e33b",
+    "snapshot_equals_lab_evaluation": true,
+    "diff_against_lab_evaluation": "empty (git log origin/lab/evaluation..origin/cycle/core/evaluation/39322068783/team returns no commits)",
+    "reading": "the persisted snapshot is the ACCEPTED lab/evaluation head at dispatch time, unchanged. Nothing valid was lost: the accepted chain 39287274485 -> 39310054437 -> 39315343123 (accept commit 2095d33a) is intact on lab/evaluation and the snapshot preserved it byte-for-byte.",
+    "team_attempt_branch_identical": true
+  },
+  "accepted_state_at_dispatch_unchanged": {
+    "lab_evaluation_tip": "2095d33ac20bbe909b5b68e67e3cae1aaba2e33b ('accept evaluation cycle 39315343123')",
+    "latest_gate": "results/audit/evaluation/CYCLE_39315343123_GATE.json gate=PASS safe_to_integrate=true required_fixes=[]",
+    "f3b_disposition": "COMPLETE, proof results/evaluation/f3b_restore_disposition/39287274485.json, verdict F3B_DISPOSITION_COMPLETE",
+    "reading": "the prior failure destroyed nothing and left nothing half-written; this run resumes from a clean, accepted base."
+  },
+  "resume_plan_executed_this_run": [
+    "R-1 the concrete deliverable the frozen question did not name was supplied WITHOUT editing the frozen hypothesis: the cross-run stability sweep of the accepted P1 finding (see evaluation/CROSS_RUN_STABILITY_SWEEP_HYPOTHESIS_V1.json, freeze commit 373bebdb, committed before any claim-bearing execution)",
+    "R-2 the accepted stand-ready probe, mapping-free falsifier and F-3B proof were re-hashed and reused, never re-derived or re-opened",
+    "R-3 the unserved packet 39275520116 was left verdict-withheld (WITHHELD_PENDING_SERVE) — no pre-emption",
+    "R-4 every intermediate/pre-fix measurement is preserved beside the record of claim, never overwritten (see results/evaluation/_scratch_namespaced/39322925971/)"
+  ],
+  "control_plane_hardening_items_recorded_not_patched": [
+    ".github/** is control-plane scope and is NOT edited from this lane. Recorded: (a) the rc-67 guard is correct as written and this run does not ask for a guard change; the durable fix is that a v58 question whose ordered work is already discharged must still name the next concrete deliverable in the same text, because the supervisor's continue_recommended // true dead-code defect (factory-wide requirement 13) means an exhausted lane cannot stop itself and a satisfied question cannot produce a delta. (b) The producer session's single external_directory auto-reject is sandbox policy working as intended and needs no change."
+  ],
+  "owner_decision_required": false,
+  "human_gate_ready": false
+}
