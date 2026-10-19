@@ -3,7 +3,7 @@
  "lane": "evaluation",
  "direction_version": 58,
  "run_id": "39310054437",
- "generated_at_utc": "2026-10-19T19:41:13Z",
+ "generated_at_utc": "2026-10-19T19:44:21Z",
  "freeze_record": "evaluation/V58_OPERATIONAL_RESUME_HYPOTHESIS_V2.json",
  "freeze_record_sha256": "8e9020855d95c618df5bf3ed6ed69596445669f807a31a0e832c4e9a7531d84d",
  "scope": "Final self-check of the producer snapshot against every frozen success rule, executed AFTER the state and report-of-record edits. reports/evaluation/CYCLE_39297074815.md is excluded from byte-identity by design (it is the D-1 correction target); its pre-edit digest is pinned in the freeze record so the edit is provable rather than silent.",
@@ -61,7 +61,7 @@
   {
    "check": "D1_audit_gate_file_untouched",
    "ok": true,
-   "detail": "gate of record lives on the audit ref; this lane never wrote results/audit/evaluation/* (see scope check below)"
+   "detail": "lane never writes results/audit/** (see scope check)"
   },
   {
    "check": "S2_real_pytest_disclosed_beside",
@@ -69,24 +69,19 @@
    "detail": "report states 71 passed; artifact totals={'n_tests': 71, 'n_passed': 71, 'n_failed': 0, 'n_error': 0, 'n_skipped': 0}"
   },
   {
-   "check": "FINAL_pytest_after_state_and_report_edits",
+   "check": "FINAL_pytest_after_all_edits",
    "ok": true,
-   "detail": "final pytest run: 71/71 passed, 0 failed"
+   "detail": "post-commit targeted run: 71 passed / 0 failed (RC=0, 34.95s) plus post-patch test_audit_correction_verification.py 4 passed"
   },
   {
    "check": "S4_frozen_and_accepted_digests_unchanged_except_the_two_in_scope_edits",
    "ok": true,
-   "detail": "15 byte-identity pins re-hashed, mismatches=[]; in-scope intentional edits verified to have changed from their pre-edit pins: reports/evaluation/CYCLE_39297074815.md changed=True; state/evaluation.json changed=True"
-  },
-  {
-   "check": "D1_target_digest_changed_from_pre_edit_pin",
-   "ok": true,
-   "detail": "[{'path': 'reports/evaluation/CYCLE_39297074815.md', 'pre_edit_pin': '1b659f890466b04dc3278a4db2ce6d548cd4013cfe5de3fcf9600224ca42971e', 'current': 'e93c47eb4cc1855b307a78052f00f86920607e6c85bc58592b83c1576772ebf7', 'changed': True}]"
+   "detail": "15 byte-identity pins re-hashed (final), mismatches=[]; in-scope edits: reports/evaluation/CYCLE_39297074815.md changed=True; state/evaluation.json changed=True"
   },
   {
    "check": "S3_no_deletions_vs_snapshot",
    "ok": true,
-   "detail": "committed A=5 M=1 D=0; uncommitted_new=['reports/evaluation/CYCLE_39310054437.md', 'results/evaluation/orchestration/39310054437_targeted_reverification.json']; deletes=[]"
+   "detail": "committed+staged A=7 M=2 D=0; uncommitted_new=[]; deletes=[]"
   },
   {
    "check": "S5_evidence_refs_exist_and_required_state_fields",
@@ -96,23 +91,22 @@
   {
    "check": "S7_lane_write_scope_clean",
    "ok": true,
-   "detail": "working-tree paths outside lane scope=[]"
+   "detail": "out-of-scope=[]"
   },
   {
    "check": "S8_gates_still_closed_in_state",
    "ok": true,
-   "detail": {
-    "human_gate_ready": false,
-    "packet_admitted": false,
-    "machine_gate_ready": false,
-    "ready_for_owner_session": false,
-    "owner_decision_required": false
-   }
+   "detail": "{'human_gate_ready': False, 'packet_admitted': False, 'machine_gate_ready': False, 'ready_for_owner_session': False, 'owner_decision_required': False}"
   },
   {
    "check": "report_of_record_written",
    "ok": true,
-   "detail": "reports/evaluation/CYCLE_39310054437.md exists with diagnosis + D-1 sections"
+   "detail": "reports/evaluation/CYCLE_39310054437.md present"
+  },
+  {
+   "check": "stand_ready_packet_status_precise",
+   "ok": true,
+   "detail": "built-vs-served distinction recorded in report and state"
   }
  ],
  "all_passed": true,
@@ -129,9 +123,9 @@
   },
   {
    "path": "state/evaluation.json",
-   "reason": "lane state file, in_scope_edits (protocol-required fields + append-only evidence_refs)",
+   "reason": "lane state file, in_scope_edits (protocol fields + append-only evidence_refs)",
    "pre_edit_pin": "900e72aed6745f8daf45d0c7cbf63f3fc226b5a14f24f3a8fdf3f9779f918ea8",
-   "current": "ed14453e8bdb31610e6d318c4125df768f101d1840926d672b90265a96d65e87",
+   "current": "4fcacc30860dba0f2849ad6e05068406a2e0843f199b2fa03aa66ac33fbdd093",
    "changed": true
   }
  ]
