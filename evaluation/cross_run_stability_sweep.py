@@ -189,7 +189,7 @@ def verify_population(mount: Path, hypothesis: dict) -> dict:
 # per-run gate evaluation (all predicates imported)
 # --------------------------------------------------------------------------- #
 def evaluate_run(record: dict, bundle: dict, scored_statuses: list[str],
-                 record_rel: str) -> dict:
+                 record_rel: str, run_name: str | None = None) -> dict:
     qrec = {"question": query_text_of(record, bundle), "qid": record_rel}
     cov = concept_coverage(qrec, bundle)
     src = source_validity(bundle)
@@ -238,6 +238,7 @@ def evaluate_run(record: dict, bundle: dict, scored_statuses: list[str],
 
     failed = [g["gate"] for g in gates if g["passed"] is False]
     return {
+        "run": run_name or record_rel,
         "record": record_rel,
         "query": query_text_of(record, bundle),
         "product_record_verdict": record.get("verdict"),
@@ -522,7 +523,8 @@ def run(mount: Path, repo: Path, run_id: str) -> tuple[dict, int]:
     for gkey, runs in comparable_groups.items():
         applicable_runs = [r for r in runs
                            if evaluate_run(loaded[r]["record"], loaded[r]["bundle"],
-                                           scored_statuses, r)["counter_stage_applicable"]]
+                                           scored_statuses, r,
+                                           r)["counter_stage_applicable"]]
         v5_detail.append({"group": gkey, "n_runs": len(runs),
                           "n_counter_applicable": len(applicable_runs),
                           "counter_applicable_runs": applicable_runs})
@@ -533,57 +535,76 @@ def run(mount: Path, repo: Path, run_id: str) -> tuple[dict, int]:
     per_run = []
     for e in entries:
         r = loaded[e["run"]]
-        per_run.append(evaluate_run(r["record"], r["bundle"], scored_statuses, e["record"]))
-    per_run_by_name = {p["record"]: p for p in per_run}
+        per_run.append(evaluate_run(r["record"], r["bundle"], scored_statuses,
+                                    e["record"], e["run"]))
+    per_run_by_name = {p["run"]: p for p in per_run}
 
-    # ---- per-group comparison -------------------------------------------
+    # ---- per-group comparison (N-ary: verdicts must agree across ALL runs) --
     group_results = []
     n_divergent = 0
     for gkey, runs in sorted(comparable_groups.items()):
         runs_sorted = sorted(runs)
-        a_name, b_name = runs_sorted[0], runs_sorted[1]
-        ra, rb = per_run_by_name[a_name], per_run_by_name[b_name]
-        ga = {g["gate"]: g for g in ra["gates"]}
-        gb = {g["gate"]: g for g in rb["gates"]}
+        verdict_maps = {r: {g["gate"]: g["passed"]
+                            for g in per_run_by_name[r]["gates"]}
+                        for r in runs_sorted}
+        gate_names = sorted({g for vm in verdict_maps.values() for g in vm})
         legs = []
         group_divergent = False
-        for gate_name in sorted(set(ga) | set(gb)):
-            pa = ga.get(gate_name, {}).get("passed")
-            pb = gb.get(gate_name, {}).get("passed")
-            if pa is None or pb is None:
+        for gate_name in gate_names:
+            per_run_verdict = {r: verdict_maps[r].get(gate_name) for r in runs_sorted}
+            none_runs = [r for r, v in per_run_verdict.items() if v is None]
+            applicable_verdicts = {v for v in per_run_verdict.values() if v is not None}
+            if none_runs:
+                # a gate that is NOT_APPLICABLE in ANY compared run can never be
+                # scored as stable or divergent for this group (hypothesis
+                # falsification_rule.not_applicable_handling)
                 status = "NOT_APPLICABLE"
                 divergent = False
-                detail = ("one or both runs do not carry an applicable verdict for "
-                          "this gate; never a pass, never a fail")
+                detail = ("NOT_APPLICABLE in run(s) "
+                          + ", ".join(none_runs)
+                          + "; never a pass, never a fail, and never comparable to a "
+                            "verdict")
             else:
-                divergent = pa != pb
+                divergent = len(applicable_verdicts) > 1
                 status = "DIVERGENT" if divergent else "STABLE"
-                detail = (f"run A passed={pa}, run B passed={pb}")
+                detail = ("per-run verdicts: "
+                          + ", ".join(f"{r}={per_run_verdict[r]}" for r in runs_sorted))
                 if divergent:
                     group_divergent = True
             legs.append({
                 "gate": gate_name,
-                "run_a": a_name, "run_b": b_name,
-                "run_a_passed": pa, "run_b_passed": pb,
+                "runs_compared": runs_sorted,
+                "per_run_passed": per_run_verdict,
                 "status": status, "divergent": divergent,
                 "detail": detail,
-                "run_a_measured": ga.get(gate_name, {}).get("measured"),
-                "run_b_measured": gb.get(gate_name, {}).get("measured"),
+                "per_run_measured": {
+                    r: next((g["measured"] for g in per_run_by_name[r]["gates"]
+                             if g["gate"] == gate_name), None)
+                    for r in runs_sorted},
             })
         if group_divergent:
             n_divergent += 1
+        pair_diags = []
+        for i in range(len(runs_sorted)):
+            for j in range(i + 1, len(runs_sorted)):
+                pair_diags.append({
+                    "pair": [runs_sorted[i], runs_sorted[j]],
+                    **pair_diagnostics(loaded[runs_sorted[i]]["bundle"],
+                                       loaded[runs_sorted[j]]["bundle"]),
+                })
         group_results.append({
             "group": gkey,
-            "n_runs": len(runs),
+            "n_runs": len(runs_sorted),
             "runs": runs_sorted,
             "query_text": gkey,
-            "pair_compared": [a_name, b_name],
+            "runs_pairwise_compared": [[runs_sorted[i], runs_sorted[j]]
+                                       for i in range(len(runs_sorted))
+                                       for j in range(i + 1, len(runs_sorted))],
             "legs": legs,
             "n_legs_divergent": sum(1 for l in legs if l["divergent"]),
             "n_legs_not_applicable": sum(1 for l in legs if l["status"] == "NOT_APPLICABLE"),
             "group_verdict": "RUN_INSTABILITY_GENERALIZED" if group_divergent else "STABLE",
-            "reported_only_diagnostics": pair_diagnostics(
-                loaded[a_name]["bundle"], loaded[b_name]["bundle"]),
+            "reported_only_diagnostics": pair_diags,
         })
 
     singletons = sorted(k for k, v in groups.items() if len(v) < 2)

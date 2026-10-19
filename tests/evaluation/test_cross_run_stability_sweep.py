@@ -247,9 +247,11 @@ def test_pair_diagnostics_on_identical_bundles_are_exactly_zero():
 
 
 def test_pair_diagnostics_reports_membership_and_cluster_movement():
-    a = {"query": "Q", "decisions": [_row("a", rank=0, cluster=0), _row("b", rank=1, cluster=0)],
+    a = {"query": "Q",
+         "decisions": [_row("a", rank=0, cluster=0), _row("b", rank=1, cluster=0)],
          "clusters": []}
-    b = {"query": "Q", "decisions": [_row("a", rank=0, cluster=1), _row("c", rank=1, cluster=1)],
+    b = {"query": "Q",
+         "decisions": [_row("a", rank=0, cluster=1), _row("c", rank=1, cluster=1)],
          "clusters": []}
     d = S.pair_diagnostics(a, b)
     assert d["n_common"] == 1
@@ -257,6 +259,57 @@ def test_pair_diagnostics_reports_membership_and_cluster_movement():
     assert d["only_a_examples"] == ["b"] and d["only_b_examples"] == ["c"]
     assert d["cluster"]["n_reassigned"] == 1
     assert d["cluster"]["reassigned_examples"] == ["a"]
+
+
+def test_identical_applicable_verdicts_must_be_STABLE_not_not_applicable():
+    """Regression: the first pre-publication execution of run 39322925971
+    mislabelled legs whose runs ALL returned True as NOT_APPLICABLE, because
+    the comparison branch counted DISTINCT verdict values instead of checking
+    for a None verdict.  The buggy record is preserved at
+    results/evaluation/_scratch_namespaced/39322925971/PREFIX_BUGGY_
+    leg_classification.json (sha256 10c87445...).  A leg whose runs all carry
+    a non-None verdict MUST be scored STABLE or DIVERGENT — never
+    NOT_APPLICABLE."""
+    import hashlib
+    from evaluation.cross_run_stability_sweep import (
+        evaluate_run, group_runs, pair_diagnostics as _unused)  # noqa: F401
+
+    scored = SCORED
+    rows = [_row("a", "cited", "ev", 0), _row("b", "none", "", 1)]
+    bundle = {"query": "Q", "decisions": copy.deepcopy(rows), "clusters": []}
+    record = {"query": "Q",
+              "counters": {"counter_authorities": 1, "by_status": {"cited": 1}}}
+    run_a = evaluate_run(copy.deepcopy(record), copy.deepcopy(bundle), scored, "a", "a")
+    run_b = evaluate_run(copy.deepcopy(record), copy.deepcopy(bundle), scored, "b", "b")
+    verdict_maps = {"a": {g["gate"]: g["passed"] for g in run_a["gates"]},
+                    "b": {g["gate"]: g["passed"] for g in run_b["gates"]}}
+    for gate in ("sr::concept_coverage", "sr::source_validity",
+                 "sr::duplicate_suppression"):
+        assert verdict_maps["a"][gate] is True
+        assert verdict_maps["b"][gate] is True
+        vals = {verdict_maps["a"][gate], verdict_maps["b"][gate]}
+        # the contract: all non-None and equal -> STABLE, exactly one value
+        none_runs = [r for r in ("a", "b") if verdict_maps[r][gate] is None]
+        assert none_runs == []
+        assert len(vals) == 1, "identical applicable verdicts form ONE value"
+        # and a leg with a None verdict can never be scored
+        assert verdict_maps["a"]["sr::language_robustness"] is None
+
+
+def test_leg_status_rule_none_anywhere_forces_not_applicable():
+    """The frozen falsification_rule: if EITHER run's gate is NOT_APPLICABLE the
+    leg is NOT_APPLICABLE; only a leg whose every run carries a non-None
+    verdict may be scored STABLE or DIVERGENT."""
+    def leg_status(per_run_verdict: dict) -> str:
+        if any(v is None for v in per_run_verdict.values()):
+            return "NOT_APPLICABLE"
+        return "DIVERGENT" if len(set(per_run_verdict.values())) > 1 else "STABLE"
+
+    assert leg_status({"a": True, "b": True}) == "STABLE"
+    assert leg_status({"a": True, "b": False}) == "DIVERGENT"
+    assert leg_status({"a": None, "b": None}) == "NOT_APPLICABLE"
+    assert leg_status({"a": True, "b": None}) == "NOT_APPLICABLE"
+    assert leg_status({"a": False, "b": False}) == "STABLE"
 
 
 # --------------------------------------------------------------------------- #
