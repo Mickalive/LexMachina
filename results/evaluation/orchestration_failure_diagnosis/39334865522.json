@@ -1,0 +1,73 @@
+{
+  "schema": "lex-evaluation-orchestration-failure-diagnosis/1",
+  "run_id": "39334865522",
+  "direction_version": 58,
+  "generated_at_utc": "2026-10-19T22:43:00Z",
+  "failed_run": "39329412076",
+  "failed_run_name": "Core evaluation dirV58 repair0",
+  "failed_run_conclusion": "failure",
+  "failed_run_event": "workflow_dispatch (fresh cycle; NOT an audit repair)",
+  "failed_run_head_sha": "29aec468e15d1cf39fb1b6edfb9eabae55f9b2ab",
+  "diagnosis": "AUDIT_GATE_FILE_MISSING_AT_EXACT_UPPERCASE_PATH",
+  "summary": "The audit job of run 39329412076 failed because results/audit/evaluation/CYCLE_39329412076_GATE.json did not exist at the exact path the gate reader opens: jq 1.7 exits 2 with 'Could not open file' on a missing file, and the check-run annotation records 'Process completed with exit code 2.' The lane scope guard (exit 3) did NOT fire, so any file the auditor wrote was inside its two in-scope directories. The producer side of the chain was fully green; nothing valid was lost; the failure is audit-job-local and is control-plane scope (recorded, never patched).",
+  "evidence": [
+    {
+      "evidence": "team job 118323525833 concluded success; producer session ran 21:41:59Z -> 22:14:45Z (~34 min); 'Validate active MVP producer state', 'Clean generated junk' and 'Enforce lane write scope' all passed; snapshot persisted at 10026a1e (== origin/cycle/core/evaluation/39329412076/team).",
+      "source": "GitHub check-run API /repos/Mickalive/LexMachina/actions/runs/39329412076/jobs (retrieved 2026-10-19)"
+    },
+    {
+      "evidence": "audit job 118337388738: step 5 'Independent audit' SUCCESS 22:15:57Z -> 22:25:28Z (~9.5 min, the auditor agent session completed with exit 0); step 6 'Enforce audit scope and read gate' FAILURE started=completed 22:25:28Z (instant); step 7 'Persist audit snapshot' SKIPPED.",
+      "source": "GitHub check-run API jobs record"
+    },
+    {
+      "evidence": "check-run annotation on the failing audit job: annotation_level=failure, message='Process completed with exit code 2.', path='.github'.",
+      "source": "GitHub check-run API /repos/Mickalive/LexMachina/check-runs/118337388738/annotations (retrieved 2026-10-19)"
+    },
+    {
+      "evidence": "git ls-remote origin shows refs/heads/cycle/core/evaluation/39329412076/team and -attempt-1 at 10026a1e but NO refs/heads/cycle/core/evaluation/39329412076/audit (compare accepted runs 39322925971/audit at 4a018a5c, 39315343123/audit at ce0cb1ff).",
+      "source": "git ls-remote origin (retrieved 2026-10-19 in this run)"
+    },
+    {
+      "evidence": "local reproduction of the reader's exact jq invocation (jq 1.7): missing file -> exit 2 'Could not open file ... No such file or directory'; present-but-invalid-value -> exit 1; present-but-unparseable -> exit 5; scope guard out-of-scope write -> exit 3. Observed exit 2 matches ONLY the missing-file case.",
+      "source": "local experiment in /tmp/jqtest, jq-1.7, 2026-10-19 (commands and outputs preserved in reports/evaluation/CYCLE_39334865522.md section 2)"
+    },
+    {
+      "evidence": "the audit job's own prompt at the failing step specifies the exact contract: mkdir -p results/audit/$LANE reports/audit/$LANE; 'Write ONLY reports/audit/${LANE}/CYCLE_${GITHUB_RUN_ID}.md and results/audit/${LANE}/CYCLE_${GITHUB_RUN_ID}_GATE.json' (UPPERCASE _GATE.json). The reader opens results/audit/$LANE/CYCLE_${GITHUB_RUN_ID}_GATE.json with jq -e '.gate==\"PASS\" or .gate==\"REVISE\" or .gate==\"BLOCKED\"'.",
+      "source": "origin/main:.github/workflows/core-lane.yml at the audit job (control-plane scope; quoted, not edited)"
+    },
+    {
+      "evidence": "job logs for the failing step are HTTP 403 unauthenticated (documented factory-wide limitation, requirements 14/33); the audit snapshot was never pushed, so the auditor's bytes are on no ref.",
+      "source": "GET /repos/Mickalive/LexMachina/actions/jobs/118337388738/logs -> 403 (retrieved 2026-10-19)"
+    }
+  ],
+  "established_with_machine_evidence": [
+    "E1 The failing step's exit code was 2, which under the step's exact jq 1.7 invocation means the gate file was MISSING at the exact uppercase path results/audit/evaluation/CYCLE_39329412076_GATE.json.",
+    "E2 The lane scope guard did not fire (that path exits 3); the auditor wrote no out-of-scope file, or wrote nothing.",
+    "E3 The producer side of run 39329412076 was complete and green end to end (team job success, scope enforcement pass, snapshot persisted).",
+    "E4 No audit branch exists for 39329412076; the 'Persist audit snapshot' step was skipped; integrate was skipped; lab/evaluation was not advanced by that run.",
+    "E5 The failure is therefore audit-job-local (inside the auditor's own gate-write step), NOT a lane-work failure, NOT a product defect, NOT a verdict on the audited work, NOT a human-gate problem."
+  ],
+  "undetermined_bounded": [
+    "U1 WHY the gate file was missing. Three sub-causes remain consistent with exit 2 and cannot be distinguished without the job logs (403): (a) the auditor wrote it with a lowercase _gate.json suffix - the exact defect class of factory-wide requirement 14 (observed on product run 38897640010); (b) the auditor wrote it into /tmp/lex_team (the producer-worktree mount) instead of the checkout - the requirement 1 class (observed on runs 38571087814/38578725589); (c) the auditor never wrote it. Prior-frequency reasoning makes (a) or (b) more likely than (c), but this is a hedge, not a finding.",
+    "U2 The auditor agent's session content (what it read, what it concluded, whether a gate verdict was ever formed)."
+  ],
+  "prior_defect_classes": [
+    "factory-wide requirement 14: AUDIT GATE FILENAME CASE-SENSITIVITY - the gate reader path is results/audit/<lane>/CYCLE_<run_id>_GATE.json with UPPERCASE _GATE.json; a lowercase file is invisible to the reader (observed run 38897640010).",
+    "factory-wide requirement 1: artifacts written into /tmp/lex_team are invisible to the gate reader (observed runs 38571087814/38578725589).",
+    "This is the FIRST recorded instance of the missing-gate-file class on a core-EVALUATION audit job."
+  ],
+  "is_not": [
+    "NOT a lane-work failure (team job fully green)",
+    "NOT an audit verdict on the work (no gate was ever read)",
+    "NOT a product defect or a frozen-bar/rubric defect",
+    "NOT a human-gate problem (human_gate_ready stays false)",
+    "NOT a zero-delta producer failure (unlike runs 39322068783/39304290407/39308720556)"
+  ],
+  "consequence_for_this_resume": [
+    "C1 The persisted producer snapshot 10026a1e is intact and complete; this run resumes it without redoing its work.",
+    "C2 The producer side needs no repair for the chain to promote: a fresh audit that writes the gate to the exact uppercase in-scope path can conclude and be read.",
+    "C3 This run's durable delta is the diagnosis, the re-verification of the already-executed lane work, and the updated state/report - not a rebuild of anything the producer built.",
+    "C4 Control-plane hardening items (recorded, never patched from a lane): the audit prompt/reader contract could be hardened by the control-plane maintainer (e.g. accept either case after an explicit disclosure, or have the auditor echo the exact absolute path it wrote). .github/** is not edited from here."
+  ],
+  "recovery_path": "resilience job of 39329412076 dispatched this run 39334865522 as resume_from_run_id=39329412076 (operational recovery, not audit repair); this run's own independent audit will write results/audit/evaluation/CYCLE_39334865522_GATE.json and the integrate job will promote on gate=PASS."
+}
