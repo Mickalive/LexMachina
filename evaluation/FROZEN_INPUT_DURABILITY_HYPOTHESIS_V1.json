@@ -1,0 +1,58 @@
+{
+  "schema": "lex-evaluation-frozen-input-durability-hypothesis/1",
+  "lane": "evaluation",
+  "run_id": "39192952154",
+  "direction_version": 57,
+  "frozen_at_utc": "2026-10-19T03:12:00Z",
+  "frozen_before_execution": true,
+  "status": "FROZEN_NOT_YET_EXECUTED",
+
+  "why_this_question": "Factory direction v57 item (1) FROZEN-BENCHMARK INTEGRITY is closed on the claim that byte-identity of the accepted run's cache was restored. That closure is correct as a re-hash. It is NOT sufficient, because the accepted lane's own record results -> state/evaluation.json::claim_reconciliation_39164900837 states verbatim that 'the single envelope the prior cycle restored was the upstream's own degraded page. Restoring it alone reproduced the accepted aggregate while leaving the underlying upstream non-determinism UNMEASURED'. So the ROOT CAUSE of a frozen benchmark input moving under itself has never been measured. This hypothesis measures it, and it is the same object the factory mission names as the one unowned retrieval recall item: whether the six failing authority::baseline_lang_recall::{fr,it} gates are stable product truth or one-snapshot instrumentation noise.",
+
+  "hypothesis": "H: the accepted retrieval benchmark's frozen input is DURABLE. A live re-fetch, on 2026-10-19, of the exact 24 frozen query URLs of accepted run 39098571937 returns raw response bodies byte-identical to that run's committed cache bodies, and therefore the accepted gate verdict (24 passed / 10 failed / 6 not-measurable) is stable measurement rather than an artifact of a single day's OpenCaseLaw response.",
+
+  "falsifiers_pre_registered": {
+    "F1": "at least 1 of 24 live raw body sha256 differs from the accepted run's committed raw_sha256 for the same query_key",
+    "F2": "the live-run gate verdict differs from the accepted verdict on at least 1 gate's PASS / FAIL / NOT_MEASURABLE status",
+    "F3": "at least 1 of the six authority::baseline_lang_recall::{fr,it} gates changes status between the frozen run and the live run"
+  },
+  "success_rule_frozen": {
+    "H_SUSTAINED": "F1 AND F2 AND F3 are all FALSE -> the frozen input is durable as of the measured date",
+    "H_REFUTED": "any one of F1, F2, F3 is TRUE -> the frozen input is NOT durable and the frozen verdict is conditional on one upstream snapshot",
+    "rule": "the rule is fixed here, before execution, and is not revised after any result is observed. A partially-refuted result is reported as H_REFUTED with the per-query and per-gate evidence that refuted it; it is never rounded up to H_SUSTAINED."
+  },
+
+  "non_vacuity_contract": {
+    "N1_structural": "the comparator used on real data (sha256 over the exact response body bytes) is exercised on a deliberately perturbed body in the same run and MUST report different; a comparator that cannot report different is not a measurement.",
+    "N2_duplicate_control": "at least one query URL is fetched TWICE in the same run and the two body shas are compared, so the record publishes whether the endpoint varies within a single run as well as across runs.",
+    "N3_verdict_control": "the accepted verdict and the live verdict are compared GATE BY GATE on status, so agreement is shown by the published per-gate diff and not by a single aggregate number."
+  },
+
+  "safety_contract": {
+    "S1_never_write_the_frozen_cache": "the instrument MUST NOT write to results/evaluation/retrieval_benchmark/cache/. The sha256 of every committed cache envelope is captured BEFORE and AFTER the run and the record publishes both manifests' equality. A live pass therefore goes to a scratch cache directory outside the committed tree.",
+    "S2_never_edit_frozen_inputs": "frozen_retrieval_benchmark.json (187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72) and FREEZE_RECORD.json (b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49) are re-hashed BEFORE and AFTER the run and must be unchanged.",
+    "S3_never_overwrite_claim_bearing_records": "results/evaluation/retrieval_benchmark/39098571937.json and every other accepted run record are read-only to this instrument. The live run is written to a NEW directory.",
+    "S4_no_network_in_tests": "the instrument's own unit tests never touch the network; they exercise the comparator, the gate diff and the safety manifest against committed bytes."
+  },
+
+  "metrics_pinned": {
+    "n_urls": 24,
+    "inputs_derived_from": "the committed accepted record results/evaluation/retrieval_benchmark/39098571937.json, read-only; the query plan is NOT re-derived from the frozen spec",
+    "primary_metric": "count of query_keys whose live raw_sha256 differs from the accepted raw_sha256",
+    "secondary_metric": "count of gates whose status differs between the accepted verdict and the live verdict",
+    "tertiary_metric": "count of the six authority::baseline_lang_recall::{fr,it} gates whose status differs",
+    "no_new_thresholds": true
+  },
+
+  "mapping_free_contract": "no analyst slug, no frozen id set, no baseline record and no mapping of any kind is introduced. The only identities used are (a) the query_key already present in the accepted record and (b) sha256 of bytes. This is the same discipline that made question_native_coverage_39113690481 admissible.",
+
+  "claim_ceiling": "H_SUSTAINED proves ONLY that the measurement did not move on one date; it does NOT prove the product's retrieval is good, does NOT meet any frozen bar, does NOT serve a packet and does NOT unblock the human gate. H_REFUTED proves ONLY that the frozen verdict is conditional on an upstream snapshot; it does NOT prove the product is worse than recorded. This instrument measures the STABILITY OF THE ORACLE, never the product. human_gate_ready stays false; the accepted DO-NOT-SERVE orders stand; owner_decision_required stays false.",
+
+  "lane_question_items_addressed": {
+    "item_1_frozen_benchmark_integrity": "supplies the measurement the v57 closure left unmeasured: whether restored byte-identity is durable or incidental",
+    "item_2_falsification_handoff": "NOT addressed - that handoff was already consumed by run 39177046762 (HANDOFF_CONSUMED, accepted product head e21eac36) and is not re-executed",
+    "item_3_standing": "unchanged; no frozen bar, rubric, threshold, incumbent or success rule is edited, regenerated or re-tuned"
+  },
+
+  "exit_rule": "the instrument exits 0 on H_SUSTAINED and on H_REFUTED. It exits non-zero ONLY on a safety-contract violation (S1/S2) or an environment error in which no live body was retrieved at all; a negative result is a result and never an error."
+}
