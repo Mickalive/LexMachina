@@ -104,8 +104,20 @@ def commits_touching(path: str) -> list[dict]:
     return rows
 
 
-def _check(name: str, passed: bool, **detail: Any) -> dict:
-    return {"check": name, "status": "PASS" if passed else "FAIL", **detail}
+def _check(name: str, passed: bool, *, status: str | None = None, **detail: Any) -> dict:
+    """One check record.
+
+    ``status`` may be an explicit ``ENUM_*`` value for a check whose subject is
+    genuinely UNMEASUREABLE in this checkout.  An ENUM is never a silent PASS
+    and never a fabricated FAIL; it is carried as an enum so a reader can see
+    what was not measured (closure.py:240-254 established that precedent).
+    """
+    resolved = status or ("PASS" if passed else "FAIL")
+    return {"check": name, "status": resolved, **detail}
+
+
+def history_is_shallow() -> bool:
+    return _git("rev-parse", "--is-shallow-repository").strip() == "true"
 
 
 # --------------------------------------------------------------------------- #
@@ -168,6 +180,36 @@ def check_freeze_ordering() -> dict:
     head_blob = _git("rev-parse", f"HEAD:{CANONICAL_RULES.relative_to(_REPO)}")
     unchanged_since_freeze = bool(head_blob) and head_blob == last_rules.get("blob")
 
+    # Freeze ordering is a claim about COMMIT TIMES, so it needs real history.
+    # The Frontier workflow fetches the team branch with --depth=1, where
+    # `git log -- <path>` collapses to the single checked-out commit and every
+    # comparison below becomes structurally vacuous (last_rules and
+    # first_canonical become the same commit, so the `<` can never hold).  That
+    # is an environment artifact, not a reproducibility defect, and it is
+    # reported as an ENUM -- never as a silent PASS and never as a fabricated
+    # FAIL with a narrative about commits it never read.  closure.py:240-254
+    # implements this guard for check C3; it is ported here so the two
+    # verifiers of this team cannot disagree about the same fact.  Cycle
+    # 39184014244 found the missing guard here: at depth 1 verify.py reported
+    # R2 FAIL and fabricated "git shows RULES.json last touched at 1d59f84",
+    # which is false in a shallow checkout.
+    is_shallow = history_is_shallow()
+    order_measurable = not (is_shallow and len(rules_commits) < 3)
+    if order_measurable:
+        order_status = None
+        order_note = None
+    else:
+        order_status = "ENUM_SHALLOW_HISTORY"
+        order_note = (
+            "commit-time freeze ordering is NOT MEASURED here: this checkout is a "
+            "shallow clone with "
+            f"{len(rules_commits)} visible commit(s) touching RULES.json, so "
+            "`git log -- <path>` collapses and the commit-time comparison is "
+            "vacuous. This is an environment artifact, NOT a freeze violation. "
+            "Re-verify with `git fetch --unshallow` (or --deepen) on the team "
+            "branch. The byte-identity half of the check is still reported below "
+            "and still holds.")
+
     cited = {}
     citation_reproduces = None
     if FREEZE_ORDERING.is_file():
@@ -179,10 +221,18 @@ def check_freeze_ordering() -> dict:
                 and cited["sha"] == last_rules["sha"]
 
     return _check(
-        "R2_freeze_ordering_from_real_commit_times", ordering_holds and unchanged_since_freeze,
+        "R2_freeze_ordering_from_real_commit_times",
+        ordering_holds and unchanged_since_freeze,
+        status=order_status,
+        ordering_measurable=order_measurable,
+        history_is_shallow=is_shallow,
+        n_rules_commits_visible=len(rules_commits),
+        n_measurement_commits_visible=len(measurement_commits),
+        not_measured_note=order_note,
         rules_last_touched_commit=last_rules,
         first_canonical_measurement_commit=first_canonical,
-        ordering_rule_last_edit_before_first_canonical_measurement=ordering_holds,
+        ordering_rule_last_edit_before_first_canonical_measurement=(
+            ordering_holds if order_measurable else None),
         rules_blob_unchanged_since_that_commit=unchanged_since_freeze,
         head_blob=head_blob,
         withdrawn_measurement_commits_excluded=[
@@ -198,14 +248,18 @@ def check_freeze_ordering() -> dict:
         citation_check={
             "cited_claim": cited or None,
             "cited_sha_is_actually_the_last_touch": citation_reproduces,
-            "defect": (None if citation_reproduces else
-                       "freeze_ordering.json cites rules_last_touched_commit="
-                       f"{cited.get('sha', '?')[:9]}@{cited.get('committed_at_utc', '?')} "
-                       f"but git shows RULES.json last touched at "
-                       f"{last_rules.get('sha', '?')[:9]}@"
-                       f"{last_rules.get('committed_at_utc', '?')}. The ORDERING "
-                       "conclusion is unaffected and slightly stronger; only the "
-                       "cited sha/time fails to reproduce."),
+            "defect": (
+                None if citation_reproduces else
+                ("NOT CHECKED: history is shallow, so the cited sha cannot be "
+                 "resolved against `git log` here; see not_measured_note."
+                 if not order_measurable else
+                 "freeze_ordering.json cites rules_last_touched_commit="
+                 f"{cited.get('sha', '?')[:9]}@{cited.get('committed_at_utc', '?')} "
+                 f"but git shows RULES.json last touched at "
+                 f"{last_rules.get('sha', '?')[:9]}@"
+                 f"{last_rules.get('committed_at_utc', '?')}. The ORDERING "
+                 "conclusion is unaffected and slightly stronger; only the "
+                 "cited sha/time fails to reproduce.")),
         },
     )
 
@@ -406,10 +460,17 @@ def run(out_dir: Path) -> dict:
     # An immutable fact that cannot be repaired in place (a defect inside the
     # accepted, audited package; two accepted records that disagree) is reported
     # as a FINDING.  Its in-scope repair is a separate check that can go green.
+    # A check whose subject is unmeasurable in this checkout is an ENUM: it is
+    # neither a finding nor a pass, and it is carried in the record so that
+    # nothing is silently dropped.
     findings = [c["check"] for c in checks if c["status"] == "FAIL"]
-    repairs = [c["check"] for c in checks
-               if c["status"] == "FAIL" and c["check"].endswith(("published", "_works"))
-               or (c["status"] == "FAIL" and "repair" in c and not c.get("repair"))]
+    enums = {c["check"]: c.get("not_measured_note") for c in checks
+             if c["status"].startswith("ENUM")}
+    # The exit code tracks the in-scope REPAIRS, which must all work; the record
+    # states that explicitly instead of leaving it to be inferred from the code.
+    repair_checks = [c["check"] for c in checks
+                     if c["check"].startswith("R4b")
+                     or c["check"].endswith("_published")]
     record = {
         "schema": SCHEMA,
         "team_id": TEAM_ID,
@@ -429,6 +490,13 @@ def run(out_dir: Path) -> dict:
         "n_checks": len(checks),
         "n_failed": len(findings),
         "failed_checks": findings,
+        "enum_checks": enums,
+        "repair_checks": repair_checks,
+        "exit_code_policy": (
+            "0 when every in-scope REPAIR check passes (R4b* and *_published); "
+            "an immutable, in-place-unrepairable FINDING is preserved and "
+            "reported but is not fatal; an ENUM is reported, never fatal, never "
+            "a pass."),
         "reading_rule": (
             "a FAIL that names an immutable, in-place-unrepairable fact (a defect in the "
             "accepted audited package, or two accepted records that disagree) is a "
@@ -458,14 +526,14 @@ def main(argv: list[str] | None = None) -> int:
     record = run(Path(args.out))
     summary = {"n_checks": record["n_checks"], "n_failed": record["n_failed"],
                "failed_checks": record["failed_checks"],
+               "enum_checks": record["enum_checks"],
                "checks": {c["check"]: c["status"] for c in record["checks"]}}
     print(json.dumps(summary, indent=1))
     # Immutable in-place-unrepairable findings are reported, not fatal: the
     # charter is closed and they are preserved negatives. The exit code
     # tracks the in-scope REPAIRS, which must all work.
-    repair_checks = [c for c in record["checks"] if c["check"].startswith("R4b")
-                     or c["check"].endswith("_published")]
-    return 0 if all(c["status"] == "PASS" for c in repair_checks) else 1
+    return 0 if all(c["status"] == "PASS" for c in record["checks"]
+                    if c["check"] in record["repair_checks"]) else 1
 
 
 if __name__ == "__main__":

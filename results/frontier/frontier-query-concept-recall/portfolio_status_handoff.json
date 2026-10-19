@@ -1,0 +1,238 @@
+{
+ "schema": "frontier_closeout_handoff_v1",
+ "team_id": "frontier-query-concept-recall",
+ "charter_version": 1,
+ "run_id": 1792373633,
+ "generated_at": "2026-10-19T01:33:53.991337+00:00",
+ "network_calls": 0,
+ "authored_by": "frontier/frontier-query-concept-recall/closeout_handoff.py",
+ "what_this_is": "The one control-plane write that ends the resume loop, packaged so the director can apply it in a single command. It is a handoff, not a measurement: no threshold is re-derived, no frozen file is touched, no gate is re-scored.",
+ "what_this_is_not": "It is not a self-appointment, not a status write, and not a second hypothesis. The charter is terminal; this cycle changes no measured number and adds none.",
+ "charter_outcome_unchanged": "OUTCOME_B_BOUNDED_NEGATIVE",
+ "this_cycle_adds_no_measurement_claim": true,
+ "diagnosis": {
+  "root_cause": "Unreflected completion. The team's outcome and its accepted audit gate never reached state/frontier_portfolio.json, whose .status is the sole dispatch predicate, so the terminal team keeps matching the RUN selector on every dispatch.",
+  "operational_failure": "Run 39184014244 is the fourth consecutive dispatch of a team whose own state says cycle_status=COMPLETE, continue_recommended=false, closure.closed=true.",
+  "blast_radius": "Autonomous compute only: no owner decision is blocked, no accepted evidence is at risk and no product byte is touched. The cost is an unbounded loop of re-verification cycles.",
+  "workflow_evidence": {
+   "dispatch_predicate": [
+    ".github/workflows/frontier-team.yml:58: jq --arg team \"$TEAM\" --argjson ver \"$VER\" '.teams[] | select(.team_id==$team and .charter_version==$ver and .status==\"RUN\")' state/frontier_portfolio.json > /tmp/lex_frontier_charter.json"
+   ],
+   "team_scope_guard": [
+    ".github/workflows/frontier-team.yml:72: BR=\"lab/frontier/$TEAM\"",
+    ".github/workflows/frontier-team.yml:77: mkdir -p \"frontier/$TEAM\" \"tests/frontier/$TEAM\" \"results/frontier/$TEAM\" \"reports/frontier/$TEAM\" \"state/frontier\"",
+    ".github/workflows/frontier-team.yml:78: jq -n --arg team \"$TEAM\" --argjson ver \"$VER\" '{team_id:$team,charter_version:$ver,evidence_tier:\"UNTESTED\",cycle_status:\"INITIALIZED\",continue_recommended:true,accepted_run_id:null,accepted_commit:null}' > \"state/frontier/$TEAM.json\"",
+    ".github/workflows/frontier-team.yml:80: git add \"frontier/$TEAM\" \"tests/frontier/$TEAM\" \"results/frontier/$TEAM\" \"reports/frontier/$TEAM\" \"state/frontier/$TEAM.json\" || true",
+    ".github/workflows/frontier-team.yml:161: BAD=\"\"; while IFS= read -r line; do p=\"${line:3}\"; case \"$p\" in \"frontier/$TEAM\"/*|\"tests/frontier/$TEAM\"/*|\"results/frontier/$TEAM\"/*|\"reports/frontier/$TEAM\"/*|\"state/frontier/$TEAM.json\"|\"data/frontier/$TEAM\"/*|\"\") ;; *) BAD+=\"$p\\n\";; esac; done < <(git status --porcelain -uall)",
+    ".github/workflows/frontier-team.yml:193: ACC=\"lab/frontier/$TEAM\"; TBR=\"cycle/frontier/${TEAM}/${GITHUB_RUN_ID}/team\"",
+    ".github/workflows/frontier-team.yml:205: mkdir -p \"results/audit/frontier/$TEAM\" \"reports/audit/frontier/$TEAM\"",
+    ".github/workflows/frontier-team.yml:215: BAD=\"\"; while IFS= read -r line; do p=\"${line:3}\"; case \"$p\" in \"results/audit/frontier/$TEAM\"/*|\"reports/audit/frontier/$TEAM\"/*|\"\") ;; *) BAD+=\"$p\\n\";; esac; done < <(git status --porcelain -uall); [[ -z \"$BAD\" ]] || { echo -e \"$BAD\"; exit 4; }",
+    ".github/workflows/frontier-team.yml:216: F=\"results/audit/frontier/$TEAM/CYCLE_${GITHUB_RUN_ID}_GATE.json\"; jq -e '.gate==\"PASS\" or .gate==\"REVISE\" or .gate==\"BLOCKED\"' \"$F\" >/dev/null; echo \"gate=$(jq -r .gate \"$F\")\" >> \"$GITHUB_OUTPUT\"",
+    ".github/workflows/frontier-team.yml:217: BR=\"cycle/frontier/${TEAM}/${GITHUB_RUN_ID}/audit\"; git config user.name \"lex-frontier-auditor\"; git config user.email \"lex-audit@autonomous.local\"; git switch -C \"$BR\"; git add \"results/audit/frontier/$TEAM\" \"reports/audit/frontier/$TEAM\"; git commit -m \"audit Frontier $TEAM ${GITHUB_RUN_ID}\"; git push --force origin \"HEAD:refs/heads/$BR\"",
+    ".github/workflows/frontier-team.yml:239: TBR=\"cycle/frontier/${TEAM}/${GITHUB_RUN_ID}/team\"; ABR=\"cycle/frontier/${TEAM}/${GITHUB_RUN_ID}/audit\"; ACC=\"lab/frontier/$TEAM\"",
+    ".github/workflows/frontier-team.yml:242: OLD=$(git rev-parse \"origin/$ACC\"); git switch -C promote \"origin/$TBR\"; git checkout \"origin/$ABR\" -- \"results/audit/frontier/$TEAM\" \"reports/audit/frontier/$TEAM\"; git config user.name \"lex-integrator\"; git config user.email \"lex-integrator@autonomous.local\"; git add \"results/audit/frontier/$TEAM\" \"reports/audit/frontier/$TEAM\"; git commit -m \"accept Frontier $TEAM ${GITHUB_RUN_ID}\" || true; git push --force-with-lease=\"refs/heads/$ACC:$OLD\" origin \"HEAD:refs/heads/$ACC\"",
+    ".github/workflows/frontier-team.yml:246: mkdir -p state/blockers/frontier; jq -n --arg team \"$TEAM\" --argjson ver \"$VER\" --arg run \"$GITHUB_RUN_ID\" '{team_id:$team,charter_version:$ver,blocked_by_run:$run,reason:\"AUDIT_BLOCKED\",requires_human:false}' > \"state/blockers/frontier/$TEAM.json\"; git config user.name \"lex-integrator\"; git config user.email \"lex-integrator@autonomous.local\"; git add \"state/blockers/frontier/$TEAM.json\"; git commit -m \"block Frontier $TEAM v$VER\"; for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || { git rebase --abort 2>/dev/null || true; sleep $((i*3)); }; done"
+   ],
+   "director_scope_guard": [
+    ".github/workflows/factory-director.yml:52: jq -r '.teams[] | select(.status==\"RUN\") | .team_id' state/frontier_portfolio.json | while read -r team; do",
+    ".github/workflows/factory-director.yml:89: \"Direct LexMachina factory run=${GITHUB_RUN_ID}. Read /tmp/lex_control/AGENTS.md, Main Prompt, Architecture, current state/factory_direction.json, state/frontier_portfolio.json, state/blockers if present, and all ACCEPTED evidence under /tmp/lex_accepted. You may inspect GitHub workflow status/log summaries with gh when operational evidence matters. Keep means broad but mission fixed. Update ONLY state/factory_direction.json, state/frontier_portfolio.json and reports/director/RUN_${GITHUB_RUN_ID}.md. Increment factory_direction.version ONLY if a core lane status/question/priority materially changes. Increment frontier_portfolio.version ONLY if its portfolio materially changes. A Frontier team is justified only by concrete accepted evidence or a concrete product bottleneck; each RUN entry must contain team_id, charter_version, status, product_capability, question, hypothesis, why_now, non_duplication, dependencies, acceptance_test, stop_promote_rule. More credible independent paths may justify more teams. No curiosity teams. Operational failures, exhausted approaches, audit blockers and model/provider hiccups are YOUR responsibility to route around autonomously: change question, kill/recharter a team, choose another accepted path, or keep productive lanes moving. Use lane status HUMAN_DECISION_REQUIRED only when a genuine product/mission/external choice cannot be resolved from evidence or autonomous experimentation and truly requires the repository owner; never use it for technical failures, repeated crashes, weak results, or scientific dead ends. ${REPAIR}\"",
+    ".github/workflows/factory-director.yml:98: jq -e '.version and (.teams|type==\"array\") and all(.teams[]; (.team_id and .charter_version and .status))' state/frontier_portfolio.json >/dev/null",
+    ".github/workflows/factory-director.yml:99: jq -e 'all(.teams[] | select(.status==\"RUN\"); (.product_capability and .question and .hypothesis and .why_now and .non_duplication and .dependencies and .acceptance_test and .stop_promote_rule))' state/frontier_portfolio.json >/dev/null",
+    ".github/workflows/factory-director.yml:107: git switch -C \"$BR\"; git add state/factory_direction.json state/frontier_portfolio.json reports/director; git commit -m \"Factory Director proposal ${GITHUB_RUN_ID}\" || true",
+    ".github/workflows/factory-director.yml:137: jq -r '.teams[] | select(.status==\"RUN\") | .team_id' state/frontier_portfolio.json | while read -r team; do",
+    ".github/workflows/factory-director.yml:189: git checkout \"origin/$P\" -- state/factory_direction.json state/frontier_portfolio.json",
+    ".github/workflows/factory-director.yml:190: git config user.name \"lex-director-integrator\"; git config user.email \"lex-director@autonomous.local\"; git add state/factory_direction.json state/frontier_portfolio.json; git commit -m \"direction: accept Director run ${GITHUB_RUN_ID}\" || exit 0",
+    ".github/workflows/factory-director.yml:191: for i in 1 2 3 4 5 6; do if git pull --rebase origin main && git push origin HEAD:main; then exit 0; fi; git rebase --abort 2>/dev/null || true; git reset --hard origin/main; git checkout \"origin/$P\" -- state/factory_direction.json state/frontier_portfolio.json; git add state/factory_direction.json state/frontier_portfolio.json; git commit -m \"direction: accept Director run ${GITHUB_RUN_ID}\" || true; sleep $((i*3)); done; exit 1"
+   ],
+   "team_state_fields_in_the_dispatch_selector": {
+    "cycle_status": false,
+    "continue_recommended": false,
+    "run_history": false,
+    "status": true
+   },
+   "team_state_fields_read_outside_dispatch": {
+    "cycle_status": [
+     ".github/workflows/frontier-team.yml:78: jq -n --arg team \"$TEAM\" --argjson ver \"$VER\" '{team_id:$team,charter_version:$ver,evidence_tier:\"UNTESTED\",cycle_status:\"INITIALIZED\",continue_recommended:true,accepted_run_id:null,accepted_commit:null}' > \"state/frontier/$TEAM.json\"",
+     ".github/workflows/frontier-team.yml:137: (.cycle_status // \"INITIALIZED\") != \"INITIALIZED\" and"
+    ],
+    "continue_recommended": [
+     ".github/workflows/frontier-team.yml:78: jq -n --arg team \"$TEAM\" --argjson ver \"$VER\" '{team_id:$team,charter_version:$ver,evidence_tier:\"UNTESTED\",cycle_status:\"INITIALIZED\",continue_recommended:true,accepted_run_id:null,accepted_commit:null}' > \"state/frontier/$TEAM.json\"",
+     ".github/workflows/frontier-team.yml:125: \"Run LexMachina Frontier team=${TEAM}, charter v${VER}, GitHub run=${GITHUB_RUN_ID}. Exact charter=/tmp/lex_frontier_charter.json. Read /tmp/lex_control/AGENTS.md and Main Prompt. Accepted evidence=/tmp/lex_accepted. Execute only this charter. If the charter is an engineering capability, BUILD RUNNABLE CODE/TESTS/fixtures and a narrow integration contract; do not substitute a research memo. REUSE-FIRST: inspect accepted product/core mounts before rebuilding capabilities. Use parallel subagents for independent implementation/testing when useful. Optimize throughput and owner-attention, not token thrift. Your state/frontier/${TEAM}.json MUST retain charter_version and set continue_recommended true only if another cycle under the SAME charter is specifically justified. ${MODE}\""
+    ],
+    "run_history": []
+   },
+   "redispatch_never_reads_team_state": {
+    "method": "scanned the dispatch-selector lines only; the post-run validation step was scanned separately so a field that merely validates a run is never reported as a dispatch gate",
+    "conclusion": "status is the only team field in the dispatch selector. cycle_status appears once, in the validation step that FAILS a run whose state was not advanced - it can stop a run, never start or suppress one. continue_recommended appears only in the producer prompt text. run_history appears nowhere in the workflow. So no value this team can legally write in state/frontier/<team>.json can suppress a re-dispatch; only state/frontier_portfolio.json .status can."
+   }
+  },
+  "reflection_gap": {
+   "portfolio_entry_status": "RUN",
+   "portfolio_entry_run_history_len": 0,
+   "portfolio_entry_continue_recommended": true,
+   "portfolio_entry_created_at": "2026-10-18T18:07:04Z",
+   "portfolio_version": 29,
+   "team_state_cycle_status": "COMPLETE",
+   "team_state_continue_recommended": false,
+   "team_state_n_run_history": 6,
+   "team_state_outcome": "OUTCOME_B_BOUNDED_NEGATIVE",
+   "team_state_charter_version": 1,
+   "team_state_closed": true,
+   "mounted_control_plane_entry": {
+    "status": "RUN",
+    "n_run_history": 0,
+    "continue_recommended": true,
+    "path": "/tmp/lex_control/state/frontier_portfolio.json"
+   },
+   "reflection_gap": "The portfolio entry still carries created_at=2026-10-18T18:07:04Z, run_history=[] and status=RUN, i.e. it is the charter as first written. 6 completed cycles recorded in the team state have never been reflected into it, so the dispatch predicate keeps matching and the loop is self-sustaining.",
+   "unrecoverable_by_this_team": "state/frontier_portfolio.json is outside the Frontier team scope guard and inside the director's; see workflow_evidence."
+  }
+ },
+ "proposed_control_plane_write": {
+  "file": "state/frontier_portfolio.json",
+  "target_selector": ".teams[] | select(.team_id==\"frontier-query-concept-recall\" and .charter_version==1)",
+  "current_status": "RUN",
+  "recommended_status": "PAUSE",
+  "status_rationale": {
+   "PAUSE": "RECOMMENDED. Matches the charter's stop rule (promote at the first outcome reached) and the precedent already in the portfolio: frontier-query-retrieval is PAUSE with run_history=1 after a promoted outcome. Out of RUN, so the dispatch predicate at frontier-team.yml:58 stops matching.",
+   "TERMINATED": "Also valid and used by 6 of 12 portfolio entries. Correct if the director reads OUTCOME_B as closing this ITEM permanently rather than pausing it. Either value ends the loop; the choice is the director's."
+  },
+  "jq_program": ".teams |= (map(if (.team_id == \"frontier-query-concept-recall\" and .charter_version == 1) then (.status = \"PAUSE\") | (.continue_recommended = false) | (.run_history = ((.run_history // []) + $hist[0])) | (.closed_at = $ts) | (.closure = \"OUTCOME_B_BOUNDED_NEGATIVE; charter terminal per stop rule; audit gate CYCLE_39178441123 PASS; handoff results/frontier/frontier-query-concept-recall/portfolio_status_handoff.json\") else . end)) | (if (.version | type) == \"number\" then .version += 1 else . end)",
+  "jq_command": "jq --arg ts \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" --slurpfile hist results/frontier/frontier-query-concept-recall/portfolio_status_handoff.history.json '.teams |= (map(if (.team_id == \"frontier-query-concept-recall\" and .charter_version == 1) then (.status = \"PAUSE\") | (.continue_recommended = false) | (.run_history = ((.run_history // []) + $hist[0])) | (.closed_at = $ts) | (.closure = \"OUTCOME_B_BOUNDED_NEGATIVE; charter terminal per stop rule; audit gate CYCLE_39178441123 PASS; handoff results/frontier/frontier-query-concept-recall/portfolio_status_handoff.json\") else . end)) | (if (.version | type) == \"number\" then .version += 1 else . end)' state/frontier_portfolio.json > /tmp/p.json && mv /tmp/p.json state/frontier_portfolio.json",
+  "jq_args_note": "Read from the repository root: results/frontier/frontier-query-concept-recall/portfolio_status_handoff.history.json must sit beside this record and holds the proposed run_history array verbatim, read by --slurpfile as $hist[0]. No data is inlined into the shell command, so apostrophes and quotes in the run history cannot break it. Re-emit with --print if the team state has advanced.",
+  "proposed_run_history_entries": [
+   {
+    "run_id": "harness_1792353722",
+    "outcome": "OUTCOME_B_BOUNDED_NEGATIVE",
+    "disposition": null,
+    "timestamp": "2026-10-18T20:02:02.169314+00:00"
+   },
+   {
+    "run_id": "harness_1792359072",
+    "outcome": "OUTCOME_B_BOUNDED_NEGATIVE_PROVISIONAL_SUPERSEDED",
+    "disposition": null,
+    "timestamp": "2026-10-18T21:31:12.868892+00:00"
+   },
+   {
+    "run_id": "harness_1792361062",
+    "outcome": "OUTCOME_B_BOUNDED_NEGATIVE",
+    "disposition": "FINAL - OUTCOME B closes the item per charter stop rule",
+    "timestamp": "2026-10-18T22:04:22.976363+00:00"
+   },
+   {
+    "run_id": 1792370864,
+    "outcome": "OUTCOME_B_BOUNDED_NEGATIVE_UNCHANGED",
+    "disposition": "CLOSURE VERIFIED - charter remains terminal; four control-plane defects reported, two proven to fail runs",
+    "timestamp": "2026-10-19T00:47:44.847597+00:00"
+   },
+   {
+    "run_id": "github-39182826179",
+    "outcome": "OUTCOME_B_BOUNDED_NEGATIVE (unchanged)",
+    "disposition": "FINAL for this charter; nothing further is justified under the same frozen rules",
+    "timestamp": null
+   },
+   {
+    "run_id": "github-39184014244",
+    "outcome": "OUTCOME_B_BOUNDED_NEGATIVE (unchanged)",
+    "disposition": "FINAL for this charter; the only remaining action is the director's portfolio write, packaged and tested",
+    "timestamp": "2026-10-19T01:35:00Z"
+   }
+  ],
+  "version_bump_rule": "factory-director.yml increments frontier_portfolio.version only if the portfolio materially changes; a status flip off RUN is material, so the version should be incremented with the patch.",
+  "not_applied_by_this_team": "This module never writes state/frontier_portfolio.json. Its scope guard would fail the run if it did. The recommendation is advisory; the director decides and records."
+ },
+ "evidence_index": {
+  "frozen_rules": {
+   "path": "results/frontier/frontier-query-concept-recall/RULES.json",
+   "sha256": "c5447bac0605a8bcf8c3d1820bee56a5bb0e814365978ec1fa12ac189776ee9a",
+   "present": true
+  },
+  "canonical_harness_result": {
+   "path": "results/frontier/frontier-query-concept-recall/harness_results_39179862363.json",
+   "sha256": "a54f6a4fa64948652d04eab629436cf482d415f882160157bdc46431e0014c92",
+   "present": true
+  },
+  "canonical_pointer_result": {
+   "path": "results/frontier/frontier-query-concept-recall/harness_results.json",
+   "sha256": "5004cdae54863e3e573c7886d61a3091a0ac0030d94adabb4532b2788f36aa67",
+   "present": true
+  },
+  "cycle_verification": {
+   "path": "results/frontier/frontier-query-concept-recall/cycle_verification.json",
+   "sha256": "5aff180f84ae976d76c29d3557e47e3ef85543eae2fc0bbf928e4f9eac654b6a",
+   "present": true
+  },
+  "regression_results": {
+   "path": "results/frontier/frontier-query-concept-recall/regression_results.json",
+   "sha256": "3e908a5c5f12f4fb41739f9dd766e35314d75a18d844b572a4a3b3dc9b56f38d",
+   "present": true
+  },
+  "integration_contract": {
+   "path": "results/frontier/frontier-query-concept-recall/integration_contract.json",
+   "sha256": "4abff138c4d1241f96046095992e55a5c197d7e24df13d3e743e2beb0bd7bae1",
+   "present": true
+  },
+  "bounded_cause_resolution": {
+   "path": "results/frontier/frontier-query-concept-recall/bounded_cause_resolution.json",
+   "sha256": "d7d3b682f0bee4911d3b9b0af6b6e838af1c82600ecd24f1a6c74da5f5d4a684",
+   "present": true
+  },
+  "freeze_ordering": {
+   "path": "results/frontier/frontier-query-concept-recall/freeze_ordering.json",
+   "sha256": "5fb615412b80ab3b2bc1234f3d57eea82ab646b437cf06658f8dbc0a59aeef4e",
+   "present": true
+  },
+  "closure_verification": {
+   "path": "results/frontier/frontier-query-concept-recall/closure_verification.json",
+   "sha256": "ba16fba17a090f966d9092ac986c0f2f997b742e6c949044979f584d810fd199",
+   "present": true
+  },
+  "team_state": {
+   "path": "state/frontier/frontier-query-concept-recall.json",
+   "sha256": "ab18e046bc558b96be995ac66d1d2323a193eef4165ad81839bad969b1f3f502",
+   "present": true
+  }
+ },
+ "invariants": {
+  "charter_version_retained": true,
+  "outcome_is_terminal": true,
+  "continue_recommended_is_false": true,
+  "closure_closed": true,
+  "all_evidence_present": true,
+  "all_evidence_re_hashed": true,
+  "frozen_rules_digest": "c5447bac0605a8bcf8c3d1820bee56a5bb0e814365978ec1fa12ac189776ee9a",
+  "frozen_rules_expected": "c5447bac0605a8bcf8c3d1820bee56a5bb0e814365978ec1fa12ac189776ee9a",
+  "frozen_rules_unchanged": true,
+  "portfolio_entry_still_run": true,
+  "team_state_sha256": "ab18e046bc558b96be995ac66d1d2323a193eef4165ad81839bad969b1f3f502",
+  "note": "team_state_sha256 is recorded so a stale handoff is detectable. The director changes this team's state file only through a new cycle, so a moved digest here means re-emit."
+ },
+ "git": {
+  "head": "1d59f8480a36453571a0d8a06507c3a36bd98863",
+  "head_subject": "Frontier frontier-query-concept-recall v1 run 39182826179: independent reproducibility verification; OUTCOME_B unchanged, five defects found, three repaired in scope",
+  "branch": "operational-resume",
+  "is_shallow_repository": "true",
+  "n_commits_visible": 1
+ },
+ "residual_actions_outside_this_teams_scope": [
+  {
+   "actor": "factory director",
+   "action": "apply the proposed portfolio patch (status RUN -> PAUSE, run_history += 5 cycles, continue_recommended=false)",
+   "blocking": true,
+   "note": "this alone ends the dispatch loop"
+  },
+  {
+   "actor": "factory director / workflow owner",
+   "action": "teach the zero-delta guard or the dispatch selector to honour a verified terminal closure, so a closed team is not re-dispatched even if a portfolio write is missed",
+   "blocking": false,
+   "note": "defence in depth; the portfolio write is the actual fix"
+  },
+  {
+   "actor": "Core Product (integrator)",
+   "action": "record an adoption-or-decline decision on the OUTCOME_B integration contract (factory-wide requirement 21)",
+   "blocking": false,
+   "note": "the charter closes the recall half; the admission-disclosure half stays with Product"
+  }
+ ],
+ "claim_ceiling": "No artifact may assert that a map helps a jurist, that any authority is absent from the corpus, that any frozen bar is met or moved, or that any packet is fit to serve. Usefulness remains the human product gate's question and admission remains fail-closed. This handoff asserts only facts re-hashed from the committed tree and the read-only accepted mounts."
+}

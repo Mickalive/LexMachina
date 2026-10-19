@@ -20,7 +20,15 @@
   "runnable_closure_verifier": "PYTHONPATH=frontier python frontier/frontier-query-concept-recall/closure.py --out <dir> [--print-verdict]",
   "runnable_harness": "python -m frontier_query_concept_recall.cli --bundle <path> --out <dir> [--offline]",
   "runnable_offline_safe_harness": "PYTHONPATH=frontier python frontier/frontier-query-concept-recall/run_harness.py --out <dir> --offline",
-  "runnable_regression_suite": "python -m frontier_query_concept_recall.regression_suite --out <dir>"
+  "runnable_regression_suite": "python -m frontier_query_concept_recall.regression_suite --out <dir>",
+  "closeout_handoff_generator": "frontier/frontier-query-concept-recall/closeout_handoff.py",
+  "closeout_handoff": "results/frontier/frontier-query-concept-recall/portfolio_status_handoff.json",
+  "closeout_handoff_tests": "tests/frontier/frontier-query-concept-recall/test_closeout_handoff.py",
+  "shallow_history_guard_tests": "tests/frontier/frontier-query-concept-recall/test_verify_shallow_history.py",
+  "cycle_verification_39184014244": "results/frontier/frontier-query-concept-recall/cycle_verification_39184014244.json",
+  "cycle_report_39184014244": "reports/frontier/frontier-query-concept-recall/CYCLE_39184014244.md",
+  "closeout_verifier": "frontier/frontier-query-concept-recall/closeout_handoff.py",
+  "closeout_handoff_history": "results/frontier/frontier-query-concept-recall/portfolio_status_handoff.history.json"
  },
  "charter_version": 1,
  "closure": {
@@ -41,7 +49,7 @@
   "verified_by": "frontier/frontier-query-concept-recall/closure.py"
  },
  "continue_recommended": false,
- "continue_recommended_reason": "Still false, for the same reason as cycle 39181670816 and now re-verified a third time. The charter reached its terminal outcome (OUTCOME_B) at cycle 39178441123, audit gate PASS. RULES.json is byte-unchanged at sha256 c5447bac0605a8bc... since pre-measurement commit ff5933f1e @ 2026-10-18T21:25:57Z, so another cycle under the SAME charter could only be post-hoc threshold/lexicon/prompt tuning, which the stop rule forbids. Cycle 39182826179 found no in-budget deterministic expansion that recovers the missing concepts or authority ids, changed no measured number, and added no measurement claim. The remaining work is control-plane work this team is not scoped to perform: the director must move the portfolio entry off status=RUN (that unmet step IS the resume loop), the workflow owner must resolve the scope guard, and Core Product must record its adoption-or-decline decision.",
+ "continue_recommended_reason": "Still false, for the same reason as cycles 39181670816 and 39182826179, now verified a fourth time. The charter reached its terminal outcome (OUTCOME_B) at cycle 39178441123, audit gate PASS. RULES.json is byte-unchanged at sha256 c5447bac0605a8bc..., so another cycle under the SAME charter could only be post-hoc threshold/lexicon/prompt tuning, which the stop rule forbids. Cycle 39184014244 changed no measured number and added no measurement claim; it diagnosed why the team keeps being dispatched (the portfolio entry still reads status=RUN with run_history=[] while the team state records six completed cycles and a closed charter) and packaged the director's fix as an executed-and-tested command. The loop ends when the director applies results/frontier/frontier-query-concept-recall/portfolio_status_handoff.json - a control-plane write this team is not scoped to make, and one that needs zero owner attention.",
  "control_plane_actions_required": [
   {
    "action": "move the portfolio entry off status=RUN in the director cycle that records this outcome as met and independently accepted",
@@ -159,7 +167,23 @@
    "cli.py: union_rows dedup key normalized to canonical_decision_id-or-decision_id (closes cross-shape duplicate hazard; measurement-neutral on frozen inputs, verified byte-identical claim-bearing numbers)",
    "regression_suite.py: rewritten, 8/8 tests pass offline"
   ],
-  "resumed_from": "persisted Frontier producer snapshot 39168288007 (branch origin/cycle/frontier/frontier-query-concept-recall/39168288007/team, commit 8cccb4c)"
+  "resumed_from": "persisted Frontier producer snapshot 39168288007 (branch origin/cycle/frontier/frontier-query-concept-recall/39168288007/team, commit 8cccb4c)",
+  "resumed_from_39184014244": {
+   "resumed_from": "persisted Frontier producer snapshot 39182826179 (branch cycle/frontier/frontier-query-concept-recall/39182826179/team, commit 1d59f84)",
+   "valid_completed_work_preserved": true,
+   "preserved": [
+    "RULES.json and every accepted record byte-untouched",
+    "harness_results_39179862363.json",
+    "cycle_verification.json",
+    "closure_verification.json",
+    "bounded_cause_resolution.json",
+    "INTEGRATION_CONTRACT.md"
+   ],
+   "nothing_restarted_from_scratch": "the harness was not re-measured, no rule was re-derived and no threshold was touched; this cycle re-derived the published numbers from the tree and mounts and found them identical",
+   "operational_failure": "unreflected completion - the terminal outcome and its accepted audit gate never reached state/frontier_portfolio.json, whose .status is the only dispatch predicate",
+   "single_blocking_action": "factory director applies the close-out handoff (status RUN -> PAUSE)",
+   "zero_owner_action_required": true
+  }
  },
  "outcome": "OUTCOME_B_BOUNDED_NEGATIVE",
  "owner_attention_note": "zero owner action required: no paid API, no provisioning, no rubric/bar/threshold/frozen-file/packet/admission change; the accepted package was not modified. Product owns the adoption decision under factory-wide requirement 21 and the admission-disclosure half of the original finding. The one thing a human must not be asked to babysit is the resume loop: it is a control-plane write the director performs, not a research question.",
@@ -258,7 +282,184 @@
    "outcome": "OUTCOME_B_BOUNDED_NEGATIVE (unchanged)",
    "rules_file_sha256": "c5447bac0605a8bcf8c3d1820bee56a5bb0e814365978ec1fa12ac189776ee9a",
    "run_id": "github-39182826179"
+  },
+  {
+   "run_id": "github-39184014244",
+   "mode": "operational resume: diagnosed the dispatch loop, repaired defect K, shipped the close-out handoff",
+   "outcome": "OUTCOME_B_BOUNDED_NEGATIVE (unchanged)",
+   "claim_bearing_numbers_changed": false,
+   "defects_repaired_in_scope": [
+    "K_verify_py_fabricated_a_finding_in_a_shallow_checkout",
+    "L_dead_repairs_variable_and_loose_precedence",
+    "C4_emitted_handoff_patch_destroyed_the_root_document",
+    "C5_emitted_handoff_patch_quoting",
+    "C6_over_broad_workflow_claim_in_the_handoff",
+    "C7_inlined_history_broke_the_emitted_command"
+   ],
+   "defects_preserved": [
+    "R3_bounded_cause_record_divergence",
+    "R4_charter_named_invocation_keyerror",
+    "Z_dead_main_py"
+   ],
+   "network_calls": 0,
+   "cycle_verification_sha256": "17bf3e7ec550dd7d5de8023af9fcf55eed7912d492930a0fd3ab84341b109d87",
+   "tests": "11/11 shallow-history guard, 21/21 close-out handoff, 17/17 cli_entry, 8/8 regression suite - all offline",
+   "disposition": "FINAL for this charter; the only remaining action is the director's portfolio write, packaged and tested",
+   "timestamp": "2026-10-19T01:35:00Z"
   }
  ],
- "team_id": "frontier-query-concept-recall"
+ "team_id": "frontier-query-concept-recall",
+ "cycle_39184014244": {
+  "mode": "OPERATIONAL RESUME from persisted Frontier producer snapshot 39182826179",
+  "resumed_from": "cycle/frontier/frontier-query-concept-recall/39182826179/team @ 1d59f84",
+  "outcome": "OUTCOME_B_BOUNDED_NEGATIVE (unchanged)",
+  "charter_outcome_changed": false,
+  "claim_bearing_numbers_changed": false,
+  "this_cycle_adds_no_measurement_claim": true,
+  "network_calls": 0,
+  "accepted_package_modified": false,
+  "frozen_rules_untouched": true,
+  "operational_failure_diagnosed": {
+   "summary": "A team whose charter is terminal and whose state says cycle_status=COMPLETE, continue_recommended=false, closure.closed=true has been dispatched four consecutive times. The portfolio entry it is dispatched from still reads status=RUN.",
+   "mechanism_rederived_from_workflow_files": [
+    "frontier-team.yml:58 dispatches iff the portfolio entry matches .status==\"RUN\"; status is the ONLY team field in the dispatch selector",
+    "state/frontier_portfolio.json still carries status=RUN, run_history=[], continue_recommended=true, created_at=2026-10-18T18:07:04Z, byte-identical to the charter as first written (verified in BOTH the repo copy and the workflow-mounted /tmp/lex_control copy)",
+    "the team state records 5 completed cycles and a closed charter: six cycles and one accepted audit gate have never been reflected into the control plane",
+    "cycle_status appears once in the workflow (line 137) but only in the post-run VALIDATION step - it can fail a run, never suppress one; continue_recommended appears only in the producer prompt text; run_history appears nowhere",
+    "state/frontier_portfolio.json is outside the Frontier team scope guard and inside the director's (factory-director.yml:94), so the write has no in-scope author"
+   ],
+   "root_cause": "unreflected_completion - the outcome and its accepted audit gate never reached the portfolio, whose .status is the sole dispatch predicate, so the terminal team keeps matching the RUN selector on every dispatch",
+   "charter_clause_orphaned": "stop_promote_rule: 'The team's status MUST move off RUN in the same director cycle that records this outcome being met and independently accepted'",
+   "blast_radius": "autonomous compute only - no owner decision blocked, no accepted evidence at risk, no product byte touched; unbounded only in the number of redundant re-verification cycles",
+   "loop_is_not_self_terminating": true
+  },
+  "verification_reperformed": {
+   "basis": "committed tree + read-only accepted mounts, offline; every published number re-derived rather than read from the record that makes it",
+   "all_pinned_inputs_rehash": true,
+   "n_pinned_inputs": 10,
+   "frozen_rules_sha256": "c5447bac0605a8bcf8c3d1820bee56a5bb0e814365978ec1fa12ac189776ee9a",
+   "frozen_rules_unchanged": true,
+   "accepted_baseline_reproduced": "de-kapitalverletzung 214 rows, 0 containing 'kapitalverletzung', 0 containing 'uberwachungspflicht'; fr-bail-entretien 217 rows / 0 under-covered; it-responsabilita-medica 211 rows / 0 under-covered",
+   "frozen_leg_recall_cells_identical": 36,
+   "six_failing_fr_it_cells_still_zero": true,
+   "latency_block_byte_identical": {
+    "n_searches": 15,
+    "cache_hits": 15,
+    "network_calls": 0,
+    "calls_over_per_search_budget": 10,
+    "observed_max_seconds": 83.505,
+    "sum_seconds": 600.569,
+    "per_search_holds": false
+   },
+   "regression_suite": "8/8 PASS, network_calls=0",
+   "unit_tests": "17/17 PASS (tests/frontier/frontier-query-concept-recall/test_cli_entry.py)",
+   "only_volatile_fields_differ": [
+    "run_id",
+    "generated_at",
+    "additive entry_point aliases"
+   ],
+   "verdict": "the closed charter reproduces exactly; no number moved"
+  },
+  "defects": {
+   "K_verify_py_fabricated_a_finding_in_a_shallow_checkout": {
+    "severity": "HIGH",
+    "status": "REPAIRED IN SCOPE",
+    "detail": "verify.py check R2_freeze_ordering_from_real_commit_times decided PASS/FAIL from a commit-time comparison. frontier-team.yml fetches the team branch with --depth=1, where `git log -- <path>` collapses to the single checked-out commit, so last_rules and first_canonical become the SAME commit, the ordering comparison is structurally vacuous, and R2 emitted a hard FAIL whose narrative asserted commit shas and times it never read (git rev-list --count HEAD = 1; those objects do not resolve).",
+    "consequence": "the committed cycle_verification.json (2 failures) did NOT reproduce at HEAD in the dispatched checkout (3 failures) - the defect class factory-wide requirement 29 targets, inverted: a preserved negative polluted by an environment artifact",
+    "precedent_lost": "closure.py:240-254 already implements the correct guard (ENUM_SHALLOW_HISTORY, 'never a silent PASS and never a fabricated FAIL'); the later verify.py, whose docstring claims it adds the checks closure.py does not make, had lost it, so the team's two verifiers disagreed about the same fact",
+    "repair": "ported the closure.py guard into verify.py: ENUM_SHALLOW_HISTORY with history_is_shallow, n_rules_commits_visible and not_measured_note; the byte-identity half (rules_blob_unchanged_since_that_commit, head_blob) stays reported so freeze integrity survives where ordering cannot be recomputed; the ordering verdict is None rather than a vacuous False; ENUMs are carried in the record as neither failure nor pass; the R2 citation narrative no longer asserts an unresolvable sha",
+    "measurement_neutral": true,
+    "measurement_neutrality_proof": "post-repair full offline replay byte-identical to harness_results_39179862363.json on every claim-bearing field; regression suite byte-identical with the committed cache seeded; frozen RULES.json digest unchanged",
+    "pinned_by": "tests/frontier/frontier-query-concept-recall/test_verify_shallow_history.py (11 tests, all pass)"
+   },
+   "L_dead_repairs_variable_and_loose_precedence": {
+    "severity": "LOW",
+    "status": "REPAIRED IN SCOPE",
+    "detail": "verify.py:run() computed a `repairs` local that was never read, while the exit code was driven by a separate repair_checks computation; the expression also bound loosely on `and`/`or`. A trap for the next editor of a claim-bearing verifier.",
+    "repair": "removed the dead local; the record now names repair_checks and exit_code_policy explicitly and the exit code is computed from the same named set",
+    "measurement_neutral": true
+   },
+   "C4_emitted_handoff_patch_destroyed_the_root_document": {
+    "severity": "HIGH (in this cycle's own new artifact, found before shipping)",
+    "status": "REPAIRED IN SCOPE",
+    "detail": "the first draft of the close-out handoff emitted `(.teams[] | select(...)) | (.status = \"PAUSE\") | ...`, which REPLACES the whole portfolio with the single matched team object: jq streams the selection out, destroying .version and .teams and failing the director's own validation gate.",
+    "found_by": "executing the emitted command against a portfolio COPY, never the real file",
+    "repair": "in-place `.teams |= (map(if ... then ... else . end))` plus an explicit version bump; the test suite now executes the emitted command and asserts both of the director's verbatim validation gates",
+    "measurement_neutral": true
+   },
+   "C5_emitted_handoff_patch_quoting": {
+    "severity": "HIGH (same draft)",
+    "status": "REPAIRED IN SCOPE",
+    "detail": "escaped double quotes inside a shell single-quoted jq program reach jq literally and fail to compile; the closure note now carries no double quotes",
+    "found_by": "the same copy-execution test",
+    "measurement_neutral": true
+   },
+   "C6_over_broad_workflow_claim_in_the_handoff": {
+    "severity": "MEDIUM (accuracy defect in this cycle's own artifact)",
+    "status": "REPAIRED IN SCOPE",
+    "detail": "the handoff first grepped the whole workflow for 'cycle_status' and reported it absent; it is present at frontier-team.yml:137, in the post-run validation step. The conclusion was right but the evidence for it was false, which is the defect class this charter exists to prevent.",
+    "repair": "the dispatch claim is now computed from the dispatch-selector lines only, with validation occurrences reported separately and quoted",
+    "measurement_neutral": true
+   },
+   "R3_two_accepted_records_disagree_on_the_bounded_cause": {
+    "severity": "MEDIUM",
+    "status": "PRESERVED NEGATIVE (immutable, in-place unrepairable)",
+    "detail": "harness_results.json carries the bounded cause WITHDRAWN by audit CYCLE_39171009594 F2 while harness_results_39179862363.json carries the replacement; neither is overwritten (AGENTS.md rule 6)",
+    "in_scope_repair": "R3b bounded_cause_resolution.json designates the reproducible record - PASS"
+   },
+   "R4_charter_named_invocation_raises_keyerror": {
+    "severity": "MEDIUM",
+    "status": "PRESERVED NEGATIVE (defect inside the accepted audited package)",
+    "detail": "`python -m frontier_query_concept_recall.cli --bundle <path> --out <dir>` raises KeyError at cli.py:418 for any strict subset of the served set; reproduced at HEAD, exit 1",
+    "in_scope_repair": "R4b cli_entry.py completes the charter-fixed served set from RULES-pinned sha256-verified read-only accepted bytes and discloses it - PASS"
+   },
+   "Z_dead_main_py_entry_point": {
+    "severity": "LOW",
+    "status": "DISCLOSED, NOT TOUCHED",
+    "detail": "frontier/frontier-query-concept-recall/__main__.py does `from .cli import main` inside a directory whose name contains hyphens and is therefore not an importable package; running it raises ImportError (exit 1). Its sibling __init__.py exports symbols that do not exist in that directory. Nothing routes here - zero blast radius - so it is disclosed rather than deleted, since it is part of how the package was written and deleting it would destroy provenance for no operational gain.",
+    "blast_radius": "none"
+   },
+   "C7_inlined_history_broke_the_emitted_command": {
+    "severity": "HIGH (in this cycle's own new artifact, found by the test suite before shipping)",
+    "status": "REPAIRED IN SCOPE",
+    "detail": "the handoff first emitted the proposed run_history array inline as --argjson hist '...'. The array is prose lifted from the team state and contains an apostrophe (\"the director's portfolio write\"), which terminated the shell's single-quoted string; the command failed with an unexpected EOF and would have handed the director a patch that cannot run.",
+    "found_by": "the copy-execution test in tests/frontier/frontier-query-concept-recall/test_closeout_handoff.py",
+    "repair": "the history now ships as its own JSON file (portfolio_status_handoff.history.json) and the command reads it with --slurpfile as $hist[0], so no data passes through shell quoting; build() raises rather than emitting a program containing a single quote",
+    "measurement_neutral": true
+   }
+  },
+  "new_deliverables_this_cycle": {
+   "closeout_handoff_generator": {
+    "path": "frontier/frontier-query-concept-recall/closeout_handoff.py",
+    "run": "PYTHONPATH=frontier python frontier/frontier-query-concept-recall/closeout_handoff.py --out results/frontier/frontier-query-concept-recall [--print]",
+    "check": "... --check  (exit 3 if evidence moved or the entry is already flipped)",
+    "emits": "results/frontier/frontier-query-concept-recall/portfolio_status_handoff.json + portfolio_status_handoff.history.json (read by the emitted jq command via --slurpfile)",
+    "purpose": "the one control-plane write this team cannot make, packaged as a single tested command for the director",
+    "tested": "tests/frontier/frontier-query-concept-recall/test_closeout_handoff.py (21 tests, all pass) - EXECUTES the emitted jq patch against a portfolio COPY and asserts both of the director's verbatim validation gates, that the frontier-team.yml:58 selector matches 0 afterwards, that .version/.teams survive, that the other 11 entries are byte-identical, and that the command survives apostrophes in the run history"
+   },
+   "shallow_history_regression_tests": {
+    "path": "tests/frontier/frontier-query-concept-recall/test_verify_shallow_history.py",
+    "tests": 11
+   },
+   "cycle_verification_record": "results/frontier/frontier-query-concept-recall/cycle_verification_39184014244.json",
+   "cycle_report": "reports/frontier/frontier-query-concept-recall/CYCLE_39184014244.md"
+  },
+  "recommendation_to_the_director": {
+   "recommended_status": "PAUSE",
+   "rationale": "matches the charter's stop rule (promote at the first outcome reached) and the portfolio precedent frontier-query-retrieval, which is PAUSE with run_history=1 after a promoted outcome",
+   "alternative": "TERMINATED - equally valid (6 of 12 entries) if OUTCOME_B is read as closing the item permanently; either value ends the loop",
+   "decision_owner": "factory director; this team recommends only and performs no portfolio write (its scope guard would fail the run)",
+   "defence_in_depth": "the dispatch selector or the zero-delta guard could also learn to honour a verified terminal closure, so a missed portfolio write cannot restart the loop",
+   "handoff_digest": "6b088d6df3d2af59177b08b9357e86ef16ce9cbbfe1d4a88b61c3ea12e548350"
+  },
+  "disposition": "VERIFIED + ONE DEFECT REPAIRED + ONE BLOCKING CONTROL-PLANE WRITE PACKAGED; charter remains terminal and OUTCOME_B is unchanged. Further cycles are not justified: the rules are frozen, so another cycle could only be post-hoc.",
+  "defects_repaired_in_scope": [
+   "K_verify_py_fabricated_a_finding_in_a_shallow_checkout",
+   "L_dead_repairs_variable_and_loose_precedence",
+   "C4_emitted_handoff_patch_destroyed_the_root_document",
+   "C5_emitted_handoff_patch_quoting",
+   "C6_over_broad_workflow_claim_in_the_handoff",
+   "C7_inlined_history_broke_the_emitted_command"
+  ]
+ }
 }
