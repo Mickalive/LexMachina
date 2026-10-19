@@ -1,7 +1,7 @@
 {
  "schema": "lex-evaluation-snapshot-audit/1",
  "run_id": "39180276526",
- "generated_at_utc": "2026-10-19T00:59:33Z",
+ "generated_at_utc": "2026-10-19T01:29:02Z",
  "checks": [
   {
    "id": "frozen_rubric_rehash",
@@ -19,7 +19,7 @@
    "status": "PASS",
    "detail": "verdict=PASS_NO_REGRESSION labels 5/65 classes={'OFF-DOMAIN': 38, 'UNBACKED': 22, 'SUPPORTED': 5} geometry={'de-kapitalverletzung': 6, 'fr-bail-entretien': 5, 'it-responsabilita-medica': 5} negative_controls=True absolute={'labels': 'LABEL_UNSOUND', 'geometry': 'GEOMETRY_UNSOUND', 'note': 'absolute bars REPORTED only; they do not block the build (direction v50)'}",
    "exit_code": 0,
-   "fresh_record": "/tmp/snapshot_audit_fzhulkjm/bar_gates_fresh.json",
+   "fresh_record": "/tmp/snapshot_audit_nzm4wnj0/bar_gates_fresh.json",
    "label_recomputed": {
     "OFF-DOMAIN": 38,
     "UNBACKED": 22,
@@ -49,7 +49,7 @@
   {
    "id": "lane_suite_pass",
    "status": "PASS",
-   "detail": "exit=0 summary=PASS last_line=lane suite: PASS (72/73 checks, 290.474s); no failing check (green)",
+   "detail": "exit=0 summary=PASS last_line=lane suite: PASS (72/73 checks, 154.928s); no failing check (green)",
    "exit_code": 0,
    "summary": "PASS",
    "failed_checks": [],
@@ -90,9 +90,9 @@
   {
    "id": "producer_write_scope_clean",
    "status": "PASS",
-   "detail": "15 porcelain entries, all inside the producer scope (junk modelled as removed by the workflow's 'Clean generated junk' step)",
+   "detail": "10 porcelain entries, all inside the producer scope (junk modelled as removed by the workflow's 'Clean generated junk' step)",
    "bad_paths": [],
-   "n_entries": 15,
+   "n_entries": 10,
    "junk_dropped": []
   },
   {
@@ -232,10 +232,13 @@
   },
   {
    "id": "readiness_claims_match_record",
-   "status": "FAIL",
-   "detail": "current run state block matches the record (21/21, ready=True); current report NO_HEADLINE_CLAIM (declares post-write statuses none, reconciled post-write by _post_write_report_claims); 3 historical disagreement(s), all disclosed; POST-WRITE REPORT-CLAIM RECONCILIATION FAILED: [\"report declares no post-write status at all (expected ['post_write_self_reference', 'post_write_state_claim'])\"]",
+   "status": "PASS",
+   "detail": "current run state block matches the record (21/21, ready=True); current report NO_HEADLINE_CLAIM (declares post-write statuses ['post_write_self_reference', 'post_write_state_claim'], reconciled post-write by _post_write_report_claims); 3 historical disagreement(s), all disclosed",
    "current_report_state": "NO_HEADLINE_CLAIM",
-   "report_declared_post_write": {},
+   "report_declared_post_write": {
+    "post_write_self_reference": "VERIFIED",
+    "post_write_state_claim": "VERIFIED"
+   },
    "post_write_reconciliation_field": "post_write_report_claim",
    "historical_disagreements": [
     {
@@ -261,18 +264,13 @@
     }
    ],
    "n_disclosed": 3,
-   "problems": [],
-   "post_write_report_claim": [
-    "report declares no post-write status at all (expected ['post_write_self_reference', 'post_write_state_claim'])"
-   ]
+   "problems": []
   }
  ],
  "n_checks": 21,
- "n_passed": 20,
- "ready_for_independent_audit": false,
- "failing_checks": [
-  "readiness_claims_match_record"
- ],
+ "n_passed": 21,
+ "ready_for_independent_audit": true,
+ "failing_checks": [],
  "post_write_pending": [],
  "audit_gate_path": "results/audit/evaluation/CYCLE_39180276526_GATE.json",
  "audit_report_path": "reports/audit/evaluation/CYCLE_39180276526.md",
@@ -457,39 +455,26 @@
   "why": "the record cites itself; the file exists and parses as this run's record at the moment the record is complete"
  },
  "post_write_state_claim": {
-  "status": "FAILED",
+  "status": "VERIFIED",
   "state_key": "snapshot_audit_39180276526",
-  "mismatches": [
-   {
-    "field": "verdict",
-    "recorded_value": "READY",
-    "record_value": "NOT_READY"
-   },
-   {
-    "field": "n_passed",
-    "recorded_value": 21,
-    "record_value": 20
-   },
-   {
-    "field": "ready_for_independent_audit",
-    "recorded_value": true,
-    "record_value": false
-   }
-  ],
-  "why": "the state block does not repeat the final record's counts"
+  "record_n_passed": 21,
+  "record_n_checks": 21,
+  "record_ready": true,
+  "why": "state/evaluation.json repeats the readiness record's own counts"
  },
  "post_write_report_claim": {
-  "status": "FAILED",
+  "status": "VERIFIED",
   "field": "post_write_report_claim",
   "report": "reports/evaluation/CYCLE_39180276526.md",
-  "why": "the report asserts a post-write status the record does not carry",
-  "declared": {},
+  "why": "the report's declared post-write statuses equal the record's",
+  "declared": {
+   "post_write_self_reference": "VERIFIED",
+   "post_write_state_claim": "VERIFIED"
+  },
   "record": {
    "post_write_self_reference": "VERIFIED",
    "post_write_state_claim": "VERIFIED"
   },
-  "problems": [
-   "report declares no post-write status at all (expected ['post_write_self_reference', 'post_write_state_claim'])"
-  ]
+  "problems": []
  }
 }
