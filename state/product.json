@@ -105,7 +105,7 @@
    "scope": "control-plane workflow scope; recorded, not edited from the lane"
   }
  ],
- "current_run": "39214811351",
+ "current_run": "39216560764",
  "cycle_39056694835_frontier_serve_audit_intake": {
   "admission": "fail-closed",
   "claim_ceiling": [
@@ -512,7 +512,7 @@
   ],
   "state_block_added_by_run": "39094983039"
  },
- "cycle_status": "OPERATIONAL_RESUME_COMPLETE__RUN_39202428670_DIAGNOSED_RC78_QUANTUM_SNAPSHOT_SURVIVED_DELIVERABLE_REVERIFIED_LEDGER_72_72_WITH_ACCEPTED_FRONTIER_MOUNT_PRESENT_69_72_FAIL_CLOSED_WITHOUT_IT__REPORT_SECTION7_FINISHED__STATE_UPDATED__REGRESSION_SET_RELATION_CORRECTED_BASELINE_ONLY_1_REPAIRED_ONLY_0__ADMISSION_FAIL_CLOSED__AUDIT_F1_F2_F3_CLAIM_DISCLOSURE_REPAIRED_39214811351",
+ "cycle_status": "OPERATIONAL_RESUME_COMPLETE__RUN_39202428670_DIAGNOSED_RC78_QUANTUM_SNAPSHOT_SURVIVED_DELIVERABLE_REVERIFIED_LEDGER_72_72_WITH_ACCEPTED_FRONTIER_MOUNT_PRESENT_69_72_FAIL_CLOSED_WITHOUT_IT__REPORT_SECTION7_FINISHED__STATE_UPDATED__REGRESSION_SET_RELATION_CORRECTED_BASELINE_ONLY_1_REPAIRED_ONLY_0__ADMISSION_FAIL_CLOSED__AUDIT_F1_F2_F3_CLAIM_DISCLOSURE_REPAIRED_39214811351__AUDIT_JOB_AGENT_STEP_EXIT_1_NO_GATE_39214811351_RESUMED_BY_39216560764_SNAPSHOT_VERIFIED_LEDGER_72_72_WITH_ACCEPTED_FRONTIER_MOUNT_PRESENT_69_72_FAIL_CLOSED_WITHOUT_IT",
  "direction_version": 57,
  "evidence_refs": [
   "results/product/gate_packet/rebuilt-39027045675/packet.json",
@@ -1176,7 +1176,7 @@
   "secondary_risk_noted": "Earlier cycles also wrote outside product scope (frontier/frontier-generative-audit/generative_audit/provider.py and results/frontier/frontier-query-retrieval/cache/*). Those writes are already committed in the snapshot; 'Enforce lane write scope' only inspects pending changes, so they cannot be cleaned without tripping the scope check in the same run. They are recorded as pre-existing snapshot content, not current-cycle work. Live-run cache by-products created inside a cycle are removed before the scope step (reports/product/CYCLE_38559540834.md section 4)."
  },
  "packet_admitted": false,
- "prior_current_run": "39185124744",
+ "prior_current_run": "39214811351",
  "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
  "ready_for_owner_session": false,
  "reality_check_status": {
@@ -2775,8 +2775,8 @@
   "fixtures": "offline/test only; never merged into live results",
   "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
  },
- "state_updated_at": "2026-10-19T07:26:45Z",
- "state_updated_by_run": "39214811351",
+ "state_updated_at": "2026-10-19T07:55:00Z",
+ "state_updated_by_run": "39216560764",
  "state_updated_from_resumed_snapshot_run": "39187482610",
  "supersedes_claims": {
   "gate_ceremony_is_one_query_only": "SUPERSEDED BY RUN 38792650692: the packet pre-registers three questions (FR/DE/IT), re-verifies each bundle at run time and hands the owner one deep link per question. The single-query path still works (product/human_gate_session.py is unchanged) and is still the way ONE session is finalized.",
@@ -4802,6 +4802,21 @@
   ],
   "not_done_by_design": "no new measurement, no new instrument, no new collected test, no new capability, no live OpenCaseLaw call, no .github/** touch, no Frontier re-dispatch; the lane question for this direction orders the SMALLEST tree that can pass and forbids opening a new measurement or claim-bearing section in the cycle that closes the fix list",
   "verification": "guards re-run on the repaired tree: product/tests/test_report_artifact_arithmetic.py, test_delta_attribution.py, test_state_contract.py, test_cycle_verify_is_a_gate.py, test_server_slice.py; full ledger re-run both ways as recorded above",
+  "posture": "fail-closed, unchanged: continue_recommended=true, human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false"
+ },
+ "cycle_39216560764_operational_resume": {
+  "run_id": "39216560764",
+  "resumes": "39214811351",
+  "mode": "OPERATIONAL RESUME from the persisted producer snapshot of run 39214811351; nothing was restarted, reverted or re-derived",
+  "base_tree": "87b7f468c0beecedbd6a8111dc072109d6e4491f (tip of cycle/core/product/39214811351/team = this run's starting HEAD), parent b0530dbd33d23ddc38316387f552fb480ac2ea31 (the repair's own measurement tree)",
+  "accepted_base_unchanged": "577efeb (origin/lab/product has NOT advanced; this resume promotes nothing)",
+  "diagnosis": "ORCHESTRATION failure on the AUDIT side, not a producer failure, not a state-validation failure and not a defect in the deliverable. The team job of 39214811351 completed all ten of its steps green - including 'Validate active MVP producer state' (direction_version 57, cycle_status not INITIALIZED) and 'Enforce lane write scope' - and persisted the snapshot; then the audit job's 'Independent audit' agent step exited 1, so the workflow's gate-reader step, its audit-snapshot step and the whole integrate job were skipped and NO verdict exists for the repair. The repair is therefore UNAUDITED, not rejected. Every element of that reading is recomputed by the product's own instrument rather than retold: results/product/orchestration/CYCLE_39214811351_orchestration.json (schema product-orchestration-evidence/1, class AUDIT_STEP_FAILED_NO_GATE, public annotation exit code 1, audit_branch_exists=false, team_branch_exists=true), produced by `python3 product/orchestration_evidence.py --run-id 39214811351 --write` in run 39216560764. Job logs are admin-only, so the innermost cause inside the audit agent is not attributable from this lane and is not asserted here.",
+  "deliverable_kept": "All of repair run 39214811351's work is preserved byte-identical: the F1 digest correction in reports/product/CYCLE_39202428670.md section 7.3 (0e498c57... with 363906d6... retained beside it), the F2 parenthetical correction in reports/product/CYCLE_39206477026.md section 4 and state, and the F3 mount-precondition disclosures. `git diff --name-only b0530dbd 87b7f468` is exactly those two reports plus state/product.json - no product/ file, no guard, no pin and no test was touched by the repair, which is what F2 required.",
+  "verification_of_record": "results/product/orchestration/CYCLE_39214811351_resume_diagnosis.json (schema product-resume-diagnosis/1) carries every number this resume publishes, each beside its command, its run id 39216560764 and tree 87b7f468: the three required-fix closure checks, the eight report digest pins re-hashed from committed bytes, the one-command ledger, the six guard modules the snapshot commit message names, and the served vertical slice. No number is asserted in this block that the artifact does not re-derive.",
+  "ledger": "PASS on this tree with the accepted Frontier mount present (mount git HEAD c242127a7f42293adcdda797d6973ed2ed45fc90, re-measured this run); FAIL closed on exactly the 3 handoff claims with that mount absent (mount_present=false) - the precondition and BOTH numbers are stated here and in the diagnosis artifact. Committed checker artifact: results/product/cycle_verify/CYCLE_39216560764_cycle_verify.json, written by `python3 -m product.cycle_verify --run-id 39216560764 --write`.",
+  "guards": "The snapshot commit message claims 'the six existing guard modules listed above collect 114 tests'; the repair's state block lists only five of them, so 'listed above' under-enumerates by one. This resume re-ran the full six-module set - the five named there plus product/tests/test_no_test_writes_into_tracked_results.py - and published the exact commands and measured counts in the diagnosis artifact instead of leaving the claim arguable. No guard, pin or rubric was edited to reach that result.",
+  "delta_this_run": "diagnosis artifact + verification artifacts + this lane's state only; zero new collected tests, zero new instrument, zero product/ code change, no report section, no .github/** touch, no Frontier re-dispatch, no live OpenCaseLaw call",
+  "question_answered": "factory direction v57 ordered work, operational resume: why did run 39214811351 end without a verdict, and does its committed deliverable verify without discarding it",
   "posture": "fail-closed, unchanged: continue_recommended=true, human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false"
  }
 }

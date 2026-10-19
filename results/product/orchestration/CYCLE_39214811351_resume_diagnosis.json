@@ -1,0 +1,570 @@
+{
+  "schema": "product-resume-diagnosis/1",
+  "run_id": 39214811351,
+  "resumed_from_run_id": 39216560764,
+  "diagnosed_run_id": 39214811351,
+  "resuming_run_id": 39216560764,
+  "measured_by": "product lane producer (operational resume), run 39216560764, tree 87b7f468c0beecedbd6a8111dc072109d6e4491f, generated 2026-10-19T08:16:19Z",
+  "question": "Why did product repair run 39214811351 end without a verdict, and does its committed deliverable verify without restarting any work?",
+  "base_tree": "87b7f468c0beecedbd6a8111dc072109d6e4491f",
+  "repair_applied_on_top_of": "b0530dbd33d23ddc38316387f552fb480ac2ea31",
+  "accepted_base": "577efeb836757b0b0eee22f7bc2436c52e2addbb",
+  "orchestration": {
+    "instrument": "python3 product/orchestration_evidence.py --run-id 39214811351 --write",
+    "artifact": "results/product/orchestration/CYCLE_39214811351_orchestration.json",
+    "artifact_sha256": "d5aa063aa8d31c5cf4bb7f3a50ef82e4c0caca3cc157ec557fd87010f04a9da8",
+    "classification": "AUDIT_STEP_FAILED_NO_GATE",
+    "evidence": [
+      "job team concluded 'success'",
+      "job audit concluded 'failure'",
+      "job integrate concluded 'skipped'",
+      "run conclusion 'failure'",
+      "audit step 'Independent audit' concluded 'failure' after 16.0 s",
+      "workflow gate-reader step concluded 'skipped'",
+      "audit-snapshot persist step concluded 'skipped'"
+    ],
+    "annotation_exit_code": 1,
+    "audit_agent_step_duration_s": 16.0,
+    "audit_branch_exists": false,
+    "team_branch_exists": true,
+    "team_job_conclusion": "success",
+    "audit_job_conclusion": "failure",
+    "integrate_job_conclusion": "skipped",
+    "resilience_job_conclusion": "success"
+  },
+  "evidence": [
+    {
+      "fact": "the producer chain was green and the death is on the audit side",
+      "how": "product/orchestration_evidence.py --run-id 39214811351 --write over the public REST job record",
+      "observed": "team success (all 10 steps, including 'Validate active MVP producer state' and 'Enforce lane write scope'); audit failure at step 'Independent audit'; the workflow's gate-reader and audit-snapshot steps skipped; integrate skipped; resilience success; annotation 'Process completed with exit code 1'",
+      "artifact": "results/product/orchestration/CYCLE_39214811351_orchestration.json"
+    },
+    {
+      "fact": "no verdict exists for the repair, so nothing was rejected - the work is unaudited",
+      "how": "the same instrument's audit_branch_exists field + git ls-remote for the audit branch",
+      "observed": "audit_branch_exists=false; no results/audit/product/CYCLE_39214811351_GATE.json anywhere",
+      "artifact": "results/product/orchestration/CYCLE_39214811351_orchestration.json"
+    },
+    {
+      "fact": "the producer snapshot survived intact and is this run's starting tree",
+      "how": "git log origin/cycle/core/product/39214811351/team",
+      "observed": "tip 87b7f468c0beecedbd6a8111dc072109d6e4491f (repair of cycle 39206477026, 3 files: two reports + state), parent b0530dbd33d23ddc38316387f552fb480ac2ea31; no restart and no re-derivation of the repair",
+      "artifact": "state/product.json -> cycle_39214811351_repair_round_1"
+    },
+    {
+      "fact": "the three required fixes of CYCLE_39206477026_GATE.json are closed on this tree",
+      "how": "re-hash of the pinned artifact + text checks against the two reports and state",
+      "observed": "{\"F1\": {\"closed\": true, \"corrected_digest_present_in_report\": true, \"recomputed_sha256_of_pinned_file\": \"0e498c57dfc1cd3abd742a697c776e11d44a37bbed8fa9844942ac90e9d40088\", \"requirement\": \"the corrected set-relation pin resolves to committed bytes and the superseded value is kept beside it\", \"state_sentence_narrowed\": true, \"superseded_digest_retained_in_report\": true}, \"F2\": {\"closed\": true, \"repair_delta_files\": [\"reports/product/CYCLE_39202428670.md\", \"reports/product/CYCLE_39206477026.md\", \"state/product.json\"], \"repair_delta_touches_product_tests\": false, \"report_says_re_point\": true, \"requirement\": \"both texts keep 'zero collected tests' and replace the false 'no product/tests/** file changed' with the disclosure-pin re-point\", \"state_says_re_point\": true}, \"F3\": {\"closed\": true, \"no_check_weakened\": true, \"report_39202428670_states_precondition\": true, \"report_39202428670_states_without_mount_number\": true, \"report_39206477026_states_precondition\": true, \"requirement\": \"every 72/72 claim carries the accepted-Frontier-mount precondition and the fail-closed number without it\", \"state_cycle_status_carries_precondition\": true}}",
+      "artifact": "this file, section 'required_fix_closure'"
+    },
+    {
+      "fact": "the one-command ledger re-derives 72/72 on this tree with the accepted Frontier mount",
+      "how": "python3 -m product.cycle_verify --run-id 39216560764 --write",
+      "observed": "verdict PASS, 72 claims, 0 failed",
+      "artifact": "results/product/cycle_verify/CYCLE_39216560764_cycle_verify.json"
+    },
+    {
+      "fact": "the six guard modules named by the snapshot commit message pass on this tree",
+      "how": "python3 -m pytest -q product/tests/test_report_artifact_arithmetic.py product/tests/test_delta_attribution.py product/tests/test_state_contract.py product/tests/test_cycle_verify_is_a_gate.py product/tests/test_server_slice.py product/tests/test_no_test_writes_into_tracked_results.py",
+      "observed": "exit 0, 114 passed, 0 failed; the five modules the repair's state block lists collect 101, so the sixth module behind the commit message's count is product/tests/test_no_test_writes_into_tracked_results.py",
+      "artifact": "this file, section 'verification.guard_modules'"
+    },
+    {
+      "fact": "the served vertical slice still returns PASS with the committed counts",
+      "how": "python3 product/server_slice.py --no-write",
+      "observed": "verdict PASS with n_first_page 100, n_clusters_final 8, rows_with_source_url 100, n_cited 2, page_contract_assertions 67",
+      "artifact": "this file, section 'verification.served_slice' (counts of record: results/product/server_slice/39202428670/summary.json)"
+    },
+    {
+      "fact": "the resume's delta introduced no new failing test: the full product suite's failing-ID set on this tree is identical to the one committed for the repair base",
+      "how": "python3 -m pytest product/tests -q -p no:cacheprovider, failing/ERROR ids parsed out of the pytest output and compared as a SET with the committed artifact's repaired_run ids (counts alone are never the comparison)",
+      "observed": "159 failed, 1050 passed, 15 skipped, 78 warnings in 128.74s (0:02:08); 159 unique failing ids, set_difference_this_tree_only_NEW=[], set_difference_published_only=[]",
+      "artifact": "this file, section 'verification.full_suite'"
+    },
+    {
+      "fact": "every digest printed in the two product reports either hashes to a file the same report references or is explicitly disclosed as the superseded value it replaced",
+      "how": "sha256sum over every file referenced by the two reports, compared with every 64-hex digest printed in them (run 39216560764, tree 87b7f468c0beecedbd6a8111dc072109d6e4491f)",
+      "observed": "13 digest occurrences: 12 resolved to a referenced committed file, 1 on a line declaring itself the superseded value (the F1 correction, kept beside the correction as RF2 requires), 0 unresolved",
+      "artifact": "this file, section 'verification.report_digest_resolution'"
+    }
+  ],
+  "required_fix_closure": {
+    "F1": {
+      "requirement": "the corrected set-relation pin resolves to committed bytes and the superseded value is kept beside it",
+      "recomputed_sha256_of_pinned_file": "0e498c57dfc1cd3abd742a697c776e11d44a37bbed8fa9844942ac90e9d40088",
+      "corrected_digest_present_in_report": true,
+      "superseded_digest_retained_in_report": true,
+      "state_sentence_narrowed": true,
+      "closed": true
+    },
+    "F2": {
+      "requirement": "both texts keep 'zero collected tests' and replace the false 'no product/tests/** file changed' with the disclosure-pin re-point",
+      "report_says_re_point": true,
+      "state_says_re_point": true,
+      "repair_delta_touches_product_tests": false,
+      "repair_delta_files": [
+        "reports/product/CYCLE_39202428670.md",
+        "reports/product/CYCLE_39206477026.md",
+        "state/product.json"
+      ],
+      "closed": true
+    },
+    "F3": {
+      "requirement": "every 72/72 claim carries the accepted-Frontier-mount precondition and the fail-closed number without it",
+      "report_39202428670_states_precondition": true,
+      "report_39202428670_states_without_mount_number": true,
+      "report_39206477026_states_precondition": true,
+      "state_cycle_status_carries_precondition": true,
+      "no_check_weakened": true,
+      "closed": true
+    }
+  },
+  "verification": {
+    "ledger": {
+      "accepted_frontier_mount": "/tmp/lex_accepted/frontier/frontier-query-concept-recall",
+      "accepted_frontier_mount_git_head_remeasured_this_run": "c242127a7f42293adcdda797d6973ed2ed45fc90",
+      "command": "python3 -m product.cycle_verify --run-id 39216560764 --write",
+      "artifact": "results/product/cycle_verify/CYCLE_39216560764_cycle_verify.json",
+      "artifact_sha256": "7442220292351ef8098f8f46c308e540b266caa5c670308992eda4adeafa1cdf",
+      "verdict": "PASS",
+      "n_claims": 72,
+      "n_failed": 0,
+      "precondition": "accepted Frontier mount present at /tmp/lex_accepted/frontier/frontier-query-concept-recall; without it the same command reports FAIL n_failed=3 (the 3 handoff claims fail closed on mount_present=false), as measured by repair run 39214811351 and reproduced by the audit of 39206477026"
+    },
+    "guard_modules": {
+      "six_modules": [
+        "product/tests/test_report_artifact_arithmetic.py",
+        "product/tests/test_delta_attribution.py",
+        "product/tests/test_state_contract.py",
+        "product/tests/test_cycle_verify_is_a_gate.py",
+        "product/tests/test_server_slice.py",
+        "product/tests/test_no_test_writes_into_tracked_results.py"
+      ],
+      "five_modules_named_by_the_repair_state_block": [
+        "product/tests/test_report_artifact_arithmetic.py",
+        "product/tests/test_delta_attribution.py",
+        "product/tests/test_state_contract.py",
+        "product/tests/test_cycle_verify_is_a_gate.py",
+        "product/tests/test_server_slice.py"
+      ],
+      "sixth_module": "product/tests/test_no_test_writes_into_tracked_results.py",
+      "six_module_result": {
+        "command": "python3 -m pytest -q product/tests/test_report_artifact_arithmetic.py product/tests/test_delta_attribution.py product/tests/test_state_contract.py product/tests/test_cycle_verify_is_a_gate.py product/tests/test_server_slice.py product/tests/test_no_test_writes_into_tracked_results.py",
+        "exit_code": 0,
+        "passed": 114,
+        "failed": 0,
+        "summary_line": ""
+      },
+      "five_module_result": {
+        "command": "python3 -m pytest -q product/tests/test_report_artifact_arithmetic.py product/tests/test_delta_attribution.py product/tests/test_state_contract.py product/tests/test_cycle_verify_is_a_gate.py product/tests/test_server_slice.py",
+        "exit_code": 0,
+        "passed": 101
+      },
+      "note": "the snapshot commit message claims 'the six existing guard modules listed above collect 114 tests'; the repair's state block lists only five, so 'listed above' under-enumerates by one. This artifact publishes the measured six-module set so the claim is checkable instead of arguable; no count is typed anywhere in this file that a re-run of the printed command would not produce."
+    },
+    "served_slice": {
+      "command": "python3 product/server_slice.py --no-write",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "n_first_page": "100",
+      "n_clusters_final": "8",
+      "n_cited": "2",
+      "rows_with_source_url": "100",
+      "page_contract_assertions": "67",
+      "total_s": "1.097",
+      "committed_summary_of_record": "results/product/server_slice/39202428670/summary.json"
+    },
+    "full_suite": {
+      "command": "python3 -m pytest product/tests -q -p no:cacheprovider",
+      "exit_code": 1,
+      "summary_line": "159 failed, 1050 passed, 15 skipped, 78 warnings in 128.74s (0:02:08)",
+      "failed": 159,
+      "passed": 1050,
+      "skipped": 15,
+      "errors": 0,
+      "collected": 1224,
+      "unique_failing_or_erroring_ids": [
+        "product/tests/test_audit_seam.py::test_known_dead_models_agree_with_control_plane_health",
+        "product/tests/test_cache_non_orphan.py::test_claim_bundle_content_hash_matches_a_fresh_replay",
+        "product/tests/test_cache_non_orphan.py::test_claim_bundle_full_cache_replay_differs_only_in_cache_size",
+        "product/tests/test_cycle_33032746334.py::test_cluster_coherence",
+        "product/tests/test_cycle_33032746334.py::test_cluster_coherence_all_clusters",
+        "product/tests/test_cycle_33032746334.py::test_language_filter",
+        "product/tests/test_cycle_33032746334.py::test_proximity_api_endpoint",
+        "product/tests/test_cycle_33032746334.py::test_proximity_explainer_basic",
+        "product/tests/test_cycle_33032746334.py::test_proximity_explainer_language_warning",
+        "product/tests/test_cycle_33033658714.py::test_navigation_new_endpoints",
+        "product/tests/test_cycle_33033658714.py::test_zoom_coherence_loader",
+        "product/tests/test_cycle_33035450227.py::TestEvaluationLoader::test_benchmarks_required_fields",
+        "product/tests/test_cycle_33035450227.py::TestEvaluationLoader::test_best_representation_valid",
+        "product/tests/test_cycle_33035450227.py::TestEvaluationLoader::test_boilerplate_resistance",
+        "product/tests/test_cycle_33035450227.py::TestEvaluationLoader::test_loader_loads_unified_data",
+        "product/tests/test_cycle_33035450227.py::TestEvaluationLoader::test_loader_loads_zoom_coherence",
+        "product/tests/test_cycle_33035450227.py::TestEvaluationLoader::test_representation_quality",
+        "product/tests/test_cycle_33035450227.py::TestEvaluationLoader::test_resolutions_tested",
+        "product/tests/test_cycle_33035450227.py::TestEvaluationLoader::test_zoom_coherence_metrics",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_baseline_projection_exists",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_metadata_coverage_stats",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_metadata_decision_provenance",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_metadata_json_exists",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_metadata_section_covered_decisions",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_metadata_section_modes_present",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_metadata_total_decisions",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_dtype[dispositiv]",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_dtype[erwaegungen]",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_dtype[erwaegungen_dispositiv]",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_dtype[full_text]",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_dtype[sachverhalt]",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_dtype[sachverhalt_erwaegungen_dispositiv]",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_file_exists[dispositiv]",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_file_exists[erwaegungen]",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_file_exists[erwaegungen_dispositiv]",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_file_exists[full_text]",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_file_exists[sachverhalt]",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_file_exists[sachverhalt_erwaegungen_dispositiv]",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_shape[dispositiv]",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_shape[erwaegungen]",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_shape[erwaegungen_dispositiv]",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_shape[full_text]",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_shape[sachverhalt]",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_shape[sachverhalt_erwaegungen_dispositiv]",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projections_not_all_zeros",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_scaled_directory_exists",
+        "product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_section_metadata_copy_exists",
+        "product/tests/test_cycle_33035450227.py::TestSectionModes::test_all_six_modes_loaded",
+        "product/tests/test_cycle_33035450227.py::TestSectionModes::test_get_available_modes",
+        "product/tests/test_cycle_33035450227.py::TestSectionModes::test_get_mode_returns_section_mode",
+        "product/tests/test_cycle_33035450227.py::TestSectionModes::test_get_position_details",
+        "product/tests/test_cycle_33035450227.py::TestSectionModes::test_get_positions",
+        "product/tests/test_cycle_33035450227.py::TestSectionModes::test_mode_label_and_description[dispositiv]",
+        "product/tests/test_cycle_33035450227.py::TestSectionModes::test_mode_label_and_description[erwaegungen]",
+        "product/tests/test_cycle_33035450227.py::TestSectionModes::test_mode_label_and_description[erwaegungen_dispositiv]",
+        "product/tests/test_cycle_33035450227.py::TestSectionModes::test_mode_label_and_description[full_text]",
+        "product/tests/test_cycle_33035450227.py::TestSectionModes::test_mode_label_and_description[sachverhalt]",
+        "product/tests/test_cycle_33035450227.py::TestSectionModes::test_mode_label_and_description[sachverhalt_erwaegungen_dispositiv]",
+        "product/tests/test_cycle_33035450227.py::TestSectionModes::test_mode_names_match_modes_list",
+        "product/tests/test_cycle_33035450227.py::TestSectionModes::test_modes_loaded",
+        "product/tests/test_cycle_33035450227.py::TestSectionModes::test_scaled_detection",
+        "product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_clusters_from_filtered",
+        "product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_empty_range",
+        "product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_has_year_field",
+        "product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_narrow_range",
+        "product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_no_filter",
+        "product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_with_year_range",
+        "product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_year_distribution",
+        "product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_year_end_only",
+        "product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_year_range_stats",
+        "product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_year_start_only",
+        "product/tests/test_cycle_33304668621.py::test_map_pagination",
+        "product/tests/test_cycle_33304668621.py::test_multi_representation_import",
+        "product/tests/test_cycle_33304668621.py::test_proximity_caching",
+        "product/tests/test_cycle_33304668621.py::test_validate_representations",
+        "product/tests/test_cycle_33660041466_incremental.py::test_add_decisions_increases_count",
+        "product/tests/test_cycle_33660041466_incremental.py::test_cluster_assignment",
+        "product/tests/test_cycle_33660041466_incremental.py::test_pending_updates",
+        "product/tests/test_cycle_33660041466_incremental.py::test_persist_and_merge",
+        "product/tests/test_cycle_33660041466_lod.py::test_webgl_data_with_lod",
+        "product/tests/test_cycle_33974964520.py::TestGracefulDegradation::test_available_excludes_failures",
+        "product/tests/test_cycle_33974964520.py::TestGracefulDegradation::test_get_available_representations",
+        "product/tests/test_cycle_33974964520.py::TestGracefulDegradation::test_load_all_succeeds",
+        "product/tests/test_cycle_33974964520.py::TestGracefulDegradation::test_load_returns_cached_on_second_call",
+        "product/tests/test_cycle_33974964520.py::TestGracefulDegradation::test_load_selected_idempotent",
+        "product/tests/test_cycle_33974964520.py::TestGracefulDegradation::test_load_selected_multiple",
+        "product/tests/test_cycle_33974964520.py::TestGracefulDegradation::test_load_selected_single",
+        "product/tests/test_cycle_33974964520.py::TestGracefulDegradationIntegration::test_nav_api_get_load_report",
+        "product/tests/test_cycle_33974964520.py::TestGracefulDegradationIntegration::test_nav_api_loads_all",
+        "product/tests/test_cycle_33974964520.py::TestServerEndpoints::test_handle_representations_health_all_loaded",
+        "product/tests/test_cycle_33974964520.py::TestServerEndpoints::test_handle_system_stats_representations",
+        "product/tests/test_cycle_33982486898.py::test_imported_positions_reproducibility",
+        "product/tests/test_cycle_33982486898.py::test_imported_positions_validity",
+        "product/tests/test_cycle_33982486898.py::test_load_user_corpus_jsonl",
+        "product/tests/test_cycle_product_scale.py::TestHealthEndpointValidation::test_startup_validation_cached",
+        "product/tests/test_cycle_product_scale.py::TestHealthEndpointValidation::test_startup_validation_per_rep",
+        "product/tests/test_cycle_product_scale.py::TestWebGLDataNumpyOptimization::test_colors_are_rgba_floats",
+        "product/tests/test_cycle_product_scale.py::TestWebGLDataNumpyOptimization::test_positions_are_float_lists",
+        "product/tests/test_cycle_product_scale.py::TestWebGLDataNumpyOptimization::test_transform_has_full_extents",
+        "product/tests/test_cycle_product_scale.py::TestWebGLViewportCulling::test_webgl_culling_cluster_hulls",
+        "product/tests/test_cycle_product_scale.py::TestWebGLViewportCulling::test_webgl_culling_preserves_array_shapes",
+        "product/tests/test_cycle_product_scale.py::TestWebGLViewportCulling::test_webgl_data_with_bbox_filters_points",
+        "product/tests/test_cycle_product_scale.py::TestWebGLViewportCulling::test_webgl_data_with_empty_bbox",
+        "product/tests/test_cycle_product_scale.py::TestWebGLViewportCulling::test_webgl_data_with_full_bbox",
+        "product/tests/test_cycle_product_scale.py::TestWebGLViewportCulling::test_webgl_data_without_bbox",
+        "product/tests/test_cycle_product_v11.py::test_compare_design_patterns_basic",
+        "product/tests/test_cycle_product_v11.py::test_compare_design_patterns_decision_list",
+        "product/tests/test_cycle_product_v11.py::test_compare_design_patterns_includes_holdout_metrics",
+        "product/tests/test_cycle_product_v11.py::test_compare_design_patterns_same_pattern",
+        "product/tests/test_cycle_product_v11.py::test_compare_design_patterns_stability",
+        "product/tests/test_cycle_product_v11.py::test_language_stats_structure",
+        "product/tests/test_cycle_product_v11.py::test_search_without_language_returns_all",
+        "product/tests/test_cycle_product_v11.py::test_startup_validation_default_representation_passes",
+        "product/tests/test_cycle_product_v11.py::test_startup_validation_returns_all_reps",
+        "product/tests/test_cycle_v17_validate_reps.py::TestCombinationMode::test_combination_mode_loads",
+        "product/tests/test_cycle_v17_validate_reps.py::TestCombinationMode::test_combination_mode_seven_zoom_levels",
+        "product/tests/test_cycle_v17_validate_reps.py::TestDefaultRepresentation::test_default_has_zoom_levels",
+        "product/tests/test_cycle_v17_validate_reps.py::TestDefaultRepresentation::test_default_is_loaded",
+        "product/tests/test_cycle_v17_validate_reps.py::TestDefaultRepresentation::test_default_loads_in_get_map_data",
+        "product/tests/test_cycle_v17_validate_reps.py::TestDesignPatternCoverage::test_all_patterns_loaded",
+        "product/tests/test_cycle_v17_validate_reps.py::TestRepresentationCount::test_loaded_representations_count",
+        "product/tests/test_cycle_v17_webgl_vectorized.py::TestVectorizedDataPreparation::test_vectorized_equivalence_on_subset",
+        "product/tests/test_cycle_v17_webgl_vectorized.py::TestWebGLBenchmark::test_full_pipeline_timing",
+        "product/tests/test_cycle_v17_webgl_vectorized.py::TestWebGLBenchmark::test_lod0_timing",
+        "product/tests/test_cycle_v17_webgl_vectorized.py::TestWebGLBenchmark::test_viewport_culling_timing",
+        "product/tests/test_cycle_v17_webgl_vectorized.py::TestWebGLDataPipeline::test_default_representation_webgl",
+        "product/tests/test_cycle_v17_webgl_vectorized.py::TestWebGLDataPipeline::test_default_representation_webgl_structure",
+        "product/tests/test_cycle_v17_webgl_vectorized.py::TestWebGLDataPipeline::test_lod_decimation_metadata",
+        "product/tests/test_cycle_v17_webgl_vectorized.py::TestWebGLDataPipeline::test_lod_level_0_centroid_path",
+        "product/tests/test_cycle_v17_webgl_vectorized.py::TestWebGLDataPipeline::test_lod_level_1_super_cluster_path",
+        "product/tests/test_cycle_v17_webgl_vectorized.py::TestWebGLDataPipeline::test_viewport_bbox_culling",
+        "product/tests/test_cycle_v17_webgl_vectorized.py::TestWebGLDataPipeline::test_viewport_culling_positions_inside_bbox",
+        "product/tests/test_cycle_v18_product.py::test_section_blended_projections_exist",
+        "product/tests/test_cycle_v18_product.py::test_section_clustering_with_coherence",
+        "product/tests/test_cycle_v18_product.py::test_section_coverage_expanded",
+        "product/tests/test_http_api_integration.py::test_http_neighbors_backward_compatibility",
+        "product/tests/test_http_api_integration.py::test_http_neighbors_response_format",
+        "product/tests/test_product.py::test_all_representations_coverage",
+        "product/tests/test_product.py::test_center_projected",
+        "product/tests/test_product.py::test_citations",
+        "product/tests/test_product.py::test_cited_decisions_tfidf",
+        "product/tests/test_product.py::test_cited_outcome_hybrid_0_5",
+        "product/tests/test_product.py::test_cited_outcome_hybrid_0_7",
+        "product/tests/test_product.py::test_citing_alpha0_3",
+        "product/tests/test_product.py::test_corpus_import",
+        "product/tests/test_product.py::test_criticizing_alpha0_3",
+        "product/tests/test_product.py::test_following_alpha0_3",
+        "product/tests/test_product.py::test_hdbscan",
+        "product/tests/test_product.py::test_hierarchical_leiden",
+        "product/tests/test_product.py::test_hybrid_alpha_0_3",
+        "product/tests/test_product.py::test_hybrid_alpha_0_5",
+        "product/tests/test_product.py::test_legal_cited_decisions",
+        "product/tests/test_product.py::test_legal_issues_outcomes",
+        "product/tests/test_product.py::test_linear_hybrid05_concat",
+        "product/tests/test_product.py::test_map_loader",
+        "product/tests/test_product.py::test_map_modes_api",
+        "product/tests/test_product.py::test_navigation_api",
+        "product/tests/test_product.py::test_section_modes",
+        "product/tests/test_product.py::test_true_hierarchical_leiden"
+      ],
+      "n_unique_failing_or_erroring_ids": 159,
+      "failing_id_set_sha256": "f2c9466fd573c1373c70c9c3726971efd43d9862d1634b88b33c3474dc07f7ef",
+      "compared_with": "results/product/regression/CYCLE_39206477026_regression_scope.json -> repaired_run.unique_failing_or_erroring_ids (repair base b0530db)",
+      "published_failing_id_set_sha256": "f2c9466fd573c1373c70c9c3726971efd43d9862d1634b88b33c3474dc07f7ef",
+      "set_difference_this_tree_only_NEW": [],
+      "set_difference_published_only": [],
+      "identical_failing_id_set": true,
+      "precondition": "measured in this run's workspace with the accepted Frontier mount present at /tmp/lex_accepted/frontier/frontier-query-concept-recall; without that mount the same command skips (does not fail) the mount-dependent tests, so the failing-ID set is unchanged while passed/skipped counts shift by 3. Counts are mount-conditional; the set comparison is not."
+    },
+    "report_pins": [
+      {
+        "pinned_artifact": "results/product/server_slice/39202428670/summary.json",
+        "exists": true,
+        "sha256_recomputed_this_run": "19213ad18af201e4f337a58afbbc6ae77622487bd9b729bf0bffea3b4f1822a5",
+        "recomputed_by": "sha256sum over the committed bytes, run 39216560764, tree 87b7f468c0beecedbd6a8111dc072109d6e4491f",
+        "path_referenced_in_reports": [
+          "reports/product/CYCLE_39202428670.md"
+        ],
+        "digest_present_in_reports": [
+          "reports/product/CYCLE_39202428670.md"
+        ],
+        "pin_status": "digest_pin_matches_committed_bytes"
+      },
+      {
+        "pinned_artifact": "results/product/server_slice/39202428670/served.bundle.json",
+        "exists": true,
+        "sha256_recomputed_this_run": "3f78f6807a0f8170a128797e9e5e93ebb6624ba389a140377433da5bc7096da5",
+        "recomputed_by": "sha256sum over the committed bytes, run 39216560764, tree 87b7f468c0beecedbd6a8111dc072109d6e4491f",
+        "path_referenced_in_reports": [
+          "reports/product/CYCLE_39202428670.md"
+        ],
+        "digest_present_in_reports": [
+          "reports/product/CYCLE_39202428670.md"
+        ],
+        "pin_status": "digest_pin_matches_committed_bytes"
+      },
+      {
+        "pinned_artifact": "results/product/server_slice/39202428670/first_page.bundle.json",
+        "exists": true,
+        "sha256_recomputed_this_run": "7f7b8d5a8e42d257963353dbebda6808e8ea6ccc156127963b144b0efe4989f7",
+        "recomputed_by": "sha256sum over the committed bytes, run 39216560764, tree 87b7f468c0beecedbd6a8111dc072109d6e4491f",
+        "path_referenced_in_reports": [
+          "reports/product/CYCLE_39202428670.md"
+        ],
+        "digest_present_in_reports": [
+          "reports/product/CYCLE_39202428670.md"
+        ],
+        "pin_status": "digest_pin_matches_committed_bytes"
+      },
+      {
+        "pinned_artifact": "results/product/regression/CYCLE_39202428670_test_delta_attribution.json",
+        "exists": true,
+        "sha256_recomputed_this_run": "d2a4564f165c95c73dbc1801dd233182528ce6fd76943f210bd3331299b0a6e8",
+        "recomputed_by": "sha256sum over the committed bytes, run 39216560764, tree 87b7f468c0beecedbd6a8111dc072109d6e4491f",
+        "path_referenced_in_reports": [
+          "reports/product/CYCLE_39202428670.md",
+          "reports/product/CYCLE_39206477026.md"
+        ],
+        "digest_present_in_reports": [
+          "reports/product/CYCLE_39202428670.md"
+        ],
+        "pin_status": "digest_pin_matches_committed_bytes"
+      },
+      {
+        "pinned_artifact": "results/product/regression/CYCLE_39206477026_report_testcount_disclosure.json",
+        "exists": true,
+        "sha256_recomputed_this_run": "54ea2e7043311b5ea3ceb05391c9d125a29d304265f5dc7b7e19b77d9a2bcb37",
+        "recomputed_by": "sha256sum over the committed bytes, run 39216560764, tree 87b7f468c0beecedbd6a8111dc072109d6e4491f",
+        "path_referenced_in_reports": [
+          "reports/product/CYCLE_39206477026.md"
+        ],
+        "digest_present_in_reports": [],
+        "pin_status": "referenced_by_path_without_a_digest_pin"
+      },
+      {
+        "pinned_artifact": "results/product/cycle_verify/CYCLE_39202428670_cycle_verify.json",
+        "exists": true,
+        "sha256_recomputed_this_run": "d7c4548248248ad9c0626ed812e355cbc85c5357b4493a1487fa61342f1d69cf",
+        "recomputed_by": "sha256sum over the committed bytes, run 39216560764, tree 87b7f468c0beecedbd6a8111dc072109d6e4491f",
+        "path_referenced_in_reports": [
+          "reports/product/CYCLE_39202428670.md"
+        ],
+        "digest_present_in_reports": [
+          "reports/product/CYCLE_39202428670.md"
+        ],
+        "pin_status": "digest_pin_matches_committed_bytes"
+      },
+      {
+        "pinned_artifact": "results/product/server_slice/39202428670/CYCLE_39202428670_regression_scope.json",
+        "exists": true,
+        "sha256_recomputed_this_run": "414a126da03daa0b6c0718d46b17d10b56284d0dad8b5a55d9cc4c531b8c7d12",
+        "recomputed_by": "sha256sum over the committed bytes, run 39216560764, tree 87b7f468c0beecedbd6a8111dc072109d6e4491f",
+        "path_referenced_in_reports": [
+          "reports/product/CYCLE_39202428670.md"
+        ],
+        "digest_present_in_reports": [
+          "reports/product/CYCLE_39202428670.md"
+        ],
+        "pin_status": "digest_pin_matches_committed_bytes"
+      },
+      {
+        "pinned_artifact": "results/product/regression/CYCLE_39206477026_regression_scope.json",
+        "exists": true,
+        "sha256_recomputed_this_run": "0e498c57dfc1cd3abd742a697c776e11d44a37bbed8fa9844942ac90e9d40088",
+        "recomputed_by": "sha256sum over the committed bytes, run 39216560764, tree 87b7f468c0beecedbd6a8111dc072109d6e4491f",
+        "path_referenced_in_reports": [
+          "reports/product/CYCLE_39202428670.md",
+          "reports/product/CYCLE_39206477026.md"
+        ],
+        "digest_present_in_reports": [
+          "reports/product/CYCLE_39202428670.md",
+          "reports/product/CYCLE_39206477026.md"
+        ],
+        "pin_status": "digest_pin_matches_committed_bytes"
+      }
+    ],
+    "report_digest_resolution": {
+      "command": "sha256sum over every file referenced by the two product reports, compared with every 64-hex digest printed in them (run 39216560764)",
+      "occurrences": 13,
+      "counts": {
+        "resolved": 12,
+        "superseded_value_disclosed_on_the_line": 1
+      },
+      "unresolved": [],
+      "details": [
+        {
+          "report": "reports/product/CYCLE_39202428670.md",
+          "line": 35,
+          "sha256": "19213ad18af201e4f337a58afbbc6ae77622487bd9b729bf0bffea3b4f1822a5",
+          "status": "resolved",
+          "resolves_to": "results/product/server_slice/39202428670/summary.json"
+        },
+        {
+          "report": "reports/product/CYCLE_39202428670.md",
+          "line": 36,
+          "sha256": "3f78f6807a0f8170a128797e9e5e93ebb6624ba389a140377433da5bc7096da5",
+          "status": "resolved",
+          "resolves_to": "results/product/server_slice/39202428670/served.bundle.json"
+        },
+        {
+          "report": "reports/product/CYCLE_39202428670.md",
+          "line": 37,
+          "sha256": "7f7b8d5a8e42d257963353dbebda6808e8ea6ccc156127963b144b0efe4989f7",
+          "status": "resolved",
+          "resolves_to": "results/product/server_slice/39202428670/first_page.bundle.json"
+        },
+        {
+          "report": "reports/product/CYCLE_39202428670.md",
+          "line": 74,
+          "sha256": "d2a4564f165c95c73dbc1801dd233182528ce6fd76943f210bd3331299b0a6e8",
+          "status": "resolved",
+          "resolves_to": "results/product/regression/CYCLE_39202428670_test_delta_attribution.json"
+        },
+        {
+          "report": "reports/product/CYCLE_39202428670.md",
+          "line": 131,
+          "sha256": "19213ad18af201e4f337a58afbbc6ae77622487bd9b729bf0bffea3b4f1822a5",
+          "status": "resolved",
+          "resolves_to": "results/product/server_slice/39202428670/summary.json"
+        },
+        {
+          "report": "reports/product/CYCLE_39202428670.md",
+          "line": 131,
+          "sha256": "3f78f6807a0f8170a128797e9e5e93ebb6624ba389a140377433da5bc7096da5",
+          "status": "resolved",
+          "resolves_to": "results/product/server_slice/39202428670/served.bundle.json"
+        },
+        {
+          "report": "reports/product/CYCLE_39202428670.md",
+          "line": 131,
+          "sha256": "7f7b8d5a8e42d257963353dbebda6808e8ea6ccc156127963b144b0efe4989f7",
+          "status": "resolved",
+          "resolves_to": "results/product/server_slice/39202428670/first_page.bundle.json"
+        },
+        {
+          "report": "reports/product/CYCLE_39202428670.md",
+          "line": 135,
+          "sha256": "d7c4548248248ad9c0626ed812e355cbc85c5357b4493a1487fa61342f1d69cf",
+          "status": "resolved",
+          "resolves_to": "results/product/cycle_verify/CYCLE_39202428670_cycle_verify.json"
+        },
+        {
+          "report": "reports/product/CYCLE_39202428670.md",
+          "line": 142,
+          "sha256": "d7c4548248248ad9c0626ed812e355cbc85c5357b4493a1487fa61342f1d69cf",
+          "status": "resolved",
+          "resolves_to": "results/product/cycle_verify/CYCLE_39202428670_cycle_verify.json"
+        },
+        {
+          "report": "reports/product/CYCLE_39202428670.md",
+          "line": 150,
+          "sha256": "414a126da03daa0b6c0718d46b17d10b56284d0dad8b5a55d9cc4c531b8c7d12",
+          "status": "resolved",
+          "resolves_to": "results/product/server_slice/39202428670/CYCLE_39202428670_regression_scope.json"
+        },
+        {
+          "report": "reports/product/CYCLE_39202428670.md",
+          "line": 151,
+          "sha256": "0e498c57dfc1cd3abd742a697c776e11d44a37bbed8fa9844942ac90e9d40088",
+          "status": "resolved",
+          "resolves_to": "results/product/regression/CYCLE_39206477026_regression_scope.json"
+        },
+        {
+          "report": "reports/product/CYCLE_39202428670.md",
+          "line": 153,
+          "sha256": "363906d6cd0d47cc5a95202efb1e06ad20a45959cab5e928789928f03a08f4ed",
+          "status": "superseded_value_disclosed_on_the_line",
+          "resolves_to": null
+        },
+        {
+          "report": "reports/product/CYCLE_39206477026.md",
+          "line": 85,
+          "sha256": "0e498c57dfc1cd3abd742a697c776e11d44a37bbed8fa9844942ac90e9d40088",
+          "status": "resolved",
+          "resolves_to": "results/product/regression/CYCLE_39206477026_regression_scope.json"
+        }
+      ]
+    }
+  },
+  "classification": "ORCHESTRATION failure on the AUDIT side (the independent-audit agent step exited 1 with the workflow's gate reader and audit snapshot skipped), not a producer failure, not a state-validation failure and not a defect in the deliverable: the team job completed all ten steps green, the snapshot persisted, and every instrument of the repaired tree reproduces. The repair's three claim-disclosure fixes are closed and this run adds the committed artifacts that make the repair's own verification claims reproducible.",
+  "what_is_valid_and_kept": "All of repair run 39214811351's work: the F1 digest correction and narrowed state sentence, the F2 parenthetical correction, the F3 mount precondition disclosures, and the two report files plus state it changed. Nothing was restarted, reverted, re-measured to a different number, or rewritten; this resume adds diagnosis and verification artifacts only.",
+  "not_done_by_design": "no new capability, no new instrument, no new collected test, no live OpenCaseLaw call, no .github/** change, no Frontier re-dispatch, no new claim-bearing report section; posture unchanged and fail-closed (continue_recommended=true, human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false)",
+  "claim_ceiling": "Operational diagnosis and verification of an unaudited producer snapshot, measured on one named tree by one named run with the commands printed beside every row. It is not an audit verdict, not a promotion, not a frozen-bar result and not a claim about answer quality or jurist usefulness."
+}
