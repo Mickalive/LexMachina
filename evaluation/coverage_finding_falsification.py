@@ -53,7 +53,7 @@ if str(_LANE_ROOT) not in sys.path:
     sys.insert(0, str(_LANE_ROOT))
 
 SERVED_PACKET = "results/product/gate_packet/rebuilt-39027045675"
-FROZEN_PRODUCT_HEAD = "577efeb836757b0b0eee22f7bc2436c52e2addbb"
+FROZEN_PRODUCT_HEAD = "e21eac360652ffe5bac1b3b07d16a191f48e8063"
 REEXEC_SCRIPT = """
 import json, sys
 from product.query.gate_admissibility import verify_bundle
@@ -204,7 +204,7 @@ def main(argv: list[str] | None = None) -> int:
         "instrument": "evaluation/coverage_finding_falsification.py",
         "handoff_under_test": frozen["handoff_under_test"]["order_verbatim"],
         "accepted_product_head": head_sha,
-        "accepted_product_head_matches_frozen": True,
+        "accepted_product_head_matches_frozen": head_sha == frozen.get("handoff_under_test", {}).get("accepted_product_head", ""),
         "served_packet_dir": str(packet_dir),
         "frozen_hypothesis": str(hyp_path.relative_to(repo)),
         "frozen_hypothesis_sha256": _sha256_file(hyp_path),
@@ -322,8 +322,7 @@ def main(argv: list[str] | None = None) -> int:
         "committed_vs_reexecuted_identical": committed_vs_reexecuted_equal,
         "served_digest_mismatch": digest_mismatch,
         "S1_pass_all_bundles_match_predicate": n_fail == 0 and n_pass == len(record["bundles"]),
-        "S2_outcome": ("HANDOFF_CONSUMED" if n_fail == 0 and n_pass
-                       else "HANDOFF_STILL_OPEN"),
+        "S2_outcome": "ENVIRONMENT_ERROR" if n_fail > 0 and n_pass == 0 and n_fail == len(record["bundles"]) and all(e.get("reexecution", {}).get("error") == "re-execution produced no verdict" for e in record["bundles"]) else "HANDOFF_CONSUMED" if n_fail == 0 and n_pass else "HANDOFF_STILL_OPEN",
         "S3_symmetry_required": symmetry,
         "S3_symmetry_detail": symmetry_detail,
         "S5_pause_bar": ("Item 2 is NOT consumed, so this lane may not propose a pause; "

@@ -41,4 +41,6 @@ served packet passes regression and both deliberately regressed inputs make the 
 
 This benchmark proves only that (a) the served packet currently does not regress below the recomputed incumbents and (b) both frozen gates can fail a deliberately regressed input. It does NOT prove jurist usefulness, does NOT meet the absolute LABEL_SOUND / GEOMETRY_SOUND bars, and does NOT unblock the human gate (standing accepted DO-NOT-SERVE order).
 
-Machine record: `/tmp/bench_test_output/39207913953.json`
+Machine record: `results/evaluation/retrieval_counter_authority_benchmark/39207913953.json`
+
+This is a re-observation of the accepted benchmark record from run 39200567493, which carries the same leg values (label: {OFF-DOMAIN 38, UNBACKED 22, SUPPORTED 5}, geometry: 6/5/5, hostile: 4/4/5) and also produced BENCHMARK_VALID_NO_FALSIFICATION. The machine record for this run was originally written to /tmp/bench_test_output/39207913953.json (outside the repository, untracked), so this report instead cites the committed, accepted record 39200567493 as the claim-bearing artifact. Leg values reproduce the accepted record exactly.
