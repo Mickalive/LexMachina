@@ -213,7 +213,9 @@ def main() -> int:
         "pre_restore_sibling": next(
             p["sha256"] for p in f3b_accepted["records"]["preserved"] if p["path"] == F3B_PRE_RESTORE
         ),
-        "preimage": f3b_accepted["records"]["preserved"][1]["sha256"],
+        "preimage": next(
+            p["sha256"] for p in f3b_accepted["records"]["preserved"] if p["path"] == F3B_PREIMAGE
+        ),
         "rehomed": f3b_accepted["records"]["rehomed"]["rehomed_sha256"],
     }
     f3b = {
