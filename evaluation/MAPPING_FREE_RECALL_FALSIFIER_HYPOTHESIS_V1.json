@@ -1,0 +1,86 @@
+{
+  "schema": "lex-evaluation-mapping-free-recall-falsifier-hypothesis/1",
+  "lane": "evaluation",
+  "direction_version": 57,
+  "instrument": "evaluation/mapping_free_recall_falsifier.py",
+  "entry_point": "python -m evaluation.mapping_free_recall_falsifier --run-id <id> --out <path>",
+  "frozen_before_execution": true,
+  "frozen_at_utc": "2026-10-19T09:05:00Z",
+  "title": "Smallest executable retrieval/counter-authority falsifier that is admissible BY CONSTRUCTION",
+  "why_this_instrument": "The lane already owns two retrieval instruments that cannot carry a product claim. (a) evaluation/benchmark_retrieval_counter_authority.py re-runs the FROZEN LABEL and GEOMETRY bar gates on a served packet; it measures the gate, not retrieval, and its own claim ceiling says so. (b) evaluation/product_counter_recall.py produced results/evaluation/product_counter_recall/39111232991.json = FAIL_PARITY_REGRESSION, but the accepted correction run 39113690481 retracted it as a PRODUCT-LAYER CLAIM: 'no cell is subject-matched to the question the product serves'. Its three cells are driven by evaluation/PRODUCT_COUNTER_RECALL_HYPOTHESIS.json's analyst_mapping_FROZEN_BEFORE_EXECUTION block. Between them the lane has NO executable instrument that can falsify the product's retrieval or counter-authority discovery and survive an adversarial audit. This instrument closes that hole by making admissibility a HARD PRE-REGISTERED PREDICATE instead of a property of an analyst mapping.",
+  "hypothesis": "A retrieval/counter-authority falsifier that (i) consumes ZERO analyst slug mappings, (ii) admits a frozen-id-set measurement into a product verdict only when a MECHANICAL subject match between the frozen slug's own query text and the served question's own text holds, and (iii) issues its verdict only over the mapping-free gates, is admissible by construction and can therefore falsify the product's retrieval and counter-authority surface where the retracted 39111232991 harness could not. A bounded negative is fully acceptable: if ZERO frozen cells pass the admissibility predicate, the instrument must return NOT_MEASURED_VACUOUS (exit 2), which is never a pass and never a bar-met.",
+  "admissibility_predicate_FROZEN": {
+    "rule": "A frozen slug cell may contribute to a product verdict ONLY IF BOTH mechanical conditions hold on the frozen inputs, computed at run time with no analyst judgement: SAME_NORM (>=1 shared norm token between the frozen slug's declared+lexically-harvested norm tokens and the served question's norm tokens) AND SAME_SUBJECT_TERMS (>=1 shared content token, length>=5, stoplist-filtered, between the frozen slug's query text and the served question's own subject fields).",
+    "reused_not_re_derived": "evaluation.subject_match_audit.norm_tokens_of and evaluation.subject_match_audit.content_tokens are imported and called; no new tokeniser, stoplist, length threshold or norm regex is introduced.",
+    "inadmissible_cells": "Emitted as NOT_MEASURED_ADMISSIBILITY with the failing axis named, and they contribute ZERO to every aggregate, every verdict and every claim ceiling.",
+    "zero_admissible_cells": "exit 2, verdict NOT_MEASURED_VACUOUS. Never exit 0.",
+    "analyst_mapping_is_inadmissible_by_construction": "evaluation/PRODUCT_COUNTER_RECALL_HYPOTHESIS.json is READ ONLY to be digest-pinned and to record that its analyst_mapping_FROZEN_BEFORE_EXECUTION block exists and is NOT consumed. No value from that block reaches any gate, aggregate or verdict. This is asserted by a runtime guard that fails the run if the mapping block is ever loaded into a cell."
+  },
+  "inputs_FROZEN": {
+    "product_mount": "/tmp/lex_accepted/product (read-only, accepted product branch; head recorded at run time)",
+    "packets": {
+      "served": {
+        "id": "38839347028",
+        "standing_order": "DO-NOT-SERVE (factory-wide requirement 13)",
+        "bundles": {
+          "de-kapitalverletzung": "2441ff2b16722afcd22dca9ad39eafcbeb079b2dfc367d763fbe53fce1356f9c",
+          "fr-bail-entretien": "6c5ea31d4b9af4abfa39e9f8025cfa3d34279ff1f04d0f643e571e27b23a2618",
+          "it-responsabilita-medica": "76e7f7ad998f3878e7b08635663e2d594a7a77bdaeb33bcf5fa52d0af00b7aff"
+        },
+        "admissibility": {
+          "de-kapitalverletzung": "9eadbc89e24f2145f6c14da7c0cf3f74ca9aad8ee5eed57de30a091aaba75cff",
+          "fr-bail-entretien": "5590fbef45f787824d3254a21bb34e05871703e145b9330469fb33d062fdcfe6",
+          "it-responsabilita-medica": "1baccd61042b6360481551c6a6086139562554702a9adf47478f9ce97f05f744"
+        },
+        "packet_json_sha256": "c2e10295e6196162a344c887be13e708be18a946b96b990a3800845760da97a4"
+      },
+      "rebuilt": {
+        "id": "rebuilt-39027045675",
+        "standing_order": "DO-NOT-SERVE-UNCHANGED, outcome B, accepted audit run 39061330426, accept 26582bc5",
+        "packet_json_sha256": "2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170",
+        "note": "This is the FIRST measurement of this instrument against the rebuilt packet. The accepted coverage-defect transfer run 39120832665 covers these bytes."
+      }
+    },
+    "frozen_repo_inputs": {
+      "evaluation/retrieval_gate/frozen_retrieval_benchmark.json": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+      "results/evaluation/retrieval_benchmark/39101217095.json": "49dd60ad0ee96ed1de7225da4653b752c13fb058cfed05a613e0440d67c32ac9",
+      "evaluation/subject_match_audit.py": "c207fd819ae4605de704d2cdc4a30254f39a9840994a2e43ea4ef10fb5656342",
+      "evaluation/retrieval_gate/gates.py": "f9bbbc7d61c927e9b687cfbcf140371d08fa6069509b0a1b6466d514ea37a6d9",
+      "evaluation/PRODUCT_COUNTER_RECALL_HYPOTHESIS.json": "2e94d1c6f65af304fa6345be00e8a29b34016012a4c3e04ee4bb36bbafb10c38",
+      "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633"
+    }
+  },
+  "gates_FROZEN": {
+    "mapping_free_gates": {
+      "mf::concept_coverage::<packet>::<qid>": "PASS iff every core concept of the served question's own text retrieves >=1 served row under the accepted question_concepts + row_match_text rule. FAIL iff >=1 concept has zero rows. This is the accepted coverage defect, re-measured on both packets.",
+      "mf::admission_disclosure::<packet>::<qid>": "PASS iff the packet's own .admissibility.json either reports warning_count>0 with a finding whose detail names the under-covered concepts, or reports measured.query_concepts_under_covered equal to the concepts this instrument measures as zero-row. FAIL iff the instrument measures a zero-row concept that the admission record does not disclose. This falsifies-or-passes the accepted product handoff question_native_coverage_39113690481 on the rebuilt bytes.",
+      "mf::source_validity::<packet>::<qid>": "PASS iff every served decision carries a non-empty decision_id AND a non-empty canonical_url. FAIL otherwise.",
+      "mf::duplicate_suppression::<packet>::<qid>": "PASS iff the count of distinct decision_ids equals the number of served decisions. FAIL otherwise.",
+      "mf::counter_authority_surface::<packet>::<qid>": "PASS iff the bundle issues >=1 row whose counter status is a contrary/limiting/exception type AND every issued counter row carries a non-empty counter_evidence field. FAIL if no counter row is issued, or if an issued counter row has empty evidence. This is the lane directive's known contrary/limiting-authority check, achievable without any mapping.",
+      "mf::language_robustness::<packet>::<qid>": "REPORTED, never a pass/fail: the served bundle's per-language decision counts and the count of distinct languages. Reported because the frozen FR/DE/IT recall defects are owned by Frontier team frontier-query-concept-recall and are NOT re-scored here."
+    },
+    "admissible_only_gates": {
+      "admissible::frozen_authority_recall::<qid>": "Only over cells that pass the admissibility predicate. Reports the count of the frozen slug's controlling-authority ids present in the served bundle, matched by evaluation.retrieval_gate.gates.row_cores (the ACCEPTED matcher). Labelled NOT_A_PARITY_CLAIM: it is a raw overlap count, NOT a comparison against the plain baseline, and it does NOT re-issue the retracted 39111232991 parity claim.",
+      "admissible::frozen_counter_recall::<qid>": "As above for the frozen known-counter-authority ids."
+    }
+  },
+  "non_vacuity_controls_FROZEN": {
+    "control_A_blanked_pool_must_fail": "Scoring a deliberately BLANKED pool (no rows) against the mapping-free gates must FAIL concept_coverage, source_validity, duplicate_suppression is vacuous on an empty pool and is therefore EXCLUDED from this control. If any of the three does not fail, the instrument is vacuous and the run is VOID.",
+    "control_B_admissibility_predicate_must_reject": "A deliberately subject-SWAPPED cell (the frozen slug text paired with a served question of a different legal area) must be rejected by the admissibility predicate. If a swapped cell is admitted, the predicate is vacuous and the run is VOID.",
+    "control_C_oracle_pool_must_pass": "A pool built from the question's own concepts must PASS concept_coverage. If it does not, the concept rule is broken and the run is VOID."
+  },
+  "success_rule_FROZEN": "PASS_NO_FALSIFICATION (exit 0) iff every mapping-free gate passes on every measured bundle AND every non-vacuity control holds AND the admissibility predicate rejected at least the swapped control. PRODUCT_FALSIFIED (exit 1) if any mapping-free gate fails on the exact accepted bytes, naming the packet, the question id, the gate and the measured values. NOT_MEASURED_VACUOUS (exit 2) if no bundle could be read at all, or if a non-vacuity control does not hold. NOT_APPLICABLE is never a pass.",
+  "no_new_thresholds": "Every numeric threshold used here is either an accepted constant imported from evaluation/subject_match_audit.py or an exact structural identity (distinct ids == n, empty string is falsy). This instrument introduces NO new threshold, NO new bar, NO new tokeniser, NO new stoplist and NO re-tuned rule.",
+  "network_policy": "zero network requests. The instrument is read-only over the accepted mount and committed records. Any live retrieval remains the accepted frozen retrieval benchmark's job and is not re-run.",
+  "what_this_does_NOT_claim": [
+    "It does NOT meet, move or re-derive the frozen absolute LABEL_SOUND or GEOMETRY_SOUND bars; they stay REPORTED-ONLY.",
+    "It does NOT re-score the accepted DO-NOT-SERVE order on 38839347028 nor DO-NOT-SERVE-UNCHANGED on rebuilt-39027045675.",
+    "It does NOT certify admission of any packet; admission stays fail-closed.",
+    "It does NOT claim the map helps a jurist; that is the human product gate's question and it remains unanswered.",
+    "It does NOT re-issue the retracted 39111232991 parity claim.",
+    "It does NOT build, tune, score or re-score any candidate for Frontier team frontier-query-concept-recall; where its numbers touch the same question its numbers are published BESIDE the accepted ones with any divergence named as the headline.",
+    "It runs no obsolete universal-174k geometry benchmark."
+  ],
+  "success_rule_for_the_CYCLE": "The cycle succeeds if it produces committed executable code, tests, a machine record and a report whose every number is recomputable from the committed tree, and exits 0 well inside the work quantum. A falsification result is an equally acceptable, and equally accepted, outcome."
+}
