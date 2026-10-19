@@ -1,0 +1,60 @@
+{
+  "schema": "lex-eval-freeze-record/1",
+  "lane": "evaluation",
+  "direction_version": 58,
+  "run_id": "39297074815",
+  "frozen_at_utc": "2026-10-19T18:05:00Z",
+  "frozen_before_execution": true,
+  "note": "FREEZE-FIRST: this record pins the resume-cycle hypothesis, the claim-bearing artifact set, the success rules and the pre-repair digests of every artifact that must remain byte-identical. It was committed BEFORE any repair edit, test fix, report write or state edit of run 39297074815. No success rule below may be weakened after results are seen.",
+  "question": "OPERATIONAL RESUME of producer snapshot origin/cycle/core/evaluation/39296616437/team (c61f36c2): can the lane (a) preserve all valid completed work from the three-run 39287274485/39294126962/39296616437 chain, (b) diagnose why the F-3B disposition with an independent PASS gate was never promoted to lab/evaluation, (c) repair the two reproducible in-tree test defects and the one missing report-of-record that an independent auditor of this snapshot would find, and (d) leave an audit-ready team snapshot — all WITHOUT touching any frozen bar, rubric, threshold, accepted record or claim-bearing result?",
+  "hypothesis": "The F-3B disposition work (v58 ordered work 1) is complete and correct on the snapshot; promotion failed for ORCHESTRATION reasons (no audit branch was ever created for runs 39287274485, 39294126962 or 39296616437, so no gate file existed at the workflow gate-reader path for any of those run ids and integrate never fired); the snapshot additionally carries exactly two reproducible test defects (test_cited_escalation_source_is_proven_absent asserts a live-world absence that the now-fetched audit ref contradicts; test_evidence_refs_exist fails because a CORRECTION note string sits inside evidence_refs) and one missing cited artifact (reports/evaluation/CYCLE_39287274485.md). If true, repairing exactly those items yields a snapshot in which every lane test that pins accepted evidence passes, every evidence_ref re-derives from the tree, and an independent auditor has nothing blocking to find.",
+  "baseline": "Pre-repair snapshot origin/cycle/core/evaluation/39296616437/team at c61f36c2: pytest tests/evaluation/test_f3b_restore_disposition.py test_f3b_record_adjudication.py test_mapping_free_recall_falsifier.py test_benchmark_retrieval_counter_authority.py => 49 passed, 1 failed (test_cited_escalation_source_is_proven_absent: probe now finds CYCLE_39199651952_GATE.json at refs/remotes/origin/cycle/core/evaluation/39199651952/audit); test_audit_correction_verification.py => 18 passed, 1 failed (test_evidence_refs_exist: CORRECTION_39231573047 note string is not a file path); reports/evaluation/CYCLE_39287274485.md ABSENT while cited in state.evidence_refs; lab/evaluation tip 2ebdf895 (F-3B work unpromoted); no audit branch exists for 39287274485/39294126962/39296616437.",
+  "success_rules": [
+    "S1 FROZEN FOUR RE-HASH: after all repairs, evaluation/frozen_bars/RULES_LABEL.json == 4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608, evaluation/frozen_bars/RULES_GEOMETRY.json == a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633, evaluation/retrieval_gate/frozen_retrieval_benchmark.json == 187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72, evaluation/retrieval_gate/FREEZE_RECORD.json == b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49.",
+    "S2 F-3B DISPOSITION ARTIFACTS BYTE-IDENTICAL: results/evaluation/frozen_cache_integrity/39164900837.json == 58a273de260770c12dcdc6f645b06b71f95a672757ae3cfa03e870be4bd5b11e; 39164900837_post-restore-9b61dcf8.json == d02255b8d11d7bce9b4529349e4e87de7b32a7d06311dfaa3aefa06f5de00032; 39164900837_pre_restore.json == 47be772a9d3d1fcf30185b7ed2bed45603df468c82cf4956e498151e296a17f0; 39164900837_preimage_recovered.json == 58a273de260770c12dcdc6f645b06b71f95a672757ae3cfa03e870be4bd5b11e; results/evaluation/f3b_restore_disposition/39287274485.json == 6be112d65143116d40082e743d468ad67d317e206402c8d2cabeb7162f29c0f2.",
+    "S3 ACCEPTED RECORDS BYTE-IDENTICAL: results/evaluation/f3b_adjudication/39225862749.json == 5271024e6fa73b5e3fbbe38e75658a8f88031c16b6086126060ae4ddee494a90; results/evaluation/mapping_free_recall_falsifier/39225862749.json == aa457fc6a6394f2de403edeb6e01cbcf6c0fe91576602b99244214de6d3f79f6; results/evaluation/retrieval_counter_authority_benchmark/39200567493.json == 81a08bc65d703d1ef9ee05988b0aaf9d3d5b600873bee5881da4174044df0cc4; results/evaluation/frozen_cache_integrity/local_test.json == b641f9d53e841c2d44ed0a7ddf61d6edf666a349f1d746a17e1f71f223b7cd8d; results/audit/evaluation/CYCLE_39287274485_GATE.json == ee995a59fa75be3de0ee298a808e79c63cdfb515018630de6cfca9f0fe23735b.",
+    "S4 TEST REPAIR VERIFIED: after the repairs, pytest tests/evaluation/test_f3b_record_adjudication.py tests/evaluation/test_audit_correction_verification.py tests/evaluation/test_f3b_restore_disposition.py tests/evaluation/test_mapping_free_recall_falsifier.py tests/evaluation/test_benchmark_retrieval_counter_authority.py => ALL PASS (0 failed).",
+    "S5 EVIDENCE-REF CLOSURE: every entry of state/evaluation.json evidence_refs is an existing file path in the tree; the CORRECTION_39231573047 note text is preserved VERBATIM in a sibling field, never deleted.",
+    "S6 NOTHING DELETED: git diff --name-status against c61f36c2 shows NO D (delete) entries; only A (add) and M (modify) on in-scope paths.",
+    "S7 CORRECTION HONESTY: the corrected test pins BOTH the historical adjudication-env finding (from the accepted record, unchanged) and the live full-fetch probe result (gate exists at the audit ref with gate=REVISE, F-3b escalate); in an environment lacking the audit ref the test must SKIP the live content pin with an explicit reason naming the missing ref, never silently pass it.",
+    "S8 CLAIM CEILING: the cycle claims ONLY (i) diagnosis of the promotion failure with committed machine evidence, (ii) the two test repairs and the missing report written, (iii) the escalation-source correction with both readings. It claims NOTHING about LABEL_SOUND/GEOMETRY_SOUND bars (still REPORTED-ONLY), does NOT unblock any gate (human_gate_ready, machine_gate_ready, packet_admitted, ready_for_owner_session all stay false), and authorises no owner question (owner_decision_required stays false)."
+  ],
+  "pre_repair_digests_pinned": {
+    "results/evaluation/f3b_adjudication/39225862749.json": "5271024e6fa73b5e3fbbe38e75658a8f88031c16b6086126060ae4ddee494a90",
+    "results/evaluation/f3b_restore_disposition/39287274485.json": "6be112d65143116d40082e743d468ad67d317e206402c8d2cabeb7162f29c0f2",
+    "results/evaluation/mapping_free_recall_falsifier/39225862749.json": "aa457fc6a6394f2de403edeb6e01cbcf6c0fe91576602b99244214de6d3f79f6",
+    "results/evaluation/retrieval_counter_authority_benchmark/39200567493.json": "81a08bc65d703d1ef9ee05988b0aaf9d3d5b600873bee5881da4174044df0cc4",
+    "results/evaluation/frozen_cache_integrity/local_test.json": "b641f9d53e841c2d44ed0a7ddf61d6edf666a349f1d746a17e1f71f223b7cd8d",
+    "results/evaluation/frozen_cache_integrity/39164900837.json": "58a273de260770c12dcdc6f645b06b71f95a672757ae3cfa03e870be4bd5b11e",
+    "results/evaluation/frozen_cache_integrity/39164900837_post-restore-9b61dcf8.json": "d02255b8d11d7bce9b4529349e4e87de7b32a7d06311dfaa3aefa06f5de00032",
+    "results/evaluation/frozen_cache_integrity/39164900837_pre_restore.json": "47be772a9d3d1fcf30185b7ed2bed45603df468c82cf4956e498151e296a17f0",
+    "results/evaluation/frozen_cache_integrity/39164900837_preimage_recovered.json": "58a273de260770c12dcdc6f645b06b71f95a672757ae3cfa03e870be4bd5b11e",
+    "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+    "evaluation/retrieval_gate/frozen_retrieval_benchmark.json": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "evaluation/retrieval_gate/FREEZE_RECORD.json": "b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49",
+    "results/audit/evaluation/CYCLE_39287274485_GATE.json": "ee995a59fa75be3de0ee298a808e79c63cdfb515018630de6cfca9f0fe23735b",
+    "results/audit/evaluation/CYCLE_39214324454_GATE.json": "cbdabd56fce4646553d13143c811f86cbb67cf513d1f53885765b1fecc3893c9",
+    "results/audit/evaluation/CYCLE_39200567493_GATE.json": "ea0392b3a06a819c9038bf9311e1a54d4c1055549084faa5512cc4b3ca359587"
+  },
+  "in_scope_edits": [
+    "tests/evaluation/test_f3b_record_adjudication.py (repair the stale live-absence assertion per S7)",
+    "tests/evaluation/test_audit_correction_verification.py (no edit expected; failure is fixed via state field move)",
+    "state/evaluation.json (move CORRECTION note out of evidence_refs into evidence_ref_corrections; add this run's refs and fields)",
+    "reports/evaluation/CYCLE_39287274485.md (write the missing report-of-record with resume provenance)",
+    "reports/evaluation/CYCLE_39297074815.md (this cycle's report)",
+    "results/evaluation/f3b_escalation_source_correction/39297074815.json (new correction artifact)",
+    "results/evaluation/orchestration_failure_diagnosis/39297074815.json (new diagnosis artifact)",
+    "results/evaluation/orchestration/39297074815_pytest_shim.json (run-namespaced shim record)",
+    "evaluation/V58_OPERATIONAL_RESUME_HYPOTHESIS_V1.json (this freeze record)"
+  ],
+  "out_of_scope_forbidden": [
+    "any edit to evaluation/frozen_bars/**, evaluation/retrieval_gate/frozen_retrieval_benchmark.json, evaluation/retrieval_gate/FREEZE_RECORD.json",
+    "any edit or overwrite of results/evaluation/f3b_adjudication/39225862749.json and every other accepted/claim-bearing result",
+    "any edit to evaluation/mapping_free_recall_falsifier.py, evaluation/benchmark_retrieval_counter_authority.py, evaluation/f3b_record_adjudication.py, evaluation/f3b_restore_disposition.py beyond what S4 requires (none expected)",
+    "any new threshold, rubric, bar or success rule",
+    "any deletion of a results/ or reports/ artifact",
+    "any claim that a frozen absolute bar is met, or that any human/machine/owner gate is unblocked"
+  ],
+  "freeze_sha_note": "This file is its own provenance; its sha256 is recorded in the cycle report and in state/evaluation.json after commit."
+}
