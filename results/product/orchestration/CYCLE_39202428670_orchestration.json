@@ -1,0 +1,471 @@
+{
+  "audit_branch_exists": false,
+  "claim_ceiling": "This is an observation of an external system's public REST job record. It names how the run ended. It is NOT a product verdict, NOT a claim about the quality of the producer's work, and NOT a human-gate input. .github/** is control-plane scope: nothing here edits or configures a workflow.",
+  "classification": {
+    "class": "TEAM_JOB_FAILED",
+    "evidence": [
+      "job team concluded 'failure'",
+      "job audit concluded 'skipped'",
+      "job integrate concluded 'skipped'",
+      "run conclusion 'failure'"
+    ],
+    "producing_snapshot_survived": true,
+    "team_branch_exists": true,
+    "verdict_exists": false,
+    "why": "the producer job did not succeed, so the audit never became eligible"
+  },
+  "diagnosis": {
+    "annotations": [
+      {
+        "annotation_level": "failure",
+        "job": "team",
+        "job_conclusion": "failure",
+        "job_id": 117898048722,
+        "message": "Process completed with exit code 78."
+      },
+      {
+        "annotation_level": "warning",
+        "job": "team",
+        "job_conclusion": "failure",
+        "job_id": 117898048722,
+        "message": "Agent quantum ended cleanly; workflow must snapshot and resume rather than hang."
+      },
+      {
+        "annotation_level": "warning",
+        "job": "team",
+        "job_conclusion": "failure",
+        "job_id": 117898048722,
+        "message": "LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2508"
+      },
+      {
+        "annotation_level": "notice",
+        "job": "team",
+        "job_conclusion": "failure",
+        "job_id": 117898048722,
+        "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+      },
+      {
+        "annotation_level": "notice",
+        "job": "resilience",
+        "job_conclusion": "success",
+        "job_id": 117910272510,
+        "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+      }
+    ],
+    "annotations_collected": true,
+    "audit_agent_step_duration_s": null,
+    "candidates": {
+      "claim_ceiling": "This narrows which wrapper exit COULD have produced the observed code. It does not name opencode's internal error: job logs stay admin-only, so the innermost cause is not attributable from the lane.",
+      "exit_code": 78,
+      "generic_passthrough_note": null,
+      "generic_passthrough_possible": false,
+      "named_branches": [
+        {
+          "branch": "LEX_WORK_QUANTUM_EXPIRED",
+          "consistent_evidence": [
+            "observed exit code matches this branch's fixed code 78"
+          ],
+          "preflight_rules_out": false,
+          "produced_by": "the in-wrapper work-quantum watchdog",
+          "rc": 78,
+          "requires": "the agent step ran at least WORK_QUANTUM_SECONDS",
+          "ruled_out": false,
+          "ruled_out_evidence": []
+        },
+        {
+          "branch": "LEX_ZERO_DELTA_REPAIR",
+          "consistent_evidence": [],
+          "preflight_rules_out": false,
+          "produced_by": "the zero-delta guard after a SUCCESSFUL agent run",
+          "rc": 67,
+          "requires": "REPAIR_INTENT is set AND the agent exited 0 AND HEAD unchanged AND an empty git status",
+          "ruled_out": true,
+          "ruled_out_evidence": [
+            "observed exit code 78 != this branch's fixed code 67"
+          ]
+        },
+        {
+          "branch": "TRANSIENT_RETRIES_EXHAUSTED",
+          "consistent_evidence": [],
+          "preflight_rules_out": false,
+          "produced_by": "retry loop exhaustion / network stall handling",
+          "rc": 75,
+          "requires": "at least one attempt carried a transient network signature",
+          "ruled_out": true,
+          "ruled_out_evidence": [
+            "observed exit code 78 != this branch's fixed code 75"
+          ]
+        },
+        {
+          "branch": "AGENT_CARD_MISSING",
+          "consistent_evidence": [],
+          "preflight_rules_out": true,
+          "produced_by": "validate_registry",
+          "rc": 64,
+          "requires": "an agent file without exactly one canonical card",
+          "ruled_out": true,
+          "ruled_out_evidence": [
+            "observed exit code 78 != this branch's fixed code 64",
+            "the wrapper's own preflight replays clean locally (registry + model health), so this pre-opencode exit did not fire"
+          ]
+        },
+        {
+          "branch": "AGENT_CARD_DISABLED",
+          "consistent_evidence": [],
+          "preflight_rules_out": true,
+          "produced_by": "validate_registry",
+          "rc": 65,
+          "requires": "the requested agent card carries status=LEGACY_DISABLED",
+          "ruled_out": true,
+          "ruled_out_evidence": [
+            "observed exit code 78 != this branch's fixed code 65",
+            "the wrapper's own preflight replays clean locally (registry + model health), so this pre-opencode exit did not fire"
+          ]
+        },
+        {
+          "branch": "AGENT_REGISTRY_MISMATCH",
+          "consistent_evidence": [],
+          "preflight_rules_out": true,
+          "produced_by": "validate_registry",
+          "rc": 66,
+          "requires": "a card id with no agent file, or a card count != 1",
+          "ruled_out": true,
+          "ruled_out_evidence": [
+            "observed exit code 78 != this branch's fixed code 66",
+            "the wrapper's own preflight replays clean locally (registry + model health), so this pre-opencode exit did not fire"
+          ]
+        },
+        {
+          "branch": "MODEL_HEALTH_UNUSABLE",
+          "consistent_evidence": [],
+          "preflight_rules_out": true,
+          "produced_by": "resolve_model_args",
+          "rc": 76,
+          "requires": "model_health.json missing, healthy != true, or no resolved model",
+          "ruled_out": true,
+          "ruled_out_evidence": [
+            "observed exit code 78 != this branch's fixed code 76",
+            "the wrapper's own preflight replays clean locally (registry + model health), so this pre-opencode exit did not fire"
+          ]
+        },
+        {
+          "branch": "MODEL_ARGUMENT_MISSING",
+          "consistent_evidence": [],
+          "preflight_rules_out": true,
+          "produced_by": "resolve_model_args",
+          "rc": 77,
+          "requires": "the invocation did not pass --model",
+          "ruled_out": true,
+          "ruled_out_evidence": [
+            "observed exit code 78 != this branch's fixed code 77",
+            "the wrapper's own preflight replays clean locally (registry + model health), so this pre-opencode exit did not fire"
+          ]
+        }
+      ],
+      "quantum_s": 2700,
+      "retry_params": {
+        "max_attempts": 8,
+        "retry_delay_s": 90,
+        "source": "/home/runner/work/LexMachina/LexMachina/.github/scripts/run-ox-with-retry.sh"
+      },
+      "step_duration_s": null,
+      "surviving_named_branches": [
+        "LEX_WORK_QUANTUM_EXPIRED"
+      ]
+    },
+    "control_plane_source": "/tmp/lex_control",
+    "exit_code": 78,
+    "exit_code_evidence": "team job annotation: 'Process completed with exit code 78'",
+    "preflight": {
+      "all_pass": true,
+      "claim_ceiling": "A local replay of the wrapper's preflight against the control-plane inputs. It reproduces or rules out the pre-opencode exits (64/65/66/76/77) only; it says nothing about failures inside opencode.",
+      "model_health": {
+        "pass": true,
+        "problems": [],
+        "record": {
+          "healthy": true,
+          "last_checked_at": "2026-10-19T05:35:39Z",
+          "last_checked_run_id": "39205274184",
+          "path": "/tmp/lex_control/state/model_health.json",
+          "resolved_model": "opencode/nemotron-3-ultra-free",
+          "using_fallback": true
+        }
+      },
+      "registry": {
+        "agent_dir": "/home/runner/work/LexMachina/LexMachina/.opencode/agents",
+        "card_counts": {
+          "factory_director": 1,
+          "frontier_researcher": 1,
+          "independent_auditor": 1,
+          "lane_researcher": 1,
+          "model_probe": 1,
+          "product_engineer": 1,
+          "results_curator": 1
+        },
+        "pass": true,
+        "problems": [],
+        "registry_path": "/tmp/lex_control/docs/agents/AGENT_CARDS.md"
+      },
+      "requested_agent": "independent_auditor",
+      "would_exit": null
+    }
+  },
+  "job_conclusions": {
+    "audit": "skipped",
+    "integrate": "skipped",
+    "resilience": "success",
+    "team": "failure"
+  },
+  "lane": "product",
+  "observation": {
+    "conclusion": "failure",
+    "created_at": "2026-10-19T05:01:49Z",
+    "event": "workflow_dispatch",
+    "head_branch": "main",
+    "head_sha": "de7c55c46f4e19fcb9345fdaa19c8ff52688f134",
+    "name": "Core product dirV57 repair0",
+    "run_id": 39202428670,
+    "source": "https://api.github.com/repos/Mickalive/LexMachina/actions/runs/39202428670",
+    "status": "completed",
+    "updated_at": "2026-10-19T05:48:58Z",
+    "workflow": ".github/workflows/core-lane.yml"
+  },
+  "quantum_analysis": {
+    "agent_step_found": false,
+    "note": "no audit agent step in the record; nothing to compare against the quantum",
+    "quantum_plausibly_fired": null,
+    "wrapper_quantum_s": 2700
+  },
+  "run_id": 39202428670,
+  "schema": "product-orchestration-evidence/1",
+  "steps": [
+    {
+      "completed_at": "2026-10-19T05:01:55Z",
+      "conclusion": "success",
+      "duration_s": 1.0,
+      "job": "team",
+      "job_completed_at": "2026-10-19T05:48:44Z",
+      "job_conclusion": "failure",
+      "job_started_at": "2026-10-19T05:01:53Z",
+      "started_at": "2026-10-19T05:01:54Z",
+      "status": "completed",
+      "step": "Set up job",
+      "step_number": 1
+    },
+    {
+      "completed_at": "2026-10-19T05:01:56Z",
+      "conclusion": "success",
+      "duration_s": 1.0,
+      "job": "team",
+      "job_completed_at": "2026-10-19T05:48:44Z",
+      "job_conclusion": "failure",
+      "job_started_at": "2026-10-19T05:01:53Z",
+      "started_at": "2026-10-19T05:01:55Z",
+      "status": "completed",
+      "step": "Run actions/checkout@v6",
+      "step_number": 2
+    },
+    {
+      "completed_at": "2026-10-19T05:03:26Z",
+      "conclusion": "success",
+      "duration_s": 90.0,
+      "job": "team",
+      "job_completed_at": "2026-10-19T05:48:44Z",
+      "job_conclusion": "failure",
+      "job_started_at": "2026-10-19T05:01:53Z",
+      "started_at": "2026-10-19T05:01:56Z",
+      "status": "completed",
+      "step": "Validate lane and initialize working base",
+      "step_number": 3
+    },
+    {
+      "completed_at": "2026-10-19T05:03:26Z",
+      "conclusion": "success",
+      "duration_s": 0.0,
+      "job": "team",
+      "job_completed_at": "2026-10-19T05:48:44Z",
+      "job_conclusion": "failure",
+      "job_started_at": "2026-10-19T05:01:53Z",
+      "started_at": "2026-10-19T05:03:26Z",
+      "status": "completed",
+      "step": "Mount accepted peer evidence",
+      "step_number": 4
+    },
+    {
+      "completed_at": "2026-10-19T05:03:28Z",
+      "conclusion": "success",
+      "duration_s": 2.0,
+      "job": "team",
+      "job_completed_at": "2026-10-19T05:48:44Z",
+      "job_conclusion": "failure",
+      "job_started_at": "2026-10-19T05:01:53Z",
+      "started_at": "2026-10-19T05:03:26Z",
+      "status": "completed",
+      "step": "Install Ox/OpenCode",
+      "step_number": 5
+    },
+    {
+      "completed_at": "2026-10-19T05:48:32Z",
+      "conclusion": "failure",
+      "duration_s": 2704.0,
+      "job": "team",
+      "job_completed_at": "2026-10-19T05:48:44Z",
+      "job_conclusion": "failure",
+      "job_started_at": "2026-10-19T05:01:53Z",
+      "started_at": "2026-10-19T05:03:28Z",
+      "status": "completed",
+      "step": "Run lane cycle",
+      "step_number": 6
+    },
+    {
+      "completed_at": "2026-10-19T05:48:32Z",
+      "conclusion": "skipped",
+      "duration_s": 0.0,
+      "job": "team",
+      "job_completed_at": "2026-10-19T05:48:44Z",
+      "job_conclusion": "failure",
+      "job_started_at": "2026-10-19T05:01:53Z",
+      "started_at": "2026-10-19T05:48:32Z",
+      "status": "completed",
+      "step": "Validate active MVP producer state",
+      "step_number": 7
+    },
+    {
+      "completed_at": "2026-10-19T05:48:32Z",
+      "conclusion": "success",
+      "duration_s": 0.0,
+      "job": "team",
+      "job_completed_at": "2026-10-19T05:48:44Z",
+      "job_conclusion": "failure",
+      "job_started_at": "2026-10-19T05:01:53Z",
+      "started_at": "2026-10-19T05:48:32Z",
+      "status": "completed",
+      "step": "Clean generated junk",
+      "step_number": 8
+    },
+    {
+      "completed_at": "2026-10-19T05:48:32Z",
+      "conclusion": "skipped",
+      "duration_s": 0.0,
+      "job": "team",
+      "job_completed_at": "2026-10-19T05:48:44Z",
+      "job_conclusion": "failure",
+      "job_started_at": "2026-10-19T05:01:53Z",
+      "started_at": "2026-10-19T05:48:32Z",
+      "status": "completed",
+      "step": "Enforce lane write scope",
+      "step_number": 9
+    },
+    {
+      "completed_at": "2026-10-19T05:48:41Z",
+      "conclusion": "success",
+      "duration_s": 9.0,
+      "job": "team",
+      "job_completed_at": "2026-10-19T05:48:44Z",
+      "job_conclusion": "failure",
+      "job_started_at": "2026-10-19T05:01:53Z",
+      "started_at": "2026-10-19T05:48:32Z",
+      "status": "completed",
+      "step": "Persist team snapshot",
+      "step_number": 10
+    },
+    {
+      "completed_at": "2026-10-19T05:48:41Z",
+      "conclusion": "success",
+      "duration_s": 0.0,
+      "job": "team",
+      "job_completed_at": "2026-10-19T05:48:44Z",
+      "job_conclusion": "failure",
+      "job_started_at": "2026-10-19T05:01:53Z",
+      "started_at": "2026-10-19T05:48:41Z",
+      "status": "completed",
+      "step": "Post Run actions/checkout@v6",
+      "step_number": 20
+    },
+    {
+      "completed_at": "2026-10-19T05:48:41Z",
+      "conclusion": "success",
+      "duration_s": 0.0,
+      "job": "team",
+      "job_completed_at": "2026-10-19T05:48:44Z",
+      "job_conclusion": "failure",
+      "job_started_at": "2026-10-19T05:01:53Z",
+      "started_at": "2026-10-19T05:48:41Z",
+      "status": "completed",
+      "step": "Complete job",
+      "step_number": 21
+    },
+    {
+      "completed_at": "2026-10-19T05:48:49Z",
+      "conclusion": "success",
+      "duration_s": 1.0,
+      "job": "resilience",
+      "job_completed_at": "2026-10-19T05:48:57Z",
+      "job_conclusion": "success",
+      "job_started_at": "2026-10-19T05:48:47Z",
+      "started_at": "2026-10-19T05:48:48Z",
+      "status": "completed",
+      "step": "Set up job",
+      "step_number": 1
+    },
+    {
+      "completed_at": "2026-10-19T05:48:50Z",
+      "conclusion": "success",
+      "duration_s": 1.0,
+      "job": "resilience",
+      "job_completed_at": "2026-10-19T05:48:57Z",
+      "job_conclusion": "success",
+      "job_started_at": "2026-10-19T05:48:47Z",
+      "started_at": "2026-10-19T05:48:49Z",
+      "status": "completed",
+      "step": "Run actions/checkout@v6",
+      "step_number": 2
+    },
+    {
+      "completed_at": "2026-10-19T05:48:55Z",
+      "conclusion": "success",
+      "duration_s": 5.0,
+      "job": "resilience",
+      "job_completed_at": "2026-10-19T05:48:57Z",
+      "job_conclusion": "success",
+      "job_started_at": "2026-10-19T05:48:47Z",
+      "started_at": "2026-10-19T05:48:50Z",
+      "status": "completed",
+      "step": "Recover failed chain and wake supervisor",
+      "step_number": 3
+    },
+    {
+      "completed_at": "2026-10-19T05:48:55Z",
+      "conclusion": "success",
+      "duration_s": 0.0,
+      "job": "resilience",
+      "job_completed_at": "2026-10-19T05:48:57Z",
+      "job_conclusion": "success",
+      "job_started_at": "2026-10-19T05:48:47Z",
+      "started_at": "2026-10-19T05:48:55Z",
+      "status": "completed",
+      "step": "Post Run actions/checkout@v6",
+      "step_number": 6
+    },
+    {
+      "completed_at": "2026-10-19T05:48:55Z",
+      "conclusion": "success",
+      "duration_s": 0.0,
+      "job": "resilience",
+      "job_completed_at": "2026-10-19T05:48:57Z",
+      "job_conclusion": "success",
+      "job_started_at": "2026-10-19T05:48:47Z",
+      "started_at": "2026-10-19T05:48:55Z",
+      "status": "completed",
+      "step": "Complete job",
+      "step_number": 7
+    }
+  ],
+  "team_branch_exists": true,
+  "wrapper_script": {
+    "present": true,
+    "quantum_source": "default_fallback (this checkout's copy has no WORK_QUANTUM_SECONDS; origin/main's copy does, and the wrapper re-executes main's copy at runtime, so the fallback value 2700 equals main's script value)",
+    "retry_source": "script",
+    "script": "/home/runner/work/LexMachina/LexMachina/.github/scripts/run-ox-with-retry.sh"
+  }
+}

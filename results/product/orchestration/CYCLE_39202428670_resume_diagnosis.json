@@ -1,0 +1,69 @@
+{
+  "schema": "product-resume-diagnosis/1",
+  "run_id": 39202428670,
+  "resumed_from_run_id": 39206477026,
+  "measured_by": "product lane producer (operational resume), 2026-10-19",
+  "question": "Why did product run 39202428670 end without an audit, and what finishes its deliverable without discarding the producer's work?",
+  "evidence": [
+    {
+     "fact": "the run concluded failure with team=failure, audit=skipped, integrate=skipped, resilience=success",
+     "how": "product/orchestration_evidence.build_report(39202428670) over the public REST job record",
+     "observed": "run conclusion 'failure'; job team conclusion 'failure'; audit and integrate both 'skipped' (gated on needs.team == success)",
+     "artifact": "results/product/orchestration/CYCLE_39202428670_orchestration.json"
+    },
+    {
+     "fact": "the team job died on the wrapper's own work-quantum watchdog, exit code 78",
+     "how": "public check-run annotations for the team job",
+     "observed": "annotations: 'Process completed with exit code 78.', 'LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2508', 'Agent quantum ended cleanly; workflow must snapshot and resume rather than hang.'; the 'Run lane cycle' step ran 2704.0 s against the 2700 s WORK_QUANTUM_SECONDS",
+     "artifact": "results/product/orchestration/CYCLE_39202428670_orchestration.json (diagnosis.exit_code=78; candidates.named_branches LEX_WORK_QUANTUM_EXPIRED ruled_out=false)"
+    },
+    {
+     "fact": "the producer's snapshot survived on the team branch",
+     "how": "git ls-remote origin refs/heads/cycle/core/product/39202428670/team",
+     "observed": "1e7a69a4b76d39c85f43caeddb34e7ad77293da3, identical to this resume's base; the wrapper snapshots before exiting on quantum",
+     "artifact": "results/product/orchestration/CYCLE_39202428670_orchestration.json (classification.producing_snapshot_survived=true)"
+    },
+    {
+     "fact": "no audit branch and no gate file exist for the run",
+     "how": "git ls-remote origin refs/heads/cycle/core/product/39202428670/audit; ls results/audit/product/CYCLE_39202428670_GATE.json",
+     "observed": "no audit branch; no gate file anywhere in the tree - the audit never became eligible",
+     "artifact": "results/product/orchestration/CYCLE_39202428670_orchestration.json (audit_branch_exists=false)"
+    },
+    {
+     "fact": "the committed deliverable itself verifies on this resume",
+     "how": "python3 -m product.cycle_verify --only served_slice --run-id 39202428670; python3 -m pytest product/tests/test_server_slice.py product/tests/test_delta_attribution.py -q; python3 -m product.cycle_verify --run-id 39202428670",
+     "observed": "served_slice 11/11 claims PASS against the committed summary.json; test_server_slice.py 7 passed; test_delta_attribution.py 20 passed; full ledger PASS 72/72 claims, 0 failed",
+     "artifact": "results/product/cycle_verify/CYCLE_39202428670_cycle_verify.json (re-verified by run 39206477026 on tree 1e7a69a)"
+    },
+    {
+     "fact": "the producer's report of record left section 7 as an unfilled placeholder, and section 4 points at numbers that section 7 never carried",
+     "how": "read reports/product/CYCLE_39202428670.md sections 4 and 7 at 1e7a69a",
+     "observed": "section 7 reads only '(this section is filled in by the same run id; see the artifacts named above for the full payloads)' while section 4 says 'Measured numbers are patched into section 7 below'",
+     "artifact": "reports/product/CYCLE_39202428670.md (pre-repair bytes preserved by this resume's report patch, which only appends the filled section)"
+    },
+    {
+     "fact": "the producer's committed regression artifact measured an intermediate tree state, not the committed tree",
+     "how": "read results/product/server_slice/39202428670/CYCLE_39202428670_regression_scope.json set_relation; re-run product/regression_scope against the committed tree",
+     "observed": "the committed artifact records repaired_only_NEW_FAILURES=['product/tests/test_delta_attribution.py::test_report_of_record_quotes_the_tool_output_verbatim']; that test passes on the committed tree 1e7a69a (single-test run by 39206477026: 1 passed) because the producer added the verbatim decomposition-line quote to the report AFTER measuring regression. The corrected set relation on the committed tree is intersection 159, baseline-only 1 (the fixed working-tree-total guard), repaired-only 0",
+     "artifact": "results/product/regression/CYCLE_39206477026_regression_scope.json (the corrected measurement; the pre-final-commit artifact is preserved, not overwritten)"
+    },
+    {
+     "fact": "state/product.json was not updated by the producer run, nor by the preceding accepted cycle 39199428702",
+     "how": "git show 1e7a69a:state/product.json and git show 577efeb:state/product.json",
+     "observed": "both carry current_run=39193356789, accepted_commit=e21eac3, state_updated_by_run=39193356789; the true accepted tip is 577efeb 'accept product cycle 39199428702'",
+     "artifact": "state/product.json (repaired by this resume)"
+    }
+  ],
+  "classification": "ORCHESTRATION failure (rc-78 LEX_WORK_QUANTUM_EXPIRED), not a product defect and not a validation failure of the deliverable. The producer agent step ran 2704 s against the 2700 s work quantum; the wrapper snapped the tree to the team branch and exited 78; the audit job never became eligible. The two residual INCOMPLETE items the quantum cut off - the report's section-7 patch and the state update - are finished by this resume. The deliverable's own instruments all pass on the committed tree.",
+  "what_is_valid_and_kept": "The entire producer delta of 1e7a69a is kept: product/server_slice.py (the served vertical-slice instrument), product/cycle_verify.py's served_slice check, product/tests/test_server_slice.py (7 tests), the repaired test_delta_attribution pytest pin, and every committed artifact under results/product/server_slice/39202428670/ and results/product/{cycle_verify,regression}/CYCLE_39202428670_*. Nothing is deleted or rewritten; the stale regression artifact is preserved beside the corrected measurement.",
+  "repair_applied_by_this_run": [
+   "results/product/orchestration/CYCLE_39202428670_orchestration.json written by the product's own instrument with public annotations, classifying the run TEAM_JOB_FAILED / rc-78 / producing_snapshot_survived=true",
+   "this diagnosis artifact",
+   "reports/product/CYCLE_39202428670.md section 7 filled with the measured verdicts, each tied to its committed artifact, run id and commit, and disclosing that the section was completed by the resume run rather than by 39202428670",
+   "results/product/regression/CYCLE_39206477026_regression_scope.json: the corrected set relation against accepted tip 577efeb on the committed tree (baseline-only 1 fixed, repaired-only 0 new), with raw logs under results/product/regression/logs_39206477026/",
+   "state/product.json updated: current_run/state_updated_by_run -> 39206477026, accepted_commit -> 577efeb with the 39199428702 accept evidence, cycle blocks added for 39199428702, 39202428670 and this resume, evidence_refs extended; the verification register is untouched (product/state_register.py retention guard)",
+   "reports/product/CYCLE_39206477026.md written as this resume's report of record"
+  ],
+  "not_done_deliberately": "No live OpenCaseLaw call, no new capability, no frozen bar/rubric/threshold change, no packet admission, no owner question, no Frontier re-dispatch, no .github/** edit. The posture fields stay fail-closed and unchanged.",
+  "claim_ceiling": "A diagnosis of one failed workflow chain re-derived from the public job record, the git refs, the committed diff and this tree's own instruments. It says nothing about any frozen bar, about answer quality, or about run 39206477026's own audit outcome, which does not exist yet."
+ }

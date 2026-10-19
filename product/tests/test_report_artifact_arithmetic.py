@@ -94,11 +94,11 @@ LIVE_SLICE_SCHEMA = "product-live-slice/1"
 #: --pin-reason "..." --out
 #: results/product/regression/CYCLE_39193356789_report_testcount_disclosure.json``.
 DISCLOSURE = (ROOT / "results" / "product" / "regression"
-              / "CYCLE_39193356789_report_testcount_disclosure.json")
+              / "CYCLE_39206477026_report_testcount_disclosure.json")
 #: The previous pin, kept as a readable constant so a reader can diff the two
 #: artifacts instead of trusting prose about them.
 DISCLOSURE_PREVIOUS_PIN = (ROOT / "results" / "product" / "regression"
-                           / "CYCLE_39172315384_report_testcount_disclosure.json")
+                           / "CYCLE_39193356789_report_testcount_disclosure.json")
 #: Every disclosure artifact this pin has ever named, oldest first, each of which
 #: must still exist. A pin move moves a CHECK; it never removes evidence.
 DISCLOSURE_HISTORY = (
@@ -106,6 +106,8 @@ DISCLOSURE_HISTORY = (
     / "CYCLE_39149741259_report_testcount_disclosure.json",
     ROOT / "results" / "product" / "regression"
     / "CYCLE_39172315384_report_testcount_disclosure.json",
+    ROOT / "results" / "product" / "regression"
+    / "CYCLE_39193356789_report_testcount_disclosure.json",
 )
 
 #: The PRE-REPAIR BYTES of the report of record, extracted once from git
