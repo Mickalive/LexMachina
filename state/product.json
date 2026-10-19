@@ -105,7 +105,7 @@
    "scope": "control-plane workflow scope; recorded, not edited from the lane"
   }
  ],
- "current_run": "39206477026",
+ "current_run": "39214811351",
  "cycle_39056694835_frontier_serve_audit_intake": {
   "admission": "fail-closed",
   "claim_ceiling": [
@@ -512,7 +512,7 @@
   ],
   "state_block_added_by_run": "39094983039"
  },
- "cycle_status": "OPERATIONAL_RESUME_COMPLETE__RUN_39202428670_DIAGNOSED_RC78_QUANTUM_SNAPSHOT_SURVIVED_DELIVERABLE_REVERIFIED_LEDGER_72_72__REPORT_SECTION7_FINISHED__STATE_UPDATED__REGRESSION_SET_RELATION_CORRECTED_BASELINE_ONLY_1_REPAIRED_ONLY_0__ADMISSION_FAIL_CLOSED",
+ "cycle_status": "OPERATIONAL_RESUME_COMPLETE__RUN_39202428670_DIAGNOSED_RC78_QUANTUM_SNAPSHOT_SURVIVED_DELIVERABLE_REVERIFIED_LEDGER_72_72_WITH_ACCEPTED_FRONTIER_MOUNT_PRESENT_69_72_FAIL_CLOSED_WITHOUT_IT__REPORT_SECTION7_FINISHED__STATE_UPDATED__REGRESSION_SET_RELATION_CORRECTED_BASELINE_ONLY_1_REPAIRED_ONLY_0__ADMISSION_FAIL_CLOSED__AUDIT_F1_F2_F3_CLAIM_DISCLOSURE_REPAIRED_39214811351",
  "direction_version": 57,
  "evidence_refs": [
   "results/product/gate_packet/rebuilt-39027045675/packet.json",
@@ -2775,8 +2775,8 @@
   "fixtures": "offline/test only; never merged into live results",
   "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
  },
- "state_updated_at": "2026-10-19T06:20:00Z",
- "state_updated_by_run": "39206477026",
+ "state_updated_at": "2026-10-19T07:26:45Z",
+ "state_updated_by_run": "39214811351",
  "state_updated_from_resumed_snapshot_run": "39187482610",
  "supersedes_claims": {
   "gate_ceremony_is_one_query_only": "SUPERSEDED BY RUN 38792650692: the packet pre-registers three questions (FR/DE/IT), re-verifies each bundle at run time and hands the owner one deep link per question. The single-query path still works (product/human_gate_session.py is unchanged) and is still the way ONE session is finalized.",
@@ -4769,7 +4769,7 @@
    "state/product.json not updated by this run nor by 39199428702 - corrected by 39206477026",
    "the committed regression artifact measured an intermediate tree state (its one repaired_only_NEW_FAILURES entry passes on the committed tree) - corrected set relation published as CYCLE_39206477026_regression_scope.json; the stale artifact preserved, not overwritten"
   ],
-  "verification_by_resume": "served_slice ledger 11/11 PASS; full ledger 72/72 PASS; test_server_slice.py 7 passed; test_delta_attribution.py 20 passed; artifact digests match the producer report's pins",
+  "verification_by_resume": "served_slice ledger 11/11 PASS; full ledger 72/72 PASS ONLY WITH the accepted Frontier mount present (mount git HEAD c242127a7f42293adcdda797d6973ed2ed45fc90), and FAIL n_failed=3 without it - the 3 handoff claims, failing closed on mount_present=false (both measured by repair run 39214811351 on tree b0530db, audit F3); test_server_slice.py 7 passed; test_delta_attribution.py 20 passed. Digest scope (audit F1, all re-hashed by run 39214811351 on tree b0530db): the report-of-record pins resolve to the committed bytes for summary.json 19213ad1..., served.bundle.json 3f78f680..., first_page.bundle.json 7f7b8d5a..., CYCLE_39202428670_test_delta_attribution.json d2a4564f..., CYCLE_39206477026_report_testcount_disclosure.json 54ea2e70..., CYCLE_39202428670_cycle_verify.json d7c45482... and CYCLE_39202428670_regression_scope.json 414a126d...; the eighth pin, CYCLE_39206477026_regression_scope.json, was published as 363906d6... which resolved to no file and is corrected in the report to 0e498c57..., the committed bytes",
   "posture": "fail-closed, unchanged"
  },
  "cycle_39206477026_operational_resume": {
@@ -4784,8 +4784,24 @@
    "reports/product/CYCLE_39206477026.md (this report of record)",
    "results/product/regression/CYCLE_39206477026_report_testcount_disclosure.json: the report-testcount disclosure pin re-pointed (CYCLE_39193356789 -> CYCLE_39206477026) because this resume's two reports cite the corrected regression artifact and the candidate sweep grew from 0 to 2 reports; re-measured by product/report_scope_measurement.py (14 reports, superset of the 12-report history), pin constants in product/tests/test_report_artifact_arithmetic.py re-pointed with previous pin and full history retained, historical artifacts preserved byte-identical"
   ],
-  "zero_new_tests": "This resume changes no product/tests/** file; the producer's +7 collected-test attribution (CYCLE_39202428670_test_delta_attribution.json) still describes the tree.",
+  "zero_new_tests": "This resume adds zero COLLECTED tests; the only product/tests/** change it makes is the disclosure-pin constant re-point in product/tests/test_report_artifact_arithmetic.py, which changes no collected test count (corrected per audit F2 - the earlier wording 'changes no product/tests/** file' was false); the producer's +7 collected-test attribution (CYCLE_39202428670_test_delta_attribution.json) still describes the tree.",
   "verification": "state contract 29 passed; report arithmetic guards re-swept; ledger re-run against the committed served-slice artifact",
+  "posture": "fail-closed, unchanged: continue_recommended=true, human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false"
+ },
+ "cycle_39214811351_repair_round_1": {
+  "run_id": "39214811351",
+  "repairs_cycle": "39206477026",
+  "base_tree": "b0530dbd33d23ddc38316387f552fb480ac2ea31 (product cycle 39206477026 - operational resume of 39202428670)",
+  "audit_of_record": "CYCLE_39206477026_GATE.json on audit branch cycle/core/product/39206477026/audit - gate=REVISE, safe_to_integrate=false, 3 required fixes, all severity claim-disclosure, 'Text only, no re-measurement'. The gate file is written to the accepted checkout by the audit job and is NOT present in this tree",
+  "audit_verdict_on_capability": "reproduced green: shipped Handler -> loopback HTTP -> source-linked bundle -> shipped clickable map page; the audit's own claim ceiling establishes no measurement error, so no number, artifact, frozen bar, rubric or threshold was touched",
+  "fixes_applied": [
+   "F1 - reports/product/CYCLE_39202428670.md section 7.3 pinned results/product/regression/CYCLE_39206477026_regression_scope.json to sha256 363906d6... which resolves to no file in the head tree or the accepted base; the pin is corrected to 0e498c57dfc1cd3abd742a697c776e11d44a37bbed8fa9844942ac90e9d40088 (re-measured by this run with sha256sum on tree b0530db) and the superseded value is printed beside it rather than deleted",
+   "F1 - state cycle_39202428670_served_slice.verification_by_resume no longer says 'artifact digests match the producer report's pins'; it now enumerates the seven pins that do match and names the eighth as the corrected one",
+   "F2 - reports/product/CYCLE_39206477026.md section 4 said 'no product/tests/** file changed' and state cycle_39206477026_operational_resume.zero_new_tests said the same; both were false (this resume re-pointed the disclosure-pin constants in product/tests/test_report_artifact_arithmetic.py, 6 lines) and now say the re-point and that it changes no collected test count. The substantive claim - zero COLLECTED tests added by this resume - was already true and is unchanged",
+   "F3 - 'ledger PASS 72/72' was published unconditionally in three report locations and two state fields; it is mount-scoped. Both sides were re-measured by this run on one tree with one command (python3 -m product.cycle_verify --run-id 39214811351 --out-dir <tmp>): with the accepted Frontier mount present (mount git HEAD c242127a7f42293adcdda797d6973ed2ed45fc90) PASS n_claims=72 n_failed=0 - the verdict of the committed artifact results/product/cycle_verify/CYCLE_39202428670_cycle_verify.json (sha256 d7c45482...); with the mount absent FAIL n_failed=3, all three the 'handoff' claims, failing closed on mount_present=false / decision=DECISION_NOT_REACHABLE. These are run measurements with no committed artifact (the ledger writes only on --write, and a FAIL ledger is refused from the canonical results directory by design), so no digest is offered for them. No handoff check was weakened, removed or re-scoped"
+  ],
+  "not_done_by_design": "no new measurement, no new instrument, no new collected test, no new capability, no live OpenCaseLaw call, no .github/** touch, no Frontier re-dispatch; the lane question for this direction orders the SMALLEST tree that can pass and forbids opening a new measurement or claim-bearing section in the cycle that closes the fix list",
+  "verification": "guards re-run on the repaired tree: product/tests/test_report_artifact_arithmetic.py, test_delta_attribution.py, test_state_contract.py, test_cycle_verify_is_a_gate.py, test_server_slice.py; full ledger re-run both ways as recorded above",
   "posture": "fail-closed, unchanged: continue_recommended=true, human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false"
  }
 }
