@@ -147,6 +147,26 @@ def test_the_committed_manifest_matches_its_pinned_digest():
     assert manifest["_sha256"] == gp.PREREGISTERED_MANIFEST_SHA256
 
 
+def test_fixture_preflight_refuses_the_tracked_root_without_out_root():
+    """Rehearsal must never write into the tracked packet root (audit F1).
+
+    An earlier run committed two near-duplicate fixture-rehearsal directories
+    under ``results/product/gate_packet/`` that no digest, ledger, consumer,
+    report or state entry referenced.  The guard makes that invocation fail
+    closed before any work; the tracked root is for live packets of record
+    only (``product/tests/test_gate_packet.py``'s packet fixture shows the
+    sanctioned ``--out-root`` form).
+    """
+    code = gp.main([
+        "preflight", "--fixture", "--questions", str(MACHINERY_MANIFEST),
+        "--run-id", "guard-rehearsal", "--operator", "pytest", "--n", "100",
+        "--quiet",
+    ])
+    assert code != 0, "fixture preflight without --out-root must fail closed"
+    assert not (gp.DEFAULT_OUT_ROOT / "guard-rehearsal").exists(), \
+        "the guard must not create anything in the tracked root"
+
+
 # --------------------------------------------------------------------------- #
 # 2. run-time admissibility refuses what the audits found
 # --------------------------------------------------------------------------- #

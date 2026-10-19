@@ -99,20 +99,16 @@ MODEL_ORDER = [
 #: this file).
 #:
 #: ``opencode/nemotron-3-ultra-free`` — **no longer excluded**: the newest
-#: control-plane snapshot (run 39239945934, 2026-10-19T10:48:13Z) reports
+#: control-plane snapshot (run 39245649011, 2026-10-19T11:37:15Z) reports
 #: tool_probe PASS / exit 0.  The previous exclusion (basis:
 #: control_plane_tool_probe_fail, run 38938748669) was correct for that
 #: snapshot; this update reflects the health refresh.  The model is not in
 #: MODEL_ORDER and remains absent from the fallback chain by construction.
 #:
-#: ``opencode/nemotron-3.5-lightning-free`` — **not** a tool-health exclusion.
-#: The newest control-plane snapshot reports tool_probe PASS / exit 0 and lists
-#: it as healthy; that is stated explicitly below because the previous version
-#: of this file claimed the opposite on the strength of a snapshot run id that
-#: does not exist in the repository.  The exclusion is retained on
-#: adversarial-budget / hot-path-latency grounds instead: the frontier
-#: component's own comment records lightning hitting the 60 s bounded-challenge
-#: ceiling while space-bunny completed
+#: ``opencode/nemotron-3.5-lightning-free`` — excluded on **two** grounds:
+#: (a) adversarial-budget / hot-path-latency — the frontier component's own
+#: comment records lightning hitting the 60 s bounded-challenge ceiling while
+#: space-bunny completed
 #: (``frontier/frontier-generative-audit/generative_audit/adversarial.py``:130-133),
 #: and the only in-repo reality leg where lightning acted as ``answer_model``
 #: (``results/product/reality_check/rent-default_live_20261014T113201Z.json``)
@@ -125,6 +121,8 @@ MODEL_ORDER = [
 #: backlog item in ``state/product.json``).  Three probe-verified healthy
 #: models remain, so the exclusion costs no fallback depth the latency gate
 #: can afford.
+#: (b) tool health — the newest control-plane snapshot (run 39245649011,
+#: 2026-10-19T11:37:15Z) reports tool_probe FAIL / exit 124 for this model.
 #:
 #: ``control_plane_tool_probe`` mirrors what the newest control-plane snapshot
 #: reports for that model, so a health refresh that flips a probe result
@@ -135,19 +133,23 @@ MODEL_ORDER = [
 #: ``state/model_health.json``; they are provenance, not asserted invariants.
 DEAD_MODEL_JUSTIFICATION = {
     "opencode/nemotron-3.5-lightning-free": {
-        "basis": "adversarial_budget_not_tool_health",
-        "control_plane_tool_probe": "PASS",
-        "control_plane_exit_code": 0,
-        "control_plane_reported_healthy": True,
-        "control_plane_run_id": "39239945934",
-        "control_plane_checked_at": "2026-10-19T10:48:13Z",
+        "basis": "adversarial_budget_and_tool_probe_fail",
+        "control_plane_tool_probe": "FAIL",
+        "control_plane_exit_code": 124,
+        "control_plane_reported_healthy": False,
+        "control_plane_run_id": "39245649011",
+        "control_plane_checked_at": "2026-10-19T11:37:15Z",
         "note": (
-            "NOT dead by tool probe: the newest control-plane snapshot reports "
-            "tool_probe PASS exit 0 and lists it healthy; excluded only because "
-            "the bounded adversarial challenge hit its 60s ceiling for this model "
-            "in the component's recorded evidence and no committed run shows it "
-            "completing that pass under the seam's 180s budget; revocable on a "
-            "successful re-probe"
+            "Excluded on adversarial-budget grounds (the bounded adversarial "
+            "challenge hit its 60s ceiling for this model in the component's "
+            "recorded evidence) AND tool health: the newest control-plane "
+            "snapshot (run 39245649011, 2026-10-19T11:37:15Z) reports "
+            "tool_probe FAIL exit 124.  The previous record mirrored run "
+            "39239945934 (PASS); the guard "
+            "test_known_dead_models_agree_with_control_plane_health enforces "
+            "that this record tracks the newest snapshot, so a health refresh "
+            "that flips a probe result is a test failure, not a silent "
+            "contradiction."
         ),
     },
 }

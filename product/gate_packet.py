@@ -434,6 +434,20 @@ def preflight(args: argparse.Namespace) -> tuple[int, dict]:
     manifest["_operator"] = args.operator
 
     mode = "fixture" if args.fixture else "live"
+    if mode == "fixture" and not args.out_root:
+        # Fixture preflight is machinery rehearsal, not gate material (its own
+        # claim ceiling says so).  It must never write into the tracked
+        # results/product/gate_packet/ root, where real packets of record live:
+        # an earlier run committed two near-duplicate rehearsal directories
+        # there that no digest, ledger, consumer, report or state entry
+        # referenced (audit CYCLE_39240156039 F1).  Live packet assembly keeps
+        # the tracked default; rehearsals require an explicit scratch root,
+        # exactly as product/tests/test_gate_packet.py does.
+        return 2, {"ok": False, "error": (
+            "fixture preflight is rehearsal, not gate material: refusing to write "
+            "into the tracked results/product/gate_packet/ root. Pass --out-root "
+            "with a scratch/tmp directory (as product/tests/test_gate_packet.py does)."
+        )}
     out = packet_dir(args)
     (out / "questions").mkdir(parents=True, exist_ok=True)
     # The packet carries its own copy of the manifest it was built from: a later

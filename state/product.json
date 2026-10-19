@@ -105,7 +105,7 @@
       "scope": "control-plane workflow scope; recorded, not edited from the lane"
     }
   ],
-  "current_run": 39237140077,
+  "current_run": "39240156039",
   "cycle_39056694835_frontier_serve_audit_intake": {
     "admission": "fail-closed",
     "claim_ceiling": [
@@ -512,7 +512,7 @@
     ],
     "state_block_added_by_run": "39094983039"
   },
-  "cycle_status": "OPERATIONAL_RESUME_COMPLETE__RUN_39222442674_VERIFIED_F1_F2_F3_REPAIRS_CLOSED__RUN_39237140077_REPAIR_0_CACHE_ONLY__AUDIT_SEAM_MODEL_HEALTH_SYNCED_TO_RUN_39239945934__STATE_CONTRACT_DIR_V58_ALIGNED__GATE_PACKET_PREFLIGHT_FIXTURE_VERIFIED_3_3_ADMISSIBLE__AWAITING_LIVE_PACKET_AND_INDEPENDENT_AUDIT",
+  "cycle_status": "REPAIR_39240156039_ROUND1__F1_RESIDUE_REMOVED_AND_PREFLIGHT_GUARDED__F2_TESTS_FIXED_CORRECTED__SEAM_MIRRORED_TO_SNAPSHOT_39245649011",
   "direction_version": 58,
   "evidence_refs": [
     "results/product/gate_packet/rebuilt-39027045675/packet.json",
@@ -2780,8 +2780,8 @@
     "fixtures": "offline/test only; never merged into live results",
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
   },
-  "state_updated_at": "2026-10-19T11:45:00Z",
-  "state_updated_by_run": "39222442674",
+  "state_updated_at": "2026-10-19T12:02:09Z",
+  "state_updated_by_run": "39240156039",
   "state_updated_from_resumed_snapshot_run": "39221882428",
   "supersedes_claims": {
     "gate_ceremony_is_one_query_only": "SUPERSEDED BY RUN 38792650692: the packet pre-registers three questions (FR/DE/IT), re-verifies each bundle at run time and hands the owner one deep link per question. The single-query path still works (product/human_gate_session.py is unchanged) and is still the way ONE session is finalized.",
@@ -4859,7 +4859,7 @@
     "question_answered": "factory direction v57 ordered work (2) + operational-resume mandate: diagnose why 39221882428 produced no delta, verify the F1/F2/F3 deliverable it inherited, and make the snapshot chain audit-ready",
     "posture": "fail-closed, unchanged: continue_recommended=true, human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false"
   },
-  "state_updated_by": "product_cycle_39237140077_repair_0",
+  "state_updated_by": "product_cycle_39240156039_repair_1",
   "completed_work": {
     "audit_seam_model_health_sync": {
       "control_plane_run_id": "39239945934",
@@ -4869,19 +4869,18 @@
         "Updated opencode/nemotron-3.5-lightning-free control_plane_run_id to 39239945934",
         "Updated test expectations in test_audit_seam.py to match current health snapshot"
       ],
-      "tests_fixed": "test_audit_seam.py::test_known_dead_models_agree_with_control_plane_health, test_healthy_models_filters_dead_after_workflow_override, test_preferred_model_never_returns_dead_after_override"
+      "tests_fixed": {
+        "modified": [
+          "test_healthy_models_filters_dead_after_workflow_override",
+          "test_preferred_model_never_returns_dead_after_override"
+        ],
+        "deliberately_intact": "test_known_dead_models_agree_with_control_plane_health was deliberately left intact - it is the guard that makes the health sync non-vacuous - and was verified passing against origin/main:state/model_health.json at run 39239945934 (audit CYCLE_39240156039 claim_ceiling 2)."
+      }
     },
     "state_contract_direction_version_alignment": {
       "previous_direction_version": 57,
       "new_direction_version": 58,
       "tests_fixed": "All 29 test_state_contract.py tests now pass"
-    },
-    "gate_packet_preflight_fixture": {
-      "run_id": "test_gate_packet_002",
-      "questions_admissible": 3,
-      "questions_total": 3,
-      "blocked": 0,
-      "note": "MACHINERY REHEARSAL ONLY (fixture corpus); packet_admission blocked by frozen bars (counter_label_support 0.0769 < 1.0, map_geometry 0/3 bundles pass)"
     },
     "core_product_tests": {
       "query_map_mvp": "22 passed",
@@ -4895,5 +4894,17 @@
       "state_contract": "29 passed",
       "total": "186 passed, 1 skipped"
     }
+  },
+  "repair_39240156039_round1": {
+    "run_id": "39240156039",
+    "repair_round": 1,
+    "audit": "results/audit/product/CYCLE_39240156039_GATE.json gate=REVISE safe_to_integrate=false required_fixes=[F1, F2]",
+    "fixes_applied": {
+      "F1": "git rm -r results/product/gate_packet/test_gate_packet_001 and results/product/gate_packet/test_gate_packet_002 (44 files, ~4.8 MB of near-duplicate fixture-rehearsal residue that no digest, ledger claim, consumer, report or state entry referenced); added a fail-closed guard in product/gate_packet.py::preflight so fixture mode without --out-root refuses to write into the tracked results/product/gate_packet/ root (pinned by product/tests/test_gate_packet.py::test_fixture_preflight_refuses_the_tracked_root_without_out_root); removed the now-dangling completed_work.gate_packet_preflight_fixture state entry. The 39 results/product/query_cache/ envelopes are real HTTP-200 OpenCaseLaw responses and stay (explicitly not part of F1).",
+      "F2": "corrected completed_work.audit_seam_model_health_sync.tests_fixed to the two tests the diff 49cc4be..dafd98a actually touches (test_healthy_models_filters_dead_after_workflow_override, test_preferred_model_never_returns_dead_after_override) and recorded that test_known_dead_models_agree_with_control_plane_health was deliberately left intact as the non-vacuity guard, verified passing against origin/main:state/model_health.json at run 39239945934."
+    },
+    "control_plane_drift_repair": "origin/main:state/model_health.json advanced to run 39245649011 (2026-10-19T11:37:15Z) after the audit; nemotron-3.5-lightning-free flipped PASS->FAIL (exit 124). Per the guard's designed remedy the seam's DEAD_MODEL_JUSTIFICATION record for that model was updated to mirror 39245649011 (basis adversarial_budget_and_tool_probe_fail, tool_probe FAIL, exit 124, reported_healthy false) and the stale \"newest snapshot\" prose run-id references were refreshed; the guard passes against the current snapshot. No frozen bar, rubric, threshold or success rule was touched and no exclusion changed.",
+    "posture": "fail-closed, unchanged: packet_admitted=false, human_gate_ready=false, machine_gate_ready=false, ready_for_owner_session=false, continue_recommended=true",
+    "claim_ceiling": "REPAIR ONLY: no new capability, no new measurement, no new instrument, no new claim-bearing report section. The residue removal, the preflight guard + its test, the F2 state correction and the seam provenance-record update are the entire delta."
   }
 }
