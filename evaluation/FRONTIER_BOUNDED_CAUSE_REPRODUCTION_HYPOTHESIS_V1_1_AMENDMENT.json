@@ -1,0 +1,14 @@
+{
+  "schema": "lex-evaluation-frontier-bounded-cause-reproduction-hypothesis-amendment/1",
+  "amends": "FRONTIER_BOUNDED_CAUSE_REPRODUCTION_HYPOTHESIS_V1.json",
+  "amendment_of_run": "39195084218",
+  "committed_before_execution": "this amendment is committed BEFORE any execution of the instrument; git commit time is the evidence; no result artifact existed at amendment time",
+  "defect_in_v1": "V1 cell C2 froze an exact per-cell latency comparison against the harness-recorded A1_candidate_only.search.latency_seconds for the 12 frozen-leg cells. IMPLEMENTATION-STRUCTURE DEFECT (found while writing the instrument, before any claim-bearing run): for cached replays that field records latency_seconds=0.0 with from_cache=true (the harness stores the replay cost, not the original live cost), while the ORIGINAL live per-call times are disclosed in latency_budget.per_search_calls keyed by query at 3-decimal rounding. The v1 rule as written would therefore fire a spurious divergence on every leg cell - a rule-design error, not a measurement.",
+  "why_this_is_not_outcome_driven_tuning": "the 0.0-from_cache structure was observed during pre-freeze exploration of the harness record (the business-judgment-rule::de search block was read aloud in the exploration transcript before the v1 freeze) and was simply not encoded into C2; no instrument execution, no body-id intersection, no cell equality set and no aggregate re-derivation has been run at amendment time; the correction moves the latency comparison to the field the accepted record itself designates for original live times and keeps every other v1 cell, expectation, digest and exit mapping byte-unchanged",
+  "amended_cells": {
+    "C2_per_cell_record_vs_cache": {
+      "rule": "for each of the 12 frozen-leg cells and the 3 served questions (15 total): the cache envelope whose URL equals 'https://mcp.opencaselaw.ch/api/decisions?query=' + expansion_query with spaces replaced by '+' + '&limit=50&offset=0&sort=relevance&fields=full&include_pinpoint=false' must, when its body JSON is parsed, yield results-length and HTTP status EXACTLY equal to the harness-recorded values (leg cells: A1_candidate_only.n_rows and search.status; served cells: A1_candidate.n_rows and envelope status 200 required), AND round(envelope.latency_seconds, 3) must equal the latency_budget.per_search_calls entry matched by query .latency_seconds (the harness's own 3-decimal disclosure of the original live time). Each expansion_query must map to exactly one envelope and every envelope must be claimed by exactly one cell (set relation both directions). Any mismatch cell is a divergence."
+    }
+  },
+  "unchanged": "all other cells (C1, C3, C4, C5, C6), all expectations, all pinned digests, the success rule, exit mappings, the claim ceiling and the pre_observed/not_pre_observed disclosures of V1 remain byte-unchanged and in force; the operative hypothesis for this run is V1 as amended here"
+}
