@@ -30,6 +30,7 @@ inputs = importlib.import_module(f"{PKG}.inputs")
 harness = importlib.import_module(f"{PKG}.harness")
 regression = importlib.import_module(f"{PKG}.regression")
 contract = importlib.import_module(f"{PKG}.contract")
+freeze_ordering = importlib.import_module(f"{PKG}.freeze_ordering")
 
 TEAM_DIR = REPO_ROOT / "results/frontier/frontier-concept-seed-recall"
 RULES = TEAM_DIR / "RULES.json"
@@ -334,6 +335,176 @@ def test_freeze_ordering_is_recomputed_from_real_git_commit_times():
     assert fo["freeze_precedes_measurement"] is True
     assert fo["margin_seconds"] is not None and fo["margin_seconds"] > 0
     assert "no hand-written timestamp" in fo["method"]
+    assert fo["evidence_state"] == "COMPLETE"
+    assert fo["repository_is_shallow"] is False
+
+
+# --------------------------------------------------------------------------- #
+# The truncated-history defect: a shallow checkout must yield None, never False
+# --------------------------------------------------------------------------- #
+def _git_in(repo: Path, *args: str, env: dict | None = None) -> str:
+    import subprocess
+    base = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@x",
+            "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@x",
+            "GIT_AUTHOR_DATE": "2026-01-01T00:00:00Z",
+            "GIT_COMMITTER_DATE": "2026-01-01T00:00:00Z",
+            "PATH": "/usr/bin:/bin:/usr/local/bin"}
+    base.update(env or {})
+    return subprocess.run(["git", *args], cwd=repo, capture_output=True,
+                          text=True, check=True, env=base).stdout
+
+
+@pytest.fixture
+def history_repo(tmp_path_factory):
+    """A real git repo: RULES frozen, then a measurement committed after it.
+
+    Shaped exactly like this team's real run so the truncated-history path is
+    exercised against the same relative paths the module looks for.
+    """
+    root = tmp_path_factory.mktemp("hist")
+    origin = root / "origin"
+    team = origin / "results/frontier/frontier-concept-seed-recall"
+    team.mkdir(parents=True)
+    _git_in(origin, "init", "-q", "-b", "main")
+    (team / "RULES.json").write_text('{"frozen": true}\n', encoding="utf-8")
+    _git_in(origin, "add", "-A")
+    _git_in(origin, "commit", "-q", "-m", "freeze RULES")
+    _git_in(origin, "commit", "-q", "--allow-empty", "-m", "amend RULES",
+            env={"GIT_AUTHOR_DATE": "2026-01-02T00:00:00Z",
+                 "GIT_COMMITTER_DATE": "2026-01-02T00:00:00Z"})
+    (team / "harness_results_1.json").write_text('{"measured": true}\n', encoding="utf-8")
+    _git_in(origin, "add", "-A")
+    _git_in(origin, "commit", "-q", "-m", "first measurement",
+            env={"GIT_AUTHOR_DATE": "2026-01-03T00:00:00Z",
+                 "GIT_COMMITTER_DATE": "2026-01-03T00:00:00Z"})
+    return origin
+
+
+def _shallow_clone(origin: Path, dest: Path) -> Path:
+    import subprocess
+    subprocess.run(["git", "clone", "-q", "--depth", "1", "file://" + str(origin),
+                    str(dest)], capture_output=True, check=True)
+    return dest
+
+
+def test_full_history_gives_a_true_verdict(history_repo):
+    rec = freeze_ordering.classify(1, repo=history_repo)
+    assert rec["evidence_state"] == "COMPLETE"
+    assert rec["repository_is_shallow"] is False
+    assert rec["freeze_precedes_measurement"] is True
+    # freeze is the MOST RECENT RULES commit (2026-01-02), measurement 2026-01-03
+    assert rec["margin_seconds"] == 2 * 86400.0
+
+
+def test_truncated_history_reports_none_and_never_false(history_repo, tmp_path):
+    """THE REGRESSION.
+
+    ``fetch-depth: 1`` is what every workflow in this repository does.  The old
+    verifier read the grafted tip as a single commit and concluded the frozen
+    rules were edited AFTER the first measurement -- a false accusation that
+    would have invalidated a correct run.  Truncated history must yield None.
+    """
+    shallow = _shallow_clone(history_repo, tmp_path / "shallow")
+    assert freeze_ordering.is_shallow(shallow) is True
+    rec = freeze_ordering.classify(1, repo=shallow)
+    assert rec["evidence_state"] == "INCOMPLETE_TRUNCATED_HISTORY"
+    assert rec["freeze_precedes_measurement"] is None, (
+        "a truncated checkout must never be reported as a freeze-ordering "
+        "violation; absence of evidence is not evidence of post-hoc tuning")
+    assert rec["margin_seconds"] is None
+    assert rec["evidence_state_reasons"]
+    assert any("shallow" in r for r in rec["evidence_state_reasons"])
+    assert "--unshallow" in rec["reproduce"]
+
+
+def test_unshallowing_recovers_the_true_verdict(history_repo, tmp_path):
+    """The same clone, with history fetched, must reproduce the full-history truth."""
+    import subprocess
+    shallow = _shallow_clone(history_repo, tmp_path / "shallow2")
+    assert freeze_ordering.classify(1, repo=shallow)["freeze_precedes_measurement"] is None
+    subprocess.run(["git", "fetch", "-q", "--unshallow"], cwd=shallow,
+                   capture_output=True, check=True)
+    assert freeze_ordering.is_shallow(shallow) is False
+    rec = freeze_ordering.classify(1, repo=shallow)
+    assert rec["evidence_state"] == "COMPLETE"
+    assert rec["freeze_precedes_measurement"] is True
+
+
+def test_a_genuine_violation_still_reports_false(history_repo):
+    """False must remain reachable for a REAL violation -- the fix is not a blanket True."""
+    team = history_repo / "results/frontier/frontier-concept-seed-recall"
+    (team / "RULES.json").write_text('{"frozen": false}\n', encoding="utf-8")
+    _git_in(history_repo, "add", "-A")
+    _git_in(history_repo, "commit", "-q", "-m", "post-hoc rules edit",
+            env={"GIT_AUTHOR_DATE": "2026-02-01T00:00:00Z",
+                 "GIT_COMMITTER_DATE": "2026-02-01T00:00:00Z"})
+    rec = freeze_ordering.classify(1, repo=history_repo)
+    assert rec["evidence_state"] == "COMPLETE"
+    assert rec["freeze_precedes_measurement"] is False
+    assert rec["margin_seconds"] < 0
+
+
+def test_missing_commits_report_none_rather_than_false(tmp_path):
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    _git_in(empty, "init", "-q", "-b", "main")
+    _git_in(empty, "commit", "-q", "--allow-empty", "-m", "nothing here")
+    rec = freeze_ordering.classify(1, repo=empty)
+    assert rec["evidence_state"] == "INCOMPLETE_NO_COMMITS_FOUND"
+    assert rec["freeze_precedes_measurement"] is None
+
+
+def test_weaker_record_is_never_written_over_a_stronger_one(tmp_path, monkeypatch):
+    """A later truncated run must not destroy an auditor's COMPLETE evidence."""
+    monkeypatch.setattr(freeze_ordering, "TEAM_DIR", tmp_path)
+    strong = {"evidence_state": "COMPLETE", "freeze_precedes_measurement": True,
+              "margin_seconds": 345.0}
+    (tmp_path / "freeze_ordering.json").write_text(json.dumps(strong), encoding="utf-8")
+    weak = {"evidence_state": "INCOMPLETE_TRUNCATED_HISTORY",
+            "freeze_precedes_measurement": None, "margin_seconds": None}
+    guard = freeze_ordering._is_downgrade(weak, strong)
+    assert guard and "refusing" in guard
+    # and the stronger direction is allowed
+    assert freeze_ordering._is_downgrade(strong, weak) is None
+
+
+def test_three_valued_contract_is_published_in_the_record():
+    fo = json.loads((TEAM_DIR / "freeze_ordering.json").read_text(encoding="utf-8"))
+    c = fo["three_valued_contract"]
+    assert "NEVER reported as False" in c
+    assert "post-hoc tuning" in c
+
+
+@pytest.mark.skipif(not (TEAM_DIR / f"integration_contract_{RUN_ID}.json").is_file(),
+                    reason="this run has no integration contract yet")
+def test_contract_warns_the_auditor_about_the_shallow_clone_trap():
+    """The false refutation this team nearly published must be documented for the
+    next reader, or the next verifier will re-invent it."""
+    c = json.loads((TEAM_DIR / f"integration_contract_{RUN_ID}.json")
+                   .read_text(encoding="utf-8"))
+    v = c["how_an_auditor_verifies_this"]
+    assert "--unshallow" in v["step_1_fetch_full_history"]
+    assert "FALSE REFUTATION" in v["note"]
+    assert "NOT measurable" in v["step_2_the_trap"]
+    assert "post-hoc tuning" in v["step_2_the_trap"]
+    assert "None" in v["step_3_the_verifier_is_three_valued"]
+    assert "evidence_state" in v["step_3_the_verifier_is_three_valued"]
+    assert "freeze_ordering" in v["step_4_reproduce"]
+    assert "311ac6d0913f22d3606d6fd4772271b00116629470741c4fc6a1bdb506cc928a" in \
+        v["step_5_no_frozen_file_changed"]
+
+
+def test_published_rules_bytes_are_unchanged_and_still_match_the_derived_plan():
+    """The resume cycle fixed a verifier. It must not have touched the frozen rules."""
+    import hashlib
+    raw = RULES.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == \
+        "311ac6d0913f22d3606d6fd4772271b00116629470741c4fc6a1bdb506cc928a"
+    derived = plan.build_plan(charter_version=1, direction_version=None)
+    committed = json.loads(raw.decode("utf-8"))
+    for key in ("units", "template_id", "n_variants", "thresholds"):
+        assert json.dumps(committed[key], ensure_ascii=False, sort_keys=True) == \
+            json.dumps(derived[key], ensure_ascii=False, sort_keys=True)
 
 @pytest.mark.skipif(not (TEAM_DIR / f"harness_results_{RUN_ID}.json").is_file(),
                     reason="this run has no published results yet")

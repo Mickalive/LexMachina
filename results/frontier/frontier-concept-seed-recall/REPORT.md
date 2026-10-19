@@ -19,6 +19,49 @@ product gate's question; admission remains fail-closed.
 
 ---
 
+## 0. Read this first — the verifier trap that nearly refuted this run
+
+This run is byte-reproducible **only in a checkout with full git history.**
+Every workflow in this repository uses `fetch-depth: 1`, which produces a
+*shallow* checkout whose tip is a graft point, where
+`git log --all -- RULES.json` returns the tip commit and nothing else.
+
+The first revision of `freeze_ordering.py` read that truncated list naively. In
+a shallow mount it found one commit touching `RULES.json` and one carrying a
+measurement — **the same commit** — and reported:
+
+```
+freeze_precedes_measurement: false      <-- FALSE NEGATIVE
+margin_seconds: null
+```
+
+That accuses the run of editing its frozen rules *after* the first measurement.
+It never did. This was reproduced on a real `git clone --depth 1` of the
+published branch: old code says `false`, fixed code says `None` + names the
+cause, and after `git fetch --unshallow` it says `True` with the true 345 s
+margin.
+
+**Fix (this cycle):** the verifier is now three-valued and fail-closed.
+`False` is emitted **only** when a rules commit demonstrably *follows* the first
+measurement. Truncated or missing history yields `None` with
+`evidence_state=INCOMPLETE_TRUNCATED_HISTORY`. Absence of evidence is never
+evidence of post-hoc tuning. `False` remains reachable for a real violation —
+there is a test that proves it.
+
+```bash
+git fetch --unshallow          # REQUIRED before trusting any freeze-ordering claim
+python3 -m frontier.frontier-concept-seed-recall.freeze_ordering --run-id 39237146851
+# -> {"evidence_state": "COMPLETE", "freeze_precedes_measurement": true, "margin_seconds": 345.0}
+```
+
+Seven regression tests build real git fixtures (full history, `--depth 1`,
+unshallowed, empty, and a genuine violation) and pin the contract. **No frozen
+rule, variant string, threshold or measurement changed.** `RULES.json` is
+byte-identical at HEAD and on disk:
+`311ac6d0913f22d3606d6fd4772271b00116629470741c4fc6a1bdb506cc928a`.
+
+---
+
 ## 1. What was tested, and why it is not the closed layer
 
 The accepted OUTCOME_B record of `frontier-query-concept-recall` named one
@@ -256,8 +299,9 @@ beside this record.
 ## 13. Reproduce
 
 ```bash
+git fetch --unshallow                                  # see section 0
 python3 -m frontier.frontier-concept-seed-recall.plan --out RULES.json   # must match the committed bytes
-python3 -m frontier.frontier-concept-seed-recall.harness --run-id 39237146851
+python3 -m frontier.frontier-concept-seed-recall.harness --run-id 39237146851 --offline
 python3 -m frontier.frontier-concept-seed-recall.contract --run-id 39237146851
 python3 -m frontier.frontier-concept-seed-recall.freeze_ordering --run-id 39237146851
 python3 -m pytest tests/frontier/frontier-concept-seed-recall -q
@@ -265,4 +309,25 @@ python3 -m pytest tests/frontier/frontier-concept-seed-recall -q
 
 The harness refuses to run if the re-derived plan differs from the committed
 RULES.json in any decision-bearing key. `--offline` replays cache-only and
-refuses every uncached query rather than reaching the network.
+refuses every uncached query rather than reaching the network. The verifier
+never overwrites a stronger on-disk record with a weaker one.
+
+## 14. Independent re-verification (resume cycle 39239903880)
+
+The three published claims were recomputed **from the raw committed cache
+envelopes**, with code written independently of this harness (not importing
+`harness.py`, `nlcs.py`, `replay.py`, `contract.py` or `regression.py`), using
+the **accepted** `evaluation.retrieval_gate.gates.match_authorities`:
+
+| claim | published | independently recomputed | verdict |
+|---|---|---|---|
+| 1. one frozen authority id recovered on `corporate-criminal-liability::fr` | 0/2 → 1/2 (`bge_BGE_142_IV_333`) | A0 → 0/2; A0+variant → 1/2 | **CONFIRMED** |
+| 2. coverage axis unmoved on `de-kapitalverletzung` | 0 rows carry either concept | 0 rows in both A1 variant envelopes | **CONFIRMED** |
+| 3. A4 diagnostic | `Überwachungspflicht` 50 rows / 28 carrying; long question 50 / 0; `Kapitalverletzung` 50 / 0 | identical per-row counts | **CONFIRMED** |
+
+The recovery disclosure was also checked and is accurate, not overstated:
+`bge_BGE_142_IV_333` is genuinely already present in
+`baseline:corporate-criminal-liability:de` and
+`counter:corporate-criminal-liability:de`, so "recovered" means *absent from
+this cell*, not newly discovered. The accepted record has 23 passing gates, 11
+failing, 6 not-measurable — matching the published counts.

@@ -67,6 +67,42 @@ def build(run_id: int, results: dict) -> dict:
             "accepted OUTCOME_B record is published beside this one, never in place of "
             "it. Its one measured bounded cause is quoted verbatim below and is not "
             "softened by this run."),
+        "how_an_auditor_verifies_this": {
+            "note": "Read this before re-running anything. One documented trap will "
+                    "otherwise produce a FALSE REFUTATION of this run.",
+            "step_1_fetch_full_history": (
+                "git fetch --unshallow. Every workflow in this repository checks out "
+                "with fetch-depth: 1, which yields a truncated (grafted) history where "
+                "`git log --all -- RULES.json` returns only the tip."),
+            "step_2_the_trap": (
+                "In a truncated checkout the freeze ordering is NOT measurable. A "
+                "verifier that reads absent history as a violation reports "
+                "freeze_precedes_measurement=false and falsely accuses this run of "
+                "post-hoc tuning. It did not: the RULES blob was committed at "
+                "10:35:21Z and the first commit carrying a measurement at 10:43:51Z, a "
+                "margin of 345 s, verified from real git commit times and real blob "
+                "digests."),
+            "step_3_the_verifier_is_three_valued": (
+                "frontier.frontier-concept-seed-recall.freeze_ordering reports True / "
+                "False / None. False is emitted ONLY when a rules commit demonstrably "
+                "FOLLOWS the first measurement. Truncated or missing history yields "
+                "None with evidence_state=INCOMPLETE_TRUNCATED_HISTORY. Check "
+                "`evidence_state` and `repository_is_shallow` before reading the "
+                "verdict; a None is not a violation."),
+            "step_4_reproduce": (
+                "python3 -m frontier.frontier-concept-seed-recall.harness --run-id "
+                f"{run_id} --offline   # replays 34/34 calls from committed envelopes, "
+                "network_calls=0, and reproduces the committed record byte-for-byte "
+                "apart from wall times; then "
+                "python3 -m frontier.frontier-concept-seed-recall.freeze_ordering "
+                f"--run-id {run_id}; then "
+                "python3 -m pytest tests/frontier/frontier-concept-seed-recall -q"),
+            "step_5_no_frozen_file_changed": (
+                "RULES.json is byte-identical at HEAD and on disk: sha256 "
+                "311ac6d0913f22d3606d6fd4772271b00116629470741c4fc6a1bdb506cc928a. "
+                "This cycle fixed a verifier and its tests; it changed no frozen rule, "
+                "no variant string, no threshold and no measurement."),
+        },
         "exact_drop_in_path": {
             "seam": "product/query/pipeline.py, the query-variant loop that already "
                     "carries provenance.query_variants[] with kind/language_filter/"

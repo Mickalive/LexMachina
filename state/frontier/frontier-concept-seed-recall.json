@@ -6,10 +6,31 @@
   "charter_version": 1,
   "claim_ceiling": "No artifact may assert that a map helps a jurist, that any authority is absent from the corpus, that any frozen bar is met or moved, or that any packet is fit to serve. Usefulness remains the human product gate's question and admission remains fail-closed. Concept-coverage counts are lexical coverage of a retrieved set, not a legal conclusion; a zero count is a retrieval signal, not proof of corpus absence.",
   "continue_recommended": false,
-  "continue_recommended_rationale": "The charter's stop rule fires at the FIRST outcome reached and MUST NOT continue into threshold, phrasing or prompt tuning, because the rules including the exact variant strings are frozen and post-hoc tuning invalidates the run. OUTCOME_A has been reached and published with an integration contract. A further cycle under THIS charter is not specifically justified: the remaining gaps (de-kapitalverletzung coverage; bger_6B_124_2016 and the other seven frozen ids) would require new variant strings, new phrasings or a short-concept-query arm, all of which are post-hoc tuning of a frozen rule set and are therefore out of scope by construction. The A4 corpus-side finding points at a genuinely different input class (a SHORT concept-focused query rather than a long natural-language sentence), which requires a NEW charter with its OWN frozen rules and its own baseline, not another cycle of this one.",
+  "continue_recommended_rationale": "The charter's stop rule fires at the FIRST outcome reached and MUST NOT continue into threshold, phrasing or prompt tuning, because the rules including the exact variant strings are frozen and post-hoc tuning invalidates the run. OUTCOME_A was reached at run 39237146851 and has been re-verified and hardened at run 39239903880 without any new measurement. A further cycle under THIS charter is not specifically justified: the remaining gaps (de-kapitalverletzung coverage; bger_6B_124_2016 and the other seven frozen ids) would require new variant strings, new phrasings or a short-concept-query arm, all of which are post-hoc tuning of a frozen rule set and are out of scope by construction. The A4 corpus-side finding points at a genuinely different input class (a SHORT concept-focused query rather than a long natural-language sentence), which requires a NEW charter with its OWN frozen rules and its own baseline, not another cycle of this one.",
   "cycle_status": "COMPLETE",
   "direction_version": 58,
   "evidence_tier": "EXPLORATORY",
+  "last_resume_cycle": {
+    "new_hypothesis": false,
+    "new_measurement": false,
+    "resumes_run": 39237146851,
+    "run_id": 39239903880,
+    "unchanged": [
+      "RULES.json bytes",
+      "all frozen variant strings",
+      "every threshold",
+      "the harness record",
+      "the measurement",
+      "the accepted frozen benchmark and its gates"
+    ],
+    "what_changed": [
+      "frontier/frontier-concept-seed-recall/freeze_ordering.py: shallow-safe three-valued fail-closed verifier",
+      "tests/frontier/frontier-concept-seed-recall/test_concept_seed_recall.py: 7 new regression tests over real git fixtures (31 -> 38 -> 40 total)",
+      "results/frontier/frontier-concept-seed-recall/freeze_ordering.json: additive evidence_state fields, byte-pinning the original evidence",
+      "results/frontier/frontier-concept-seed-recall/integration_contract_39237146851.json: how_an_auditor_verifies_this, naming the shallow-clone trap",
+      "results/frontier/frontier-concept-seed-recall/REPORT.md: section 0 (the trap) and section 14 (independent re-verification)"
+    ]
+  },
   "next_charter_if_any": {
     "not_this_charter_because": "any variant string, phrase or threshold change now would be post-hoc tuning and would invalidate this run",
     "would_require": "a new charter with its own frozen RULES, testing a SHORT concept-focused query as an additional variant - a materially different input class from the NLCS-1 full-sentence template this charter froze and exhausted"
@@ -92,6 +113,54 @@
       "rules_sha256_at_head": "311ac6d0913f22d3606d6fd4772271b00116629470741c4fc6a1bdb506cc928a",
       "run_id": 39237146851,
       "run_id_github": 39237146851
+    },
+    {
+      "cycle_kind": "OPERATIONAL_RESUME",
+      "evidence_tier": "EXPLORATORY",
+      "independent_reverification": {
+        "accepted_gate_counts_confirmed": "23 passing / 11 failing / 6 not-measurable, matching the published record",
+        "claim_1_authority_recovery": "CONFIRMED - A0 0/2, A0+variant 1/2 (bge_BGE_142_IV_333) on corporate-criminal-liability::fr",
+        "claim_2_coverage_unmoved": "CONFIRMED - zero rows in both de-kapitalverletzung A1 variant envelopes carry either concept",
+        "claim_3_a4_diagnostic": "CONFIRMED - Ueberwachungspflicht 50 rows / 28 carrying; the long question containing the same word 50 / 0; Kapitalverletzung 50 / 0",
+        "method": "recomputed from the raw committed cache envelopes with code written independently of this harness (harness.py, nlcs.py, replay.py, contract.py and regression.py were NOT imported), scoring recall with the ACCEPTED evaluation.retrieval_gate.gates.match_authorities",
+        "recovery_disclosure_checked": "accurate, not overstated: bge_BGE_142_IV_333 is genuinely already present in baseline:corporate-criminal-liability:de and counter:corporate-criminal-liability:de, so 'recovered' means absent from THIS cell, not newly discovered"
+      },
+      "operational_failure": {
+        "diagnosis": "Every workflow in this repository checks out with fetch-depth: 1, yielding a shallow (grafted) history. freeze_ordering.py read `git log --all -- RULES.json` naively, saw only the tip commit, and concluded the frozen rules were edited AFTER the first measurement: freeze_precedes_measurement=false, margin=null. That is a false refutation of a correct run.",
+        "fix": "the verifier is now three-valued and fail-closed. False is emitted ONLY when a rules commit demonstrably FOLLOWS the first measurement commit; truncated or missing history yields None plus an evidence_state and a reason string. It also refuses to overwrite a stronger on-disk record with a weaker one, and publishes the three_valued_contract verbatim in freeze_ordering.json.",
+        "frozen_bytes_unchanged": "RULES.json sha256 311ac6d0913f22d3606d6fd4772271b00116629470741c4fc6a1bdb506cc928a at HEAD and on disk; no variant string, threshold, rule or measurement changed",
+        "reproduced_on": "a real `git clone --depth 1` of the published branch refs/heads/cycle/frontier/frontier-concept-seed-recall/39237146851/team: old code reports false, fixed code reports None with evidence_state=INCOMPLETE_TRUNCATED_HISTORY, and after `git fetch --unshallow` reports COMPLETE / true / 345.0s"
+      },
+      "outcome": "OUTCOME_A_COMPONENT",
+      "outcome_text": "No new measurement and no new hypothesis. The prior cycle's OUTCOME_A record was reproduced byte-for-byte offline (34/34 calls from committed envelopes, network_calls=0) and its three published claims were independently re-verified from the raw committed cache envelopes using the accepted evaluation.retrieval_gate.gates.match_authorities. The operational failure that ended the prior cycle was diagnosed and fixed: the freeze-ordering verifier emitted a FALSE NEGATIVE in the workflow's fetch-depth:1 shallow checkout.",
+      "prior_record_preserved": {
+        "calls_replayed_from_committed_envelopes": "34/34",
+        "harness_results_reproduces_byte_for_byte": true,
+        "network_calls": 0,
+        "note": "only wall-clock timings differ between runs; no decision-bearing byte changed"
+      },
+      "regression_suite": {
+        "n_checks": 40,
+        "n_failed": 0,
+        "n_passed": 40,
+        "new_in_this_cycle": [
+          "truncated history reports None and NEVER False (real --depth 1 git fixture)",
+          "the same clone reports True after `git fetch --unshallow`",
+          "a genuine post-hoc rules edit still reports False (the fix is not a blanket True)",
+          "an empty checkout reports INCOMPLETE_NO_COMMITS_FOUND, not False",
+          "a weaker record is never written over a stronger one",
+          "the integration contract carries the shallow-clone trap for the next auditor",
+          "RULES bytes are unchanged and still re-derive from the plan"
+        ]
+      },
+      "results": [
+        "results/frontier/frontier-concept-seed-recall/freeze_ordering.json",
+        "results/frontier/frontier-concept-seed-recall/integration_contract_39237146851.json",
+        "results/frontier/frontier-concept-seed-recall/REPORT.md"
+      ],
+      "resumes_run": 39237146851,
+      "run_id": 39239903880,
+      "run_id_github": 39239903880
     }
   ],
   "team_id": "frontier-concept-seed-recall",
