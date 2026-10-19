@@ -45,38 +45,41 @@ def build(run_id: int) -> dict:
     baseline_commits = _commits_for(
         f"results/frontier/frontier-concept-seed-recall/baseline_reproduction_{run_id}.json")
 
-    freeze = rules_commits[-1] if rules_commits else None
+    # git log lists newest first.  The FREEZE is the MOST RECENT commit that
+    # touched the rules; the MEASUREMENT is the EARLIEST commit that carries one.
+    freeze = rules_commits[0] if rules_commits else None
     first_measurement = results_commits[-1] if results_commits else None
-    digests = []
-    for sha, when, subject in rules_commits:
-        digests.append({"commit": sha, "commit_time_utc": when, "subject": subject,
-                        "rules_sha256": _blob_sha256(sha, RULES_RELPATH)})
+    first_baseline = baseline_commits[-1] if baseline_commits else None
+    digests = [{"commit": sha, "commit_time_utc": when, "subject": subject,
+                "rules_sha256": _blob_sha256(sha, RULES_RELPATH)}
+               for sha, when, subject in rules_commits]
 
-    ordered = bool(freeze and first_measurement
-                   and freeze[1] < first_measurement[1])
+    ordered = bool(freeze and first_measurement and freeze[1] < first_measurement[1])
     margin = None
     if ordered:
         from datetime import datetime
         margin = (datetime.fromisoformat(first_measurement[1])
                   - datetime.fromisoformat(freeze[1])).total_seconds()
 
+    head_blob = _blob_sha256("HEAD", RULES_RELPATH)
+
     return {
         "schema": "frontier-concept-seed-recall/freeze-ordering/1",
         "run_id": run_id,
         "rules_relpath": RULES_RELPATH,
         "rules_commits": digests,
-        "final_frozen_rules_sha256": (digests[-1]["rules_sha256"] if digests else None),
+        "final_frozen_rules_sha256": (digests[0]["rules_sha256"] if digests else None),
+        "rules_sha256_at_head": head_blob,
         "first_commit_carrying_a_measurement": (
             {"commit": first_measurement[0], "commit_time_utc": first_measurement[1],
              "subject": first_measurement[2]} if first_measurement else None),
         "first_commit_carrying_baseline_reproduction": (
-            {"commit": baseline_commits[-1][0], "commit_time_utc": baseline_commits[-1][1],
-             "subject": baseline_commits[-1][2]} if baseline_commits else None),
+            {"commit": first_baseline[0], "commit_time_utc": first_baseline[1],
+             "subject": first_baseline[2]} if first_baseline else None),
         "freeze_precedes_measurement": ordered,
         "margin_seconds": margin,
         "rules_bytes_unchanged_since_final_amendment": (
-            len({d["rules_sha256"] for d in digests[-1:]}) == 1
-            and digests[-1]["commit"] == freeze[0] if digests else None),
+            bool(digests) and digests[0]["rules_sha256"] == head_blob),
         "method": "real git commit times (git log --format=%cI) and real git blob "
                   "digests (git show <sha>:<path>); no hand-written timestamp is used "
                   "as evidence anywhere in this record",
