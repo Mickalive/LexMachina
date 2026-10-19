@@ -131,6 +131,19 @@ def build(run_id: int, results: dict) -> dict:
                 "gate_after": "PASS 1/2 (bge_BGE_142_IV_333 recovered; "
                               "bger_6B_124_2016 still missing)",
                 "recovered_ids": v["headline"]["recovered_frozen_authority_ids"],
+                "recovery_disclosure": v.get("recovery_disclosure"),
+                "read_this_before_adopting": (
+                    "The recovered authority was ALREADY present in two accepted pools "
+                    "of the same benchmark -- baseline:corporate-criminal-liability:de "
+                    "and counter:corporate-criminal-liability:de. 'Recovered' means "
+                    "absent from THIS (fr) cell and present after the arm ran; it is NOT "
+                    "a claim that the authority was unknown to the factory. The decision "
+                    "that satisfies the fr cell is itself a GERMAN-language decision "
+                    "(bge_142 IV 333, BGE 142 IV 333), because the accepted gate selects "
+                    "a per-language cell by the QUERY's language, not by each row's own "
+                    "language. Product should read this as a cross-language QUERY "
+                    "robustness gain on one cell, not as one new authority entering the "
+                    "corpus."),
                 "independently_confirmed_by": "the accepted "
                     "evaluation.retrieval_gate.gates.evaluate on the accepted frozen "
                     "spec flipped authority::baseline_lang_recall::"

@@ -334,3 +334,30 @@ def test_freeze_ordering_is_recomputed_from_real_git_commit_times():
     assert fo["freeze_precedes_measurement"] is True
     assert fo["margin_seconds"] is not None and fo["margin_seconds"] > 0
     assert "no hand-written timestamp" in fo["method"]
+
+@pytest.mark.skipif(not (TEAM_DIR / f"harness_results_{RUN_ID}.json").is_file(),
+                    reason="this run has no published results yet")
+def test_recovery_is_disclosed_not_over_read():
+    """A recovered id must come with what 'recovered' does and does not mean."""
+    res = _published()
+    d = res["verdict"].get("recovery_disclosure") or {}
+    assert d, "an OUTCOME_A on the recall axis must publish its recovery disclosure"
+    assert "QUERY's language" in d["cell_semantics"]
+    for aid, info in d["per_id"].items():
+        assert "absent from THIS accepted per-language cell" in info["meaning_of_recovered"]
+        assert "already_present_in_accepted_pools" in info
+        assert "carried_by_candidate_rows" in info
+
+
+@pytest.mark.skipif(not (TEAM_DIR / f"harness_results_{RUN_ID}.json").is_file(),
+                    reason="this run has no published results yet")
+def test_candidate_query_metadata_is_published_for_independent_rescoring():
+    res = _published()
+    md = res["candidate_query_metadata"]
+    assert md, "candidate queries must be published so a gate re-scoring is auditable"
+    for q in md:
+        assert q["status"] == 200
+        assert q["raw_sha256"] and q["ids_sha256"]
+        assert "rows" not in q
+    assert len(md) == len(res["measurement"]["per_unit"]["served::de-kapitalverletzung"]
+                          ["A1_searches"]) + 12

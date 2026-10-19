@@ -138,6 +138,18 @@ Published beside the accepted frozen-benchmark cells.
 
 `bger_6B_124_2016` and the other seven ids remain missing everywhere.
 
+**What "recovered" does and does not mean — read before adopting.** The
+accepted per-language cell selects rows by the **query's** language, not by each
+row's own language (`gates.authority_recall` → `_pool(language=...)`). The
+decision that satisfies the `fr` cell is itself **German-language**
+(`bge_142 IV 333`, BGE 142 IV 333). And that same authority was **already
+present in two accepted pools of the same benchmark** —
+`baseline:corporate-criminal-liability:de` and
+`counter:corporate-criminal-liability:de`. So the result is a **cross-language
+query-robustness gain on one cell**, not one new authority entering the corpus.
+The harness computes both facts and publishes them in
+`verdict.recovery_disclosure`; it does not leave them to the reader's inference.
+
 **Independent confirmation.** The harness does not only recompute its own cell.
 It re-scores the accepted frozen spec with the **accepted**
 `evaluation.retrieval_gate.gates.evaluate` over the same pool, and that gate

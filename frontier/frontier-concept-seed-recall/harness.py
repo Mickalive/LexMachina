@@ -352,7 +352,7 @@ def measure(frozen: dict, *, allow_live: bool) -> dict:
     envelopes, so it costs no network of its own and its rows can never be
     confused with the candidate's.  A4 is the corpus-presence diagnostic.
     """
-    sma, gates, _ = I.load_evaluation_modules()
+    sma, gates, frozen_mod = I.load_evaluation_modules()
     searcher = replay.Searcher(
         read_only_cache_dirs=[PRODUCT_CACHE, PREDECESSOR_CACHE, TEAM_CACHE],
         write_cache_dir=TEAM_CACHE,
@@ -488,7 +488,21 @@ def measure(frozen: dict, *, allow_live: bool) -> dict:
             base = entry["authority_recall"]["A0_baseline_shipped"]
             cand = entry["authority_recall"]["A1_union"]
             gained = sorted(set(cand["hits"]) & set(unit["accepted_missing_ids"]))
+            carrying = []
+            for aid in gained:
+                core = frozen_mod.alnum_core(aid)
+                for r in a1_rows:
+                    if core in gates.row_cores(r, min_len=6):
+                        carrying.append({
+                            "authority_id": aid, "decision_id": r.get("decision_id"),
+                            "row_language": r.get("language"),
+                            "citation_string_de": r.get("citation_string_de"),
+                            "citation_string_fr": r.get("citation_string_fr"),
+                            "citation_string_it": r.get("citation_string_it"),
+                            "canonical_url": r.get("canonical_url"),
+                        })
             entry["authority_recall"]["delta"] = {
+                "carrying_rows": carrying,
                 "accepted_missing_ids": list(unit["accepted_missing_ids"]),
                 "newly_found_ids": gained,
                 "ids_still_missing": list(base["missing"]),
@@ -746,6 +760,8 @@ def verdict(frozen: dict, repro: dict, m: dict, gates_chk: dict,
             recovered.extend(d["newly_found_ids"])
             cells_improved.append(uid)
 
+    disclosure = _recovery_disclosure(recovered, cells_improved, units, frozen)
+
     controls = {
         "acceptance_test": (
             "5. NON-VACUITY PROVEN, NOT ASSERTED: a blanked control (empty variant string "
@@ -802,6 +818,7 @@ def verdict(frozen: dict, repro: dict, m: dict, gates_chk: dict,
             "budget": m["budget"],
         },
         "controls": controls,
+        "recovery_disclosure": disclosure,
         "headline_sentence": _headline_sentence(outcome_a, concepts_added, recovered,
                                                 zero_cells, gates_chk, m),
         "accepted_predecessor_published_beside_not_instead_of": {
@@ -819,6 +836,58 @@ def verdict(frozen: dict, repro: dict, m: dict, gates_chk: dict,
             "classifier, abstention, layout or geometry work, prompt engineering, benchmark "
             "construction, a product patch or a second hypothesis."),
     }
+
+
+def _recovery_disclosure(recovered, cells_improved, units, frozen) -> dict:
+    """Say precisely what "recovered" does and does not mean.
+
+    Two things a reader could otherwise over-read, computed here rather than
+    asserted:
+
+    * the accepted per-language cell selects rows by the QUERY's language, not by
+      each row's own language, so a French-language cell can be satisfied by a
+      German-language decision.  That is the accepted gate's own semantics; this
+      harness reproduces them faithfully and DISCLOSES them rather than
+      "correcting" a frozen gate.
+    * an id that is "missing" from one cell may already be present in another
+      accepted pool.  If it is, "recovered" means "absent from THIS cell", not
+      "newly discovered by this factory".
+    """
+    _, gates, frozen_mod = I.load_evaluation_modules()
+    rec = I.load_json(I.EVALUATION_MOUNT /
+                      "results/evaluation/retrieval_benchmark/39117425713.json")
+    out: dict[str, Any] = {
+        "recovered_ids": sorted(set(recovered)),
+        "improved_cells": list(cells_improved),
+        "cell_semantics": (
+            "the accepted gate selects a per-language cell's rows by the QUERY's "
+            "language field, not by each row's own language "
+            "(evaluation.retrieval_gate.gates.authority_recall -> _pool(language=...)). "
+            "A 'fr cell' therefore means the pool returned by the FRENCH-LANGUAGE "
+            "QUERY, and a decision in another language can satisfy it. This harness "
+            "reproduces those semantics exactly and does not alter them."),
+        "per_id": {},
+    }
+    for aid in sorted(set(recovered)):
+        core = frozen_mod.alnum_core(aid)
+        already = [{"query_key": q["query_key"], "channel": q["channel"],
+                    "language": q["language"]}
+                   for q in rec["queries"]
+                   if any(core in gates.row_cores(r, min_len=6)
+                          for r in (q.get("rows") or []))]
+        carrying = [row for uid in cells_improved
+                    for row in ((units[uid].get("authority_recall") or {})
+                                .get("delta") or {}).get("carrying_rows", [])
+                    if row.get("authority_id") == aid]
+        out["per_id"][aid] = {
+            "already_present_in_accepted_pools": already,
+            "carried_by_candidate_rows": carrying,
+            "meaning_of_recovered": (
+                "absent from THIS accepted per-language cell's pool before the arm ran "
+                "and present after it. It is NOT a claim that the authority was unknown "
+                "to the factory: see already_present_in_accepted_pools."),
+        }
+    return out
 
 
 def _headline_sentence(outcome_a, concepts, recovered, zero_cells, gates_chk, m) -> str:
@@ -886,6 +955,16 @@ def run(run_id: int, out_dir: Path | None = None, *, allow_live: bool = True,
         "baseline_reproduction": repro,
         "measurement": {k: val for k, val in measurement.items()
                         if k != "candidate_queries"},
+        "candidate_query_metadata": [
+            {k: val for k, val in q.items() if k != "rows"}
+            for q in measurement["candidate_queries"]],
+        "candidate_query_metadata_note": (
+            "every candidate query with its slug, channel, language, status, the exact "
+            "query string, the endpoint parameters and the raw-body and ordered-ids "
+            "digests, so an auditor can re-run the accepted frozen gate re-scoring "
+            "WITHOUT re-deriving this harness's code; the rows themselves are in the "
+            "committed cache envelopes at results/frontier/frontier-concept-seed-recall/"
+            "cache/<key[:2]>/<key>.json and the raw_sha256 below identifies each one"),
         "frozen_gate_nonregression": gates_chk,
         "regression_suite": regression,
         "verdict": v,
