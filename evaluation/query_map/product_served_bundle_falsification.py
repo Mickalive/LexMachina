@@ -422,6 +422,43 @@ def _l3_finding(verdict: dict) -> dict | None:
     return None
 
 
+def classify_l3(*, import_error, before_pred, after_pred, measured_under,
+                detail_terms, finding_severity, finding_present,
+                lost_codes) -> str:
+    """The frozen L3 verdict classifier, factored out so tests drive THIS code.
+
+    Branches are ordered so that an unmeasurable run can never be reported as a
+    pass, and a qid that carries no defect instance is neither a pass nor a
+    failure. The aggregate over qids implements the frozen PER-INSTANCE rule; see
+    ``run``.
+    """
+    before_under = sorted(before_pred.get("query_concepts_under_covered") or [])
+    if import_error:
+        # The product's own admission path could not run on its own bytes.
+        return "HANDOFF_NOT_MEASURED"
+    if not before_under:
+        # No defect instance: the served packet measured no under-covered
+        # concept, so there is nothing for the fix to close.
+        return "NO_DEFECT_INSTANCE_ON_THIS_QID"
+    if not before_pred.get("disclosure_gap_predicate_fires"):
+        # An under-covered set exists but the committed record DID disclose it:
+        # the original finding is not reproduced, so a fix cannot be measured.
+        return "HANDOFF_NOT_MEASURED"
+    if after_pred.get("disclosure_gap_predicate_fires"):
+        return "HANDOFF_FIX_ABSENT"
+    if not finding_present:
+        return "HANDOFF_FIX_ABSENT"
+    if measured_under and sorted(detail_terms or []) != sorted(measured_under):
+        return "HANDOFF_TERMS_MISMATCH"
+    if str(finding_severity) != "warning":
+        return "HANDOFF_SEVERITY_CHANGED"
+    if after_pred.get("admissible") is not True:
+        return "HANDOFF_SEVERITY_CHANGED"
+    if lost_codes:
+        return "HANDOFF_FIX_PARTIAL"
+    return "HANDOFF_PASS"
+
+
 def leg3_handoff(served: dict, bundle: dict, before: dict, qid: str) -> dict:
     """BEFORE = committed admission record. AFTER = accepted product admission code."""
     before_pred = disclosure_gap_predicate(before)
@@ -450,31 +487,16 @@ def leg3_handoff(served: dict, bundle: dict, before: dict, qid: str) -> dict:
     lost = sorted(before_codes - after_codes)
     gained = sorted(after_codes - before_codes)
 
-    before_under = sorted(before_pred.get("query_concepts_under_covered") or [])
-    if import_error:
-        # The product's own admission path could not run on its own bytes.
-        verdict = "HANDOFF_NOT_MEASURED"
-    elif not before_under:
-        # No defect instance on this qid: the served packet measured no
-        # under-covered concept, so there is nothing for the fix to close.
-        # NOT a pass and NOT a failure - the frozen rule is per-instance.
-        verdict = "NO_DEFECT_INSTANCE_ON_THIS_QID"
-    elif not before_pred["disclosure_gap_predicate_fires"]:
-        # An under-covered set exists but the committed record did disclose it:
-        # the original finding is NOT reproduced, so the test cannot measure a fix.
-        verdict = "HANDOFF_NOT_MEASURED"
-    elif after_pred.get("disclosure_gap_predicate_fires"):
-        verdict = "HANDOFF_FIX_ABSENT"
-    elif measured_under and detail_terms != measured_under:
-        verdict = "HANDOFF_TERMS_MISMATCH"
-    elif finding and str(finding.get("severity")) != "warning":
-        verdict = "HANDOFF_SEVERITY_CHANGED"
-    elif after_pred.get("admissible") is not True:
-        verdict = "HANDOFF_SEVERITY_CHANGED"
-    elif lost:
-        verdict = "HANDOFF_FIX_PARTIAL"
-    else:
-        verdict = "HANDOFF_PASS"
+    verdict = classify_l3(
+        import_error=import_error,
+        before_pred=before_pred,
+        after_pred=after_pred,
+        measured_under=measured_under,
+        detail_terms=detail_terms,
+        finding_severity=(finding or {}).get("severity"),
+        finding_present=finding is not None,
+        lost_codes=lost,
+    )
 
     return {
         "qid": qid,
