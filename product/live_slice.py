@@ -37,6 +37,34 @@ accepted single source of truth.  It is NOT a bar score, NOT an audit verdict,
 NOT a legal-usefulness claim and NOT a human-gate input.  Admission stays
 fail-closed whatever it prints.
 
+Stage disclosure (why the verdict is three-valued, not two)
+-----------------------------------------------------------
+``--no-enrich`` is a real and useful mode: the product lane's runtime mandate
+wants the query-specific map rendered *before* the answer and counter-authority
+passes, and measuring that fast half alone is the point of it.  It is not,
+however, a run of the canonical chain, and before this section the record had no
+field saying which stages executed.  So a ``--no-enrich`` run published
+
+    "verdict": "PASS"
+    "claim_ceiling": "... sourced answer -> counter-authority pass -> ..."
+    "answer": {"status": "pending", "n_cited": 0}
+    "counters": {"counter_authorities": 0, "counter_status_bearing_rows": 0}
+
+with nothing in the record to tell a reader that the answer and the independent
+counter-authority pass never ran.  ``run_query_initial`` emits exactly that
+``status: "pending"`` / ``cited_decision_ids: []`` placeholder
+(``product/query/pipeline.py``, ``method="pending_generative_audit"``) and no
+row carries a ``counter_status``, so the two zeroed fields are the fingerprint
+of a map-only run, not a failed answer and not an empty result set.
+
+That is the binding 2026-10-18 defect class - a published claim that does not
+reproduce from the committed tree - so the record now publishes
+``stages_executed`` and ``mode``, checks ``canonical_chain_ran``, and reports
+``PASS_MAP_ONLY`` rather than ``PASS`` when the answer and counter-authority
+stages were skipped.  A committed artifact of that class from before this change
+is classified by ``product/cycle_verify.py`` check ``live_slice_stages`` and
+named in the report of record; it is never silently re-read as a chain PASS.
+
 Writes: ``results/product/live_slice/<run_id>.json`` (+ ``<run_id>_bundle.json``).
 """
 from __future__ import annotations
@@ -70,6 +98,56 @@ DEFAULT_QUERY = "Responsabilite penale de l'entreprise selon l'art. 102 CP"
 # OpenCaseLaw time is measured separately and never charged to local code.
 BUDGET_LOCAL_MAP_S = 1.5
 BUDGET_GEOMETRY_S = 2.0
+
+# The status `run_query_initial` stamps on a bundle whose slow phase has not run
+# yet. Named here so the stage disclosure and its tests read the same constant
+# the placeholder in product/query/pipeline.py means.
+PENDING_ANSWER_STATUS = "pending"
+
+
+def stage_disclosure(*, n_rows: int, enrich: bool, enrich_error: str | None,
+                     answer_status: object) -> dict[str, bool]:
+    """Which stages of the canonical chain this run actually executed.
+
+    Every term is defined by the code path that produces it, so this is derived
+    from the run rather than declared by the caller:
+
+    * ``answer`` is true unless the bundle still carries the ``pending``
+      placeholder ``run_query_initial`` stamps (``method=
+      "pending_generative_audit"``, ``cited_decision_ids: []``).  A pending
+      status means the slow phase never ran; it does NOT mean the answer came
+      back empty.
+    * ``counter_authority`` is true iff enrichment completed, because
+      ``counter_status`` is assigned nowhere else: ``run_query_initial`` writes
+      the literal ``"none"`` for every row and only the enrichment phase
+      promotes a row to ``cited`` / ``candidate-limiting`` /
+      ``abstained_unevidenced``.
+    """
+    stages = {
+        "retrieval": True,
+        "map": bool(n_rows),
+        "enrichment_attempted": bool(enrich),
+        "enrichment_completed": bool(enrich) and not enrich_error,
+        "answer": str(answer_status or "") not in ("", PENDING_ANSWER_STATUS),
+        "counter_authority": bool(enrich) and not enrich_error,
+    }
+    stages["canonical_chain"] = all(stages.values())
+    return stages
+
+
+def verdict_for(checks: dict[str, bool], stages: dict[str, bool]) -> str:
+    """Three-valued verdict: a map-only run is never reported as a chain PASS.
+
+    ``canonical_chain_ran`` is excluded from the wiring decision because a
+    skipped slow phase is not a wiring failure - it is a different, smaller
+    claim, and the honest name for it is PASS_MAP_ONLY.
+    """
+    wiring_ok = all(v for k, v in checks.items() if k != "canonical_chain_ran")
+    if not wiring_ok:
+        return "FAIL"
+    if stages.get("canonical_chain") or checks.get("canonical_chain_ran"):
+        return "PASS"
+    return "PASS_MAP_ONLY"
 
 
 def _cache_fingerprint(root: Path | None = None) -> dict[str, int]:
@@ -212,6 +290,16 @@ def run(query: str, *, top_n: int, enrich: bool, evidence_count: int,
     answer = bundle.get("answer") or {}
     ga = (prov.get("generative_audit") or {})
 
+    # Stage disclosure.  Derived, never asserted, and each term is defined by
+    # the code path that produces it - see the module docstring for why this
+    # section exists at all.
+    stages = stage_disclosure(
+        n_rows=len(rows),
+        enrich=enrich,
+        enrich_error=enrich_error,
+        answer_status=answer.get("status"),
+    )
+
     record = {
         "schema": "product-live-slice/1",
         "run_id": None,
@@ -255,6 +343,9 @@ def run(query: str, *, top_n: int, enrich: bool, evidence_count: int,
             "degraded": bool(ga.get("provider_error")) or bool(enrich_error),
             "provider_error": ga.get("provider_error") or enrich_error,
         },
+        "stages_executed": stages,
+        "mode": "full_chain" if stages["canonical_chain"] else (
+            "map_only" if not enrich else "chain_incomplete"),
         "counters": {
             "definition_source": "product/query/counter_status.py (RF1 single source of truth)",
             "counter_authorities": counter_authority_count(rows),
@@ -286,7 +377,10 @@ def run(query: str, *, top_n: int, enrich: bool, evidence_count: int,
             "pass -> clickable map) against the live public OpenCaseLaw API on this tree. "
             "It scores no frozen bar, reads no Frontier verdict, issues no serve "
             "recommendation and makes no legal-usefulness claim. Admission stays "
-            "fail-closed regardless of its verdict."
+            "fail-closed regardless of its verdict. SCOPE OF THIS RECORD IS "
+            "stages_executed: a run whose stages_executed.canonical_chain is false "
+            "measured only the stages named there, and the sourced answer and the "
+            "independent counter-authority pass are NOT among them."
         ),
         "posture": {
             "machine_gate_ready": False,
@@ -360,10 +454,29 @@ def main(argv: list[str] | None = None) -> int:
         "every_row_has_a_source_link": record["map"]["rows_with_source_url"] == record["map"]["n_decisions"],
         "bundle_validates": not record["bundle_contract"]["validate_bundle_errors"],
         "page_contract_ok": page_ok,
+        # The claim-discipline check. Before this entry, `--no-enrich` published
+        # verdict PASS together with the canonical chain's claim ceiling while
+        # the answer and counter-authority stages demonstrably had not run; this
+        # makes that state FAIL rather than PASS, so the three-valued verdict
+        # below is the only place the distinction is made. It is reported in
+        # n_failed_checks rather than hidden.
+        "canonical_chain_ran": record["stages_executed"]["canonical_chain"],
     }
     record["checks"] = checks
-    record["verdict"] = "PASS" if all(checks.values()) else "FAIL"
+    record["verdict"] = verdict_for(checks, record["stages_executed"])
     record["n_failed_checks"] = sorted(k for k, v in checks.items() if not v)
+    record["verdict_note"] = (
+        "PASS means the canonical chain ran: retrieval, map, enrichment, the "
+        "sourced answer and the independent counter-authority pass. "
+        "PASS_MAP_ONLY means every wiring, freshness, geometry and page check "
+        "passed but stages_executed.canonical_chain is false, so the sourced "
+        "answer and the counter-authority pass are NOT covered by this record; "
+        "read stages_executed and mode for what was measured. mode=map_only "
+        "means the slow phase was never requested (--no-enrich); "
+        "mode=chain_incomplete means it was requested and did not finish - read "
+        "answer.degraded and answer.provider_error, which name the failure. "
+        "FAIL means a wiring, freshness, geometry or page check failed."
+    )
 
     path = OUT_DIR / f"{tag}.json"
     path.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -371,6 +484,7 @@ def main(argv: list[str] | None = None) -> int:
     for name, ok in checks.items():
         print(f"[{'PASS' if ok else 'FAIL'}] {name}")
     print(f"\n{record['verdict']}: {len(checks) - len(record['n_failed_checks'])}/{len(checks)} checks")
+    print(f"mode={record['mode']} stages={json.dumps(record['stages_executed'], sort_keys=True)}")
     print(f"n_decisions={record['map']['n_decisions']} n_clusters={record['map']['n_clusters']} "
           f"network_calls={fresh['adapter_network_calls']} cache_hits={fresh['adapter_cache_hits']} "
           f"cache_files_touched={fresh['independent_cache_probe']['n_files_touched']}")
@@ -379,7 +493,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"upstream={record['timing_s']['upstream_retrieval_s']}s "
           f"local_map={record['timing_s']['local_map_s']}s total={record['timing_s']['total_s']}s")
     print(f"wrote {path}")
-    return 0 if record["verdict"] == "PASS" else 1
+    return 0 if record["verdict"] in ("PASS", "PASS_MAP_ONLY") else 1
 
 
 if __name__ == "__main__":

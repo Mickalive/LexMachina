@@ -54,14 +54,17 @@ LIVE_SLICE_DIR = ROOT / "results" / "product" / "live_slice"
 REPORTS_DIR = ROOT / "reports" / "product"
 REGRESSION_DIR = ROOT / "results" / "product" / "regression"
 
+#: The schema string ``product/live_slice.py`` stamps on every record it
+#: writes. Selected by content, not by filename - see ``_live_slice_artifacts``.
+LIVE_SLICE_SCHEMA = "product-live-slice/1"
+
 #: The coverage measurement THIS module checks against. Named by file, not
 #: "newest", because it is the artifact ``testcount_disclosure_artifact_is_current``
 #: and ``test_measured_scope_is_published_not_aspirational`` compare a fresh
 #: sweep to: a later cycle that re-publishes it must not silently change what an
 #: earlier report says.
 #:
-#: PIN REPOINT, recorded (repair round 1 of rejected cycle 39169296466, run
-#: 39172315384, audit F1 of CYCLE_39169296466_GATE.json). The pin previously named
+#: PIN REPOINT, recorded TWICE. The pin previously named
 #: ``CYCLE_39149741259_report_testcount_disclosure.json``, whose
 #: ``bare_testcount_claims`` set is the ten-report candidate set measured in that
 #: cycle's tree. The rejected cycle's own report of record,
@@ -69,20 +72,41 @@ REGRESSION_DIR = ROOT / "results" / "product" / "regression"
 #: bare test-count claims, so it joined the candidate set: 11 live candidates
 #: against 10 published, and ``testcount_disclosure_artifact_is_current`` was RED
 #: on the very tree that cycle shipped. That is audit D1 of BLOCKED cycle
-#: 39160624523 recurring - a staleness guard left behind when the tree grew - and
-#: it survived because no ledger claim covered this module (audit F1b). The guard
-#: names its own remedy ("re-measure and re-publish"), so it was followed exactly:
-#: the sweep was re-run over the repaired tree and published under THIS cycle's
-#: run id. The historical artifact stays on disk untouched as that cycle's
-#: evidence and is guarded by
-#: ``test_the_previous_disclosure_artifact_is_preserved_as_history`` - a
-#: re-pointed pin moves a check, never a piece of evidence.
+#: 39160624523 recurring - a staleness guard left behind when the tree grew -
+#: and it survived because no ledger claim covered this module (audit F1b). The
+#: guard names its own remedy ("re-measure and re-publish"), so it was followed
+#: exactly: the sweep was re-run over the repaired tree and published under
+#: ``CYCLE_39172315384``. The historical artifact stays on disk untouched as
+#: that cycle's evidence and is guarded by
+#: ``test_the_previous_disclosure_artifact_is_preserved_as_history``.
+#:
+#: SECOND PIN REPOINT, this cycle (39193356789). Same remedy, same cause, one
+#: cycle later: ``_live_slice_artifacts`` below now selects records by ``schema``
+#: rather than by the ``CYCLE_`` filename prefix, because ``live_slice.py`` stamps
+#: ``--run-id`` verbatim and a run that omits the flag is named by a UTC
+#: timestamp. Run 39187482610 committed ``20261019T022100Z.json``, which was
+#: therefore outside the measured scope entirely. Measured effect of the re-point,
+#: from the guard's own sweep: ``artifacts_swept`` 2 -> 3,
+#: ``artifact_report_pairs`` 3 -> 6, ``citation_claims_parsed`` unchanged at 10.
+#: Re-measured, not restated:
+#: ``python3 product/report_scope_measurement.py --run-id 39193356789
+#: --previous CYCLE_39172315384_report_testcount_disclosure.json
+#: --pin-reason "..." --out
+#: results/product/regression/CYCLE_39193356789_report_testcount_disclosure.json``.
 DISCLOSURE = (ROOT / "results" / "product" / "regression"
-              / "CYCLE_39172315384_report_testcount_disclosure.json")
+              / "CYCLE_39193356789_report_testcount_disclosure.json")
 #: The previous pin, kept as a readable constant so a reader can diff the two
 #: artifacts instead of trusting prose about them.
 DISCLOSURE_PREVIOUS_PIN = (ROOT / "results" / "product" / "regression"
-                           / "CYCLE_39149741259_report_testcount_disclosure.json")
+                           / "CYCLE_39172315384_report_testcount_disclosure.json")
+#: Every disclosure artifact this pin has ever named, oldest first, each of which
+#: must still exist. A pin move moves a CHECK; it never removes evidence.
+DISCLOSURE_HISTORY = (
+    ROOT / "results" / "product" / "regression"
+    / "CYCLE_39149741259_report_testcount_disclosure.json",
+    ROOT / "results" / "product" / "regression"
+    / "CYCLE_39172315384_report_testcount_disclosure.json",
+)
 
 #: The PRE-REPAIR BYTES of the report of record, extracted once from git
 #: (``git show 2b0b902:reports/product/CYCLE_39139648336.md``) and pinned by the
@@ -275,11 +299,34 @@ def decomposition_violations(text: str) -> list[dict]:
 
 
 def _live_slice_artifacts() -> list[Path]:
-    """Committed live-slice verification artifacts (never the bundles)."""
-    return [
-        p for p in sorted(LIVE_SLICE_DIR.glob("CYCLE_*.json"))
-        if not p.name.endswith("_bundle.json")
-    ]
+    """Committed live-slice verification artifacts (never the bundles).
+
+    GLOB REPAIR, this cycle.  This swept ``CYCLE_*.json`` only, and
+    ``product/live_slice.py`` stamps ``--run-id`` into the artifact filename
+    verbatim - a run that omits the flag is named by a UTC timestamp instead.
+    So ``results/product/live_slice/20261019T022100Z.json``, committed by run
+    39187482610, was outside EVERY live-slice sweep in this repository: no
+    citation-count arithmetic, no report-of-record requirement, nothing.  That
+    is how an artifact publishing ``verdict: "PASS"`` with a zero-citation
+    answer and zero counter authorities reached the tree unexamined.
+
+    The fix is to sweep the records the instrument actually writes, selected by
+    content rather than by filename: any ``*.json`` in the directory whose
+    ``schema`` is the live-slice record schema.  Bundles carry no ``schema`` key
+    with that value, so they stay excluded, and a future artifact named anything
+    at all is swept from now on.
+    """
+    out: list[Path] = []
+    for path in sorted(LIVE_SLICE_DIR.glob("*.json")):
+        if path.name.endswith("_bundle.json"):
+            continue
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (ValueError, OSError):
+            continue
+        if isinstance(payload, dict) and payload.get("schema") == LIVE_SLICE_SCHEMA:
+            out.append(path)
+    return out
 
 
 def _reports_citing(name: str) -> list[Path]:
@@ -589,25 +636,32 @@ def testcount_disclosure_artifact_is_current():
 def test_the_previous_disclosure_artifact_is_preserved_as_history():
     """The re-pointed pin moves a CHECK, never a piece of evidence.
 
-    ``CYCLE_39149741259_report_testcount_disclosure.json`` is that cycle's
-    measurement of its own tree - the candidate set as it stood before
-    ``CYCLE_39169296466.md`` joined it. Re-pointing DISCLOSURE must not delete or
-    rewrite it: the reason the pin moved is recorded at the constant, and the old
-    numbers stay readable so a reader can compare the two artifacts instead of
-    trusting prose about them. This is the same preservation contract
+    Every disclosure artifact this pin has named must still exist on disk with
+    its own ``run_id`` and schema intact, and the newest must still name the one
+    it replaced. Re-pointing DISCLOSURE must never delete or rewrite one: the
+    reason the pin moved is recorded at the constant, and the old numbers stay
+    readable so a reader can compare the artifacts instead of trusting prose
+    about them. This is the same preservation contract
     ``product/tests/test_delta_attribution.py`` applies to the sibling
     attribution pin.
+
+    The pin has now moved twice (39169296466 -> 39172315384 -> 39193356789), so
+    this test follows ``DISCLOSURE_HISTORY`` rather than hard-coding one run id.
     """
     assert DISCLOSURE_PREVIOUS_PIN.exists(), (
         "the historical disclosure artifact the previous pin named is gone - a "
         "pin move must never remove evidence")
-    old = json.loads(DISCLOSURE_PREVIOUS_PIN.read_text(encoding="utf-8"))
-    assert old["run_id"] == 39149741259, (
-        f"the historical artifact no longer records the run it was published for "
-        f"(run_id={old.get('run_id')})")
-    assert old["schema"] == "product-report-arithmetic-scope/1", (
-        "the historical artifact's schema was rewritten")
-    historical_reports = set(old["bare_testcount_claims"])
+    assert DISCLOSURE_PREVIOUS_PIN in DISCLOSURE_HISTORY
+    for path in DISCLOSURE_HISTORY:
+        assert path.exists(), f"disclosure artifact {path.name} was removed"
+        historical = json.loads(path.read_text(encoding="utf-8"))
+        assert historical["schema"] == "product-report-arithmetic-scope/1", (
+            f"{path.name}'s schema was rewritten")
+        assert historical["run_id"] is not None, (
+            f"{path.name} no longer records the run it was published for")
+
+    historical_reports = set(
+        json.loads(DISCLOSURE_HISTORY[0].read_text(encoding="utf-8"))["bare_testcount_claims"])
     current = json.loads(DISCLOSURE.read_text(encoding="utf-8"))
     current_reports = set(current["bare_testcount_claims"])
     # The re-publish may ADD reports (that is what the pin moved for) and it may

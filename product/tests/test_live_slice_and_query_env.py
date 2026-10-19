@@ -166,9 +166,56 @@ def test_shipped_live_slice_artifact_is_self_consistent():
         assert data["posture"]["packet_admitted"] is False
         assert data["retrieval_mode_requested"] == "refresh"
         assert data["checks"], data
-        assert data["verdict"] in {"PASS", "FAIL"}
+        # PASS_MAP_ONLY was added this cycle: a run that never executed the
+        # sourced-answer and counter-authority stages must not be published as a
+        # chain PASS (see product/live_slice.py::verdict_for).
+        assert data["verdict"] in {"PASS", "PASS_MAP_ONLY", "FAIL"}
         if data["verdict"] == "FAIL":
             assert data["n_failed_checks"], data
+
+
+def test_shipped_live_slice_artifact_verdict_matches_its_own_stage_fields():
+    """Every shipped record's verdict is checked against its own bytes.
+
+    The record published by run 39187482610 (``20261019T022100Z.json``) predates
+    the stage disclosure and carries ``verdict: "PASS"`` with a ``pending``
+    answer, zero citations, zero counter authorities and ``enrich_s 0.0``.  Its
+    file is never edited; it is named by
+    ``results/product/live_slice_stages/STAGE_DISCLOSURE_AMENDMENT.json`` with
+    the effective verdict its own fields support.  This test asserts that every
+    record *is* covered by that amendment and that the amendment agrees with the
+    bytes it classifies - so a NEW unamended mislabelled record fails here.
+    """
+    from product.live_slice_stage_amendment import ARTIFACT, build, map_only_fingerprint
+
+    out_dir = REPO_ROOT / "results" / "product" / "live_slice"
+    if not out_dir.is_dir():
+        return
+    amendment = json.loads(ARTIFACT.read_text(encoding="utf-8"))
+    covered = {r["artifact"]: r for r in amendment["records"]}
+    assert covered, "the amendment covers no record"
+
+    for path in sorted(out_dir.glob("*.json")):
+        if path.name.endswith("_bundle.json"):
+            continue
+        data = json.loads(path.read_text(encoding="utf-8"))
+        name = str(path.relative_to(REPO_ROOT))
+        assert name in covered, f"{name} is not covered by the stage amendment"
+        row = covered[name]
+        assert row["map_only_fingerprint"] is map_only_fingerprint(data), (
+            f"{name}: the amendment's fingerprint does not match the bytes")
+        stages = data.get("stages_executed")
+        if stages is None:
+            continue
+        assert (data["verdict"] == "PASS") is bool(stages["canonical_chain"]), (
+            f"{name} publishes verdict {data['verdict']!r} against "
+            f"canonical_chain={stages['canonical_chain']}")
+
+    fresh = build()
+    assert fresh["verdict"] == "PASS", fresh.get("failures")
+    assert json.dumps(json.loads(ARTIFACT.read_text(encoding="utf-8"))["records"],
+                      sort_keys=True) == json.dumps(fresh["records"], sort_keys=True), (
+        "the committed stage amendment is stale against a fresh recomputation")
 
 
 # ---------------------------------------------------------------------------

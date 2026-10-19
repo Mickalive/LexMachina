@@ -982,6 +982,101 @@ def check_v57_handoffs() -> list[dict]:
     return rows
 
 
+def check_live_slice_stage_disclosure() -> list[dict]:
+    """Every committed live-slice record says which stages it actually ran.
+
+    Run 39187482610 committed ``results/product/live_slice/20261019T022100Z.json``
+    with ``verdict: "PASS"`` and a claim ceiling naming the sourced answer and the
+    counter-authority pass, while the same record reported a ``pending`` answer,
+    ``n_cited: 0``, ``counter_status_bearing_rows: 0`` and ``enrich_s: 0.0`` - the
+    fingerprint of a ``--no-enrich`` run, published with no field saying the slow
+    phase never executed.  That is the binding 2026-10-18 defect class: a
+    published claim that does not reproduce from the committed tree.
+
+    Three claims are re-derived here, each from committed bytes:
+
+    1. the instrument cannot publish PASS for a map-only run any more;
+    2. every committed record is classified from its OWN answer/counter/timing
+       fields, and a record published after the fix must agree with its own bytes;
+    3. the committed amendment artifact is *current* - a hand-edited or stale
+       amendment is a FAIL, exactly as for the v57 handoff artifact.
+
+    Nothing here is copied out of a report.
+    """
+    rows: list[dict] = []
+    try:
+        from product.live_slice import stage_disclosure, verdict_for
+        from product.live_slice_stage_amendment import ARTIFACT, build, map_only_fingerprint
+
+        map_only = stage_disclosure(n_rows=100, enrich=False, enrich_error=None,
+                                    answer_status="pending")
+        checks_all_green = {k: True for k in (
+            "retrieval_mode_served_is_refresh", "no_cache_hits_on_the_network_leg",
+            "adapter_made_network_calls", "independent_probe_saw_the_network",
+            "enrichment_never_moved_a_point_already_on_the_map", "map_has_rows",
+            "every_row_has_xy", "every_row_has_a_source_link", "bundle_validates",
+            "page_contract_ok")}
+        checks_all_green["canonical_chain_ran"] = map_only["canonical_chain"]
+        rows.append(_pass_or_fail(
+            verdict_for(checks_all_green, map_only) != "PASS",
+            "the live-slice instrument can no longer publish a chain PASS for a "
+            "map-only run (every other check green is exactly the 39187482610 shape)",
+            {"stage_disclosure": map_only,
+             "checks_all_green": checks_all_green,
+             "verdict_returned": verdict_for(checks_all_green, map_only)},
+            "product/live_slice.py::verdict_for"))
+
+        full = stage_disclosure(n_rows=100, enrich=True, enrich_error=None,
+                                answer_status="ready")
+        rows.append(_pass_or_fail(
+            verdict_for({"page_contract_ok": True,
+                         "canonical_chain_ran": full["canonical_chain"]}, full) == "PASS",
+            "a full chain run is still reported as PASS, so the disclosure did not "
+            "demote the narrowest real success",
+            {"stages": full},
+            "product/live_slice.py::verdict_for"))
+
+        live = build()
+        summary = live.get("summary") or {}
+        rows.append(_pass_or_fail(
+            not live.get("failures"),
+            "every committed live-slice record agrees with its own bytes, or is "
+            "named by the amendment as a pre-fix record",
+            {"failures": live.get("failures"), "verdict": live.get("verdict"),
+             "summary": summary},
+            "product/live_slice_stage_amendment.py::build"))
+
+        rows.append(_pass_or_fail(
+            int(summary.get("n_records") or 0) > 0
+            and int(summary.get("n_amended_map_only") or 0) >= 1,
+            "the sweep sees the timestamp-named record that a CYCLE_*-only glob "
+            "missed, and names it rather than dropping it",
+            {"n_records": summary.get("n_records"),
+             "amended_artifacts": summary.get("amended_artifacts"),
+             "n_staged": summary.get("n_staged")},
+            "product/live_slice_stage_amendment.py::build"))
+
+        if ARTIFACT.exists():
+            committed = json.loads(ARTIFACT.read_text(encoding="utf-8"))
+            current = json.dumps(committed.get("records"), sort_keys=True) == json.dumps(
+                live.get("records"), sort_keys=True)
+            rows.append(_pass_or_fail(
+                current,
+                "the committed stage-disclosure amendment is current against a "
+                "fresh recomputation (a hand-edited artifact is a FAIL)",
+                {"artifact": str(ARTIFACT.relative_to(REPO_ROOT)),
+                 "matches_fresh_recomputation": current},
+                "product/live_slice_stage_amendment.py::build"))
+        else:
+            rows.append(_fail("the committed stage-disclosure amendment exists",
+                              f"missing {ARTIFACT}"))
+    except Exception as exc:
+        rows.append(_fail("the live-slice stage disclosure re-derives",
+                          f"{type(exc).__name__}: {exc}"))
+
+    return rows
+
+
 def check_git_scope() -> list[dict]:
     """The lane's own write scope, checked the same way the workflow checks it."""
     code = "product"
@@ -1212,6 +1307,7 @@ CHECKS: dict[str, Callable[[], list[dict]]] = {
     "test_delta": check_test_delta_attribution,
     "guards": check_committed_guards,
     "handoff": check_v57_handoffs,
+    "live_slice_stages": check_live_slice_stage_disclosure,
     "scope": check_git_scope,
 }
 
