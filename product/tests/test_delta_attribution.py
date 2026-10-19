@@ -89,8 +89,16 @@ from product import test_delta_attribution as tda  # noqa: E402
 #: CYCLE_39160624523_GATE.json D1): regenerate the attribution for the new tree
 #: and repoint the pin with a recorded reason. The old artifacts are neither
 #: deleted nor rewritten; only which artifact THIS module checks moves.
+#:
+#: REPOINT RECORD (cycle 39262796670): the working tree gained 17 tests
+#: (``product/tests/test_concept_seed.py``, the NLCS-1 concept-seed arm
+#: integration), so the pin moved from CYCLE_39202428670 to this cycle's
+#: regenerated artifact CYCLE_39262796670 (base 9727a45, head 3e18eb7, working
+#: tree 1242 collected, delta +17 uncommitted). The prior artifact was already
+#: stale by one collected test on the accepted tip; the regeneration closes both.
+#: The old artifact stays on disk untouched.
 ATTRIBUTION = (ROOT / "results" / "product" / "regression"
-               / "CYCLE_39202428670_test_delta_attribution.json")
+               / "CYCLE_39262796670_test_delta_attribution.json")
 #: The previous pin, kept as a readable constant so a reader can diff the two
 #: artifacts instead of trusting prose about them. Its own predecessor
 #: (CYCLE_39169296466_test_delta_attribution.json) is likewise still on disk.

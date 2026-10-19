@@ -28,6 +28,7 @@ from .adversarial_retrieval import (
     plan_adversarial_queries,
 )
 from .counter_anchor import apply_anchor_labels
+from . import concept_seed
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RETRIEVAL_ROOT = REPO_ROOT / "frontier" / "frontier-query-retrieval"
@@ -531,6 +532,81 @@ def _map_bundle(product_bundle: dict, started_at: float, n_clusters: int = 0,
     )
 
 
+def _concept_seed_search_fn(mode: str):
+    """One additive OpenCaseLaw search per NLCS variant, via the accepted adapter.
+
+    Reuses the accepted ``ocl_adapter`` client/transport and normaliser, so the
+    content-addressed cache and request-key derivation are the adapter's own;
+    ``frontier/**`` is never edited.  Exactly one ``/decisions`` search is issued
+    per variant (no lexicon expansion, no language filter, no citation or leading
+    stage), which is the accepted arm's own "identical to the baseline search
+    except the query string" contract.
+    """
+    from ocl_adapter import OCLClient, make_transport  # noqa: E402  (path set above)
+    from ocl_adapter.normalize import normalize_search_hit  # noqa: E402
+
+    def search_fn(query_text: str) -> list[dict]:
+        cfg = _retrieval_config(50, mode).replace(
+            stages=("search",),
+            language_filters=(),
+            max_expansion_terms=0,
+            max_candidates=50,
+            max_pages_per_variant=1,
+            max_requests=2,
+            citation_expansion=False,
+            leading_cases=False,
+        )
+        client = OCLClient(make_transport(cfg), cfg, clock=time.time)
+        payload = client.search_page(query=query_text, limit=cfg.page_size, offset=0)
+        rows: list[dict] = []
+        for raw in payload.get("results") or []:
+            rec = normalize_search_hit(
+                raw,
+                channel=concept_seed.CHANNEL,
+                query=query_text,
+                variant_id="nl_concept_seeded",
+                page=0,
+                offset=0,
+            )
+            if rec:
+                rows.append(rec)
+        return rows
+
+    return search_fn
+
+
+def _apply_concept_seed_arm(candidate: dict, query: str, *, mode: str) -> tuple[dict, dict]:
+    """Apply the accepted NLCS-1 arm to a candidate bundle, live/refresh only.
+
+    Offline/fixture mode never issues the extra search and never rewrites the
+    bundle, so the frozen offline slice and every committed packet byte are
+    unchanged.  The arm is strictly additive and fail-open: any exception leaves
+    the baseline candidate bundle and an empty plan untouched.
+    """
+    empty_plan = {
+        "channel": concept_seed.CHANNEL,
+        "enabled": False,
+        "language": None,
+        "under_covered": [],
+        "variants": [],
+        "model_calls": 0,
+        "network_calls": 0,
+    }
+    if mode not in ("live", "refresh"):
+        return candidate, empty_plan
+    try:
+        decisions = [c for c in (candidate.get("candidates") or []) if isinstance(c, dict)]
+        plan = concept_seed.plan_concept_seed(query, decisions)
+        if not plan.get("enabled"):
+            return candidate, empty_plan
+        candidate = concept_seed.augment_candidates(
+            candidate, plan, search_fn=_concept_seed_search_fn(mode)
+        )
+        return candidate, plan
+    except Exception:
+        return candidate, empty_plan
+
+
 def run_query_initial(query: str, top_n: int = 150, *, retrieval_mode: str = "live") -> dict:
     """Fast phase: retrieve/dedupe and return the query-conditioned map.
 
@@ -543,10 +619,15 @@ def run_query_initial(query: str, top_n: int = 150, *, retrieval_mode: str = "li
     top_n = max(MIN_LIVE_RESULTS, min(MAX_RESULTS, int(top_n))) if retrieval_mode != "fixture" else max(40, min(200, int(top_n)))
     t_upstream_start = time.time()
     candidate = _retrieve(query, top_n, mode=retrieval_mode, hydrate_top=0)
+    # Accepted NLCS-1 concept-seeded arm (factory requirement 21): strictly
+    # additive, live/refresh only, one frozen full-sentence search per
+    # under-covered concept.  Offline/fixture mode is untouched.
+    candidate, concept_seed_plan = _apply_concept_seed_arm(candidate, query, mode=retrieval_mode)
     upstream_s = time.time() - t_upstream_start
     if not candidate.get("candidates"):
         raise RuntimeError("OpenCaseLaw retrieval returned no decisions")
     product = _candidate_to_product(candidate)
+    product = concept_seed.apply_concept_seed(product, concept_seed_plan)
     # Remote retrieval deliberately over-fetches across multilingual, leading-
     # case and citation channels.  The product must nevertheless honour top_n:
     # rerank locally against the user's question, then map only the strongest

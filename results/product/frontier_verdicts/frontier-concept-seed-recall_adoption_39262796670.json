@@ -1,0 +1,99 @@
+{
+  "schema": "product-frontier-recall-adoption/1",
+  "team_id": "frontier-concept-seed-recall",
+  "mount_path": "/tmp/lex_accepted/frontier/frontier-concept-seed-recall",
+  "mount_present": true,
+  "decision": "ADOPT",
+  "reason": "The accepted team outcome is OUTCOME_A_COMPONENT with zero frozen-gate regression, zero model calls and zero owner cost, and its integration contract's drop-in path is additive and bounded (one frozen full-sentence NLCS-1 search per under-covered concept, capped at 2, emitted only for the question's own language). Adopting it is squarely the product's retrieval-first doctrine: it can only ADD candidate rows behind the existing bundle seam, never remove, re-rank or re-label one. The measured benefit is modest (one cell-level frozen-authority recovery, corporate-criminal-liability::fr 0/2 -> 1/2, with the coverage axis honestly null), so this is adopted as a cheap additive recall arm, not as a bar claim.",
+  "failures": [],
+  "mount_git_head": "6702d11950852b4be6a54314d58c9ad120369a6f",
+  "integration_contract_present": true,
+  "integration_contract_sha256": "961a195f334f3c901451df81567466138ae9a949ee20a7ebff16f73c4ab0af6b",
+  "harness_results_present": true,
+  "harness_results_sha256": "ebed6952d51e9ba42a07291866f0d5a2fe1022833b61bb102e85be9281b908b7",
+  "rules_present": true,
+  "rules_sha256": "311ac6d0913f22d3606d6fd4772271b00116629470741c4fc6a1bdb506cc928a",
+  "nlcs_module_present": true,
+  "nlcs_module_sha256": "306873c356b5a3cd06b12873d7e90d16922964125cafe690d005580851a1f7b8",
+  "team_state": {
+    "cycle_status": "COMPLETE",
+    "evidence_tier": "EXPLORATORY",
+    "outcome": "OUTCOME_A_COMPONENT",
+    "continue_recommended": false,
+    "accepted_commit": null,
+    "accepted_run_id": null
+  },
+  "accepted_audit_gate": {
+    "file": "results/audit/frontier/frontier-concept-seed-recall/CYCLE_39251875368_GATE.json",
+    "gate": "PASS",
+    "safe_to_integrate": true,
+    "required_fixes": [],
+    "sha256": "213bcecc08d1f035075ac84fd24eeafe57886b6a5a9077e21224151037589f0f"
+  },
+  "numbers_from_contract": {
+    "measured_effect": "OUTCOME_A_COMPONENT",
+    "recall_axis": {
+      "outcome": "ONE RECOVERY",
+      "cell": "corporate-criminal-liability::fr",
+      "accepted_gate_before": "FAIL 0/2 (bge_BGE_142_IV_333, bger_6B_124_2016)",
+      "gate_after": "PASS 1/2 (bge_BGE_142_IV_333 recovered; bger_6B_124_2016 still missing)",
+      "recovered_ids": ["bge_BGE_142_IV_333"],
+      "recovery_disclosure": "bge_BGE_142_IV_333 was ALREADY present in accepted baseline:corporate-criminal-liability:de and counter:corporate-criminal-liability:de pools; 'recovered' means absent from THIS (fr) cell, not newly discovered."
+    },
+    "coverage_axis": {
+      "outcome": "NO EFFECT",
+      "unit": "served::de-kapitalverletzung",
+      "rows_added_to_pool": 6,
+      "rows_carrying_the_concept_added": 0
+    },
+    "frozen_gate_nonregression": {
+      "frozen_files_modified": [],
+      "gates_passing_in_accepted_record": 23,
+      "regressions": [],
+      "improvements": ["authority::baseline_lang_recall::corporate-criminal-liability::fr"]
+    },
+    "runtime_cost": {
+      "added_searches_per_question_at_adoption": "one per under-covered concept, capped at 2; 0 for a question whose retrieved set already covers all of its concepts",
+      "model_calls": 0,
+      "paid_api": false,
+      "owner_provisioning": "none"
+    }
+  },
+  "what_product_did": {
+    "decision": "ADOPT",
+    "module": "product/query/concept_seed.py",
+    "vendored_component": "product/query/nlcs.py",
+    "vendored_component_note": "byte-identical vendored copy of the accepted frontier/frontier-concept-seed-recall/nlcs.py (accepted sha256 306873c3...); the only edit is a provenance header. The accepted branch is not merged into lab/product and the module is pure (re + unicodedata), so importing it from the mount would make the product depend on a path outside its tree.",
+    "seam": "product/query/pipeline.py::run_query_initial -> _apply_concept_seed_arm",
+    "wiring": "live/refresh mode only; the arm plans variants from the retrieved set, issues one additive OpenCaseLaw search per variant through the accepted ocl_adapter client/transport (so the content-addressed cache and request-key derivation are the adapter's own), merges new rows under the concept_seed.nlcs channel, and records provenance. Offline/fixture mode is inert, so the frozen offline slice and every committed packet byte are unchanged.",
+    "additivity_guarantee": "existing candidates are never removed, re-ranked or re-labelled; a failed search leaves the baseline untouched (fail-open for retrieval, fail-closed for claims).",
+    "tests": "product/tests/test_concept_seed.py (17 passed, offline, no network, no model call)"
+  },
+  "product_side_live_smoke": {
+    "status": "LOCAL_LIVE_SMOKE_NOT_ACCEPTED",
+    "question": "served::de-kapitalverletzung (accepted question text)",
+    "measured": [
+      {"concept": "kapitalverletzung", "rows_returned": 25, "first_decision_id": "sg_publikationen_BZ.2007.67", "channel": "concept_seed.nlcs", "seconds": 10.41},
+      {"concept": "uberwachungspflicht", "rows_returned": 25, "first_decision_id": "sg_publikationen_BZ.2007.67", "channel": "concept_seed.nlcs", "seconds": 7.56}
+    ],
+    "command": "python3 -c \"... pipeline._concept_seed_search_fn('live') ...\"",
+    "run_id": "39262796670",
+    "commit": "3e18eb79ea6be8d5d853699c6b232881f09c3780",
+    "note": "This is a local live wiring smoke that proves the arm issues its searches and returns channeled rows. It is NOT a re-measurement of the accepted arm and does not move any frozen gate or bar."
+  },
+  "what_product_did_not_do": [
+    "did not edit frontier/** (the accepted adapter, cache, pagination, normalisation and dedup are reused untouched)",
+    "did not edit the frozen RULES, any threshold, rubric, bar or packet byte",
+    "did not touch .github/** (control-plane scope)",
+    "did not wait for or re-dispatch the Frontier team (requirement 21)",
+    "did not classify any decision as supporting/contrary/limiting (the arm issues no counter-authority label)",
+    "did not claim any frozen bar is met or moved, any packet is fit to serve, or any authority is absent from the corpus"
+  ],
+  "supersedes": {
+    "prior_decision": "NONE (no prior decision artifact for this team)",
+    "why": "This is the first Core Product decision on the frontier-concept-seed-recall contract; the contract arrived with the accepted mount and silent non-consumption is not permitted."
+  },
+  "claim_ceiling": "No artifact may assert that a map helps a jurist, that any authority is absent from the corpus, that any frozen bar is met or moved, or that any packet is fit to serve. Usefulness remains the human product gate's question and admission remains fail-closed. Concept-coverage counts are lexical coverage of a retrieved set, not a legal conclusion; a zero count is a retrieval signal, not proof of corpus absence.",
+  "decided_by_run": "39262796670",
+  "product_commit_of_record": "3e18eb79ea6be8d5d853699c6b232881f09c3780"
+}
