@@ -1,0 +1,153 @@
+{
+  "schema": "lex-evaluation-hypothesis/1",
+  "id": "CROSS_RUN_STABILITY_SWEEP_HYPOTHESIS_V1",
+  "lane": "evaluation",
+  "direction_version": 58,
+  "github_run": "39322925971",
+  "frozen_before_claim_bearing_execution": true,
+  "why_this_question": "v58 ordered work (2) is STAND READY to falsify-or-pass the next served packet without pre-empting it. No new served packet exists (39275520116 is BUILT_NOT_SERVED, verdict WITHHELD_PENDING_SERVE), so a zero-delta cycle is forbidden (rc-67 class, observed on producer run 39322068783). The durable stand-ready delta of cycle 39315343123 established finding P1 — FR counter-authority RUN-INSTABILITY — by comparing two committed live runs of the SAME FR query. That comparison was pair-specific and counter-stage-only. The falsifiable question this cycle answers is whether P1 is an ISOLATED counter-stage defect or a SYSTEMIC property of the product's live query pipeline (retrieval set, ranking, clusters, language composition, answer). Product must choose between a determinism fix and a run-to-run disclosure; that choice needs the generalization answer, and it can be answered offline from already-committed artifacts on the accepted product mount.",
+  "hypothesis": "H1: on the accepted product mount, same-query multi-run groups exhibit VERDICT DIVERGENCE under the ACCEPTED mapping-free gate contract in at least one group, i.e. the accepted run-instability is not confined to the single FR counter pair already published. H0 (falsifying outcome, first-class): every applicable accepted gate returns the SAME verdict for every run inside every same-query group, i.e. P1 does not generalize beyond its originally published pair and the instability is bounded to the counter stage of one query.",
+  "baseline": "The accepted per-run stand-ready measurement of cycle 39315343123 (results/evaluation/stand_ready_multilingual_probe/39315343123.json), which evaluated each pinned live bundle INDEPENDENTLY and never compared two runs of the same query. The baseline verdict set is therefore the per-bundle verdicts recorded there: 3 PASS-class and 1 FALSIFIED (CYCLE_39139648336_F1F2_VERIFY, sr::counter_authority_surface n_issued=0).",
+  "product_decision_unlocked": "If the sweep generalizes (exit 1), Product owes either deterministic counter/retrieval behaviour for a fixed query+corpus or an explicit run-to-run instability disclosure beside the existing coverage-gap disclosure, and the disclosure must be scoped to the named groups. If the sweep does not generalize (exit 0), P1 is RETAINED as an isolated pair finding and Product may scope its response to that query only — the negative result is first-class evidence and must be published beside the accepted P1.",
+  "population_pinned_before_execution": {
+    "product_mount_head": "6c4b8f7d8100871499de0c8465f959d9bab29215",
+    "product_mount_paths": ["/tmp/lex_accepted/product", "$LEX_ACCEPTED_PRODUCT"],
+    "selection_rule": "EVERY committed file pair (X.json, X_bundle.json) under results/product/live_slice/ on the pinned mount head. No run may be added, dropped or substituted after this freeze.",
+    "live_runs": [
+      {
+        "run": "20261019T022100Z",
+        "record": "results/product/live_slice/20261019T022100Z.json",
+        "record_sha256": "a2ec3ea36b4ada4a88815a90a7bbd7dfcf255049dbe6a42ded47aaf8795423f4",
+        "bundle": "results/product/live_slice/20261019T022100Z_bundle.json",
+        "bundle_sha256": "c652f6af0cbdb18ca8b5db03106913166925a46e0fb029361fbf04025b093d85",
+        "query_text": "Kündigung Mietvertrag Mietrecht"
+      },
+      {
+        "run": "20261019T153744Z",
+        "record": "results/product/live_slice/20261019T153744Z.json",
+        "record_sha256": "4d523bc2ac7252441fb4ace81093edc496bbb86070cb754fa77357540a78956e",
+        "bundle": "results/product/live_slice/20261019T153744Z_bundle.json",
+        "bundle_sha256": "b49f90370913735478217dd234a1cb7a2dcee41eb33873f6fc148331c0cf85e3",
+        "query_text": "Kündigung Mietvertrag Mietrecht"
+      },
+      {
+        "run": "CYCLE_39128456801_live",
+        "record": "results/product/live_slice/CYCLE_39128456801_live.json",
+        "record_sha256": "53b9c07a0e75f72bf5460fe57874b1acd96cd2a952b12a59835645d1d2033c48",
+        "bundle": "results/product/live_slice/CYCLE_39128456801_live_bundle.json",
+        "bundle_sha256": "6982534ccf1105340903018872bb9092370a9121895d2df3b7d438551d0fca8b",
+        "query_text": "Responsabilite penale de l'entreprise selon l'art. 102 CP"
+      },
+      {
+        "run": "CYCLE_39139648336_F1F2_VERIFY",
+        "record": "results/product/live_slice/CYCLE_39139648336_F1F2_VERIFY.json",
+        "record_sha256": "3d7e3a70f59a32b8f509fa2fedfd80aa08002f207e555733d756bec4a0593e5a",
+        "bundle": "results/product/live_slice/CYCLE_39139648336_F1F2_VERIFY_bundle.json",
+        "bundle_sha256": "fcb80b693560a38f2ef8b7ea1bbe909ca4ab233c7961e7ea8b51ae0467c3294a",
+        "query_text": "Responsabilite penale de l'entreprise selon l'art. 102 CP"
+      }
+    ],
+    "expected_groups": {
+      "grouping_rule": "runs group by unicodedata.normalize('NFKC', query_text).strip() equality; the query text is read from the RECORD file's top-level 'query' field (string, or dict['text'] when the field is an object)",
+      "expected_n_groups": 2,
+      "expected_group_sizes": {"de-kundigung-mietvertrag": 2, "fr-responsabilite-102cp": 2}
+    }
+  },
+  "gates_reused_not_rederived": {
+    "counter_authority_surface": {
+      "imported_from": "evaluation.mapping_free_recall_falsifier.counter_authority_surface",
+      "scored_statuses_source": "evaluation/frozen_bars/RULES_LABEL.json rubric.scored_statuses (read-only)",
+      "scored_statuses": ["candidate-limiting", "candidate-contrary", "contrary_or_exception", "limiting"],
+      "gate_contract": "n_issued >= 1 AND n_with_empty_evidence == 0"
+    },
+    "counter_stage_applicability": {
+      "imported_from": "evaluation.stand_ready_multilingual_probe.counter_stage_applicability",
+      "qualification": "instrument-qualified under factory-wide requirement 25: a gate whose stage never ran is NOT_APPLICABLE (passed=null), never a pass and never a fail"
+    },
+    "sha256_file_and_numeric_environment": {
+      "imported_from": "evaluation.mapping_free_recall_falsifier"
+    },
+    "frozen_inputs_rehashed_before_execution": {
+      "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+      "evaluation/retrieval_gate/frozen_retrieval_benchmark.json": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+      "evaluation/retrieval_gate/FREEZE_RECORD.json": "b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49",
+      "evaluation/MAPPING_FREE_RECALL_FALSIFIER_FREEZE_RECORD.json": "431aa87b8abeaec3b849d66bce7c0d6b1bcb1ea0fdd5f31bef4b3da122d229f5",
+      "results/evaluation/retrieval_benchmark/39117425713.json": "f976d53a2b8481db42bb1d0dde5f673b1b5bd5284d2b6c5fe6dcc3115cdebd75"
+    },
+    "reused_instruments_pinned": {
+      "evaluation/mapping_free_recall_falsifier.py": "58a2e77a66bb60385a53185e9426447e8465da9105e8a0cb8945d5fd77bfb302",
+      "evaluation/stand_ready_multilingual_probe.py": "1cb06ca42e8067cd49da8db0d925de2fc7365a4786a2ecb4aef870f86584f562"
+    },
+    "f3b_carry_forward_freshness_only": {
+      "note": "re-hashed for freshness, NOT re-opened and NOT re-litigated (accepted proof cycle 39287274485)",
+      "results/evaluation/f3b_restore_disposition/39287274485.json": "6be112d65143116d40082e743d468ad67d317e206402c8d2cabeb7162f29c0f2",
+      "results/evaluation/frozen_cache_integrity/39164900837.json": "58a273de260770c12dcdc6f645b06b71f95a672757ae3cfa03e870be4bd5b11e",
+      "results/evaluation/frozen_cache_integrity/39164900837_pre_restore.json": "47be772a9d3d1fcf30185b7ed2bed45603df468c82cf4956e498151e296a17f0",
+      "results/evaluation/frozen_cache_integrity/39164900837_post-restore-9b61dcf8.json": "d02255b8d11d7bce9b4529349e4e87de7b32a7d06311dfaa3aefa06f5de00032"
+    },
+    "accepted_baseline_measurement": {
+      "results/evaluation/stand_ready_multilingual_probe/39315343123.json": "8ca32765999f5089d57b6e53f0fc29ded5f96397351207dba0844cbf1a1ed324"
+    }
+  },
+  "metrics_frozen": {
+    "claim_bearing_metric": "VERDICT DIVERGENCE under the reused accepted gate contract: for each same-query group and each applicable gate, compute the gate once per run; the group is DIVERGENT iff the per-run verdicts (pass / fail, with NOT_APPLICABLE never comparable to a verdict) are not all equal.",
+    "reported_only_diagnostics": [
+      "decision_id set overlap per group pair: |A|, |B|, |A∩B|, |A\\B|, |B\\A|, jaccard (no threshold is applied to jaccard)",
+      "rank displacement on common decision_ids: min/max/mean absolute |rank_A - rank_B| and the count of common ids whose rank changed",
+      "cluster assignment drift on common decision_ids: n_common, n_reassigned, reassigned_share",
+      "language distribution per run and the signed per-language delta",
+      "counters block diff: by_status map diff, counter_authorities delta, evidenced_counter_ids added/removed",
+      "answer presence per run, answer.status, sha256 of answer.prose when present"
+    ],
+    "no_new_thresholds": "ZERO thresholds, bars, stoplists, tokenisers or score floors are introduced. Every diagnostic above is published REPORTED-ONLY and can never flip the exit code."
+  },
+  "verdict_contract": {
+    "exit_0": "STABILITY_NOT_GENERALIZED — every applicable accepted gate returns the same verdict for every run inside every same-query group; P1 is RETAINED as an isolated pair finding; diagnostics published REPORTED-ONLY.",
+    "exit_1": "RUN_INSTABILITY_GENERALIZED — at least one same-query group is DIVERGENT on at least one applicable accepted gate; the group and gate are named; the originally published P1 pair is reported beside, never replaced.",
+    "exit_2": "ENVIRONMENT_OR_VACUOUS — frozen-input pin drift, product-mount-head drift, any population digest mismatch, fewer than 2 same-query groups with >= 2 runs, no group in which the counter stage ran in >= 2 runs, or any non-vacuity control failing. Never a pass, never a bar-met."
+  },
+  "falsification_rule": {
+    "applies_to": "each same-query group, each gate",
+    "same_query_groups_only": "two runs are compared ONLY when their normalised query text is equal; a cross-query comparison is forbidden and, if attempted, must be labelled NOT_A_SAME_QUERY_PAIR",
+    "not_applicable_handling": "if either run's gate is NOT_APPLICABLE, the pair leg is NOT_APPLICABLE (passed=null) and cannot count toward exit 1 nor toward exit 0",
+    "diagnostics_never_gate": "jaccard, rank displacement, cluster drift and language delta can NEVER change the exit code"
+  },
+  "non_vacuity_designs": [
+    {
+      "control": "V1_divergence_detector_must_fire",
+      "design": "synthetic two-run group, identical except run B drops the single evidenced 'candidate-limiting' row",
+      "must_hold": "the group is DIVERGENT on counter_authority_surface (run A passes, run B fails)"
+    },
+    {
+      "control": "V2_identical_runs_must_not_fire",
+      "design": "synthetic two-run group whose two runs are byte-equal in every field the instrument reads",
+      "must_hold": "the group is NOT divergent on any gate and every reported-only delta is exactly zero"
+    },
+    {
+      "control": "V3_not_applicable_is_never_a_verdict",
+      "design": "synthetic two-run group in which both runs record stages_executed.counter_authority=false",
+      "must_hold": "the counter leg is NOT_APPLICABLE for the pair and contributes to neither exit 0 nor exit 1"
+    },
+    {
+      "control": "V4_grouping_is_discriminating",
+      "design": "the frozen population of 4 runs must partition into exactly 2 groups of 2 under the grouping rule",
+      "must_hold": "n_groups == 2 and every group size == 2"
+    },
+    {
+      "control": "V5_counter_stage_actually_ran_in_two_runs_of_one_group",
+      "design": "at least one frozen group must contain >= 2 runs whose counter gate is applicable",
+      "must_hold": "the instrument is capable of testing counter-stage stability on real, not synthetic, input"
+    }
+  ],
+  "claim_ceiling": "This sweep establishes exactly one thing: on the digest-pinned live runs of accepted product head 6c4b8f7d, whether the ACCEPTED mapping-free gate verdicts are identical across runs of the same query, with retrieval/ranking/cluster/language deltas published REPORTED-ONLY beside that single claim. It does NOT compute any verdict on the unserved packet 39275520116 (still WITHHELD_PENDING_SERVE). It does NOT move the frozen absolute LABEL_SOUND or GEOMETRY_SOUND bars, which stay REPORTED-ONLY. It does NOT lift the accepted DO-NOT-SERVE order on 38839347028 nor DO-NOT-SERVE-UNCHANGED on rebuilt-39027045675. It does NOT re-score any Frontier candidate and rebuilds nothing. It does NOT claim the map helps a jurist. It runs no universal-174k benchmark. human_gate_ready stays false; admission stays fail-closed; owner_decision_required stays false.",
+  "prohibited": [
+    "any verdict, gate or admission record on packet 39275520116 or any other packet",
+    "any new threshold, bar, stoplist or score floor",
+    "editing, regenerating or re-tuning evaluation/frozen_bars/RULES_LABEL.json, RULES_GEOMETRY.json or the frozen retrieval benchmark",
+    "rebuilding or re-dispatching any Frontier team or component",
+    "any owner ask, owner card, ready_for_owner_session=true or human_gate_ready=true",
+    "rerunning any universal-174k geometry benchmark",
+    "overwriting or deleting any accepted or historical artifact"
+  ]
+}
