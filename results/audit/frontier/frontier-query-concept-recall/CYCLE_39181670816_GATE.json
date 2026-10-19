@@ -1,0 +1,134 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "No artifact may assert that a map helps a jurist, that any authority is absent from the corpus, that any frozen bar is met or moved, or that any packet is fit to serve. Usefulness remains the human product gate's question and admission remains fail-closed. Concept-coverage counts are lexical coverage of a retrieved set, not a legal conclusion, and a zero count is a retrieval signal, not proof of corpus absence.",
+  "evidence_summary": {
+    "cycle_under_audit": {
+      "run_id": 39181670816,
+      "team_id": "frontier-query-concept-recall",
+      "charter_version": 1,
+      "direction_version": 57,
+      "mode": "OPERATIONAL RESUME of a charter already terminal and already audited PASS at cycle 39178441123",
+      "head_commit": "2779d513ff5a8428f69b61bd40ecbb31348c49b6",
+      "files_changed": [
+        "A frontier/frontier-query-concept-recall/closure.py",
+        "A frontier/frontier-query-concept-recall/run_harness.py",
+        "A reports/frontier/frontier-query-concept-recall/CLOSURE_39181670816.md",
+        "A results/frontier/frontier-query-concept-recall/closure_verification.json",
+        "M state/frontier/frontier-query-concept-recall.json"
+      ],
+      "claim_bearing_numbers_changed": false,
+      "network_calls": 0
+    },
+    "auditor_independent_recomputation": {
+      "freeze_ordering": "VERIFIED from real commit times. RULES.json last changed at ff5933f1 = 2026-10-18T21:25:57Z; first canonical measurement commit 6c7b8a7 = 2026-10-18T22:07:18Z; blob 408f6ad2 at ff5933f1 is byte-identical to the blob at HEAD. Strictly before, no post-hoc threshold edit.",
+      "canonical_rules_bytes": "sha256 c5447bac0605a8bcf8c3d1820bee56a5bb0e814365978ec1fa12ac189776ee9a confirmed identical in frontier/frontier_query_concept_recall/RULES.json and results/frontier/frontier-query-concept-recall/RULES.json",
+      "latency_budget_breach": "RECOMPUTED DIRECTLY from the 15 committed cache envelopes: n=15, 10 with latency_seconds >= 30.0, max 83.5047721599999 s, sum 600.568 s. Matches the disclosed '10 of 15, max 83.5 s, sum 600.6 s' exactly. Breach is real, named, and correctly attributed to the layer rather than to the replay.",
+      "record_diff_audited_vs_published": "RECOMPUTED: harness_results.json vs harness_results_39179862363.json differ only under /verdict (541 leaves), /regression_check (240) and /resume_provenance (11). baseline_reproduction, served_questions, frozen_legs, latency_budget and input_integrity are byte-identical between the two records.",
+      "outcome_bearing_verdict_leaves": "IDENTICAL across audited and published records: outcome=OUTCOME_B_BOUNDED_NEGATIVE, accepted_baseline_reproduced=true, improved_fr_it_cells=0, reduced_under_covered_questions=0, regressed_gates=[], any_vacuous=true, failing_fr_it_cells_total=6. The only published-only verdict key is acceptance_test_5_non_vacuity, a disclosure field, not a measurement.",
+      "bounded_negative_recomputation": "Confirmed in results/frontier/frontier-query-concept-recall/harness_results_39179862363.json: de-kapitalverletzung 214 rows, kapitalverletzung 0 and uberwachungspflicht 0 (A0 == A1, 0 rows added); fr-bail-entretien 217->218 rows, it-responsabilita-medica 211->261 rows, both with zero under-covered concepts at baseline; all six fr/it authority cells reproduce recall 0.0 with reproduces_accepted=true; de legs reproduce 1.0 (2/2) and 0.4 (2/5).",
+      "resume_loop_evidence": "VERIFIED via git ls-remote: snapshot branches for runs 39179862363, 39180403192 and 39181469609 all point at the identical commit 7f3f82c5892e0cbca849011332b4fbdfc0cfc16e, i.e. two consecutive dispatches produced zero durable delta. 39181670816 produced 2779d51 (durable delta). Defect A's empirical core is corroborated.",
+      "workflow_defect_corroboration": "VERIFIED in-repo: .github/scripts/run-ox-with-retry.sh:216 LEX_ZERO_DELTA_REPAIR exit 67; .github/workflows/frontier-team.yml:145 zero-durable-delta exit 67; frontier-team.yml:161 Enforce team scope pattern 'frontier/$TEAM/*' (hyphen-only, cannot match frontier/frontier_query_concept_recall/*); frontier-team.yml:32 LEX_MODEL=opencode/x-preview-f-free while state/model_health.json records that model; state/frontier_portfolio.json still carries status=RUN, continue_recommended=true, run_history=[] for this team."
+    },
+    "smoke_tests_run_by_auditor": {
+      "closure_verifier": "FAILS in this environment. `PYTHONPATH=frontier python frontier/frontier-query-concept-recall/closure.py --out <tmp>` aborts with an unhandled FileNotFoundError traceback at closure.py:308 -> replay_offline -> cli.load_bundles on /tmp/lex_accepted/core/product/.../de-kapitalverletzung.bundle.json. No record, no partial output, no ENUM. C1 and C3 evidence already computed is discarded.",
+      "offline_harness_entry_point": "FAILS in this environment for the same reason: run_harness.py:121 -> cli.load_bundles raises FileNotFoundError on the same absent mount. run_harness.py's own ABORT_MESSAGE covers only the empty-cache case, not the absent-input-bundle case.",
+      "root_cause_scope": "The mount dependency is PRE-EXISTING and inherited, not introduced: loader.py hard-codes ACCEPTED_PRODUCT_ROOT=/tmp/lex_accepted/core/product and ACCEPTED_EVALUATION_ROOT=/tmp/lex_accepted/core/evaluation, so the accepted, already-PASSed `python -m frontier_query_concept_recall.cli` and `python -m frontier_query_concept_recall.regression_suite` fail identically here. Charter dependency text explicitly anticipates the absent mount and prescribes fetching origin lab/product at tip 453a873f; no code implements that fallback.",
+      "cache_rooting_defect_C_confirmed": "cli.py:305 `cache = oci.Cache(out_dir / \"cache\")` roots the A1 cache only under --out, so the fresh-`--out` offline fabrication of transport::all_queries_ok described in CLOSURE_39181670816.md section 5 is structurally correct as diagnosed."
+    },
+    "charter_acceptance_tests_this_cycle": {
+      "1_freeze_first": "SATISFIED and independently re-verified from git commit times (RULES ff5933f1 21:25:57Z < measurement 6c7b8a7 22:07:18Z; blob identical to HEAD).",
+      "2_reproduce_accepted_baseline": "SATISFIED, unchanged: accepted_baseline_reproduced=true. A non-reproduction would have been the headline finding; none occurred.",
+      "3_runnable_offline_harness": "SATISFIED for the charter's named harness in a properly mounted environment (verified PASS at 39178441123). The cycle's ADDITIONAL offline-safe entry point run_harness.py does not survive a missing mount (see smoke_tests) - a robustness gap in a convenience wrapper, not a regression of an accepted artifact.",
+      "4_head_to_head": "SATISFIED, unchanged numbers, A0 vs A1 on identical inputs.",
+      "5_non_vacuity": "UNMET AND CEILINGED - correctly NOT claimed as passed. any_vacuous=true; the blanked control ties because the candidate recovered nothing. The verdict carries an explicit claim_forbidden string forbidding any artifact from presenting this run as a charter-clean nine-test OUTCOME_B. Honest null; passed on to the auditor and preserved.",
+      "6_no_regression": "SATISFIED: regressed_gates=[]; duplicate::unique_ids, source::rows_valid, counter::known_counter_recall and transport::all_queries_ok all hold. The per-search latency breach is disclosed, not hidden.",
+      "7_regression_suite": "SATISFIED at 8/8 in the producer environment. The team self-reported that inputs_and_offline.offline_discipline is a tautology (checks ctx.cache.misses==0 while fixtures never issue a search; true with the committed cache and with an absent cache alike). Self-disclosure of a weakness against interest - credited.",
+      "8_integration_contract": "UNCHANGED and not reopened: integration_contract_39179862363.json carries drop_in_path (product/query/pipeline.py :: enrich_query_bundle, strictly additive), required_symbols that exist in the shipped module, measured_layer_spec, runtime_cost with the budget breach named, disclosure_text_for_product_if_ever_reconsidered, claim_ceiling verbatim, product_decision_required=true and silent_non_consumption_not_permitted=true. Superseded hyphen-dir contract is stamped SUPERSEDED at its first line.",
+      "9_zero_out_of_scope_writes": "SATISFIED. All five paths of commit 2779d51 match the frontier-team.yml:161 guard pattern. No write under product/, evaluation/, results/product/, results/evaluation/, state/ (other than state/frontier/<team>.json), directives/, .github/ or product/static/. state/frontier/frontier-query-concept-recall.json records charter_version, direction_version, cycle_status=COMPLETE, evidence_tier=REPRODUCED and run_history."
+    },
+    "claim_ceiling_compliance": "CLEAN. No artifact asserts that a map helps a jurist, that any authority is absent from the corpus, that any frozen bar is met or moved, or that any packet is fit to serve. The bounded cause is explicitly ceilinged ('THIS measured layer as built ... NOT a claim about any other deterministic corpus-derived expansion ... NOT a claim that any authority or concept is absent from the corpus'), and generator_fix_proposed=false with an explicit note that fixing the generator now would be forbidden post-outcome tuning. The structural finding (Outcome A's coverage bar is unreachable: 2 of 3 served questions have zero under-covered concepts at baseline) is honestly disclosed against the team.",
+    "audit_attack_surface": {
+      "post_hoc_metric_tuning": "NONE FOUND. RULES.json blob unchanged ff5933f1 -> HEAD; this cycle introduced no new measurement and no threshold edit.",
+      "benchmark_gaming": "NONE FOUND. Frozen spec 187b0e54 and freeze record b06a2ad0 re-hashed and matched; bars and anchors reused read-only; published numbers sit beside accepted numbers, never in place of them.",
+      "weak_baseline": "NOT PRESENT. The A0 baseline is the shipped product query verbatim, and it REPRODUCES the accepted finding exactly; the team reported its own null against a baseline that is not weakened.",
+      "prettiness_as_quality": "NONE FOUND. No visual/map artifact is offered or evaluated; no layout, geometry or clustering claim is made.",
+      "leakage": "NONE FOUND in the measurement path. A1/A2/A3 arms use separate new query text; accepted cache envelopes are used only for the A0 replay and for the A1 originals, which were live calls whose original latencies are disclosed.",
+      "boilerplate_confounding": "NONE FOUND. The claim ceiling is repeated verbatim in RULES, the verdict, the integration contract, the closure record and the state file, and is honoured in each.",
+      "retracted_evidence_reuse": "NONE FOUND. The retracted 39111232991 parity claim is not built on; the retracted bounded cause is explicitly replaced and labelled withdrawn_prior_cause, with the corrected measured cause ('the layer never asked about the gap'; it mined ZERO corpus vocabulary for kapitalverletzung and uberwachungspflicht) substituted."
+    },
+    "material_findings": [
+      {
+        "id": "F1",
+        "severity": "medium",
+        "blocking": false,
+        "where": "frontier/frontier-query-concept-recall/closure.py:308 and run_harness.py:121",
+        "finding": "Both new runnable artifacts crash with an unhandled FileNotFoundError when the declared /tmp/lex_accepted mounts are absent, discarding all evidence already computed (C1 and C3) instead of degrading to the ENUM path the same file implements for shallow history. state/frontier/frontier-query-concept-recall.json advertises both as runnable.",
+        "why_not_blocking": "The identical dependency is inherited by the accepted, already-PASSed harness and regression suite; this cycle introduced no new fragility class and changed no number. Fix at the next touch or in a maintenance cycle, NOT by another same-charter producer resume."
+      },
+      {
+        "id": "F2",
+        "severity": "medium",
+        "blocking": false,
+        "where": "frontier/frontier-query-concept-recall/closure.py:246",
+        "finding": "The shallow-history guard reads `if is_shallow and len(rules_commits) < 3`, so it refuses only when fewer than three RULES commits are visible. The committed record itself carries history_is_shallow=true with status=PASS and verification_enum_checks=[], i.e. exactly the case the report says is 'reported as ENUM_SHALLOW_HISTORY ... never a bare PASS' was in fact reported as a bare PASS. The report's description of its own behaviour does not match its own artifact.",
+        "why_not_blocking": "The underlying ordering claim is TRUE and was independently re-derived by the auditor from real commit times and blob identity."
+      },
+      {
+        "id": "F3",
+        "severity": "low-medium",
+        "blocking": false,
+        "where": "frontier/frontier-query-concept-recall/run_harness.py:106-108",
+        "finding": "The cache guard is all-or-nothing (`if visible == 0`). With 1-14 of the 15 A1 envelopes present it proceeds, and the accepted harness then treats each missing A1 query as an errored search - re-fabricating precisely the transport::all_queries_ok regression the file was written to eliminate. The fix is incomplete in the partial case.",
+        "why_not_blocking": "Only affects a partial-cache replay; no claim-bearing number depends on it."
+      },
+      {
+        "id": "F4",
+        "severity": "low",
+        "blocking": false,
+        "where": "frontier/frontier-query-concept-recall/closure.py:229-231, 277",
+        "finding": "'all three RULES copies byte-identical' hashes the worktree path and the package path, which are the same file (frontier/frontier_query_concept_recall/RULES.json), so two distinct files are reported as three. A fourth, divergent RULES.json (sha256 deaed7b1, carrying a hand-written frozen_at_commit='HEAD' and different input-bundle digests) sits at frontier/frontier-query-concept-recall/RULES.json and is silently excluded from the check.",
+        "why_not_blocking": "The fourth copy is already correctly dispositioned as LEGACY_DASH_PACKAGE in artifact_hygiene_39179862363.json (sha256 deaed7b1 recorded there), and the substantive claim - the canonical RULES is unchanged and byte-identical in both canonical copies - is verified true."
+      },
+      {
+        "id": "F5",
+        "severity": "low",
+        "blocking": false,
+        "where": "CLOSURE_39181670816.md section 11",
+        "finding": "The row 'Accepted package frontier/frontier_query_concept_recall/ - byte-unchanged' is loose. The nine originally accepted files are byte-identical (auditor verified all nine blobs SAME at bd1b4d7 and HEAD) and the accepted lab branch bd1b4d73 is pristine, but contract_check.py and resume_publish.py were ADDED to that directory after acceptance by run 39179862363 (7f3f82c at 00:21:09Z vs acceptance bd1b4d7 at 00:01:54Z).",
+        "why_not_blocking": "accepted_package_modified=false is literally true for this cycle and true of the accepted branch; no accepted code moved. It is a wording precision item."
+      }
+    ],
+    "control_plane_findings": {
+      "confirmed_by_auditor": [
+        "A_resume_loop: portfolio entry still status=RUN; two consecutive dispatches (39180403192, 39181469609) produced byte-identical snapshots at 7f3f82c; zero-delta guards confirmed at run-ox-with-retry.sh:216 and frontier-team.yml:145. Breaking it requires a director write to state/frontier_portfolio.json, which acceptance test (9) and the scope guard both forbid this team from making.",
+        "B_scope_guard: frontier-team.yml:161 matches 'frontier/$TEAM/*' only; a Python package cannot be named with hyphens, so frontier/frontier_query_concept_recall/ is structurally unreachable for a hyphenated team id.",
+        "C_harness_cache_rooting: cli.py:305 roots the cache at <out>/cache only.",
+        "D_vacuous_offline_assertion: self-reported by the team and consistent with the code.",
+        "E_absent_model_pin: frontier-team.yml:32 pins opencode/x-preview-f-free while state/model_health.json records that model."
+      ],
+      "understated_by_the_team": "Defect B's consequence is reported too weakly. The 'Persist team snapshot' step is `if: always()` and runs `git add -A; git commit; git push --force` (frontier-team.yml:163-173), so a scope-guard failure does NOT prevent out-of-scope content from becoming durable: the run fails, but the snapshot is published anyway. That is exactly how contract_check.py and resume_publish.py came to sit inside the audited package directory, and how the hyphen-dir shadow package survived across runs. Widening the scope pattern is therefore necessary but NOT sufficient; the snapshot step must be scoped too.",
+      "not_independently_verifiable_by_this_auditor": "The per-run job conclusions and failing step names in CLOSURE_39181670816.md section 2 (39178978102 audit-job failure, 39179862363 scope-guard exit 4, 39180403192 and 39181469609 launcher failures) were read from the GitHub Actions API by the producer. No GH_TOKEN is available here; they are consistent with the observable snapshot refs but are taken as reported."
+    },
+    "integration_constraints": [
+      "Do NOT dispatch another Frontier producer cycle for this team. state/frontier/frontier-query-concept-recall.json already reads cycle_status=COMPLETE and continue_recommended=false, which is the correct stop signal; the portfolio entry must be moved off status=RUN by the director. Another resume would be the sixth iteration of the loop this cycle diagnosed.",
+      "The accepted lab branch origin/lab/frontier/frontier-query-concept-recall = bd1b4d7 is pristine. Merging the team snapshot lineage past bd1b4d7 would carry contract_check.py and resume_publish.py (never audited, added after acceptance) plus the LEGACY_DASH_PACKAGE shadow (RULES.json deaed7b1, __init__.py, __main__.py, cli.py, expansion.py, INTEGRATION_CONTRACT.md) into the accepted branch. A maintenance cycle should strip the shadow before or at integration, exactly as artifact_hygiene_39179862363.json recommends.",
+      "The closure package (closure.py, run_harness.py, closure_verification.json, CLOSURE_39181670816.md) is diagnostic and is consumed by no product path. Its defects (F1-F3) must be fixed by whoever next touches these files or in a maintenance cycle; they do not justify a producer resume and do not block integration.",
+      "Product still owes an adoption-or-decline decision on integration_contract_39179862363.json under factory-wide requirement 21. silent_non_consumption_not_permitted=true. The admission-disclosure half of the original finding remains with Core Product, unchanged and undismissed by this negative."
+    ],
+    "outcome": "OUTCOME_B_BOUNDED_NEGATIVE - unchanged by this cycle, correctly determined at the first outcome reached per the charter stop rule, and already accepted at cycle 39178441123.",
+    "bounded_cause_of_record": "MEASURED CAUSE, CEILINGED TO THIS LAYER AS BUILT: the layer never asked about the gap. On de-kapitalverletzung it mined ZERO corpus vocabulary for both under-covered concepts (kapitalverletzung, uberwachungspflicht); its added queries are bare mined-term lists (0, 1 and 50 rows returned on the three served questions), and across all measurable (leg, language) cells the candidate-only channel recovered 0 of 9 missing frozen authority ids. It does not claim the corpus lacks these authorities or concepts; a retrieval miss is a retrieval signal, not proof of absence.",
+    "gate_rationale": "PASS, not REVISE and not BLOCKED. The scientific content of this charter is a null result that is already accepted and that this cycle did not re-measure, re-tune or re-frame. Every claim-bearing number the cycle published reproduces under independent recomputation; the freeze ordering, the latency breach, the baseline reproduction and the zero-delta snapshot evidence were each re-derived by the auditor rather than taken on trust. The team's honesty against interest is notable: acceptance test (5) is left UNMET and CEILINGED rather than adjudicated away, the latency breach is named rather than smoothed, a tautological assertion in its own regression suite is self-reported, and a superseded contract is stamped SUPERSEDED at its first line. The residual defects F1-F5 are concrete and real but none falsifies a claim-bearing number, none breaches the claim ceiling, and none breaches scope. REVISE would be the wrong instrument: the charter is terminal under its own stop rule, the state already reads COMPLETE with continue_recommended=false, and demanding another producer cycle would extend the very resume loop the cycle was written to diagnose. BLOCKED would be wrong too, because nothing here is data-blocked or structurally invalid and no repair needs a human decision - the fix set is small and belongs to a maintenance cycle, not to a research charter.",
+    "audit_reproduction_commands": [
+      "cd /tmp/lex_team && git show -s --format='%H|%aI|%s' ff5933f1 2770b15 6c7b8a7 ce14ae8",
+      "cd /tmp/lex_team && git rev-parse ff5933f1:frontier/frontier_query_concept_recall/RULES.json HEAD:frontier/frontier_query_concept_recall/RULES.json",
+      "cd /tmp/lex_team && sha256sum frontier/frontier_query_concept_recall/RULES.json results/frontier/frontier-query-concept-recall/RULES.json frontier/frontier-query-concept-recall/RULES.json",
+      "cd /tmp/lex_team && git ls-remote origin 'refs/heads/cycle/frontier/frontier-query-concept-recall/*' | sort -k2",
+      "cd /tmp/lex_team && git diff --stat bd1b4d7 HEAD -- 'frontier/frontier_query_concept_recall/'",
+      "cd /tmp/lex_team && python3 frontier/frontier-query-concept-recall/closure.py --out /tmp/opencode/closure_rerun --print-verdict",
+      "cd /tmp/lex_team && python3 frontier/frontier-query-concept-recall/run_harness.py --out /tmp/opencode/rh1 --offline --print-verdict",
+      "cd /tmp/lex_team/frontier && python3 -m frontier_query_concept_recall.regression_suite --out /tmp/opencode/regsuite"
+    ]
+  }
+}
