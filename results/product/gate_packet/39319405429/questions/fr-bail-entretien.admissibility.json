@@ -1,0 +1,234 @@
+{
+  "schema": "product-gate-admissibility/1",
+  "verified_at": "2026-10-19T20:56:59Z",
+  "admissible": true,
+  "blocking_count": 0,
+  "warning_count": 4,
+  "notice_count": 1,
+  "findings": [
+    {
+      "code": "no_counter_authority",
+      "severity": "warning",
+      "detail": "no row carries a counter-authority status: gate question 3 (did the map increase confidence that contrary authority had not been hidden?) cannot be answered on this bundle"
+    },
+    {
+      "code": "map_is_one_mega_cluster",
+      "severity": "warning",
+      "detail": "the largest cluster holds 164/185 decisions (89%, measured from the cluster's own 'size' field; its member_ids list is capped at 50 and covers 50); disclose this to the jurist before they judge the map's structure (frontier-map-semantics owns the accepted measurement of map semantics)",
+      "n_decisions": 185,
+      "mega_cluster": 164,
+      "share": 0.8865,
+      "mega_cluster_share_from_member_ids": 0.2703,
+      "member_ids_truncated": true
+    },
+    {
+      "code": "dominant_cluster_language_composition",
+      "severity": "warning",
+      "detail": "22/164 of the dominant cluster's rows are in the question's language (13%, against the same 25% floor the bundle-level check uses); the dominant cluster holds 164/185 decisions (89% of the map, languages {'de': 68, 'fr': 22, 'it': 37}; 37 of its 164 rows carry no language in the upstream payload); 44 of its 164 rows are un-hydrated (detail_status != search_hit, 27%). Pre-registered expectation: French-language decisions should be a substantial share of the bundle; a bundle that is mostly other-language rows is a retrieval signal, not a success",
+      "cluster_id": 0,
+      "share": 0.1341,
+      "languages": {
+        "de": 68,
+        "fr": 22,
+        "it": 37
+      },
+      "rows_without_language": 37,
+      "unhydrated_rows": 44,
+      "unhydrated_share": 0.2683
+    },
+    {
+      "code": "source_url_host_distribution",
+      "severity": "info",
+      "detail": "148 of 185 rows carry a source_url across 15 court/aggregator hosts; 55 of them (37%) are hosted by the federal courts themselves, the rest on cantonal/municipal or aggregator sites (37 rows have no source_url at all)",
+      "hosts": {
+        "api-justsearche.vs.ch": 1,
+        "ark-cra.rekurskommissionen.ch": 1,
+        "bgs.zg.ch": 2,
+        "bstger.weblaw.ch": 1,
+        "entscheidsuche.ch": 14,
+        "jurisprudence.ne.ch": 1,
+        "justice.ge.ch": 27,
+        "prestations.vd.ch": 1,
+        "relevancy.bger.ch": 7,
+        "search.bger.ch": 48,
+        "www.amtsdruckschriften.bar.admin.ch": 16,
+        "www.fallrecht.ch": 5,
+        "www.findinfo-tc.vd.ch": 11,
+        "www.jurisprudence.vd.ch": 1,
+        "www.sentenze.ti.ch": 12
+      },
+      "schemes": {
+        "http": 20,
+        "https": 128
+      }
+    },
+    {
+      "code": "question_language_underrepresented",
+      "severity": "warning",
+      "detail": "43/185 decisions are in the question's own language (fr); the retrieval may have answered a different question than the one pre-registered",
+      "language": "fr",
+      "in_language": 43,
+      "share": 0.2324
+    }
+  ],
+  "measured": {
+    "n_decisions": 185,
+    "n_clusters": 3,
+    "n_relations": 40,
+    "n_counter_authorities": 0,
+    "n_rows_with_counter_status": 3,
+    "counter_authority_definition": "counter_status not in gate_admissibility.NON_COUNTER_STATUSES (excludes cited / supporting-candidate / context / unclassified / none); n_rows_with_counter_status is the broader provenance count and the two definitions are never interchangeable",
+    "counter_status_histogram": {
+      "cited": 3,
+      "none": 182
+    },
+    "counter_ranks": [],
+    "counter_channels": {},
+    "counter_rows_from_citation_channels": 0,
+    "counter_rows_from_adversarial_channels": 0,
+    "counter_rows_from_product_owned_channels": 0,
+    "counter_ranks_from_product_owned_channels": [],
+    "counter_ranks_beyond_top20_from_product_owned_channels": [],
+    "counter_rows_beyond_top20": 0,
+    "product_owned_channels": [
+      "adversarial.contrary",
+      "adversarial.exception",
+      "adversarial.minority",
+      "adversarial.older_line",
+      "citation.incoming",
+      "citation.outgoing"
+    ],
+    "counter_yield": 0.0,
+    "n_outliers": 5,
+    "languages": {
+      "de": 68,
+      "fr": 43,
+      "it": 37
+    },
+    "largest_cluster_share": 0.8865,
+    "largest_cluster_share_definition": "cluster['size'] / n_decisions",
+    "largest_cluster_member_ids_share": 0.2703,
+    "largest_cluster_member_ids_truncated": true,
+    "cluster_member_ids_cap": 50,
+    "cluster_shares": [
+      {
+        "cluster_id": 0,
+        "label": "iii, bail, loyer, decisione, scheda",
+        "size": 164,
+        "size_share": 0.8865,
+        "member_ids_count": 50,
+        "member_ids_share": 0.2703,
+        "member_ids_truncated": true,
+        "member_ids_omitted": 114
+      },
+      {
+        "cluster_id": 1,
+        "label": "co, locataire, résiliation, bail, cpc",
+        "size": 14,
+        "size_share": 0.0757,
+        "member_ids_count": 14,
+        "member_ids_share": 0.0757,
+        "member_ids_truncated": false,
+        "member_ids_omitted": 0
+      },
+      {
+        "cluster_id": 2,
+        "label": "contrats, cpc, résiliation, travaux, bail",
+        "size": 7,
+        "size_share": 0.0378,
+        "member_ids_count": 7,
+        "member_ids_share": 0.0378,
+        "member_ids_truncated": false,
+        "member_ids_omitted": 0
+      }
+    ],
+    "dominant_cluster": {
+      "cluster_id": 0,
+      "label": "iii, bail, loyer, decisione, scheda",
+      "size": 164,
+      "bundle_size_share": 0.8865,
+      "members": 164,
+      "languages": {
+        "de": 68,
+        "fr": 22,
+        "it": 37
+      },
+      "rows_without_language": 37,
+      "question_language": "fr",
+      "question_language_rows": 22,
+      "question_language_share": 0.1341,
+      "detail_status": {
+        "hydrated": 7,
+        "pending": 37,
+        "search_hit": 120
+      },
+      "unhydrated_rows": 44,
+      "unhydrated_share": 0.2683
+    },
+    "source_url_hosts": {
+      "api-justsearche.vs.ch": 1,
+      "ark-cra.rekurskommissionen.ch": 1,
+      "bgs.zg.ch": 2,
+      "bstger.weblaw.ch": 1,
+      "entscheidsuche.ch": 14,
+      "jurisprudence.ne.ch": 1,
+      "justice.ge.ch": 27,
+      "prestations.vd.ch": 1,
+      "relevancy.bger.ch": 7,
+      "search.bger.ch": 48,
+      "www.amtsdruckschriften.bar.admin.ch": 16,
+      "www.fallrecht.ch": 5,
+      "www.findinfo-tc.vd.ch": 11,
+      "www.jurisprudence.vd.ch": 1,
+      "www.sentenze.ti.ch": 12
+    },
+    "source_url_n_hosts": 15,
+    "source_url_schemes": {
+      "http": 20,
+      "https": 128
+    },
+    "source_url_rows_without_url": 37,
+    "source_url_federal_court_hosted_rows": 55,
+    "source_url_federal_court_hosted_share_of_linked": 0.3716,
+    "source_url_ip_literal_rows": 0,
+    "source_url_null_rows": 37,
+    "source_url_null_rows_explained_by_unhydrated_shells": 37,
+    "canonical_url_populated": 185,
+    "answer_status": "ready",
+    "answer_method": "generative_audit_llm_v2",
+    "answer_cited": 3,
+    "answer_gap_contract_fired": false,
+    "query_concepts": [
+      "defaut",
+      "entretien",
+      "bailleur",
+      "decisions",
+      "distinguent",
+      "grave",
+      "simple",
+      "negligence"
+    ],
+    "query_concept_rows": {
+      "defaut": 29,
+      "entretien": 10,
+      "bailleur": 42,
+      "decisions": 36,
+      "distinguent": 5,
+      "grave": 13,
+      "simple": 14,
+      "negligence": 11
+    },
+    "query_concepts_under_covered": [],
+    "content_sha256": "8656f03af1d0f18ca776599bdf18c2d578e4e0d1eba98fded930b02b382d8392"
+  },
+  "checks": {
+    "min_decisions": 100,
+    "max_decisions": 400,
+    "require_answer": true,
+    "accepted_source_hosts": [
+      "mcp.opencaselaw.ch",
+      "opencaselaw.ch",
+      "www.opencaselaw.ch"
+    ]
+  }
+}
