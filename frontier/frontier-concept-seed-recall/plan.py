@@ -542,6 +542,13 @@ def main(argv: list[str] | None = None) -> int:
         charter_version=args.charter_version,
         direction_version=(int(args.direction_version)
                            if str(args.direction_version or "").isdigit() else None))
+    from . import immutability  # local import: plan.py is also run as a script
+    try:
+        immutability.ensure_untracked(Path(args.out), what="frozen RULES/plan record")
+    except immutability.OverwriteRefused as exc:
+        import sys
+        print(f"::error::{exc}", file=sys.stderr)
+        return 3
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(
         json.dumps(plan, ensure_ascii=False, indent=1, sort_keys=True) + "\n",

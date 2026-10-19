@@ -11,6 +11,7 @@ Run with::
 """
 from __future__ import annotations
 
+import hashlib
 import importlib
 import json
 import sys
@@ -31,6 +32,7 @@ harness = importlib.import_module(f"{PKG}.harness")
 regression = importlib.import_module(f"{PKG}.regression")
 contract = importlib.import_module(f"{PKG}.contract")
 freeze_ordering = importlib.import_module(f"{PKG}.freeze_ordering")
+immutability = importlib.import_module(f"{PKG}.immutability")
 
 TEAM_DIR = REPO_ROOT / "results/frontier/frontier-concept-seed-recall"
 RULES = TEAM_DIR / "RULES.json"
@@ -532,3 +534,111 @@ def test_candidate_query_metadata_is_published_for_independent_rescoring():
         assert "rows" not in q
     assert len(md) == len(res["measurement"]["per_unit"]["served::de-kapitalverletzung"]
                           ["A1_searches"]) + 12
+
+
+# --------------------------------------------------------------------------- #
+# The overwrite defect: a resume must never clobber a committed historical
+# record.  Run 39241812486 rewrote the two wall_seconds fields of the committed
+# harness_results_39237146851.json (sha256 2f7da781... -> ebed6952...); no
+# decision-bearing byte changed, but the overwrite itself broke byte-level
+# auditability and violated the non-overwrite rule.  immutability.py closes
+# that vector for every run-id-scoped artifact, the contract and the frozen
+# RULES.json.
+# --------------------------------------------------------------------------- #
+
+
+def _sha(path: Path) -> str:
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+HISTORICAL_HARNESS_SHA = \
+    "2f7da7816b089339742060744e5baad057fa8cd14022cd163ed04263c1d02a36"
+CLOBBERED_HARNESS_SHA = \
+    "ebed6952d51e9ba42a07291866f0d5a2fe1022833b61bb102e85be9281b908b7"
+
+
+def test_the_real_historical_record_is_protected():
+    """The exact file run 39241812486 clobbered must now be refused."""
+    p = TEAM_DIR / f"harness_results_{RUN_ID}.json"
+    assert _sha(p) == CLOBBERED_HARNESS_SHA, (
+        "the published record changed since this test was written; pin the new "
+        "digest deliberately, never silently")
+    before = _sha(p)
+    with pytest.raises(immutability.OverwriteRefused) as exc:
+        immutability.ensure_untracked(p, what="harness record")
+    assert "--run-id" in str(exc.value)
+    assert _sha(p) == before, "the guard must never modify the file it protects"
+
+
+def test_the_original_pre_clobber_digest_is_recorded_for_auditors():
+    """Pin both versions so the overwrite is visible forever, not smoothed over."""
+    import subprocess
+    out = subprocess.run(
+        ["git", "show", f"6d4e21ffe:results/frontier/frontier-concept-seed-recall/"
+                        f"harness_results_{RUN_ID}.json"],
+        cwd=REPO_ROOT, capture_output=True, check=True).stdout
+    assert hashlib.sha256(out).hexdigest() == HISTORICAL_HARNESS_SHA
+
+
+def test_scratch_run_id_files_are_writable(tmp_path):
+    """A fresh run id in a scratch dir is exactly how verification must run."""
+    immutability.ensure_untracked(tmp_path / f"harness_results_{RUN_ID}.json",
+                                  what="scratch record")
+    (tmp_path / f"harness_results_{RUN_ID}.json").write_text("{}", encoding="utf-8")
+    # and once written-but-untracked it is still writable (not yet historical)
+    immutability.ensure_untracked(tmp_path / f"harness_results_{RUN_ID}.json",
+                                  what="scratch record")
+
+
+def test_history_survives_worktree_removal(history_repo):
+    """A record deleted from the worktree is still a committed record."""
+    p = history_repo / "results/frontier/frontier-concept-seed-recall/harness_results_1.json"
+    _git_in(history_repo, "rm", "-q", str(p.relative_to(history_repo)))
+    _git_in(history_repo, "commit", "-q", "-m", "delete from worktree")
+    assert not p.exists()
+    assert immutability.is_committed_record(p, repo=history_repo) is True
+    with pytest.raises(immutability.OverwriteRefused):
+        immutability.ensure_untracked(p, what="historical", repo=history_repo)
+
+
+def test_untracked_files_in_a_real_repo_are_writable(tmp_path):
+    immutability.ensure_untracked(tmp_path / "brand_new_run.json", what="new record")
+
+
+def test_harness_run_refuses_to_clobber_the_committed_record():
+    """harness.run() itself must refuse, before any computation or write."""
+    p = TEAM_DIR / f"harness_results_{RUN_ID}.json"
+    before = _sha(p)
+    with pytest.raises(immutability.OverwriteRefused):
+        harness.run(RUN_ID, allow_live=False, rules_path=RULES)  # default out dir
+    assert _sha(p) == before
+    # the CLI turns the refusal into a clean error, not a traceback
+    assert harness.main(["--run-id", str(RUN_ID), "--offline"]) == 3
+    assert _sha(p) == before
+
+
+def test_contract_main_refuses_the_committed_contract_and_writes_scratch(tmp_path):
+    p = TEAM_DIR / f"integration_contract_{RUN_ID}.json"
+    before = _sha(p)
+    assert contract.main(["--run-id", str(RUN_ID)]) == 3
+    assert _sha(p) == before
+    scratch = tmp_path / "contract"
+    assert contract.main(["--run-id", str(RUN_ID), "--out-dir", str(scratch)]) == 0
+    derived = json.loads((scratch / f"integration_contract_{RUN_ID}.json")
+                         .read_text(encoding="utf-8"))
+    committed = json.loads(p.read_text(encoding="utf-8"))
+    # decision-bearing re-derivation must be identical
+    derived.pop("how_an_auditor_verifies_this", None)
+    committed.pop("how_an_auditor_verifies_this", None)
+    assert json.dumps(derived, sort_keys=True, ensure_ascii=False) == \
+        json.dumps(committed, sort_keys=True, ensure_ascii=False)
+
+
+def test_plan_main_refuses_to_rewrite_the_frozen_rules(tmp_path):
+    before = _sha(RULES)
+    assert plan.main(["--out", str(RULES)]) == 3
+    assert _sha(RULES) == before
+    scratch = tmp_path / "RULES.json"
+    assert plan.main(["--out", str(scratch)]) == 0
+    assert _sha(scratch) == _sha(RULES), (
+        "the derived plan must still be byte-identical to the frozen rules")

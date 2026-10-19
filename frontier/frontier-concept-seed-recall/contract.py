@@ -11,6 +11,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from . import immutability
+
 TEAM_DIR = Path(__file__).resolve().parents[2] / "results/frontier/frontier-concept-seed-recall"
 
 CLAIM_CEILING = (
@@ -300,10 +302,22 @@ def main(argv: list[str] | None = None) -> int:
     import argparse
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--run-id", required=True)
+    ap.add_argument("--out-dir", default=None,
+                    help="scratch directory for verification re-derivation; the "
+                         "default is the team results dir, where a committed "
+                         "contract is a protected historical record")
     args = ap.parse_args(argv)
+    out_dir = Path(args.out_dir) if args.out_dir else TEAM_DIR
     res = json.loads((TEAM_DIR / f"harness_results_{args.run_id}.json")
                      .read_text(encoding="utf-8"))
-    out = TEAM_DIR / f"integration_contract_{args.run_id}.json"
+    out = out_dir / f"integration_contract_{args.run_id}.json"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        immutability.ensure_untracked(out, what="integration contract record")
+    except immutability.OverwriteRefused as exc:
+        import sys
+        print(f"::error::{exc}", file=sys.stderr)
+        return 3
     out.write_text(json.dumps(build(int(args.run_id), res), ensure_ascii=False,
                               indent=1, sort_keys=True) + "\n", encoding="utf-8")
     print(str(out))

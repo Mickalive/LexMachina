@@ -258,7 +258,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-write", action="store_true",
                     help="classify without touching freeze_ordering.json")
     args = ap.parse_args(argv)
-    build(int(args.run_id), write=not args.no_write)
+    rec = build(int(args.run_id), write=not args.no_write)
+    if args.no_write:
+        print(json.dumps({"evidence_state": rec["evidence_state"],
+                          "freeze_precedes_measurement":
+                              rec["freeze_precedes_measurement"],
+                          "margin_seconds": rec["margin_seconds"],
+                          "final_rules_sha256": rec["final_frozen_rules_sha256"],
+                          "write": "suppressed (--no-write)"}, indent=1))
     return 0
 
 

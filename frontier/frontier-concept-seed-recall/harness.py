@@ -25,12 +25,13 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sys
 import time
 from pathlib import Path
 from typing import Any
 
 from . import inputs as I
-from . import nlcs, plan as plan_mod, regression as reg_mod, replay
+from . import immutability, nlcs, plan as plan_mod, regression as reg_mod, replay
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TEAM_DIR = REPO_ROOT / "results/frontier/frontier-concept-seed-recall"
@@ -927,6 +928,16 @@ def run(run_id: int, out_dir: Path | None = None, *, allow_live: bool = True,
     TEAM_CACHE.mkdir(parents=True, exist_ok=True)
     rules = Path(rules_path) if rules_path else (out / "RULES.json")
 
+    # Immutability gate FIRST: a resume run must never clobber a committed
+    # historical record (see immutability.py; run 39241812486 did exactly that
+    # to harness_results_39237146851.json).  All three run-id-scoped outputs
+    # are checked before any computation or write.
+    for _name in (f"baseline_reproduction_{run_id}.json",
+                  f"harness_results_{run_id}.json",
+                  f"regression_results_{run_id}.json"):
+        immutability.ensure_untracked(out / _name,
+                                      what="run-id-scoped harness record")
+
     t0 = time.time()
     freeze = verify_freeze(rules)
     if not freeze["re_derived_identical"]:
@@ -989,8 +1000,12 @@ def main(argv: list[str] | None = None) -> int:
                     help="cache-only; an uncached variant is recorded as unmeasured")
     ap.add_argument("--rules", default=None)
     args = ap.parse_args(argv)
-    res = run(int(args.run_id), Path(args.out_dir), allow_live=not args.offline,
-              rules_path=Path(args.rules) if args.rules else None)
+    try:
+        res = run(int(args.run_id), Path(args.out_dir), allow_live=not args.offline,
+                  rules_path=Path(args.rules) if args.rules else None)
+    except immutability.OverwriteRefused as exc:
+        print(f"::error::{exc}", file=sys.stderr)
+        return 3
     v = res["verdict"]
     print(json.dumps({"outcome": v["outcome"], "headline": v["headline_sentence"],
                       "budget": res["measurement"]["budget"],

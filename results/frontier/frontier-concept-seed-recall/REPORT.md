@@ -300,10 +300,16 @@ beside this record.
 
 ```bash
 git fetch --unshallow                                  # see section 0
-python3 -m frontier.frontier-concept-seed-recall.plan --out RULES.json   # must match the committed bytes
-python3 -m frontier.frontier-concept-seed-recall.harness --run-id 39237146851 --offline
-python3 -m frontier.frontier-concept-seed-recall.contract --run-id 39237146851
-python3 -m frontier.frontier-concept-seed-recall.freeze_ordering --run-id 39237146851
+python3 -m frontier.frontier-concept-seed-recall.plan \
+    --out /tmp/lex_rules_check.json                    # must match the committed bytes
+python3 -m frontier.frontier-concept-seed-recall.harness \
+    --run-id 39237146851 --offline \
+    --out-dir /tmp/lex_repro \
+    --rules results/frontier/frontier-concept-seed-recall/RULES.json
+python3 -m frontier.frontier-concept-seed-recall.contract \
+    --run-id 39237146851 --out-dir /tmp/lex_repro
+python3 -m frontier.frontier-concept-seed-recall.freeze_ordering \
+    --run-id 39237146851 --no-write
 python3 -m pytest tests/frontier/frontier-concept-seed-recall -q
 ```
 
@@ -311,6 +317,12 @@ The harness refuses to run if the re-derived plan differs from the committed
 RULES.json in any decision-bearing key. `--offline` replays cache-only and
 refuses every uncached query rather than reaching the network. The verifier
 never overwrites a stronger on-disk record with a weaker one.
+
+**Since run 39251875368 these commands take scratch `--out-dir`s on purpose.**
+The run-id-scoped artifacts, the integration contract and the frozen RULES.json
+are committed historical records, and `immutability.py` now refuses to
+overwrite any of them (section 15). A verification run writes BESIDE the
+record, never over it.
 
 ## 14. Independent re-verification (resume cycle 39239903880)
 
@@ -331,3 +343,78 @@ The recovery disclosure was also checked and is accurate, not overstated:
 `counter:corporate-criminal-liability:de`, so "recovered" means *absent from
 this cell*, not newly discovered. The accepted record has 23 passing gates, 11
 failing, 6 not-measurable — matching the published counts.
+
+## 15. Resume-chain diagnosis and the overwrite this record will never make again (run 39251875368)
+
+This charter's work has been complete since run 39237146851, yet the workflow
+has dispatched four operational resumes of it (39239903880 → 39241812486 →
+39248146255 → 39251875368). This cycle verified the record and closed the
+defect the loop produced. No new measurement, no new hypothesis, no tuning.
+
+### 15a. The record still reproduces, decision-byte-for-byte
+
+Offline re-run over the committed envelopes (`34/34`, `network_calls=0`):
+every decision-bearing byte of `harness_results_39237146851.json` recomputes
+identically — canonical sha256
+`f5dac1c263ef829b7ae8edb0030fb7e7921e01628fcc031162de0f8e2ec342da`
+on both the published record and the re-run. Freeze ordering re-verified
+`COMPLETE / true / 345.0 s` from real git commit times. All 13 accepted
+inputs re-hashed to their pinned digests: 0 mismatches, 0 missing.
+`pytest`: **48/48**.
+
+### 15b. The local failure: a resume rewrote the historical record
+
+Run 39241812486 re-ran the harness under the **original** run id and silently
+rewrote the *committed* `harness_results_39237146851.json`:
+
+| field | at `6d4e21ff` (published) | from `47713d0` onward |
+|---|---|---|
+| `measurement…wall_seconds` | 1.173 | 1.102 |
+| `wall_seconds` (top level) | 2.536 | 2.481 |
+| file sha256 | `2f7da781…` | `ebed6952…` |
+
+**Zero decision-bearing bytes changed** — but the overwrite itself violated
+the non-overwrite rule and broke byte-level auditability. It is exactly what
+a resume starved for a durable delta produces when nothing legitimate is left
+to change. Both digests are now pinned in `verification_39251875368.json` so
+the divergence stays visible forever; the file was **not** rewritten back
+(that would be a second overwrite).
+
+**Fix (this cycle):** `frontier/frontier-concept-seed-recall/immutability.py`
+— a fail-closed, git-history-aware guard wired into `harness.run()`,
+`contract.main` and `plan.main`. Any path present in the index **or anywhere
+in `git log --all` history** is a committed historical record and its write is
+refused, always, with the refusal naming the fresh `--run-id` escape hatch.
+Untracked scratch paths stay writable, so verification runs anywhere.
+`harness.run()` checks all three outputs *before any computation*.
+`freeze_ordering --no-write` now prints its classification; `contract` gained
+`--out-dir`. Eight new tests pin all of it, including the real committed
+record and the re-derived original digest.
+
+### 15c. The structural failure: why the loop keeps spinning
+
+| evidence | |
+|---|---|
+| audit branches on origin for this team | **0** — no `…/audit` ref was ever pushed for any run id |
+| `lab/frontier/frontier-concept-seed-recall` | still the bootstrap commit `0725320bf` — never promoted |
+| `state/frontier_portfolio.json` on `main` | still `status: RUN` |
+| workflow contract | validate step exits **67** on a zero durable delta; resilience re-dispatches a resume whenever team/audit/integrate did not succeed |
+
+The acceptance chain, not the research, is stuck: without a persisted audit
+PASS, integrate never promotes; without promotion the director never moves
+`.status` off RUN; while `.status` is RUN the resilience job re-dispatches;
+and every resume must emit *some* durable delta or fail validation. A
+completed charter in that trap will eventually produce pathology — 39241812486
+was exactly that.
+
+**These loop-break conditions are outside the producer's write scope**
+(`state/frontier_portfolio.json`, audit paths and `.github/` are not ours).
+They belong to the audit, integrate and director jobs;
+`verification_39251875368.json` `claim_6` publishes the full per-run delta
+reconstruction so those jobs need not re-derive it. What the producer could
+do, it has done: re-verification is now cheap, side-effect-free and
+mechanically incapable of confusing itself with new measurement — and the
+charter's stop rule still holds: **`portfolio .status` is the only reliable
+stop, and another cycle under THIS charter is not justified**
+(`continue_recommended: false`). The remaining gaps need a **new charter**
+with its own frozen rules, as section 12 already says.
