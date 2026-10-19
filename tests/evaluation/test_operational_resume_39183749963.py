@@ -154,7 +154,13 @@ def test_h3_state_block_repeats_the_resume_record_counts():
     assert block["n_checks"] == rec["n_checks"] == 21
     assert block["ready_for_independent_audit"] is True
     assert block["record"] == f"results/evaluation/snapshot_audit/{RUN_ID}.json"
-    assert state["direction_version"] == 57
+    # direction_version pin advance 57 -> 58 is EXPECTED by the v58 rewrite
+    # (factory direction: "the direction_version pin advance v57 -> v58 is
+    # EXPECTED by this rewrite and must be applied with this lane's disclosed
+    # convention comment following the 49->50, 50->52, 55->56 and 56->57
+    # precedents; it is NOT a new defect").  This assert tracks the LIVE state
+    # file; the historical V57 hypothesis pin below stays 57 by design.
+    assert state["direction_version"] == 58
     assert state["cycle_status"] != "INITIALIZED"
 
 
