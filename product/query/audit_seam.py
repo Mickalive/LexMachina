@@ -28,8 +28,11 @@ caller were miscalibrated for the *current* healthy free-model pool:
    Pinning ``DEFAULT_FREE_MODELS`` at apply time is necessary but not
    sufficient: the durable reality-check workflow re-assigns
    ``paths.DEFAULT_FREE_MODELS`` *after* the seam runs, listing
-   ``nemotron-3-ultra-free`` (control-plane tool probe FAIL, exit 124) and
-   ``nemotron-3.5-lightning-free`` first.  Every excluded entry left in the
+   ``nemotron-3-ultra-free`` (control-plane tool probe FAIL, exit 124 — the
+   historical basis for its own exclusion; the newest snapshot reports it
+   PASS and it is no longer excluded) and ``nemotron-3.5-lightning-free``
+   (excluded on adversarial-budget grounds only; the newest snapshot
+   reports it PASS) first.  Every excluded entry left in the
    list becomes a fallback candidate that burns a full provider timeout
    (120 s answer / 180 s adversarial) before the next model is tried — the
    observed ~316-469 s full-answer latency band, and a direct breach of the
@@ -99,16 +102,17 @@ MODEL_ORDER = [
 #: this file).
 #:
 #: ``opencode/nemotron-3-ultra-free`` — **no longer excluded**: the newest
-#: control-plane snapshot (run 39245649011, 2026-10-19T11:37:15Z) reports
+#: control-plane snapshot (run 39251927903, 2026-10-19T12:27:21Z) reports
 #: tool_probe PASS / exit 0.  The previous exclusion (basis:
 #: control_plane_tool_probe_fail, run 38938748669) was correct for that
-#: snapshot; this update reflects the health refresh.  The model is not in
-#: MODEL_ORDER and remains absent from the fallback chain by construction.
+#: snapshot; the intermediate refresh (run 39245649011, 2026-10-19T11:37:15Z)
+#: also reported PASS, and the current snapshot continues to.  The model is
+#: not in MODEL_ORDER and remains absent from the fallback chain by
+#: construction.
 #:
-#: ``opencode/nemotron-3.5-lightning-free`` — excluded on **two** grounds:
-#: (a) adversarial-budget / hot-path-latency — the frontier component's own
-#: comment records lightning hitting the 60 s bounded-challenge ceiling while
-#: space-bunny completed
+#: ``opencode/nemotron-3.5-lightning-free`` — excluded on **adversarial-budget
+#: grounds only**.  The frontier component's own comment records lightning
+#: hitting the 60 s bounded-challenge ceiling while space-bunny completed
 #: (``frontier/frontier-generative-audit/generative_audit/adversarial.py``:130-133),
 #: and the only in-repo reality leg where lightning acted as ``answer_model``
 #: (``results/product/reality_check/rent-default_live_20261014T113201Z.json``)
@@ -121,8 +125,14 @@ MODEL_ORDER = [
 #: backlog item in ``state/product.json``).  Three probe-verified healthy
 #: models remain, so the exclusion costs no fallback depth the latency gate
 #: can afford.
-#: (b) tool health — the newest control-plane snapshot (run 39245649011,
-#: 2026-10-19T11:37:15Z) reports tool_probe FAIL / exit 124 for this model.
+#:
+#: Tool health has never been the basis in the newest snapshots: the current
+#: control-plane snapshot (run 39251927903, 2026-10-19T12:27:21Z) reports
+#: tool_probe **PASS** / exit 0 for this model.  An intermediate refresh (run
+#: 39245649011, 2026-10-19T11:37:15Z) briefly reported FAIL / exit 124 and
+#: the record mirrored it; when the snapshot advanced back to PASS the guard
+#: failed closed on the stale mirror and this record was re-mirrored — the
+#: guard fires in both directions, which is what makes it non-vacuous.
 #:
 #: ``control_plane_tool_probe`` mirrors what the newest control-plane snapshot
 #: reports for that model, so a health refresh that flips a probe result
@@ -131,25 +141,30 @@ MODEL_ORDER = [
 #: not a silent contradiction.  ``control_plane_run_id`` /
 #: ``control_plane_checked_at`` record when the values were read from
 #: ``state/model_health.json``; they are provenance, not asserted invariants.
+#: When the newest snapshot reports PASS the recorded ``basis`` must be
+#: ``adversarial_budget`` only — never ``control_plane_tool_probe_fail`` — and
+#: ``control_plane_reported_healthy`` must be true.
 DEAD_MODEL_JUSTIFICATION = {
     "opencode/nemotron-3.5-lightning-free": {
-        "basis": "adversarial_budget_and_tool_probe_fail",
-        "control_plane_tool_probe": "FAIL",
-        "control_plane_exit_code": 124,
-        "control_plane_reported_healthy": False,
-        "control_plane_run_id": "39245649011",
-        "control_plane_checked_at": "2026-10-19T11:37:15Z",
+        "basis": "adversarial_budget",
+        "control_plane_tool_probe": "PASS",
+        "control_plane_exit_code": 0,
+        "control_plane_reported_healthy": True,
+        "control_plane_run_id": "39251927903",
+        "control_plane_checked_at": "2026-10-19T12:27:21Z",
         "note": (
-            "Excluded on adversarial-budget grounds (the bounded adversarial "
-            "challenge hit its 60s ceiling for this model in the component's "
-            "recorded evidence) AND tool health: the newest control-plane "
-            "snapshot (run 39245649011, 2026-10-19T11:37:15Z) reports "
-            "tool_probe FAIL exit 124.  The previous record mirrored run "
-            "39239945934 (PASS); the guard "
-            "test_known_dead_models_agree_with_control_plane_health enforces "
-            "that this record tracks the newest snapshot, so a health refresh "
-            "that flips a probe result is a test failure, not a silent "
-            "contradiction."
+            "Excluded on adversarial-budget grounds only (the bounded "
+            "adversarial challenge hit its 60s ceiling for this model in the "
+            "component's recorded evidence); the newest control-plane snapshot "
+            "(run 39251927903, 2026-10-19T12:27:21Z) reports tool_probe PASS "
+            "exit 0, so tool health does not justify the exclusion.  The "
+            "previous record mirrored run 39245649011 (FAIL exit 124), which "
+            "was correct for that snapshot; the guard "
+            "test_known_dead_models_agree_with_control_plane_health failed "
+            "closed once the snapshot advanced back to PASS, enforcing that "
+            "this record tracks the newest snapshot in both directions — a "
+            "health refresh that flips a probe result is a test failure, not "
+            "a silent contradiction."
         ),
     },
 }

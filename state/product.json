@@ -105,7 +105,7 @@
       "scope": "control-plane workflow scope; recorded, not edited from the lane"
     }
   ],
-  "current_run": "39240156039",
+  "current_run": "39253287434",
   "cycle_39056694835_frontier_serve_audit_intake": {
     "admission": "fail-closed",
     "claim_ceiling": [
@@ -512,7 +512,7 @@
     ],
     "state_block_added_by_run": "39094983039"
   },
-  "cycle_status": "REPAIR_39240156039_ROUND1__F1_RESIDUE_REMOVED_AND_PREFLIGHT_GUARDED__F2_TESTS_FIXED_CORRECTED__SEAM_MIRRORED_TO_SNAPSHOT_39245649011",
+  "cycle_status": "REPAIR_39246693581_ROUND2__R1_SEAM_REMIRRORED_TO_SNAPSHOT_39251927903",
   "direction_version": 58,
   "evidence_refs": [
     "results/product/gate_packet/rebuilt-39027045675/packet.json",
@@ -1181,7 +1181,7 @@
     "secondary_risk_noted": "Earlier cycles also wrote outside product scope (frontier/frontier-generative-audit/generative_audit/provider.py and results/frontier/frontier-query-retrieval/cache/*). Those writes are already committed in the snapshot; 'Enforce lane write scope' only inspects pending changes, so they cannot be cleaned without tripping the scope check in the same run. They are recorded as pre-existing snapshot content, not current-cycle work. Live-run cache by-products created inside a cycle are removed before the scope step (reports/product/CYCLE_38559540834.md section 4)."
   },
   "packet_admitted": false,
-  "prior_current_run": "39216560764",
+  "prior_current_run": "39240156039",
   "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
   "ready_for_owner_session": false,
   "reality_check_status": {
@@ -2780,8 +2780,8 @@
     "fixtures": "offline/test only; never merged into live results",
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
   },
-  "state_updated_at": "2026-10-19T12:02:09Z",
-  "state_updated_by_run": "39240156039",
+  "state_updated_at": "2026-10-19T13:00:19Z",
+  "state_updated_by_run": "39253287434",
   "state_updated_from_resumed_snapshot_run": "39221882428",
   "supersedes_claims": {
     "gate_ceremony_is_one_query_only": "SUPERSEDED BY RUN 38792650692: the packet pre-registers three questions (FR/DE/IT), re-verifies each bundle at run time and hands the owner one deep link per question. The single-query path still works (product/human_gate_session.py is unchanged) and is still the way ONE session is finalized.",
@@ -4859,22 +4859,20 @@
     "question_answered": "factory direction v57 ordered work (2) + operational-resume mandate: diagnose why 39221882428 produced no delta, verify the F1/F2/F3 deliverable it inherited, and make the snapshot chain audit-ready",
     "posture": "fail-closed, unchanged: continue_recommended=true, human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false"
   },
-  "state_updated_by": "product_cycle_39240156039_repair_1",
+  "state_updated_by": "product_cycle_39253287434_repair_2",
   "completed_work": {
     "audit_seam_model_health_sync": {
-      "control_plane_run_id": "39239945934",
-      "control_plane_checked_at": "2026-10-19T10:48:13Z",
+      "control_plane_run_id": "39251927903",
+      "control_plane_checked_at": "2026-10-19T12:27:21Z",
       "changes": [
-        "Removed opencode/nemotron-3-ultra-free from DEAD_MODEL_JUSTIFICATION (now tool_probe PASS)",
-        "Updated opencode/nemotron-3.5-lightning-free control_plane_run_id to 39239945934",
-        "Updated test expectations in test_audit_seam.py to match current health snapshot"
+        "Re-mirrored DEAD_MODEL_JUSTIFICATION['opencode/nemotron-3.5-lightning-free'] from snapshot 39245649011 (tool_probe FAIL, exit 124) to the current control-plane snapshot run 39251927903 (tool_probe PASS, exit 0): basis is now 'adversarial_budget' only (NOT control_plane_tool_probe_fail), control_plane_reported_healthy=true. Required fix R1 of audit CYCLE_39246693581 (gate=REVISE, repair_round 1, repair_of 39240156039).",
+        "Audit named snapshot 39247238487 (newest at audit time, origin/main@303ef0a); origin/main advanced once more to 39251927903 (commit fac9259, 2026-10-19T12:27:21Z) before this repair executed - the probe result for the excluded model is PASS/exit 0 at both snapshots, so the record mirrors the current newest snapshot, which is what the guard reads live via git show origin/main:state/model_health.json.",
+        "Refreshed the stale 'newest control-plane snapshot' run-id references in the product/query/audit_seam.py docstring (ultra block and module-docstring section 3) to run 39251927903.",
+        "Exclusion unchanged: opencode/nemotron-3.5-lightning-free stays in KNOWN_DEAD_MODELS and out of MODEL_ORDER and every fallback chain; the model is excluded on adversarial-budget grounds only, which the current PASS probe does not contradict."
       ],
       "tests_fixed": {
-        "modified": [
-          "test_healthy_models_filters_dead_after_workflow_override",
-          "test_preferred_model_never_returns_dead_after_override"
-        ],
-        "deliberately_intact": "test_known_dead_models_agree_with_control_plane_health was deliberately left intact - it is the guard that makes the health sync non-vacuous - and was verified passing against origin/main:state/model_health.json at run 39239945934 (audit CYCLE_39240156039 claim_ceiling 2)."
+        "modified": [],
+        "deliberately_intact": "No test was modified in this repair. test_known_dead_models_agree_with_control_plane_health remains intact as the non-vacuity guard and was verified green (13/13 in product/tests/test_audit_seam.py) against origin/main:state/model_health.json at run 39251927903, last_checked_at 2026-10-19T12:27:21Z. The prior round (39240156039 repair 1) corrected the tests_fixed list to the two tests its diff actually touched; this round touches no test."
       }
     },
     "state_contract_direction_version_alignment": {
@@ -4906,5 +4904,19 @@
     "control_plane_drift_repair": "origin/main:state/model_health.json advanced to run 39245649011 (2026-10-19T11:37:15Z) after the audit; nemotron-3.5-lightning-free flipped PASS->FAIL (exit 124). Per the guard's designed remedy the seam's DEAD_MODEL_JUSTIFICATION record for that model was updated to mirror 39245649011 (basis adversarial_budget_and_tool_probe_fail, tool_probe FAIL, exit 124, reported_healthy false) and the stale \"newest snapshot\" prose run-id references were refreshed; the guard passes against the current snapshot. No frozen bar, rubric, threshold or success rule was touched and no exclusion changed.",
     "posture": "fail-closed, unchanged: packet_admitted=false, human_gate_ready=false, machine_gate_ready=false, ready_for_owner_session=false, continue_recommended=true",
     "claim_ceiling": "REPAIR ONLY: no new capability, no new measurement, no new instrument, no new claim-bearing report section. The residue removal, the preflight guard + its test, the F2 state correction and the seam provenance-record update are the entire delta."
+  },
+  "repair_39246693581_round2": {
+    "run_id": "39253287434",
+    "repair_round": 2,
+    "repair_of_run_id": "39246693581",
+    "original_rejected_run_id": "39240156039",
+    "audit": "results/audit/product/CYCLE_39246693581_GATE.json gate=REVISE safe_to_integrate=false required_fixes=[R1] (repair_round 1, repair_of 39240156039; team head audited 61d3772)",
+    "fixes_applied": {
+      "R1": "Re-mirrored product/query/audit_seam.py DEAD_MODEL_JUSTIFICATION['opencode/nemotron-3.5-lightning-free'] to the current control-plane snapshot: tool_probe PASS, exit_code 0, reported_healthy true, basis 'adversarial_budget' only (NOT control_plane_tool_probe_fail - the historical pattern for a PASS-probed excluded model), run 39247238487 as named by the audit and re-mirrored to 39251927903 (current newest on origin/main at repair time; probe result identical PASS/0). The model stays excluded; KNOWN_DEAD_MODELS and MODEL_ORDER membership unchanged. Stale 'newest snapshot' run-id references in the file's docstring refreshed to 39251927903."
+    },
+    "guard_verification": "pytest product/tests/test_audit_seam.py -> 13 passed, including test_known_dead_models_agree_with_control_plane_health measured against origin/main:state/model_health.json run 39251927903 last_checked_at 2026-10-19T12:27:21Z (the guard reads origin/main live via git show; the audit-named snapshot 39247238487 was newest at audit time and main has since advanced once).",
+    "scope": "Repair only: one provenance-record re-mirror plus its docstring accuracy refresh and the state/report disclosure. No new capability, no new measurement, no new instrument, no new claim-bearing report section; the guard, the exclusion, every frozen bar, rubric, threshold and success rule are byte-unchanged.",
+    "posture": "fail-closed, unchanged: packet_admitted=false, human_gate_ready=false, machine_gate_ready=false, ready_for_owner_session=false, continue_recommended=true",
+    "claim_ceiling": "REPAIR ONLY. NOT established or claimed: answer quality, any frozen benchmark bar, live OpenCaseLaw behaviour, latency, legal usefulness, production readiness, owner-gate readiness."
   }
 }
