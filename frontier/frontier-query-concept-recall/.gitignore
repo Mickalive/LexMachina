@@ -1,0 +1,14 @@
+# Byte-compiled caches are build artefacts, never committed evidence.
+#
+# This matters for more than tidiness here. The workflow's "Enforce team scope"
+# step inspects `git status --porcelain -uall`, so ANY file a run leaves behind
+# outside this team's write scope fails the job. Importing the accepted package
+# at `frontier/frontier_query_concept_recall/` writes `__pycache__/*.pyc` there,
+# and that path is OUT of the scope guard for a team id containing hyphens
+# (defect B). A stray .pyc would therefore fail the team step for a reason that
+# has nothing to do with the work.
+#
+# Run every entry point with:
+#     PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=frontier python ...
+__pycache__/
+*.py[cod]

@@ -1,0 +1,50 @@
+{
+ "schema": "frontier_query_concept_recall.bounded_cause_resolution.v1",
+ "team_id": "frontier-query-concept-recall",
+ "charter_version": 1,
+ "what_this_resolves": "Two accepted records in this directory disagree about the run's ONE bounded cause. results/frontier/frontier-query-concept-recall/harness_results.json (the canonical pointer) carries the cause that audit gate CYCLE_39171009594 F2 WITHDREW, while the sibling per-run record harness_results_39179862363.json carries the replacement and is what the accepted code at HEAD reproduces. A reader resolving the canonical filename therefore reads the WITHDRAWN cause.",
+ "policy": "DESIGNATION, NOT OVERWRITE. AGENTS.md rule 6 forbids overwriting a historical claim-bearing result, so neither record is edited or deleted. This resolution names the reproducible record and preserves both files byte-for-byte.",
+ "reproducible_record": {
+  "path": "results/frontier/frontier-query-concept-recall/harness_results_39179862363.json",
+  "sha256": "a54f6a4fa64948652d04eab629436cf482d415f882160157bdc46431e0014c92",
+  "run_id": 1792369029,
+  "why": "its bounded_cause carries status='REPLACES the cause withdrawn by audit gate CYCLE_39171009594 F2', a withdrawn_prior_cause key naming what it replaced, and the measured evidence keys (ceilinged_to_this_layer_as_built, generator_fix_not_proposed, recovered_vs_missing_authority_ids); the code at HEAD emits exactly these keys.",
+  "verified_by": "frontier/frontier-query-concept-recall/verify.py check R3_bounded_cause_records_disagree, which recomputes both digests and the key-set difference from the tree on every run"
+ },
+ "preserved_records": [
+  {
+   "path": "results/frontier/frontier-query-concept-recall/harness_results.json",
+   "sha256": "5004cdae54863e3e573c7886d61a3091a0ac0030d94adabb4532b2788f36aa67",
+   "run_id": 1792361062,
+   "status": "WITHDRAWN-CAUSE RECORD, preserved unchanged",
+   "note": "still the canonical filename; readers must consult this resolution. Its claim-bearing numbers were independently re-verified this cycle and are byte-identical to a fresh HEAD replay (see verification_cycle_verification)."
+  },
+  {
+   "path": "results/frontier/frontier-query-concept-recall/harness_results_39179862363.json",
+   "sha256": "a54f6a4fa64948652d04eab629436cf482d415f882160157bdc46431e0014c92",
+   "run_id": 1792369029,
+   "status": "REPRODUCIBLE RECORD, designated authoritative for the bounded cause"
+  }
+ ],
+ "outcome_unchanged": {
+  "outcome": "OUTCOME_B_BOUNDED_NEGATIVE",
+  "improved_fr_it_cells": 0,
+  "failing_fr_it_cells_total": 6,
+  "reduced_under_covered_questions": 0,
+  "accepted_baseline_reproduced": true,
+  "note": "designating the cause does NOT change the outcome; the two records agree on every numeric verdict field. Only the narrative cause and its evidence keys differ."
+ },
+ "difference": {
+  "keys_only_in_reproducible_record": [
+   "ceilinged_to_this_layer_as_built",
+   "generator_fix_not_proposed",
+   "recovered_vs_missing_authority_ids",
+   "status",
+   "withdrawn_prior_cause"
+  ],
+  "keys_only_in_canonical_record": [],
+  "withdrawn_cause_head": "TERM-ONLY EXPANSION QUERIES ARE TOO NARROW FOR THE OPENCASELAW RELEVANCE INDEX. Each A1 search sent a bare mined-vocabulary term list (up to 12 tokens) with no natural-language question text, while ev",
+  "reproducible_cause_head": "MEASURED CAUSE, CEILINGED TO THIS LAYER AS BUILT: the layer never asked about the gap. On de-kapitalverletzung it mined ZERO corpus vocabulary for both under-covered concepts (kapitalverletzung, uberw"
+ },
+ "claim_ceiling": "This resolves which record is reproducible. It does not re-adjudicate the cause, does not reopen the charter, and asserts nothing about any threshold, bar, gate, packet or admission record."
+}

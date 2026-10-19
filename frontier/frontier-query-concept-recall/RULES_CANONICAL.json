@@ -1,0 +1,29 @@
+{
+  "schema": "frontier_query_concept_recall.canonical_rules_pointer.v1",
+  "team_id": "frontier-query-concept-recall",
+  "purpose": "This directory contains a STALE rules file. This pointer says which file is authoritative so no reader or tool resolves the wrong one by directory.",
+  "authoritative_rules_file": {
+    "path": "results/frontier/frontier-query-concept-recall/RULES.json",
+    "sha256": "c5447bac0605a8bcf8c3d1820bee56a5bb0e814365978ec1fa12ac189776ee9a",
+    "byte_identical_copy": {
+      "path": "frontier/frontier_query_concept_recall/RULES.json",
+      "sha256": "c5447bac0605a8bcf8c3d1820bee56a5bb0e814365978ec1fa12ac189776ee9a"
+    },
+    "why_those_two": "they are the two copies the frozen harness itself reads and reports as rules_file_sha256; both were committed by the pre-measurement freeze commits 2770b1520 / 34cd92806 / ff5933f1e (2026-10-18T21:21:56Z .. 21:25:57Z)"
+  },
+  "stale_rules_file_in_this_directory": {
+    "path": "frontier/frontier-query-concept-recall/RULES.json",
+    "sha256": "deaed7b1f6246dce6d7191daf23f8b6179706760723f1380a71038650b8169e1",
+    "is_authoritative": false,
+    "written_by": "run 39157032880 @ 2026-10-18T19:18:59Z, i.e. BEFORE the freeze at 2026-10-18T21:21:56Z; last touched 2026-10-19T00:10:18Z by run 39178978102",
+    "why_it_is_not_authoritative": [
+      "different schema: it has no inputs.files block and instead an input_bundles map keyed by qid with repository-relative paths",
+      "its de-kapitalverletzung pin is 2441ff2b16722afcd22dca9ad39eafcbeb079b2dfc367d763fbe53fce1356f9c while the accepted bundle re-hashes to c4005d4b78553b0aebd92bba59001c87a376146873f807d575255a4f721dd7f2",
+      "it predates freeze amendments A1 and A2, so it does not carry the accepted coverage definition or the generator well-formedness amendment"
+    ],
+    "disposition": "left byte-untouched as the historical record of run 39157032880; AGENTS.md forbids deleting contrary or historical outputs. It is NOT read by any entry point shipped by this team."
+  },
+  "how_to_resolve_pins_correctly": "frontier/frontier-query-concept-recall/cli_entry.py::rules_bundle_pins reads the canonical file and re-hashes BOTH canonical copies against the pinned digest c5447bac... before it uses any pin, and re-hashes every pinned bundle against its pin. A moved freeze or a moved bundle aborts with exit 2 and no measurement is written.",
+  "verification": "frontier/frontier-query-concept-recall/verify.py check R1_canonical_rules_copies_identical recomputes all of this from the tree on every run.",
+  "claim_ceiling": "This pointer concerns file identity and digest reproduction only. It makes no claim about any threshold, bar, gate, packet or the charter outcome."
+}
