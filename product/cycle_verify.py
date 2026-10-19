@@ -852,6 +852,136 @@ def _pass_or_fail(ok: bool, claim: str, observed: Any, definition_source: str | 
     return row
 
 
+def check_v57_handoffs() -> list[dict]:
+    """Re-derive both v57 handoff decisions from their own sources.
+
+    Two separate obligations are checked here and they fail independently, so a
+    false claim in one cannot hide behind a pass in the other:
+
+    1. **The evaluation falsification handoff** (direction v57 ordered work 4).
+       The committed handoff artifact must be *current*: every number in it is
+       recomputed by ``product/eval_disclosure_handoff.build()`` against the
+       committed packet bytes, whose raw sha256 is re-hashed here too.  A
+       hand-edited artifact is a FAIL, not a cosmetic difference.
+    2. **The Frontier adoption decision** (factory-wide requirement 21).  The
+       committed decision record must be a real decision (ADOPT or DECLINE) with
+       at least one recorded reason - never silence, and never
+       ``DECISION_NOT_REACHABLE``.
+
+    Both are derived, never asserted: nothing below is copied out of a report.
+    """
+    rows: list[dict] = []
+
+    # ---- 1. the evaluation handoff, recomputed from committed bytes --------
+    try:
+        from product.eval_disclosure_handoff import PACKET_DIR, PACKET_SHA256, build
+
+        live = build()
+        summary = live.get("summary") or {}
+        rows.append(_pass_or_fail(
+            not live.get("failures"),
+            "the committed packet bytes re-hash to the pinned digest, so the "
+            "before/after handoff is scoped to the bytes of record",
+            {"failures": live.get("failures"),
+             "packet_raw_sha256_recomputed": (live.get("packet") or {}).get("packet_raw_sha256_recomputed"),
+             "expected": PACKET_SHA256},
+            "product/eval_disclosure_handoff.py::build"))
+        rows.append(_pass_or_fail(
+            int(summary.get("n_inconsistent_before") or 0) >= 1,
+            "the committed admission record really does contradict itself on at "
+            "least one served question (measured under-covered concepts with "
+            "warning_count 0)",
+            {"n_inconsistent_before": summary.get("n_inconsistent_before"),
+             "n_questions": summary.get("n_questions")},
+            "product/eval_disclosure_handoff.py::build"))
+        rows.append(_pass_or_fail(
+            summary.get("n_disclosed_after") == summary.get("n_questions")
+            and int(summary.get("n_questions") or 0) > 0,
+            "recomputing the admission record on those same bytes now discloses "
+            "the measurement for every served question",
+            {"n_disclosed_after": summary.get("n_disclosed_after"),
+             "n_questions": summary.get("n_questions")},
+            "product/eval_disclosure_handoff.py::build"))
+        rows.append(_pass_or_fail(
+            int(summary.get("n_admission_changed") or 0) == 0
+            and int(summary.get("n_blocking_count_changed") or 0) == 0,
+            "the fix is disclosure only: it changes no admissible flag and no "
+            "blocking count on any served question",
+            {"n_admission_changed": summary.get("n_admission_changed"),
+             "n_blocking_count_changed": summary.get("n_blocking_count_changed")},
+            "product/eval_disclosure_handoff.py::build"))
+
+        artifact = REPO_ROOT / "results" / "product" / "gate_packet" / \
+            "REBUILT_39027045675_QUERY_CONCEPT_DISCLOSURE_HANDOFF.json"
+        if artifact.is_file():
+            committed = json.loads(artifact.read_text(encoding="utf-8"))
+            csum = committed.get("summary") or {}
+            mismatched = sorted(k for k in ("n_questions", "n_inconsistent_before",
+                                            "n_disclosed_after", "n_admission_changed",
+                                            "n_blocking_count_changed")
+                                if csum.get(k) != summary.get(k))
+            rows.append(_pass_or_fail(
+                not mismatched,
+                "the committed handoff artifact is current against a fresh "
+                "recomputation (a hand-edited artifact is a FAIL)",
+                {"artifact": str(artifact.relative_to(REPO_ROOT)),
+                 "mismatched_summary_fields": mismatched,
+                 "committed": {k: csum.get(k) for k in (
+                     "n_questions", "n_inconsistent_before", "n_disclosed_after",
+                     "n_admission_changed", "n_blocking_count_changed")},
+                 "recomputed": {k: summary.get(k) for k in (
+                     "n_questions", "n_inconsistent_before", "n_disclosed_after",
+                     "n_admission_changed", "n_blocking_count_changed")}},
+                "product/eval_disclosure_handoff.py::build"))
+        else:
+            rows.append(_fail("the committed handoff artifact exists",
+                              f"missing {artifact}"))
+    except Exception as exc:  # a check that blows up is a FAIL, never a pass
+        rows.append(_fail("the evaluation falsification handoff re-derives",
+                          f"{type(exc).__name__}: {exc}"))
+
+    # ---- 2. the Frontier adoption decision --------------------------------
+    try:
+        from product.frontier_recall_adoption import TEAM, inspect
+
+        live = inspect()
+        rows.append(_pass_or_fail(
+            live.get("decision") in ("ADOPT", "DECLINE"),
+            "the accepted Frontier component has a recorded adopt/decline "
+            "decision, not silence and not DECISION_NOT_REACHABLE",
+            {"decision": live.get("decision"), "mount_present": live.get("mount_present"),
+             "failures": live.get("failures"), "team_id": TEAM},
+            "product/frontier_recall_adoption.py::inspect"))
+        rows.append(_pass_or_fail(
+            bool(live.get("decline_reasons") or live.get("decision") == "ADOPT"),
+            "the decision carries at least one machine-copied measured reason",
+            {"n_reasons": len(live.get("decline_reasons") or []),
+             "numbers": live.get("numbers_from_contract")},
+            "product/frontier_recall_adoption.py::inspect"))
+
+        art = REPO_ROOT / "results" / "product" / "frontier_verdicts" / \
+            "frontier-query-concept-recall_adoption_39179862363.json"
+        if art.is_file():
+            committed = json.loads(art.read_text(encoding="utf-8"))
+            same = committed.get("decision") == live.get("decision") and \
+                (committed.get("numbers_from_contract") or {}) == (live.get("numbers_from_contract") or {})
+            rows.append(_pass_or_fail(
+                same,
+                "the committed adoption record matches a fresh read of the "
+                "accepted mount",
+                {"artifact": str(art.relative_to(REPO_ROOT)),
+                 "committed_decision": committed.get("decision"),
+                 "recomputed_decision": live.get("decision")},
+                "product/frontier_recall_adoption.py::inspect"))
+        else:
+            rows.append(_fail("the committed adoption record exists", f"missing {art}"))
+    except Exception as exc:
+        rows.append(_fail("the Frontier adoption decision re-derives",
+                          f"{type(exc).__name__}: {exc}"))
+
+    return rows
+
+
 def check_git_scope() -> list[dict]:
     """The lane's own write scope, checked the same way the workflow checks it."""
     code = "product"
@@ -1081,6 +1211,7 @@ CHECKS: dict[str, Callable[[], list[dict]]] = {
     "regression_matrix": check_regression_matrix_matches_diagnosis,
     "test_delta": check_test_delta_attribution,
     "guards": check_committed_guards,
+    "handoff": check_v57_handoffs,
     "scope": check_git_scope,
 }
 

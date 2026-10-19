@@ -1,0 +1,104 @@
+{
+  "schema": "product-frontier-recall-adoption/1",
+  "team_id": "frontier-query-concept-recall",
+  "mount_path": "/tmp/lex_accepted/frontier/frontier-query-concept-recall",
+  "mount_present": true,
+  "decision": "DECLINE",
+  "reason": "The accepted team outcome is a bounded negative at OUTCOME_B and the charter's own contract closes the item: the measured deterministic expansion layer improved 0 of 6 failing FR/IT authority cells and reduced under-covered concepts on 0 of 3 served questions against a required 2, spent 10 of 15 added searches over the frozen per-search latency budget (max 83.505s vs 30.0s), and its own structural finding says the charter's coverage bar (reduce under_covered on at least 2 of 3 served questions) is unreachable by any candidate because 1 of 3 served questions start with zero under-covered concepts. Nothing is adopted into product/; the mount stays untouched.",
+  "failures": [],
+  "mount_git_head": "c242127a7f42293adcdda797d6973ed2ed45fc90",
+  "integration_contract_present": true,
+  "integration_contract_sha256": "08c64784673bdb09209bce4104af3c715900f9c714d85cd4a49a30c3a2139589",
+  "contract_check_present": true,
+  "contract_check_sha256": "f388e8d40dfafc3f5a83a11f56dc30db47a252c28d60266db9ab982ff94d11a7",
+  "harness_results_present": true,
+  "harness_results_sha256": "a54f6a4fa64948652d04eab629436cf482d415f882160157bdc46431e0014c92",
+  "team_state": {
+    "cycle_status": "COMPLETE",
+    "evidence_tier": "REPRODUCED",
+    "outcome": "OUTCOME_B_BOUNDED_NEGATIVE",
+    "continue_recommended": false,
+    "accepted_commit": null,
+    "accepted_run_id": null
+  },
+  "accepted_audit_gate": {
+    "file": "CYCLE_39181670816_GATE.json",
+    "gate": "PASS",
+    "safe_to_integrate": true,
+    "required_fixes": []
+  },
+  "contract_excerpt": {
+    "schema": "frontier_query_concept_recall.integration_contract.v3",
+    "team_id": "frontier-query-concept-recall",
+    "charter_version": 1,
+    "direction_version": 57,
+    "github_run_id": "39179862363",
+    "item_disposition": "CLOSED per the charter stop rule at OUTCOME_B. This contract is a handoff record, not a recommendation: the measured layer does not meet the promotion bar and no further threshold, lexicon or prompt tuning is permitted under this charter. Product must record an adopt/decline decision; silent non-consumption is not an outcome this contract permits of itself.",
+    "product_decision_required": true,
+    "silent_non_consumption_not_permitted": true,
+    "drop_in_path_code": "# Additive seam for Product. Nothing below removes, re-ranks or labels a\n# decision; it appends ONE query variant and ONE provenance entry.\nfrom frontier_query_concept_recall.expansion import CorpusSample, build_expansion\n\n# 1. once per process, from the rows already in memory (zero network)\nsample = CorpusSample.build(stoplist=STOPLIST, bundle_rows=BUNDLE_ROWS,\n                            benchmark_rows=BENCHMARK_ROWS)\n\n# 2. once per (question, target language)\nexpansion = build_expansion(\n    question_text, target_language, sample,\n    concept_prefix_fn=CONCEPT_PREFIX_FN,\n    content_concepts_fn=CONTENT_CONCEPTS_FN,\n    accepted_lexicon=PRODUCT_RETRIEVAL.EXPANSION,\n)\n\n# 3. strictly additive application to an existing query_result_bundle\nbundle[\"query_variants\"] = list(bundle.get(\"query_variants\") or []) + [expansion.query]\nbundle[\"provenance\"] = {**dict(bundle.get(\"provenance\") or {}),\n                        \"query_expansion\": expansion.provenance()}\n",
+    "drop_in_path_bundle_parameter": "initial_bundle"
+  },
+  "numbers_from_contract": {
+    "improved_fr_it_cells": 0,
+    "accepted_baseline_reproduced": true,
+    "added_searches": 15,
+    "n_calls_over_per_search_budget": 10,
+    "per_search_budget_seconds": 30.0,
+    "max_per_search_seconds": 83.505,
+    "measured_sum_latency_seconds": 600.569,
+    "bar_reachable_at_all": false,
+    "outcome_a_coverage_bar": "reduce under_covered on at least 2 of 3 served questions",
+    "max_reducible_questions": 1,
+    "served_questions_with_zero_under_covered_at_baseline": [
+      "fr-bail-entretien",
+      "it-responsabilita-medica"
+    ]
+  },
+  "contract_check": {
+    "contract_executable": true,
+    "n_checks": 10,
+    "n_failed": 0,
+    "network_calls": 0,
+    "model_calls": 0
+  },
+  "harness_scalars": {
+    "outcome": "OUTCOME_B_BOUNDED_NEGATIVE",
+    "improved_fr_it_cells": 0,
+    "failing_fr_it_cells_total": 6,
+    "reduced_under_covered_questions": 0,
+    "required_fr_it_cells": 2,
+    "required_reduced_questions": 2,
+    "n_calls_over_per_search_budget": 10,
+    "transport_all_ok": true,
+    "regressed_gates": [],
+    "outcome_a_criteria": {
+      "coverage": false,
+      "non_regression": true,
+      "recall": false,
+      "vacuity": false
+    },
+    "acceptance_test_5_status": "UNMET_CEILINGED"
+  },
+  "harness_run_id": 1792369029,
+  "frozen_spec_digest": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+  "decline_reasons": [
+    "0 of 6 failing FR/IT authority cells improved (measured_outcome.improved_fr_it_cells=0, reduced_under_covered_questions=0 of 2 required, accepted_baseline_reproduced=True)",
+    "10 of 15 added searches breached the frozen per-search budget (max 83.505s against 30.0s)",
+    "the charter's own coverage bar is unreachable by ANY candidate at this baseline: 'reduce under_covered on at least 2 of 3 served questions' while max_reducible_questions=1"
+  ],
+  "what_product_did_not_do": [
+    "did not build a competing expansion layer (direction v57 forbids it)",
+    "did not wait for or re-dispatch the Frontier team (requirement 21)",
+    "did not copy any of the component's code into product/",
+    "did not change a frozen bar, rubric, threshold or packet byte"
+  ],
+  "supersedes": {
+    "prior_decision": "DECLINE_NOW_NOTHING_TO_ADOPT",
+    "prior_decided_by_run": 39169296466,
+    "why_superseded": "the prior evidence was 'mount INITIALIZED, no artifacts'; the mount is now a promoted branch with a canonical contract, a harness record and two passing audit gates, so the decision is re-recorded on the artifact that actually exists. The decision word (DECLINE) is unchanged; the REASON is the real one."
+  },
+  "claim_ceiling": "This record states that Product did not adopt the component and copies the team's own measured numbers to justify it. It asserts nothing about retrieval quality, legal usefulness, corpus completeness, any frozen bar or rubric, or human-gate readiness. Concept-coverage counts are lexical coverage of a retrieved set, not a legal conclusion; a zero count is a retrieval signal, not proof that authorities are absent.",
+  "decided_by_run": "39185124744",
+  "product_commit_of_record": "e21eac3"
+}
