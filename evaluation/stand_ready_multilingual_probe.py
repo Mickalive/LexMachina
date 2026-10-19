@@ -464,11 +464,16 @@ def f3b_carry_forward(repo: Path) -> dict:
     if not proof_path.is_file():
         return {"proof_present": False, "status": "PROOF_MISSING"}
     proof = json.loads(proof_path.read_text(encoding="utf-8"))
+    records = proof.get("records") or {}
+    run_record = records.get("run_record") or {}
+    rehomed = records.get("rehomed") or {}
     base = repo / "results" / "evaluation" / "frozen_cache_integrity"
     files = {
-        "39164900837.json": proof.get("restored_sha256"),
-        "39164900837_pre_restore.json": None,  # sibling preserved; digest recorded below
-        "39164900837_post-restore-9b61dcf8.json": proof.get("rehomed_sha256"),
+        "39164900837.json": run_record.get("restored_sha256"),
+        "39164900837_pre_restore.json": next(
+            (p.get("sha256") for p in (records.get("preserved") or [])
+             if p.get("path", "").endswith("39164900837_pre_restore.json")), None),
+        "39164900837_post-restore-9b61dcf8.json": rehomed.get("rehomed_sha256"),
     }
     checks = []
     for fname, expected in files.items():
@@ -481,14 +486,16 @@ def f3b_carry_forward(repo: Path) -> dict:
             "match": (actual == expected) if expected else None,
             "present": path.is_file(),
         })
+    restored = next((c for c in checks if c["file"] == "39164900837.json"), {})
     return {
         "proof_present": True,
         "proof_sha256": sha256_file(proof_path),
-        "proof_run": proof.get("claim_bearing_run"),
+        "proof_run": proof.get("run_id"),
         "verdict": proof.get("verdict"),
         "checks": checks,
-        "restored_matches_pre_rewrite": next(
-            (c["match"] for c in checks if c["file"] == "39164900837.json"), None),
+        "restored_matches_pre_rewrite": (
+            restored.get("match") is True
+            and run_record.get("restoration_matches_pre_rewrite_digest") is True),
         "status": "CARRY_FORWARD_FRESHNESS_OK" if all(
             c["match"] for c in checks if c["match"] is not None) and all(
             c["present"] for c in checks) else "CARRY_FORWARD_DRIFT",
