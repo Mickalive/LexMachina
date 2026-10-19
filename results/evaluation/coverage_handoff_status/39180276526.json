@@ -1,0 +1,75 @@
+{
+ "schema": "lex-evaluation-coverage-handoff-status/1",
+ "run_id": "39180276526",
+ "lane": "evaluation",
+ "direction_version": 57,
+ "measured_at_utc": "2026-10-19T00:42:32Z",
+ "handoff_under_test": "question_native_coverage_39113690481 -> emit an admission finding (severity warning) whenever measured.query_concepts_under_covered is non-empty",
+ "product_mount": "/tmp/lex_accepted/product",
+ "product_mount_present": true,
+ "current_product_head": "e21eac360652ffe5bac1b3b07d16a191f48e8063",
+ "prior_product_head": "e21eac360652ffe5bac1b3b07d16a191f48e8063",
+ "product_head_moved": false,
+ "last_executed_falsification": {
+  "record": "results/evaluation/coverage_finding_falsification/39177046762.json",
+  "record_sha256": "328182d08d49e33dc8859e24d49890f52748f19916ae812a164b1385b709dff0",
+  "generated_at": "2026-10-19T00:01:03Z",
+  "accepted_product_head": "e21eac360652ffe5bac1b3b07d16a191f48e8063",
+  "S1_pass_all_bundles_match_predicate": true,
+  "S2_outcome": "HANDOFF_CONSUMED",
+  "failing_bundles": [],
+  "per_bundle_outcomes": {
+   "de-kapitalverletzung": "PASS_FIRES_AS_ORDERED",
+   "fr-bail-entretien": "PASS_FIRES_AS_ORDERED",
+   "it-responsabilita-medica": "PASS_FIRES_AS_ORDERED"
+  }
+ },
+ "status": "HANDOFF_OPEN__BLOCKED_ON_PRODUCT__DO_NOT_RE_EXECUTE",
+ "executed_this_cycle": false,
+ "why_not_executed": "direction v57 item 2 forbids pre-empting the handoff, and the falsifier is head-pinned; re-running against an unchanged head would be a zero-delta re-observation.",
+ "next_command": "DO NOT re-execute. The accepted product head is unchanged, so the served bytes and the product code are the ones run <prior> already falsified (FAIL_NOT_LANDED). Re-running would be a zero-delta re-observation. The blocking object is Product's ordered fix in product/query/gate_admissibility.py: under_covered is still only surfaced inside the blocking answer_cites_nothing branch.",
+ "claim_ceiling": "A GATE, never a verdict on the handoff. READY_TO_CONSUME says the inputs moved and the falsifier may be re-frozen and run; it does NOT say the ordered disclosure exists, and it is never a pass of Item 2. Only an executed falsification record can move Item 2.",
+ "selftest": {
+  "schema": "lex-evaluation-coverage-handoff-status-selftest/1",
+  "cases": [
+   {
+    "prior_head": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "current_head": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "mount_present": true,
+    "expected": "HANDOFF_OPEN__BLOCKED_ON_PRODUCT__DO_NOT_RE_EXECUTE",
+    "observed": "HANDOFF_OPEN__BLOCKED_ON_PRODUCT__DO_NOT_RE_EXECUTE",
+    "passed": true
+   },
+   {
+    "prior_head": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "current_head": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "mount_present": true,
+    "expected": "READY_TO_CONSUME__RE_FREEZE_THE_FALSIFIER_FIRST",
+    "observed": "READY_TO_CONSUME__RE_FREEZE_THE_FALSIFIER_FIRST",
+    "passed": true
+   },
+   {
+    "prior_head": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "current_head": null,
+    "mount_present": false,
+    "expected": "MOUNT_ABSENT__STATUS_UNKNOWN",
+    "observed": "MOUNT_ABSENT__STATUS_UNKNOWN",
+    "passed": true
+   },
+   {
+    "prior_head": null,
+    "current_head": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "mount_present": true,
+    "expected": "NO_EXECUTED_FALSIFICATION_RECORD",
+    "observed": "NO_EXECUTED_FALSIFICATION_RECORD",
+    "passed": true
+   },
+   {
+    "case": "blocked_status_does_not_emit_an_execute_command",
+    "observed": "DO NOT re-execute. The a",
+    "passed": true
+   }
+  ],
+  "all_passed": true
+ }
+}
