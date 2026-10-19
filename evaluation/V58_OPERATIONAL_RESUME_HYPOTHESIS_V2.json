@@ -1,0 +1,62 @@
+{
+  "schema": "lex-eval-freeze-record/1",
+  "lane": "evaluation",
+  "direction_version": 58,
+  "run_id": "39310054437",
+  "frozen_at_utc": "2026-10-19T19:33:00Z",
+  "frozen_before_execution": true,
+  "supersedes_nothing": "Second operational-resume freeze under v58; V1 (evaluation/V58_OPERATIONAL_RESUME_HYPOTHESIS_V1.json, run 39297074815) stays intact and byte-identical.",
+  "note": "FREEZE-FIRST: this record pins the resume hypothesis, the in-scope edit set, the success rules and the pre-edit digests of every claim-bearing artifact. It was committed BEFORE any report edit, test execution, diagnosis artifact or state edit of run 39310054437. No success rule below may be weakened after results are seen.",
+  "question": "OPERATIONAL RESUME of persisted producer snapshot origin/cycle/core/evaluation/39308720556/team at 98c70585 (== 39297074815/team): can the lane (a) diagnose with machine evidence why two consecutive chain-recovery runs (39304290407, 39308720556) ended with no audit branch and no promotion, (b) discharge the ONE outstanding required fix D-1 of the independent audit of 39297074815 (report section 4 overstated the pytest-shim result), (c) verify the already-executed v58 ordered-work-1 F-3B disposition and the R-1..R-3 repairs still hold byte-exact, and (d) leave an audit-ready team snapshot -- WITHOUT editing any frozen bar, rubric, accepted record, claim-bearing result or control-plane file?",
+  "hypothesis": "The two chain-recovery runs failed for a single machine-identifiable reason: the lane-cycle step returned exit 67 LEX_ZERO_DELTA_REPAIR, which .github/scripts/run-ox-with-retry.sh:211-218 emits ONLY on the child-rc==0 path when HEAD equals START_HEAD and git status --porcelain is empty, i.e. the producer model session completed cleanly and wrote NOTHING. That fails the team job, the audit and integrate jobs are skipped (needs: team success), no audit branch is created and lab/evaluation stays at 2ebdf895. The underlying lane work is therefore NOT the failure: the independent audit of 39297074815 completed with exactly ONE required fix (D-1, a report-accuracy defect: section 4 claimed 71/71 PASS while the committed shim record shows 68 passed + 3 NOT-RUN/unsupported). If both statements are true, the correct resume is (i) publish the rc-67 diagnosis with API/git/script evidence, (ii) apply D-1 verbatim against the committed shim record, (iii) additionally measure the three shim-unsupported cases under a real pytest when one is installable in this image, disclosed BESIDE rather than instead of the shim numbers, and (iv) leave every frozen/accepted digest unchanged.",
+  "baseline": "Pre-edit snapshot HEAD 98c7058510bc0a1922061ad6e61df1562d87eff2 (== origin/cycle/core/evaluation/39308720556/team == 39297074815/team); origin/lab/evaluation == 2ebdf89599be49424738267cd693d55359b73d5f (last accept = 39231573047); independent audit of 39297074815 exists at origin/cycle/core/evaluation/39297074815/audit (commit 9216d771c) with results/audit/evaluation/CYCLE_39297074815_GATE.json sha256 b9f7d38b9bd8cafb1a4298220774bb4b11a0a896ecd5e8678202c4b74e2329eb, gate=REVISE, safe_to_integrate=false, required_fixes=[D-1]; reports/evaluation/CYCLE_39297074815.md line 58 reads 'Total targeted | 71/71 PASS, 0 failed' (file sha256 1b659f890466b04dc3278a4db2ce6d548cd4013cfe5de3fcf9600224ca42971e); results/evaluation/orchestration/39297074815_pytest_shim.json (sha256 a08dfd4f2acaca089422cd3f185a6504461895f8b26c4f91b196106a0cab9f1d) records n_passed=68, n_failed=0, n_unsupported=3, verdict SHIM_PASS; runs 39304290407 and 39308720556 both concluded team=failure with check-run annotations 'LEX_ZERO_DELTA_REPAIR' and 'Process completed with exit code 67', both audit and integrate jobs skipped, their team and team-attempt-1 refs byte-identical to 98c70585, and no audit branch exists for either run.",
+  "success_rules": [
+    "S1 D-1 DISCHARGED VERBATIM: reports/evaluation/CYCLE_39297074815.md section 4 reports exactly what the committed shim record 39297074815_pytest_shim.json measures -- test_mapping_free_recall_falsifier.py 22/22 PASS + 2 not-run (unsupported), test_benchmark_retrieval_counter_authority.py 5/5 PASS + 1 not-run (unsupported), the other four rows unchanged (10/10, 12/12, 4/4, 15/15 PASS) and 'Total targeted | 68/68 PASS + 3 not-run (unsupported), 0 failed' -- i.e. the auditor's corrected_text and per_file_corrections applied without alteration.",
+    "S2 REAL PYTEST MEASURED BESIDE, NEVER INSTEAD: if pytest is importable in this image (it is installed fresh this run and its exact version is pinned in the artifact), the six targeted files are ALSO executed under real pytest and published in a run-namespaced artifact next to the shim record; the S1 corrected text stays shim-based; any real-pytest failure or skip is preserved and disclosed as a negative finding, never deleted and never used to re-word S1 or to upgrade a NOT-RUN into a PASS.",
+    "S3 NOTHING DELETED, NOTHING IN-PLACE OVERWRITTEN: git diff --name-status 98c70585..HEAD contains NO D entries; no claim-bearing results/ or reports/ artifact is rewritten, every new measurement gets its own run-id filename.",
+    "S4 FROZEN FOUR + ACCEPTED RECORDS BYTE-IDENTICAL: RULES_LABEL.json 4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608, RULES_GEOMETRY.json a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633, frozen_retrieval_benchmark.json 187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72, FREEZE_RECORD.json b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49, plus the ten accepted records pinned below.",
+    "S5 EVIDENCE-REF CLOSURE: every entry of state/evaluation.json evidence_refs is an existing tree path; prose notes stay in evidence_ref_corrections; nothing is removed from either list except by moving text VERBATIM between them.",
+    "S6 DIAGNOSIS MACHINE-BACKED AND BOUNDED: the orchestration diagnosis cites only evidence retrievable in this run (GitHub check-run annotation API, git refs, and the control-plane script text at origin/main@166b50a77); every part that this run cannot establish (the two producer agents' session logs, which the log endpoint refuses with HTTP 403 unauthenticated) is labelled UNDETERMINED and bounded by the exit codes that the wrapper would have produced instead (75/76/78).",
+    "S7 LANE WRITE SCOPE: writes stay inside evaluation/, tests/evaluation/, results/evaluation/, reports/evaluation/ and state/evaluation.json; .github/** is control-plane scope and is recorded, never edited; no universal-174k benchmark is rerun (lane directive speed rule).",
+    "S8 CLAIM CEILING: this cycle may claim only (i) the rc-67 orchestration diagnosis, (ii) D-1 discharged, (iii) the re-verification of the already-executed F-3B disposition and R-1..R-3 repairs, (iv) the measured test counts it publishes. It claims NO absolute LABEL_SOUND/GEOMETRY_SOUND bar (still REPORTED-ONLY), unblocks NO gate (human_gate_ready, machine_gate_ready, packet_admitted, ready_for_owner_session all stay false), does NOT claim 39287274485 promoted (still PROPOSED-accepted pending an accept commit on lab/evaluation), and authorises no owner question (owner_decision_required stays false)."
+  ],
+  "pre_edit_digests_pinned": {
+    "reports/evaluation/CYCLE_39297074815.md": "1b659f890466b04dc3278a4db2ce6d548cd4013cfe5de3fcf9600224ca42971e",
+    "state/evaluation.json": "900e72aed6745f8daf45d0c7cbf63f3fc226b5a14f24f3a8fdf3f9779f918ea8",
+    "results/evaluation/orchestration/39297074815_pytest_shim.json": "a08dfd4f2acaca089422cd3f185a6504461895f8b26c4f91b196106a0cab9f1d",
+    "results/audit/evaluation/CYCLE_39287274485_GATE.json": "ee995a59fa75be3de0ee298a808e79c63cdfb515018630de6cfca9f0fe23735b",
+    "results/audit/evaluation/CYCLE_39297074815_GATE.json (audit ref 9216d771c, NOT edited by this lane)": "b9f7d38b9bd8cafb1a4298220774bb4b11a0a896ecd5e8678202c4b74e2329eb",
+    "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+    "evaluation/retrieval_gate/frozen_retrieval_benchmark.json": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "evaluation/retrieval_gate/FREEZE_RECORD.json": "b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49",
+    "results/evaluation/f3b_adjudication/39225862749.json": "5271024e6fa73b5e3fbbe38e75658a8f88031c16b6086126060ae4ddee494a90",
+    "results/evaluation/f3b_restore_disposition/39287274485.json": "6be112d65143116d40082e743d468ad67d317e206402c8d2cabeb7162f29c0f2",
+    "results/evaluation/mapping_free_recall_falsifier/39225862749.json": "aa457fc6a6394f2de403edeb6e01cbcf6c0fe91576602b99244214de6d3f79f6",
+    "results/evaluation/retrieval_counter_authority_benchmark/39200567493.json": "81a08bc65d703d1ef9ee05988b0aaf9d3d5b600873bee5881da4174044df0cc4",
+    "results/evaluation/frozen_cache_integrity/local_test.json": "b641f9d53e841c2d44ed0a7ddf61d6edf666a349f1d746a17e1f71f223b7cd8d",
+    "results/evaluation/frozen_cache_integrity/39164900837.json": "58a273de260770c12dcdc6f645b06b71f95a672757ae3cfa03e870be4bd5b11e",
+    "results/evaluation/frozen_cache_integrity/39164900837_post-restore-9b61dcf8.json": "d02255b8d11d7bce9b4529349e4e87de7b32a7d06311dfaa3aefa06f5de00032",
+    "results/evaluation/frozen_cache_integrity/39164900837_pre_restore.json": "47be772a9d3d1fcf30185b7ed2bed45603df468c82cf4956e498151e296a17f0",
+    "results/evaluation/frozen_cache_integrity/39164900837_preimage_recovered.json": "58a273de260770c12dcdc6f645b06b71f95a672757ae3cfa03e870be4bd5b11e"
+  },
+  "in_scope_edits": [
+    "reports/evaluation/CYCLE_39297074815.md (D-1 correction of section 4 only, exactly the auditor's corrected_text and per_file_corrections, plus a same-cycle disclosure of the real-pytest measurement)",
+    "results/evaluation/orchestration_failure_diagnosis/39310054437.json (new diagnosis artifact for runs 39304290407 / 39308720556)",
+    "results/evaluation/orchestration/39310054437_pytest_shim.json (new run-namespaced shim record)",
+    "results/evaluation/orchestration/39310054437_pytest_real.json (new run-namespaced real-pytest record, if pytest importable)",
+    "results/evaluation/orchestration/39310054437_targeted_reverification.json (frozen-four + accepted-record re-hash and D-1 conformance check)",
+    "state/evaluation.json (run fields, evidence_refs additions, promotion-status update for the stalled chain)",
+    "reports/evaluation/CYCLE_39310054437.md (this cycle's report of record)",
+    "evaluation/V58_OPERATIONAL_RESUME_HYPOTHESIS_V2.json (this freeze record)"
+  ],
+  "out_of_scope_forbidden": [
+    "any edit to evaluation/frozen_bars/**, evaluation/retrieval_gate/frozen_retrieval_benchmark.json, evaluation/retrieval_gate/FREEZE_RECORD.json",
+    "any edit or in-place overwrite of any accepted/claim-bearing results/ artifact, including the 39297074815 shim record and the audit gate of record",
+    "any edit to .github/** (control plane: recorded, never edited from a lane)",
+    "any new threshold, rubric, bar or success rule; any re-tuning of a frozen benchmark",
+    "any rerun of universal-174k geometry/dense benchmarks",
+    "any claim that an absolute bar is met, that a gate is unblocked, or that a run is promoted without an accept commit on lab/evaluation"
+  ],
+  "freeze_sha_note": "This file is its own provenance; its sha256 is recorded in reports/evaluation/CYCLE_39310054437.md and in state/evaluation.json after commit."
+}
