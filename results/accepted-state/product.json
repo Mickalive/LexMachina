@@ -1,6 +1,12 @@
 {
-  "accepted_commit": "577efeb",
-  "accepted_run_id": "39199428702 (ACCEPTED: origin/lab/product advanced to 577efeb 'accept product cycle 39199428702', audit CYCLE_39199428702_GATE.json gate=PASS safe_to_integrate=true required_fixes=[]). The predecessor value e21eac3 / 39172315384 was stale: neither 39199428702 nor 39202428670 updated it; corrected by resume run 39206477026 from the gate file and git log.",
+  "accepted_commit": "3322fd2",
+  "accepted_run_id": "39262796670 (ACCEPTED: this cycle, audit CYCLE_39262796670_GATE.json gate=PASS safe_to_integrate=true required_fixes=[])",
+  "audit_artifact": "results/audit/product/CYCLE_39262796670_GATE.json",
+  "audit_completed_at": "2026-10-19T14:50:00Z",
+  "audit_gate": "PASS",
+  "audit_report": "reports/audit/product/CYCLE_39262796670.md",
+  "audit_required_fixes": [],
+  "audit_safe_to_integrate": true,
   "bjr_recall_durability": {
     "artifact": "results/product/reality_check/bjr_recall_durability_20261017.json",
     "claim_ceiling": "LOCAL_NOT_DURABLE: this is local live evidence only. The accepted frozen benchmark (frozen_sha256 ff57f556...) is Core Evaluation's recompute and remains RED (overall_pass=false at 38920872324 / 38934722443 / 38945976309) until that lane recomputes it on a run containing this repair. A durable Actions [reality-check] run is still required. No frozen gate, threshold, rubric or success rule was weakened or edited; the new local parity gate is STRICTER than the durable workflow gate.",
@@ -56,6 +62,39 @@
     ],
     "summary": "2 of 2 post-repair live runs pass recall::citation_controlling_authority, each citing 3 of the 5 frozen direct-TF BJR authorities (>=1 required by the frozen leg). Pre-repair run failed and is preserved."
   },
+  "completed_work": {
+    "audit_seam_model_health_sync": {
+      "changes": [
+        "Re-mirrored DEAD_MODEL_JUSTIFICATION['opencode/nemotron-3.5-lightning-free'] from snapshot 39245649011 (tool_probe FAIL, exit 124) to the current control-plane snapshot run 39251927903 (tool_probe PASS, exit 0): basis is now 'adversarial_budget' only (NOT control_plane_tool_probe_fail), control_plane_reported_healthy=true. Required fix R1 of audit CYCLE_39246693581 (gate=REVISE, repair_round 1, repair_of 39240156039).",
+        "Audit named snapshot 39247238487 (newest at audit time, origin/main@303ef0a); origin/main advanced once more to 39251927903 (commit fac9259, 2026-10-19T12:27:21Z) before this repair executed - the probe result for the excluded model is PASS/exit 0 at both snapshots, so the record mirrors the current newest snapshot, which is what the guard reads live via git show origin/main:state/model_health.json.",
+        "Refreshed the stale 'newest control-plane snapshot' run-id references in the product/query/audit_seam.py docstring (ultra block and module-docstring section 3) to run 39251927903.",
+        "Exclusion unchanged: opencode/nemotron-3.5-lightning-free stays in KNOWN_DEAD_MODELS and out of MODEL_ORDER and every fallback chain; the model is excluded on adversarial-budget grounds only, which the current PASS probe does not contradict."
+      ],
+      "control_plane_checked_at": "2026-10-19T12:27:21Z",
+      "control_plane_run_id": "39251927903",
+      "tests_fixed": {
+        "deliberately_intact": "No test was modified in this repair. test_known_dead_models_agree_with_control_plane_health remains intact as the non-vacuity guard and was verified green (13/13 in product/tests/test_audit_seam.py) against origin/main:state/model_health.json at run 39251927903, last_checked_at 2026-10-19T12:27:21Z. The prior round (39240156039 repair 1) corrected the tests_fixed list to the two tests its diff actually touched; this round touches no test.",
+        "modified": []
+      }
+    },
+    "core_product_tests": {
+      "adversarial_retrieval": "42 passed",
+      "answer_contract": "passed",
+      "answer_gap": "passed",
+      "audit_seam": "13 passed",
+      "ci_reality_legs": "20 passed",
+      "human_gate_integration": "11 passed, 1 skipped",
+      "progressive_query": "22 passed",
+      "query_map_mvp": "22 passed",
+      "state_contract": "29 passed",
+      "total": "186 passed, 1 skipped"
+    },
+    "state_contract_direction_version_alignment": {
+      "new_direction_version": 58,
+      "previous_direction_version": 57,
+      "tests_fixed": "All 29 test_state_contract.py tests now pass"
+    }
+  },
   "continue_recommended": true,
   "control_plane_hardening_items": [
     {
@@ -105,7 +144,7 @@
       "scope": "control-plane workflow scope; recorded, not edited from the lane"
     }
   ],
-  "current_run": "39253287434",
+  "current_run": "39286804530",
   "cycle_39056694835_frontier_serve_audit_intake": {
     "admission": "fail-closed",
     "claim_ceiling": [
@@ -512,7 +551,117 @@
     ],
     "state_block_added_by_run": "39094983039"
   },
-  "cycle_status": "REPAIR_39246693581_ROUND2__R1_SEAM_REMIRRORED_TO_SNAPSHOT_39251927903",
+  "cycle_39199428702_fixture_summary": {
+    "audit": "results/audit/product/CYCLE_39199428702_GATE.json gate=PASS safe_to_integrate=true required_fixes=[]",
+    "commit_of_record": "50a8b3c (team) / 577efeb (accept)",
+    "posture": "fail-closed, unchanged",
+    "run_id": "39199428702",
+    "state_gap": "The producer did NOT update state/product.json (current_run stayed 39193356789, accepted_commit stayed e21eac3). Recorded and corrected by resume run 39206477026; the accept commit 577efeb itself is valid.",
+    "what_it_shipped": "Two committed fixture-summary artifacts under results/product/reality_check/ (rent-default_fixture_20261019T045047Z.json, summary_fixture_20261019T045047Z.json) on top of the accepted 39193356789 tree; the audit re-verified the offline+live slice, page contract PASS 65, geometry stability and RF1 counter counting on that tree."
+  },
+  "cycle_39202428670_served_slice": {
+    "commit_of_record": "1e7a69a4b76d39c85f43caeddb34e7ad77293da3 (cycle/core/product/39202428670/team)",
+    "defects_found_by_the_resume": [
+      "report section 7 left as an unfilled placeholder while section 4 pointed at it - finished by 39206477026 with per-artifact provenance",
+      "state/product.json not updated by this run nor by 39199428702 - corrected by 39206477026",
+      "the committed regression artifact measured an intermediate tree state (its one repaired_only_NEW_FAILURES entry passes on the committed tree) - corrected set relation published as CYCLE_39206477026_regression_scope.json; the stale artifact preserved, not overwritten"
+    ],
+    "measured": "summary.json verdict PASS 10/10 checks (n_first_page 100, n_clusters 8, rows_with_source_url 100, answer ready n_cited 2, page contract 67 assertions, fixture-corpus total_s 1.100); ledger verdict PASS n_claims 72 n_failed 0; report of record reports/product/CYCLE_39202428670.md",
+    "posture": "fail-closed, unchanged",
+    "run_id": "39202428670",
+    "verification_by_resume": "served_slice ledger 11/11 PASS; full ledger 72/72 PASS ONLY WITH the accepted Frontier mount present (mount git HEAD c242127a7f42293adcdda797d6973ed2ed45fc90), and FAIL n_failed=3 without it - the 3 handoff claims, failing closed on mount_present=false (both measured by repair run 39214811351 on tree b0530db, audit F3); test_server_slice.py 7 passed; test_delta_attribution.py 20 passed. Digest scope (audit F1, all re-hashed by run 39214811351 on tree b0530db): the report-of-record pins resolve to the committed bytes for summary.json 19213ad1..., served.bundle.json 3f78f680..., first_page.bundle.json 7f7b8d5a..., CYCLE_39202428670_test_delta_attribution.json d2a4564f..., CYCLE_39206477026_report_testcount_disclosure.json 54ea2e70..., CYCLE_39202428670_cycle_verify.json d7c45482... and CYCLE_39202428670_regression_scope.json 414a126d...; the eighth pin, CYCLE_39206477026_regression_scope.json, was published as 363906d6... which resolved to no file and is corrected in the report to 0e498c57..., the committed bytes",
+    "what_it_shipped": [
+      "product/server_slice.py: served vertical-slice instrument - boots the shipped query_app.Handler (fixture mode) on ephemeral loopback, arms a non-loopback socket.connect trap, drives POST /api/query/start -> expand -> enrich -> bundle over real HTTP, then runs node product/verify_query_page.js against the SERVED bundle",
+      "product/cycle_verify.py: new 'served_slice' ledger check (11 claims) over the committed served-slice artifact",
+      "product/tests/test_server_slice.py: 7 tests incl. negative controls (moved point -> FAIL row, corrupted bundle -> page contract False, loopback guard allows 127.0.0.1 / blocks non-loopback, main() end-to-end into tmpdir)",
+      "repaired pre-existing red guard: test_delta_attribution.py pytest pin repointed at CYCLE_39202428670_test_delta_attribution.json (sha256 d2a4564f...), fixing test_working_tree_total_still_equals_what_this_tree_collects on the accepted tip",
+      "artifacts: results/product/server_slice/39202428670/{summary.json, served.bundle.json, first_page.bundle.json, CYCLE_39202428670_regression_scope.json, pytest_product_tests.log, raw_logs/}; results/product/cycle_verify/CYCLE_39202428670_cycle_verify.json; results/product/regression/CYCLE_39202428670_{test_delta_attribution,report_testcount_disclosure,regression_scope}.json"
+    ],
+    "why_it_did_not_promote": "rc-78 LEX_WORK_QUANTUM_EXPIRED seconds=2700 (team 'Run lane cycle' step 2704.0s); audit skipped; snapshot survived on the team branch. NOT a product defect. Diagnosis: results/product/orchestration/CYCLE_39202428670_{orchestration,resume_diagnosis}.json"
+  },
+  "cycle_39206477026_operational_resume": {
+    "base_tree": "1e7a69a (the producer snapshot; product delta preserved intact)",
+    "diagnosis": "rc-78 LEX_WORK_QUANTUM_EXPIRED; team branch survived; audit never eligible; deliverable itself green. results/product/orchestration/CYCLE_39202428670_{orchestration,resume_diagnosis}.json",
+    "posture": "fail-closed, unchanged: continue_recommended=true, human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false",
+    "repairs": [
+      "reports/product/CYCLE_39202428670.md section 7 filled with measured verdicts, each tied to committed artifact + run id + commit, resume provenance disclosed",
+      "state/product.json updated (this block, the 39199428702 and 39202428670 blocks above, accepted_commit e21eac3->577efeb with evidence, current_run/state_updated_* -> 39206477026); verification register untouched (state_register retention guard)",
+      "results/product/regression/CYCLE_39206477026_regression_scope.json: corrected set relation vs accepted tip 577efeb83 on the committed tree - intersection 159, baseline-only 1 (repaired guard), repaired-only 0, collected 1217->1224, failed 160->159, passed 1042->1050, arithmetic reconciles; raw logs results/product/regression/logs_39206477026/",
+      "reports/product/CYCLE_39206477026.md (this report of record)",
+      "results/product/regression/CYCLE_39206477026_report_testcount_disclosure.json: the report-testcount disclosure pin re-pointed (CYCLE_39193356789 -> CYCLE_39206477026) because this resume's two reports cite the corrected regression artifact and the candidate sweep grew from 0 to 2 reports; re-measured by product/report_scope_measurement.py (14 reports, superset of the 12-report history), pin constants in product/tests/test_report_artifact_arithmetic.py re-pointed with previous pin and full history retained, historical artifacts preserved byte-identical"
+    ],
+    "resumes": "39202428670",
+    "run_id": "39206477026",
+    "verification": "state contract 29 passed; report arithmetic guards re-swept; ledger re-run against the committed served-slice artifact",
+    "zero_new_tests": "This resume adds zero COLLECTED tests; the only product/tests/** change it makes is the disclosure-pin constant re-point in product/tests/test_report_artifact_arithmetic.py, which changes no collected test count (corrected per audit F2 - the earlier wording 'changes no product/tests/** file' was false); the producer's +7 collected-test attribution (CYCLE_39202428670_test_delta_attribution.json) still describes the tree."
+  },
+  "cycle_39214811351_repair_round_1": {
+    "audit_of_record": "CYCLE_39206477026_GATE.json on audit branch cycle/core/product/39206477026/audit - gate=REVISE, safe_to_integrate=false, 3 required fixes, all severity claim-disclosure, 'Text only, no re-measurement'. The gate file is written to the accepted checkout by the audit job and is NOT present in this tree",
+    "audit_verdict_on_capability": "reproduced green: shipped Handler -> loopback HTTP -> source-linked bundle -> shipped clickable map page; the audit's own claim ceiling establishes no measurement error, so no number, artifact, frozen bar, rubric or threshold was touched",
+    "base_tree": "b0530dbd33d23ddc38316387f552fb480ac2ea31 (product cycle 39206477026 - operational resume of 39202428670)",
+    "fixes_applied": [
+      "F1 - reports/product/CYCLE_39202428670.md section 7.3 pinned results/product/regression/CYCLE_39206477026_regression_scope.json to sha256 363906d6... which resolves to no file in the head tree or the accepted base; the pin is corrected to 0e498c57dfc1cd3abd742a697c776e11d44a37bbed8fa9844942ac90e9d40088 (re-measured by this run with sha256sum on tree b0530db) and the superseded value is printed beside it rather than deleted",
+      "F1 - state cycle_39202428670_served_slice.verification_by_resume no longer says 'artifact digests match the producer report's pins'; it now enumerates the seven pins that do match and names the eighth as the corrected one",
+      "F2 - reports/product/CYCLE_39206477026.md section 4 said 'no product/tests/** file changed' and state cycle_39206477026_operational_resume.zero_new_tests said the same; both were false (this resume re-pointed the disclosure-pin constants in product/tests/test_report_artifact_arithmetic.py, 6 lines) and now say the re-point and that it changes no collected test count. The substantive claim - zero COLLECTED tests added by this resume - was already true and is unchanged",
+      "F3 - 'ledger PASS 72/72' was published unconditionally in three report locations and two state fields; it is mount-scoped. Both sides were re-measured by this run on one tree with one command (python3 -m product.cycle_verify --run-id 39214811351 --out-dir <tmp>): with the accepted Frontier mount present (mount git HEAD c242127a7f42293adcdda797d6973ed2ed45fc90) PASS n_claims=72 n_failed=0 - the verdict of the committed artifact results/product/cycle_verify/CYCLE_39202428670_cycle_verify.json (sha256 d7c45482...); with the mount absent FAIL n_failed=3, all three the 'handoff' claims, failing closed on mount_present=false / decision=DECISION_NOT_REACHABLE. These are run measurements with no committed artifact (the ledger writes only on --write, and a FAIL ledger is refused from the canonical results directory by design), so no digest is offered for them. No handoff check was weakened, removed or re-scoped"
+    ],
+    "not_done_by_design": "no new measurement, no new instrument, no new collected test, no new capability, no live OpenCaseLaw call, no .github/** touch, no Frontier re-dispatch; the lane question for this direction orders the SMALLEST tree that can pass and forbids opening a new measurement or claim-bearing section in the cycle that closes the fix list",
+    "posture": "fail-closed, unchanged: continue_recommended=true, human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false",
+    "repairs_cycle": "39206477026",
+    "run_id": "39214811351",
+    "verification": "guards re-run on the repaired tree: product/tests/test_report_artifact_arithmetic.py, test_delta_attribution.py, test_state_contract.py, test_cycle_verify_is_a_gate.py, test_server_slice.py; full ledger re-run both ways as recorded above"
+  },
+  "cycle_39216560764_operational_resume": {
+    "accepted_base_unchanged": "577efeb (origin/lab/product has NOT advanced; this resume promotes nothing)",
+    "base_tree": "87b7f468c0beecedbd6a8111dc072109d6e4491f (tip of cycle/core/product/39214811351/team = this run's starting HEAD), parent b0530dbd33d23ddc38316387f552fb480ac2ea31 (the repair's own measurement tree)",
+    "deliverable_kept": "All of repair run 39214811351's work is preserved byte-identical: the F1 digest correction in reports/product/CYCLE_39202428670.md section 7.3 (0e498c57... with 363906d6... retained beside it), the F2 parenthetical correction in reports/product/CYCLE_39206477026.md section 4 and state, and the F3 mount-precondition disclosures. `git diff --name-only b0530dbd 87b7f468` is exactly those two reports plus state/product.json - no product/ file, no guard, no pin and no test was touched by the repair, which is what F2 required.",
+    "delta_this_run": "diagnosis artifact + verification artifacts + this lane's state only; zero new collected tests, zero new instrument, zero product/ code change, no report section, no .github/** touch, no Frontier re-dispatch, no live OpenCaseLaw call",
+    "diagnosis": "ORCHESTRATION failure on the AUDIT side, not a producer failure, not a state-validation failure and not a defect in the deliverable. The team job of 39214811351 completed all ten of its steps green - including 'Validate active MVP producer state' (direction_version 57, cycle_status not INITIALIZED) and 'Enforce lane write scope' - and persisted the snapshot; then the audit job's 'Independent audit' agent step exited 1, so the workflow's gate-reader step, its audit-snapshot step and the whole integrate job were skipped and NO verdict exists for the repair. The repair is therefore UNAUDITED, not rejected. Every element of that reading is recomputed by the product's own instrument rather than retold: results/product/orchestration/CYCLE_39214811351_orchestration.json (schema product-orchestration-evidence/1, class AUDIT_STEP_FAILED_NO_GATE, public annotation exit code 1, audit_branch_exists=false, team_branch_exists=true), produced by `python3 product/orchestration_evidence.py --run-id 39214811351 --write` in run 39216560764. Job logs are admin-only, so the innermost cause inside the audit agent is not attributable from this lane and is not asserted here.",
+    "guards": "The snapshot commit message claims 'the six existing guard modules listed above collect 114 tests'; the repair's state block lists only five of them, so 'listed above' under-enumerates by one. This resume re-ran the full six-module set - the five named there plus product/tests/test_no_test_writes_into_tracked_results.py - and published the exact commands and measured counts in the diagnosis artifact instead of leaving the claim arguable. No guard, pin or rubric was edited to reach that result.",
+    "ledger": "PASS on this tree with the accepted Frontier mount present (mount git HEAD c242127a7f42293adcdda797d6973ed2ed45fc90, re-measured this run); FAIL closed on exactly the 3 handoff claims with that mount absent (mount_present=false) - the precondition and BOTH numbers are stated here and in the diagnosis artifact. Committed checker artifact: results/product/cycle_verify/CYCLE_39216560764_cycle_verify.json, written by `python3 -m product.cycle_verify --run-id 39216560764 --write`.",
+    "mode": "OPERATIONAL RESUME from the persisted producer snapshot of run 39214811351; nothing was restarted, reverted or re-derived",
+    "posture": "fail-closed, unchanged: continue_recommended=true, human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false",
+    "question_answered": "factory direction v57 ordered work, operational resume: why did run 39214811351 end without a verdict, and does its committed deliverable verify without discarding it",
+    "resumes": "39214811351",
+    "run_id": "39216560764",
+    "verification_of_record": "results/product/orchestration/CYCLE_39214811351_resume_diagnosis.json (schema product-resume-diagnosis/1) carries every number this resume publishes, each beside its command, its run id 39216560764 and tree 87b7f468: the three required-fix closure checks, the eight report digest pins re-hashed from committed bytes, the one-command ledger, the six guard modules the snapshot commit message names, and the served vertical slice. No number is asserted in this block that the artifact does not re-derive."
+  },
+  "cycle_39221882428_zero_delta_diagnosis": {
+    "class": "PRODUCER ZERO-DELTA on a repair dispatch - wrapper rc-67 LEX_ZERO_DELTA_REPAIR",
+    "evidence": [
+      "public check-run annotations: 'LEX_ZERO_DELTA_REPAIR' and 'Process completed with exit code 67.' (team job)",
+      "results/product/orchestration/CYCLE_39221882428_orchestration.json (schema product-orchestration-evidence/1; exit_code 67 from the public annotation; only surviving named branch LEX_ZERO_DELTA_REPAIR; snapshot survived; no audit branch)",
+      "team branch cycle/core/product/39221882428/team-attempt-1 still at 66dfc6b4d7cf8123e09e55ed360c1a2f74d7398b (byte-identical to 39216560764's persisted head); persist step logged 'nothing to commit, working tree clean'"
+    ],
+    "log_observed_detail": "team job log (authenticated logs endpoint read during 39222442674; LOG-OBSERVED, not artifact-reproduced): the producer's last tool call probed /home/runner/work/_temp/* and the harness auto-rejected it as external_directory immediately before rc-67; the load-bearing conclusion rests only on the public annotations",
+    "not_a_defect_in_the_deliverable": "the producer read prior gate/audit context and committed nothing; audit and integrate never became eligible; no gate exists for 39214811351, 39216560764, 39221882428 or 39222442674 - the chain is unaudited, not rejected",
+    "resumed_by": "39222442674",
+    "run_id": "39221882428"
+  },
+  "cycle_39222442674_operational_resume": {
+    "accepted_base_unchanged": "577efeb (origin/lab/product has NOT advanced; this resume promotes nothing)",
+    "base_tree": "66dfc6b4d7cf8123e09e55ed360c1a2f74d7398b (parent of this run's commit; all pre-commit measurements pinned to it)",
+    "binding_gate": "results/audit/product/CYCLE_39206477026_GATE.json on audit branch cycle/core/product/39206477026/audit - gate=REVISE, required_fixes F1/F2/F3, 'Text only, no re-measurement'",
+    "closure_commands_artifact": "results/product/orchestration/CYCLE_39222442674_resume_diagnosis.json (schema product-resume-diagnosis/1) - every command, observed value, run id and tree",
+    "delta_this_run": "new artifacts only (2 orchestration evidence files, 1 resume diagnosis, 1 cycle_verify ledger, 1 report) plus this state block; no product/ code, guard, pin, rubric, frozen bar or historical report edited; no .github/** touch; no Frontier re-dispatch; no live OpenCaseLaw call",
+    "fixes_verified_closed_this_run": [
+      "F1 - sha256sum of the F1-corrected set-relation artifact = 0e498c57dfc1cd3abd742a697c776e11d44a37bbed8fa9844942ac90e9d40088, equal to the corrected pin in reports/product/CYCLE_39202428670.md section 7.3; superseded digest 363906d6... retained beside it; the live state field cycle_39202428670_served_slice.verification_by_resume carries 0 occurrences of the old blanket sentence",
+      "F2 - the corrected parenthetical (disclosure-pin constant re-point, changes no collected test count) is present in reports/product/CYCLE_39206477026.md section 4 and in state zero_new_tests",
+      "F3 - all 6 '72/72' claim sites (2 reports + state) carry the accepted-Frontier-mount precondition; zero sites lack it"
+    ],
+    "guards": "8 named modules re-run this run: test_query_concept_disclosure 5 passed; test_report_artifact_arithmetic 12; test_delta_attribution 20; test_state_contract 29; test_cycle_verify_is_a_gate 33; test_server_slice 7; test_no_test_writes_into_tracked_results 13; test_v57_handoffs 16 - 135 collected, 0 failed on the parent tree; test_state_contract re-run after this state update",
+    "ledger": {
+      "measured_by_run": "39222442674",
+      "with_mount": "PASS n_claims=72 n_failed=0; committed artifact results/product/cycle_verify/CYCLE_39222442674_cycle_verify.json sha256 cb8206e12b458bc922e9295948d462432dbe6dd89bb4c85d2ed381b051f7001d; mount /tmp/lex_accepted/frontier/frontier-query-concept-recall at git HEAD c242127a7f42293adcdda797d6973ed2ed45fc90",
+      "without_mount": "FAIL n_failed=3, exactly the 3 handoff adoption claims, fail-closed on mount_present=false (measured this run; no artifact written on the FAIL side by design)"
+    },
+    "mode": "OPERATIONAL RESUME from the persisted producer snapshot of run 39221882428; nothing restarted, reverted or re-derived",
+    "posture": "fail-closed, unchanged: continue_recommended=true, human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false",
+    "question_answered": "factory direction v57 ordered work (2) + operational-resume mandate: diagnose why 39221882428 produced no delta, verify the F1/F2/F3 deliverable it inherited, and make the snapshot chain audit-ready",
+    "resumes": "39221882428",
+    "run_id": "39222442674"
+  },
+  "cycle_status": "RUN_39286804530__REPAIR_ROUND_1_AUDIT_F1_F5_CLOSED__PENDING_INDEPENDENT_AUDIT",
   "direction_version": 58,
   "evidence_refs": [
     "results/product/gate_packet/rebuilt-39027045675/packet.json",
@@ -619,6 +768,18 @@
     "reports/product/CYCLE_39222442674.md"
   ],
   "evidence_tier": "REPRODUCED",
+  "frontier_adoptions": {
+    "frontier-concept-seed-recall": {
+      "accepted_audit": "results/audit/frontier/frontier-concept-seed-recall/CYCLE_39251875368_GATE.json",
+      "accepted_audit_gate": "PASS",
+      "artifact": "results/product/frontier_verdicts/frontier-concept-seed-recall_adoption_39262796670.json",
+      "claim_ceiling": "Additive retrieval arm only; asserts no frozen bar, packet fitness, corpus absence or legal usefulness.",
+      "decided_by_run": "39262796670",
+      "decision": "ADOPT",
+      "integration": "product/query/concept_seed.py + product/query/nlcs.py (vendored), wired at product/query/pipeline.py::run_query_initial::_apply_concept_seed_arm; live/refresh only",
+      "tests": "product/tests/test_concept_seed.py"
+    }
+  },
   "frontier_query_concept_recall_adoption": {
     "artifact": "results/product/frontier_verdicts/frontier-query-concept-recall_adoption_39179862363.json",
     "charter_version": 1,
@@ -851,7 +1012,7 @@
     "status": "COMPLETE_AND_RECORDED",
     "v50_objective": "one durable, retrievable, GREEN core-lane run of lane=product whose own team job executes the four frozen reality legs LIVE"
   },
-  "next_recommendation": "continue_recommended=true; human_gate_ready=false; machine_gate_ready=false; packet_admitted=false; ready_for_owner_session=false. Direction v57 ordered work (1) the query-concept disclosure is discharged and (2) the binding gate's F1/F2/F3 fix list is verified closed on this tree. This cycle also discharged the rc-67 zero-delta diagnosis for 39221882428 and re-measured the ledger both ways. Ordered work (4), handing the frozen evaluation feedback cycle to Core Evaluation, remains lawful only after a gate=PASS promotion and is NOT started here. The next dispatch should let the independent audit of this resume decide; it should not open a new measurement, instrument or capability in the cycle that promotes.",
+  "next_recommendation": "continue_recommended=true; human_gate_ready=false; machine_gate_ready=false; packet_admitted=false; ready_for_owner_session=false. Repair round 1 of rejected cycle 39286804530 closed all five audit required fixes: F1 canonical state updated and the divergent shadow state removed; F2 report of record reports/product/CYCLE_39286804530.json's sibling CYCLE_39286804530.md added citing live-slice artifact 20261019T153744Z.json; F3 stage-disclosure amendment regenerated with the shipped tool to cover 20261019T153744Z.json; F4 the nine frozen cache bodies rewritten in place by run 39275520116 restored to their manifest-pinned bytes from 1d3c227^ (b8b0452); F5 out-of-scope root server.log deleted. No frozen bar, rubric, threshold, success rule, test assertion or scope was weakened; the two test_cache_non_orphan tests that are red on both the accepted base and this branch (pre-existing debt: committed claim bundle predates the cluster size/member_ids reconciliation) are unchanged. The next dispatch should let the independent audit of this repair decide; it should not open a new measurement, instrument or capability.",
   "next_recommended": "continue_recommended=true; human_gate_ready=false; machine_gate_ready=false; machine admission still blocks serving. Cycle 39014141628 is an OPERATIONAL RESUME of the persisted producer snapshot of run 39011220761 (f3c47c8): diagnosis rc-78 LEX_WORK_QUANTUM_EXPIRED (step 7 state validation SKIPPED, not failed - no product-code failure), preserved work verified, state/report finished, snapshot made audit-ready. Direction v50 obligations status: (1) packet admission fail-closed on both accepted bars - already landed, still blocking; (2)(3) mega-cluster size-based disclosure + unevidenced-counter disclosure - landed, re-verified by tests; (4) query-conditioned geometry variant integrated behind LEXMACHINA_GEOMETRY_VARIANT, default incumbent; (5) red BJR recall leg - local live evidence now 4/4 legs with the parity gate in the snapshot's own CI summary, still pending a durable Actions run and Core Evaluation's frozen recompute. No gate/threshold/rubric weakened; .github untouched.",
   "normal_path": {
     "generation_and_counter": "frontier-generative-audit contract 2.2 (independent adversarial pass)",
@@ -2164,6 +2325,49 @@
     "scope": "repair round 1: F1/F1b (red committed guard + ledger blindness) and F2/F3 (deleted state register + report disclosure). No new measurement, no new instrument, no new capability.",
     "unretracted": "The rejected cycle's other accepted-verified work is untouched and still credited: the v57 ordered work (1) query-concept disclosure (product/query/gate_admissibility.py + product/tests/test_query_concept_disclosure.py), the direction_version 56->57 exit-69 fix, the attribution regeneration and the frontier-query-concept-recall DECLINE. This repair changes no product runtime code - see git diff --stat against 2d8768e in the report of record."
   },
+  "repair_39240156039_round1": {
+    "audit": "results/audit/product/CYCLE_39240156039_GATE.json gate=REVISE safe_to_integrate=false required_fixes=[F1, F2]",
+    "claim_ceiling": "REPAIR ONLY: no new capability, no new measurement, no new instrument, no new claim-bearing report section. The residue removal, the preflight guard + its test, the F2 state correction and the seam provenance-record update are the entire delta.",
+    "control_plane_drift_repair": "origin/main:state/model_health.json advanced to run 39245649011 (2026-10-19T11:37:15Z) after the audit; nemotron-3.5-lightning-free flipped PASS->FAIL (exit 124). Per the guard's designed remedy the seam's DEAD_MODEL_JUSTIFICATION record for that model was updated to mirror 39245649011 (basis adversarial_budget_and_tool_probe_fail, tool_probe FAIL, exit 124, reported_healthy false) and the stale \"newest snapshot\" prose run-id references were refreshed; the guard passes against the current snapshot. No frozen bar, rubric, threshold or success rule was touched and no exclusion changed.",
+    "fixes_applied": {
+      "F1": "git rm -r results/product/gate_packet/test_gate_packet_001 and results/product/gate_packet/test_gate_packet_002 (44 files, ~4.8 MB of near-duplicate fixture-rehearsal residue that no digest, ledger claim, consumer, report or state entry referenced); added a fail-closed guard in product/gate_packet.py::preflight so fixture mode without --out-root refuses to write into the tracked results/product/gate_packet/ root (pinned by product/tests/test_gate_packet.py::test_fixture_preflight_refuses_the_tracked_root_without_out_root); removed the now-dangling completed_work.gate_packet_preflight_fixture state entry. The 39 results/product/query_cache/ envelopes are real HTTP-200 OpenCaseLaw responses and stay (explicitly not part of F1).",
+      "F2": "corrected completed_work.audit_seam_model_health_sync.tests_fixed to the two tests the diff 49cc4be..dafd98a actually touches (test_healthy_models_filters_dead_after_workflow_override, test_preferred_model_never_returns_dead_after_override) and recorded that test_known_dead_models_agree_with_control_plane_health was deliberately left intact as the non-vacuity guard, verified passing against origin/main:state/model_health.json at run 39239945934."
+    },
+    "posture": "fail-closed, unchanged: packet_admitted=false, human_gate_ready=false, machine_gate_ready=false, ready_for_owner_session=false, continue_recommended=true",
+    "repair_round": 1,
+    "run_id": "39240156039"
+  },
+  "repair_39246693581_round2": {
+    "audit": "results/audit/product/CYCLE_39246693581_GATE.json gate=REVISE safe_to_integrate=false required_fixes=[R1] (repair_round 1, repair_of 39240156039; team head audited 61d3772)",
+    "claim_ceiling": "REPAIR ONLY. NOT established or claimed: answer quality, any frozen benchmark bar, live OpenCaseLaw behaviour, latency, legal usefulness, production readiness, owner-gate readiness.",
+    "fixes_applied": {
+      "R1": "Re-mirrored product/query/audit_seam.py DEAD_MODEL_JUSTIFICATION['opencode/nemotron-3.5-lightning-free'] to the current control-plane snapshot: tool_probe PASS, exit_code 0, reported_healthy true, basis 'adversarial_budget' only (NOT control_plane_tool_probe_fail - the historical pattern for a PASS-probed excluded model), run 39247238487 as named by the audit and re-mirrored to 39251927903 (current newest on origin/main at repair time; probe result identical PASS/0). The model stays excluded; KNOWN_DEAD_MODELS and MODEL_ORDER membership unchanged. Stale 'newest snapshot' run-id references in the file's docstring refreshed to 39251927903."
+    },
+    "guard_verification": "pytest product/tests/test_audit_seam.py -> 13 passed, including test_known_dead_models_agree_with_control_plane_health measured against origin/main:state/model_health.json run 39251927903 last_checked_at 2026-10-19T12:27:21Z (the guard reads origin/main live via git show; the audit-named snapshot 39247238487 was newest at audit time and main has since advanced once).",
+    "original_rejected_run_id": "39240156039",
+    "posture": "fail-closed, unchanged: packet_admitted=false, human_gate_ready=false, machine_gate_ready=false, ready_for_owner_session=false, continue_recommended=true",
+    "repair_of_run_id": "39246693581",
+    "repair_round": 2,
+    "run_id": "39253287434",
+    "scope": "Repair only: one provenance-record re-mirror plus its docstring accuracy refresh and the state/report disclosure. No new capability, no new measurement, no new instrument, no new claim-bearing report section; the guard, the exclusion, every frozen bar, rubric, threshold and success rule are byte-unchanged."
+  },
+  "repair_39286804530_round1": {
+    "audit": "results/audit/product/CYCLE_39286804530_GATE.json gate=REVISE safe_to_integrate=false required_fixes=[F1, F2, F3, F4, F5]",
+    "claim_ceiling": "REPAIR ONLY: no new capability, no new measurement, no new instrument. The entire delta is the five audit-required record-integrity fixes plus the state update.",
+    "fixes_applied": {
+      "F1": "canonical state/product.json updated for run 39286804530 (current_run, cycle_status, evidence_tier=REPRODUCED, next_recommendation, state_updated_by_run/at); divergent shadow results/product/state/product.json deleted (unreferenced by any code or state entry; product/state_contract.py::shadow_state_findings flags it as a contract violation).",
+      "F2": "reports/product/CYCLE_39286804530.md added as the report of record for committed live-slice artifact results/product/live_slice/20261019T153744Z.json (cites it by filename; citation-count claims agree with the artifact's own answer.n_cited=0).",
+      "F3": "results/product/live_slice_stages/STAGE_DISCLOSURE_AMENDMENT.json regenerated with the shipped tool product/live_slice_stage_amendment.py --write so it covers 20261019T153744Z.json (STAGED record, verdict PASS_MAP_ONLY, canonical_chain=false, map_only_fingerprint=true); the test debt marker in product/tests/test_live_slice_stage_disclosure.py was flipped from assert checked == 0 to assert checked >= 1 so the post-fix branch is exercised by the actual staged record (strengthening, per audit F3's note that regeneration alone is insufficient).",
+      "F4": "the 9 frozen cache bodies rewritten in place by run 39275520116 (commit 1d3c227) restored to their manifest-pinned bytes from 1d3c227^ (b8b0452); all 9 re-hash to the pins in results/product/CYCLE_38759730609_cache_manifest.json; test_cache_non_orphan.py::test_claim_cache_manifest_is_intact_and_append_tolerant green.",
+      "F5": "out-of-scope root file server.log (committed in 9d2f605) deleted; it was outside the lane write pattern (results/product/*, reports/product/*, state/product.json, data/product/*, product/*, tests/product/*)."
+    },
+    "preserved": "the two test_cache_non_orphan tests red on BOTH the accepted base b8b0452 and the rejected head (test_claim_bundle_content_hash_matches_a_fresh_replay, test_claim_bundle_full_cache_replay_differs_only_in_cache_size) remain red here for the identical pre-existing reason: the committed claim bundle predates the accepted cluster size/member_ids reconciliation (product/query/qmap.py emits size=len(idx) while member_ids truncates at 50). Not a required fix; not weakened.",
+    "provenance": {
+      "git_head": "07bf523 (rejected head, repaired on this branch)",
+      "github_rest_snapshot": "PENDING: api.github.com rate-limited (unauthenticated) at state-update time; run id cited from local machine evidence (git history + on-tree audit gate file) per the run_id_policy disclosure duty",
+      "run_id": 39286804530
+    }
+  },
   "resume_39097705922": {
     "claim_ceiling": "OFFLINE WIRING EVIDENCE ONLY: the offline slice proves query -> bundle -> sourced answer -> counter-authority pass -> clickable map from recorded envelopes with no network. No frozen gate evaluated, no legal-usefulness claim, no serve recommendation. The accepted DO-NOT-SERVE order on rebuilt-390927045675 stands.",
     "committed_this_resume": [
@@ -2780,8 +2984,9 @@
     "fixtures": "offline/test only; never merged into live results",
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
   },
-  "state_updated_at": "2026-10-19T13:00:19Z",
-  "state_updated_by_run": "39253287434",
+  "state_updated_at": "2026-10-19T17:58:42Z",
+  "state_updated_by": "product_cycle_39253287434_repair_2",
+  "state_updated_by_run": 39286804530,
   "state_updated_from_resumed_snapshot_run": "39221882428",
   "supersedes_claims": {
     "gate_ceremony_is_one_query_only": "SUPERSEDED BY RUN 38792650692: the packet pre-registers three questions (FR/DE/IT), re-verifies each bundle at run time and hands the owner one deep link per question. The single-query path still works (product/human_gate_session.py is unchanged) and is still the way ONE session is finalized.",
@@ -4748,175 +4953,5 @@
       "observed_at": "2026-10-17T07:52Z (unauthenticated REST /actions/runs/39011220761/jobs + /check-runs/117333981528/annotations)",
       "run_id": 39011220761
     }
-  ],
-  "cycle_39199428702_fixture_summary": {
-    "run_id": "39199428702",
-    "commit_of_record": "50a8b3c (team) / 577efeb (accept)",
-    "audit": "results/audit/product/CYCLE_39199428702_GATE.json gate=PASS safe_to_integrate=true required_fixes=[]",
-    "what_it_shipped": "Two committed fixture-summary artifacts under results/product/reality_check/ (rent-default_fixture_20261019T045047Z.json, summary_fixture_20261019T045047Z.json) on top of the accepted 39193356789 tree; the audit re-verified the offline+live slice, page contract PASS 65, geometry stability and RF1 counter counting on that tree.",
-    "state_gap": "The producer did NOT update state/product.json (current_run stayed 39193356789, accepted_commit stayed e21eac3). Recorded and corrected by resume run 39206477026; the accept commit 577efeb itself is valid.",
-    "posture": "fail-closed, unchanged"
-  },
-  "cycle_39202428670_served_slice": {
-    "run_id": "39202428670",
-    "commit_of_record": "1e7a69a4b76d39c85f43caeddb34e7ad77293da3 (cycle/core/product/39202428670/team)",
-    "what_it_shipped": [
-      "product/server_slice.py: served vertical-slice instrument - boots the shipped query_app.Handler (fixture mode) on ephemeral loopback, arms a non-loopback socket.connect trap, drives POST /api/query/start -> expand -> enrich -> bundle over real HTTP, then runs node product/verify_query_page.js against the SERVED bundle",
-      "product/cycle_verify.py: new 'served_slice' ledger check (11 claims) over the committed served-slice artifact",
-      "product/tests/test_server_slice.py: 7 tests incl. negative controls (moved point -> FAIL row, corrupted bundle -> page contract False, loopback guard allows 127.0.0.1 / blocks non-loopback, main() end-to-end into tmpdir)",
-      "repaired pre-existing red guard: test_delta_attribution.py pytest pin repointed at CYCLE_39202428670_test_delta_attribution.json (sha256 d2a4564f...), fixing test_working_tree_total_still_equals_what_this_tree_collects on the accepted tip",
-      "artifacts: results/product/server_slice/39202428670/{summary.json, served.bundle.json, first_page.bundle.json, CYCLE_39202428670_regression_scope.json, pytest_product_tests.log, raw_logs/}; results/product/cycle_verify/CYCLE_39202428670_cycle_verify.json; results/product/regression/CYCLE_39202428670_{test_delta_attribution,report_testcount_disclosure,regression_scope}.json"
-    ],
-    "measured": "summary.json verdict PASS 10/10 checks (n_first_page 100, n_clusters 8, rows_with_source_url 100, answer ready n_cited 2, page contract 67 assertions, fixture-corpus total_s 1.100); ledger verdict PASS n_claims 72 n_failed 0; report of record reports/product/CYCLE_39202428670.md",
-    "why_it_did_not_promote": "rc-78 LEX_WORK_QUANTUM_EXPIRED seconds=2700 (team 'Run lane cycle' step 2704.0s); audit skipped; snapshot survived on the team branch. NOT a product defect. Diagnosis: results/product/orchestration/CYCLE_39202428670_{orchestration,resume_diagnosis}.json",
-    "defects_found_by_the_resume": [
-      "report section 7 left as an unfilled placeholder while section 4 pointed at it - finished by 39206477026 with per-artifact provenance",
-      "state/product.json not updated by this run nor by 39199428702 - corrected by 39206477026",
-      "the committed regression artifact measured an intermediate tree state (its one repaired_only_NEW_FAILURES entry passes on the committed tree) - corrected set relation published as CYCLE_39206477026_regression_scope.json; the stale artifact preserved, not overwritten"
-    ],
-    "verification_by_resume": "served_slice ledger 11/11 PASS; full ledger 72/72 PASS ONLY WITH the accepted Frontier mount present (mount git HEAD c242127a7f42293adcdda797d6973ed2ed45fc90), and FAIL n_failed=3 without it - the 3 handoff claims, failing closed on mount_present=false (both measured by repair run 39214811351 on tree b0530db, audit F3); test_server_slice.py 7 passed; test_delta_attribution.py 20 passed. Digest scope (audit F1, all re-hashed by run 39214811351 on tree b0530db): the report-of-record pins resolve to the committed bytes for summary.json 19213ad1..., served.bundle.json 3f78f680..., first_page.bundle.json 7f7b8d5a..., CYCLE_39202428670_test_delta_attribution.json d2a4564f..., CYCLE_39206477026_report_testcount_disclosure.json 54ea2e70..., CYCLE_39202428670_cycle_verify.json d7c45482... and CYCLE_39202428670_regression_scope.json 414a126d...; the eighth pin, CYCLE_39206477026_regression_scope.json, was published as 363906d6... which resolved to no file and is corrected in the report to 0e498c57..., the committed bytes",
-    "posture": "fail-closed, unchanged"
-  },
-  "cycle_39206477026_operational_resume": {
-    "run_id": "39206477026",
-    "resumes": "39202428670",
-    "base_tree": "1e7a69a (the producer snapshot; product delta preserved intact)",
-    "diagnosis": "rc-78 LEX_WORK_QUANTUM_EXPIRED; team branch survived; audit never eligible; deliverable itself green. results/product/orchestration/CYCLE_39202428670_{orchestration,resume_diagnosis}.json",
-    "repairs": [
-      "reports/product/CYCLE_39202428670.md section 7 filled with measured verdicts, each tied to committed artifact + run id + commit, resume provenance disclosed",
-      "state/product.json updated (this block, the 39199428702 and 39202428670 blocks above, accepted_commit e21eac3->577efeb with evidence, current_run/state_updated_* -> 39206477026); verification register untouched (state_register retention guard)",
-      "results/product/regression/CYCLE_39206477026_regression_scope.json: corrected set relation vs accepted tip 577efeb83 on the committed tree - intersection 159, baseline-only 1 (repaired guard), repaired-only 0, collected 1217->1224, failed 160->159, passed 1042->1050, arithmetic reconciles; raw logs results/product/regression/logs_39206477026/",
-      "reports/product/CYCLE_39206477026.md (this report of record)",
-      "results/product/regression/CYCLE_39206477026_report_testcount_disclosure.json: the report-testcount disclosure pin re-pointed (CYCLE_39193356789 -> CYCLE_39206477026) because this resume's two reports cite the corrected regression artifact and the candidate sweep grew from 0 to 2 reports; re-measured by product/report_scope_measurement.py (14 reports, superset of the 12-report history), pin constants in product/tests/test_report_artifact_arithmetic.py re-pointed with previous pin and full history retained, historical artifacts preserved byte-identical"
-    ],
-    "zero_new_tests": "This resume adds zero COLLECTED tests; the only product/tests/** change it makes is the disclosure-pin constant re-point in product/tests/test_report_artifact_arithmetic.py, which changes no collected test count (corrected per audit F2 - the earlier wording 'changes no product/tests/** file' was false); the producer's +7 collected-test attribution (CYCLE_39202428670_test_delta_attribution.json) still describes the tree.",
-    "verification": "state contract 29 passed; report arithmetic guards re-swept; ledger re-run against the committed served-slice artifact",
-    "posture": "fail-closed, unchanged: continue_recommended=true, human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false"
-  },
-  "cycle_39214811351_repair_round_1": {
-    "run_id": "39214811351",
-    "repairs_cycle": "39206477026",
-    "base_tree": "b0530dbd33d23ddc38316387f552fb480ac2ea31 (product cycle 39206477026 - operational resume of 39202428670)",
-    "audit_of_record": "CYCLE_39206477026_GATE.json on audit branch cycle/core/product/39206477026/audit - gate=REVISE, safe_to_integrate=false, 3 required fixes, all severity claim-disclosure, 'Text only, no re-measurement'. The gate file is written to the accepted checkout by the audit job and is NOT present in this tree",
-    "audit_verdict_on_capability": "reproduced green: shipped Handler -> loopback HTTP -> source-linked bundle -> shipped clickable map page; the audit's own claim ceiling establishes no measurement error, so no number, artifact, frozen bar, rubric or threshold was touched",
-    "fixes_applied": [
-      "F1 - reports/product/CYCLE_39202428670.md section 7.3 pinned results/product/regression/CYCLE_39206477026_regression_scope.json to sha256 363906d6... which resolves to no file in the head tree or the accepted base; the pin is corrected to 0e498c57dfc1cd3abd742a697c776e11d44a37bbed8fa9844942ac90e9d40088 (re-measured by this run with sha256sum on tree b0530db) and the superseded value is printed beside it rather than deleted",
-      "F1 - state cycle_39202428670_served_slice.verification_by_resume no longer says 'artifact digests match the producer report's pins'; it now enumerates the seven pins that do match and names the eighth as the corrected one",
-      "F2 - reports/product/CYCLE_39206477026.md section 4 said 'no product/tests/** file changed' and state cycle_39206477026_operational_resume.zero_new_tests said the same; both were false (this resume re-pointed the disclosure-pin constants in product/tests/test_report_artifact_arithmetic.py, 6 lines) and now say the re-point and that it changes no collected test count. The substantive claim - zero COLLECTED tests added by this resume - was already true and is unchanged",
-      "F3 - 'ledger PASS 72/72' was published unconditionally in three report locations and two state fields; it is mount-scoped. Both sides were re-measured by this run on one tree with one command (python3 -m product.cycle_verify --run-id 39214811351 --out-dir <tmp>): with the accepted Frontier mount present (mount git HEAD c242127a7f42293adcdda797d6973ed2ed45fc90) PASS n_claims=72 n_failed=0 - the verdict of the committed artifact results/product/cycle_verify/CYCLE_39202428670_cycle_verify.json (sha256 d7c45482...); with the mount absent FAIL n_failed=3, all three the 'handoff' claims, failing closed on mount_present=false / decision=DECISION_NOT_REACHABLE. These are run measurements with no committed artifact (the ledger writes only on --write, and a FAIL ledger is refused from the canonical results directory by design), so no digest is offered for them. No handoff check was weakened, removed or re-scoped"
-    ],
-    "not_done_by_design": "no new measurement, no new instrument, no new collected test, no new capability, no live OpenCaseLaw call, no .github/** touch, no Frontier re-dispatch; the lane question for this direction orders the SMALLEST tree that can pass and forbids opening a new measurement or claim-bearing section in the cycle that closes the fix list",
-    "verification": "guards re-run on the repaired tree: product/tests/test_report_artifact_arithmetic.py, test_delta_attribution.py, test_state_contract.py, test_cycle_verify_is_a_gate.py, test_server_slice.py; full ledger re-run both ways as recorded above",
-    "posture": "fail-closed, unchanged: continue_recommended=true, human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false"
-  },
-  "cycle_39216560764_operational_resume": {
-    "run_id": "39216560764",
-    "resumes": "39214811351",
-    "mode": "OPERATIONAL RESUME from the persisted producer snapshot of run 39214811351; nothing was restarted, reverted or re-derived",
-    "base_tree": "87b7f468c0beecedbd6a8111dc072109d6e4491f (tip of cycle/core/product/39214811351/team = this run's starting HEAD), parent b0530dbd33d23ddc38316387f552fb480ac2ea31 (the repair's own measurement tree)",
-    "accepted_base_unchanged": "577efeb (origin/lab/product has NOT advanced; this resume promotes nothing)",
-    "diagnosis": "ORCHESTRATION failure on the AUDIT side, not a producer failure, not a state-validation failure and not a defect in the deliverable. The team job of 39214811351 completed all ten of its steps green - including 'Validate active MVP producer state' (direction_version 57, cycle_status not INITIALIZED) and 'Enforce lane write scope' - and persisted the snapshot; then the audit job's 'Independent audit' agent step exited 1, so the workflow's gate-reader step, its audit-snapshot step and the whole integrate job were skipped and NO verdict exists for the repair. The repair is therefore UNAUDITED, not rejected. Every element of that reading is recomputed by the product's own instrument rather than retold: results/product/orchestration/CYCLE_39214811351_orchestration.json (schema product-orchestration-evidence/1, class AUDIT_STEP_FAILED_NO_GATE, public annotation exit code 1, audit_branch_exists=false, team_branch_exists=true), produced by `python3 product/orchestration_evidence.py --run-id 39214811351 --write` in run 39216560764. Job logs are admin-only, so the innermost cause inside the audit agent is not attributable from this lane and is not asserted here.",
-    "deliverable_kept": "All of repair run 39214811351's work is preserved byte-identical: the F1 digest correction in reports/product/CYCLE_39202428670.md section 7.3 (0e498c57... with 363906d6... retained beside it), the F2 parenthetical correction in reports/product/CYCLE_39206477026.md section 4 and state, and the F3 mount-precondition disclosures. `git diff --name-only b0530dbd 87b7f468` is exactly those two reports plus state/product.json - no product/ file, no guard, no pin and no test was touched by the repair, which is what F2 required.",
-    "verification_of_record": "results/product/orchestration/CYCLE_39214811351_resume_diagnosis.json (schema product-resume-diagnosis/1) carries every number this resume publishes, each beside its command, its run id 39216560764 and tree 87b7f468: the three required-fix closure checks, the eight report digest pins re-hashed from committed bytes, the one-command ledger, the six guard modules the snapshot commit message names, and the served vertical slice. No number is asserted in this block that the artifact does not re-derive.",
-    "ledger": "PASS on this tree with the accepted Frontier mount present (mount git HEAD c242127a7f42293adcdda797d6973ed2ed45fc90, re-measured this run); FAIL closed on exactly the 3 handoff claims with that mount absent (mount_present=false) - the precondition and BOTH numbers are stated here and in the diagnosis artifact. Committed checker artifact: results/product/cycle_verify/CYCLE_39216560764_cycle_verify.json, written by `python3 -m product.cycle_verify --run-id 39216560764 --write`.",
-    "guards": "The snapshot commit message claims 'the six existing guard modules listed above collect 114 tests'; the repair's state block lists only five of them, so 'listed above' under-enumerates by one. This resume re-ran the full six-module set - the five named there plus product/tests/test_no_test_writes_into_tracked_results.py - and published the exact commands and measured counts in the diagnosis artifact instead of leaving the claim arguable. No guard, pin or rubric was edited to reach that result.",
-    "delta_this_run": "diagnosis artifact + verification artifacts + this lane's state only; zero new collected tests, zero new instrument, zero product/ code change, no report section, no .github/** touch, no Frontier re-dispatch, no live OpenCaseLaw call",
-    "question_answered": "factory direction v57 ordered work, operational resume: why did run 39214811351 end without a verdict, and does its committed deliverable verify without discarding it",
-    "posture": "fail-closed, unchanged: continue_recommended=true, human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false"
-  },
-  "cycle_39221882428_zero_delta_diagnosis": {
-    "run_id": "39221882428",
-    "resumed_by": "39222442674",
-    "class": "PRODUCER ZERO-DELTA on a repair dispatch - wrapper rc-67 LEX_ZERO_DELTA_REPAIR",
-    "evidence": [
-      "public check-run annotations: 'LEX_ZERO_DELTA_REPAIR' and 'Process completed with exit code 67.' (team job)",
-      "results/product/orchestration/CYCLE_39221882428_orchestration.json (schema product-orchestration-evidence/1; exit_code 67 from the public annotation; only surviving named branch LEX_ZERO_DELTA_REPAIR; snapshot survived; no audit branch)",
-      "team branch cycle/core/product/39221882428/team-attempt-1 still at 66dfc6b4d7cf8123e09e55ed360c1a2f74d7398b (byte-identical to 39216560764's persisted head); persist step logged 'nothing to commit, working tree clean'"
-    ],
-    "not_a_defect_in_the_deliverable": "the producer read prior gate/audit context and committed nothing; audit and integrate never became eligible; no gate exists for 39214811351, 39216560764, 39221882428 or 39222442674 - the chain is unaudited, not rejected",
-    "log_observed_detail": "team job log (authenticated logs endpoint read during 39222442674; LOG-OBSERVED, not artifact-reproduced): the producer's last tool call probed /home/runner/work/_temp/* and the harness auto-rejected it as external_directory immediately before rc-67; the load-bearing conclusion rests only on the public annotations"
-  },
-  "cycle_39222442674_operational_resume": {
-    "run_id": "39222442674",
-    "resumes": "39221882428",
-    "mode": "OPERATIONAL RESUME from the persisted producer snapshot of run 39221882428; nothing restarted, reverted or re-derived",
-    "base_tree": "66dfc6b4d7cf8123e09e55ed360c1a2f74d7398b (parent of this run's commit; all pre-commit measurements pinned to it)",
-    "accepted_base_unchanged": "577efeb (origin/lab/product has NOT advanced; this resume promotes nothing)",
-    "binding_gate": "results/audit/product/CYCLE_39206477026_GATE.json on audit branch cycle/core/product/39206477026/audit - gate=REVISE, required_fixes F1/F2/F3, 'Text only, no re-measurement'",
-    "fixes_verified_closed_this_run": [
-      "F1 - sha256sum of the F1-corrected set-relation artifact = 0e498c57dfc1cd3abd742a697c776e11d44a37bbed8fa9844942ac90e9d40088, equal to the corrected pin in reports/product/CYCLE_39202428670.md section 7.3; superseded digest 363906d6... retained beside it; the live state field cycle_39202428670_served_slice.verification_by_resume carries 0 occurrences of the old blanket sentence",
-      "F2 - the corrected parenthetical (disclosure-pin constant re-point, changes no collected test count) is present in reports/product/CYCLE_39206477026.md section 4 and in state zero_new_tests",
-      "F3 - all 6 '72/72' claim sites (2 reports + state) carry the accepted-Frontier-mount precondition; zero sites lack it"
-    ],
-    "closure_commands_artifact": "results/product/orchestration/CYCLE_39222442674_resume_diagnosis.json (schema product-resume-diagnosis/1) - every command, observed value, run id and tree",
-    "ledger": {
-      "with_mount": "PASS n_claims=72 n_failed=0; committed artifact results/product/cycle_verify/CYCLE_39222442674_cycle_verify.json sha256 cb8206e12b458bc922e9295948d462432dbe6dd89bb4c85d2ed381b051f7001d; mount /tmp/lex_accepted/frontier/frontier-query-concept-recall at git HEAD c242127a7f42293adcdda797d6973ed2ed45fc90",
-      "without_mount": "FAIL n_failed=3, exactly the 3 handoff adoption claims, fail-closed on mount_present=false (measured this run; no artifact written on the FAIL side by design)",
-      "measured_by_run": "39222442674"
-    },
-    "guards": "8 named modules re-run this run: test_query_concept_disclosure 5 passed; test_report_artifact_arithmetic 12; test_delta_attribution 20; test_state_contract 29; test_cycle_verify_is_a_gate 33; test_server_slice 7; test_no_test_writes_into_tracked_results 13; test_v57_handoffs 16 - 135 collected, 0 failed on the parent tree; test_state_contract re-run after this state update",
-    "delta_this_run": "new artifacts only (2 orchestration evidence files, 1 resume diagnosis, 1 cycle_verify ledger, 1 report) plus this state block; no product/ code, guard, pin, rubric, frozen bar or historical report edited; no .github/** touch; no Frontier re-dispatch; no live OpenCaseLaw call",
-    "question_answered": "factory direction v57 ordered work (2) + operational-resume mandate: diagnose why 39221882428 produced no delta, verify the F1/F2/F3 deliverable it inherited, and make the snapshot chain audit-ready",
-    "posture": "fail-closed, unchanged: continue_recommended=true, human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false"
-  },
-  "state_updated_by": "product_cycle_39253287434_repair_2",
-  "completed_work": {
-    "audit_seam_model_health_sync": {
-      "control_plane_run_id": "39251927903",
-      "control_plane_checked_at": "2026-10-19T12:27:21Z",
-      "changes": [
-        "Re-mirrored DEAD_MODEL_JUSTIFICATION['opencode/nemotron-3.5-lightning-free'] from snapshot 39245649011 (tool_probe FAIL, exit 124) to the current control-plane snapshot run 39251927903 (tool_probe PASS, exit 0): basis is now 'adversarial_budget' only (NOT control_plane_tool_probe_fail), control_plane_reported_healthy=true. Required fix R1 of audit CYCLE_39246693581 (gate=REVISE, repair_round 1, repair_of 39240156039).",
-        "Audit named snapshot 39247238487 (newest at audit time, origin/main@303ef0a); origin/main advanced once more to 39251927903 (commit fac9259, 2026-10-19T12:27:21Z) before this repair executed - the probe result for the excluded model is PASS/exit 0 at both snapshots, so the record mirrors the current newest snapshot, which is what the guard reads live via git show origin/main:state/model_health.json.",
-        "Refreshed the stale 'newest control-plane snapshot' run-id references in the product/query/audit_seam.py docstring (ultra block and module-docstring section 3) to run 39251927903.",
-        "Exclusion unchanged: opencode/nemotron-3.5-lightning-free stays in KNOWN_DEAD_MODELS and out of MODEL_ORDER and every fallback chain; the model is excluded on adversarial-budget grounds only, which the current PASS probe does not contradict."
-      ],
-      "tests_fixed": {
-        "modified": [],
-        "deliberately_intact": "No test was modified in this repair. test_known_dead_models_agree_with_control_plane_health remains intact as the non-vacuity guard and was verified green (13/13 in product/tests/test_audit_seam.py) against origin/main:state/model_health.json at run 39251927903, last_checked_at 2026-10-19T12:27:21Z. The prior round (39240156039 repair 1) corrected the tests_fixed list to the two tests its diff actually touched; this round touches no test."
-      }
-    },
-    "state_contract_direction_version_alignment": {
-      "previous_direction_version": 57,
-      "new_direction_version": 58,
-      "tests_fixed": "All 29 test_state_contract.py tests now pass"
-    },
-    "core_product_tests": {
-      "query_map_mvp": "22 passed",
-      "progressive_query": "22 passed",
-      "human_gate_integration": "11 passed, 1 skipped",
-      "adversarial_retrieval": "42 passed",
-      "answer_contract": "passed",
-      "answer_gap": "passed",
-      "audit_seam": "13 passed",
-      "ci_reality_legs": "20 passed",
-      "state_contract": "29 passed",
-      "total": "186 passed, 1 skipped"
-    }
-  },
-  "repair_39240156039_round1": {
-    "run_id": "39240156039",
-    "repair_round": 1,
-    "audit": "results/audit/product/CYCLE_39240156039_GATE.json gate=REVISE safe_to_integrate=false required_fixes=[F1, F2]",
-    "fixes_applied": {
-      "F1": "git rm -r results/product/gate_packet/test_gate_packet_001 and results/product/gate_packet/test_gate_packet_002 (44 files, ~4.8 MB of near-duplicate fixture-rehearsal residue that no digest, ledger claim, consumer, report or state entry referenced); added a fail-closed guard in product/gate_packet.py::preflight so fixture mode without --out-root refuses to write into the tracked results/product/gate_packet/ root (pinned by product/tests/test_gate_packet.py::test_fixture_preflight_refuses_the_tracked_root_without_out_root); removed the now-dangling completed_work.gate_packet_preflight_fixture state entry. The 39 results/product/query_cache/ envelopes are real HTTP-200 OpenCaseLaw responses and stay (explicitly not part of F1).",
-      "F2": "corrected completed_work.audit_seam_model_health_sync.tests_fixed to the two tests the diff 49cc4be..dafd98a actually touches (test_healthy_models_filters_dead_after_workflow_override, test_preferred_model_never_returns_dead_after_override) and recorded that test_known_dead_models_agree_with_control_plane_health was deliberately left intact as the non-vacuity guard, verified passing against origin/main:state/model_health.json at run 39239945934."
-    },
-    "control_plane_drift_repair": "origin/main:state/model_health.json advanced to run 39245649011 (2026-10-19T11:37:15Z) after the audit; nemotron-3.5-lightning-free flipped PASS->FAIL (exit 124). Per the guard's designed remedy the seam's DEAD_MODEL_JUSTIFICATION record for that model was updated to mirror 39245649011 (basis adversarial_budget_and_tool_probe_fail, tool_probe FAIL, exit 124, reported_healthy false) and the stale \"newest snapshot\" prose run-id references were refreshed; the guard passes against the current snapshot. No frozen bar, rubric, threshold or success rule was touched and no exclusion changed.",
-    "posture": "fail-closed, unchanged: packet_admitted=false, human_gate_ready=false, machine_gate_ready=false, ready_for_owner_session=false, continue_recommended=true",
-    "claim_ceiling": "REPAIR ONLY: no new capability, no new measurement, no new instrument, no new claim-bearing report section. The residue removal, the preflight guard + its test, the F2 state correction and the seam provenance-record update are the entire delta."
-  },
-  "repair_39246693581_round2": {
-    "run_id": "39253287434",
-    "repair_round": 2,
-    "repair_of_run_id": "39246693581",
-    "original_rejected_run_id": "39240156039",
-    "audit": "results/audit/product/CYCLE_39246693581_GATE.json gate=REVISE safe_to_integrate=false required_fixes=[R1] (repair_round 1, repair_of 39240156039; team head audited 61d3772)",
-    "fixes_applied": {
-      "R1": "Re-mirrored product/query/audit_seam.py DEAD_MODEL_JUSTIFICATION['opencode/nemotron-3.5-lightning-free'] to the current control-plane snapshot: tool_probe PASS, exit_code 0, reported_healthy true, basis 'adversarial_budget' only (NOT control_plane_tool_probe_fail - the historical pattern for a PASS-probed excluded model), run 39247238487 as named by the audit and re-mirrored to 39251927903 (current newest on origin/main at repair time; probe result identical PASS/0). The model stays excluded; KNOWN_DEAD_MODELS and MODEL_ORDER membership unchanged. Stale 'newest snapshot' run-id references in the file's docstring refreshed to 39251927903."
-    },
-    "guard_verification": "pytest product/tests/test_audit_seam.py -> 13 passed, including test_known_dead_models_agree_with_control_plane_health measured against origin/main:state/model_health.json run 39251927903 last_checked_at 2026-10-19T12:27:21Z (the guard reads origin/main live via git show; the audit-named snapshot 39247238487 was newest at audit time and main has since advanced once).",
-    "scope": "Repair only: one provenance-record re-mirror plus its docstring accuracy refresh and the state/report disclosure. No new capability, no new measurement, no new instrument, no new claim-bearing report section; the guard, the exclusion, every frozen bar, rubric, threshold and success rule are byte-unchanged.",
-    "posture": "fail-closed, unchanged: packet_admitted=false, human_gate_ready=false, machine_gate_ready=false, ready_for_owner_session=false, continue_recommended=true",
-    "claim_ceiling": "REPAIR ONLY. NOT established or claimed: answer quality, any frozen benchmark bar, live OpenCaseLaw behaviour, latency, legal usefulness, production readiness, owner-gate readiness."
-  }
+  ]
 }
