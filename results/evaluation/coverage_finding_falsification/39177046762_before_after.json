@@ -1,0 +1,523 @@
+{
+  "schema": "lex-evaluation-before-after-admission/1",
+  "run_id": "39177046762",
+  "generated_at": "2026-10-19T00:01:03Z",
+  "accepted_product_head": "e21eac360652ffe5bac1b3b07d16a191f48e8063",
+  "frozen_hypothesis": "evaluation/COVERAGE_FINDING_FALSIFICATION_HYPOTHESIS_V2.json",
+  "frozen_hypothesis_sha256": "728b9e632d9d639f61b061d2d70300631a0d150e2d66537192fbb4fbb60dcc59",
+  "mapping_free_predicate": "expected_to_fire := len(measured.query_concepts_under_covered) > 0",
+  "firing_rule": "a finding fires when its own severity is 'warning' and every under-covered term appears in that finding's own detail or fields; no code name chosen by this lane is used",
+  "claim_ceiling": "decides ONE thing: whether the ordered coverage disclosure is present on the exact served bytes of rebuilt-39027045675 under the accepted product code. It does not evaluate overall admission correctness, re-score any frozen label or geometry bar, move a threshold, or unblock the human gate.",
+  "verdict": {
+    "S1_pass_all_bundles_match_predicate": true,
+    "S2_outcome": "HANDOFF_CONSUMED",
+    "S3_symmetry_detail": [
+      {
+        "bundle": "de-kapitalverletzung",
+        "expected_to_fire": true,
+        "observed_fire": true,
+        "silence_required": false
+      },
+      {
+        "bundle": "fr-bail-entretien",
+        "expected_to_fire": false,
+        "observed_fire": false,
+        "silence_required": true
+      },
+      {
+        "bundle": "it-responsabilita-medica",
+        "expected_to_fire": false,
+        "observed_fire": false,
+        "silence_required": true
+      }
+    ],
+    "S3_symmetry_required": true,
+    "S5_pause_bar": "Item 2 is consumed; a pause may only be proposed with a named successor deliverable",
+    "committed_vs_reexecuted_identical": 2,
+    "failing_bundles": [],
+    "n_bundles": 3,
+    "n_fail": 0,
+    "n_pass": 3,
+    "served_digest_mismatch": []
+  },
+  "bundles": [
+    {
+      "bundle": "de-kapitalverletzung",
+      "admissibility_path": "results/product/gate_packet/rebuilt-39027045675/questions/de-kapitalverletzung.admissibility.json",
+      "admissibility_sha256": "456f065da725d8bc04705fd665cf23c97f51c4bc982af6205aa81742ead83c64",
+      "bundle_sha256": "c4005d4b78553b0aebd92bba59001c87a376146873f807d575255a4f721dd7f2",
+      "outcome": "PASS_FIRES_AS_ORDERED",
+      "before": {
+        "source": "committed admissibility artifact on the served bytes",
+        "warning_count": 0,
+        "finding_codes": [
+          "counter_authority_has_product_owned_channel",
+          "dominant_cluster_composition",
+          "source_url_host_distribution"
+        ],
+        "measured_under_covered": [
+          "kapitalverletzung",
+          "uberwachungspflicht"
+        ],
+        "findings": [
+          {
+            "code": "counter_authority_has_product_owned_channel",
+            "severity": "info",
+            "detail": "15/25 counter rows came through a product-owned retrieval channel (adversarial 15, citation 0); 13 of them sit beyond rank 20 (max rank 138 of 214) - that is the set the conventional ranked list shows last",
+            "n_counter_rows": 25,
+            "n_counter_from_adversarial": 15,
+            "n_counter_from_citation": 0,
+            "counter_ranks_beyond_low": [
+              48,
+              50,
+              54,
+              56,
+              58,
+              60,
+              63,
+              66,
+              68,
+              74,
+              129,
+              130,
+              138
+            ]
+          },
+          {
+            "code": "dominant_cluster_composition",
+            "severity": "info",
+            "detail": "19/52 of the dominant cluster's rows are in the question's language (37%); the dominant cluster holds 52/214 decisions (24% of the map, languages {'de': 19, 'fr': 19, 'it': 7}; 7 of its 52 rows carry no language in the upstream payload); 0 of its 52 rows are un-hydrated (detail_status != search_hit, 0%).",
+            "cluster_id": 3,
+            "share": 0.3654,
+            "languages": {
+              "de": 19,
+              "fr": 19,
+              "it": 7
+            },
+            "rows_without_language": 7,
+            "unhydrated_rows": 0,
+            "unhydrated_share": 0.0
+          },
+          {
+            "code": "source_url_host_distribution",
+            "severity": "info",
+            "detail": "179 of 214 rows carry a source_url across 24 court/aggregator hosts; 57 of them (32%) are hosted by the federal courts themselves, the rest on cantonal/municipal or aggregator sites (35 rows have no source_url at all)",
+            "hosts": {
+              "agve.weblaw.ch": 1,
+              "bgs.zg.ch": 3,
+              "bl.swisslex.ch": 3,
+              "bvger.weblaw.ch": 30,
+              "entscheidsuche.ch": 1,
+              "entscheidsuche.gr.ch": 1,
+              "gesetzessammlungen.ag.ch": 2,
+              "jurispub.admin.ch": 1,
+              "publikationen.sg.ch": 2,
+              "rechtsprechung.gerichte.bs.ch": 1,
+              "relevancy.bger.ch": 2,
+              "s3.eu-central-1.amazonaws.com": 1,
+              "search.bger.ch": 55,
+              "servat.unibe.ch": 1,
+              "v2202109132150164038.luckysrv.de": 1,
+              "vgrzh.djiktzh.ch": 9,
+              "www.amtsdruckschriften.bar.admin.ch": 1,
+              "www.bkd.be.ch": 1,
+              "www.edoeb.admin.ch": 2,
+              "www.fallrecht.ch": 19,
+              "www.finma.ch": 1,
+              "www.gerichte-zh.ch": 13,
+              "www.oa.admin.ch": 3,
+              "www.sentenze.ti.ch": 25
+            },
+            "schemes": {
+              "http": 29,
+              "https": 150
+            }
+          }
+        ]
+      },
+      "after": {
+        "source": "accepted product code re-executed on the served bytes",
+        "warning_count": 1,
+        "finding_codes": [
+          "query_concepts_under_covered",
+          "counter_authority_has_product_owned_channel",
+          "dominant_cluster_composition",
+          "source_url_host_distribution"
+        ],
+        "measured_under_covered": [
+          "kapitalverletzung",
+          "uberwachungspflicht"
+        ],
+        "findings": [
+          {
+            "code": "query_concepts_under_covered",
+            "detail": "the retrieved set carries no supporting row for 2 concept(s) of the question: kapitalverletzung, uberwachungspflicht (rows per concept: kapitalverletzung=0, uberwachungspflicht=0). Evaluation's accepted caveat, carried verbatim: a German compound noun may simply not be the doctrine's own vocabulary - decisions may write Verletzung der Kapitalverwaltung rather than Kapitalverletzung. So this is a r",
+            "discloses_under_covered": true,
+            "index": 0,
+            "mentions_under_covered_any_severity": true,
+            "severity": "warning"
+          },
+          {
+            "code": "counter_authority_has_product_owned_channel",
+            "detail": "15/25 counter rows came through a product-owned retrieval channel (adversarial 15, citation 0); 13 of them sit beyond rank 20 (max rank 138 of 214) - that is the set the conventional ranked list shows last",
+            "discloses_under_covered": false,
+            "index": 1,
+            "mentions_under_covered_any_severity": false,
+            "severity": "info"
+          },
+          {
+            "code": "dominant_cluster_composition",
+            "detail": "19/52 of the dominant cluster's rows are in the question's language (37%); the dominant cluster holds 52/214 decisions (24% of the map, languages {'de': 19, 'fr': 19, 'it': 7}; 7 of its 52 rows carry no language in the upstream payload); 0 of its 52 rows are un-hydrated (detail_status != search_hit, 0%).",
+            "discloses_under_covered": false,
+            "index": 2,
+            "mentions_under_covered_any_severity": false,
+            "severity": "info"
+          },
+          {
+            "code": "source_url_host_distribution",
+            "detail": "179 of 214 rows carry a source_url across 24 court/aggregator hosts; 57 of them (32%) are hosted by the federal courts themselves, the rest on cantonal/municipal or aggregator sites (35 rows have no source_url at all)",
+            "discloses_under_covered": false,
+            "index": 3,
+            "mentions_under_covered_any_severity": false,
+            "severity": "info"
+          }
+        ]
+      },
+      "comparison": {
+        "committed_admissible": true,
+        "committed_finding_codes": [
+          "counter_authority_has_product_owned_channel",
+          "dominant_cluster_composition",
+          "source_url_host_distribution"
+        ],
+        "committed_under_covered": [
+          "kapitalverletzung",
+          "uberwachungspflicht"
+        ],
+        "committed_warning_count": 0,
+        "differences": [
+          "counter_authority_has_product_owned_channel:info",
+          "dominant_cluster_composition:info",
+          "query_concepts_under_covered:warning",
+          "source_url_host_distribution:info"
+        ],
+        "identical_finding_code_and_severity_list": false,
+        "reexecuted_admissible": true,
+        "reexecuted_finding_codes": [
+          "query_concepts_under_covered",
+          "counter_authority_has_product_owned_channel",
+          "dominant_cluster_composition",
+          "source_url_host_distribution"
+        ],
+        "reexecuted_under_covered": [
+          "kapitalverletzung",
+          "uberwachungspflicht"
+        ],
+        "reexecuted_warning_count": 1
+      },
+      "expected_to_fire": true,
+      "observed_fire": true
+    },
+    {
+      "bundle": "fr-bail-entretien",
+      "admissibility_path": "results/product/gate_packet/rebuilt-39027045675/questions/fr-bail-entretien.admissibility.json",
+      "admissibility_sha256": "7de50e526ba792b1729badbc7ba5a21f575ce0d6518cb3ccb527acd08c80680d",
+      "bundle_sha256": "0b3a224e3493479bc84628531eb7c56cac7dcfa978b29afbfc1305cb52574517",
+      "outcome": "PASS_FIRES_AS_ORDERED",
+      "before": {
+        "source": "committed admissibility artifact on the served bytes",
+        "warning_count": 2,
+        "finding_codes": [
+          "counter_authority_has_product_owned_channel",
+          "dominant_cluster_language_composition",
+          "source_url_host_distribution",
+          "question_language_underrepresented"
+        ],
+        "measured_under_covered": [],
+        "findings": [
+          {
+            "code": "counter_authority_has_product_owned_channel",
+            "severity": "info",
+            "detail": "11/15 counter rows came through a product-owned retrieval channel (adversarial 11, citation 0); 7 of them sit beyond rank 20 (max rank 111 of 217) - that is the set the conventional ranked list shows last",
+            "n_counter_rows": 15,
+            "n_counter_from_adversarial": 11,
+            "n_counter_from_citation": 0,
+            "counter_ranks_beyond_low": [
+              22,
+              23,
+              38,
+              42,
+              43,
+              45,
+              111
+            ]
+          },
+          {
+            "code": "dominant_cluster_language_composition",
+            "severity": "warning",
+            "detail": "11/49 of the dominant cluster's rows are in the question's language (22%, against the same 25% floor the bundle-level check uses); the dominant cluster holds 49/217 decisions (23% of the map, languages {'de': 19, 'fr': 11, 'it': 19}); 0 of its 49 rows are un-hydrated (detail_status != search_hit, 0%). Pre-registered expectation: French-language decisions should be a substantial share of the bundle; a bundle that is mostly other-language rows is a retrieval signal, not a success",
+            "cluster_id": 3,
+            "share": 0.2245,
+            "languages": {
+              "de": 19,
+              "fr": 11,
+              "it": 19
+            },
+            "rows_without_language": 0,
+            "unhydrated_rows": 0,
+            "unhydrated_share": 0.0
+          },
+          {
+            "code": "source_url_host_distribution",
+            "severity": "info",
+            "detail": "180 of 217 rows carry a source_url across 17 court/aggregator hosts; 81 of them (45%) are hosted by the federal courts themselves, the rest on cantonal/municipal or aggregator sites (37 rows have no source_url at all)",
+            "hosts": {
+              "api-justsearche.vs.ch": 1,
+              "ark-cra.rekurskommissionen.ch": 1,
+              "bgs.zg.ch": 2,
+              "bstger.weblaw.ch": 1,
+              "entscheidsuche.ch": 14,
+              "jurisprudence.ne.ch": 1,
+              "justice.ge.ch": 27,
+              "prestations.vd.ch": 1,
+              "relevancy.bger.ch": 7,
+              "search.bger.ch": 74,
+              "vgrzh.djiktzh.ch": 3,
+              "www.amtsdruckschriften.bar.admin.ch": 16,
+              "www.fallrecht.ch": 6,
+              "www.findinfo-tc.vd.ch": 11,
+              "www.gerichte-zh.ch": 2,
+              "www.jurisprudence.vd.ch": 1,
+              "www.sentenze.ti.ch": 12
+            },
+            "schemes": {
+              "http": 20,
+              "https": 160
+            }
+          },
+          {
+            "code": "question_language_underrepresented",
+            "severity": "warning",
+            "detail": "39/217 decisions are in the question's own language (fr); the retrieval may have answered a different question than the one pre-registered",
+            "language": "fr",
+            "in_language": 39,
+            "share": 0.1797
+          }
+        ]
+      },
+      "after": {
+        "source": "accepted product code re-executed on the served bytes",
+        "warning_count": 2,
+        "finding_codes": [
+          "counter_authority_has_product_owned_channel",
+          "dominant_cluster_language_composition",
+          "source_url_host_distribution",
+          "question_language_underrepresented"
+        ],
+        "measured_under_covered": [],
+        "findings": [
+          {
+            "code": "counter_authority_has_product_owned_channel",
+            "detail": "11/15 counter rows came through a product-owned retrieval channel (adversarial 11, citation 0); 7 of them sit beyond rank 20 (max rank 111 of 217) - that is the set the conventional ranked list shows last",
+            "discloses_under_covered": false,
+            "index": 0,
+            "mentions_under_covered_any_severity": false,
+            "severity": "info"
+          },
+          {
+            "code": "dominant_cluster_language_composition",
+            "detail": "11/49 of the dominant cluster's rows are in the question's language (22%, against the same 25% floor the bundle-level check uses); the dominant cluster holds 49/217 decisions (23% of the map, languages {'de': 19, 'fr': 11, 'it': 19}); 0 of its 49 rows are un-hydrated (detail_status != search_hit, 0%).",
+            "discloses_under_covered": false,
+            "index": 1,
+            "mentions_under_covered_any_severity": false,
+            "severity": "warning"
+          },
+          {
+            "code": "source_url_host_distribution",
+            "detail": "180 of 217 rows carry a source_url across 17 court/aggregator hosts; 81 of them (45%) are hosted by the federal courts themselves, the rest on cantonal/municipal or aggregator sites (37 rows have no source_url at all)",
+            "discloses_under_covered": false,
+            "index": 2,
+            "mentions_under_covered_any_severity": false,
+            "severity": "info"
+          },
+          {
+            "code": "question_language_underrepresented",
+            "detail": "39/217 decisions are in the question's own language (fr); the retrieval may have answered a different question than the one pre-registered",
+            "discloses_under_covered": false,
+            "index": 3,
+            "mentions_under_covered_any_severity": false,
+            "severity": "warning"
+          }
+        ]
+      },
+      "comparison": {
+        "committed_admissible": true,
+        "committed_finding_codes": [
+          "counter_authority_has_product_owned_channel",
+          "dominant_cluster_language_composition",
+          "source_url_host_distribution",
+          "question_language_underrepresented"
+        ],
+        "committed_under_covered": [],
+        "committed_warning_count": 2,
+        "differences": [
+          "counter_authority_has_product_owned_channel:info",
+          "dominant_cluster_language_composition:warning",
+          "question_language_underrepresented:warning",
+          "source_url_host_distribution:info"
+        ],
+        "identical_finding_code_and_severity_list": true,
+        "reexecuted_admissible": true,
+        "reexecuted_finding_codes": [
+          "counter_authority_has_product_owned_channel",
+          "dominant_cluster_language_composition",
+          "source_url_host_distribution",
+          "question_language_underrepresented"
+        ],
+        "reexecuted_under_covered": [],
+        "reexecuted_warning_count": 2
+      },
+      "expected_to_fire": false,
+      "observed_fire": false
+    },
+    {
+      "bundle": "it-responsabilita-medica",
+      "admissibility_path": "results/product/gate_packet/rebuilt-39027045675/questions/it-responsabilita-medica.admissibility.json",
+      "admissibility_sha256": "2c6df157438cf8e35ba9d65f3fccd5d5aba0635638000d0bb80757bb3a015cdb",
+      "bundle_sha256": "6b43341242b5e1d4c305dcf29f12428541ceedc0b6cc89b5f2c8ae8d634f82b4",
+      "outcome": "PASS_FIRES_AS_ORDERED",
+      "before": {
+        "source": "committed admissibility artifact on the served bytes",
+        "warning_count": 0,
+        "finding_codes": [
+          "counter_authority_has_product_owned_channel",
+          "dominant_cluster_composition",
+          "source_url_host_distribution"
+        ],
+        "measured_under_covered": [],
+        "findings": [
+          {
+            "code": "counter_authority_has_product_owned_channel",
+            "severity": "info",
+            "detail": "11/25 counter rows came through a product-owned retrieval channel (adversarial 11, citation 0); 11 of them sit beyond rank 20 (max rank 164 of 211) - that is the set the conventional ranked list shows last",
+            "n_counter_rows": 25,
+            "n_counter_from_adversarial": 11,
+            "n_counter_from_citation": 0,
+            "counter_ranks_beyond_low": [
+              42,
+              51,
+              68,
+              77,
+              78,
+              81,
+              84,
+              90,
+              95,
+              163,
+              164
+            ]
+          },
+          {
+            "code": "dominant_cluster_composition",
+            "severity": "info",
+            "detail": "28/60 of the dominant cluster's rows are in the question's language (47%); the dominant cluster holds 60/211 decisions (28% of the map, languages {'de': 19, 'fr': 13, 'it': 28}); 0 of its 60 rows are un-hydrated (detail_status != search_hit, 0%).",
+            "cluster_id": 4,
+            "share": 0.4667,
+            "languages": {
+              "de": 19,
+              "fr": 13,
+              "it": 28
+            },
+            "rows_without_language": 0,
+            "unhydrated_rows": 0,
+            "unhydrated_share": 0.0
+          },
+          {
+            "code": "source_url_host_distribution",
+            "severity": "info",
+            "detail": "176 of 211 rows carry a source_url across 11 court/aggregator hosts; 86 of them (49%) are hosted by the federal courts themselves, the rest on cantonal/municipal or aggregator sites (35 rows have no source_url at all)",
+            "hosts": {
+              "ark-cra.rekurskommissionen.ch": 2,
+              "bgs.zg.ch": 1,
+              "bvger.weblaw.ch": 3,
+              "entscheidsuche.gr.ch": 2,
+              "relevancy.bger.ch": 9,
+              "search.bger.ch": 77,
+              "www.amtsdruckschriften.bar.admin.ch": 13,
+              "www.fallrecht.ch": 7,
+              "www.finma.ch": 2,
+              "www.oa.admin.ch": 1,
+              "www.sentenze.ti.ch": 59
+            },
+            "schemes": {
+              "http": 68,
+              "https": 108
+            }
+          }
+        ]
+      },
+      "after": {
+        "source": "accepted product code re-executed on the served bytes",
+        "warning_count": 0,
+        "finding_codes": [
+          "counter_authority_has_product_owned_channel",
+          "dominant_cluster_composition",
+          "source_url_host_distribution"
+        ],
+        "measured_under_covered": [],
+        "findings": [
+          {
+            "code": "counter_authority_has_product_owned_channel",
+            "detail": "11/25 counter rows came through a product-owned retrieval channel (adversarial 11, citation 0); 11 of them sit beyond rank 20 (max rank 164 of 211) - that is the set the conventional ranked list shows last",
+            "discloses_under_covered": false,
+            "index": 0,
+            "mentions_under_covered_any_severity": false,
+            "severity": "info"
+          },
+          {
+            "code": "dominant_cluster_composition",
+            "detail": "28/60 of the dominant cluster's rows are in the question's language (47%); the dominant cluster holds 60/211 decisions (28% of the map, languages {'de': 19, 'fr': 13, 'it': 28}); 0 of its 60 rows are un-hydrated (detail_status != search_hit, 0%).",
+            "discloses_under_covered": false,
+            "index": 1,
+            "mentions_under_covered_any_severity": false,
+            "severity": "info"
+          },
+          {
+            "code": "source_url_host_distribution",
+            "detail": "176 of 211 rows carry a source_url across 11 court/aggregator hosts; 86 of them (49%) are hosted by the federal courts themselves, the rest on cantonal/municipal or aggregator sites (35 rows have no source_url at all)",
+            "discloses_under_covered": false,
+            "index": 2,
+            "mentions_under_covered_any_severity": false,
+            "severity": "info"
+          }
+        ]
+      },
+      "comparison": {
+        "committed_admissible": true,
+        "committed_finding_codes": [
+          "counter_authority_has_product_owned_channel",
+          "dominant_cluster_composition",
+          "source_url_host_distribution"
+        ],
+        "committed_under_covered": [],
+        "committed_warning_count": 0,
+        "differences": [
+          "counter_authority_has_product_owned_channel:info",
+          "dominant_cluster_composition:info",
+          "source_url_host_distribution:info"
+        ],
+        "identical_finding_code_and_severity_list": true,
+        "reexecuted_admissible": true,
+        "reexecuted_finding_codes": [
+          "counter_authority_has_product_owned_channel",
+          "dominant_cluster_composition",
+          "source_url_host_distribution"
+        ],
+        "reexecuted_under_covered": [],
+        "reexecuted_warning_count": 0
+      },
+      "expected_to_fire": false,
+      "observed_fire": false
+    }
+  ]
+}
