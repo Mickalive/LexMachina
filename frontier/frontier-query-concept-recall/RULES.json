@@ -1,0 +1,72 @@
+{
+  "charter_version": 1,
+  "frozen_at_commit": "HEAD",
+  "input_bundles": {
+    "de-kapitalverletzung": {
+      "path": "results/product/gate_packet/rebuilt-39027045675/questions/de-kapitalverletzung.bundle.json",
+      "content_sha256": "2441ff2b16722afcd22dca9ad39eafcbeb079b2dfc367d763fbe53fce1356f9c"
+    },
+    "fr-bail-entretien": {
+      "path": "results/product/gate_packet/rebuilt-39027045675/questions/fr-bail-entretien.bundle.json",
+      "content_sha256": "6c5ea31d4b9af4abfa39e9f8025cfa3d34279ff1f04d0f643e571e27b23a2618"
+    },
+    "it-responsabilita-medica": {
+      "path": "results/product/gate_packet/rebuilt-39027045675/questions/it-responsabilita-medica.bundle.json",
+      "content_sha256": "76e7f7ad998f3878e7b08635663e2d594a7a77bdaeb33bcf5fa52d0af00b7aff"
+    }
+  },
+  "frozen_retrieval_spec_digest": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+  "frozen_retrieval_spec_freeze_record_digest": "b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49",
+  "concept_coverage_definition": {
+    "method": "de-accented lowercase alnum tokens of the question text, length >= 5, the accepted generic stoplist removed",
+    "covered_iff": "at least one bundle row's title/regeste/snippet/full_text/citation/decision_id contains it as a substring (permissive >= 1-of-set semantics)",
+    "generic_stoplist_sha256": "frozen_in_code"
+  },
+  "authority_recall_definition": {
+    "method": "alnum-core matching per frozen_retrieval_benchmark.json id_match_rules",
+    "alnum_core": "lowercase, drop every non-alphanumeric character, then strip repeated leading court tokens (bgestger, bstger, bger, bge, bg)",
+    "match_iff": "frozen authority id alnum-core equals retrieved row alnum-core in any of (decision_id, canonical_decision_id, docket_number, citation_string_de/fr/it)",
+    "min_core_length": 6
+  },
+  "frozen_authority_ids": {
+    "corporate-criminal-liability": [
+      "bge_BGE_142_IV_333",
+      "bger_6B_124_2016"
+    ],
+    "business-judgment-rule": [
+      "bger_4A_219_2015",
+      "bger_4A_259_2016",
+      "bger_4A_603_2014",
+      "bger_4A_626_2013",
+      "bger_4A_62_2024"
+    ],
+    "petty-theft-dismissal": [
+      "bger_4A_177_2017",
+      "bger_4A_228_2015"
+    ],
+    "rent-default": []
+  },
+  "served_question_to_frozen_leg_mapping": {
+    "de-kapitalverletzung": "corporate-criminal-liability",
+    "fr-bail-entretien": "rent-default",
+    "it-responsabilita-medica": "petty-theft-dismissal"
+  },
+  "latency_budget": {
+    "per_search_seconds": 30.0,
+    "full_pass_seconds": 240.0
+  },
+  "acceptance_thresholds": {
+    "outcome_A_min_fr_it_cells_improved": 2,
+    "outcome_A_min_questions_undercovered_reduced": 2,
+    "no_regression_on_frozen_gates": [
+      "duplicate::unique_ids",
+      "counter::known_counter_recall",
+      "source::rows_valid",
+      "transport::all_queries_ok"
+    ]
+  },
+  "non_vacuity_controls": {
+    "blanked_expansion_must_score_below_candidate": true,
+    "shuffled_expansion_must_not_raise_coverage": true
+  }
+}
