@@ -56,7 +56,14 @@ from pathlib import Path
 
 _LANE_ROOT = Path(__file__).resolve().parent.parent
 if str(_LANE_ROOT) not in sys.path:
-    sys.insert(0, str(_LANE_ROOT))
+    # REPAIR 39180276526: this was ``sys.insert`` (an AttributeError) since the
+    # module's first commit.  It never fired under ``python -m`` from the repo
+    # root because the lane root is already on sys.path there, but the module
+    # CRASHED ON IMPORT from any other cwd - which made the frozen-input
+    # integrity instrument (and evaluation.retrieval_cache_digest_manifest,
+    # which imports it) un-importable in exactly the fresh-context settings the
+    # factory runs agents in.  No measurement, verdict or record is touched.
+    sys.path.insert(0, str(_LANE_ROOT))
 
 from evaluation.retrieval_gate import frozen  # noqa: E402
 
