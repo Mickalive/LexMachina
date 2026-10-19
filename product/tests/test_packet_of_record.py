@@ -160,6 +160,21 @@ def test_mega_cluster_disclosure_is_size_based_with_threshold_unchanged():
         assert "largest_cluster_member_ids_share" in m["shipped_geometry"]
 
 
+def test_mega_cluster_never_publishes_a_double_applied_phantom_variant_state():
+    # apply_geometry_variant is not idempotent.  When the shipped bundle
+    # already carries the adopted variant, the "variant" verdict must BE the
+    # shipped verdict -- a re-application would publish a largest-cluster share
+    # that exists nowhere in the packet (resume-run discovery on 39319405429).
+    disc = _disclosures()
+    for qid in _qids():
+        m = disc["per_bundle"][qid]["mega_cluster_disclosure"]
+        if (_bundle(qid).get("provenance") or {}).get("geometry_variant") == por.ADOPTABLE_VARIANT:
+            assert m["variant_basis"].startswith("shipped_bundle_is_already_the_adopted_variant")
+            assert m["variant_geometry"]["largest_cluster_share"] == \
+                m["shipped_geometry"]["largest_cluster_share"]
+            assert m["variant_geometry"]["fired"] == m["shipped_geometry"]["fired"]
+
+
 def test_counter_anchor_three_numbers_published_together():
     disc = _disclosures()
     for qid in _qids():
@@ -196,11 +211,82 @@ def test_assembler_refuses_a_fixture_packet_and_never_mutates_bundles(tmp_path: 
     with pytest.raises(ValueError):
         por.assemble(fake, run_id="0", operator="test", tip="")
 
-    # Re-running assemble over the real packet must not change any bundle byte.
+    # Re-running assemble must not change any bundle byte -- and must not
+    # pollute the COMMITTED disclosure layer.  (Regression: an earlier version
+    # of this test ran assemble over the real packet dir with tip="test", which
+    # is exactly how the committed PACKET_OF_RECORD.json ended up carrying the
+    # placeholder tip; the copy keeps the no-bundle-mutation assertion without
+    # writing into the tracked tree.)
+    copy = tmp_path / "packet-copy"
+    shutil.copytree(PACKET, copy)
     qids = _qids()
-    before = {q: hashlib.sha256((PACKET / "questions" / f"{q}.bundle.json").read_bytes()).hexdigest()
+    before = {q: hashlib.sha256((copy / "questions" / f"{q}.bundle.json").read_bytes()).hexdigest()
               for q in qids}
-    por.assemble(PACKET, run_id="39319405429", operator="lex-product-team", tip="test")
-    after = {q: hashlib.sha256((PACKET / "questions" / f"{q}.bundle.json").read_bytes()).hexdigest()
+    record_before = (PACKET / "PACKET_OF_RECORD.json").read_bytes()
+    por.assemble(copy, run_id="39319405429", operator="test-copy", tip="tip-under-test")
+    after = {q: hashlib.sha256((copy / "questions" / f"{q}.bundle.json").read_bytes()).hexdigest()
              for q in qids}
     assert before == after
+    copied_record = json.loads((copy / "PACKET_OF_RECORD.json").read_text(encoding="utf-8"))
+    assert copied_record["tip_commit"] == "tip-under-test"
+    assert (PACKET / "PACKET_OF_RECORD.json").read_bytes() == record_before
+
+
+def test_committed_tip_commit_is_a_real_sha_not_a_placeholder():
+    tip = _record()["tip_commit"]
+    assert tip and tip != "test", "tip_commit must name the promoted tip, not a placeholder"
+    assert len(tip) >= 7
+
+
+def test_retrieval_provenance_never_conflates_cache_replay_with_network():
+    # audit CYCLE_39310811831 R2: a warm-cache read-through replay narrated as
+    # a live-network search.  The block must always equal the bundle's own
+    # bytes, and a 0-network build must classify as replay, never live_network.
+    disc = _disclosures()
+    for qid in _qids():
+        recorded = disc["per_bundle"][qid]["retrieval_provenance"]
+        bundle = _bundle(qid)
+        fresh = por.retrieval_provenance(bundle)
+        assert json.dumps(recorded, sort_keys=True) == json.dumps(fresh, sort_keys=True)
+        req = (bundle.get("provenance") or {}).get("request_summary") or {}
+        assert recorded["network_calls"] == req.get("network_calls")
+        assert recorded["cache_hits"] == req.get("cache_hits")
+        if recorded["network_calls"] == 0 and (recorded["cache_hits"] or 0) > 0:
+            assert recorded["classification"] == "cache_replayed_read_through"
+        if (recorded["network_calls"] or 0) > 0:
+            assert recorded["classification"] == "live_network"
+        assert recorded["fixture_mode"] is False
+
+
+def test_counter_status_rf1_split_published_and_cited_never_counts_as_counter():
+    # audit CYCLE_39310811831 R3 (RF1 recurrence): cited rows labelled counter.
+    disc = _disclosures()
+    from product.query import counter_status
+    for qid in _qids():
+        recorded = disc["per_bundle"][qid]["counter_status_rf1"]
+        bundle = _bundle(qid)
+        rows = bundle.get("decisions") or []
+        fresh = por.counter_status_rf1(bundle)
+        assert json.dumps(recorded, sort_keys=True) == json.dumps(fresh, sort_keys=True)
+        assert recorded["single_source_of_truth"] == "product/query/counter_status.py"
+        assert recorded["n_counter_authorities"] == counter_status.counter_authority_count(rows)
+        assert recorded["n_status_bearing"] == counter_status.counter_status_bearing_count(rows)
+        # no cited decision id may ever appear among counter authorities
+        cited_ids = {str(d.get("decision_id")) for d in rows
+                     if str(d.get("counter_status") or "none") == "cited"}
+        assert not (set(recorded["counter_authority_ids"]) & cited_ids)
+        assert sum(recorded["histogram"].values()) == len(rows)
+        # both counts always published together, never one alone
+        assert "n_counter_authorities" in recorded and "n_status_bearing" in recorded
+
+
+def test_evidence_hydration_counts_match_the_bundle_bytes():
+    disc = _disclosures()
+    for qid in _qids():
+        recorded = disc["per_bundle"][qid]["evidence_hydration"]
+        fresh = por.hydration_summary(_bundle(qid))
+        assert json.dumps(recorded, sort_keys=True) == json.dumps(fresh, sort_keys=True)
+        assert recorded["n_hydrated"] == recorded["n_hydrated_ids"] == len(
+            recorded["hydrated_ids"])
+        if recorded["requested"] is not None:
+            assert recorded["n_hydrated"] <= recorded["requested"]

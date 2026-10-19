@@ -23,6 +23,16 @@ carry:
 * the **abstain-and-disclose** counter-anchor three numbers together
   (support-among-issued, abstention count, yield) from the accepted component
   (accept ``d236f599``);
+* the **RF1 counter split** (counter_authorities beside status_bearing, under
+  the one accepted predicate in ``product/query/counter_status.py``), so a
+  ``cited`` row can never be narrated as a counter authority (audit
+  ``CYCLE_39310811831`` R3);
+* the **retrieval provenance** measured off the bundle's own request_summary
+  bytes -- ``live_network`` vs ``cache_replayed_read_through`` vs
+  ``fixture_provider`` -- so a warm-cache replay can never be narrated as a
+  live-network search (audit ``CYCLE_39310811831`` R2);
+* the measured **evidence-hydration** facts (requested / hydrated / ids), so a
+  hydration claim can never exceed the bytes (audit ``CYCLE_39310811831`` R4);
 * the shipped ledger's re-verification of the exact committed bytes.
 
 Everything here is fail-closed.  The module never writes ``human_gate_ready``,
@@ -61,6 +71,14 @@ for _p in (str(PRODUCT_ROOT), str(REPO_ROOT)):
 from gate_packet import CLAIM_CEILING, content_sha256, recheck_packet  # noqa: E402
 from product.query.gate_admissibility import verify_bundle  # noqa: E402
 from product.query import packet_admission  # noqa: E402
+from product.query.counter_status import (  # noqa: E402
+    counter_authority_count,
+    counter_authority_ids,
+    counter_status_bearing_count,
+    counter_status_histogram,
+    evidenced_counter_ids,
+    unevidenced_counter_ids,
+)
 from product.query.counter_anchor import (  # noqa: E402
     ABSTAINED_STATUS,
     adoption_record,
@@ -201,13 +219,24 @@ def _mega_finding(verdict: dict) -> dict | None:
     return None
 
 
-def mega_cluster_disclosure(shipped_verdict: dict, variant_verdict: dict) -> dict[str, Any]:
-    """Size-based mega-cluster disclosure with the member_ids share beside it."""
+def mega_cluster_disclosure(shipped_verdict: dict, variant_verdict: dict,
+                            *, variant_basis: str = "variant_applied_once") -> dict[str, Any]:
+    """Size-based mega-cluster disclosure with the member_ids share beside it.
+
+    ``variant_basis`` states how the variant verdict was obtained, so no reader
+    can mistake a double-applied phantom for a packet state: when the shipped
+    bundle already carries the adopted variant, the caller passes the shipped
+    verdict as the variant verdict with basis
+    ``shipped_bundle_is_already_the_adopted_variant`` (apply_geometry_variant is
+    not idempotent; a second application would publish a share that exists
+    nowhere in the packet).
+    """
     return {
         "definition": "largest_cluster_size / n_decisions (size-based, len(idx))",
         "bar": MEGA_CLUSTER_SHARE,
         "threshold_edited": False,
         "size_based_not_member_ids": True,
+        "variant_basis": variant_basis,
         "shipped_geometry": {
             "largest_cluster_share": (shipped_verdict.get("measured") or {}).get(
                 "largest_cluster_share"),
@@ -280,6 +309,120 @@ def counter_anchor_three_numbers(bundle: dict) -> dict[str, Any]:
             "never asserts that any specific decision IS supporting/contrary/"
             "limiting, and an abstained row is unevidenced AS A COUNTER LABEL and "
             "stays visible on the map."
+        ),
+    }
+
+
+def retrieval_provenance(bundle: dict) -> dict[str, Any]:
+    """How this bundle's retrieval actually ran, measured off the bundle itself.
+
+    Audit ``CYCLE_39310811831`` R2 (BLOCKED) showed why this block must exist:
+    a warm-cache read-through replay labelled ``mode: live`` was narrated in a
+    report as a live-network search ("0 cache hits, 9 network calls" -- numbers
+    that belonged to a different, map-only artifact).  The bytes never lied;
+    the conflation happened between the bytes and the prose.  This block reads
+    the bundle's OWN ``provenance.request_summary`` / ``cache_stats`` and
+    publishes a machine classification beside the packet, so the report of
+    record has no room to conflate the two:
+
+    * ``live_network``                   -- the live provider path issued >= 1
+      real network call in this build;
+    * ``cache_replayed_read_through``    -- the live provider path served every
+      request from the on-disk claim cache (network_calls == 0, cache_hits > 0).
+      This is deterministic replay of a previously retrieved envelope -- honest
+      gate-material behaviour, but NOT fresh network evidence;
+    * ``fixture_provider``               -- the fixture/mock provider, rehearsal
+      only, never gate material.
+    """
+    prov = bundle.get("provenance") or {}
+    req = dict(prov.get("request_summary") or {})
+    cache = prov.get("cache_stats") or {}
+    fixture = bool(prov.get("fixture_mode"))
+    network_calls = req.get("network_calls")
+    cache_hits = req.get("cache_hits")
+    if fixture:
+        classification = "fixture_provider"
+    elif isinstance(network_calls, int) and network_calls > 0:
+        classification = "live_network"
+    elif (isinstance(network_calls, int) and network_calls == 0
+          and isinstance(cache_hits, int) and cache_hits > 0):
+        classification = "cache_replayed_read_through"
+    else:
+        classification = "undetermined"
+    return {
+        "mode": prov.get("mode"),
+        "fixture_mode": fixture,
+        "classification": classification,
+        "network_calls": network_calls,
+        "cache_hits": cache_hits,
+        "request_summary": req,
+        "cache_stats": {
+            "hits": cache.get("hits"),
+            "misses": cache.get("misses"),
+            "writes": cache.get("writes"),
+            "n_keys": cache.get("n_keys"),
+            "available": cache.get("available"),
+        },
+        "latency_seconds": prov.get("latency_seconds"),
+        "note": (
+            "Measured from this bundle's own provenance bytes by "
+            "packet_of_record.retrieval_provenance; never asserted from prose. "
+            "'mode: live' names the live provider PATH, not fresh network I/O: "
+            "a cache_replayed_read_through build is deterministic replay of a "
+            "previously retrieved envelope and is disclosed as such."
+        ),
+        "claim_ceiling": (
+            "A cache_replayed_read_through classification is NOT live-network "
+            "retrieval evidence for this packet build; freshness claims must "
+            "cite the source envelope's own capture, not this build."
+        ),
+    }
+
+
+def counter_status_rf1(bundle: dict) -> dict[str, Any]:
+    """The RF1 counter split, under the ONE accepted predicate.
+
+    Audit ``CYCLE_39310811831`` R3 (BLOCKED, recurrence of RF1): a report
+    labelled status-bearing rows (mostly ``cited``) as "counter authorities".
+    ``product/query/counter_status.py`` is the single source of truth; both
+    definitions are always published side by side, never one alone.
+    """
+    rows = bundle.get("decisions") or []
+    return {
+        "single_source_of_truth": "product/query/counter_status.py",
+        "n_counter_authorities": counter_authority_count(rows),
+        "n_status_bearing": counter_status_bearing_count(rows),
+        "histogram": counter_status_histogram(rows),
+        "counter_authority_ids": counter_authority_ids(rows),
+        "evidenced_counter_ids": evidenced_counter_ids(rows),
+        "unevidenced_counter_ids": unevidenced_counter_ids(rows),
+        "note": (
+            "counter_authorities excludes cited/supporting-candidate/context/"
+            "unclassified rows: a decision the sourced answer CITED is "
+            "status-bearing provenance, the opposite of a counter authority. "
+            "Both counts are always published together."
+        ),
+    }
+
+
+def hydration_summary(bundle: dict) -> dict[str, Any]:
+    """Measured evidence-hydration facts (audit CYCLE_39310811831 R4 class).
+
+    The packet publishes what the bundle's own provenance recorded -- requested,
+    hydrated and their ids -- so a report can never claim a hydration count the
+    bytes do not carry.
+    """
+    eh = (bundle.get("provenance") or {}).get("evidence_hydration") or {}
+    hydrated_ids = list(eh.get("hydrated_ids") or [])
+    return {
+        "requested": eh.get("requested"),
+        "n_hydrated": eh.get("n_hydrated"),
+        "n_hydrated_ids": len(hydrated_ids),
+        "hydrated_ids": hydrated_ids,
+        "degraded": eh.get("degraded"),
+        "note": (
+            "Measured from the bundle's provenance.evidence_hydration; a report "
+            "claim must equal n_hydrated or re-measure."
         ),
     }
 
@@ -410,12 +553,31 @@ def assemble(packet_dir: Path, *, run_id: str, operator: str, tip: str) -> dict[
             raise FileNotFoundError(f"bundle for {qid} missing: {bundle_path}")
         bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
         shipped_verdict = verify_bundle(bundle, question=spec)
-        variant_bundle, _meta = render_variant(bundle, qid)
-        variant_verdict = verify_bundle(variant_bundle, question=spec)
+        # apply_geometry_variant is NOT idempotent (see geometry_rescore).  When
+        # the shipped bundle already carries the adopted variant, the variant
+        # verdict IS the shipped verdict; re-rendering would publish a
+        # double-applied phantom state that exists nowhere in the packet.
+        shipped_variant_now = ((bundle.get("provenance") or {}).get("geometry_variant")
+                               or "incumbent")
+        if shipped_variant_now == ADOPTABLE_VARIANT:
+            variant_verdict = shipped_verdict
+        else:
+            variant_bundle, _meta = render_variant(bundle, qid)
+            variant_verdict = verify_bundle(variant_bundle, question=spec)
         rescore = geometry_rescore(bundle, qid)
-        mega = mega_cluster_disclosure(shipped_verdict, variant_verdict)
+        mega = mega_cluster_disclosure(
+            shipped_verdict, variant_verdict,
+            variant_basis=(
+                "shipped_bundle_is_already_the_adopted_variant: the variant "
+                "verdict IS the shipped verdict, never a second application"
+                if shipped_variant_now == ADOPTABLE_VARIANT else
+                "adopted_variant_applied_once_to_the_shipped_rows"),
+        )
         coverage = under_coverage_disclosure(shipped_verdict)
         anchor = counter_anchor_three_numbers(bundle)
+        retrieval = retrieval_provenance(bundle)
+        rf1 = counter_status_rf1(bundle)
+        hydration = hydration_summary(bundle)
         net = {
             "qid": qid,
             "language": entry.get("language"),
@@ -423,6 +585,9 @@ def assemble(packet_dir: Path, *, run_id: str, operator: str, tip: str) -> dict[
             "mega_cluster_disclosure": mega,
             "under_coverage_disclosure": coverage,
             "counter_anchor": anchor,
+            "counter_status_rf1": rf1,
+            "retrieval_provenance": retrieval,
+            "evidence_hydration": hydration,
             "warnings": [
                 {"code": f.get("code"), "severity": f.get("severity"),
                  "detail": f.get("detail")}
@@ -447,6 +612,9 @@ def assemble(packet_dir: Path, *, run_id: str, operator: str, tip: str) -> dict[
             "geometry_variant_shipped": (bundle.get("provenance") or {}).get(
                 "geometry_variant") or "incumbent",
             "counter_anchor": anchor,
+            "counter_status_rf1": rf1,
+            "retrieval_provenance": retrieval,
+            "evidence_hydration": hydration,
             "mega_cluster_disclosure": mega,
             "under_coverage_disclosure": coverage,
         })
@@ -578,12 +746,34 @@ def check(packet_dir: Path) -> dict[str, Any]:
         bundle_path = _resolve(packet_dir, entry.get("bundle_path"),
                                f"questions/{qid}.bundle.json")
         bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
+        shipped_verdict_c = verify_bundle(bundle, question=spec)
+        shipped_variant_c = ((bundle.get("provenance") or {}).get("geometry_variant")
+                             or "incumbent")
+        if shipped_variant_c == ADOPTABLE_VARIANT:
+            variant_verdict_c = shipped_verdict_c
+        else:
+            variant_bundle_c, _meta_c = render_variant(bundle, qid)
+            variant_verdict_c = verify_bundle(variant_bundle_c, question=spec)
         fresh = {
             "geometry_rescore": geometry_rescore(bundle, qid),
             "counter_anchor": counter_anchor_three_numbers(bundle),
+            "counter_status_rf1": counter_status_rf1(bundle),
+            "retrieval_provenance": retrieval_provenance(bundle),
+            "evidence_hydration": hydration_summary(bundle),
+            "mega_cluster_disclosure": mega_cluster_disclosure(
+                shipped_verdict_c, variant_verdict_c,
+                variant_basis=(
+                    "shipped_bundle_is_already_the_adopted_variant: the variant "
+                    "verdict IS the shipped verdict, never a second application"
+                    if shipped_variant_c == ADOPTABLE_VARIANT else
+                    "adopted_variant_applied_once_to_the_shipped_rows"),
+            ),
+            "under_coverage_disclosure": under_coverage_disclosure(shipped_verdict_c),
         }
         recorded = (committed.get("per_bundle") or {}).get(qid) or {}
-        for key in ("counter_anchor", "geometry_rescore"):
+        for key in ("counter_anchor", "geometry_rescore", "counter_status_rf1",
+                    "retrieval_provenance", "evidence_hydration",
+                    "mega_cluster_disclosure", "under_coverage_disclosure"):
             rec = recorded.get(key) or {}
             a = json.dumps(rec, sort_keys=True)
             b = json.dumps(fresh[key], sort_keys=True)

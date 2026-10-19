@@ -2,7 +2,7 @@
   "schema": "product-gate-packet-disclosures/1",
   "packet_id": "gate-packet-v1",
   "run_id": "39319405429",
-  "generated_at": "2026-10-19T21:13:47Z",
+  "generated_at": "2026-10-19T21:39:29Z",
   "operator": "lex-product-team",
   "mode": "live",
   "adopted_config": {
@@ -223,6 +223,7 @@
         "bar": 0.5,
         "threshold_edited": false,
         "size_based_not_member_ids": true,
+        "variant_basis": "shipped_bundle_is_already_the_adopted_variant: the variant verdict IS the shipped verdict, never a second application",
         "shipped_geometry": {
           "largest_cluster_share": 0.8865,
           "largest_cluster_member_ids_share": 0.2703,
@@ -241,10 +242,19 @@
         },
         "variant_geometry": {
           "variant": "relevance_ordered",
-          "largest_cluster_share": 0.2595,
-          "largest_cluster_member_ids_share": 0.2595,
-          "fired": false,
-          "warning": null
+          "largest_cluster_share": 0.8865,
+          "largest_cluster_member_ids_share": 0.2703,
+          "fired": true,
+          "warning": {
+            "code": "map_is_one_mega_cluster",
+            "severity": "warning",
+            "detail": "the largest cluster holds 164/185 decisions (89%, measured from the cluster's own 'size' field; its member_ids list is capped at 50 and covers 50); disclose this to the jurist before they judge the map's structure (frontier-map-semantics owns the accepted measurement of map semantics)",
+            "n_decisions": 185,
+            "mega_cluster": 164,
+            "share": 0.8865,
+            "mega_cluster_share_from_member_ids": 0.2703,
+            "member_ids_truncated": true
+          }
         },
         "fired_on_any_state": true,
         "note": "The disclosure fires whenever the SIZE-based largest-cluster share >= 0.5; the threshold is unchanged and the share is len(idx)-based, never member_ids-based.  A state whose share is below the bar is a smaller real number, not a suppressed disclosure."
@@ -282,6 +292,70 @@
           "yield"
         ],
         "claim_ceiling": "The component CONFIRMS or ABSTAINS on a row's own proposed label; it never asserts that any specific decision IS supporting/contrary/limiting, and an abstained row is unevidenced AS A COUNTER LABEL and stays visible on the map."
+      },
+      "counter_status_rf1": {
+        "single_source_of_truth": "product/query/counter_status.py",
+        "n_counter_authorities": 0,
+        "n_status_bearing": 3,
+        "histogram": {
+          "cited": 3,
+          "none": 182
+        },
+        "counter_authority_ids": [],
+        "evidenced_counter_ids": [],
+        "unevidenced_counter_ids": [],
+        "note": "counter_authorities excludes cited/supporting-candidate/context/unclassified rows: a decision the sourced answer CITED is status-bearing provenance, the opposite of a counter authority. Both counts are always published together."
+      },
+      "retrieval_provenance": {
+        "mode": "live",
+        "fixture_mode": false,
+        "classification": "cache_replayed_read_through",
+        "network_calls": 0,
+        "cache_hits": 1,
+        "request_summary": {
+          "requests_logged": 1,
+          "cache_hits": 1,
+          "network_calls": 0,
+          "budget_used": 1,
+          "budget_max": 1,
+          "rate_limit_rps": 4.0,
+          "min_interval_seconds": 0.25,
+          "requests_by_stage": {
+            "search": 1
+          },
+          "failures": 0
+        },
+        "cache_stats": {
+          "hits": 1,
+          "misses": 0,
+          "writes": 0,
+          "n_keys": 1426,
+          "available": true
+        },
+        "latency_seconds": 0.292,
+        "note": "Measured from this bundle's own provenance bytes by packet_of_record.retrieval_provenance; never asserted from prose. 'mode: live' names the live provider PATH, not fresh network I/O: a cache_replayed_read_through build is deterministic replay of a previously retrieved envelope and is disclosed as such.",
+        "claim_ceiling": "A cache_replayed_read_through classification is NOT live-network retrieval evidence for this packet build; freshness claims must cite the source envelope's own capture, not this build."
+      },
+      "evidence_hydration": {
+        "requested": 12,
+        "n_hydrated": 12,
+        "n_hydrated_ids": 12,
+        "hydrated_ids": [
+          "bge_140 III 491",
+          "bger_4A_257_2018",
+          "bge_145 III 281",
+          "bge_80 I 312",
+          "vd_findinfo_HC___2015___163",
+          "vd_findinfo_HC___2015___575",
+          "bge_140 III 598",
+          "ne_gerichte_CACIV.2025.33",
+          "ge_gerichte_C_26471_2023",
+          "bge_123 III 124",
+          "bge_125 III 231",
+          "bge_138 III 59"
+        ],
+        "degraded": false,
+        "note": "Measured from the bundle's provenance.evidence_hydration; a report claim must equal n_hydrated or re-measure."
       },
       "warnings": [
         {
@@ -491,6 +565,7 @@
         "bar": 0.5,
         "threshold_edited": false,
         "size_based_not_member_ids": true,
+        "variant_basis": "shipped_bundle_is_already_the_adopted_variant: the variant verdict IS the shipped verdict, never a second application",
         "shipped_geometry": {
           "largest_cluster_share": 0.7418,
           "largest_cluster_member_ids_share": 0.2747,
@@ -509,10 +584,19 @@
         },
         "variant_geometry": {
           "variant": "relevance_ordered",
-          "largest_cluster_share": 0.4231,
+          "largest_cluster_share": 0.7418,
           "largest_cluster_member_ids_share": 0.2747,
-          "fired": false,
-          "warning": null
+          "fired": true,
+          "warning": {
+            "code": "map_is_one_mega_cluster",
+            "severity": "warning",
+            "detail": "the largest cluster holds 135/182 decisions (74%, measured from the cluster's own 'size' field; its member_ids list is capped at 50 and covers 50); disclose this to the jurist before they judge the map's structure (frontier-map-semantics owns the accepted measurement of map semantics)",
+            "n_decisions": 182,
+            "mega_cluster": 135,
+            "share": 0.7418,
+            "mega_cluster_share_from_member_ids": 0.2747,
+            "member_ids_truncated": true
+          }
         },
         "fired_on_any_state": true,
         "note": "The disclosure fires whenever the SIZE-based largest-cluster share >= 0.5; the threshold is unchanged and the share is len(idx)-based, never member_ids-based.  A state whose share is below the bar is a smaller real number, not a suppressed disclosure."
@@ -575,6 +659,70 @@
           "yield"
         ],
         "claim_ceiling": "The component CONFIRMS or ABSTAINS on a row's own proposed label; it never asserts that any specific decision IS supporting/contrary/limiting, and an abstained row is unevidenced AS A COUNTER LABEL and stays visible on the map."
+      },
+      "counter_status_rf1": {
+        "single_source_of_truth": "product/query/counter_status.py",
+        "n_counter_authorities": 0,
+        "n_status_bearing": 5,
+        "histogram": {
+          "cited": 5,
+          "none": 177
+        },
+        "counter_authority_ids": [],
+        "evidenced_counter_ids": [],
+        "unevidenced_counter_ids": [],
+        "note": "counter_authorities excludes cited/supporting-candidate/context/unclassified rows: a decision the sourced answer CITED is status-bearing provenance, the opposite of a counter authority. Both counts are always published together."
+      },
+      "retrieval_provenance": {
+        "mode": "live",
+        "fixture_mode": false,
+        "classification": "cache_replayed_read_through",
+        "network_calls": 0,
+        "cache_hits": 1,
+        "request_summary": {
+          "requests_logged": 1,
+          "cache_hits": 1,
+          "network_calls": 0,
+          "budget_used": 1,
+          "budget_max": 1,
+          "rate_limit_rps": 4.0,
+          "min_interval_seconds": 0.25,
+          "requests_by_stage": {
+            "search": 1
+          },
+          "failures": 0
+        },
+        "cache_stats": {
+          "hits": 1,
+          "misses": 0,
+          "writes": 0,
+          "n_keys": 1434,
+          "available": true
+        },
+        "latency_seconds": 0.216,
+        "note": "Measured from this bundle's own provenance bytes by packet_of_record.retrieval_provenance; never asserted from prose. 'mode: live' names the live provider PATH, not fresh network I/O: a cache_replayed_read_through build is deterministic replay of a previously retrieved envelope and is disclosed as such.",
+        "claim_ceiling": "A cache_replayed_read_through classification is NOT live-network retrieval evidence for this packet build; freshness claims must cite the source envelope's own capture, not this build."
+      },
+      "evidence_hydration": {
+        "requested": 12,
+        "n_hydrated": 12,
+        "n_hydrated_ids": 12,
+        "hydrated_ids": [
+          "sg_publikationen_BZ.2007.67",
+          "bvger_A-417_2013",
+          "bge_132 III 257",
+          "bge_132 III 115",
+          "zh_arbeitsgericht_AGer-Z 2011 Nr. 14",
+          "sg_publikationen_BZ.2008.13",
+          "bvger_A-6750_2018",
+          "bvger_A-4147_2016",
+          "zh_obergericht_LA150023",
+          "bvger_A-3584_2020",
+          "bge_97 IV 10",
+          "bvger_A-7441_2014"
+        ],
+        "degraded": false,
+        "note": "Measured from the bundle's provenance.evidence_hydration; a report claim must equal n_hydrated or re-measure."
       },
       "warnings": [
         {
@@ -784,6 +932,7 @@
         "bar": 0.5,
         "threshold_edited": false,
         "size_based_not_member_ids": true,
+        "variant_basis": "shipped_bundle_is_already_the_adopted_variant: the variant verdict IS the shipped verdict, never a second application",
         "shipped_geometry": {
           "largest_cluster_share": 0.7821,
           "largest_cluster_member_ids_share": 0.2793,
@@ -802,10 +951,19 @@
         },
         "variant_geometry": {
           "variant": "relevance_ordered",
-          "largest_cluster_share": 0.2793,
+          "largest_cluster_share": 0.7821,
           "largest_cluster_member_ids_share": 0.2793,
-          "fired": false,
-          "warning": null
+          "fired": true,
+          "warning": {
+            "code": "map_is_one_mega_cluster",
+            "severity": "warning",
+            "detail": "the largest cluster holds 140/179 decisions (78%, measured from the cluster's own 'size' field; its member_ids list is capped at 50 and covers 50); disclose this to the jurist before they judge the map's structure (frontier-map-semantics owns the accepted measurement of map semantics)",
+            "n_decisions": 179,
+            "mega_cluster": 140,
+            "share": 0.7821,
+            "mega_cluster_share_from_member_ids": 0.2793,
+            "member_ids_truncated": true
+          }
         },
         "fired_on_any_state": true,
         "note": "The disclosure fires whenever the SIZE-based largest-cluster share >= 0.5; the threshold is unchanged and the share is len(idx)-based, never member_ids-based.  A state whose share is below the bar is a smaller real number, not a suppressed disclosure."
@@ -843,6 +1001,70 @@
           "yield"
         ],
         "claim_ceiling": "The component CONFIRMS or ABSTAINS on a row's own proposed label; it never asserts that any specific decision IS supporting/contrary/limiting, and an abstained row is unevidenced AS A COUNTER LABEL and stays visible on the map."
+      },
+      "counter_status_rf1": {
+        "single_source_of_truth": "product/query/counter_status.py",
+        "n_counter_authorities": 0,
+        "n_status_bearing": 2,
+        "histogram": {
+          "cited": 2,
+          "none": 177
+        },
+        "counter_authority_ids": [],
+        "evidenced_counter_ids": [],
+        "unevidenced_counter_ids": [],
+        "note": "counter_authorities excludes cited/supporting-candidate/context/unclassified rows: a decision the sourced answer CITED is status-bearing provenance, the opposite of a counter authority. Both counts are always published together."
+      },
+      "retrieval_provenance": {
+        "mode": "live",
+        "fixture_mode": false,
+        "classification": "cache_replayed_read_through",
+        "network_calls": 0,
+        "cache_hits": 1,
+        "request_summary": {
+          "requests_logged": 1,
+          "cache_hits": 1,
+          "network_calls": 0,
+          "budget_used": 1,
+          "budget_max": 1,
+          "rate_limit_rps": 4.0,
+          "min_interval_seconds": 0.25,
+          "requests_by_stage": {
+            "search": 1
+          },
+          "failures": 0
+        },
+        "cache_stats": {
+          "hits": 1,
+          "misses": 0,
+          "writes": 0,
+          "n_keys": 1441,
+          "available": true
+        },
+        "latency_seconds": 0.216,
+        "note": "Measured from this bundle's own provenance bytes by packet_of_record.retrieval_provenance; never asserted from prose. 'mode: live' names the live provider PATH, not fresh network I/O: a cache_replayed_read_through build is deterministic replay of a previously retrieved envelope and is disclosed as such.",
+        "claim_ceiling": "A cache_replayed_read_through classification is NOT live-network retrieval evidence for this packet build; freshness claims must cite the source envelope's own capture, not this build."
+      },
+      "evidence_hydration": {
+        "requested": 12,
+        "n_hydrated": 12,
+        "n_hydrated_ids": 12,
+        "hydrated_ids": [
+          "ti_gerichte_35.2018.59_d20190513",
+          "bger_4A_248_2013",
+          "ti_gerichte_12.2013.100_d20130517",
+          "ti_gerichte_13.2019.12",
+          "bger_8C_159_2017",
+          "ti_gerichte_12.2012.74",
+          "ti_gerichte_36.2009.179",
+          "ti_gerichte_35.2018.35_d20181008",
+          "ti_gerichte_16.2021.24",
+          "ti_gerichte_36.2008.83",
+          "ti_gerichte_12.2022.150",
+          "ti_gerichte_36.2018.35"
+        ],
+        "degraded": false,
+        "note": "Measured from the bundle's provenance.evidence_hydration; a report claim must equal n_hydrated or re-measure."
       },
       "warnings": [
         {
