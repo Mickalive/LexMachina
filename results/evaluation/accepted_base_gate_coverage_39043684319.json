@@ -1,11 +1,11 @@
 {
  "acceptance_rule_applied": "factory-wide requirement 8: a cycle counts as accepted only when BOTH a gate with gate=PASS and safe_to_integrate=true AND an 'accept <lane> cycle <run_id>' commit exist. This check measures the second half plus gate-file presence; it does not read gate contents.",
- "accepted_branch_head": "9a9df5bbd142e9b2f4c64bda646d49c3f28906be",
+ "accepted_branch_head": "d7b8301ebb42a8a69dd9998caf0041137f7aefdf",
  "action_taken": "DISCLOSED, NOT REWRITTEN. The record's own measurement fields were re-derived from git exactly as evaluation.snapshot_audit.run_snapshot_audit's check 18 recomputes them, and every prior measurement is preserved verbatim under its superseded_snapshot_* key. No commit was rewritten, no branch was pushed to and no historical finding was deleted.",
  "claim_ceiling": "This record establishes, at the named accepted branch head, which run ids sit above the newest 'accept evaluation cycle' commit and whether each has a gate file of record on that branch. It does NOT establish that the accepted evidence is sound, does NOT read gate contents, does NOT quantify how much of the head depends on any one cycle, and does NOT propose a rollback or a rewrite of the branch.",
  "control_plane_gap_recorded_not_patched": ".github/** is control-plane scope and was NOT edited from this lane. Recorded for the control plane: the persist step pushes the producer tree to cycle/core/<lane>/<run>/team only, so nothing in the workflow explains unaudited producer commits arriving on lab/<lane>; a lane-side guard (e.g. refusing a push to lab/ that is not the integrate job's identity) or an audit-side check that the newest accept commit is the branch head would surface this immediately.",
  "finding": {
-  "statement": "STATUS UPDATE run 39180276526: origin/lab/evaluation HEAD is 9a9df5bb ('accept evaluation cycle 39177046762', gate of record present on the branch). The newest 'accept evaluation cycle' commit is that same commit, so ZERO run ids sit above it. 23 gate files are present on the accepted branch. Every earlier measurement is preserved verbatim under its superseded_snapshot_* key and is NOT retracted or rewritten.",
+  "statement": "STATUS UPDATE run 39200567493: the accepted evaluation branch head is d7b8301 ('accept evaluation cycle 39198745348', gate of record present on the branch). The newest 'accept evaluation cycle' commit is that same commit, so ZERO run ids sit above it. 26 gate files are present on the accepted branch. Every earlier measurement is preserved verbatim under its superseded_snapshot_* key and is NOT retracted or rewritten.",
   "ungated": [],
   "what_is_NOT_claimed": [
    "this is NOT a claim that every accepted cycle on the branch was audited to the same depth; the coverage measure reads commit subjects and gate-file PRESENCE and does not read gate contents",
@@ -38,19 +38,22 @@
   "results/audit/evaluation/CYCLE_39151392906_GATE.json",
   "results/audit/evaluation/CYCLE_39154580055_GATE.json",
   "results/audit/evaluation/CYCLE_39171298736_GATE.json",
-  "results/audit/evaluation/CYCLE_39177046762_GATE.json"
+  "results/audit/evaluation/CYCLE_39177046762_GATE.json",
+  "results/audit/evaluation/CYCLE_39183749963_GATE.json",
+  "results/audit/evaluation/CYCLE_39192952154_GATE.json",
+  "results/audit/evaluation/CYCLE_39198745348_GATE.json"
  ],
  "lane": "evaluation",
  "newest_accept_commit": {
-  "sha": "9a9df5bbd",
-  "subject": "accept evaluation cycle 39177046762",
+  "sha": "d7b8301e",
+  "subject": "accept evaluation cycle 39198745348",
   "committer": "lex-integrator (re-derived from git)"
  },
  "preserved_verbatim": true,
  "purpose": "Measure whether every run whose producer commits sit at the HEAD of the ACCEPTED evaluation branch origin/lab/evaluation is covered by a gate of record on that branch. Found by cycle 39043684319 while diagnosing the run it resumes from; recorded so the gap is disclosed and cannot be forgotten.",
- "republication_reason": "check 18 of the readiness verifier re-derives this disclosure from git and fails when the recorded head does not equal the re-derived head. Since the 39173770080 republication (head 5f4dde37, 21 gates) the accepted branch moved to 9a9df5bb ('accept evaluation cycle 39177046762') with 23 gate files of record. The measurement fields are re-derived from git exactly as check 18 recomputes them; the previous measurement is preserved verbatim under superseded_snapshot_39180276526. No commit was rewritten, no branch was pushed to and no historical finding was deleted.",
- "republished_at_utc": "2026-10-19T00:49:21Z",
- "republished_by": "39180276526",
+ "republication_reason": "Republished by the repair of rejected cycle 39199651952 (audit CYCLE_39199651952 F-5). Check 18 of evaluation.snapshot_audit.run_snapshot_audit re-derives accepted_branch_head from origin/lab/evaluation; the disclosure was pinned to 9a9df5bb while the live accepted head is d7b8301 ('accept evaluation cycle 39198745348'), exactly as audit F-5 recorded. The measurement fields are re-derived from git by the same procedure check 18 uses. The 9a9df5bb measurement is preserved verbatim under superseded_snapshot_head_9a9df5bb, which is a NEW key: the existing superseded_snapshot_39180276526 block (head 5f4dde37) is untouched. No commit was rewritten, no branch was pushed to and no historical finding was deleted.",
+ "republished_at_utc": "2026-10-19T04:47:50Z",
+ "republished_by": "39200567493",
  "run_id": "39043684319",
  "runs_above_newest_accept_commit": [],
  "schema": "lex-evaluation-accepted-base-gate-coverage/1",
@@ -396,6 +399,58 @@
   "republished_at_utc": "2026-10-18T23:16:52Z",
   "republished_by": "39173770080",
   "republication_reason": "check 18 of the readiness verifier re-derives this disclosure from git and fails when the recorded head does not equal the re-derived head. Since the 39151392906 republication (head a3552819, 19 gates) the accepted branch has moved again to 5f4dde3 with 21 gate files of record. The measurement fields are re-derived from git exactly as check 18 recomputes them; the previous measurement is preserved verbatim under superseded_snapshot_39173770080. No commit was rewritten, no branch was pushed to and no historical finding was deleted. In the same cycle the check had been ENVIRONMENT-LIMITED in this checkout (origin/lab/evaluation not fetched); the ref was fetched so the check measures what it always meant to measure. An environment limit is not a pass.",
+  "finding": {
+   "statement": "STATUS UPDATE run 39180276526: origin/lab/evaluation HEAD is 9a9df5bb ('accept evaluation cycle 39177046762', gate of record present on the branch). The newest 'accept evaluation cycle' commit is that same commit, so ZERO run ids sit above it. 23 gate files are present on the accepted branch. Every earlier measurement is preserved verbatim under its superseded_snapshot_* key and is NOT retracted or rewritten.",
+   "ungated": [],
+   "what_is_NOT_claimed": [
+    "this is NOT a claim that every accepted cycle on the branch was audited to the same depth; the coverage measure reads commit subjects and gate-file PRESENCE and does not read gate contents",
+    "this is NOT a claim about the newest accepted cycle (39147977307) beyond its gate file being present on the branch",
+    "the historical 39043684319 finding that the accepted branch carried one UNAUDITED cycle at its head is SUPERSEDED AS PRESENT TENSE, not deleted",
+    "an empty derived ungated set says nothing about whether future cycles will be gated; it is a point-in-time coverage reading at the named head",
+    "the branch head moves on every accepted cycle, so check 18 will go red again until the next republication; that is the record's designed behaviour and is NOT a defect in the underlying coverage"
+   ]
+  },
+  "action_taken": "DISCLOSED, NOT REWRITTEN. The record's own measurement fields were re-derived from git exactly as evaluation.snapshot_audit.run_snapshot_audit's check 18 recomputes them, and every prior measurement is preserved verbatim under its superseded_snapshot_* key. No commit was rewritten, no branch was pushed to and no historical finding was deleted.",
+  "acceptance_rule_applied": "factory-wide requirement 8: a cycle counts as accepted only when BOTH a gate with gate=PASS and safe_to_integrate=true AND an 'accept <lane> cycle <run_id>' commit exist. This check measures the second half plus gate-file presence; it does not read gate contents.",
+  "purpose": "Measure whether every run whose producer commits sit at the HEAD of the ACCEPTED evaluation branch origin/lab/evaluation is covered by a gate of record on that branch. Found by cycle 39043684319 while diagnosing the run it resumes from; recorded so the gap is disclosed and cannot be forgotten."
+ },
+ "superseded_snapshot_head_9a9df5bb": {
+  "accepted_branch_head": "9a9df5bbd142e9b2f4c64bda646d49c3f28906be",
+  "newest_accept_commit": {
+   "sha": "9a9df5bbd",
+   "subject": "accept evaluation cycle 39177046762",
+   "committer": "lex-integrator (re-derived from git)"
+  },
+  "runs_above_newest_accept_commit": [],
+  "ungated_runs_above_the_newest_accept_commit": [],
+  "gates_present_on_accepted_branch": [
+   "results/audit/evaluation/CYCLE_38918468438_GATE.json",
+   "results/audit/evaluation/CYCLE_38928722878_GATE.json",
+   "results/audit/evaluation/CYCLE_38934722443_GATE.json",
+   "results/audit/evaluation/CYCLE_38951152192_GATE.json",
+   "results/audit/evaluation/CYCLE_38966576940_GATE.json",
+   "results/audit/evaluation/CYCLE_38971202786_GATE.json",
+   "results/audit/evaluation/CYCLE_38978411574_GATE.json",
+   "results/audit/evaluation/CYCLE_38989947869_GATE.json",
+   "results/audit/evaluation/CYCLE_38993062549_GATE.json",
+   "results/audit/evaluation/CYCLE_39007294442_GATE.json",
+   "results/audit/evaluation/CYCLE_39012970379_GATE.json",
+   "results/audit/evaluation/CYCLE_39018005027_GATE.json",
+   "results/audit/evaluation/CYCLE_39020603510_GATE.json",
+   "results/audit/evaluation/CYCLE_39109815075_GATE.json",
+   "results/audit/evaluation/CYCLE_39117425713_GATE.json",
+   "results/audit/evaluation/CYCLE_39118290208_GATE.json",
+   "results/audit/evaluation/CYCLE_39123055362_GATE.json",
+   "results/audit/evaluation/CYCLE_39140489344_GATE.json",
+   "results/audit/evaluation/CYCLE_39147977307_GATE.json",
+   "results/audit/evaluation/CYCLE_39151392906_GATE.json",
+   "results/audit/evaluation/CYCLE_39154580055_GATE.json",
+   "results/audit/evaluation/CYCLE_39171298736_GATE.json",
+   "results/audit/evaluation/CYCLE_39177046762_GATE.json"
+  ],
+  "republished_at_utc": "2026-10-19T00:49:21Z",
+  "republished_by": "39180276526",
+  "republication_reason": "check 18 of the readiness verifier re-derives this disclosure from git and fails when the recorded head does not equal the re-derived head. Since the 39173770080 republication (head 5f4dde37, 21 gates) the accepted branch moved to 9a9df5bb ('accept evaluation cycle 39177046762') with 23 gate files of record. The measurement fields are re-derived from git exactly as check 18 recomputes them; the previous measurement is preserved verbatim under superseded_snapshot_39180276526. No commit was rewritten, no branch was pushed to and no historical finding was deleted.",
   "finding": {
    "statement": "STATUS UPDATE run 39180276526: origin/lab/evaluation HEAD is 9a9df5bb ('accept evaluation cycle 39177046762', gate of record present on the branch). The newest 'accept evaluation cycle' commit is that same commit, so ZERO run ids sit above it. 23 gate files are present on the accepted branch. Every earlier measurement is preserved verbatim under its superseded_snapshot_* key and is NOT retracted or rewritten.",
    "ungated": [],
