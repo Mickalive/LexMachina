@@ -52,6 +52,16 @@ explicitly as 'EXPECTED by this rewrite'). Leaving the pin at 56 was the exact
 failure audit CYCLE_39164900837 F5 charged to cycle 39164900837. A direction
 pin repair touches no frozen benchmark, rubric, incumbent, threshold or
 success rule; the state file's direction_version (57) is authoritative.
+
+REPAIR 39287274485 (direction v58): the direction pin is bumped 57 -> 58 to match
+the v58 lane state. This is the SIXTH advance in the same disclosed convention
+(49->50, 50->52, 52->55, 55->56, 56->57, 57->58) and it is EXPECTED, not a new
+defect: the director materially rewrote this lane's question between v57 and v58
+(v58 names the F-3B record-integrity disposition and next-packet falsification
+readiness as the open work and pins the direction_version advance explicitly as
+'EXPECTED by this rewrite'). A direction pin repair touches no frozen benchmark,
+rubric, incumbent, threshold or success rule; the state file's direction_version
+(58) is authoritative.
 """
 import json
 from pathlib import Path
@@ -69,7 +79,7 @@ def test_state_file_has_mandatory_fields():
                    "next_recommendation"):
         assert field in state, f"missing mandatory field {field}"
     assert state["lane"] == "evaluation"
-    assert state["direction_version"] == 57
+    assert state["direction_version"] == 58
 
 
 def test_evidence_refs_exist():
