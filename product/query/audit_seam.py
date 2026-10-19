@@ -98,10 +98,12 @@ MODEL_ORDER = [
 #: independent audit of cycle 38933925523 found in the previous wording of
 #: this file).
 #:
-#: ``opencode/nemotron-3-ultra-free`` — tool-health exclusion: control-plane
-#: ``state/model_health.json`` reports tool_probe FAIL / exit 124 in the newest
-#: snapshot (run 38938748669, 2026-10-16T17:22:22Z) and in the audit-recomputed
-#: predecessor (run 38933507133, 16:40:57Z).  Correctly classified; unchanged.
+#: ``opencode/nemotron-3-ultra-free`` — **no longer excluded**: the newest
+#: control-plane snapshot (run 39239945934, 2026-10-19T10:48:13Z) reports
+#: tool_probe PASS / exit 0.  The previous exclusion (basis:
+#: control_plane_tool_probe_fail, run 38938748669) was correct for that
+#: snapshot; this update reflects the health refresh.  The model is not in
+#: MODEL_ORDER and remains absent from the fallback chain by construction.
 #:
 #: ``opencode/nemotron-3.5-lightning-free`` — **not** a tool-health exclusion.
 #: The newest control-plane snapshot reports tool_probe PASS / exit 0 and lists
@@ -132,25 +134,13 @@ MODEL_ORDER = [
 #: ``control_plane_checked_at`` record when the values were read from
 #: ``state/model_health.json``; they are provenance, not asserted invariants.
 DEAD_MODEL_JUSTIFICATION = {
-    "opencode/nemotron-3-ultra-free": {
-        "basis": "control_plane_tool_probe_fail",
-        "control_plane_tool_probe": "FAIL",
-        "control_plane_exit_code": 124,
-        "control_plane_reported_healthy": False,
-        "control_plane_run_id": "38938748669",
-        "control_plane_checked_at": "2026-10-16T17:22:22Z",
-        "note": (
-            "tool_probe FAIL exit 124 in the newest control-plane snapshot; "
-            "the same failure is the only one the repository's health history records"
-        ),
-    },
     "opencode/nemotron-3.5-lightning-free": {
         "basis": "adversarial_budget_not_tool_health",
         "control_plane_tool_probe": "PASS",
         "control_plane_exit_code": 0,
         "control_plane_reported_healthy": True,
-        "control_plane_run_id": "38938748669",
-        "control_plane_checked_at": "2026-10-16T17:22:22Z",
+        "control_plane_run_id": "39239945934",
+        "control_plane_checked_at": "2026-10-19T10:48:13Z",
         "note": (
             "NOT dead by tool probe: the newest control-plane snapshot reports "
             "tool_probe PASS exit 0 and lists it healthy; excluded only because "

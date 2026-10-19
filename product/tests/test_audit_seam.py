@@ -152,19 +152,23 @@ _WORKFLOW_OVERRIDE = [
 def test_healthy_models_filters_dead_after_workflow_override():
     """Simulate the durable workflow's post-seam model-list override.
 
-    The workflow re-assigns DEFAULT_FREE_MODELS with the two excluded models
-    first (nemotron-3-ultra: tool probe FAIL 124; nemotron-3.5-lightning:
-    control-plane PASS but excluded on adversarial-budget grounds — see
-    ``DEAD_MODEL_JUSTIFICATION``).  The seam's call-time wrapper must filter
-    both out so the product never burns a provider timeout on a fallback the
-    exclusion records rule out.
+    The workflow re-assigns DEFAULT_FREE_MODELS with the two nemotron models
+    first.  The seam's call-time wrapper must filter out only the models in
+    KNOWN_DEAD_MODELS (currently nemotron-3.5-lightning-free on adversarial-
+    budget grounds; nemotron-3-ultra-free is now healthy per control-plane
+    run 39239945934).
     """
     audit_seam.apply()
     saved = list(paths.DEFAULT_FREE_MODELS)
     try:
         paths.DEFAULT_FREE_MODELS[:] = list(_WORKFLOW_OVERRIDE)
         result = paths.healthy_models()
-        assert result == ["opencode/space-bunny-free", "opencode/mimo-v2.6-flash-free"]
+        # nemotron-3-ultra-free is now healthy; only nemotron-3.5-lightning-free is filtered
+        assert result == [
+            "opencode/nemotron-3-ultra-free",
+            "opencode/space-bunny-free",
+            "opencode/mimo-v2.6-flash-free",
+        ]
         assert not (set(result) & set(audit_seam.KNOWN_DEAD_MODELS))
     finally:
         paths.DEFAULT_FREE_MODELS[:] = saved
@@ -178,7 +182,8 @@ def test_preferred_model_never_returns_dead_after_override():
         paths.DEFAULT_FREE_MODELS[:] = list(_WORKFLOW_OVERRIDE)
         chosen = paths.preferred_model()
         assert chosen not in audit_seam.KNOWN_DEAD_MODELS
-        assert chosen == "opencode/space-bunny-free"  # first survivor of the override
+        # nemotron-3-ultra-free is now the first healthy survivor
+        assert chosen == "opencode/nemotron-3-ultra-free"
     finally:
         paths.DEFAULT_FREE_MODELS[:] = saved
 
