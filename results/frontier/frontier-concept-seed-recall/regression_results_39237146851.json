@@ -1,0 +1,701 @@
+{
+ "acceptance_test": "7. A REGRESSION SUITE PINNING WHAT MUST NOT CHANGE: per-bundle decision-count bounds, dedup behaviour, provenance channel fields, every query_result_bundle contract field, and the invariant that no decision is silently dropped, duplicated or re-ranked out of existence by the additive arm.",
+ "all_passed": true,
+ "checks": [
+  {
+   "check": "decision_count_non_decreasing::frozen::business-judgment-rule::fr",
+   "detail": "the deduplicated union pool may only grow; the additive arm never trims. The comparison is against the DEDUPLICATED A0 pool because the accepted A0 responses already contain duplicate canonical identities (the accepted gate duplicate::unique_ids FAILs on all four frozen legs), and applying the product's own dedup to the baseline collapses them identically.",
+   "measured": {
+    "A0_deduplicated": 40,
+    "A0_internal_duplicates_collapsed": 10,
+    "A0_raw": 50,
+    "A1_union": 50
+   },
+   "passed": true
+  },
+  {
+   "check": "dedupe_is_product_identity::frozen::business-judgment-rule::fr",
+   "detail": "dedup uses the product's own identity order, not a new one",
+   "measured": {
+    "A0_internal_duplicates_collapsed": 10,
+    "A0_rows_after_product_dedup": 40,
+    "A0_rows_raw": 50,
+    "identity_keys": [
+     "canonical_decision_id",
+     "decision_id"
+    ],
+    "input_records": 150,
+    "merged_away": 100,
+    "rows_without_canonical_decision_id": 0,
+    "strategy": "product_canonical_identity_v1",
+    "unique_candidates": 50,
+    "why_union_can_be_below_A0_raw": "the ACCEPTED A0 response itself already contains duplicate canonical identities -- exactly what the accepted gate duplicate::unique_ids records as FAILING on all four frozen legs -- so the product's own dedup collapses them in the baseline as well. The invariant that matters, and that is checked, is no_A0_row_dropped: every A0 decision id is still present."
+   },
+   "passed": true
+  },
+  {
+   "check": "dedupe_arithmetic::frozen::business-judgment-rule::fr",
+   "detail": "input_records == unique_candidates + merged_away",
+   "measured": {
+    "A0_internal_duplicates_collapsed": 10,
+    "A0_rows_after_product_dedup": 40,
+    "A0_rows_raw": 50,
+    "identity_keys": [
+     "canonical_decision_id",
+     "decision_id"
+    ],
+    "input_records": 150,
+    "merged_away": 100,
+    "rows_without_canonical_decision_id": 0,
+    "strategy": "product_canonical_identity_v1",
+    "unique_candidates": 50,
+    "why_union_can_be_below_A0_raw": "the ACCEPTED A0 response itself already contains duplicate canonical identities -- exactly what the accepted gate duplicate::unique_ids records as FAILING on all four frozen legs -- so the product's own dedup collapses them in the baseline as well. The invariant that matters, and that is checked, is no_A0_row_dropped: every A0 decision id is still present."
+   },
+   "passed": true
+  },
+  {
+   "check": "no_A0_row_dropped::frozen::business-judgment-rule::fr",
+   "detail": "every A0 decision id is still present in the union pool",
+   "measured": {
+    "A0_rows": 50,
+    "A1_union_rows": 50
+   },
+   "passed": true
+  },
+  {
+   "check": "decision_count_non_decreasing::frozen::business-judgment-rule::it",
+   "detail": "the deduplicated union pool may only grow; the additive arm never trims. The comparison is against the DEDUPLICATED A0 pool because the accepted A0 responses already contain duplicate canonical identities (the accepted gate duplicate::unique_ids FAILs on all four frozen legs), and applying the product's own dedup to the baseline collapses them identically.",
+   "measured": {
+    "A0_deduplicated": 50,
+    "A0_internal_duplicates_collapsed": 0,
+    "A0_raw": 50,
+    "A1_union": 50
+   },
+   "passed": true
+  },
+  {
+   "check": "dedupe_is_product_identity::frozen::business-judgment-rule::it",
+   "detail": "dedup uses the product's own identity order, not a new one",
+   "measured": {
+    "A0_internal_duplicates_collapsed": 0,
+    "A0_rows_after_product_dedup": 50,
+    "A0_rows_raw": 50,
+    "identity_keys": [
+     "canonical_decision_id",
+     "decision_id"
+    ],
+    "input_records": 150,
+    "merged_away": 100,
+    "rows_without_canonical_decision_id": 0,
+    "strategy": "product_canonical_identity_v1",
+    "unique_candidates": 50,
+    "why_union_can_be_below_A0_raw": "the ACCEPTED A0 response itself already contains duplicate canonical identities -- exactly what the accepted gate duplicate::unique_ids records as FAILING on all four frozen legs -- so the product's own dedup collapses them in the baseline as well. The invariant that matters, and that is checked, is no_A0_row_dropped: every A0 decision id is still present."
+   },
+   "passed": true
+  },
+  {
+   "check": "dedupe_arithmetic::frozen::business-judgment-rule::it",
+   "detail": "input_records == unique_candidates + merged_away",
+   "measured": {
+    "A0_internal_duplicates_collapsed": 0,
+    "A0_rows_after_product_dedup": 50,
+    "A0_rows_raw": 50,
+    "identity_keys": [
+     "canonical_decision_id",
+     "decision_id"
+    ],
+    "input_records": 150,
+    "merged_away": 100,
+    "rows_without_canonical_decision_id": 0,
+    "strategy": "product_canonical_identity_v1",
+    "unique_candidates": 50,
+    "why_union_can_be_below_A0_raw": "the ACCEPTED A0 response itself already contains duplicate canonical identities -- exactly what the accepted gate duplicate::unique_ids records as FAILING on all four frozen legs -- so the product's own dedup collapses them in the baseline as well. The invariant that matters, and that is checked, is no_A0_row_dropped: every A0 decision id is still present."
+   },
+   "passed": true
+  },
+  {
+   "check": "no_A0_row_dropped::frozen::business-judgment-rule::it",
+   "detail": "every A0 decision id is still present in the union pool",
+   "measured": {
+    "A0_rows": 50,
+    "A1_union_rows": 50
+   },
+   "passed": true
+  },
+  {
+   "check": "decision_count_non_decreasing::frozen::corporate-criminal-liability::fr",
+   "detail": "the deduplicated union pool may only grow; the additive arm never trims. The comparison is against the DEDUPLICATED A0 pool because the accepted A0 responses already contain duplicate canonical identities (the accepted gate duplicate::unique_ids FAILs on all four frozen legs), and applying the product's own dedup to the baseline collapses them identically.",
+   "measured": {
+    "A0_deduplicated": 45,
+    "A0_internal_duplicates_collapsed": 5,
+    "A0_raw": 50,
+    "A1_union": 108
+   },
+   "passed": true
+  },
+  {
+   "check": "dedupe_is_product_identity::frozen::corporate-criminal-liability::fr",
+   "detail": "dedup uses the product's own identity order, not a new one",
+   "measured": {
+    "A0_internal_duplicates_collapsed": 5,
+    "A0_rows_after_product_dedup": 45,
+    "A0_rows_raw": 50,
+    "identity_keys": [
+     "canonical_decision_id",
+     "decision_id"
+    ],
+    "input_records": 150,
+    "merged_away": 42,
+    "rows_without_canonical_decision_id": 0,
+    "strategy": "product_canonical_identity_v1",
+    "unique_candidates": 108,
+    "why_union_can_be_below_A0_raw": "the ACCEPTED A0 response itself already contains duplicate canonical identities -- exactly what the accepted gate duplicate::unique_ids records as FAILING on all four frozen legs -- so the product's own dedup collapses them in the baseline as well. The invariant that matters, and that is checked, is no_A0_row_dropped: every A0 decision id is still present."
+   },
+   "passed": true
+  },
+  {
+   "check": "dedupe_arithmetic::frozen::corporate-criminal-liability::fr",
+   "detail": "input_records == unique_candidates + merged_away",
+   "measured": {
+    "A0_internal_duplicates_collapsed": 5,
+    "A0_rows_after_product_dedup": 45,
+    "A0_rows_raw": 50,
+    "identity_keys": [
+     "canonical_decision_id",
+     "decision_id"
+    ],
+    "input_records": 150,
+    "merged_away": 42,
+    "rows_without_canonical_decision_id": 0,
+    "strategy": "product_canonical_identity_v1",
+    "unique_candidates": 108,
+    "why_union_can_be_below_A0_raw": "the ACCEPTED A0 response itself already contains duplicate canonical identities -- exactly what the accepted gate duplicate::unique_ids records as FAILING on all four frozen legs -- so the product's own dedup collapses them in the baseline as well. The invariant that matters, and that is checked, is no_A0_row_dropped: every A0 decision id is still present."
+   },
+   "passed": true
+  },
+  {
+   "check": "no_A0_row_dropped::frozen::corporate-criminal-liability::fr",
+   "detail": "every A0 decision id is still present in the union pool",
+   "measured": {
+    "A0_rows": 50,
+    "A1_union_rows": 108
+   },
+   "passed": true
+  },
+  {
+   "check": "decision_count_non_decreasing::frozen::corporate-criminal-liability::it",
+   "detail": "the deduplicated union pool may only grow; the additive arm never trims. The comparison is against the DEDUPLICATED A0 pool because the accepted A0 responses already contain duplicate canonical identities (the accepted gate duplicate::unique_ids FAILs on all four frozen legs), and applying the product's own dedup to the baseline collapses them identically.",
+   "measured": {
+    "A0_deduplicated": 50,
+    "A0_internal_duplicates_collapsed": 0,
+    "A0_raw": 50,
+    "A1_union": 60
+   },
+   "passed": true
+  },
+  {
+   "check": "dedupe_is_product_identity::frozen::corporate-criminal-liability::it",
+   "detail": "dedup uses the product's own identity order, not a new one",
+   "measured": {
+    "A0_internal_duplicates_collapsed": 0,
+    "A0_rows_after_product_dedup": 50,
+    "A0_rows_raw": 50,
+    "identity_keys": [
+     "canonical_decision_id",
+     "decision_id"
+    ],
+    "input_records": 150,
+    "merged_away": 90,
+    "rows_without_canonical_decision_id": 0,
+    "strategy": "product_canonical_identity_v1",
+    "unique_candidates": 60,
+    "why_union_can_be_below_A0_raw": "the ACCEPTED A0 response itself already contains duplicate canonical identities -- exactly what the accepted gate duplicate::unique_ids records as FAILING on all four frozen legs -- so the product's own dedup collapses them in the baseline as well. The invariant that matters, and that is checked, is no_A0_row_dropped: every A0 decision id is still present."
+   },
+   "passed": true
+  },
+  {
+   "check": "dedupe_arithmetic::frozen::corporate-criminal-liability::it",
+   "detail": "input_records == unique_candidates + merged_away",
+   "measured": {
+    "A0_internal_duplicates_collapsed": 0,
+    "A0_rows_after_product_dedup": 50,
+    "A0_rows_raw": 50,
+    "identity_keys": [
+     "canonical_decision_id",
+     "decision_id"
+    ],
+    "input_records": 150,
+    "merged_away": 90,
+    "rows_without_canonical_decision_id": 0,
+    "strategy": "product_canonical_identity_v1",
+    "unique_candidates": 60,
+    "why_union_can_be_below_A0_raw": "the ACCEPTED A0 response itself already contains duplicate canonical identities -- exactly what the accepted gate duplicate::unique_ids records as FAILING on all four frozen legs -- so the product's own dedup collapses them in the baseline as well. The invariant that matters, and that is checked, is no_A0_row_dropped: every A0 decision id is still present."
+   },
+   "passed": true
+  },
+  {
+   "check": "no_A0_row_dropped::frozen::corporate-criminal-liability::it",
+   "detail": "every A0 decision id is still present in the union pool",
+   "measured": {
+    "A0_rows": 50,
+    "A1_union_rows": 60
+   },
+   "passed": true
+  },
+  {
+   "check": "decision_count_non_decreasing::frozen::petty-theft-dismissal::fr",
+   "detail": "the deduplicated union pool may only grow; the additive arm never trims. The comparison is against the DEDUPLICATED A0 pool because the accepted A0 responses already contain duplicate canonical identities (the accepted gate duplicate::unique_ids FAILs on all four frozen legs), and applying the product's own dedup to the baseline collapses them identically.",
+   "measured": {
+    "A0_deduplicated": 37,
+    "A0_internal_duplicates_collapsed": 13,
+    "A0_raw": 50,
+    "A1_union": 79
+   },
+   "passed": true
+  },
+  {
+   "check": "dedupe_is_product_identity::frozen::petty-theft-dismissal::fr",
+   "detail": "dedup uses the product's own identity order, not a new one",
+   "measured": {
+    "A0_internal_duplicates_collapsed": 13,
+    "A0_rows_after_product_dedup": 37,
+    "A0_rows_raw": 50,
+    "identity_keys": [
+     "canonical_decision_id",
+     "decision_id"
+    ],
+    "input_records": 150,
+    "merged_away": 71,
+    "rows_without_canonical_decision_id": 0,
+    "strategy": "product_canonical_identity_v1",
+    "unique_candidates": 79,
+    "why_union_can_be_below_A0_raw": "the ACCEPTED A0 response itself already contains duplicate canonical identities -- exactly what the accepted gate duplicate::unique_ids records as FAILING on all four frozen legs -- so the product's own dedup collapses them in the baseline as well. The invariant that matters, and that is checked, is no_A0_row_dropped: every A0 decision id is still present."
+   },
+   "passed": true
+  },
+  {
+   "check": "dedupe_arithmetic::frozen::petty-theft-dismissal::fr",
+   "detail": "input_records == unique_candidates + merged_away",
+   "measured": {
+    "A0_internal_duplicates_collapsed": 13,
+    "A0_rows_after_product_dedup": 37,
+    "A0_rows_raw": 50,
+    "identity_keys": [
+     "canonical_decision_id",
+     "decision_id"
+    ],
+    "input_records": 150,
+    "merged_away": 71,
+    "rows_without_canonical_decision_id": 0,
+    "strategy": "product_canonical_identity_v1",
+    "unique_candidates": 79,
+    "why_union_can_be_below_A0_raw": "the ACCEPTED A0 response itself already contains duplicate canonical identities -- exactly what the accepted gate duplicate::unique_ids records as FAILING on all four frozen legs -- so the product's own dedup collapses them in the baseline as well. The invariant that matters, and that is checked, is no_A0_row_dropped: every A0 decision id is still present."
+   },
+   "passed": true
+  },
+  {
+   "check": "no_A0_row_dropped::frozen::petty-theft-dismissal::fr",
+   "detail": "every A0 decision id is still present in the union pool",
+   "measured": {
+    "A0_rows": 50,
+    "A1_union_rows": 79
+   },
+   "passed": true
+  },
+  {
+   "check": "decision_count_non_decreasing::frozen::petty-theft-dismissal::it",
+   "detail": "the deduplicated union pool may only grow; the additive arm never trims. The comparison is against the DEDUPLICATED A0 pool because the accepted A0 responses already contain duplicate canonical identities (the accepted gate duplicate::unique_ids FAILs on all four frozen legs), and applying the product's own dedup to the baseline collapses them identically.",
+   "measured": {
+    "A0_deduplicated": 50,
+    "A0_internal_duplicates_collapsed": 0,
+    "A0_raw": 50,
+    "A1_union": 51
+   },
+   "passed": true
+  },
+  {
+   "check": "dedupe_is_product_identity::frozen::petty-theft-dismissal::it",
+   "detail": "dedup uses the product's own identity order, not a new one",
+   "measured": {
+    "A0_internal_duplicates_collapsed": 0,
+    "A0_rows_after_product_dedup": 50,
+    "A0_rows_raw": 50,
+    "identity_keys": [
+     "canonical_decision_id",
+     "decision_id"
+    ],
+    "input_records": 150,
+    "merged_away": 99,
+    "rows_without_canonical_decision_id": 0,
+    "strategy": "product_canonical_identity_v1",
+    "unique_candidates": 51,
+    "why_union_can_be_below_A0_raw": "the ACCEPTED A0 response itself already contains duplicate canonical identities -- exactly what the accepted gate duplicate::unique_ids records as FAILING on all four frozen legs -- so the product's own dedup collapses them in the baseline as well. The invariant that matters, and that is checked, is no_A0_row_dropped: every A0 decision id is still present."
+   },
+   "passed": true
+  },
+  {
+   "check": "dedupe_arithmetic::frozen::petty-theft-dismissal::it",
+   "detail": "input_records == unique_candidates + merged_away",
+   "measured": {
+    "A0_internal_duplicates_collapsed": 0,
+    "A0_rows_after_product_dedup": 50,
+    "A0_rows_raw": 50,
+    "identity_keys": [
+     "canonical_decision_id",
+     "decision_id"
+    ],
+    "input_records": 150,
+    "merged_away": 99,
+    "rows_without_canonical_decision_id": 0,
+    "strategy": "product_canonical_identity_v1",
+    "unique_candidates": 51,
+    "why_union_can_be_below_A0_raw": "the ACCEPTED A0 response itself already contains duplicate canonical identities -- exactly what the accepted gate duplicate::unique_ids records as FAILING on all four frozen legs -- so the product's own dedup collapses them in the baseline as well. The invariant that matters, and that is checked, is no_A0_row_dropped: every A0 decision id is still present."
+   },
+   "passed": true
+  },
+  {
+   "check": "no_A0_row_dropped::frozen::petty-theft-dismissal::it",
+   "detail": "every A0 decision id is still present in the union pool",
+   "measured": {
+    "A0_rows": 50,
+    "A1_union_rows": 51
+   },
+   "passed": true
+  },
+  {
+   "check": "decision_count_non_decreasing::served::de-kapitalverletzung",
+   "detail": "the deduplicated union pool may only grow; the additive arm never trims. The comparison is against the DEDUPLICATED A0 pool because the accepted A0 responses already contain duplicate canonical identities (the accepted gate duplicate::unique_ids FAILs on all four frozen legs), and applying the product's own dedup to the baseline collapses them identically.",
+   "measured": {
+    "A0_deduplicated": 214,
+    "A0_internal_duplicates_collapsed": 0,
+    "A0_raw": 214,
+    "A1_union": 220
+   },
+   "passed": true
+  },
+  {
+   "check": "dedupe_is_product_identity::served::de-kapitalverletzung",
+   "detail": "dedup uses the product's own identity order, not a new one",
+   "measured": {
+    "A0_internal_duplicates_collapsed": 0,
+    "A0_rows_after_product_dedup": 214,
+    "A0_rows_raw": 214,
+    "identity_keys": [
+     "canonical_decision_id",
+     "decision_id"
+    ],
+    "input_records": 314,
+    "merged_away": 94,
+    "rows_without_canonical_decision_id": 214,
+    "strategy": "product_canonical_identity_v1",
+    "unique_candidates": 220,
+    "why_union_can_be_below_A0_raw": "the ACCEPTED A0 response itself already contains duplicate canonical identities -- exactly what the accepted gate duplicate::unique_ids records as FAILING on all four frozen legs -- so the product's own dedup collapses them in the baseline as well. The invariant that matters, and that is checked, is no_A0_row_dropped: every A0 decision id is still present."
+   },
+   "passed": true
+  },
+  {
+   "check": "dedupe_arithmetic::served::de-kapitalverletzung",
+   "detail": "input_records == unique_candidates + merged_away",
+   "measured": {
+    "A0_internal_duplicates_collapsed": 0,
+    "A0_rows_after_product_dedup": 214,
+    "A0_rows_raw": 214,
+    "identity_keys": [
+     "canonical_decision_id",
+     "decision_id"
+    ],
+    "input_records": 314,
+    "merged_away": 94,
+    "rows_without_canonical_decision_id": 214,
+    "strategy": "product_canonical_identity_v1",
+    "unique_candidates": 220,
+    "why_union_can_be_below_A0_raw": "the ACCEPTED A0 response itself already contains duplicate canonical identities -- exactly what the accepted gate duplicate::unique_ids records as FAILING on all four frozen legs -- so the product's own dedup collapses them in the baseline as well. The invariant that matters, and that is checked, is no_A0_row_dropped: every A0 decision id is still present."
+   },
+   "passed": true
+  },
+  {
+   "check": "no_A0_row_dropped::served::de-kapitalverletzung",
+   "detail": "every A0 decision id is still present in the union pool",
+   "measured": {
+    "A0_rows": 214,
+    "A1_union_rows": 220
+   },
+   "passed": true
+  },
+  {
+   "check": "decision_count_non_decreasing::served::fr-bail-entretien",
+   "detail": "the deduplicated union pool may only grow; the additive arm never trims. The comparison is against the DEDUPLICATED A0 pool because the accepted A0 responses already contain duplicate canonical identities (the accepted gate duplicate::unique_ids FAILs on all four frozen legs), and applying the product's own dedup to the baseline collapses them identically.",
+   "measured": {
+    "A0_deduplicated": 217,
+    "A0_internal_duplicates_collapsed": 0,
+    "A0_raw": 217,
+    "A1_union": 217
+   },
+   "passed": true
+  },
+  {
+   "check": "dedupe_is_product_identity::served::fr-bail-entretien",
+   "detail": "dedup uses the product's own identity order, not a new one",
+   "measured": {
+    "A0_internal_duplicates_collapsed": 0,
+    "A0_rows_after_product_dedup": 217,
+    "A0_rows_raw": 217,
+    "identity_keys": [
+     "canonical_decision_id",
+     "decision_id"
+    ],
+    "input_records": 217,
+    "merged_away": 0,
+    "rows_without_canonical_decision_id": 217,
+    "strategy": "product_canonical_identity_v1",
+    "unique_candidates": 217,
+    "why_union_can_be_below_A0_raw": "the ACCEPTED A0 response itself already contains duplicate canonical identities -- exactly what the accepted gate duplicate::unique_ids records as FAILING on all four frozen legs -- so the product's own dedup collapses them in the baseline as well. The invariant that matters, and that is checked, is no_A0_row_dropped: every A0 decision id is still present."
+   },
+   "passed": true
+  },
+  {
+   "check": "dedupe_arithmetic::served::fr-bail-entretien",
+   "detail": "input_records == unique_candidates + merged_away",
+   "measured": {
+    "A0_internal_duplicates_collapsed": 0,
+    "A0_rows_after_product_dedup": 217,
+    "A0_rows_raw": 217,
+    "identity_keys": [
+     "canonical_decision_id",
+     "decision_id"
+    ],
+    "input_records": 217,
+    "merged_away": 0,
+    "rows_without_canonical_decision_id": 217,
+    "strategy": "product_canonical_identity_v1",
+    "unique_candidates": 217,
+    "why_union_can_be_below_A0_raw": "the ACCEPTED A0 response itself already contains duplicate canonical identities -- exactly what the accepted gate duplicate::unique_ids records as FAILING on all four frozen legs -- so the product's own dedup collapses them in the baseline as well. The invariant that matters, and that is checked, is no_A0_row_dropped: every A0 decision id is still present."
+   },
+   "passed": true
+  },
+  {
+   "check": "no_A0_row_dropped::served::fr-bail-entretien",
+   "detail": "every A0 decision id is still present in the union pool",
+   "measured": {
+    "A0_rows": 217,
+    "A1_union_rows": 217
+   },
+   "passed": true
+  },
+  {
+   "check": "decision_count_non_decreasing::served::it-responsabilita-medica",
+   "detail": "the deduplicated union pool may only grow; the additive arm never trims. The comparison is against the DEDUPLICATED A0 pool because the accepted A0 responses already contain duplicate canonical identities (the accepted gate duplicate::unique_ids FAILs on all four frozen legs), and applying the product's own dedup to the baseline collapses them identically.",
+   "measured": {
+    "A0_deduplicated": 211,
+    "A0_internal_duplicates_collapsed": 0,
+    "A0_raw": 211,
+    "A1_union": 211
+   },
+   "passed": true
+  },
+  {
+   "check": "dedupe_is_product_identity::served::it-responsabilita-medica",
+   "detail": "dedup uses the product's own identity order, not a new one",
+   "measured": {
+    "A0_internal_duplicates_collapsed": 0,
+    "A0_rows_after_product_dedup": 211,
+    "A0_rows_raw": 211,
+    "identity_keys": [
+     "canonical_decision_id",
+     "decision_id"
+    ],
+    "input_records": 211,
+    "merged_away": 0,
+    "rows_without_canonical_decision_id": 211,
+    "strategy": "product_canonical_identity_v1",
+    "unique_candidates": 211,
+    "why_union_can_be_below_A0_raw": "the ACCEPTED A0 response itself already contains duplicate canonical identities -- exactly what the accepted gate duplicate::unique_ids records as FAILING on all four frozen legs -- so the product's own dedup collapses them in the baseline as well. The invariant that matters, and that is checked, is no_A0_row_dropped: every A0 decision id is still present."
+   },
+   "passed": true
+  },
+  {
+   "check": "dedupe_arithmetic::served::it-responsabilita-medica",
+   "detail": "input_records == unique_candidates + merged_away",
+   "measured": {
+    "A0_internal_duplicates_collapsed": 0,
+    "A0_rows_after_product_dedup": 211,
+    "A0_rows_raw": 211,
+    "identity_keys": [
+     "canonical_decision_id",
+     "decision_id"
+    ],
+    "input_records": 211,
+    "merged_away": 0,
+    "rows_without_canonical_decision_id": 211,
+    "strategy": "product_canonical_identity_v1",
+    "unique_candidates": 211,
+    "why_union_can_be_below_A0_raw": "the ACCEPTED A0 response itself already contains duplicate canonical identities -- exactly what the accepted gate duplicate::unique_ids records as FAILING on all four frozen legs -- so the product's own dedup collapses them in the baseline as well. The invariant that matters, and that is checked, is no_A0_row_dropped: every A0 decision id is still present."
+   },
+   "passed": true
+  },
+  {
+   "check": "no_A0_row_dropped::served::it-responsabilita-medica",
+   "detail": "every A0 decision id is still present in the union pool",
+   "measured": {
+    "A0_rows": 211,
+    "A1_union_rows": 211
+   },
+   "passed": true
+  },
+  {
+   "check": "bundle_contract_read_from_accepted_mount",
+   "detail": "the query_result_bundle contract is read from the accepted product mount, never copied into this suite",
+   "measured": {
+    "BUNDLE_VERSION": "1.0",
+    "REQUIRED_DECISION": [
+     "decision_id",
+     "court",
+     "language",
+     "rank",
+     "score",
+     "provenance",
+     "snippet",
+     "cluster_id",
+     "x",
+     "y",
+     "counter_status",
+     "canonical_url",
+     "citation"
+    ],
+    "REQUIRED_TOP": [
+     "bundle_version",
+     "query",
+     "query_variants",
+     "answer",
+     "decisions",
+     "clusters",
+     "relations",
+     "provenance"
+    ],
+    "parsed_statically": true,
+    "source": "/tmp/lex_accepted/core/product/product/query/bundle.py",
+    "source_sha256": "3b8f55d8f55ead2218e00151a3725b682409d9e1b2f1e3bef5ccd044f7f73863"
+   },
+   "passed": true
+  },
+  {
+   "check": "bundle_top_level_fields_intact::de-kapitalverletzung",
+   "detail": "every accepted top-level bundle field is still present",
+   "measured": [],
+   "passed": true
+  },
+  {
+   "check": "bundle_decision_fields_intact::de-kapitalverletzung",
+   "detail": "every accepted decision field is still present on every row",
+   "measured": [],
+   "passed": true
+  },
+  {
+   "check": "provenance_channel_fields_intact::de-kapitalverletzung",
+   "detail": "per-row provenance strings are untouched; this harness never writes a bundle and never edits an accepted one",
+   "measured": [
+    "ocl:adversarial.contrary variant=adversarial:contrary page=0",
+    "ocl:adversarial.exception variant=adversarial:exception page=0",
+    "ocl:adversarial.minority variant=adversarial:minority page=0",
+    "ocl:adversarial.older_line variant=adversarial:older_line page=0",
+    "ocl:citation.incoming seed=bge_132 III 257",
+    "ocl:citation.incoming seed=bvger_A-417_2013",
+    "ocl:citation.outgoing seed=bge_132 III 257",
+    "ocl:citation.outgoing seed=bvger_A-417_2013"
+   ],
+   "passed": true
+  },
+  {
+   "check": "bundle_top_level_fields_intact::fr-bail-entretien",
+   "detail": "every accepted top-level bundle field is still present",
+   "measured": [],
+   "passed": true
+  },
+  {
+   "check": "bundle_decision_fields_intact::fr-bail-entretien",
+   "detail": "every accepted decision field is still present on every row",
+   "measured": [],
+   "passed": true
+  },
+  {
+   "check": "provenance_channel_fields_intact::fr-bail-entretien",
+   "detail": "per-row provenance strings are untouched; this harness never writes a bundle and never edits an accepted one",
+   "measured": [
+    "ocl:adversarial.contrary variant=adversarial:contrary page=0",
+    "ocl:adversarial.exception variant=adversarial:exception page=0",
+    "ocl:adversarial.minority variant=adversarial:minority page=0",
+    "ocl:adversarial.older_line variant=adversarial:older_line page=0",
+    "ocl:citation.incoming seed=bge_140 III 491",
+    "ocl:citation.incoming seed=bger_4A_257_2018",
+    "ocl:citation.outgoing seed=bge_140 III 491",
+    "ocl:citation.outgoing seed=bger_4A_257_2018"
+   ],
+   "passed": true
+  },
+  {
+   "check": "bundle_top_level_fields_intact::it-responsabilita-medica",
+   "detail": "every accepted top-level bundle field is still present",
+   "measured": [],
+   "passed": true
+  },
+  {
+   "check": "bundle_decision_fields_intact::it-responsabilita-medica",
+   "detail": "every accepted decision field is still present on every row",
+   "measured": [],
+   "passed": true
+  },
+  {
+   "check": "provenance_channel_fields_intact::it-responsabilita-medica",
+   "detail": "per-row provenance strings are untouched; this harness never writes a bundle and never edits an accepted one",
+   "measured": [
+    "ocl:adversarial.contrary variant=adversarial:contrary page=0",
+    "ocl:adversarial.exception variant=adversarial:exception page=0",
+    "ocl:adversarial.minority variant=adversarial:minority page=0",
+    "ocl:adversarial.older_line variant=adversarial:older_line page=0",
+    "ocl:citation.incoming seed=bger_4A_248_2013",
+    "ocl:citation.outgoing seed=bger_4A_248_2013",
+    "ocl:citation.outgoing seed=ti_gerichte_12.2013.100_d20130517",
+    "ocl:citation.outgoing seed=ti_gerichte_35.2018.59_d20190513"
+   ],
+   "passed": true
+  },
+  {
+   "check": "frozen_plan_byte_reproducible",
+   "detail": "every decision-bearing key of the frozen plan re-derives byte-identically from the accepted inputs",
+   "measured": [],
+   "passed": true
+  },
+  {
+   "check": "cache_key_derivation_matches_accepted_envelopes",
+   "detail": "27 committed accepted envelope key(s) re-derived exactly by the imported derivation, so a variant minted here lands on a path the product already honours",
+   "measured": {
+    "accepted_queries_matched": 27,
+    "derivation_source": "accepted lab/product frontier/frontier-query-retrieval/ocl_adapter/cache.py",
+    "mismatches": [],
+    "verified": 27
+   },
+   "passed": true
+  },
+  {
+   "check": "instrument_is_responsive_to_an_injected_gain",
+   "detail": "a synthesised row carrying a missing authority id and a synthesised row carrying the missing concept each move their own metric, so a null in this run is a measurement and not a dead instrument",
+   "measured": {
+    "after": {
+     "kapitalverletzung": 2,
+     "recall": 1.0
+    },
+    "before": {
+     "kapitalverletzung": 1,
+     "recall": 0.5
+    }
+   },
+   "passed": true
+  }
+ ],
+ "failed": [],
+ "n_checks": 49,
+ "n_failed": 0,
+ "n_passed": 49,
+ "network_calls": 0,
+ "schema": "frontier_concept-seed-recall/regression-suite/1"
+}

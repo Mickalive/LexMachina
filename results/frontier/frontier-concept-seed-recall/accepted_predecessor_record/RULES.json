@@ -1,0 +1,163 @@
+{
+  "schema": "frontier_query_concept_recall.RULES.v1",
+  "team_id": "frontier-query-concept-recall",
+  "charter_version": 1,
+  "direction_version": 57,
+  "predecessor_run": "39160486882",
+  "supersedes": "The predecessor run's RULES.json + harness_results.json were WITHDRAWN: its baseline arm was degenerate (all concept row counts zero on a 214-row bundle, concept list not the accepted one) and its leg replay reported de=0.0 where the accepted record has de=2/2, 2/5, 1/2. Its OUTCOME_B verdict was therefore not admissible and is preserved only as a negative/withdrawn artifact.",
+
+  "question": "Does ONE deterministic, corpus-derived, free, in-budget query-expansion layer raise (i) per-concept row coverage of the question's own frozen core concepts and (ii) recall of the frozen controlling-authority id sets in the language(s) the query was NOT asked in, on the three accepted served questions (de-kapitalverletzung, fr-bail-entretien, it-responsabilita-medica of packet rebuilt-39027045675) and the four frozen reality-check legs, with zero regression on any frozen retrieval gate?",
+
+  "hypothesis": "The accepted failures are language-ASYMMETRIC rather than corpus-absent: the shipped baseline issues the question's own-language text with an empty expansion lexicon (terms_added == [], language_filter == null, machine_translation_used == false) and the accepted product EXPANSION table has no entry for the three questions' core concepts, so cross-language cells and compound nouns are lexical gaps.",
+
+  "inputs": {
+    "read_only_mounts": {
+      "product": "/tmp/lex_accepted/core/product",
+      "evaluation": "/tmp/lex_accepted/core/evaluation"
+    },
+    "files": {
+      "de-kapitalverletzung.bundle.json": {
+        "path": "/tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/questions/de-kapitalverletzung.bundle.json",
+        "content_sha256": "c4005d4b78553b0aebd92bba59001c87a376146873f807d575255a4f721dd7f2"
+      },
+      "fr-bail-entretien.bundle.json": {
+        "path": "/tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/questions/fr-bail-entretien.bundle.json",
+        "content_sha256": "0b3a224e3493479bc84628531eb7c56cac7dcfa978b29afbfc1305cb52574517"
+      },
+      "it-responsabilita-medica.bundle.json": {
+        "path": "/tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/questions/it-responsabilita-medica.bundle.json",
+        "content_sha256": "6b43341242b5e1d4c305dcf29f12428541ceedc0b6cc89b5f2c8ae8d634f82b4"
+      },
+      "concept_coverage.py": {
+        "path": "/tmp/lex_accepted/core/product/product/query/concept_coverage.py",
+        "content_sha256": "ad4d768da915d7ddbfdb1ef2c11df1092316aca91760a51cf5ce296adad0f64d"
+      },
+      "frozen_retrieval_benchmark.json": {
+        "path": "/tmp/lex_accepted/core/evaluation/evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
+        "content_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72"
+      },
+      "FREEZE_RECORD.json": {
+        "path": "/tmp/lex_accepted/core/evaluation/evaluation/retrieval_gate/FREEZE_RECORD.json",
+        "content_sha256": "b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49"
+      },
+      "gates.py": {
+        "path": "/tmp/lex_accepted/core/evaluation/evaluation/retrieval_gate/gates.py",
+        "content_sha256": "f9bbbc7d61c927e9b687cfbcf140371d08fa6069509b0a1b6466d514ea37a6d9"
+      },
+      "frozen.py": {
+        "path": "/tmp/lex_accepted/core/evaluation/evaluation/retrieval_gate/frozen.py",
+        "content_sha256": "46add5d0a537679db02d87a45ec945779c66349c75c8ed39ae59b57a482ba5c3"
+      },
+      "accepted_benchmark_record.json": {
+        "path": "/tmp/lex_accepted/core/evaluation/results/evaluation/retrieval_benchmark/39117425713.json",
+        "content_sha256": "f976d53a2b8481db42bb1d0dde5f673b1b5bd5284d2b6c5fe6dcc3115cdebd75",
+        "run_id": 39117425713
+      },
+      "accepted_subject_match_record.json": {
+        "path": "/tmp/lex_accepted/core/evaluation/results/evaluation/subject_match_audit/39113690481.json",
+        "content_sha256": "0adb78762e91090670728cf1441b75f14719a6066eb0a8ca8bfdf90a83845f61",
+        "run_id": 39113690481
+      },
+      "subject_match_audit.py": {
+        "path": "/tmp/lex_accepted/core/evaluation/evaluation/subject_match_audit.py",
+        "note": "the normative concept-coverage implementation, imported by file path"
+      }
+    }
+  },
+
+  "accepted_baseline_reproduction_requirement": {
+    "coverage": "A0 must reproduce accepted record 39113690481 question_native_coverage exactly: concept lists, per-concept row counts, zero-row sets and row counts on all three served questions.",
+    "authority_recall": "A0 must reproduce accepted record 39117425713 authority::baseline_lang_recall measured.hits and measured.n_rows on all measurable cells.",
+    "on_failure": "a non-reproduction IS the headline finding and ends the run as a bounded negative; it is never smoothed over by a candidate result"
+  },
+
+  "authority_recall_definition": {
+    "implementation": "DELEGATED, byte-identical: evaluation.retrieval_gate.gates.match_authorities(authority_ids, rows, min_len=6). This harness never re-implements id matching.",
+    "authority_sets": "frozen.question_by_slug(spec)[slug]['authority_ids'] from frozen_retrieval_benchmark.json, sha256 187b0e54..., never regenerated.",
+    "row_filter": "row['language'] == target_language for the per-language cells; no language filter for the union cell",
+    "recall": "len(hits) / len(authority_ids); a leg with authority_ids == [] is NOT MEASURABLE and is never counted as a pass (matches the accepted gate semantics)",
+    "pool_per_arm": {
+      "A0_baseline_shipped": "the accepted benchmark record's own cached rows, channel == 'baseline' (24 embedded cached queries, from_cache == true, network_calls == 0)",
+      "A1_candidate": "union of A0 rows and the candidate expansion rows for that (slug, language), deduplicated by canonical_decision_id then decision_id (product rule)",
+      "A1_candidate_only": "the candidate expansion rows alone (secondary, reported but NOT the headline)"
+    },
+    "recall_axes": ["per-language de", "per-language fr", "per-language it", "union of de+fr+it"],
+    "failing_cells_at_freeze": "the six fr/it per-language cells accepted at 0 hits: corporate-criminal-liability fr 0/2, it 0/2; business-judgment-rule fr 0/5, it 0/5; petty-theft-dismissal fr 0/2, it 0/2"
+  },
+
+  "concept_coverage_definition": {
+    "AMENDED_2026_pre_measurement": "Amended BEFORE any candidate number was computed. The original text delegated coverage to product.query.concept_coverage.content_concepts/coverage_report, which caps concepts at 8, applies the PRODUCT stoplist (which drops begrenzen/blossen/entscheidungen) and prefix-matches at >= 6 chars. That is the PRODUCT self-check, not the accepted audit. The charter's own acceptance test (1) specifies the audit definition, so the original text was a mis-transcription and is corrected here. No threshold moved in the permissive direction: the corrected definition is the one that reproduces accepted record 39113690481 exactly (verified: concept lists, per-concept row counts, zero-row sets and row counts identical on all three served questions). The superseded values are retained below for provenance.",
+    "implementation": "DELEGATED, byte-identical: evaluation.subject_match_audit.question_concepts + row_match_text + deaccent, and its build_coverage counting rule. This harness never re-implements concept extraction or matching.",
+    "concepts": "question_concepts(question_text) = content_tokens = de-accented, lowercased, alnum-split tokens of the question text with len >= MIN_CONCEPT_LENGTH (5) and the frozen GENERIC_STOPWORDS removed, order preserved, de-duplicated, UNCAPPED",
+    "row_text": "row_match_text(row) = title + regeste + snippet + full_text + citation + decision_id, de-accented and lowercased",
+    "covered": "concept_row_counts[c] >= 1 (permissive >= 1-of-set semantics, as in the accepted gates); concepts_with_zero_rows is the under-covered set",
+    "measured_on": "THE QUESTION'S OWN TEXT IN EVERY ARM. Expansion terms are appended to the QUERY STRING SENT TO RETRIEVAL, never to the text whose concepts are scored. Scoring expansion terms as if they were the question's concepts is a defect, not a result.",
+    "charter_permissive_note": "conservative direction: substring containment can only over-report coverage",
+    "superseded_definition": {
+      "implementation": "product.query.concept_coverage.coverage_report",
+      "concepts": "content_concepts, capped at MAX_CONCEPTS=8, product STOPWORDS",
+      "covered": "rows_per_concept[c] >= MIN_ROWS_PER_CONCEPT (2), prefix match",
+      "why_rejected": "it does not reproduce accepted record 39113690481 (e.g. arbeitgebers 38 vs accepted 30) because it drops concepts the accepted audit keeps and matches on a prefix"
+    }
+  },
+
+  "arms": {
+    "A0_baseline_shipped": "the accepted product baseline exactly as shipped: one OpenCaseLaw /decisions search per question, query = the question's own text verbatim, language_filter null, sort=relevance, fields=full, offset=0, limit=50, NO expansion. For the frozen legs this is the accepted record's cached channel=='baseline' rows, byte-reused.",
+    "A1_candidate": "A0 plus exactly ONE additional deterministic expansion query per (question, target language); retrieval parameters otherwise identical to A0 (same endpoint, sort, fields, offset, limit, language filter).",
+    "A2_blanked_control": "candidate algorithm executed with an EMPTY term set; must reproduce A0 exactly and must score STRICTLY BELOW A1 on both axes",
+    "A3_shuffled_control": "candidate algorithm run for question i but with the term set mined for question j != i (deterministic rotation over the served question list); must NOT raise coverage on question i"
+  },
+
+  "candidate_expansion_layer": {
+    "must_be": ["deterministic", "corpus-derived", "free (no paid API, no model call)", "in-budget", "additive to the bundle seam"],
+    "must_not": ["rebuild the retrieval adapter, cache, pagination, normalization or dedup", "modify any frozen file, packet byte, rubric, bar or threshold", "touch the classifier, abstention contract, geometry, clustering or layout", "issue a counter-authority label", "require network at import or construction time"],
+    "algorithm": [
+      "1. concepts C = accepted content_concepts(question_text).",
+      "2. Corpus sample S (read-only, zero network) = the three served bundles' decision rows (regeste/title/snippet/citation) + the accepted benchmark record's 24 embedded cached query rows (text_head/citation strings/language).",
+      "3. For each target language L and concept c, mine L-language expansion terms: documents of language L whose normalised text contains concept_prefix(c); score each candidate token t (alphabetic, len >= 5, not in the accepted STOPWORDS, t != c) by w(t) = df_L(t | contains c) / df_L(t); require df_L(t) >= MIN_TERM_DF (2); exclude morphological self-variants (concept_prefix in t or t in concept_prefix); keep the top N_TERMS_PER_CONCEPT (4), ranked by w descending, then corpus support descending, then token ascending.",
+      "4. Compound decomposition: strip the frozen per-language head-noun suffixes to obtain the head stem and modifier stem; keep stems of length >= 5 that the corpus sample of that language actually uses.",
+      "5. Merge accepted product EXPANSION synonyms (product.query.retrieval.EXPANSION) for exact token matches, then mined terms, then stems; de-duplicate preserving order.",
+      "6. Emit ONE expansion query string = the joined terms, capped at MAX_QUERY_TERMS (12)."
+    ],
+    "N_TERMS_PER_CONCEPT": 4,
+    "MAX_QUERY_TERMS": 12,
+    "MIN_TERM_CHARS": 5,
+    "stoplist": "accepted concept_coverage.STOPWORDS",
+    "emits": "one additional query variant per (question, target language) plus one additive provenance.query_expansion object"
+  },
+
+  "thresholds": {
+    "outcome_A_promote": {
+      "recall": "A1 raises recall in at least 2 of the 6 accepted failing fr/it per-language cells",
+      "coverage": "A1 reduces under_covered count on at least 2 of the 3 served questions",
+      "non_regression": "every frozen gate that passes in accepted record 39117425713 still passes with A1 rows in the pool",
+      "vacuity": "A2 strictly below A1 on both axes, and A3 does not raise coverage on its target question"
+    },
+    "outcome_B_bounded_negative": "any failure of the above; publish the exact unrecoverable cells and the measured lexical cause, then stop",
+    "non_regression_gates": ["duplicate::unique_ids", "counter::known_counter_recall", "source::rows_valid", "transport::all_queries_ok"],
+    "latency_budget": {"per_search_seconds": 30.0, "full_live_pass_seconds": 240.0, "rule": "one search call must return in < 30 s; the whole live pass must finish in < 240 s; every added call is disclosed with its measured wall time and any breach is named"},
+    "decision_count_bounds": "A1 may not drop any A0 decision id from the union pool; dedup by canonical_decision_id then decision_id; provenance and query_result_bundle contract fields must remain additive and backwards-compatible"
+  },
+
+  "amendments": [
+    {
+      "id": "A1-coverage-definition",
+      "when": "before any candidate number was computed",
+      "what": "coverage delegated to evaluation.subject_match_audit instead of product.query.concept_coverage",
+      "why": "the charter's acceptance test (1) specifies the audit definition; the product self-check does not reproduce accepted record 39113690481",
+      "direction": "makes the run more faithful to accepted evidence; no threshold loosened"
+    },
+    {
+      "id": "A2-generator-wellformedness",
+      "when": "during the offline dry run, BEFORE any live retrieval and before any candidate outcome number existed",
+      "what": "mined terms require df_L(t) >= 2 and are not morphological self-variants of the concept; ties break on corpus support descending before token ascending; compound stems are emitted only when the target-language corpus actually uses them",
+      "why": "the first generator output was degenerate by construction: ties broke alphabetically, selecting rare noise words, and the suffix splitter emitted truncated pseudo-words (kapitalverletz, resmi, baill) that match nothing. Attributing a corpus gap to the corpus when the failure is in the team's own generator would be the dishonest outcome, not the honest negative.",
+      "direction": "affects only the candidate generator, never the A0 baseline, the coverage metric, the recall metric or any PASS/FAIL threshold"
+    }
+  ],
+  "amendment_discipline": "Amendments are declared here, in the committed file, with what/why/direction, and are visible in git history. After the first candidate outcome number exists, no further amendment of any kind is permitted: the run stops at its first outcome and post-hoc tuning invalidates it.",
+
+  "claim_ceiling": "No artifact may assert that a map helps a jurist, that any authority is absent from the corpus, that any frozen bar is met or moved, or that any packet is fit to serve. Usefulness remains the human product gate's question and admission remains fail-closed. Concept-coverage counts are lexical coverage of a retrieved set, not a legal conclusion, and a zero count is a retrieval signal, not proof of corpus absence.",
+
+  "freeze_discipline": "This file is committed BEFORE any measurement. Freeze ordering is demonstrated from the git commit time of the RULES.json commit versus the first commit containing any measurement. A hand-written frozen_at_utc field is NOT evidence. Any threshold or definition edit after a number has been seen invalidates the run and must be declared."
+}

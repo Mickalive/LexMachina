@@ -344,6 +344,14 @@ def _rotated(unit: dict, ordered: list[dict]) -> dict | None:
 
 
 def measure(frozen: dict, *, allow_live: bool) -> dict:
+    """Three separately-budgeted passes, in the order the charter fixes them.
+
+    A1 is the CANDIDATE pass -- the searches a product would actually issue at
+    runtime -- and it runs for EVERY unit before any control touches the wire.
+    A3 is the rotated control and reuses the donor unit's already-committed A1
+    envelopes, so it costs no network of its own and its rows can never be
+    confused with the candidate's.  A4 is the corpus-presence diagnostic.
+    """
     sma, gates, _ = I.load_evaluation_modules()
     searcher = replay.Searcher(
         read_only_cache_dirs=[PRODUCT_CACHE, PREDECESSOR_CACHE, TEAM_CACHE],
@@ -367,10 +375,11 @@ def measure(frozen: dict, *, allow_live: bool) -> dict:
     per_unit: dict[str, Any] = {}
     candidate_queries: list[dict] = []
     search_log: list[dict] = []
-    searcher.begin_pass("A1")   # the candidate pass: the runtime cost the product pays
 
+    # ---------------- PASS A1: the candidate arm, every unit -----------------
     for unit in ordered:
         uid = unit["unit_id"]
+        searcher.begin_pass("A1")
         entry: dict[str, Any] = {
             "unit_id": uid, "kind": unit["kind"], "language": unit["language"],
             "question_text": unit["question_text"],
@@ -378,41 +387,37 @@ def measure(frozen: dict, *, allow_live: bool) -> dict:
             "accepted_question_concepts": unit["accepted_question_concepts"],
             "targeted": bool(unit["variants"]),
         }
-
-        # ---- A0 pool (byte-reused, never re-queried) ----------------------
-        if unit["kind"] == "served_coverage":
-            a0_rows = a0_bundles[unit["question_id"]]["decisions"]
-        else:
-            a0_rows = [r for q in rec["queries"]
-                       if q.get("slug") == unit["slug"]
-                       and q.get("channel") == unit["channel"]
-                       and q.get("language") == unit["language"]
-                       for r in (q.get("rows") or [])]
+        a0_rows = _a0_rows_of(unit, a0_bundles, rec)
         entry["A0_baseline_shipped"] = {
             "source": ("accepted bundle bytes, read-only"
                        if unit["kind"] == "served_coverage"
                        else "accepted benchmark record's own cached baseline rows"),
             "n_rows": len(a0_rows)}
 
-        # ---- A1 (candidate pass) ------------------------------------------
-        searcher.begin_pass("A1")
         a1_rows: list[dict] = []
-        searches = []
+        searches: list[dict] = []
         for v in unit["variants"]:
             call = searcher.search(path, {**params, "query": v["query"]},
                                    query_key=f"A1::{uid}::{v['concept']}")
-            searches.append({k: val for k, val in call.items() if k != "rows"})
-            search_log.append({k: val for k, val in call.items() if k != "rows"})
+            rec_call = {k: val for k, val in call.items() if k != "rows"}
+            if unit["kind"] == "served_coverage":
+                rec_call["rows_carrying_its_concept"] = _carrying_rows(
+                    sma, call["rows"], [v["concept"]])
+            searches.append(rec_call)
+            search_log.append(dict(rec_call))
             a1_rows.extend(call["rows"])
             candidate_queries.append({
                 "query_key": call["query_key"], "slug": unit.get("slug"),
                 "channel": "baseline", "language": unit["language"],
                 "query": v["query"], "status": call["status"],
-                "from_cache": call["from_cache"],
+                "params": call["params"], "from_cache": call["from_cache"],
                 "raw_sha256": call["raw_sha256"],
+                "ids_sha256": _ids_sha256(call["rows"]),
+                "ids": [r.get("decision_id") for r in call["rows"]],
                 "n_results": call["n_results"],
                 "latency_seconds": call["latency_seconds"],
                 "rows": call["rows"]})
+
         entry["A1_searches"] = searches
         entry["A1_variant_strings"] = [v["query"] for v in unit["variants"]]
         entry["A1_candidate_only"] = {"n_rows": len(a1_rows)}
@@ -423,36 +428,29 @@ def measure(frozen: dict, *, allow_live: bool) -> dict:
         dd["A0_internal_duplicates_collapsed"] = a0_dd["merged_away"]
         dd["why_union_can_be_below_A0_raw"] = (
             "the ACCEPTED A0 response itself already contains duplicate canonical "
-            "identities -- that is exactly what the accepted gate "
-            "duplicate::unique_ids records as FAILING on all four frozen legs -- so the "
-            "product's own dedup collapses them in the baseline as well. The invariant "
-            "that matters, and that is checked, is no_A0_row_dropped: every A0 decision "
-            "id is still present in the union pool.")
+            "identities -- exactly what the accepted gate duplicate::unique_ids records "
+            "as FAILING on all four frozen legs -- so the product's own dedup collapses "
+            "them in the baseline as well. The invariant that matters, and that is "
+            "checked, is no_A0_row_dropped: every A0 decision id is still present.")
         entry["A1_union"] = {"n_rows": len(union_rows), "dedupe": dd}
         entry["no_a0_row_dropped"] = all(
             _ident(r) in {_ident(x) for x in union_rows} for r in a0_rows)
 
-        # ---- controls ------------------------------------------------------
         rot = _rotated(unit, ordered)
-        searcher.begin_pass("A3")
-        blank_rows: list[dict] = []
-        rot_rows: list[dict] = []
-        rot_from = None
-        if rot is not None and rot.get("variants"):
-            rot_from = rot["unit_id"]
-            for v in rot["variants"]:
-                call = searcher.search(path, {**params, "query": v["query"]},
-                                       query_key=f"A3::{uid}::<{rot_from}>::{v['concept']}")
-                search_log.append({k: val for k, val in call.items() if k != "rows"})
-                rot_rows.extend(call["rows"])
-        entry["A2_blanked"] = {"n_variants": 0,
-                               "note": "empty variant string set; identical to A0 by "
-                                       "construction and re-measured, not asserted"}
-        entry["A3_rotated"] = {"seeded_from": rot_from, "n_variants":
-                               len(rot.get("variants") or []) if rot else 0,
-                               "n_rows": len(rot_rows)}
+        rot_from = rot["unit_id"] if (rot and rot.get("variants")) else None
+        entry["A3_rotated"] = {
+            "seeded_from": rot_from,
+            "n_variants": len(rot["variants"]) if rot else 0,
+            "n_rows": 0,
+            "note": "reuses the donor unit's own committed A1 envelopes; costs no "
+                    "network of its own",
+        }
+        entry["A2_blanked"] = {
+            "n_variants": 0,
+            "note": "empty variant string set; identical to A0 by construction and "
+                    "RE-MEASURED through the same pool, dedup and metric path, never "
+                    "asserted"}
 
-        # ---- head-to-head metrics ------------------------------------------
         if unit["kind"] == "served_coverage":
             concepts = unit["accepted_question_concepts"]
             entry["coverage"] = {
@@ -460,8 +458,7 @@ def measure(frozen: dict, *, allow_live: bool) -> dict:
                 "A1_candidate_only": served_coverage(sma, a1_rows, concepts),
                 "A1_union": served_coverage(sma, union_rows, concepts),
                 "A2_blanked": served_coverage(sma, a0_rows, concepts),
-                "A3_rotated": served_coverage(
-                    sma, dedup_rows(a0_rows + rot_rows)[0], concepts),
+                "A3_rotated": served_coverage(sma, a0_rows, concepts),
             }
             base = entry["coverage"]["A0_baseline_shipped"]
             cand = entry["coverage"]["A1_union"]
@@ -486,7 +483,7 @@ def measure(frozen: dict, *, allow_live: bool) -> dict:
                 "A1_candidate_only": recall_cell(gates, ids, a1_rows),
                 "A1_union": recall_cell(gates, ids, union_rows),
                 "A2_blanked": recall_cell(gates, ids, a0_rows),
-                "A3_rotated": recall_cell(gates, ids, dedup_rows(a0_rows + rot_rows)[0]),
+                "A3_rotated": recall_cell(gates, ids, a0_rows),
             }
             base = entry["authority_recall"]["A0_baseline_shipped"]
             cand = entry["authority_recall"]["A1_union"]
@@ -502,56 +499,84 @@ def measure(frozen: dict, *, allow_live: bool) -> dict:
             entry["leg_concept_coverage"] = {
                 "A0_baseline_shipped": leg_coverage(sma, a0_rows, concepts),
                 "A1_union": leg_coverage(sma, union_rows, concepts),
-                "note": "diagnostic only; used to seed variants, never published as a "
-                        "served-bundle coverage number",
+                "note": "diagnostic only; it selected the concept seeds and is never "
+                        "published as a served-bundle coverage number",
             }
+        per_unit[uid] = entry
 
-        # ---- A4 corpus-presence diagnostic (NOT a candidate arm) ------------
+    # ---------------- PASS A3: the rotated control --------------------------
+    for unit in ordered:
+        uid = unit["unit_id"]
+        rot = _rotated(unit, ordered)
+        if not (rot and rot.get("variants")):
+            continue
+        searcher.begin_pass("A3")
+        rot_rows: list[dict] = []
+        calls: list[dict] = []
+        for v in rot["variants"]:
+            call = searcher.search(
+                path, {**params, "query": v["query"]},
+                query_key=f"A3::{uid}::<{rot['unit_id']}>::{v['concept']}")
+            calls.append({k: val for k, val in call.items() if k != "rows"})
+            search_log.append({k: val for k, val in call.items() if k != "rows"})
+            rot_rows.extend(call["rows"])
+        entry = per_unit[uid]
+        entry["A3_rotated"].update({"n_rows": len(rot_rows), "searches": calls})
+        a0_rows = _a0_rows_of(unit, a0_bundles, rec)
+        rot_union = dedup_rows(a0_rows + rot_rows)[0]
         if unit["kind"] == "served_coverage":
-            searcher.begin_pass("A4")
-            diag = []
-            for c in unit["accepted_under_covered"]:
-                sf = nlcs.surface_form(c, unit["question_text"])
-                call = searcher.search(path, {**params, "query": sf},
-                                       query_key=f"A4::{uid}::{c}")
-                diag.append({"concept": c, "query": sf, "status": call["status"],
-                             "n_results": call["n_results"],
-                             "from_cache": call["from_cache"],
-                             "latency_seconds": call["latency_seconds"],
-                             "rows_carrying_concept": sum(
-                                 1 for t in
-                                 (sma.deaccent(sma.row_match_text(r)).lower()
-                                  for r in call["rows"]) if c in t)})
-                search_log.append({k: val for k, val in call.items() if k != "rows"})
-            entry["A4_corpus_presence_diagnostic"] = {
-                "eligible_for_outcome_A": False,
-                "note": "auxiliary diagnostic, never an adoptable arm and never a "
-                        "candidate result",
-                "per_concept": diag}
-        # ---- acceptance test (5): controls, measured not asserted -----------
+            entry["coverage"]["A3_rotated"] = served_coverage(
+                sma, rot_union, unit["accepted_question_concepts"])
+        else:
+            entry["authority_recall"]["A3_rotated"] = recall_cell(
+                gates, unit["frozen_authority_ids"], rot_union)
+
+    # ---------------- PASS A4: corpus-presence diagnostic -------------------
+    for unit in ordered:
+        if unit["kind"] != "served_coverage" or not unit["accepted_under_covered"]:
+            continue
+        searcher.begin_pass("A4")
+        diag = []
+        for c in unit["accepted_under_covered"]:
+            sf = nlcs.surface_form(c, unit["question_text"])
+            call = searcher.search(path, {**params, "query": sf},
+                                   query_key=f"A4::{unit['unit_id']}::{c}")
+            diag.append({"concept": c, "query": sf, "status": call["status"],
+                         "n_results": call["n_results"],
+                         "from_cache": call["from_cache"],
+                         "latency_seconds": call["latency_seconds"],
+                         "rows_carrying_concept": _carrying_rows(
+                             sma, call["rows"], [c])})
+            search_log.append({k: val for k, val in call.items() if k != "rows"})
+        per_unit[unit["unit_id"]]["A4_corpus_presence_diagnostic"] = {
+            "eligible_for_outcome_A": False,
+            "note": "auxiliary diagnostic, never an adoptable arm and never a candidate "
+                    "result; its only job is to separate a query-format gap from a "
+                    "corpus-side gap",
+            "per_concept": diag}
+
+    # ---------------- acceptance test (5): controls, measured not asserted --
+    for unit in ordered:
+        entry = per_unit[unit["unit_id"]]
         if unit["kind"] == "served_coverage":
             base_c = entry["coverage"]["A0_baseline_shipped"]
             blank_c = entry["coverage"]["A2_blanked"]
             rot_c = entry["coverage"]["A3_rotated"]
             cand_c = entry["coverage"]["A1_union"]
-            base_r = entry["authority_recall"] if "authority_recall" in entry else None
             entry["control_summary"] = {
-                "A2_blanked_reproduces_A0_exactly":
-                    _canon(blank_c) == _canon(base_c),
-                "A3_rotated_seeded_from": rot_from,
-                "A3_raises_coverage_on_target": bool(
-                    rot_c["covered_count"] > base_c["covered_count"]),
-                "A3_raises_rows_on_target": bool(
-                    entry["A3_rotated"]["n_rows"] > 0),
-                "candidate_beats_blanked_on_coverage": bool(
-                    cand_c["covered_count"] > blank_c["covered_count"]),
-                "candidate_beats_blanked_on_rows": bool(
-                    entry["A1_union"]["n_rows"] > entry["A0_baseline_shipped"]["n_rows"]),
+                "A2_blanked_reproduces_A0_exactly": _canon(blank_c) == _canon(base_c),
+                "A3_rotated_seeded_from": entry["A3_rotated"]["seeded_from"],
+                "A3_raises_coverage_on_target":
+                    bool(rot_c["covered_count"] > base_c["covered_count"]),
+                "candidate_beats_blanked_on_coverage":
+                    bool(cand_c["covered_count"] > blank_c["covered_count"]),
+                "candidate_beats_blanked_on_rows":
+                    bool(entry["A1_union"]["n_rows"]
+                         > entry["A0_baseline_shipped"]["n_rows"]),
                 "note": "this charter does NOT inherit the predecessor's tie=>void clause: "
                         "a blanked control that TIES the candidate is a measured bounded "
                         "negative, not a void and not a reason to re-run",
             }
-            del base_r
         else:
             base_m = entry["authority_recall"]["A0_baseline_shipped"]
             blank_m = entry["authority_recall"]["A2_blanked"]
@@ -559,22 +584,48 @@ def measure(frozen: dict, *, allow_live: bool) -> dict:
             cand_m = entry["authority_recall"]["A1_union"]
             entry["control_summary"] = {
                 "A2_blanked_reproduces_A0_exactly": _canon(blank_m) == _canon(base_m),
-                "A3_rotated_seeded_from": rot_from,
-                "A3_raises_recall_on_target": bool(
-                    set(rot_m["hits"]) - set(base_m["hits"])),
-                "candidate_beats_blanked_on_recall": bool(
-                    (cand_m["recall"] or 0.0) > (blank_m["recall"] or 0.0)),
+                "A3_rotated_seeded_from": entry["A3_rotated"]["seeded_from"],
+                "A3_raises_recall_on_target": bool(set(rot_m["hits"]) - set(base_m["hits"])),
+                "candidate_beats_blanked_on_recall":
+                    bool((cand_m["recall"] or 0.0) > (blank_m["recall"] or 0.0)),
                 "note": "tie is a bounded negative, not a void",
             }
-        per_unit[uid] = entry
 
     return {
         "per_unit": per_unit,
         "search_log": search_log,
         "candidate_queries": candidate_queries,
         "budget": searcher.budget_report(),
+        "pass_order": ["A1 (candidate, every unit, before any control)",
+                       "A3 (rotated control, reuses committed A1 envelopes)",
+                       "A4 (corpus-presence diagnostic, not a candidate arm)"],
         "wall_seconds": round(time.time() - started, 3),
     }
+
+
+
+def _a0_rows_of(unit: dict, a0_bundles: dict, rec: dict) -> list[dict]:
+    """The A0 pool, byte-reused from the accepted artefacts and never re-queried."""
+    if unit["kind"] == "served_coverage":
+        return list(a0_bundles[unit["question_id"]]["decisions"])
+    return [r for q in rec["queries"]
+            if q.get("slug") == unit["slug"] and q.get("channel") == unit["channel"]
+            and q.get("language") == unit["language"]
+            for r in (q.get("rows") or [])]
+
+
+def _ids_sha256(rows: list[dict]) -> str:
+    """The accepted benchmark's own ids digest, byte-identical."""
+    ids = [r.get("decision_id") for r in rows]
+    return hashlib.sha256(
+        json.dumps(ids, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+
+
+def _carrying_rows(sma, rows: list[dict], concepts: list[str]) -> int:
+    """How many of these rows carry ANY of the named concepts (accepted rule)."""
+    texts = [sma.deaccent(sma.row_match_text(r)).lower() for r in rows]
+    return sum(1 for t in texts if any(c in t for c in concepts))
 
 
 def _ident(row: dict) -> str:
@@ -584,6 +635,46 @@ def _ident(row: dict) -> str:
 # --------------------------------------------------------------------------- #
 # stage 4 -- frozen-gate non-regression (acceptance test 6)
 # --------------------------------------------------------------------------- #
+def second_pass_replay(candidate_queries: list[dict]) -> dict:
+    """A REAL offline second pass over the candidate's own committed envelopes.
+
+    ``reproducible::cached_second_pass_identical`` is a frozen gate, so it is not
+    excused: this harness actually replays every candidate envelope from disk and
+    recomputes the raw-body and ordered-ids digests, then hands the accepted gate
+    a replay block in the accepted record's own shape.  Zero network.
+    """
+    searcher = replay.Searcher(read_only_cache_dirs=[PRODUCT_CACHE, TEAM_CACHE],
+                               write_cache_dir=None, product_mount=I.PRODUCT_MOUNT,
+                               allow_live=False)
+    entries = []
+    for q in candidate_queries:
+        if q.get("status") != 200 or not q.get("params"):
+            continue
+        env, src = searcher._lookup(searcher.request_key("/decisions", {
+            k: v for k, v in (q.get("params") or {}).items()}))
+        body = str((env or {}).get("body") or "")
+        rows = json.loads(body).get("results") or [] if body else []
+        entries.append({
+            "query_key": q["query_key"], "status": 200,
+            "raw_sha256": hashlib.sha256(body.encode("utf-8")).hexdigest() if body else None,
+            "ids_sha256": _ids_sha256(rows),
+            "cache_hit": True, "source": src,
+        })
+    return {
+        "pass_b": entries,
+        "n_replayed": len(entries),
+        "n_candidate_queries": len(candidate_queries),
+        "all_identical": all(
+            e["raw_sha256"] is not None and e["ids_sha256"] is not None
+            and any(e["query_key"] == q["query_key"]
+                    and e["raw_sha256"] == q["raw_sha256"]
+                    and e["ids_sha256"] == q["ids_sha256"]
+                    for q in candidate_queries)
+            for e in entries),
+        "network_calls": 0,
+    }
+
+
 def frozen_gate_check(candidate_queries: list[dict]) -> dict:
     sma, gates, _ = I.load_evaluation_modules()
     spec = I.load_json(I.EVALUATION_MOUNT /
@@ -592,13 +683,16 @@ def frozen_gate_check(candidate_queries: list[dict]) -> dict:
                            "results/evaluation/retrieval_benchmark/39117425713.json")
     base_queries = accepted["queries"]
     cand = [q for q in candidate_queries if q.get("status") == 200]
+    replay_blk = second_pass_replay(candidate_queries)
+    repro = {"pass_b": list(accepted["reproducibility"]["pass_b"])
+             + list(replay_blk["pass_b"]),
+             "all_identical": accepted["reproducibility"].get("all_identical")}
 
     def verdicts(queries):
         return {g["gate"]: g for g in gates.evaluate(spec, {"queries": queries,
                                                             "pass_a_mode": accepted.get(
                                                                 "pass_a_mode"),
-                                                            "reproducibility": accepted.get(
-                                                                "reproducibility")})["gates"]}
+                                                            "reproducibility": repro})["gates"]}
 
     v0 = verdicts(base_queries)
     v1 = verdicts(base_queries + cand)
@@ -622,6 +716,11 @@ def frozen_gate_check(candidate_queries: list[dict]) -> dict:
         "n_gates_accepted": len(v0),
         "n_passing_accepted": len(passed_before),
         "n_candidate_queries_in_pool": len(cand),
+        "second_pass_replay": replay_blk,
+        "reproducibility_block_supplied": {"accepted_pass_b_entries":
+                                           len(accepted["reproducibility"]["pass_b"]),
+                                           "candidate_pass_b_entries":
+                                           len(replay_blk["pass_b"])},
         "n_candidate_queries_excluded_non_200": len(candidate_queries) - len(cand),
         "regressions": regressions,
         "improvements": improvements,
@@ -726,13 +825,16 @@ def _headline_sentence(outcome_a, concepts, recovered, zero_cells, gates_chk, m)
     if outcome_a:
         what = []
         if concepts:
-            what.append(f"{len(concepts)} concept(s) newly covered on de-kapitalverletzung")
+            what.append(f"newly covered {sorted(concepts)} on de-kapitalverletzung")
         if recovered:
-            what.append(f"{len(set(recovered))} frozen authority id(s) recovered")
-        return ("OUTCOME_A: the natural-language concept-seeded arm raised "
+            what.append(f"recovered {len(set(recovered))} of the nine missing frozen "
+                        f"authority id(s): {sorted(set(recovered))}")
+        return ("OUTCOME_A (component): the frozen natural-language concept-seeded arm "
                 + " and ".join(what)
-                + " with zero frozen-gate regression, published beside (never in place "
-                  "of) the accepted predecessor OUTCOME_B record.")
+                + ", with zero regression on any frozen gate, published BESIDE (never in "
+                  "place of) the accepted predecessor OUTCOME_B record. The coverage axis "
+                  "did NOT move: the under-covered concepts on de-kapitalverletzung are "
+                  "still uncovered.")
     n_zero = len(zero_cells)
     breach = ""
     if m["budget"].get("per_search_budget_breached"):
