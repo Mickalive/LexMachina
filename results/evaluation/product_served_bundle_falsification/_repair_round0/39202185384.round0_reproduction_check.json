@@ -1,0 +1,54 @@
+{
+  "schema": "lex-evaluation-reproduction-check/1",
+  "run_id": "39202185384",
+  "question": "Does the committed record reproduce from the committed tree on a fresh execution?",
+  "committed_record": "results/evaluation/product_served_bundle_falsification/39202185384.json",
+  "committed_record_sha256": "31ecc207101d9c8698a4b4ceec08be70fa9bdd7773bf1938fbdaf5ef528f9bb0",
+  "instrument": "evaluation/query_map/product_served_bundle_falsification.py",
+  "instrument_sha256": "31062d85b699854421a80674aa40088ee08beaecc10c6bee97af6a019fe808ab",
+  "n_leaves_compared": "every leaf of the full record, recursively",
+  "verdict_committed": "ENVIRONMENT_OR_VACUOUS",
+  "verdict_rerun": "ENVIRONMENT_OR_VACUOUS",
+  "verdict_reproduces": true,
+  "pins_reproduce": true,
+  "n_leaves_differing": 4,
+  "n_leaves_differing_excluding_wall_clock": 0,
+  "reproduces_excluding_wall_clock": true,
+  "wall_clock_fields": [
+    "generated_at",
+    "recompute_seconds",
+    "wall_seconds"
+  ],
+  "differing_leaves": [
+    {
+      "path": "$.generated_at",
+      "committed": "2026-10-19T05:06:34.583964+00:00",
+      "rerun": "2026-10-19T05:08:13.079064+00:00",
+      "leaf": "generated_at",
+      "is_wall_clock_only": true
+    },
+    {
+      "path": "$.wall_seconds",
+      "committed": 2.074,
+      "rerun": 2.059,
+      "leaf": "wall_seconds",
+      "is_wall_clock_only": true
+    },
+    {
+      "path": "$.L3_handoff_question_native_coverage.per_qid.de-kapitalverletzung.recompute_seconds",
+      "committed": 1.0456,
+      "rerun": 1.0325,
+      "leaf": "recompute_seconds",
+      "is_wall_clock_only": true
+    },
+    {
+      "path": "$.L3_handoff_question_native_coverage.per_qid.fr-bail-entretien.recompute_seconds",
+      "committed": 0.0914,
+      "rerun": 0.092,
+      "leaf": "recompute_seconds",
+      "is_wall_clock_only": true
+    }
+  ],
+  "reading": "Every claim-bearing leaf of the committed record reproduces byte-identically from the committed tree on a fresh execution. The only differing leaves are wall-clock durations and a generation timestamp, which are measurements OF time and are explicitly not claimed to be deterministic. Cross-machine byte identity is still not claimed: see the recorded numeric environment in the run record.",
+  "self_check_note": "An earlier build of this checker DEFINED its recursive walker and never called it, so it reported 0 differing leaves - a false clean. The call is now made and the assertion `assert differing` fails loudly if the walker ever stops running again."
+}

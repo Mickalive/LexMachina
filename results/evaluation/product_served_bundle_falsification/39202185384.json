@@ -13,8 +13,8 @@
   },
   "verdict": "ENVIRONMENT_OR_VACUOUS",
   "exit_code": 2,
-  "generated_at": "2026-10-19T05:06:34.583964+00:00",
-  "wall_seconds": 2.074,
+  "generated_at": "2026-10-19T05:39:18.391423+00:00",
+  "wall_seconds": 2.617,
   "numeric_environment": {
     "python": "3.12.3",
     "implementation": "CPython",
@@ -453,9 +453,45 @@
       },
       "qids_with_zero_labels": [
         "fr-bail-entretien"
-      ]
+      ],
+      "both_definitions_published_together": {
+        "note": "The two sets differ by exactly the abstentions. They are published together and never merged (direction v57 requires support-among-issued, the abstention count and the yield on the row population together).",
+        "emitted_labels_lane_harness_definition": {
+          "n_total": 5,
+          "rate_over_all_decisions": 0.007788,
+          "per_qid": {
+            "de-kapitalverletzung": 2,
+            "fr-bail-entretien": 0,
+            "it-responsabilita-medica": 3
+          }
+        },
+        "product_admission_definition": {
+          "n_total": 65,
+          "rate_over_all_decisions": 0.101246,
+          "per_qid": {
+            "de-kapitalverletzung": 25,
+            "fr-bail-entretien": 15,
+            "it-responsabilita-medica": 25
+          },
+          "per_qid_counter_yield": {
+            "de-kapitalverletzung": 0.1168,
+            "fr-bail-entretien": 0.0691,
+            "it-responsabilita-medica": 0.1185
+          }
+        },
+        "abstentions": {
+          "n_abstained_unevidenced_rows_total": 60,
+          "per_qid": {
+            "de-kapitalverletzung": 23,
+            "fr-bail-entretien": 15,
+            "it-responsabilita-medica": 22
+          },
+          "emitted_plus_abstained_equals_product_counter_set": true
+        }
+      }
     },
     "L2_answer_cites_counter_authority": {
+      "definition_used_for_the_zero_count": "EMITTED ONLY — rows whose counter_status is in harness.COUNTER_STATUSES, i.e. decisions the product LABELLED limiting or contrary. This is NOT the product's own admission-record counter set, which additionally counts abstained rows.",
       "n_answer_citations_total": 15,
       "n_citations_that_are_counter_authority": 0,
       "per_qid": {
@@ -472,7 +508,38 @@
           "cited_counter_overlap": 0
         }
       },
-      "reading": "A citation that is not a counter-authority row means the served answer never grounds its text in a decision the product itself labelled limiting or contrary. This is a measured fact about the served bytes, not a judgement about the map's usefulness."
+      "under_the_products_own_counter_set": {
+        "n_citations_in_product_counter_set": 4,
+        "n_answer_citations_total": 15,
+        "per_qid": {
+          "de-kapitalverletzung": {
+            "cited_rows": 4,
+            "n_in_product_counter_set": 3
+          },
+          "fr-bail-entretien": {
+            "cited_rows": 6,
+            "n_in_product_counter_set": 0
+          },
+          "it-responsabilita-medica": {
+            "cited_rows": 5,
+            "n_in_product_counter_set": 1
+          }
+        },
+        "decision_ids": [
+          "bvger_A-4147_2016",
+          "bvger_A-417_2013",
+          "bvger_A-7441_2014",
+          "ti_gerichte_12.2013.100_d20130517"
+        ],
+        "counter_status_of_those_rows": {
+          "bvger_A-4147_2016": "abstained_unevidenced",
+          "bvger_A-417_2013": "abstained_unevidenced",
+          "bvger_A-7441_2014": "abstained_unevidenced",
+          "ti_gerichte_12.2013.100_d20130517": "abstained_unevidenced"
+        },
+        "all_are_abstained_unevidenced": true
+      },
+      "reading": "EMITTED definition: a citation that is not a counter-authority row means the served answer never grounds its text in a decision the product itself LABELLED limiting or contrary. PRODUCT ADMISSION definition: a non-zero minority of the citations are rows the product's own admission record counts as counter-authority rows, on which the classifier abstained. Both numbers are published together; quoting either alone without naming its definition overstates the finding. This is a measured fact about the served bytes, not a judgement about the map's usefulness."
     },
     "L3_handoff_verdict": "HANDOFF_PASS",
     "L3_per_qid": {
@@ -729,7 +796,7 @@
           "all_fired": true,
           "n_counter_labelled_rows": 2,
           "unexercised_checks": [],
-          "unexercised_reading": "UNEXERCISED, NOT SATISFIED: this bundle emits zero rows in the accepted COUNTER_STATUSES set, so the counter-evidence contract is never put to the test on it. An unexercised contract is a NEGATIVE RESULT about the product, not a pass and not a tooling failure.",
+          "unexercised_reading": "EXERCISED: every counter-evidence control fired on this bundle. It emits 2 row(s) in the accepted COUNTER_STATUSES set, so the contract was genuinely put to the test on it rather than left vacuous.",
           "controls": [
             {
               "control": "blanked_counter_evidence",
@@ -854,7 +921,7 @@
           "all_fired": true,
           "n_counter_labelled_rows": 3,
           "unexercised_checks": [],
-          "unexercised_reading": "UNEXERCISED, NOT SATISFIED: this bundle emits zero rows in the accepted COUNTER_STATUSES set, so the counter-evidence contract is never put to the test on it. An unexercised contract is a NEGATIVE RESULT about the product, not a pass and not a tooling failure.",
+          "unexercised_reading": "EXERCISED: every counter-evidence control fired on this bundle. It emits 3 row(s) in the accepted COUNTER_STATUSES set, so the contract was genuinely put to the test on it rather than left vacuous.",
           "controls": [
             {
               "control": "blanked_counter_evidence",
@@ -921,8 +988,10 @@
         "n_counter_labels_supported": 2,
         "n_counter_labels_unsupported": 0,
         "n_counter_evidence_verified": 2,
-        "n_abstained_unevidenced_rows": 0,
+        "n_abstained_unevidenced_rows": 23,
         "support_rate_among_issued": 1.0,
+        "abstention_count_published_with_support_rate": true,
+        "yield_on_full_row_population": 0.009346,
         "cited_counter_overlap": 0,
         "cited_rows": 4,
         "counter_uncertainty_histogram": {
@@ -947,6 +1016,7 @@
         ],
         "answer_cited_counter_ids": [],
         "answer_cites_any_counter_authority": false,
+        "answer_cites_counter_authority_definition": "EMITTED ONLY: rows whose counter_status is in harness.COUNTER_STATUSES (candidate-contrary, candidate-limiting, contrary_or_exception, limiting). See product_admission_counter_accounting for the product's own, strictly larger counter set.",
         "counter_reason_code_histogram": {
           "supported": 2
         },
@@ -959,6 +1029,36 @@
           "support_rate_among_emitted": 1.0,
           "yield": 0.08,
           "abstained_status_marker": "abstained_unevidenced"
+        },
+        "product_admission_counter_accounting": {
+          "source": "the served packet's own .admissibility.json `measured` block (the same bytes this cycle pins and re-hashes)",
+          "counter_set_definition": "PRODUCT ADMISSION SET: measured.counter_ranks — emitted limiting/contrary rows PLUS rows on which the counter-anchor classifier abstained (counter_status='abstained_unevidenced')",
+          "n_counter_authorities": 25,
+          "counter_yield": 0.1168,
+          "n_counter_ranks_listed": 25,
+          "n_rows_resolved_from_counter_ranks": 25,
+          "n_counter_authorities_consistent_with_ranks": true,
+          "n_emitted_in_accepted_set": 2,
+          "n_abstained_unevidenced_rows": 23,
+          "n_emitted_plus_abstained": 25,
+          "counts_reconcile": true,
+          "n_decisions": 214,
+          "product_counter_rate_over_all_decisions": 0.116822,
+          "lane_emitted_rate_over_all_decisions": 0.009346,
+          "answer_cited_rows_in_product_counter_set": [
+            "bvger_A-4147_2016",
+            "bvger_A-417_2013",
+            "bvger_A-7441_2014"
+          ],
+          "n_answer_cited_in_product_counter_set": 3,
+          "n_answer_cited_total": 4,
+          "counter_status_of_cited_product_counter_rows": {
+            "bvger_A-4147_2016": "abstained_unevidenced",
+            "bvger_A-417_2013": "abstained_unevidenced",
+            "bvger_A-7441_2014": "abstained_unevidenced"
+          },
+          "all_cited_product_counter_rows_are_abstained": true,
+          "reading": "The product's own admission record counts a STRICTLY LARGER counter set than the emitted labels: the difference is exactly the abstentions. Any claim about answer citations being counter-authority decisions must name which of these two sets it used (audit fix F-1)."
         }
       },
       "fr-bail-entretien": {
@@ -968,8 +1068,10 @@
         "n_counter_labels_supported": 0,
         "n_counter_labels_unsupported": 0,
         "n_counter_evidence_verified": 0,
-        "n_abstained_unevidenced_rows": 0,
+        "n_abstained_unevidenced_rows": 15,
         "support_rate_among_issued": null,
+        "abstention_count_published_with_support_rate": true,
+        "yield_on_full_row_population": 0.0,
         "cited_counter_overlap": 0,
         "cited_rows": 6,
         "counter_uncertainty_histogram": {},
@@ -984,6 +1086,7 @@
         "counter_label_ranks": [],
         "answer_cited_counter_ids": [],
         "answer_cites_any_counter_authority": false,
+        "answer_cites_counter_authority_definition": "EMITTED ONLY: rows whose counter_status is in harness.COUNTER_STATUSES (candidate-contrary, candidate-limiting, contrary_or_exception, limiting). See product_admission_counter_accounting for the product's own, strictly larger counter set.",
         "counter_reason_code_histogram": {},
         "accepted_frontier_counter_anchor_claim_of_record": {
           "component": "frontier-counter-anchor-classifier",
@@ -994,6 +1097,28 @@
           "support_rate_among_emitted": 0.0,
           "yield": 0.0,
           "abstained_status_marker": "abstained_unevidenced"
+        },
+        "product_admission_counter_accounting": {
+          "source": "the served packet's own .admissibility.json `measured` block (the same bytes this cycle pins and re-hashes)",
+          "counter_set_definition": "PRODUCT ADMISSION SET: measured.counter_ranks — emitted limiting/contrary rows PLUS rows on which the counter-anchor classifier abstained (counter_status='abstained_unevidenced')",
+          "n_counter_authorities": 15,
+          "counter_yield": 0.0691,
+          "n_counter_ranks_listed": 15,
+          "n_rows_resolved_from_counter_ranks": 15,
+          "n_counter_authorities_consistent_with_ranks": true,
+          "n_emitted_in_accepted_set": 0,
+          "n_abstained_unevidenced_rows": 15,
+          "n_emitted_plus_abstained": 15,
+          "counts_reconcile": true,
+          "n_decisions": 217,
+          "product_counter_rate_over_all_decisions": 0.069124,
+          "lane_emitted_rate_over_all_decisions": 0.0,
+          "answer_cited_rows_in_product_counter_set": [],
+          "n_answer_cited_in_product_counter_set": 0,
+          "n_answer_cited_total": 6,
+          "counter_status_of_cited_product_counter_rows": {},
+          "all_cited_product_counter_rows_are_abstained": true,
+          "reading": "The product's own admission record counts a STRICTLY LARGER counter set than the emitted labels: the difference is exactly the abstentions. Any claim about answer citations being counter-authority decisions must name which of these two sets it used (audit fix F-1)."
         }
       },
       "it-responsabilita-medica": {
@@ -1003,8 +1128,10 @@
         "n_counter_labels_supported": 3,
         "n_counter_labels_unsupported": 0,
         "n_counter_evidence_verified": 3,
-        "n_abstained_unevidenced_rows": 0,
+        "n_abstained_unevidenced_rows": 22,
         "support_rate_among_issued": 1.0,
+        "abstention_count_published_with_support_rate": true,
+        "yield_on_full_row_population": 0.014218,
         "cited_counter_overlap": 0,
         "cited_rows": 5,
         "counter_uncertainty_histogram": {
@@ -1033,6 +1160,7 @@
         ],
         "answer_cited_counter_ids": [],
         "answer_cites_any_counter_authority": false,
+        "answer_cites_counter_authority_definition": "EMITTED ONLY: rows whose counter_status is in harness.COUNTER_STATUSES (candidate-contrary, candidate-limiting, contrary_or_exception, limiting). See product_admission_counter_accounting for the product's own, strictly larger counter set.",
         "counter_reason_code_histogram": {
           "supported": 3
         },
@@ -1045,6 +1173,32 @@
           "support_rate_among_emitted": 1.0,
           "yield": 0.12,
           "abstained_status_marker": "abstained_unevidenced"
+        },
+        "product_admission_counter_accounting": {
+          "source": "the served packet's own .admissibility.json `measured` block (the same bytes this cycle pins and re-hashes)",
+          "counter_set_definition": "PRODUCT ADMISSION SET: measured.counter_ranks — emitted limiting/contrary rows PLUS rows on which the counter-anchor classifier abstained (counter_status='abstained_unevidenced')",
+          "n_counter_authorities": 25,
+          "counter_yield": 0.1185,
+          "n_counter_ranks_listed": 25,
+          "n_rows_resolved_from_counter_ranks": 25,
+          "n_counter_authorities_consistent_with_ranks": true,
+          "n_emitted_in_accepted_set": 3,
+          "n_abstained_unevidenced_rows": 22,
+          "n_emitted_plus_abstained": 25,
+          "counts_reconcile": true,
+          "n_decisions": 211,
+          "product_counter_rate_over_all_decisions": 0.118483,
+          "lane_emitted_rate_over_all_decisions": 0.014218,
+          "answer_cited_rows_in_product_counter_set": [
+            "ti_gerichte_12.2013.100_d20130517"
+          ],
+          "n_answer_cited_in_product_counter_set": 1,
+          "n_answer_cited_total": 5,
+          "counter_status_of_cited_product_counter_rows": {
+            "ti_gerichte_12.2013.100_d20130517": "abstained_unevidenced"
+          },
+          "all_cited_product_counter_rows_are_abstained": true,
+          "reading": "The product's own admission record counts a STRICTLY LARGER counter set than the emitted labels: the difference is exactly the abstentions. Any claim about answer citations being counter-authority decisions must name which of these two sets it used (audit fix F-1)."
         }
       }
     },
@@ -1055,7 +1209,7 @@
         "all_fired": true,
         "n_counter_labelled_rows": 2,
         "unexercised_checks": [],
-        "unexercised_reading": "UNEXERCISED, NOT SATISFIED: this bundle emits zero rows in the accepted COUNTER_STATUSES set, so the counter-evidence contract is never put to the test on it. An unexercised contract is a NEGATIVE RESULT about the product, not a pass and not a tooling failure.",
+        "unexercised_reading": "EXERCISED: every counter-evidence control fired on this bundle. It emits 2 row(s) in the accepted COUNTER_STATUSES set, so the contract was genuinely put to the test on it rather than left vacuous.",
         "controls": [
           {
             "control": "blanked_counter_evidence",
@@ -1180,7 +1334,7 @@
         "all_fired": true,
         "n_counter_labelled_rows": 3,
         "unexercised_checks": [],
-        "unexercised_reading": "UNEXERCISED, NOT SATISFIED: this bundle emits zero rows in the accepted COUNTER_STATUSES set, so the counter-evidence contract is never put to the test on it. An unexercised contract is a NEGATIVE RESULT about the product, not a pass and not a tooling failure.",
+        "unexercised_reading": "EXERCISED: every counter-evidence control fired on this bundle. It emits 3 row(s) in the accepted COUNTER_STATUSES set, so the contract was genuinely put to the test on it rather than left vacuous.",
         "controls": [
           {
             "control": "blanked_counter_evidence",
@@ -1243,7 +1397,7 @@
         "qid": "de-kapitalverletzung",
         "verdict": "HANDOFF_PASS",
         "product_admission_import_error": null,
-        "recompute_seconds": 1.0456,
+        "recompute_seconds": 1.586,
         "before": {
           "source": "results/product/gate_packet/rebuilt-39027045675/questions/de-kapitalverletzung.admissibility.json",
           "sha256": "456f065da725d8bc04705fd665cf23c97f51c4bc982af6205aa81742ead83c64",
@@ -1341,7 +1495,7 @@
         "qid": "fr-bail-entretien",
         "verdict": "NO_DEFECT_INSTANCE_ON_THIS_QID",
         "product_admission_import_error": null,
-        "recompute_seconds": 0.0914,
+        "recompute_seconds": 0.0913,
         "before": {
           "source": "results/product/gate_packet/rebuilt-39027045675/questions/fr-bail-entretien.admissibility.json",
           "sha256": "7de50e526ba792b1729badbc7ba5a21f575ce0d6518cb3ccb527acd08c80680d",
@@ -1414,7 +1568,7 @@
         "qid": "it-responsabilita-medica",
         "verdict": "NO_DEFECT_INSTANCE_ON_THIS_QID",
         "product_admission_import_error": null,
-        "recompute_seconds": 0.1063,
+        "recompute_seconds": 0.1055,
         "before": {
           "source": "results/product/gate_packet/rebuilt-39027045675/questions/it-responsabilita-medica.admissibility.json",
           "sha256": "2c6df157438cf8e35ba9d65f3fccd5d5aba0635638000d0bb80757bb3a015cdb",
@@ -2015,7 +2169,7 @@
         "petty-theft-dismissal": 4
       }
     },
-    "divergence_headline": "Both runs independently record an EMPTY counter-authority layer on part of their question populations, from two different code paths and two different question sets: 39200567493 found 0 lexical counter candidates for 2 of its 4 lane-frozen questions under the frozen marker_rule; this run finds 0 issued counter-authority labels for 1 of its 3 product-served questions (fr-bail-entretien) after the accepted counter-anchor classifier. These are the SAME SYMPTOM on DIFFERENT POPULATIONS and are published side by side; they are not merged, not summed and not a single rate. The divergence that matters for the product decision is already visible inside this run: 0 of the 15 answer citations on the served packet is a counter-authority decision.",
+    "divergence_headline": "Both runs independently record an EMPTY counter-authority layer on part of their question populations, from two different code paths and two different question sets: 39200567493 found 0 lexical counter candidates for 2 of its 4 lane-frozen questions under the frozen marker_rule; this run finds 0 issued counter-authority labels for 1 of its 3 product-served questions (fr-bail-entretien) after the accepted counter-anchor classifier. These are the SAME SYMPTOM on DIFFERENT POPULATIONS and are published side by side; they are not merged, not summed and not a single rate. The divergence that matters for the product decision is already visible inside this run: 0 of the 15 answer citations on the served packet is a decision the product EMITTED as limiting or contrary, while 4 of the 15 are rows the product's own admission record counts as counter-authority rows on which the classifier abstained - both numbers published together, never alone.",
     "population": "DIFFERENT from this run's product population: 39200567493 built its bundles from this lane's own OpenCaseLaw response cache for the lane's frozen retrieval questions; this run scores PRODUCT-produced bundles for three different questions. The two sets are shown side by side and are never merged, summed or substituted for one another.",
     "verdict_of_record": "BENCHMARK_VALID_NO_FALSIFICATION",
     "exit_code_of_that_run": 0,

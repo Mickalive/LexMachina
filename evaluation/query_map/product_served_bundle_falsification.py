@@ -67,8 +67,10 @@ cell is reported NOT_APPLICABLE_WITH_REASON — not as 0 and not as a pass.
 SCRATCH-RUN OBLIGATION
 ----------------------
 A claim-bearing cycle writes the committed defaults below.  A scratch
-invocation MUST pass ``--out`` / ``--report``, otherwise it silently overwrites
-the claim-bearing record.  It NEVER writes into the product mount.
+invocation MUST pass ``--out-dir`` (there is no ``--report`` flag; the record
+is the only file this module writes), otherwise it silently overwrites the
+claim-bearing record at ``results/evaluation/product_served_bundle_falsification/``.
+It NEVER writes into the product mount.
 """
 from __future__ import annotations
 
@@ -103,7 +105,6 @@ DEFAULT_HYPOTHESIS = (_REPO_ROOT
                       / "evaluation/PRODUCT_SERVED_BUNDLE_FALSIFICATION_HYPOTHESIS_V1.json")
 DEFAULT_MOUNT = Path("/tmp/lex_accepted/product")
 DEFAULT_OUT = _REPO_ROOT / "results/evaluation/product_served_bundle_falsification"
-DEFAULT_REPORT = _REPO_ROOT / "reports/evaluation"
 
 EXIT_OK = 0
 EXIT_CONTRACT_VIOLATED = 1
@@ -358,7 +359,11 @@ def l1_controls(bundle: dict) -> dict:
             "UNEXERCISED, NOT SATISFIED: this bundle emits zero rows in the accepted "
             "COUNTER_STATUSES set, so the counter-evidence contract is never put to the "
             "test on it. An unexercised contract is a NEGATIVE RESULT about the product, "
-            "not a pass and not a tooling failure."),
+            "not a pass and not a tooling failure."
+            if unexercised else
+            "EXERCISED: every counter-evidence control fired on this bundle. It emits "
+            f"{n_labelled} row(s) in the accepted COUNTER_STATUSES set, so the contract "
+            "was genuinely put to the test on it rather than left vacuous."),
         "controls": controls,
         "note": "a control that does not fire means the check is VACUOUS or UNEXERCISED on this population; that is exit 2, never a pass",
     }
@@ -367,14 +372,34 @@ def l1_controls(bundle: dict) -> dict:
 # --------------------------------------------------------------------------- #
 # L2 — counter-authority yield on product bytes
 # --------------------------------------------------------------------------- #
-def leg2_counter(bundle: dict, handoff: dict, qid: str) -> dict:
+def leg2_counter(bundle: dict, handoff: dict, qid: str, admission: dict | None = None) -> dict:
+    """Yield numerators/denominators under BOTH counter accounting definitions.
+
+    Two distinct sets exist on the same bytes and this function publishes BOTH,
+    side by side, never merged:
+
+    * the LANE / HARNESS definition — rows whose ``counter_status`` is in
+      ``harness.COUNTER_STATUSES``, i.e. rows the product actually EMITTED as
+      limiting or contrary; and
+    * the PRODUCT ADMISSION definition — the served ``.admissibility.json``
+      ``measured`` block's ``counter_ranks`` / ``n_counter_authorities``, which
+      additionally counts rows on which the counter-anchor classifier ABSTAINED
+      (``counter_status == 'abstained_unevidenced'``).
+
+    They differ by exactly the abstentions, which is why any claim of the form
+    "N answer citations are / are not counter-authority decisions" must name the
+    definition it used (audit fix F-1, cycle 39202185384).
+    """
     decisions = [d for d in (bundle.get("decisions") or []) if isinstance(d, dict)]
     labelled = [d for d in decisions if d.get("counter_status") in COUNTER_STATUSES]
     supported = [d for d in labelled
                  if str(d.get("counter_evidence") or "").strip()
                  and d.get("counter_uncertainty") is not None]
     verified = [d for d in labelled if d.get("counter_evidence_verified")]
-    abstained = [d for d in labelled
+    # F-4 repair: this count is a property of the ROW POPULATION, not of the
+    # emitted subset. Filtering to `labelled` first made the field structurally
+    # 0 for every bundle because 'abstained_unevidenced' is not in COUNTER_STATUSES.
+    abstained = [d for d in decisions
                  if str(d.get("counter_status") or "") == "abstained_unevidenced"]
     cited = {str(x) for x in ((bundle.get("answer") or {}).get("cited_decision_ids") or [])}
     labelled_ids = {str(d.get("decision_id")) for d in labelled}
@@ -382,6 +407,11 @@ def leg2_counter(bundle: dict, handoff: dict, qid: str) -> dict:
                   for d in labelled if d.get("counter_uncertainty") is not None)
     chan = Counter(str(d.get("adversarial_channel") or "?") for d in labelled)
     anchor = next((h for h in (handoff.get("bundles") or []) if h.get("qid") == qid), {})
+
+    product_block = _product_counter_accounting(
+        decisions=decisions, admission=admission, cited=cited,
+        emitted_ids=labelled_ids, n_abstained=len(abstained), n_emitted=len(labelled))
+
     return {
         "n_decisions": len(decisions),
         "n_rows_with_any_counter_status": sum(1 for d in decisions if d.get("counter_status")),
@@ -392,6 +422,9 @@ def leg2_counter(bundle: dict, handoff: dict, qid: str) -> dict:
         "n_abstained_unevidenced_rows": len(abstained),
         "support_rate_among_issued": (
             round(len(supported) / len(labelled), 6) if labelled else None),
+        "abstention_count_published_with_support_rate": True,
+        "yield_on_full_row_population": (
+            round(len(labelled) / len(decisions), 6) if decisions else None),
         "cited_counter_overlap": len(cited & labelled_ids),
         "cited_rows": len(cited),
         "counter_uncertainty_histogram": dict(sorted(unc.items())),
@@ -406,9 +439,77 @@ def leg2_counter(bundle: dict, handoff: dict, qid: str) -> dict:
         "counter_label_ranks": sorted(int(d.get("rank") or 0) for d in labelled),
         "answer_cited_counter_ids": sorted(cited & labelled_ids),
         "answer_cites_any_counter_authority": bool(cited & labelled_ids),
+        "answer_cites_counter_authority_definition": (
+            "EMITTED ONLY: rows whose counter_status is in harness.COUNTER_STATUSES "
+            f"({', '.join(sorted(COUNTER_STATUSES))}). See "
+            "product_admission_counter_accounting for the product's own, strictly "
+            "larger counter set."),
         "counter_reason_code_histogram": dict(sorted(Counter(
             str(d.get("counter_reason_code") or "NONE") for d in labelled).items())),
         "accepted_frontier_counter_anchor_claim_of_record": anchor.get("counter_anchor"),
+        "product_admission_counter_accounting": product_block,
+    }
+
+
+def _product_counter_accounting(*, decisions, admission, cited, emitted_ids,
+                                n_abstained, n_emitted) -> dict:
+    """The SERVED PACKET'S OWN counter accounting, read from its admission record.
+
+    Published beside the lane's emitted-only count, never merged with it.
+    The join from ``measured.counter_ranks`` to decision ids happens inside the
+    same served bundle (the rows carry their own ``rank``); no cross-question
+    mapping of any kind is involved.
+    """
+    if admission is None:
+        return {"status": "NOT_READ", "reason": "no admission record supplied to this leg"}
+    measured = admission.get("measured") or {}
+    raw_ranks = measured.get("counter_ranks")
+    try:
+        prod_ranks = sorted({int(r) for r in (raw_ranks or [])})
+    except (TypeError, ValueError):
+        prod_ranks = []
+    by_id = {str(d.get("decision_id")): d for d in decisions}
+    rank_to_id = {int(d.get("rank") or 0): str(d.get("decision_id")) for d in decisions}
+    prod_ids = {rank_to_id[r] for r in prod_ranks if r in rank_to_id}
+    cited_in_prod = sorted(cited & prod_ids)
+    cited_status = {i: str((by_id.get(i) or {}).get("counter_status") or "NONE")
+                    for i in cited_in_prod}
+    n_prod = measured.get("n_counter_authorities")
+    n_dec = len(decisions)
+    return {
+        "source": "the served packet's own .admissibility.json `measured` block "
+                  "(the same bytes this cycle pins and re-hashes)",
+        "counter_set_definition": (
+            "PRODUCT ADMISSION SET: measured.counter_ranks — emitted limiting/contrary "
+            "rows PLUS rows on which the counter-anchor classifier abstained "
+            "(counter_status='abstained_unevidenced')"),
+        "n_counter_authorities": n_prod,
+        "counter_yield": measured.get("counter_yield"),
+        "n_counter_ranks_listed": len(prod_ranks),
+        "n_rows_resolved_from_counter_ranks": len(prod_ids),
+        "n_counter_authorities_consistent_with_ranks": (
+            None if n_prod is None else int(n_prod) == len(prod_ids)),
+        "n_emitted_in_accepted_set": n_emitted,
+        "n_abstained_unevidenced_rows": n_abstained,
+        "n_emitted_plus_abstained": n_emitted + n_abstained,
+        "counts_reconcile": (
+            None if n_prod is None else int(n_prod) == n_emitted + n_abstained),
+        "n_decisions": n_dec,
+        "product_counter_rate_over_all_decisions": (
+            round(n_prod / n_dec, 6) if isinstance(n_prod, int) and n_dec else None),
+        "lane_emitted_rate_over_all_decisions": (
+            round(n_emitted / n_dec, 6) if n_dec else None),
+        "answer_cited_rows_in_product_counter_set": cited_in_prod,
+        "n_answer_cited_in_product_counter_set": len(cited_in_prod),
+        "n_answer_cited_total": len(cited),
+        "counter_status_of_cited_product_counter_rows": cited_status,
+        "all_cited_product_counter_rows_are_abstained": all(
+            v == "abstained_unevidenced" for v in cited_status.values()),
+        "reading": (
+            "The product's own admission record counts a STRICTLY LARGER counter set "
+            "than the emitted labels: the difference is exactly the abstentions. Any "
+            "claim about answer citations being counter-authority decisions must name "
+            "which of these two sets it used (audit fix F-1)."),
     }
 
 
@@ -764,7 +865,7 @@ def run(run_id: str, hypothesis_path: Path, mount: Path, out_dir: Path) -> dict:
         bundle = served["bundle"][qid]
         l1[qid] = leg1_contract(bundle)
         l1c[qid] = l1_controls(bundle)
-        l2[qid] = leg2_counter(bundle, handoff, qid)
+        l2[qid] = leg2_counter(bundle, handoff, qid, served["admissibility"][qid])
         l3[qid] = leg3_handoff(served, bundle, served["admissibility"][qid], qid)
         l3c[qid] = l3_controls(served, bundle, qid,
                                 l3[qid]["after"]["measured_query_concepts_under_covered"])
@@ -926,6 +1027,17 @@ def build_headline(l1, l1c, l2, l3, l3c, l1_agg, l3_agg) -> dict:
     n_lab = sum(l2[q]["n_counter_labelled"] for q in FROZEN_QIDS)
     n_cited = sum(l2[q]["cited_rows"] for q in FROZEN_QIDS)
     n_cited_counter = sum(l2[q]["cited_counter_overlap"] for q in FROZEN_QIDS)
+    n_abst = sum(l2[q]["n_abstained_unevidenced_rows"] for q in FROZEN_QIDS)
+    prod = {q: (l2[q].get("product_admission_counter_accounting") or {})
+            for q in FROZEN_QIDS}
+    n_prod = sum(int(v["n_counter_authorities"] or 0) for v in prod.values())
+    n_cited_prod = sum(int(v.get("n_answer_cited_in_product_counter_set") or 0)
+                       for v in prod.values())
+    cited_prod_ids = {i for v in prod.values()
+                      for i in (v.get("answer_cited_rows_in_product_counter_set") or [])}
+    cited_prod_status = {i: s for v in prod.values()
+                         for i, s in (v.get("counter_status_of_cited_product_counter_rows")
+                                      or {}).items()}
     return {
         "L1_contract_on_product_bytes": (
             "HOLDS on the measurable subset for all three served bundles; "
@@ -942,18 +1054,67 @@ def build_headline(l1, l1c, l2, l3, l3c, l1_agg, l3_agg) -> dict:
             "label_rate_over_all_decisions": round(n_lab / n_dec, 6) if n_dec else None,
             "per_qid_labels": {q: l2[q]["n_counter_labelled"] for q in FROZEN_QIDS},
             "qids_with_zero_labels": sorted(q for q in FROZEN_QIDS if not l2[q]["n_counter_labelled"]),
+            "both_definitions_published_together": {
+                "note": ("The two sets differ by exactly the abstentions. They are "
+                         "published together and never merged (direction v57 requires "
+                         "support-among-issued, the abstention count and the yield on "
+                         "the row population together)."),
+                "emitted_labels_lane_harness_definition": {
+                    "n_total": n_lab,
+                    "rate_over_all_decisions": (
+                        round(n_lab / n_dec, 6) if n_dec else None),
+                    "per_qid": {q: l2[q]["n_counter_labelled"] for q in FROZEN_QIDS},
+                },
+                "product_admission_definition": {
+                    "n_total": n_prod,
+                    "rate_over_all_decisions": (
+                        round(n_prod / n_dec, 6) if n_dec else None),
+                    "per_qid": {q: prod[q].get("n_counter_authorities")
+                                for q in FROZEN_QIDS},
+                    "per_qid_counter_yield": {q: prod[q].get("counter_yield")
+                                              for q in FROZEN_QIDS},
+                },
+                "abstentions": {
+                    "n_abstained_unevidenced_rows_total": n_abst,
+                    "per_qid": {q: l2[q]["n_abstained_unevidenced_rows"]
+                                for q in FROZEN_QIDS},
+                    "emitted_plus_abstained_equals_product_counter_set":
+                        (n_lab + n_abst) == n_prod,
+                },
+            },
         },
         "L2_answer_cites_counter_authority": {
+            "definition_used_for_the_zero_count": (
+                "EMITTED ONLY — rows whose counter_status is in harness.COUNTER_STATUSES, "
+                "i.e. decisions the product LABELLED limiting or contrary. This is NOT the "
+                "product's own admission-record counter set, which additionally counts "
+                "abstained rows."),
             "n_answer_citations_total": n_cited,
             "n_citations_that_are_counter_authority": n_cited_counter,
             "per_qid": {q: {"cited_rows": l2[q]["cited_rows"],
                             "cited_counter_overlap": l2[q]["cited_counter_overlap"]}
                         for q in FROZEN_QIDS},
+            "under_the_products_own_counter_set": {
+                "n_citations_in_product_counter_set": n_cited_prod,
+                "n_answer_citations_total": n_cited,
+                "per_qid": {q: {"cited_rows": l2[q]["cited_rows"],
+                                "n_in_product_counter_set":
+                                    prod[q].get("n_answer_cited_in_product_counter_set")}
+                            for q in FROZEN_QIDS},
+                "decision_ids": sorted(cited_prod_ids),
+                "counter_status_of_those_rows": dict(sorted(cited_prod_status.items())),
+                "all_are_abstained_unevidenced": all(
+                    s == "abstained_unevidenced" for s in cited_prod_status.values()),
+            },
             "reading": (
-                "A citation that is not a counter-authority row means the served answer never "
-                "grounds its text in a decision the product itself labelled limiting or "
-                "contrary. This is a measured fact about the served bytes, not a judgement "
-                "about the map's usefulness."),
+                "EMITTED definition: a citation that is not a counter-authority row means "
+                "the served answer never grounds its text in a decision the product itself "
+                "LABELLED limiting or contrary. PRODUCT ADMISSION definition: a non-zero "
+                "minority of the citations are rows the product's own admission record "
+                "counts as counter-authority rows, on which the classifier abstained. Both "
+                "numbers are published together; quoting either alone without naming its "
+                "definition overstates the finding. This is a measured fact about the "
+                "served bytes, not a judgement about the map's usefulness."),
         },
         "L3_handoff_verdict": l3_agg["aggregate_verdict"],
         "L3_per_qid": l3_agg["verdicts"],
@@ -1011,7 +1172,9 @@ def load_lane_side_by_side() -> dict:
             "POPULATIONS and are published side by side; they are not merged, not summed and "
             "not a single rate. The divergence that matters for the product decision is "
             "already visible inside this run: 0 of the 15 answer citations on the served packet "
-            "is a counter-authority decision."),
+            "is a decision the product EMITTED as limiting or contrary, while 4 of the 15 are "
+            "rows the product's own admission record counts as counter-authority rows on which "
+            "the classifier abstained - both numbers published together, never alone."),
         "population": (
             "DIFFERENT from this run's product population: 39200567493 built its bundles from "
             "this lane's own OpenCaseLaw response cache for the lane's frozen retrieval "
