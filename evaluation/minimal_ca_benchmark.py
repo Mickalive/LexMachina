@@ -30,7 +30,7 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 from evaluation.frozen_bars.run_bar_gates import (  # noqa: E402
-    QIDS, SERVED_PACKET_DIR, _blank_label_evidence, _hostile_geometry,
+    QIDS, _blank_label_evidence, _hostile_geometry,
 )
 import evaluation.frozen_bars.run_bar_gates as bar_gates_mod
 
@@ -40,6 +40,11 @@ SCHEMA = "lex-evaluation-minimal-ca-benchmark/1"
 
 DEFAULT_OUT_DIR = _REPO_ROOT / "results/evaluation/retrieval_counter_authority_benchmark"
 DEFAULT_REPORT_DIR = _REPO_ROOT / "reports/evaluation"
+
+# V3 packet-of-record directory (NOT the same as run_bar_gates.py's SERVED_PACKET_DIR)
+V3_PACKET_DIR = Path(
+    "/tmp/lex_accepted/product/results/product/gate_packet/39319405429/questions"
+)
 
 SCORED_STATUSES = {"candidate-limiting", "candidate-contrary",
                    "contrary_or_exception", "limiting"}
@@ -97,6 +102,7 @@ def _leg_summary(leg_id: str, rc: int, record: dict | None, expected_rc: int) ->
         out["verdict"] = record.get("verdict")
         out["mode"] = record.get("mode", "adjudicate")
         lg = record.get("label_gate") or {}
+        geom = record.get("geometry_gate") or {}
         out["label"] = {
             "n_scored": lg.get("n_scored"),
             "n_supported": lg.get("n_supported"),
@@ -107,12 +113,12 @@ def _leg_summary(leg_id: str, rc: int, record: dict | None, expected_rc: int) ->
             "absolute_status": lg.get("absolute_status"),
         }
         out["geometry"] = {
-            "per_bundle_counts": lg.get("per_bundle_counts"),
-            "regression_verdict": lg.get("regression_verdict"),
-            "regressed_qids": lg.get("regressed_qids"),
-            "gate_blocks_build": lg.get("gate_blocks_build"),
-            "absolute_status": lg.get("absolute_status"),
-            "n_bundles_pass_all_11": lg.get("n_bundles_pass_all_11"),
+            "per_bundle_counts": geom.get("per_bundle_counts"),
+            "regression_verdict": geom.get("regression_verdict"),
+            "regressed_qids": geom.get("regressed_qids"),
+            "gate_blocks_build": geom.get("gate_blocks_build"),
+            "absolute_status": geom.get("absolute_status"),
+            "n_bundles_pass_all_11": geom.get("n_bundles_pass_all_11"),
         }
         out["negative_controls_all_proven"] = record.get("negative_controls_all_proven")
     else:
@@ -131,20 +137,20 @@ def _rel_or_abs(path: Path) -> str:
 def run_benchmark(run_id: str, out_dir: Path, report_dir: Path) -> tuple[int, dict]:
     t0 = time.time()
 
-    if not SERVED_PACKET_DIR.exists():
+    if not V3_PACKET_DIR.exists():
         env_err = {
             "schema": SCHEMA,
             "run_id": run_id,
             "verdict": "ENVIRONMENT_ERROR",
-            "detail": f"accepted product mount missing: {SERVED_PACKET_DIR}",
+            "detail": f"V3 packet mount missing: {V3_PACKET_DIR}",
             "elapsed_s": round(time.time() - t0, 3),
         }
         return 2, env_err
 
-    served = _load_served(SERVED_PACKET_DIR)
+    served = _load_served(V3_PACKET_DIR)
     legs: list[dict] = []
 
-    # ---- leg 1: served baseline provenance check (served_lineage mode) ----
+    # ---- leg 1: served baseline provenance check (served_lineage mode on V3 packet) ----
     # The V3 packet's bundle content diverges from the GEOMETRY_HALF oracle,
     # so served_lineage mode hits the engine-fidelity gate (ENVIRONMENT_ERROR).
     # We still run it to confirm the packet is readable; exit 2 is accepted
@@ -152,7 +158,7 @@ def run_benchmark(run_id: str, out_dir: Path, report_dir: Path) -> tuple[int, di
     with tempfile.TemporaryDirectory(prefix="ca_minibase_") as td:
         try:
             base_out = Path(td) / "leg1.json"
-            rc1, rec1, err1 = _run_bar_gates([], base_out)
+            rc1, rec1, err1 = _run_bar_gates(["--packet-dir", str(V3_PACKET_DIR)], base_out)
         except Exception as e:
             rc1, rec1, err1 = 2, None, str(e)
     leg1 = _leg_summary("served_baseline_provenance", rc1, rec1, expected_rc=2)
@@ -219,9 +225,9 @@ def run_benchmark(run_id: str, out_dir: Path, report_dir: Path) -> tuple[int, di
         "generated_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "direction_version": _current_direction_version(),
         "reuses_entry_point": BAR_GATES_MODULE,
-        "served_packet_dir": str(SERVED_PACKET_DIR),
-        "served_bundle_sha256": {
-            qid: _sha256_file(SERVED_PACKET_DIR / f"{qid}.bundle.json") for qid in QIDS
+        "v3_packet_dir": str(V3_PACKET_DIR),
+        "v3_bundle_sha256": {
+            qid: _sha256_file(V3_PACKET_DIR / f"{qid}.bundle.json") for qid in QIDS
         },
         "incumbent_pins_restatement_only": {
             "label": {"n_scored": 65, "n_supported": 5,
@@ -252,12 +258,16 @@ def run_benchmark(run_id: str, out_dir: Path, report_dir: Path) -> tuple[int, di
     combined_path = out_dir / f"{run_id}.json"
     combined_path.write_text(json.dumps(record, indent=1, ensure_ascii=False) + "\n",
                              encoding="utf-8")
-    for leg, name in ((None, f"{run_id}_leg1_served_baseline.json"),
-                      (rec2, f"{run_id}_leg2_hostile_geometry.json"),
-                      (rec3, f"{run_id}_leg3_blanked_evidence.json")):
-        if leg is not None:
-            (out_dir / name).write_text(
-                json.dumps(leg, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    # Persist individual leg records (full run_bar_gates output)
+    if rec1 is not None:
+        (out_dir / f"{run_id}_leg1_served_baseline.json").write_text(
+            json.dumps(rec1, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    if rec2 is not None:
+        (out_dir / f"{run_id}_leg2_hostile_geometry.json").write_text(
+            json.dumps(rec2, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    if rec3 is not None:
+        (out_dir / f"{run_id}_leg3_blanked_evidence.json").write_text(
+            json.dumps(rec3, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
 
     # Use record["falsification_proven"] for report consistency
     _fp = record["falsification_proven"]
@@ -271,7 +281,7 @@ def run_benchmark(run_id: str, out_dir: Path, report_dir: Path) -> tuple[int, di
         "state/evaluation.json at run time; operational resume lineage of run "
         "38986445355, adapted for V3 packet 39319405429)",
         f"- Engine: `python -m {BAR_GATES_MODULE}` (accepted entry point, reused as subprocess)",
-        f"- Packet: {SERVED_PACKET_DIR.name} (V3 packet-of-record)",
+        f"- Packet: {V3_PACKET_DIR.name} (V3 packet-of-record)",
         f"- Combined verdict: **{verdict}** (exit {exit_code})",
         f"- Falsification proven: **{_fp}**",
         f"- Elapsed: {record['elapsed_s']} s",

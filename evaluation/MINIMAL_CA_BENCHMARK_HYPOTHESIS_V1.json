@@ -1,0 +1,44 @@
+{
+  "instrument": "evaluation/minimal_ca_benchmark.py",
+  "instrument_sha256": "2d40d2e795d9396542bbbc7a811e6cf26da91f3b19220e70199aad8f5f02c84c",
+  "freeze_record": "MINIMAL_CA_BENCHMARK_FREEZE_RECORD_V1.json",
+  "hypothesis": "The minimal retrieval/counter-authority benchmark adapted for the V3 packet-of-record (39319405429) will execute both falsification legs (hostile geometry and blanked evidence) in adjudicate mode against the frozen run_bar_gates.py entry point, and both legs will fire (exit 1, FAIL_REGRESSION), proving the benchmark is not vacuous. The served_lineage mode on the V3 packet will exit 2 (ENVIRONMENT_ERROR) due to GEOMETRY_HALF oracle divergence, which is expected and not a product verdict.",
+  "frozen_entry_point": "evaluation/frozen_bars/run_bar_gates.py (accepted version at commit 767fb26a, SERVED_PACKET_DIR=38839347028, original EXPECTED_BUNDLE_SHA256, original EXPECTED_GEOMETRY_PASSES)",
+  "frozen_bars_shas": {
+    "RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+    "VERDICT_CONTRACT.json": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c"
+  },
+  "v3_packet_shas": {
+    "de-kapitalverletzung.bundle.json": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
+    "fr-bail-entretien.bundle.json": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
+    "it-responsabilita-medica.bundle.json": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b"
+  },
+  "expected_leg_outcomes": {
+    "served_baseline_provenance": {
+      "mode": "served_lineage",
+      "expected_exit_code": 2,
+      "expected_verdict": "ENVIRONMENT_ERROR",
+      "reason": "V3 packet bundle content diverges from GEOMETRY_HALF oracle; engine fidelity gate triggers"
+    },
+    "geometry_falsification_hostile": {
+      "mode": "adjudicate",
+      "expected_exit_code": 1,
+      "expected_verdict": "FAIL_REGRESSION",
+      "regression_expected_on": ["de-kapitalverletzung", "fr-bail-entretien"],
+      "reason": "Hostile geometry regresses per-bundle counts below incumbent (de 6->4, fr 5->4 proven)"
+    },
+    "label_falsification_blanked_evidence": {
+      "mode": "adjudicate",
+      "expected_exit_code": 1,
+      "expected_verdict": "FAIL_REGRESSION",
+      "regression_expected_on": ["all three qids"],
+      "reason": "Blanked evidence collapses label support from 5 to 0"
+    }
+  },
+  "combined_verdict": "BENCHMARK_VALID_NO_FALSIFICATION (exit 0) iff both falsification legs fire (exit 1) and neither exits 2",
+  "claim_ceiling": "This benchmark proves only that (a) the frozen bar gates can fail a deliberately regressed input on the V3 packet-of-record, and (b) the benchmark is not vacuous. It does NOT prove jurist usefulness, does NOT meet the absolute LABEL_SOUND / GEOMETRY_SOUND bars, and does NOT unblock the human gate (standing accepted DO-NOT-SERVE order).",
+  "reproducibility_requirement": "Requires /tmp/lex_accepted/product/results/product/gate_packet/39319405429/questions/ mount with V3 packet bundles. Independent reproduction not possible without this mount. V3 packet data should be vendored for full reproducibility.",
+  "direction_version": 59,
+  "created_at_utc": "2026-10-20T00:00:00Z"
+}
