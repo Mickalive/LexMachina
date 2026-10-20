@@ -108,12 +108,23 @@ LIVE_SLICE_SCHEMA = "product-live-slice/1"
 #: the artifact's own n_cited=0 twice), so the pin moved to this cycle's
 #: re-measured artifact and the 39262796670 artifact stays on disk
 #: byte-identical.
+#:
+#: REPOINT RECORD (cycle 39389625385, repair round 1): audit D1 of
+#: ``CYCLE_39389625385_GATE.json`` found three guards red on the tip because
+#: ``reports/product/CYCLE_39384462218.md`` (the operational-resume report
+#: carried by this cycle's delta) cites
+#: ``CYCLE_39144924680_regression_scope.json`` and therefore joined the
+#: bare-testcount candidate set (15 -> 16 reports). The sweep was re-run over
+#: the repaired tree and published under
+#: ``CYCLE_39389625385_report_testcount_disclosure.json``; the 39286804530
+#: artifact stays on disk byte-identical and is now named in
+#: ``DISCLOSURE_HISTORY``.
 DISCLOSURE = (ROOT / "results" / "product" / "regression"
-               / "CYCLE_39286804530_report_testcount_disclosure.json")
+               / "CYCLE_39389625385_report_testcount_disclosure.json")
 #: The previous pin, kept as a readable constant so a reader can diff the two
 #: artifacts instead of trusting prose about them.
 DISCLOSURE_PREVIOUS_PIN = (ROOT / "results" / "product" / "regression"
-                            / "CYCLE_39262796670_report_testcount_disclosure.json")
+                            / "CYCLE_39286804530_report_testcount_disclosure.json")
 #: Every disclosure artifact this pin has ever named, oldest first, each of which
 #: must still exist. A pin move moves a CHECK; it never removes evidence.
 DISCLOSURE_HISTORY = (
@@ -127,6 +138,8 @@ DISCLOSURE_HISTORY = (
     / "CYCLE_39206477026_report_testcount_disclosure.json",
     ROOT / "results" / "product" / "regression"
     / "CYCLE_39262796670_report_testcount_disclosure.json",
+    ROOT / "results" / "product" / "regression"
+    / "CYCLE_39286804530_report_testcount_disclosure.json",
 )
 
 #: The PRE-REPAIR BYTES of the report of record, extracted once from git
