@@ -42,6 +42,11 @@ import json
 from pathlib import Path
 from typing import Any
 
+try:  # package import (product.query.packet_admission)
+    from . import serve_verdict
+except ImportError:  # script entry: python product/query/packet_admission.py
+    import serve_verdict  # type: ignore
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 #: Product-owned snapshots of the accepted Frontier measurements.  Both are
@@ -135,11 +140,22 @@ def _collect_geometry_measurements(snapshots: list[tuple[str, dict]]) -> list[di
     return out
 
 
-def assess(*, snapshots: list[tuple[str, dict]] | None = None) -> dict[str, Any]:
+def assess(
+    *,
+    snapshots: list[tuple[str, dict]] | None = None,
+    serve_assessment: dict[str, Any] | None = None,
+    serve_snapshots: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     """Return the machine-readable packet-admission decision.
 
     ``snapshots`` is an optional list of ``(source_label, snapshot_dict)`` for
     tests; production reads the two committed product-owned snapshots.
+
+    ``serve_assessment`` / ``serve_snapshots`` are the independent serve-verdict
+    channel (direction v59 ordered work 1 + note b).  A DO-NOT-SERVE
+    recommendation on an accepted verdict that covers the packet-of-record
+    denies admission even when both frozen bars would otherwise pass.  A pending
+    audit is disclosed, never treated as a pass, and never opens an owner gate.
     """
     if snapshots is None:
         loaded: list[tuple[str, dict]] = []
@@ -148,6 +164,19 @@ def assess(*, snapshots: list[tuple[str, dict]] | None = None) -> dict[str, Any]
             if snap is not None:
                 loaded.append((path.name, snap))
         snapshots = loaded
+
+    if serve_assessment is None:
+        if serve_snapshots is not None:
+            # Test seam: optional pre-built assessment, or a single synthetic intake.
+            first = serve_snapshots[0] if serve_snapshots else None
+            if isinstance(first, dict) and first.get("schema") == serve_verdict.SCHEMA:
+                serve_assessment = first
+            elif isinstance(first, dict):
+                serve_assessment = serve_verdict.assess_for_packet(intake=first)
+            else:
+                serve_assessment = serve_verdict.assess_for_packet()
+        else:
+            serve_assessment = serve_verdict.assess_for_packet()
 
     labels = _collect_label_measurements(snapshots)
     geometries = _collect_geometry_measurements(snapshots)
@@ -162,6 +191,7 @@ def assess(*, snapshots: list[tuple[str, dict]] | None = None) -> dict[str, Any]
                 "counter_label": {"satisfied": False, "measurements": labels},
                 "map_geometry": {"satisfied": False, "measurements": geometries},
             },
+            "serve_audit": serve_assessment,
             "frozen": _frozen_block(),
             "claim_ceiling": (
                 "Admission is DENIED fail-closed: no accepted frozen-bar verdict "
@@ -188,7 +218,9 @@ def assess(*, snapshots: list[tuple[str, dict]] | None = None) -> dict[str, Any]
     )
     label_met = all(m["support_rate"] >= FROZEN_LABEL_BAR for m in labels)
     geometry_met = all(m["n_bundles_pass"] >= m["n_bundles"] > 0 for m in geometries)
-    admitted = bool(label_met and geometry_met)
+    serve_deny = bool(serve_assessment.get("deny_for_recommendation"))
+    serve_reason = serve_assessment.get("blocking_reason")
+    admitted = bool(label_met and geometry_met and not serve_deny)
 
     reasons: list[str] = []
     if not label_met:
@@ -205,6 +237,8 @@ def assess(*, snapshots: list[tuple[str, dict]] | None = None) -> dict[str, Any]
             "bundles pass all "
             f"{FROZEN_GEOMETRY_CRITERIA} criteria"
         )
+    if serve_deny and serve_reason:
+        reasons.append(serve_reason)
 
     return {
         "schema": SCHEMA,
@@ -225,10 +259,13 @@ def assess(*, snapshots: list[tuple[str, dict]] | None = None) -> dict[str, Any]
                 "measurements": geometries,
             },
         },
+        "serve_audit": serve_assessment,
         "frozen": _frozen_block(),
         "claim_ceiling": (
-            "Admission consumes accepted Frontier verdicts as INPUT; it does not "
+            "Admission consumes accepted Frontier bar verdicts and the "
+            "independent serve-verdict intake as INPUT; it does not "
             "re-measure labels or geometry and does not rule on map usefulness. "
+            "A serve verdict never sets ready_for_owner_session by itself. "
             "Admitted does not mean useful, and unmet bars never mean a decision "
             "IS or IS NOT supporting/limiting."
         ),

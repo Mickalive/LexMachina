@@ -144,7 +144,7 @@
       "scope": "control-plane workflow scope; recorded, not edited from the lane"
     }
   ],
-  "current_run": "39319405429",
+  "current_run": "39355381575",
   "cycle_39056694835_frontier_serve_audit_intake": {
     "admission": "fail-closed",
     "claim_ceiling": [
@@ -661,8 +661,8 @@
     "resumes": "39221882428",
     "run_id": "39222442674"
   },
-  "cycle_status": "RUN_39319405429__REPAIR1_OPERATIONAL_RESUME__PACKET_OF_RECORD_V3_COMMITTED__PENDING_INDEPENDENT_AUDIT",
-  "direction_version": 58,
+  "cycle_status": "RUN_39355381575__DIRV59__SERVE_VERDICT_INTAKE_FAIL_CLOSED__PENDING_FRONTIER_PACKET_SERVE_AUDIT__ADMISSION_STILL_DENIED",
+  "direction_version": 59,
   "evidence_refs": [
     "results/product/gate_packet/rebuilt-39027045675/packet.json",
     "results/product/gate_packet/rebuilt-39027045675/disclosures.json",
@@ -765,7 +765,11 @@
     "results/product/orchestration/CYCLE_39221882428_orchestration.json",
     "results/product/orchestration/CYCLE_39222442674_resume_diagnosis.json",
     "results/product/cycle_verify/CYCLE_39222442674_cycle_verify.json",
-    "reports/product/CYCLE_39222442674.md"
+    "reports/product/CYCLE_39222442674.md",
+    "product/query/serve_verdict.py",
+    "results/product/frontier_verdicts/frontier-packet-serve-audit_intake.json",
+    "product/tests/test_serve_verdict_intake.py",
+    "results/product/offline_slice/20261020T015949Z/rent-default.bundle.json"
   ],
   "evidence_tier": "REPRODUCED",
   "frontier_adoptions": {
@@ -5084,5 +5088,43 @@
     "posture": "fail-closed, unchanged: packet_admitted=false, machine_gate_ready=false, human_gate_ready=false, ready_for_owner_session=false; both standing DO-NOT-SERVE orders untouched; no owner question authorised",
     "report": "reports/product/CYCLE_39319405429_REPAIR1.md",
     "run_id": "39319405429"
+  },
+  "cycle_39355381575_serve_verdict_intake": {
+    "run_id": "39355381575",
+    "direction_version": 59,
+    "what_this_cycle_is": "Dir v59 ordered work (1)(2): the independent serve audit on packet-of-record V3 is chartered to frontier-packet-serve-audit and has NOT yet produced an accepted verdict. Product implements the consume-path now (serve verdict as a machine gate input of packet admission) and keeps the honest fail-closed posture. No owner card, no human_gate_ready, no re-measurement, no frozen-bar edit, no packet-byte edit.",
+    "accepted_mount_observation": {
+      "team": "frontier-packet-serve-audit",
+      "mount": "/tmp/lex_accepted/frontier/frontier-packet-serve-audit",
+      "team_state": "INITIALIZED, accepted_run_id=null, continue_recommended=true",
+      "branch": "origin/lab/frontier/frontier-packet-serve-audit head 31d28bc (bootstrap only)",
+      "serve_verdict_artifacts": "none on the accepted mount or the team branch"
+    },
+    "delta": {
+      "module": "product/query/serve_verdict.py",
+      "intake": "results/product/frontier_verdicts/frontier-packet-serve-audit_intake.json",
+      "admission_wiring": "product/query/packet_admission.py assess() now embeds serve_audit and denies on an accepted DO-NOT-SERVE covering the packet",
+        "tests": "product/tests/test_serve_verdict_intake.py (11 tests)",
+      "packet_pin": "results/product/gate_packet/39319405429/packet.json raw sha256 32ac812626e679c357822543d0b2e78e62c0e95a9a1b233d1ec89d7cb7b6ac70 (re-hashed on disk, match=true)"
+    },
+    "measured": {
+      "serve_channel_status": "PENDING_VERDICT",
+      "serve_deny_for_recommendation": false,
+      "packet_admitted": false,
+      "blocking_reason": "counter_label_support 5/65 = 0.0769 < frozen absolute bar 1.0; map_geometry 0/3 bundles pass all 11 criteria",
+      "offline_slice": "PASS (rent-default, 100 decisions, page contract 65 assertions, 0.37s, network none)",
+      "tests": "test_serve_verdict_intake + test_packet_admission + test_gate_packet = 57 passed; packet_of_record + human_gate_integration + served_packet_falsification_adoption = 32 passed, 2 skipped"
+    },
+    "posture": {
+      "packet_admitted": false,
+      "machine_gate_ready": false,
+      "human_gate_ready": false,
+      "ready_for_owner_session": false,
+      "do_not_serve_orders_untouched": true,
+      "frozen_bars_reported_only": true,
+      "owner_question": "NOT_AUTHORISED"
+    },
+    "next_work": "When frontier-packet-serve-audit lands an independently accepted verdict, harvest() it into the product-owned intake (append-only) and re-run packet admission. Do not self-certify serve readiness. Keep continue_recommended=true until human_gate_ready with a locally runnable path.",
+    "report": "reports/product/CYCLE_39355381575.md"
   }
 }
