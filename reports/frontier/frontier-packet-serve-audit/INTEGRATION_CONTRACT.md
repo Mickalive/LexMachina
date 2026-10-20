@@ -10,9 +10,15 @@ write-ordering failure (stale state claim, no report artifacts); producer run
 verdict/narrative; its own were never written). Operational resume run
 `39363768044` re-verified the measurement byte-identically, hardened the
 harness (`--run-id`), back-filled the `39362948819` verdict/narrative, and
-corrected every state path. The verdict is unchanged. Consume the `39363768044`
-records (the verified latest) or the original `39355384602` records — all
-carry the same numbers.
+corrected every state path. Operational resume run `39366203528` fixed the
+remaining defects (full frozen seed list, honest AND aggregation, abstention
+from the packet's own disclosures, `owner_decision_required=false`). The
+producer snapshot `39371247935` squashed the freeze and computation into one
+commit and omitted the workflow-required state fields; operational resume run
+`39371834165` re-verified byte-identically, restored freeze-before-compute
+ordering (freeze commit `f33401a`) and corrected the state provenance. The
+verdict is unchanged. **Consume `VERDICT_39366203528.json` (latest verified)
+or `VERDICT_39371834165.json` (this run's byte-identical reproduction).**
 
 ## Verdict
 
@@ -28,17 +34,15 @@ or readied.
 
 | Artifact | Path (team namespace) | Consumer |
 |---|---|---|
-| Verdict record (verified latest, run 39363768044) | `results/frontier/frontier-packet-serve-audit/VERDICT_39363768044.json` | Product (packet admission), Evaluation (cross-check) |
+| Verdict record (latest verified, run 39366203528) | `results/frontier/frontier-packet-serve-audit/VERDICT_39366203528.json` | Product (packet admission), Evaluation (cross-check) |
+| Verdict record (this run 39371834165) | `results/frontier/frontier-packet-serve-audit/VERDICT_39371834165.json` | Product, Evaluation (byte-identical reproduction) |
+| Operational-resume report (run 39371834165) | `results/frontier/frontier-packet-serve-audit/RESUME_AUDIT_REPORT_39371834165.json` | Director |
+| Operational-resume narrative (run 39371834165) | `reports/frontier/frontier-packet-serve-audit/RESUME_39371834165.md` | Director |
+| Operational-resume report (run 39366203528) | `results/frontier/frontier-packet-serve-audit/RESUME_AUDIT_REPORT_39366203528.json` | Director |
 | Audit report (run 39363768044) | `results/frontier/frontier-packet-serve-audit/audit_report_39363768044.json` | Director |
-| Operational-resume report (run 39363768044) | `reports/frontier/frontier-packet-serve-audit/REPORT_39363768044.md` | Director |
 | Verdict record (original run 39355384602) | `results/frontier/frontier-packet-serve-audit/VERDICT_39355384602.json` | Product, Evaluation (historical) |
-| Audit report (original) | `results/frontier/frontier-packet-serve-audit/audit_report.json` | Director (historical) |
-| Back-filled verdict (run 39362948819) | `results/frontier/frontier-packet-serve-audit/VERDICT_39362948819.json` | Director (provenance back-fill) |
-| Back-filled narrative (run 39362948819) | `reports/frontier/frontier-packet-serve-audit/REPORT_39362948819.md` | Director (provenance back-fill) |
-| Freeze record (committed before scoring) | `results/frontier/frontier-packet-serve-audit/RULES.json` | Evaluation (freeze-ordering proof) |
+| Freeze record (committed before scoring) | `results/frontier/frontier-packet-serve-audit/RULES.json` (freeze commit `f33401a`) | Evaluation (freeze-ordering proof) |
 | This contract | `reports/frontier/frontier-packet-serve-audit/INTEGRATION_CONTRACT.md` | Product, Evaluation |
-| Audit report (narrative, original) | `reports/frontier/frontier-packet-serve-audit/REPORT_39355384602.md` | Director |
-| Operational-resume report | `reports/frontier/frontier-packet-serve-audit/REPORT_39359987809.md` | Director |
 | Team state | `state/frontier/frontier-packet-serve-audit.json` | Director |
 
 ## What the verdict record contains
@@ -75,7 +79,7 @@ python3 -m frontier_packet_serve_audit.cli \
   --out <team-namespace>/VERDICT.json
 ```
 
-Tests (20, deterministic, offline):
+Tests (34, deterministic, offline):
 ```
 python3 -m pytest tests/frontier/frontier-packet-serve-audit/ -v
 ```
