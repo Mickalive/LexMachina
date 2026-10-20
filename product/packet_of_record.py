@@ -20,6 +20,11 @@ carry:
 * the **size-based** mega-cluster disclosure (``len(idx)/n``, threshold 0.5
   unchanged) with the ``member_ids`` share published beside it;
 * the **query-concept under-coverage** disclosure state per bundle;
+* the **run-to-run counter-instability** disclosure published BESIDE the
+  coverage-gap block (factory direction v61, product lane ordered work (3)) --
+  Evaluation's accepted open items 5/6 transcribed verbatim from the
+  byte-pinned product copy, disclosure-only, no measurement re-derived and no
+  threshold touched;
 * the **abstain-and-disclose** counter-anchor three numbers together
   (support-among-issued, abstention count, yield) from the accepted component
   (accept ``d236f599``);
@@ -285,6 +290,225 @@ def under_coverage_disclosure(shipped_verdict: dict) -> dict[str, Any]:
             "Disclosure only: an under-covered concept is a recall warning, never "
             "a verdict that a decision is irrelevant."
         ),
+    }
+
+
+#: -----------------------------------------------------------------------
+#: Run-to-run counter-instability disclosure (factory direction v61, product
+#: lane ordered work (3)).
+#:
+#: Core Evaluation's accepted open items 5 and 6 record that a same-query
+#: re-run of this product can differ on the counter stage (``sr::
+#: counter_authority_surface`` diverges between two recorded runs of one FR
+#: question) and can move the retrieved population and the *identity* of the
+#: limiting decision.  The accepted ask is "determinism for a fixed
+#: query+corpus, OR a run-to-run counter instability disclosure beside the
+#: coverage-gap disclosure"; this lane ships the DISCLOSURE, published in the
+#: same per-bundle block as :func:`under_coverage_disclosure`.
+#:
+#: DISCLOSURE ONLY.  Every number below is Core Evaluation's REPORTED-ONLY
+#: evidence, read out of Product's byte-pinned verbatim copy of the accepted
+#: open items (``product/data/eval_open_items/ACCEPTED_EVALUATION_OPEN_ITEMS_5_6.json``,
+#: whose declared source is ``origin/main:results/accepted-state/evaluation.json``
+#: blob ``a1336f0e...``, measuring run 39322925971).  This module re-derives
+#: none of it, measures nothing here, edits no threshold, bar, rubric or
+#: success rule, and changes no admission outcome.
+COUNTER_INSTABILITY_DISCLOSURE_CODE = "run_to_run_counter_instability"
+COUNTER_INSTABILITY_SOURCE_FILE = (
+    PRODUCT_ROOT / "data" / "eval_open_items" / "ACCEPTED_EVALUATION_OPEN_ITEMS_5_6.json"
+)
+#: sha256 of the ACCEPTED evaluation state file the vendored copy transcribes,
+#: pinned at transcription time (the vendored copy carries the pin commit that
+#: re-derives it), exactly like the frozen geometry rules are.
+COUNTER_INSTABILITY_ACCEPTED_EVALUATION_SHA256_AT_PIN = (
+    "285b32cfbe3036269388358cc4264a655994505e4c2022bb468a3c3712423889"
+)
+COUNTER_INSTABILITY_BLOCK_ORIGIN = (
+    "introduced by product run 39422322667 (factory direction v61, product lane "
+    "ordered work (3)); published beside under_coverage_disclosure on every packet "
+    "assembled from that code onward"
+)
+
+#: Per-language scope of the accepted 2-group measurement.  Nothing here is
+#: inferred beyond the accepted open items: DE counter stability is UNTESTED,
+#: IT is outside the measured population, unknown languages are undetermined.
+_COUNTER_INSTABILITY_LANGUAGE_SCOPE: dict[str, dict[str, str]] = {
+    "fr": {
+        "counter_stage_evidence": (
+            "DIRECT - the divergent group IS the FR 102-CP same-query group: "
+            "CYCLE_39128456801_live passes while CYCLE_39139648336_F1F2_VERIFY "
+            "fails with n_issued=0 on sr::counter_authority_surface"
+        ),
+        "population_movement_evidence": (
+            "DIRECT - the FR retrieved-set jaccard 0.892216, FR rank movement and "
+            "FR counter-evidence lost/gained rows below were measured on this language"
+        ),
+    },
+    "de": {
+        "counter_stage_evidence": (
+            "UNTESTED for this language - the DE same-query group is STABLE on all "
+            "applicable gates and DE counter stability stays "
+            "UNTESTED (stage NOT_APPLICABLE in both DE runs), not proven"
+        ),
+        "population_movement_evidence": (
+            "DIRECT - the DE retrieved-set jaccard 0.904762 and the DE rank/cluster "
+            "movement below were measured on this language"
+        ),
+    },
+    "it": {
+        "counter_stage_evidence": (
+            "NOT MEASURED - no IT same-query group exists in the accepted 2-group "
+            "population, so no IT run-to-run verdict was published"
+        ),
+        "population_movement_evidence": (
+            "NOT MEASURED - no IT same-query group exists in the accepted 2-group "
+            "population"
+        ),
+    },
+}
+_COUNTER_INSTABILITY_LANGUAGE_UNKNOWN: dict[str, str] = {
+    "counter_stage_evidence": (
+        "NOT DETERMINED - the bundle's language is not one of de/fr/it covered by "
+        "the accepted 2-group measurement"
+    ),
+    "population_movement_evidence": (
+        "NOT DETERMINED - the bundle's language is not one of de/fr/it covered by "
+        "the accepted 2-group measurement"
+    ),
+}
+
+_counter_instability_source_cache: dict[str, Any] | None = None
+
+
+def load_counter_instability_source() -> dict[str, Any]:
+    """Load and re-verify the byte-pinned verbatim Evaluation open items.
+
+    Fails closed: a vendored copy whose declared accepted-state digest does not
+    match the digest pinned here, or whose structured anchors no longer appear
+    in the verbatim prose, raises instead of publishing an unbacked number.
+    """
+    global _counter_instability_source_cache
+    if _counter_instability_source_cache is not None:
+        return _counter_instability_source_cache
+    raw = COUNTER_INSTABILITY_SOURCE_FILE.read_bytes()
+    data = json.loads(raw.decode("utf-8"))
+    source = data.get("source") or {}
+    if source.get("file_sha256_at_pin") != COUNTER_INSTABILITY_ACCEPTED_EVALUATION_SHA256_AT_PIN:
+        raise ValueError(
+            "vendored evaluation open items declare accepted-state sha256 "
+            f"{source.get('file_sha256_at_pin')!r} but the pinned value is "
+            f"{COUNTER_INSTABILITY_ACCEPTED_EVALUATION_SHA256_AT_PIN!r}"
+        )
+    open_items = data.get("open_items") or {}
+    for name, sv in (data.get("structured_values") or {}).items():
+        prose = open_items.get(sv.get("open_item"))
+        if not isinstance(prose, str):
+            raise ValueError(f"structured value {name} names no open item prose")
+        for anchor in sv.get("verbatim_anchors") or []:
+            if anchor not in prose:
+                raise ValueError(
+                    f"structured value {name}: anchor {anchor!r} no longer appears "
+                    "in the verbatim open item"
+                )
+    _counter_instability_source_cache = data
+    return data
+
+
+def counter_instability_disclosure(language: str | None = None) -> dict[str, Any]:
+    """The run-to-run counter-instability disclosure, published beside the
+    coverage-gap disclosure (:func:`under_coverage_disclosure`).
+
+    Factory direction v61, product lane ordered work (3): a disclosure-only
+    change.  ``measurement_rederived_by_product`` is False and
+    ``threshold_touched`` is False by construction - the block transcribes
+    Evaluation's REPORTED-ONLY open items 5 and 6 and states which part of the
+    evidence applies to this bundle's language.
+    """
+    src = load_counter_instability_source()
+    p1 = src["structured_values"]["p1_counter_stage_divergence"]
+    ext = src["structured_values"]["p1ext_population_and_identity_movement"]
+    lang = str(language or "").strip().lower() or None
+    scope = dict(_COUNTER_INSTABILITY_LANGUAGE_SCOPE.get(lang)
+                 or _COUNTER_INSTABILITY_LANGUAGE_UNKNOWN)
+    scope["language"] = lang
+    return {
+        "disclosure_code": COUNTER_INSTABILITY_DISCLOSURE_CODE,
+        "published_beside": "under_coverage_disclosure",
+        "disclosure_only": True,
+        "measurement_rederived_by_product": False,
+        "threshold_touched": False,
+        "threshold_or_bar_edits": [],
+        "gate_effect": (
+            "none - REPORTED-ONLY: no verdict, score, count, admission outcome or "
+            "frozen bar reads this block; admission stays fail-closed on the "
+            "accepted bar verdicts"
+        ),
+        "source": {
+            "lane": "evaluation",
+            "accepted_state_path": (
+                f"{(src.get('source') or {}).get('ref') or 'origin/main'}:"
+                f"{(src.get('source') or {}).get('repo_path')}"
+            ),
+            "git_blob_oid_at_pin": (src.get("source") or {}).get("git_blob_oid_at_pin"),
+            "file_sha256_at_pin": (src.get("source") or {}).get("file_sha256_at_pin"),
+            "pin_commit": (src.get("source") or {}).get("pin_commit"),
+            "pin_semantics": (src.get("source") or {}).get("pin_semantics"),
+            "json_pointers": (src.get("source") or {}).get("json_pointers"),
+            "vendored_copy": (
+                "product/data/eval_open_items/ACCEPTED_EVALUATION_OPEN_ITEMS_5_6.json"
+            ),
+            "transcription_rule": src.get("transcription_rule"),
+            "measuring_run": ((src.get("source") or {}).get("measurement_of_record")
+                              or {}).get("measuring_run"),
+            "evidence_path": ((src.get("source") or {}).get("measurement_of_record")
+                              or {}).get("evidence_path"),
+        },
+        "p1_counter_stage_divergence": {
+            "open_item": p1.get("open_item"),
+            "gate": p1.get("gate"),
+            "group": p1.get("group"),
+            "status": p1.get("status"),
+            "passing_run": p1.get("passing_run"),
+            "failing_run": p1.get("failing_run"),
+            "failing_run_n_issued": p1.get("failing_run_n_issued"),
+            "other_applicable_verdicts": p1.get("other_applicable_verdicts"),
+            "bounded": p1.get("bounded"),
+            "evidence_path": p1.get("evidence_path"),
+        },
+        "p1ext_population_and_identity_movement": {
+            "open_item": ext.get("open_item"),
+            "reported_only": True,
+            "retrieved_set_jaccard": ext.get("retrieved_set_jaccard"),
+            "common_ids_changing_rank": ext.get("common_ids_changing_rank"),
+            "cluster_reassignment": ext.get("cluster_reassignment"),
+            "fr_counter_evidence_lost": list(ext.get("fr_counter_evidence_lost") or []),
+            "fr_counter_evidence_gained": list(ext.get("fr_counter_evidence_gained") or []),
+            "limiting_decision_identity_can_swap": bool(
+                ext.get("limiting_decision_identity_can_swap")),
+            "answer_n_cited_differs_between_fr_runs": list(
+                ext.get("answer_n_cited_differs_between_fr_runs") or []),
+            "de_counter_stability": ext.get("de_counter_stability"),
+            "prose_anchors_verified_at_load": True,
+        },
+        "applies_to_this_bundle_language": scope,
+        "implications": (
+            "For a fixed query + corpus, two runs of this product's counter stage "
+            "can differ (the FR 102-CP same-query group diverges on "
+            "sr::counter_authority_surface between two recorded runs of one "
+            "question) and the IDENTITY of the limiting decision can swap between "
+            "runs (evidence lost on bge_146 IV 68 and bstger_TPF_2012_62, gained "
+            "on bger_6B_750_2020) while the retrieved set itself moves (jaccard "
+            "0.904762 DE / 0.892216 FR). Therefore a counter authority ABSENT from "
+            "one run is not evidence that no contrary or limiting authority "
+            "exists, and this packet's counter set must be read as one sampled "
+            "run rather than a run-stable enumeration. Counter classifications "
+            "stay exactly as evidenced on each row; this block classifies nothing."
+        ),
+        "block_origin": COUNTER_INSTABILITY_BLOCK_ORIGIN,
+        "verbatim_open_items": {
+            p1.get("open_item"): src["open_items"][p1["open_item"]],
+            ext.get("open_item"): src["open_items"][ext["open_item"]],
+        },
     }
 
 
@@ -574,6 +798,12 @@ def assemble(packet_dir: Path, *, run_id: str, operator: str, tip: str) -> dict[
                 "adopted_variant_applied_once_to_the_shipped_rows"),
         )
         coverage = under_coverage_disclosure(shipped_verdict)
+        # direction v61 ordered work (3): the run-to-run counter-instability
+        # disclosure is published in the SAME per-bundle block, directly beside
+        # the coverage-gap disclosure.  Disclosure only - it re-derives no
+        # measurement and touches no threshold.
+        instability = counter_instability_disclosure(
+            entry.get("language") or _language_of(qid))
         anchor = counter_anchor_three_numbers(bundle)
         retrieval = retrieval_provenance(bundle)
         rf1 = counter_status_rf1(bundle)
@@ -584,6 +814,7 @@ def assemble(packet_dir: Path, *, run_id: str, operator: str, tip: str) -> dict[
             "geometry_rescore": rescore,
             "mega_cluster_disclosure": mega,
             "under_coverage_disclosure": coverage,
+            "counter_instability_disclosure": instability,
             "counter_anchor": anchor,
             "counter_status_rf1": rf1,
             "retrieval_provenance": retrieval,
@@ -617,6 +848,7 @@ def assemble(packet_dir: Path, *, run_id: str, operator: str, tip: str) -> dict[
             "evidence_hydration": hydration,
             "mega_cluster_disclosure": mega,
             "under_coverage_disclosure": coverage,
+            "counter_instability_disclosure": instability,
         })
 
     # The shipped ledger: re-verify the exact committed bytes NOW.
@@ -769,11 +1001,14 @@ def check(packet_dir: Path) -> dict[str, Any]:
                     "adopted_variant_applied_once_to_the_shipped_rows"),
             ),
             "under_coverage_disclosure": under_coverage_disclosure(shipped_verdict_c),
+            "counter_instability_disclosure": counter_instability_disclosure(
+                entry.get("language") or _language_of(qid)),
         }
         recorded = (committed.get("per_bundle") or {}).get(qid) or {}
         for key in ("counter_anchor", "geometry_rescore", "counter_status_rf1",
                     "retrieval_provenance", "evidence_hydration",
-                    "mega_cluster_disclosure", "under_coverage_disclosure"):
+                    "mega_cluster_disclosure", "under_coverage_disclosure",
+                    "counter_instability_disclosure"):
             rec = recorded.get(key) or {}
             a = json.dumps(rec, sort_keys=True)
             b = json.dumps(fresh[key], sort_keys=True)

@@ -1315,6 +1315,159 @@ def check_regression_matrix_matches_diagnosis() -> list[dict]:
     ]
 
 
+def check_counter_instability_disclosure() -> list[dict]:
+    """Direction v61, product lane ordered work (3): the counter-instability
+    disclosure must be published beside the coverage-gap disclosure, reproduce
+    from committed bytes, stay disclosure-only (no measurement, no threshold),
+    and remain byte-traced to the pinned accepted Evaluation state.
+
+    Registered as its own claim block because the previous coverage-gap
+    disclosure had a sibling obligation nobody in this ledger covered: the
+    lane's run-to-run counter instability (Evaluation open items 5/6) published
+    somewhere the packet consumer actually reads.
+    """
+    from product import counter_instability_disclosure as cid
+    from product import packet_of_record as por
+    import hashlib
+
+    packet_dir = cid.PACKET_DIR
+    artifact = cid.ARTIFACT
+    if not (packet_dir / "PACKET_OF_RECORD.json").is_file():
+        return [_fail("the packet of record exists",
+                      f"missing: {_repo_relative(packet_dir)}")]
+    try:
+        packet = json.loads((packet_dir / "packet.json").read_text(encoding="utf-8"))
+        disclosures = json.loads((packet_dir / "disclosures.json").read_text(
+            encoding="utf-8"))
+        handoff = json.loads((packet_dir / "handoff.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [_fail("the packet disclosure layer parses", repr(exc))]
+
+    qids = [q.get("qid") for q in (packet.get("questions") or [])]
+    handoff_by_qid = {e.get("qid"): e for e in (handoff.get("bundles") or [])}
+    missing = [
+        {"qid": qid,
+         "disclosures": "counter_instability_disclosure" not in
+                        (disclosures.get("per_bundle") or {}).get(qid, {}),
+         "handoff": "counter_instability_disclosure" not in (handoff_by_qid.get(qid) or {})}
+        for qid in qids
+    ]
+    out = [_pass_or_fail(
+        bool(qids) and not any(m["disclosures"] or m["handoff"] for m in missing),
+        "the run-to-run counter-instability disclosure is published beside the "
+        "coverage-gap disclosure on every bundle (disclosures.json AND handoff.json)",
+        {"qids": qids, "missing": missing,
+         "disclosure_code": por.COUNTER_INSTABILITY_DISCLOSURE_CODE},
+        "product/packet_of_record.py::counter_instability_disclosure "
+        "(direction v61 ordered work (3))")]
+
+    check = por.check(packet_dir)
+    out.append(_pass_or_fail(
+        bool(check.get("ok")),
+        "the committed disclosure layer re-derives from the committed bytes",
+        {"ok": check.get("ok"), "mismatches": check.get("mismatches"),
+         "checked_at": check.get("checked_at")},
+        "product/packet_of_record.py::check"))
+
+    blocks = [(disclosures.get("per_bundle") or {}).get(qid, {})
+              .get("counter_instability_disclosure") or {} for qid in qids]
+    disclosure_only = bool(blocks) and all(
+        b.get("disclosure_only") is True
+        and b.get("measurement_rederived_by_product") is False
+        and b.get("threshold_touched") is False
+        and b.get("threshold_or_bar_edits") == []
+        for b in blocks)
+    frozen = (
+        por.MEGA_CLUSTER_SHARE == 0.5
+        and por.FROZEN_GEOMETRY_RULES_SHA256 ==
+        "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633"
+        and hashlib.sha256((packet_dir / "packet.json").read_bytes()).hexdigest()
+        == cid.PACKET_JSON_RAW_SHA256)
+    out.append(_pass_or_fail(
+        disclosure_only and frozen,
+        "the disclosure is disclosure-only: no measurement re-derived, no "
+        "threshold/bar/rubric touched, frozen geometry constants and the "
+        "packet's scored bytes unchanged",
+        {"blocks": len(blocks), "disclosure_only": disclosure_only,
+         "frozen_constants_and_scored_bytes": frozen,
+         "mega_cluster_share": por.MEGA_CLUSTER_SHARE},
+        "product/packet_of_record.py::counter_instability_disclosure + "
+        "product/tests/test_counter_instability_disclosure.py::"
+        "test_disclosure_only_no_measurement_and_no_threshold"))
+
+    artifact_ok, artifact_observed = False, {"artifact": _repo_relative(artifact)}
+    if not artifact.is_file():
+        artifact_observed["error"] = "missing"
+    else:
+        try:
+            res = cid.check_artifact()
+            artifact_observed["recheck"] = {
+                "ok": res.get("ok"), "mismatches": res.get("mismatches"),
+                "artifact": res.get("artifact")}
+            artifact_ok = bool(res.get("ok")) and \
+                res.get("artifact") == _repo_relative(artifact)
+        except Exception as exc:  # a broken re-derivation is a FAIL, never a pass
+            artifact_observed["error"] = f"{type(exc).__name__}: {exc}"
+        try:
+            art = json.loads(artifact.read_text(encoding="utf-8"))
+            artifact_observed.update({
+                "run_id": art.get("run_id"), "direction_version": art.get("direction_version"),
+                "packet_check": (art.get("packet_of_record_check") or {}).get("ok"),
+                "disclosure_only": (art.get("scope") or {}).get("disclosure_only"),
+                "threshold_touched": (art.get("scope") or {}).get("threshold_touched"),
+            })
+            artifact_ok = artifact_ok and art.get("run_id") == 39422322667 \
+                and art.get("direction_version") == 61 \
+                and (art.get("scope") or {}).get("threshold_touched") is False
+        except (OSError, json.JSONDecodeError) as exc:
+            artifact_ok = False
+            artifact_observed["error"] = repr(exc)
+    out.append(_pass_or_fail(
+        artifact_ok,
+        "the cycle artifact reproduces from the committed packet bytes and names "
+        "the run and direction version it belongs to",
+        artifact_observed,
+        "product/counter_instability_disclosure.py::check_artifact"))
+
+    # provenance: the pinned accepted-state digest re-derives from git history
+    src = por.load_counter_instability_source().get("source") or {}
+    pin_commit = src.get("pin_commit") or ""
+    proc = subprocess.run(
+        ["git", "-C", str(REPO_ROOT), "show",
+         f"{pin_commit}:results/accepted-state/evaluation.json"],
+        capture_output=True, timeout=60, check=False) if pin_commit else None
+    if proc is None or proc.returncode != 0 or not proc.stdout:
+        out.append(_fail(
+            "the pinned accepted Evaluation digest re-derives from the pin commit",
+            {"pin_commit": pin_commit, "why": "git show failed or no pin commit "
+             "declared - provenance is unverifiable in this checkout"}))
+    else:
+        digest = hashlib.sha256(proc.stdout).hexdigest()
+        out.append(_pass_or_fail(
+            digest == src.get("file_sha256_at_pin")
+            == por.COUNTER_INSTABILITY_ACCEPTED_EVALUATION_SHA256_AT_PIN,
+            "the pinned accepted Evaluation digest re-derives from the pin commit "
+            "and matches both the vendored copy and the code constant",
+            {"pin_commit": pin_commit, "rederived": digest,
+             "declared": src.get("file_sha256_at_pin"),
+             "code_constant": por.COUNTER_INSTABILITY_ACCEPTED_EVALUATION_SHA256_AT_PIN,
+             "evidence": (src.get("measurement_of_record") or {}).get("evidence_path")},
+            "product/data/eval_open_items/ACCEPTED_EVALUATION_OPEN_ITEMS_5_6.json::source"))
+
+    admission = (packet.get("packet_admission") or {})
+    out.append(_pass_or_fail(
+        bool(packet.get("packet_admission_blocked"))
+        and admission.get("packet_admitted") is False
+        and packet.get("ready_for_owner_session") is False,
+        "the disclosure changed no admission flag: the packet stays blocked and "
+        "unready for an owner session",
+        {"packet_admission_blocked": packet.get("packet_admission_blocked"),
+         "packet_admitted": admission.get("packet_admitted"),
+         "ready_for_owner_session": packet.get("ready_for_owner_session")},
+        "direction v56 fail-closed posture (disclosures never raise a gate)"))
+    return out
+
+
 def _run_id_of(name: Any) -> int | None:
     """The run id embedded in a ``CYCLE_<id>_...``-style name, or given as a number."""
     if isinstance(name, int):
@@ -1341,6 +1494,7 @@ CHECKS: dict[str, Callable[[], list[dict]]] = {
     "guards": check_committed_guards,
     "handoff": check_v57_handoffs,
     "live_slice_stages": check_live_slice_stage_disclosure,
+    "counter_instability": check_counter_instability_disclosure,
     "scope": check_git_scope,
 }
 
