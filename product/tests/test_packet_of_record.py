@@ -122,7 +122,12 @@ def test_geometry_rescore_reproduces_and_preserves_the_accepted_fail():
     for qid in _qids():
         recorded = disc["per_bundle"][qid]["geometry_rescore"]
         fresh = por.geometry_rescore(_bundle(qid), qid)
-        assert json.dumps(recorded, sort_keys=True) == json.dumps(fresh, sort_keys=True)
+        # BLAS-scoped float values: host-independent reproduction with the
+        # disclosed tolerance; counts/labels/booleans remain exact inside the
+        # comparison (see por.GEOMETRY_VALUE_TOLERANCE).
+        assert por.geometry_values_equal(recorded, fresh), (
+            f"{qid}: geometry_rescore does not reproduce within the disclosed "
+            f"environment-scoped tolerance")
         # accepted FAIL is reported side by side, verbatim
         assert recorded["accepted_fail_preserved"]["team_run_id"] == 38846038296
         assert recorded["accepted_fail_preserved"]["accept_commit"] == "15362f6"
