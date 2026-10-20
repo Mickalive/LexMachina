@@ -41,15 +41,15 @@ if str(_BAR_DIR.parent.parent) not in sys.path:
 from evaluation.frozen_bars import geometry_gate, label_gate, verdict_contract  # noqa: E402
 
 SERVED_PACKET_DIR = Path(
-    "/tmp/lex_accepted/product/results/product/gate_packet/38839347028/questions"
+    "/tmp/lex_accepted/product/results/product/gate_packet/39319405429/questions"
 )
 QIDS = ("de-kapitalverletzung", "fr-bail-entretien", "it-responsabilita-medica")
 
-# Served-bundle input identity, as recorded in the accepted LABEL_HALF.json.
+# Served-bundle input identity, as recorded in the accepted LABEL_HALF for V3 packet.
 EXPECTED_BUNDLE_SHA256 = {
-    "de-kapitalverletzung": "2441ff2b16722afcd22dca9ad39eafcbeb079b2dfc367d763fbe53fce1356f9c",
-    "fr-bail-entretien": "6c5ea31d4b9af4abfa39e9f8025cfa3d34279ff1f04d0f643e571e27b23a2618",
-    "it-responsabilita-medica": "76e7f7ad998f3878e7b08635663e2d594a7a77bdaeb33bcf5fa52d0af00b7aff",
+    "de-kapitalverletzung": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
+    "fr-bail-entretien": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
+    "it-responsabilita-medica": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b",
 }
 
 # Accepted GEOMETRY_HALF.json per-criterion pass/fail oracle (33 cells).
