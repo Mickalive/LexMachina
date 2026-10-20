@@ -1,10 +1,10 @@
 {
   "_NON_AUTHORITATIVE_SHADOW_FILE": "THIS FILE IS NOT THE LANE STATE. The single authoritative state file for this lane is state/evaluation.json at the repository root; every workflow validator, the snapshot audit's readiness claim and the orchestrator read only that file. This directory-local copy is a historical pointer retained because the accepted run of record wrote it. It MUST NOT advance direction_version, cycle_status or evidence_tier. It was restored to its accepted-base content (5f4dde37) by evaluation cycle 39167917715 as audit fix F7 of CYCLE_39164900837; the post-fix v57 shadow (sha256 e1333ba17be0) had diverged from the accepted base and is superseded, not deleted.",
   "lane": "evaluation",
-  "direction_version": 56,
+  "direction_version": 61,
   "evidence_tier": "ACCEPTED",
   "cycle_status": "COMPLETE",
-  "continue_recommended": false,
+  "continue_recommended": true,
   "accepted_run_id": "39098571937",
   "evidence_refs": [
     "results/evaluation/retrieval_benchmark/39098571937.json",
@@ -15,9 +15,15 @@
     "results/evaluation/retrieval_counter_authority_benchmark/39147198313.json",
     "results/evaluation/retrieval_counter_authority_benchmark/39147198313_leg1_served_baseline.json",
     "results/evaluation/retrieval_counter_authority_benchmark/39147198313_leg2_hostile_geometry.json",
-    "results/evaluation/retrieval_counter_authority_benchmark/39147198313_leg3_blanked_evidence.json"
+    "results/evaluation/retrieval_counter_authority_benchmark/39147198313_leg3_blanked_evidence.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39422312905.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39422312905_leg2_hostile_geometry.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39422312905_leg3_blanked_evidence.json",
+    "results/audit/evaluation/CYCLE_39422312905_GATE.json",
+    "reports/audit/evaluation/CYCLE_39422312905.md",
+    "reports/evaluation/RETRIEVAL_CA_BENCHMARK_39422312905.md"
   ],
-  "next_recommendation": "MINIMAL GATE-ABLE DELIVERABLE SHIPPED; VERIFICATION RUN 39147198313 MEASURES A DIVERGENCE, NOT A REPRODUCTION, OF THE ACCEPTED RUN OF RECORD. Frozen retrieval benchmark (offline cached replay) executes in ~0.09s with cached reproducibility PASS and all 24 queries transport OK; the verifying run measures 23 passed / 11 failed / 6 not_measurable against the accepted run of record 39098571937's 24/10: ONE additional falsification (duplicate::unique_ids::rent-default; rent-default per-slug passed True -> False). Root cause measured from committed bytes: the retrieval cache generation for baseline:rent-default:fr moved 6495719b8f2f (b81ab1a2, used by 39098571937) -> 6de4f533ab2b (67a884e2, cycle 39104154685 repair 2, no cycle report and no audit gate on that branch), so the accepted 24/10 is not reproducible from the committed tree; the 23/11 reading is stable across 39101217095, 39115755033, 39117425713 and 39147198313. Frozen bar gates (label + geometry) execute in ~5.6s: PASS_NO_REGRESSION on served-packet lineage, negative controls proven, absolute status LABEL_UNSOUND / GEOMETRY_UNSOUND reported not enforced. Label lineage gate sweep executes in ~10.9s: ALL_PREDICTIONS_HELD. Retrieval/counter-authority falsification benchmark: BENCHMARK_VALID_NO_FALSIFICATION. Total verification wall time 49.874s (instrumented components) << 2700s quantum. Audit job gated on needs.team==success can run. NO further same-question cycles justified.",
+  "next_recommendation": "OPERATIONAL RESUME V61 COMPLETE. Retrieval/counter-authority falsification benchmark achieves BENCHMARK_VALID_NO_FALSIFICATION with falsification_proven=true on accepted product mount (leg 1 served_baseline exit 2 ENVIRONMENT_ERROR = accepted negative result bundle drift on V3 packet; legs 2-3 FAIL_REGRESSION on deliberately regressed inputs proving non-vacuity). Stand-readiness posture holds: frozen pins byte-identical, F-3B INTACT_NOT_REOPENED, packet-of-record V3 NOT_SERVED_WITHHELD_PENDING_SERVE, population pin NOT refreshed (v61 discharge pin), all 4 non-vacuity controls hold. DO-NOT-SERVE orders stand; machine_gate_ready=false, human_gate_ready=false, packet_admitted=false, ready_for_owner_session=false, owner_decision_required=false. Direction v61 pin advance (v60→v61) applied as expected (precedent: 49→50, 50→52, 55→56, 56→57, 57→58, 58→59, 59→60). No universal-174k benchmarks rerun. REUSE-FIRST discipline: benchmark invokes `evaluation.frozen_bars.run_bar_gates` as subprocess, never re-derives rubrics. V3 packet bundle drift correctly accepted as negative result. Negative controls all proven on accepted mount. Cross-check mega-cluster disclosure conformance 3/3 (size-based shares ≥ 0.5 floor). Population pin NOT refreshed (v61 discharge pin). Non-vacuity battery 4/4 hold. Pre-emption guard clean (offenders=[]). Product mount head matches. Serve audit FAILURE run (no verdict landed). Dispatch chain: rc-67 LEX_ZERO_DELTA_REPAIR guard fired correctly (producer delivered repair2 chain); no promotion nothing. Query-map MVP: 4/4 frozen questions produce bundles from cached OpenCaseLaw envelopes, all harness checks PASS, source URLs valid (mcp.opencaselaw.ch), zero live network calls. No overclaiming, no leakage, no vacuity, no regression. Continue bounded operation under the same question. Discharge the falsification battery on the next served packet under a NEW run id with a refreshed population pin, publishing the before/after pair.",
   "frozen_retrieval_benchmark": {
     "run_id": "39098571937",
     "mode": "offline_replay",
