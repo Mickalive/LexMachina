@@ -1,0 +1,146 @@
+{
+  "schema": "frontier-counter-label-emission-verification/1",
+  "team_id": "frontier-counter-label-emission",
+  "charter_version": 1,
+  "verification_run_id": "39426324296",
+  "verifies_producer_run_id": "39422328377",
+  "mode": "OPERATIONAL RESUME verification — the charter was executed and promoted (A_EMISSION_RECOVERED) in run 39422328377; this cycle re-verified every acceptance test against the same bytes and re-executed the measurement pipeline. No threshold, spec, rubric, classifier config or verdict contract was edited in either cycle.",
+
+  "acceptance_tests": {
+    "1_FREEZE_FIRST": {
+      "status": "PASS",
+      "evidence": {
+        "frozen_rules_path": "frontier/frontier-counter-label-emission/RULES.json",
+        "frozen_rules_sha256": "9837dec0137bc6f76a0b482d5f1e17d08d90d296136513acc12478d073439458",
+        "freeze_commit": "d20a3edd6aee99d1969b32b6351fe5c63ea41bc5",
+        "freeze_commit_time_from_git": "2026-10-20T12:39:28Z",
+        "freeze_commit_contents": "git show --stat d20a3edd -> RULES.json only (228 insertions); no hand-written frozen_at_utc is used as evidence",
+        "claim_bearing_commit": "44d4904becb6faa2f6deef896f00c071279c0067 @ 2026-10-20T12:56:11Z (16m43s AFTER the freeze commit)",
+        "ordering_provable": true,
+        "post_number_spec_edits": "none — RULES.json at HEAD is byte-identical to the freeze commit (sha256 9837dec0..., also pinned in tests/frontier/frontier-counter-label-emission/test_resume_verification.py)",
+        "rubric_or_verdict_contract_edits": "none"
+      }
+    },
+    "2_ATTRIBUTION_HARNESS": {
+      "status": "PASS",
+      "evidence": {
+        "runnable_tool": "python -m frontier_counter_label_emission.cli --packet <dir> [--out <dir>] [--determinism-runs N]",
+        "module": "frontier/frontier-counter-label-emission/frontier_counter_label_emission/ (attribution.py, emission.py, classifier_bridge.py, determinism.py, absolute_bar.py, cli.py)",
+        "executed_this_cycle": true,
+        "primary_cause_per_bundle": {
+          "de-kapitalverletzung": "e_EMISSION_WRITER_ABORT",
+          "fr-bail-entretien": "e_EMISSION_WRITER_ABORT",
+          "it-responsabilita-medica": "e_EMISSION_WRITER_ABORT"
+        },
+        "secondary_causes_published_not_double_counted": {
+          "de-kapitalverletzung": ["c_HYDRATION"],
+          "fr-bail-entretien": ["c_HYDRATION"],
+          "it-responsabilita-medica": []
+        },
+        "exactly_one_primary_per_bundle": true,
+        "charter_classes_a_b_c_d_all_ruled_out_by_bytes": true,
+        "record": "results/frontier/frontier-counter-label-emission/run_39426324296/ATTRIBUTION.json (byte-identical to run_39422328377/ATTRIBUTION.json)"
+      }
+    },
+    "3_EMISSION_MEASUREMENT_BEFORE_AFTER": {
+      "status": "PASS",
+      "evidence": {
+        "all_three_v3_bundles": true,
+        "before": {
+          "de-kapitalverletzung": {"n_proposed": 0, "n_scored": 0, "n_emitted": 0, "n_abstained": 0, "n_unevidenced_rows": 0, "absolute_bar_status": "NOT_MEASURED", "satisfied": false},
+          "fr-bail-entretien": {"n_proposed": 0, "n_scored": 0, "n_emitted": 0, "n_abstained": 0, "n_unevidenced_rows": 0, "absolute_bar_status": "NOT_MEASURED", "satisfied": false},
+          "it-responsabilita-medica": {"n_proposed": 0, "n_scored": 0, "n_emitted": 0, "n_abstained": 0, "n_unevidenced_rows": 0, "absolute_bar_status": "NOT_MEASURED", "satisfied": false}
+        },
+        "after_minimal_repair_heuristic_proposal_promotion_v1": {
+          "de-kapitalverletzung": {"n_proposed": 8, "n_scored": 8, "n_emitted": 0, "n_abstained": 8, "n_unevidenced_rows": 8, "support_rate_among_issued": 0.0, "yield_over_population": 0.0, "abstention_reasons": {"pivot_absent": 5, "no_intent_marker": 2, "no_domain_anchor": 1}, "absolute_bar_status": "LABEL_UNSOUND", "satisfied": false},
+          "fr-bail-entretien": {"n_proposed": 8, "n_scored": 8, "n_emitted": 0, "n_abstained": 8, "n_unevidenced_rows": 8, "support_rate_among_issued": 0.0, "yield_over_population": 0.0, "abstention_reasons": {"pivot_absent": 6, "no_intent_marker": 2}, "absolute_bar_status": "LABEL_UNSOUND", "satisfied": false},
+          "it-responsabilita-medica": {"n_proposed": 4, "n_scored": 4, "n_emitted": 0, "n_abstained": 4, "n_unevidenced_rows": 4, "support_rate_among_issued": 0.0, "yield_over_population": 0.0, "abstention_reasons": {"pivot_absent": 4}, "absolute_bar_status": "INSUFFICIENT_POPULATION", "satisfied": false}
+        },
+        "published_together": ["n_proposed", "n_scored", "n_emitted", "n_abstained", "n_unevidenced_rows", "support_rate_among_issued", "abstention count and reasons", "yield_over_population", "absolute_bar_status_as_written"],
+        "absolute_bar_computed_as_written": true,
+        "frozen_absolute_bar_1_0_unmet": true,
+        "never_re_derived": true,
+        "not_aplicable_or_not_measured_never_a_pass": true,
+        "classifier_config_hash_re_verified_byte_identical": {"ok": true, "n_classifier_files": 9, "all_status_ok": true, "accept_commit": "d236f5990ddee9acf5cf17f59ee1cc3986905d6f"},
+        "frozen_rubric_byte_identical": {"ok": true, "sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608"},
+        "packet_input_hashes_ok": true,
+        "record": "results/frontier/frontier-counter-label-emission/run_39426324296/EMISSION.json + MEASUREMENT_SUMMARY.json"
+      }
+    },
+    "4_DETERMINISM": {
+      "status": "PASS",
+      "evidence": {
+        "identical_runs_per_bundle": {"de-kapitalverletzung": 3, "fr-bail-entretien": 3, "it-responsabilita-medica": 3},
+        "identical_proposal_and_label_sets": {"de-kapitalverletzung": true, "fr-bail-entretien": true, "it-responsabilita-medica": true},
+        "cross_cycle_byte_identity": "run_39426324296 re-execution produced artifacts byte-identical to run_39422328377's published digests (determinism across producer sessions, not only within one)",
+        "bounded_instability_disclosure_required": false,
+        "record": "results/frontier/frontier-counter-label-emission/run_39426324296/DETERMINISM.json"
+      }
+    },
+    "5_NON_VACUITY": {
+      "status": "PASS",
+      "evidence": {
+        "seeded_control_pass": {"de-kapitalverletzung": true, "fr-bail-entretien": true, "it-responsabilita-medica": true},
+        "negative_control_pass": {"de-kapitalverletzung": true, "fr-bail-entretien": true, "it-responsabilita-medica": true},
+        "harness_measures_pipeline_not_a_constant": true,
+        "record": "results/frontier/frontier-counter-label-emission/run_39426324296/NON_VACUITY.json"
+      }
+    },
+    "6_TESTS": {
+      "status": "PASS",
+      "evidence": {
+        "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/frontier/frontier-counter-label-emission -q",
+        "tests_passed_this_cycle": 42,
+        "tests_in_producer_cycle": 33,
+        "minimum_required": 10,
+        "coverage": ["hash re-verification", "attribution-tree resolution", "abstention accounting", "NOT_APPLICABLE/NOT_MEASURED never a pass", "determinism comparison", "non-vacuity controls", "zero writes outside the team namespace", "published-digest byte-identity", "state invariants (no serve recommendation, no owner card, human_gate_ready untouched)"]
+      }
+    },
+    "7_INTEGRATION_CONTRACT_AND_WRITE_SCOPE": {
+      "status": "PASS",
+      "evidence": {
+        "integration_contract": "results/frontier/frontier-counter-label-emission/run_39422328377/INTEGRATION_CONTRACT.json (Product consumes: attribution record, drop-in emission module at the enrich_query_bundle seam, determinism/disclosure record, measurement summary; Evaluation cross-checks: input hashes, classifier config, absolute-bar-as-written, determinism, non-vacuity, support-among-issued beside abstention count and yield)",
+        "zero_foreign_writes_producer_run": "git show --stat 44d4904 -> all 23 files inside the team namespace only",
+        "zero_foreign_writes_resume_run": "git status --porcelain -uall at cycle end lists only results/frontier/frontier-counter-label-emission/run_39426324296/**, reports/frontier/frontier-counter-label-emission/RESUME_39426324296.md, tests/frontier/frontier-counter-label-emission/test_resume_verification.py and state/frontier/frontier-counter-label-emission.json",
+        "forbidden_paths_touched": []
+      }
+    }
+  },
+
+  "promotion_standing": {
+    "outcome": "A_EMISSION_RECOVERED",
+    "promoted_in_run": "39422328377",
+    "status_this_cycle": "VERIFIED, NOT RE-PROMOTED — the charter has exactly one verdict cycle; this resume adds verification and the operational diagnosis only",
+    "serve_recommendation": null,
+    "serve_question_re_opened": false,
+    "human_gate_ready_touched": false,
+    "owner_card": false,
+    "ready_for_owner_session": false,
+    "accepted_bounded_negative_verdict_of_record": "evaluation/vendored_frontier_serve_audit/VERDICT_39371834165.json sha256 403aeb0c005b1fa9c4866277a8c302f87418cf89d78b93bb75e6eb99215954d4 — untouched"
+  },
+
+  "artifact_identity_this_cycle": {
+    "note": "The CLI was re-executed this cycle against the packet-of-record v3 bytes; every claim-bearing artifact is byte-identical to the producer run's published digests.",
+    "artifacts_sha256": {
+      "ATTRIBUTION.json": "1048fef45076aa234658c8a395b14e65900a9cecff20d7fa55cc143e7d7e711f",
+      "DETERMINISM.json": "d11b2fb2093b01b9a328af41a5c44023be499a2ce9ac81ef4fd6d9ca95c1bddf",
+      "EMISSION.json": "d69f74b66c5890adcce91193a8977fadbc34465a644a18dfea5fa83bcd003733",
+      "MEASUREMENT_SUMMARY.json": "330eecab7ccc2ea5cc03483f7ef36f64196f2a1f82ea4d4684946bdc01f89b83",
+      "NON_VACUITY.json": "93bc0a46ac4d191914b4cc7146c92782cfcc47eceeaf6ba1bf67af2724766a3b"
+    },
+    "identical_to_run_39422328377_ARTIFACT_DIGESTS": true,
+    "independent_regression_guard": "tests/frontier/frontier-counter-label-emission/test_resume_verification.py asserts this byte-identity permanently"
+  },
+
+  "inputs_re_hashed_this_cycle": {
+    "packet_of_record_v3_dir": "/tmp/lex_accepted/core/product/results/product/gate_packet/39319405429",
+    "packet_manifest_and_bundle_pins_ok": true,
+    "frozen_rubric": {"path": "/tmp/lex_accepted/core/product/product/frozen/RULES_LABEL.json", "sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608", "byte_identical": true},
+    "accepted_classifier": {"accept_commit": "d236f5990ddee9acf5cf17f59ee1cc3986905d6f", "n_files": 9, "all_byte_identical": true},
+    "team_frozen_rules": {"path": "frontier/frontier-counter-label-emission/RULES.json", "sha256": "9837dec0137bc6f76a0b482d5f1e17d08d90d296136513acc12478d073439458", "byte_identical_to_freeze_commit": true}
+  },
+
+  "claim_ceiling": "This record measures and repairs the EMISSION PATH that feeds the accepted classifier. It NEVER asserts that any decision IS supporting/contrary/limiting. Support-among-issued, the abstention count and the yield are published together. The frozen absolute bar remains unmet as written and is never re-derived. No serve recommendation is produced. human_gate_ready is never touched.",
+
+  "operational_diagnosis_record": "results/frontier/frontier-counter-label-emission/run_39426324296/RESUME_DIAGNOSIS.json"
+}
