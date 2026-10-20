@@ -28,6 +28,7 @@ from .adversarial_retrieval import (
     plan_adversarial_queries,
 )
 from .counter_anchor import apply_anchor_labels
+from .counter_emission_repair import apply_counter_emission_repair
 from . import concept_seed
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -970,6 +971,21 @@ def enrich_query_bundle(
             fixture_mode=fixture_generation,
             fixture_findings=fixture_findings,
         )
+
+    # Adopted Frontier component (frontier-counter-label-emission, Outcome A,
+    # audit CYCLE_39426324296 gate=PASS, repair heuristic_proposal_promotion_v1):
+    # promote the adversarial stage's own gate-passed heuristic proposals into
+    # the scored fields so the accepted classifier below can confirm-or-abstain
+    # on them.  Measured on the packet-of-record v3 bundles: n_scored 0/0/0 ->
+    # 8/8/4 (deterministic, 3 identical runs).  This is the emission-path repair
+    # the accepted BOUNDED-NEGATIVE verdict's bounded cause #1 named.  It is a
+    # pure function of the bundle bytes; it never touches geometry, ranks,
+    # clusters, relations or an already-scored row, and it never asserts that
+    # any decision IS supporting/contrary/limiting.  Placed exactly where the
+    # accepted INTEGRATION_CONTRACT names: between adversarial_retrieval_pass()
+    # and apply_anchor_labels().
+    if not fixture_generation and adversarial_retrieval:
+        audited = apply_counter_emission_repair(audited)
 
     # Adopted Frontier component (frontier-counter-anchor-classifier, Outcome A,
     # accept d236f5990): confirm-or-abstain on the counter labels the
