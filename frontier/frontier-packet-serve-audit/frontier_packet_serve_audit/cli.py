@@ -49,7 +49,8 @@ def _load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def run_audit(packet_dir: Path, frozen_rules_dir: Path, eval_mount: Path, product_mount: Path) -> dict:
+def run_audit(packet_dir: Path, frozen_rules_dir: Path, eval_mount: Path, product_mount: Path,
+              run_id: str = "39355384602") -> dict:
     t0 = time.time()
     # ---- input identity (re-hash before any scoring) --------------------
     packet_json = packet_dir / "packet.json"
@@ -118,7 +119,7 @@ def run_audit(packet_dir: Path, frozen_rules_dir: Path, eval_mount: Path, produc
         "schema": "frontier-packet-serve-audit/1",
         "team_id": "frontier-packet-serve-audit",
         "charter_version": 1,
-        "charter_run_id": "39355384602",
+        "charter_run_id": run_id,
         "packet_dir": str(packet_dir),
         "input_identity": {
             "packet_json_sha256": packet_sha,
@@ -183,11 +184,15 @@ def main(argv=None) -> int:
     ap.add_argument("--eval-mount", default="/tmp/lex_accepted/core/evaluation")
     ap.add_argument("--product-mount", default="/tmp/lex_accepted/core/product")
     ap.add_argument("--out", default=None, help="write the verdict record to this path")
+    ap.add_argument("--run-id", default="39355384602",
+                    help="charter run id embedded in the verdict record "
+                         "(default 39355384602 reproduces the original run byte-identically)")
     args = ap.parse_args(argv)
 
     packet_dir = Path(args.packet)
     frozen_rules_dir = Path(args.frozen_rules)
-    record, elapsed = run_audit(packet_dir, frozen_rules_dir, Path(args.eval_mount), Path(args.product_mount))
+    record, elapsed = run_audit(packet_dir, frozen_rules_dir, Path(args.eval_mount), Path(args.product_mount),
+                                run_id=args.run_id)
     print(f"# audit completed in {elapsed}s (wall-clock, not part of the record)", file=sys.stderr)
 
     text = json.dumps(record, indent=1, ensure_ascii=False)

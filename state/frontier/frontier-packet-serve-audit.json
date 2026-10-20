@@ -5,7 +5,7 @@
   "promotion_status": "PROMOTED",
   "verdict": "BOUNDED-NEGATIVE",
   "continue_recommended": false,
-  "completed_at": "2026-10-20T03:10:00Z",
+  "completed_at": "2026-10-20T03:35:00Z",
   "run_history": [
     {
       "run_id": "39355384602",
@@ -37,12 +37,26 @@
       "completed_at": "2026-10-20T03:18:35Z",
       "verdict": "BOUNDED-NEGATIVE",
       "report_path": "results/frontier/frontier-packet-serve-audit/audit_report_39362948819.json",
-      "verdict_path": "results/frontier/frontier-packet-serve-audit/VERDICT_39355384602.json",
-      "narrative_path": "reports/frontier/frontier-packet-serve-audit/REPORT_39355384602.md",
+      "verdict_path": "results/frontier/frontier-packet-serve-audit/VERDICT_39362948819.json",
+      "narrative_path": "reports/frontier/frontier-packet-serve-audit/REPORT_39362948819.md",
       "frozen_rules_path": "results/frontier/frontier-packet-serve-audit/RULES.json",
-      "operational_failure": "none recurring: snapshot 39362006002 carries the corrected state from commit a5dc16d (run 39359987809 resume); the original state-before-artifact write-ordering failure (state claimed COMPLETED/PROMOTED referencing audit_report_39359987809.json before that artifact was written) did NOT recur - every path referenced in state exists in git HEAD",
+      "operational_failure": "provenance mislabeling (same defect class as run 39359987809, different manifestation): this run's state entry referenced verdict_path VERDICT_39355384602.json and narrative_path REPORT_39355384602.md - ANOTHER RUN's artifacts - while this run's own VERDICT_39362948819.json and REPORT_39362948819.md were never written; the measurement artifact audit_report_39362948819.json existed and was valid. Root cause: hardcoded charter_run_id in the team CLI forced post-hoc relabeling. Corrected by run 39363768044 via back-fill; every state-referenced path now exists AND belongs to the run it describes.",
       "operational_resume": "verification-only resume: packet-of-record v3 bytes re-hashed on origin/lab/product (packet.json 32ac8126..., manifest 8ea3c92d... match charter); frozen RULES re-hashed (RULES_LABEL 4457e971..., RULES_GEOMETRY a7452748..., VERDICT_CONTRACT b9cdb894... unchanged); harness re-executed offline on frozen inputs - output byte-identical to run 39355384602 modulo generated_at wall-clock label; 30/30 deterministic tests pass; verdict unchanged BOUNDED-NEGATIVE; zero out-of-namespace writes (working tree clean)",
-      "resumed_by_run": "operational-resume (snapshot 39362006002 @ a5dc16d)"
+      "resumed_by_run": "operational-resume (snapshot 39362006002 @ a5dc16d)",
+      "provenance_backfill_by_run": "39363768044"
+    },
+    {
+      "run_id": "39363768044",
+      "started_at": "2026-10-20T03:30:00Z",
+      "completed_at": "2026-10-20T03:35:00Z",
+      "verdict": "BOUNDED-NEGATIVE",
+      "report_path": "results/frontier/frontier-packet-serve-audit/audit_report_39363768044.json",
+      "verdict_path": "results/frontier/frontier-packet-serve-audit/VERDICT_39363768044.json",
+      "narrative_path": "reports/frontier/frontier-packet-serve-audit/REPORT_39363768044.md",
+      "frozen_rules_path": "results/frontier/frontier-packet-serve-audit/RULES.json",
+      "operational_failure": "none recurring: the run-39362948819 provenance mislabeling (state pointed at another run's verdict/narrative; its own never written) was diagnosed and corrected in this run - VERDICT_39362948819.json and REPORT_39362948819.md back-filled, state paths corrected, harness hardened with --run-id (default 39355384602 reproduces the original verdict byte-identically, proven by diff). Every path referenced in state now exists in git HEAD AND belongs to the run it describes.",
+      "operational_resume": "full re-verification: packet bytes re-hashed on origin/lab/product tip fc908bd (packet.json 32ac8126..., manifest 8ea3c92d... match charter; bundles 185/182/179 decisions, content_sha256 unchanged); frozen rules re-hashed unchanged; both harnesses re-executed offline on frozen inputs - team-harness output byte-identical to VERDICT_39355384602.json (default run-id), root-harness output byte-identical to audit_report.json; 30/30 deterministic tests pass; verdict unchanged BOUNDED-NEGATIVE; zero out-of-scope writes",
+      "resumed_by_run": "operational-resume (snapshot 39362948819 @ a93bf07)"
     }
   ],
   "summary": {
@@ -100,5 +114,14 @@
       "human_gate_ready": false
     }
   },
-  "integration_contract": "reports/frontier/frontier-packet-serve-audit/INTEGRATION_CONTRACT.md"
+  "integration_contract": "reports/frontier/frontier-packet-serve-audit/INTEGRATION_CONTRACT.md",
+  "hazards": [
+    {
+      "id": "stale-root-package-shadow",
+      "severity": "medium",
+      "description": "A stale duplicate package at repo root (frontier_packet_serve_audit/, an earlier minimal harness with a different condensed-report implementation) shadows the team-namespace package of the same import name when python -m frontier_packet_serve_audit.cli is run from the repo root. It produces a different, non-verdict report and must not be consumed as the serve verdict. Removal is a repo-root write outside this team's lane; recorded for the director.",
+      "detected_by_run": "39363768044"
+    }
+  ],
+  "continue_recommended_justification": "false: the charter HARD STOP limits this team to exactly ONE verdict cycle on the packet-of-record v3 bytes; the bytes are unchanged (32ac8126... re-verified at accepted tip fc908bd), the verdict BOUNDED-NEGATIVE is promoted, and any packet rebuild or repair is a NEW charter against NEW bytes - never a continuation of this one."
 }
