@@ -1,0 +1,149 @@
+{
+ "schema": "lex-evaluation-frozen-bar-gates/1",
+ "rules_label_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+ "rules_geometry_sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+ "packet_dir": "/tmp/ca_bench_geom_c026_txa/hostile_geometry",
+ "input_bundle_sha256": {
+  "de-kapitalverletzung": "4124133f7c810548bf3035d1f85f9f0208f291195ed90850221e35d2e9e5ed24",
+  "fr-bail-entretien": "53bcc8120e21078e91b8e77e042dfb3d65b91b2ce9e197186f9f02b34862d445",
+  "it-responsabilita-medica": "ea92d81f53bb34e46c0e896b57c57a54fc277e1217672f93e45a2ffd7fbd2931"
+ },
+ "input_sha_matches_accepted_label_half": {
+  "de-kapitalverletzung": false,
+  "fr-bail-entretien": false,
+  "it-responsabilita-medica": false
+ },
+ "mode": "adjudicate",
+ "served_byte_pin": "not_applicable_in_adjudicate_mode",
+ "engine_oracle_check": "served_lineage_only",
+ "label_gate": {
+  "n_scored": 65,
+  "n_supported": 5,
+  "support_rate": 0.07692307692307693,
+  "classes": {
+   "OFF-DOMAIN": 38,
+   "UNBACKED": 22,
+   "SUPPORTED": 5
+  },
+  "incumbent": {
+   "n_scored": 65,
+   "n_supported": 5,
+   "classes": {
+    "OFF-DOMAIN": 38,
+    "UNBACKED": 22,
+    "SUPPORTED": 5,
+    "INVERTED": 0
+   }
+  },
+  "recomputed_matches_incumbent": true,
+  "absolute_status": "LABEL_UNSOUND",
+  "absolute_enforced": false,
+  "regression_verdict": "PASS_NO_REGRESSION",
+  "gate_blocks_build": false,
+  "non_vacuity_injection": {
+   "n_cases": 7,
+   "n_cases_pass": 7,
+   "proven_non_vacuous": true
+  },
+  "negative_control_blanked_evidence": {
+   "n_scored": 65,
+   "n_supported": 0,
+   "regression_verdict": "FAIL_REGRESSION",
+   "gate_blocks_build": true
+  },
+  "negative_control_proven": true
+ },
+ "geometry_gate": {
+  "per_bundle_counts": {
+   "de-kapitalverletzung": 4,
+   "fr-bail-entretien": 4,
+   "it-responsabilita-medica": 5
+  },
+  "incumbent_counts": {
+   "de-kapitalverletzung": 6,
+   "fr-bail-entretien": 5,
+   "it-responsabilita-medica": 5
+  },
+  "recomputed_counts_match_incumbent": false,
+  "engine_oracle_verdict_cells_match": "22/33",
+  "engine_oracle_diverged": true,
+  "absolute_status": "GEOMETRY_UNSOUND",
+  "n_bundles_pass_all_11": 0,
+  "absolute_enforced": false,
+  "regression_verdict": "FAIL_REGRESSION",
+  "regressed_qids": [
+   "de-kapitalverletzung",
+   "fr-bail-entretien"
+  ],
+  "gate_blocks_build": true,
+  "non_vacuity_permutation": {
+   "de-kapitalverletzung": {
+    "charter_flips": 0,
+    "full_flips": 0,
+    "proven_non_vacuous": false
+   },
+   "fr-bail-entretien": {
+    "charter_flips": 0,
+    "full_flips": 0,
+    "proven_non_vacuous": false
+   },
+   "it-responsabilita-medica": {
+    "charter_flips": 0,
+    "full_flips": 0,
+    "proven_non_vacuous": false
+   }
+  },
+  "negative_control_hostile_geometry": {
+   "per_bundle_counts": {
+    "de-kapitalverletzung": 4,
+    "fr-bail-entretien": 4,
+    "it-responsabilita-medica": 5
+   },
+   "regressed_qids": [
+    "de-kapitalverletzung",
+    "fr-bail-entretien"
+   ],
+   "regression_verdict": "FAIL_REGRESSION",
+   "gate_blocks_build": true
+  },
+  "negative_control_proven": true
+ },
+ "engine_oracle_cells_observed": "22/33",
+ "negative_controls_all_proven": true,
+ "label_negative_control_required": true,
+ "admission_reading": {
+  "schema": "lex-evaluation-bar-admission-reading/1",
+  "exit_code": 1,
+  "exit_certifies": "FAIL_REGRESSION — at least one gate reported gate_blocks_build on the scored packet. Unreachable through served_lineage mode on any input (served bytes recompute the incumbent by construction; any drift exits 2 before scoring); reachable through adjudicate mode.",
+  "label": {
+   "gate": "counter-label-support",
+   "regression_verdict": "PASS_NO_REGRESSION",
+   "absolute_status": "LABEL_UNSOUND",
+   "regression_certifies": "no regression on the served-packet lineage only",
+   "regression_does_not_certify": "does not certify the absolute bar (support_rate 1.0); the accepted served packet itself passes regression at 5/65 and is LABEL_UNSOUND",
+   "absolute_certifies": "at least one scored counter row on THIS packet fails the frozen rubric",
+   "absolute_does_not_certify": "either state says nothing about map geometry, retrieval recall or jurist usefulness; LABEL_UNSOUND is REPORTED, never a build blocker (direction v50)",
+   "is_regression_not_a_pass": false
+  },
+  "geometry": {
+   "gate": "map-geometry-semantics",
+   "regression_verdict": "FAIL_REGRESSION",
+   "absolute_status": "GEOMETRY_UNSOUND",
+   "regression_certifies": "a build-blocking geometry regression on the three frozen qids",
+   "regression_does_not_certify": "",
+   "absolute_certifies": "at least one criterion fails on at least one bundle",
+   "absolute_does_not_certify": "either state says nothing about counter-label support or jurist usefulness; GEOMETRY_UNSOUND is REPORTED, never a build blocker (direction v50)",
+   "is_regression_not_a_pass": false
+  },
+  "naive_consumer_trap_fires": false,
+  "naive_consumer_trap_meaning": null,
+  "required_reading": "gate_blocks_build==false / exit 0 is NOT a statement that the counter-label bar was met; read label absolute_status explicitly for packets outside the pinned 65-row incumbent population"
+ },
+ "verdict": "FAIL_REGRESSION",
+ "absolute_status_summary": {
+  "labels": "LABEL_UNSOUND",
+  "geometry": "GEOMETRY_UNSOUND",
+  "note": "absolute bars REPORTED only; they do not block the build (direction v50)"
+ },
+ "elapsed_s": 5.794
+}
