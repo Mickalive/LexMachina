@@ -1,0 +1,127 @@
+{
+  "schema": "frontier-counter-label-emission-resume-diagnosis/1",
+  "team_id": "frontier-counter-label-emission",
+  "charter_version": 1,
+  "resume_run_id": "39426324296",
+  "resumed_from_run_id": "39422328377",
+  "resumed_from_snapshot_branch": "cycle/frontier/frontier-counter-label-emission/39422328377/team",
+  "resumed_from_snapshot_commit": "44d4904becb6faa2f6deef896f00c071279c0067",
+
+  "failure_summary": {
+    "class": "OPERATIONAL_WORKFLOW_CONTRACT_FAILURE",
+    "not_a_scientific_failure": true,
+    "failing_job": "team",
+    "failing_step": "Validate Frontier producer delta and state",
+    "workflow_exit_code": 67,
+    "exit_code_meaning": "Frontier producer returned success with zero durable delta (working tree clean of tracked AND untracked changes after the charter-execution step)",
+    "what_did_not_fail": [
+      "Execute Frontier charter (step conclusion=success: the producer produced a complete, committed, claim-bearing record)",
+      "state/frontier/frontier-counter-label-emission.json predicate (jq state check passes: charter_version==1, cycle_status=PROMOTED != INITIALIZED, evidence_tier=ACCEPTED)",
+      "any charter claim, measurement, hash pin or frozen artifact"
+    ]
+  },
+
+  "root_cause": {
+    "class": "producer_self_commit_zero_durable_delta",
+    "mechanism": "The producer of run 39422328377 committed its entire delta itself as commit 44d4904 ('Frontier frontier-counter-label-emission v1 run 39422328377: promote A_EMISSION_RECOVERED ...', 2026-10-20T12:56:11Z) and left a clean working tree. The frontier-team.yml post-execution gate requires an UNCOMMITTED durable delta (it fails with exit 67 when 'git diff --quiet && git diff --cached --quiet && git status --porcelain -uall is empty'), because the workflow's own 'Persist team snapshot' step is the component that is supposed to create the snapshot commit. Because the tree was clean, the gate could not see the work, failed the team job, and the audit job (needs.team.result == 'success') was skipped.",
+    "secondary_effect": "The completed work was never audited and never promoted: origin/lab/frontier/frontier-counter-label-emission is still at the bootstrap commit 4e2d7e78 (2026-10-20T12:27:06Z), and no cycle/frontier/frontier-counter-label-emission/39422328377/audit branch exists (audit/integrate jobs skipped).",
+    "why_the_snapshot_survived": "The 'Persist team snapshot' step runs with if: always(), so the full committed tree was pushed to cycle/frontier/frontier-counter-label-emission/39422328377/team (and team-attempt-1) before the resilience job dispatched this operational resume.",
+    "evidence_that_the_work_itself_was_valid": "Nothing about the committed record was invalid: all claim-bearing artifacts, the frozen RULES.json, the drop-in module, the 33-test suite, the report and the integration contract are intact in the snapshot and are re-verified byte-identically in VERIFICATION.json for this run."
+  },
+
+  "api_evidence": {
+    "access": "GitHub REST API unauthenticated (public repository). Step LOGS require auth and return HTTP 403; step-level conclusions from the jobs endpoint are the evidence of record.",
+    "run_endpoint": "https://api.github.com/repos/Mickalive/LexMachina/actions/runs/39422328377",
+    "jobs_endpoint": "https://api.github.com/repos/Mickalive/LexMachina/actions/runs/39422328377/jobs",
+    "logs_endpoint_status": "HTTP 403 (unauthenticated)",
+    "jobs": {
+      "team": {
+        "conclusion": "failure",
+        "steps": {
+          "Set up job": "success",
+          "Run actions/checkout@v6": "success",
+          "Validate charter and initialize working base": "success",
+          "Mount accepted evidence": "success",
+          "Install Ox/OpenCode": "success",
+          "Execute Frontier charter": "success",
+          "Validate Frontier producer delta and state": "failure",
+          "Clean generated junk": "success",
+          "Enforce team scope": "skipped",
+          "Persist team snapshot": "success",
+          "Post Run actions/checkout@v6": "success",
+          "Complete job": "success"
+        }
+      },
+      "audit": {"conclusion": "skipped", "steps": {}},
+      "integrate": {"conclusion": "skipped", "steps": {}},
+      "resilience": {
+        "conclusion": "success",
+        "steps": {
+          "Recover Frontier chain and wake supervisor": "success"
+        },
+        "effect": "Dispatched this resume run 39426324296 with resume_from_run_id=39422328377 because the snapshot branch survived (team result != success)."
+      }
+    }
+  },
+
+  "local_reproductions": [
+    {
+      "check": "state predicate (the OTHER half of the failing step; passes, so it was not the cause)",
+      "command": "jq -e --argjson ver 1 '.charter_version == $ver and (.cycle_status // \"INITIALIZED\") != \"INITIALIZED\" and (.evidence_tier // \"UNTESTED\") != \"\"' state/frontier/frontier-counter-label-emission.json",
+      "result": "PASS (exit 0)"
+    },
+    {
+      "check": "zero-durable-delta predicate at the resumed snapshot state (HEAD 44d4904 with a clean tree)",
+      "command": "git diff --quiet && git diff --cached --quiet && [[ -z \"$(git status --porcelain -uall)\" ]]  # at snapshot state: true -> workflow exit 67",
+      "result": "REPRODUCED as the failing predicate; at the time of this diagnosis the tree intentionally carries NEW uncommitted team-namespace files (this run's verification artifacts), so the predicate now evaluates false and the gate passes."
+    },
+    {
+      "check": "commit topology proving freeze-first ordering and that the producer's commit contained ONLY team-namespace paths",
+      "command": "git log --format='%h %cI %s'  &&  git show --stat --oneline <sha>",
+      "result": "4e2d7e78 2026-10-20T12:27:06Z bootstrap (state/frontier/frontier-counter-label-emission.json only) -> d20a3edd 2026-10-20T12:39:28Z RULES.json freeze (frontier/frontier-counter-label-emission/RULES.json only, 228 insertions) -> 44d4904 2026-10-20T12:56:11Z claim-bearing record (23 files, ALL under frontier/frontier-counter-label-emission/**, tests/frontier/frontier-counter-label-emission/**, results/frontier/frontier-counter-label-emission/**, reports/frontier/frontier-counter-label-emission/**, state/frontier/frontier-counter-label-emission.json). Zero writes outside the team namespace in the prior run."
+    },
+    {
+      "check": "lab branch promotion status",
+      "command": "git log --format='%h %cI %s' -1 origin/lab/frontier/frontier-counter-label-emission",
+      "result": "4e2d7e78 2026-10-20T12:27:06Z bootstrap Frontier frontier-counter-label-emission — i.e. no promotion has ever landed (consistent with audit being skipped)."
+    },
+    {
+      "check": "shallow-clone caveat",
+      "command": "git rev-parse --is-shallow-repository (true)  then  git fetch --deepen=200 origin refs/heads/cycle/frontier/frontier-counter-label-emission/39422328377/team",
+      "result": "History restored; freeze-commit verification above is only possible after deepening. Recorded so a later auditor on a depth-1 clone knows to deepen before asserting freeze ordering."
+    }
+  ],
+
+  "impact_assessment": {
+    "charter_claims_invalidated": "none",
+    "scientific_record_status": "intact; promotion outcome A_EMISSION_RECOVERED from run 39422328377 stands, re-verified byte-identically in this resume (see VERIFICATION.json)",
+    "downstream_blocked_by_the_failure": [
+      "Independent auditor never ran on run 39422328377 (audit skipped) — its gate PASS/REVISE/BLOCKED record for that cycle does not exist",
+      "lab/frontier/frontier-counter-label-emission never advanced past bootstrap, so Product cannot consume the drop-in module from the accepted lab branch yet"
+    ],
+    "owner_attention_required": false
+  },
+
+  "resume_contract_for_this_run": {
+    "mode": "OPERATIONAL RESUME: preserve valid completed work, verify, finish; do NOT restart from scratch",
+    "corrective_behavior": [
+      "Leave the cycle's delta UNCOMMITTED in the working tree so the workflow's own durable-delta gate passes and 'Persist team snapshot' creates the snapshot commit for run 39426324296 (the producer must never self-commit under this workflow)",
+      "Re-execute and re-verify the claim-bearing measurement rather than trusting the prior run's narrative",
+      "Keep every path inside the team namespace (frontier/frontier-counter-label-emission/**, tests/frontier/frontier-counter-label-emission/**, results/frontier/frontier-counter-label-emission/**, reports/frontier/frontier-counter-label-emission/**, state/frontier/frontier-counter-label-emission.json)"
+    ],
+    "explicitly_forbidden": [
+      "re-opening or re-litigating the accepted BOUNDED-NEGATIVE serve verdict of record (VERDICT_39371834165.json)",
+      "producing a serve recommendation, owner card, ready_for_owner_session=true or any human_gate_ready content",
+      "re-tuning or re-scoring the accepted classifier config (accept d236f599) or either frozen rubric",
+      "re-deriving, re-tuning or editing the frozen absolute bar (1.0) or its as-written predicate",
+      "writing outside the team namespace (product/, evaluation/, results/product/, results/evaluation/, state/product.json, state/evaluation.json, .github/**, any frozen artifact)",
+      "editing or overwriting any run_39422328377 artifact (append-only history)"
+    ]
+  },
+
+  "attestation": {
+    "recorded_by": "frontier-counter-label-emission charter v1, operational resume run 39426324296",
+    "evidence_standard": "Every statement above was re-derived from a command in this environment; step logs were inaccessible (HTTP 403) and that limitation is declared rather than papered over.",
+    "negative_results_are_evidence": true
+  }
+}
