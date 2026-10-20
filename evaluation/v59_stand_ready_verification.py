@@ -64,8 +64,12 @@ from evaluation import packet_of_record_stand_ready as PSR  # noqa: E402
 from evaluation import benchmark_retrieval_counter_authority as BENCH  # noqa: E402
 from evaluation.frozen_bars import label_gate  # noqa: E402
 
-HYPOTHESIS = "evaluation/V59_STAND_READY_VERIFICATION_HYPOTHESIS_V1.json"
-FREEZE_RECORD = "evaluation/V59_STAND_READY_VERIFICATION_FREEZE_RECORD.json"
+HYPOTHESIS = os.environ.get(
+    "LEX_HYPOTHESIS", "evaluation/V59_STAND_READY_VERIFICATION_HYPOTHESIS_V1.json"
+)
+FREEZE_RECORD = os.environ.get(
+    "LEX_FREEZE_RECORD", "evaluation/V59_STAND_READY_VERIFICATION_FREEZE_RECORD.json"
+)
 DISPOSITION = "results/evaluation/f3b_restore_disposition/39287274485.json"
 PACKET_MOUNT = "/tmp/lex_accepted/product"
 NEW_PACKET = "39319405429"
