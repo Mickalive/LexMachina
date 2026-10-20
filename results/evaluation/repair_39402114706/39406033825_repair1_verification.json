@@ -1,0 +1,439 @@
+{
+ "schema": "lex-evaluation-repair-verification/1",
+ "run_id": "39406033825",
+ "cycle_id": "39402114706",
+ "repair_round": 1,
+ "generated_at_utc": "2026-10-20T11:01:53Z",
+ "direction_version": 60,
+ "python": "3.12.3",
+ "pytest_installed": true,
+ "pytest_version": "9.1.1",
+ "hypothesis_sha256": "f0c7711c71e94d7b7303f5fa3a61b444d67bee6d3bbd7f0708ed13ff6ffc8072",
+ "freeze_commit": "6892f9f0",
+ "instrument_sha256_executed": "567a9d2b231c5404b7324db2c30249e0961dbc90c698501d0ba5576c7297554b",
+ "instrument_sha256_pre_fix_pinned": "2d40d2e795d9396542bbbc7a811e6cf26da91f3b19220e70199aad8f5f02c84c",
+ "dedicated_test": "tests/evaluation/test_minimal_ca_benchmark.py",
+ "dedicated_test_measurement": {
+  "targets": [
+   "tests/evaluation/test_minimal_ca_benchmark.py"
+  ],
+  "returncode": 0,
+  "counts": {
+   "passed": 11
+  },
+  "summary_line": "11 passed in 9.41s",
+  "passed": 11,
+  "failed": 0,
+  "skipped": 0
+ },
+ "negative_control_measurement": {
+  "failed_tests": [
+   "test_hypothesis_rehash_matches_state_pin",
+   "test_state_evidence_refs_resolve_and_count_matches",
+   "test_state_freeze_commit_is_where_the_hypothesis_landed",
+   "test_state_pytest_claim_names_this_dedicated_test"
+  ],
+  "returncode": 1,
+  "summary_line": "4 failed, 7 passed in 9.45s"
+ },
+ "regression_measurement": {
+  "targets": [
+   "tests/evaluation/test_frozen_bar_gates.py",
+   "tests/evaluation/test_bar_gate_verdict_contract.py",
+   "tests/evaluation/test_mapping_free_recall_falsifier.py",
+   "tests/evaluation/test_benchmark_retrieval_counter_authority.py",
+   "tests/evaluation/test_benchmark_v3_packet_of_record.py"
+  ],
+  "returncode": 0,
+  "counts": {
+   "passed": 67
+  },
+  "summary_line": "67 passed in 97.69s (0:01:37)",
+  "passed": 67,
+  "failed": 0,
+  "skipped": 0
+ },
+ "live_reproduction": {
+  "returncode": 0,
+  "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
+  "falsification_proven": true,
+  "legs": [
+   {
+    "leg": "served_baseline_provenance",
+    "exit_code": 2,
+    "verdict": "ENVIRONMENT_ERROR"
+   },
+   {
+    "leg": "geometry_falsification_hostile",
+    "exit_code": 1,
+    "verdict": "FAIL_REGRESSION"
+   },
+   {
+    "leg": "label_falsification_blanked_evidence",
+    "exit_code": 1,
+    "verdict": "FAIL_REGRESSION"
+   }
+  ],
+  "elapsed_s": null,
+  "stderr_tail": ""
+ },
+ "n_checks": 34,
+ "n_passed": 34,
+ "n_failed": 0,
+ "checks": [
+  {
+   "check": "R1 hypothesis file re-hashes to the required value",
+   "pass": true,
+   "expected": "f0c7711c71e94d7b7303f5fa3a61b444d67bee6d3bbd7f0708ed13ff6ffc8072",
+   "observed": "f0c7711c71e94d7b7303f5fa3a61b444d67bee6d3bbd7f0708ed13ff6ffc8072",
+   "evidence": "sha256 evaluation/MINIMAL_CA_BENCHMARK_HYPOTHESIS_V1.json"
+  },
+  {
+   "check": "R1 state hypothesis_sha256 matches the file bytes",
+   "pass": true,
+   "expected": "f0c7711c71e94d7b7303f5fa3a61b444d67bee6d3bbd7f0708ed13ff6ffc8072",
+   "observed": "f0c7711c71e94d7b7303f5fa3a61b444d67bee6d3bbd7f0708ed13ff6ffc8072",
+   "evidence": "state/evaluation.json minimal_ca_benchmark.hypothesis_sha256"
+  },
+  {
+   "check": "R1 rejected (wrong) digest is gone from the minimal_ca block",
+   "pass": true,
+   "expected": "not the V3-recall-benchmark digest",
+   "observed": "f0c7711c71e94d7b7303f5fa3a61b444d67bee6d3bbd7f0708ed13ff6ffc8072",
+   "evidence": "1f7cdb05... belongs to V3_PACKET_OF_RECORD_RECALL_BENCHMARK_HYPOTHESIS_V1.json and is still correctly recorded in state v3_packet_of_record_recall_benchmark"
+  },
+  {
+   "check": "R2 state freeze_commit == 6892f9f0",
+   "pass": true,
+   "expected": "6892f9f0",
+   "observed": "6892f9f0",
+   "evidence": "state/evaluation.json minimal_ca_benchmark.freeze_commit"
+  },
+  {
+   "check": "R2 the hypothesis was first committed at 6892f9f0",
+   "pass": true,
+   "expected": [
+    "6892f9f0"
+   ],
+   "observed": [
+    "6892f9f0"
+   ],
+   "evidence": "git log --diff-filter=A on the hypothesis file"
+  },
+  {
+   "check": "R2 hypothesis bytes at the freeze commit re-hash to the frozen digest",
+   "pass": true,
+   "expected": "f0c7711c71e94d7b7303f5fa3a61b444d67bee6d3bbd7f0708ed13ff6ffc8072",
+   "observed": "f0c7711c71e94d7b7303f5fa3a61b444d67bee6d3bbd7f0708ed13ff6ffc8072",
+   "evidence": "git show 6892f9f0:evaluation/MINIMAL_CA_BENCHMARK_HYPOTHESIS_V1.json"
+  },
+  {
+   "check": "R2 freeze-first ordering: freeze commit predates the claim-bearing record",
+   "pass": true,
+   "expected": "6892f9f0 epoch < d4c88b3a epoch",
+   "observed": {
+    "freeze_commit": "6892f9f0",
+    "freeze_epoch": 1792482759,
+    "claim_bearing_commit": "d4c88b3a",
+    "claim_bearing_epoch": 1792489749
+   },
+   "evidence": "git log --diff-filter=A on the committed benchmark record"
+  },
+  {
+   "check": "R3 state pytest claim cites the dedicated test file",
+   "pass": true,
+   "expected": "tests/evaluation/test_minimal_ca_benchmark.py",
+   "observed": "11 passed / 0 failed / 0 skipped (tests/evaluation/test_minimal_ca_benchmark.py, pytest 9.1.1, measured GitHub run 39406033825; the mount-dependent end-to-end leg and the V3 bundle re-hash leg EXECUTED rather than skipped because the packet-of-record mount is present; the verifier re-measures these ",
+   "evidence": "state/evaluation.json minimal_ca_benchmark.pytest"
+  },
+  {
+   "check": "R3 state pytest claim discloses the false pre-repair claim",
+   "pass": true,
+   "expected": "PRE-REPAIR CLAIM WAS FALSE + DIFFERENT instrument",
+   "observed": "present",
+   "evidence": "the rejected claim is corrected beside its replacement, never deleted"
+  },
+  {
+   "check": "R3 no MEASURE_COUNTS_PENDING placeholder left in the claim",
+   "pass": true,
+   "expected": "counts published",
+   "observed": "11 passed / 0 failed / 0 skipped (tests/evaluation/test_minimal_ca_benchmark.py, pytest 9.1.1, measured GitHub run 39406",
+   "evidence": "counts must be measured before they are published"
+  },
+  {
+   "check": "R3 published pytest counts equal the fresh measurement",
+   "pass": true,
+   "expected": "11 passed / 0 failed / 0 skipped",
+   "observed": "11 passed / 0 failed / 0 skipped",
+   "evidence": "pytest tests/evaluation/test_minimal_ca_benchmark.py -> 11 passed in 9.41s"
+  },
+  {
+   "check": "negative control: re-injected pre-repair state fails the dedicated test",
+   "pass": true,
+   "expected": [
+    "test_hypothesis_rehash_matches_state_pin",
+    "test_state_evidence_refs_resolve_and_count_matches",
+    "test_state_freeze_commit_is_where_the_hypothesis_landed",
+    "test_state_pytest_claim_names_this_dedicated_test"
+   ],
+   "observed": [
+    "test_hypothesis_rehash_matches_state_pin",
+    "test_state_evidence_refs_resolve_and_count_matches",
+    "test_state_freeze_commit_is_where_the_hypothesis_landed",
+    "test_state_pytest_claim_names_this_dedicated_test"
+   ],
+   "evidence": "the three required-fix guards plus the evidence_refs_n guard must bite on the exact defective values recorded by audit CYCLE_39402114706"
+  },
+  {
+   "check": "state evidence_refs all resolve on disk",
+   "pass": true,
+   "expected": [],
+   "observed": [],
+   "evidence": "filesystem existence check; the output record of this run counts as existing because this module writes it before returning"
+  },
+  {
+   "check": "state evidence_refs_n equals len(evidence_refs)",
+   "pass": true,
+   "expected": 52,
+   "observed": 52,
+   "evidence": "repair round 0 set n=52 while len=48; n is now recomputed after this cycle appended 4 refs (52 after append — the numeric coincidence with the old wrong 52 is disclosed, not hidden)"
+  },
+  {
+   "check": "frozen pin re-hash unchanged: RULES_LABEL.json",
+   "pass": true,
+   "expected": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+   "observed": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+   "evidence": "re-hash only; never re-derived"
+  },
+  {
+   "check": "frozen pin re-hash unchanged: RULES_GEOMETRY.json",
+   "pass": true,
+   "expected": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+   "observed": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+   "evidence": "re-hash only; never re-derived"
+  },
+  {
+   "check": "frozen pin re-hash unchanged: VERDICT_CONTRACT.json",
+   "pass": true,
+   "expected": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c",
+   "observed": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c",
+   "evidence": "re-hash only; never re-derived"
+  },
+  {
+   "check": "freeze record frozen_bars_shas identical to the hypothesis",
+   "pass": true,
+   "expected": {
+    "RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+    "VERDICT_CONTRACT.json": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c"
+   },
+   "observed": {
+    "RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+    "VERDICT_CONTRACT.json": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c"
+   },
+   "evidence": "both files re-hashed, neither edited"
+  },
+  {
+   "check": "V3 packet bundles re-hash to the frozen hypothesis pins",
+   "pass": true,
+   "expected": {
+    "de-kapitalverletzung.bundle.json": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
+    "fr-bail-entretien.bundle.json": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
+    "it-responsabilita-medica.bundle.json": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b"
+   },
+   "observed": {
+    "de-kapitalverletzung.bundle.json": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
+    "fr-bail-entretien.bundle.json": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
+    "it-responsabilita-medica.bundle.json": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b"
+   },
+   "evidence": "/tmp/lex_accepted/product/results/product/gate_packet/39319405429/questions"
+  },
+  {
+   "check": "committed record verdict/exit/falsification_proven",
+   "pass": true,
+   "expected": {
+    "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
+    "exit_code": 0,
+    "falsification_proven": true
+   },
+   "observed": {
+    "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
+    "exit_code": 0,
+    "falsification_proven": true
+   },
+   "evidence": "results/evaluation/retrieval_counter_authority_benchmark/39396488491.json"
+  },
+  {
+   "check": "committed legs match the frozen expected_leg_outcomes",
+   "pass": true,
+   "expected": {
+    "served_baseline_provenance": {
+     "exit_code": 2,
+     "verdict": "ENVIRONMENT_ERROR"
+    },
+    "geometry_falsification_hostile": {
+     "exit_code": 1,
+     "verdict": "FAIL_REGRESSION"
+    },
+    "label_falsification_blanked_evidence": {
+     "exit_code": 1,
+     "verdict": "FAIL_REGRESSION"
+    }
+   },
+   "observed": {
+    "served_baseline_provenance": {
+     "exit_code": 2,
+     "verdict": "ENVIRONMENT_ERROR"
+    },
+    "geometry_falsification_hostile": {
+     "exit_code": 1,
+     "verdict": "FAIL_REGRESSION"
+    },
+    "label_falsification_blanked_evidence": {
+     "exit_code": 1,
+     "verdict": "FAIL_REGRESSION"
+    }
+   },
+   "evidence": "expectations are the hypothesis' own, frozen before execution"
+  },
+  {
+   "check": "committed record scored the frozen V3 bundles",
+   "pass": true,
+   "expected": {
+    "de-kapitalverletzung": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
+    "fr-bail-entretien": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
+    "it-responsabilita-medica": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b"
+   },
+   "observed": {
+    "de-kapitalverletzung": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
+    "fr-bail-entretien": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
+    "it-responsabilita-medica": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b"
+   },
+   "evidence": "record.v3_bundle_sha256 vs hypothesis pins"
+  },
+  {
+   "check": "freeze record still discloses the PRE-FIX instrument digest",
+   "pass": true,
+   "expected": {
+    "instrument_sha256": "2d40d2e795d9396542bbbc7a811e6cf26da91f3b19220e70199aad8f5f02c84c",
+    "frozen_at_commit": "7efbd60e (pre-fix...)"
+   },
+   "observed": {
+    "instrument_sha256": "2d40d2e795d9396542bbbc7a811e6cf26da91f3b19220e70199aad8f5f02c84c",
+    "frozen_at_commit": "7efbd60e (pre-fix; this freeze record establishes the hypothesis before any claim-bearing execution of the repaired instrument)"
+   },
+   "evidence": "the freeze record's own pre-fix disclosure is preserved verbatim, not corrected away"
+  },
+  {
+   "check": "executed instrument bytes unchanged since freeze commit",
+   "pass": true,
+   "expected": "567a9d2b231c5404b7324db2c30249e0961dbc90c698501d0ba5576c7297554b",
+   "observed": "567a9d2b231c5404b7324db2c30249e0961dbc90c698501d0ba5576c7297554b",
+   "evidence": "git HEAD == 6892f9f0 for evaluation/minimal_ca_benchmark.py"
+  },
+  {
+   "check": "instrument bytes at the freeze commit are the executed bytes",
+   "pass": true,
+   "expected": "567a9d2b231c5404b7324db2c30249e0961dbc90c698501d0ba5576c7297554b",
+   "observed": "567a9d2b231c5404b7324db2c30249e0961dbc90c698501d0ba5576c7297554b",
+   "evidence": "git show"
+  },
+  {
+   "check": "pre-fix instrument bytes re-hash to the frozen hypothesis pin",
+   "pass": true,
+   "expected": "2d40d2e795d9396542bbbc7a811e6cf26da91f3b19220e70199aad8f5f02c84c",
+   "observed": "2d40d2e795d9396542bbbc7a811e6cf26da91f3b19220e70199aad8f5f02c84c",
+   "evidence": "git show"
+  },
+  {
+   "check": "live re-execution reproduces the frozen verdict on run 39406033825",
+   "pass": true,
+   "expected": {
+    "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
+    "legs": "frozen expected_leg_outcomes"
+   },
+   "observed": {
+    "returncode": 0,
+    "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
+    "falsification_proven": true,
+    "legs": [
+     {
+      "leg": "served_baseline_provenance",
+      "exit_code": 2,
+      "verdict": "ENVIRONMENT_ERROR"
+     },
+     {
+      "leg": "geometry_falsification_hostile",
+      "exit_code": 1,
+      "verdict": "FAIL_REGRESSION"
+     },
+     {
+      "leg": "label_falsification_blanked_evidence",
+      "exit_code": 1,
+      "verdict": "FAIL_REGRESSION"
+     }
+    ],
+    "elapsed_s": null,
+    "stderr_tail": ""
+   },
+   "evidence": "outputs redirected to a temp dir; no committed artifact rewritten"
+  },
+  {
+   "check": "accepted 5-file regression suite still matches the state claim",
+   "pass": true,
+   "expected": "state minimal_ca_benchmark.regression counts",
+   "observed": {
+    "published": "67 passed / 0 failed on the accepted instrument tests (frozen_bar_gates + bar_gate_verdict_contract + mapping_free_recall_falsifier + benchmark_retrieval_counte",
+    "measured": "67 passed / 0 failed",
+    "summary_line": "67 passed in 97.69s (0:01:37)"
+   },
+   "evidence": "pytest tests/evaluation/test_frozen_bar_gates.py tests/evaluation/test_bar_gate_verdict_contract.py tests/evaluation/test_mapping_free_recall_falsifier.py tests/evaluation/test_benchmark_retrieval_counter_authority.py tests/evaluation/test_benchmark_v3_packet_of_record.py"
+  },
+  {
+   "check": "write scope: every modified/untracked path is evaluation-lane scope",
+   "pass": true,
+   "expected": [],
+   "observed": [],
+   "evidence": "allowed: evaluation/, tests/evaluation/, results/evaluation/, reports/evaluation/, state/evaluation.json (no .github/**, no product/)"
+  },
+  {
+   "check": "fail-closed flag unchanged: human_gate_ready==false",
+   "pass": true,
+   "expected": false,
+   "observed": false,
+   "evidence": "repair touches metadata only; admission stays fail-closed"
+  },
+  {
+   "check": "fail-closed flag unchanged: machine_gate_ready==false",
+   "pass": true,
+   "expected": false,
+   "observed": false,
+   "evidence": "repair touches metadata only; admission stays fail-closed"
+  },
+  {
+   "check": "fail-closed flag unchanged: packet_admitted==false",
+   "pass": true,
+   "expected": false,
+   "observed": false,
+   "evidence": "repair touches metadata only; admission stays fail-closed"
+  },
+  {
+   "check": "fail-closed flag unchanged: ready_for_owner_session==false",
+   "pass": true,
+   "expected": false,
+   "observed": false,
+   "evidence": "repair touches metadata only; admission stays fail-closed"
+  },
+  {
+   "check": "fail-closed flag unchanged: owner_decision_required==false",
+   "pass": true,
+   "expected": false,
+   "observed": false,
+   "evidence": "repair touches metadata only; admission stays fail-closed"
+  }
+ ],
+ "overall_pass": true,
+ "claim_ceiling": "This artifact proves only that the three required fixes of audit CYCLE_39402114706 are present and re-measurable, that the frozen pins re-hash unchanged and that the minimal_ca_benchmark still reproduces BENCHMARK_VALID_NO_FALSIFICATION on the V3 packet-of-record. It does NOT prove jurist usefulness, does NOT meet the absolute LABEL_SOUND / GEOMETRY_SOUND bars and does NOT unblock the human gate (standing accepted DO-NOT-SERVE orders).",
+ "elapsed_s": 126.684
+}
