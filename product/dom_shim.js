@@ -237,8 +237,18 @@ function createPage(opts) {
   sandbox.window = sandbox;
   sandbox.globalThis = sandbox;
   sandbox.addEventListener = function () {};
+  /* Every fetch the page makes is recorded.  By default the sandbox stays
+   * offline (the pre-existing contract: a page that re-retrieves during a
+   * render is a defect), but a caller may inject a real transport via
+   * `options.fetchImpl` to drive the shipped page against a live server - the
+   * page<->server integration seam.  The injected transport receives the same
+   * absolute-or-relative URL string the browser would and must resolve with a
+   * `{ ok, status, json() }` response, exactly as `fetch` does; a rejected
+   * promise propagates as a fetch failure, so an unreachable server is a test
+   * failure, never a silent pass. */
   sandbox.fetch = function (url) {
     fetchCalls.push(String(url));
+    if (options.fetchImpl) return options.fetchImpl(String(url));
     return Promise.reject(new Error("offline verification: network is disabled"));
   };
   sandbox.global = sandbox;
