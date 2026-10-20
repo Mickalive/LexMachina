@@ -160,7 +160,9 @@ def test_h3_state_block_repeats_the_resume_record_counts():
     # convention comment following the 49->50, 50->52, 55->56 and 56->57
     # precedents; it is NOT a new defect").  This assert tracks the LIVE state
     # file; the historical V57 hypothesis pin below stays 57 by design.
-    assert state["direction_version"] == 58
+    # Cycle 39381093325 disclosed this stale 58 pin as pre-existing and advanced
+    # the LIVE pin to 60 (v59/v60 rewrites, same disclosed-convention chain).
+    assert state["direction_version"] == 60
     assert state["cycle_status"] != "INITIALIZED"
 
 

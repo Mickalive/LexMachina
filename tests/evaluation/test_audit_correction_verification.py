@@ -79,7 +79,13 @@ def test_state_file_has_mandatory_fields():
                    "next_recommendation"):
         assert field in state, f"missing mandatory field {field}"
     assert state["lane"] == "evaluation"
-    assert state["direction_version"] == 58
+    # LIVE-state pin (tracks state/evaluation.json, not any historical record).
+    # Direction-version advance 58 -> 60 is EXPECTED by the v59/v60 rewrites
+    # (factory direction; disclosed-convention precedent chain 49->50, 50->52,
+    # 55->56, 56->57, 57->58).  Cycle 39381093325 disclosed the stale 58 pin as
+    # a pre-existing test defect and advanced it to 60 alongside the v60 state
+    # block; no historical hypothesis/freeze pin is touched by this change.
+    assert state["direction_version"] == 60
 
 
 def test_evidence_refs_exist():

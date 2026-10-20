@@ -1,0 +1,321 @@
+{
+ "schema": "lex-evaluation-orchestration-failure-diagnosis/1",
+ "run_id": "39381093325",
+ "direction_version": 60,
+ "generated_at_utc": "2026-10-20T07:10:44Z",
+ "dispatch_mode": "OPERATIONAL_RESUME from the persisted producer snapshot 5a3c0eb8 (runs 39380758180 then 39379766198 left no durable delta)",
+ "evidence_source": "GitHub REST API (public repo) at execution time",
+ "log_endpoint_access": {
+  "39380758180": {
+   "url": "https://api.github.com/repos/Mickalive/LexMachina/actions/runs/39380758180/logs",
+   "http_status": 403,
+   "reachable": false,
+   "note": "the exact out-of-scope paths named by the scope guard live only in the job logs, which require authentication; they are recorded as UNDETERMINED, never invented"
+  },
+  "39379766198": {
+   "url": "https://api.github.com/repos/Mickalive/LexMachina/actions/runs/39379766198/logs",
+   "http_status": 403,
+   "reachable": false,
+   "note": "the exact out-of-scope paths named by the scope guard live only in the job logs, which require authentication; they are recorded as UNDETERMINED, never invented"
+  }
+ },
+ "runs": {
+  "39380758180": {
+   "name": "Core evaluation dirV60 repair0",
+   "conclusion": "failure",
+   "event": "workflow_dispatch",
+   "head_sha": "be84cc59388180e4a0aadd920f5cbe4725bbfeb2",
+   "created_at": "2026-10-20T06:30:27Z",
+   "updated_at": "2026-10-20T06:33:51Z",
+   "jobs": [
+    {
+     "id": 118489119764,
+     "name": "team",
+     "conclusion": "failure",
+     "failing_steps": [
+      "Run lane cycle"
+     ],
+     "annotations": [
+      {
+       "level": "failure",
+       "message": "Process completed with exit code 67.",
+       "path": ".github",
+       "start_line": 789,
+       "end_line": 789
+      },
+      {
+       "level": "failure",
+       "message": "LEX_ZERO_DELTA_REPAIR",
+       "path": ".github",
+       "start_line": 788,
+       "end_line": 788
+      },
+      {
+       "level": "failure",
+       "message": "LEX_ZERO_DELTA_REPAIR @20:52:12Z\",",
+       "path": ".github",
+       "start_line": 525,
+       "end_line": 525
+      },
+      {
+       "level": "notice",
+       "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\"",
+       "path": ".github",
+       "start_line": 1,
+       "end_line": 1
+      }
+     ]
+    },
+    {
+     "id": 118490092548,
+     "name": "resilience",
+     "conclusion": "success",
+     "failing_steps": [],
+     "annotations": []
+    },
+    {
+     "id": 118490092764,
+     "name": "audit",
+     "conclusion": "skipped",
+     "failing_steps": [],
+     "annotations": []
+    },
+    {
+     "id": 118490094065,
+     "name": "integrate",
+     "conclusion": "skipped",
+     "failing_steps": [],
+     "annotations": []
+    }
+   ],
+   "_source": "live_github_rest_api"
+  },
+  "39379766198": {
+   "name": "Core evaluation dirV60 repair0",
+   "conclusion": "failure",
+   "event": "workflow_dispatch",
+   "head_sha": "be84cc59388180e4a0aadd920f5cbe4725bbfeb2",
+   "created_at": "2026-10-20T06:20:05Z",
+   "updated_at": "2026-10-20T06:30:32Z",
+   "jobs": [
+    {
+     "id": 118485957281,
+     "name": "team",
+     "conclusion": "success",
+     "failing_steps": [],
+     "annotations": []
+    },
+    {
+     "id": 118488190059,
+     "name": "audit",
+     "conclusion": "failure",
+     "failing_steps": [
+      "Enforce audit scope and read gate"
+     ],
+     "annotations": [
+      {
+       "level": "failure",
+       "message": "Process completed with exit code 3.",
+       "path": ".github",
+       "start_line": 17,
+       "end_line": 17
+      },
+      {
+       "level": "failure",
+       "message": "auditor crossed scope:",
+       "path": ".github",
+       "start_line": 14,
+       "end_line": 14
+      },
+      {
+       "level": "notice",
+       "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\"",
+       "path": ".github",
+       "start_line": 1,
+       "end_line": 1
+      }
+     ]
+    },
+    {
+     "id": 118489043770,
+     "name": "resilience",
+     "conclusion": "success",
+     "failing_steps": [],
+     "annotations": []
+    },
+    {
+     "id": 118489044882,
+     "name": "integrate",
+     "conclusion": "skipped",
+     "failing_steps": [],
+     "annotations": []
+    }
+   ],
+   "_source": "live_github_rest_api"
+  }
+ },
+ "diagnosis": "TWO_STAGED_FAILURES_ONE_DELTA_ONE_SCOPE_GUARD",
+ "summary": "Run 39379766198 (producer) produced real evaluation work - the team job succeeded and committed the snapshot 5a3c0eb8 containing the packet-of-record stand-ready discharge (results/evaluation/packet_of_record_stand_ready/39379766198.json, battery DISCHARGED) - but its AUDIT job aborted at the scope guard with exit 3 and the single-line annotation 'auditor crossed scope:'. Because 'Persist audit snapshot' and 'integrate' were skipped, no /audit ref and no gate file exist for that run, so nothing it produced could be audited or promoted. Run 39380758180 (the first resume of that snapshot) then failed for an independent reason: the team step exited 67 LEX_ZERO_DELTA_REPAIR because the snapshot already WAS the HEAD and the working tree was clean - a zero-delta repair, exactly the rc the wrapper promises when a lane resumes without a new durable deliverable. Neither failure is a Product finding: no frozen bar was re-derived, no adjudication was weakened and no accepted artifact was edited.",
+ "established_with_machine_evidence": [
+  {
+   "fact": "run 39380758180 team step 'Run lane cycle' failed",
+   "job_id": 118489119764,
+   "conclusion": "failure",
+   "annotations": [
+    {
+     "level": "failure",
+     "message": "Process completed with exit code 67.",
+     "path": ".github",
+     "start_line": 789,
+     "end_line": 789
+    },
+    {
+     "level": "failure",
+     "message": "LEX_ZERO_DELTA_REPAIR",
+     "path": ".github",
+     "start_line": 788,
+     "end_line": 788
+    },
+    {
+     "level": "failure",
+     "message": "LEX_ZERO_DELTA_REPAIR @20:52:12Z\",",
+     "path": ".github",
+     "start_line": 525,
+     "end_line": 525
+    },
+    {
+     "level": "notice",
+     "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\"",
+     "path": ".github",
+     "start_line": 1,
+     "end_line": 1
+    }
+   ],
+   "source": "live_github_rest_api"
+  },
+  {
+   "fact": "exit code 67 == LEX_ZERO_DELTA_REPAIR (wrapper contract on main: LEX_REQUIRE_DELTA=1 for the evaluation lane)",
+   "annotation_present": true,
+   "source": "live_github_rest_api"
+  },
+  {
+   "fact": "run 39379766198 team job succeeded (work existed)",
+   "job_id": 118485957281,
+   "conclusion": "success",
+   "source": "live_github_rest_api"
+  },
+  {
+   "fact": "run 39379766198 audit job failed at the scope guard",
+   "job_id": 118488190059,
+   "failing_steps": [
+    "Enforce audit scope and read gate"
+   ],
+   "annotations": [
+    {
+     "level": "failure",
+     "message": "Process completed with exit code 3.",
+     "path": ".github",
+     "start_line": 17,
+     "end_line": 17
+    },
+    {
+     "level": "failure",
+     "message": "auditor crossed scope:",
+     "path": ".github",
+     "start_line": 14,
+     "end_line": 14
+    },
+    {
+     "level": "notice",
+     "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\"",
+     "path": ".github",
+     "start_line": 1,
+     "end_line": 1
+    }
+   ],
+   "source": "live_github_rest_api"
+  },
+  {
+   "fact": "audit + integrate were skipped on both runs, so no /audit ref or gate file exists for either run and neither snapshot was promoted by the integrate job",
+   "jobs": [
+    {
+     "name": "team",
+     "conclusion": "success"
+    },
+    {
+     "name": "audit",
+     "conclusion": "failure"
+    },
+    {
+     "name": "resilience",
+     "conclusion": "success"
+    },
+    {
+     "name": "integrate",
+     "conclusion": "skipped"
+    },
+    {
+     "name": "team",
+     "conclusion": "failure"
+    },
+    {
+     "name": "resilience",
+     "conclusion": "success"
+    },
+    {
+     "name": "audit",
+     "conclusion": "skipped"
+    },
+    {
+     "name": "integrate",
+     "conclusion": "skipped"
+    }
+   ]
+  }
+ ],
+ "undetermined_bounded": [
+  {
+   "item": "the exact out-of-scope paths the auditor wrote in 39379766198",
+   "why": "the scope-guard annotation truncates at 'auditor crossed scope:' and the job-log zip endpoint answers HTTP 403 to an unauthenticated client (recorded above under log_endpoint_access); inventing the paths would be a fabrication",
+   "bounded_by": "the guard fired inside the audit job, so the crossed path is OUTSIDE results/audit/evaluation and state/evaluation.json (the auditor's two in-scope targets); ranked by the prior defect classes below"
+  },
+  {
+   "item": "whether the crossing was a write, a read outside the read gate, or a staging side-effect",
+   "why": "exit 3 is the guard's single failure code; the annotation carries no write/read distinction"
+  }
+ ],
+ "prior_defect_classes": [
+  {
+   "class": "ref-coverage artifact",
+   "why_possible": "the auditor's fetch only stages lab/evaluation plus the current run's team/audit refs, so any instrument that opens another lab ref (e.g. origin/lab/frontier/frontier-packet-serve-audit) touches a path outside its checkout"
+  },
+  {
+   "class": "outside-scope write (results/ or state/ of another lane)",
+   "why_possible": "the lane scope guard is path-based and fires on the first crossed path, so a single stray write aborts the whole audit job"
+  },
+  {
+   "class": "scratch/staging path outside the two in-scope directories",
+   "why_possible": "a temp file created under the repo root instead of $RUNNER_TEMP is still inside the audited tree"
+  }
+ ],
+ "repairs_executed_by_this_run": [
+  "Frozen-first cross-check hypothesis + freeze record committed BEFORE any claim-bearing execution (evaluation/SERVE_VERDICT_CROSSCHECK_HYPOTHESIS_V1.json, sha 0c9b4bba7ece03378d4402752613b2a706d094e5147f0089ad7c1773956ca0a5).",
+  "The ACCEPTED serve verdict was VENDORED with byte-exact provenance (sha256 403aeb0c..., git blob oid d7577401...) so the cross-check reproduces in a bare checkout without touching any lab ref - the ref-coverage defect class cannot recur for this instrument.",
+  "results/evaluation/serve_verdict_crosscheck/39381093325.json: the side-by-side table direction v60 ordered (26 comparable quantities, ZERO_DIVERGENCE, 5 non-vacuity controls).",
+  "This record, plus the twin pytest/shim readings and the cycle report, constitute the durable delta whose absence produced exit 67."
+ ],
+ "is_not": [
+  "NOT a Product finding: no frozen bar, rubric, threshold, incumbent or predicate was re-derived, edited or re-tuned.",
+  "NOT a claim about label or geometry soundness; both stay ABSOLUTELY UNPROVEN and both frozen bars stay unmet.",
+  "NOT a claim that the auditor misbehaved: the scope guard is working as designed and correctly refused to publish unaudited results.",
+  "NOT a guess at the crossed paths - they are recorded as UNDETERMINED.",
+  "NOT an override of the accepted BOUNDED-NEGATIVE serve verdict; both DO-NOT-SERVE orders stand."
+ ],
+ "consequence_for_this_resume": [
+  "This run must leave a non-empty durable delta (committed HEAD change) or it repeats exit 67; every artifact it publishes is under this run id and inside the evaluation write scope.",
+  "The producer snapshot's discharge work is RE-USED, not rewritten: the cross-check re-hashes it and places it beside the team's independent recomputation.",
+  "The state sentence 'No serve verdict has landed.' written by the producer run is superseded in place-by-addition (preserved verbatim beside its correction), never deleted.",
+  "The independent audit of THIS run must keep every write inside results/audit/evaluation and every read inside the declared read gate; the vendored verdict exists precisely so no lab ref is needed."
+ ],
+ "recovery_path": "the resilience job of 39380758180 dispatched this run 39381093325 as resume_from_run_id=39380758180 (operational recovery, not audit repair); this run's own independent audit writes results/audit/evaluation/CYCLE_39381093325_GATE.json and the integrate job promotes on gate=PASS."
+}
