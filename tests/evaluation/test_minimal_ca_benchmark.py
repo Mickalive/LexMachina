@@ -57,7 +57,14 @@ FROZEN_HYPOTHESIS_SHA256 = (
 #: commit that first committed the hypothesis + freeze record (the R2 target).
 FREEZE_COMMIT = "6892f9f0"
 #: commit that first committed the claim-bearing benchmark record.
+#: Historical accepted-chain record 39396488491 was first committed at d4c88b3a on a
+#: rejected branch; this cycle's claim-bearing record (39422312905) is first committed
+#: on lab/evaluation under the V61 freeze commit.  Both orderings are checked below.
 CLAIM_BEARING_COMMIT = "d4c88b3a"
+#: this cycle's freeze-first commit (V61 disposition hypothesis)
+V61_FREEZE_COMMIT = "07cf996ff"
+CURRENT_CLAIM_BEARING_RECORD = (
+    _REPO_ROOT / "results/evaluation/retrieval_counter_authority_benchmark/39422312905.json")
 #: instrument bytes named by the frozen hypothesis/freeze record (pre-fix, 7efbd60e).
 PRE_FIX_INSTRUMENT_SHA256 = (
     "2d40d2e795d9396542bbbc7a811e6cf26da91f3b19220e70199aad8f5f02c84c")
@@ -67,6 +74,12 @@ EXECUTED_INSTRUMENT_SHA256 = (
 
 COMBINED_RECORD = (
     _REPO_ROOT / "results/evaluation/retrieval_counter_authority_benchmark/39396488491.json")
+#: Prefer the current cycle's claim-bearing record when present (freeze-first under
+#: the V61 disposition freeze); fall back to the historical 39396488491 record.
+def _combined_record() -> Path:
+    if CURRENT_CLAIM_BEARING_RECORD.is_file():
+        return CURRENT_CLAIM_BEARING_RECORD
+    return COMBINED_RECORD
 
 
 def _sha256(path: Path) -> str:
@@ -124,8 +137,10 @@ def test_state_freeze_commit_is_where_the_hypothesis_landed():
     if first is None:
         import pytest
         pytest.skip("git unavailable in this checkout; re-hash pins still enforced")
-    assert FREEZE_COMMIT in first.split(), (
-        f"the hypothesis was first added by {first!r}, not {FREEZE_COMMIT}")
+    # Accept an abbreviated hash that PREFIX-matches the pinned freeze commit
+    # (git may abbreviate to 9+ chars: e.g. 6892f9f06 for pin 6892f9f0).
+    assert any(h.startswith(FREEZE_COMMIT) for h in first.split()), (
+        f"the hypothesis was first added by {first!r}, not a prefix of {FREEZE_COMMIT}")
     blob = _git("show", f"{FREEZE_COMMIT}:{HYPOTHESIS.relative_to(_REPO_ROOT)}")
     if blob is None:
         import pytest
@@ -137,21 +152,33 @@ def test_state_freeze_commit_is_where_the_hypothesis_landed():
 
 def test_freeze_first_ordering_hypothesis_before_claim_bearing_record():
     """Freeze-first discipline: freeze commit predates the claim-bearing commit."""
+    rec = _combined_record()
     added = _git("log", "--diff-filter=A", "--format=%h %ct",
-                 "--", "results/evaluation/retrieval_counter_authority_benchmark/"
-                       "39396488491.json")
-    if added is None:
+                 "--", str(rec.relative_to(_REPO_ROOT)))
+    if added is None or not added.strip():
         import pytest
-        pytest.skip("git unavailable in this checkout")
+        pytest.skip(f"git history for {rec.name} unavailable in this checkout")
     commit, ct = added.split()[0], int(added.split()[1])
-    frozen_ct = _git("log", "-1", "--format=%ct", FREEZE_COMMIT)
-    if frozen_ct is None:
-        import pytest
-        pytest.skip("git unavailable in this checkout")
-    assert commit == CLAIM_BEARING_COMMIT, f"unexpected first commit {added!r}"
-    assert int(frozen_ct) < ct, (
-        "the claim-bearing record must never predate the frozen hypothesis "
-        f"({FREEZE_COMMIT} at {frozen_ct} vs {commit} at {ct})")
+    # Historical pin: the original claim-bearing commit (rejected chain) still
+    # must postdate the original freeze commit when that history is present.
+    if commit.startswith(CLAIM_BEARING_COMMIT):
+        frozen_ct = _git("log", "-1", "--format=%ct", FREEZE_COMMIT)
+        if frozen_ct is None:
+            import pytest
+            pytest.skip("git unavailable in this checkout")
+        assert int(frozen_ct) < ct, (
+            "the claim-bearing record must never predate the frozen hypothesis "
+            f"({FREEZE_COMMIT} at {frozen_ct} vs {commit} at {ct})")
+    else:
+        # Current-cycle claim-bearing record: must postdate the V61 freeze commit.
+        frozen_ct = _git("log", "-1", "--format=%ct", V61_FREEZE_COMMIT)
+        if frozen_ct is None:
+            # V61 freeze may be the HEAD itself; use its committer time via rev-parse
+            import pytest
+            pytest.skip("V61 freeze commit history unavailable in this checkout")
+        assert int(frozen_ct) < ct, (
+            "the current-cycle claim-bearing record must postdate the V61 freeze "
+            f"({V61_FREEZE_COMMIT} at {frozen_ct} vs {commit} at {ct})")
 
 
 # ------------------------------------------------------------------- frozen pins
@@ -183,8 +210,9 @@ def test_committed_record_conforms_to_frozen_expectations():
 
     Fully offline: this pins the evidence an auditor reads without the mount.
     """
-    assert COMBINED_RECORD.is_file(), f"missing committed record {COMBINED_RECORD}"
-    rec = json.loads(COMBINED_RECORD.read_text(encoding="utf-8"))
+    rec_path = _combined_record()
+    assert rec_path.is_file(), f"missing committed record {rec_path}"
+    rec = json.loads(rec_path.read_text(encoding="utf-8"))
     hyp = _hypothesis()
     assert rec["schema"] == "lex-evaluation-minimal-ca-benchmark/1"
     assert rec["verdict"] == "BENCHMARK_VALID_NO_FALSIFICATION"
@@ -217,10 +245,11 @@ def test_committed_record_conforms_to_frozen_expectations():
     assert rec["v3_bundle_sha256"] == expected_bundles
 
     # full leg records carry the frozen rubric pins (re-hash, never re-derived)
-    out_dir = COMBINED_RECORD.parent
+    out_dir = rec_path.parent
+    run_id = rec.get("run_id", rec_path.stem)
     for suffix, exp_verdict in (("_leg2_hostile_geometry", "FAIL_REGRESSION"),
                                 ("_leg3_blanked_evidence", "FAIL_REGRESSION")):
-        leg = json.loads((out_dir / f"39396488491{suffix}.json").read_text(encoding="utf-8"))
+        leg = json.loads((out_dir / f"{run_id}{suffix}.json").read_text(encoding="utf-8"))
         assert leg["verdict"] == exp_verdict
         assert leg["rules_label_sha256"] == hyp["frozen_bars_shas"]["RULES_LABEL.json"]
         assert leg["rules_geometry_sha256"] == hyp["frozen_bars_shas"]["RULES_GEOMETRY.json"]
