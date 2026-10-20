@@ -6,7 +6,7 @@
 - Packet: questions (V3 packet-of-record)
 - Combined verdict: **BENCHMARK_VALID_NO_FALSIFICATION** (exit 0)
 - Falsification proven: **True**
-- Elapsed: 9.106 s
+- Elapsed: 8.796 s
 
 ## Legs
 
