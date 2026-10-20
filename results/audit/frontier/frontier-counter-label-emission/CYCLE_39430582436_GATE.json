@@ -1,0 +1,76 @@
+{
+  "gate": "BLOCKED",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "STRUCTURAL (blocking, requires Director/human decision): stop re-dispatching a charter the stop_promote_rule has already terminated. Charter v1 mandates exactly ONE verdict cycle and TERMINATE IMMEDIATELY after promotion. This is the 3rd cycle under the same v1 bytes (39422328377 original promotion -> 39426324296 operational resume, audit PASS, charter declared CLOSED -> 39430582436 byte-identical re-verification). The recurring re-verification is a pathology; resolving it (mark the team non-RUN, re-charter against NEW bytes, or formally accept the already-promoted record) is an owner/Director decision, not a same-cycle producer repair.",
+    "CONCRETE SAME-CYCLE DEFECT (publishable if the Director keeps the record): state/frontier/frontier-counter-label-emission.json at team snapshot 8eab86b references 4 artifacts that do not exist in the snapshot: results/frontier/frontier-counter-label-emission/run_39430582436/VERIFICATION.json; results/frontier/frontier-counter-label-emission/run_39430582436/RESUME_DIAGNOSIS.json; reports/frontier/frontier-counter-label-emission/REPORT_39430582436.md; reports/frontier/frontier-counter-label-emission/RESUME_39430582436.md. The producer copied the 39426324296 state template without regenerating the records this run claims. Either generate them or remove the dangling pointers; no re-measurement is required because the claim-bearing artifacts are byte-identical to the accepted run."
+  ],
+  "claim_ceiling": "The underlying A_EMISSION_RECOVERED result stands as already accepted (run 39422328377, commit 44d4904, re-verified at 39426324296) and is NOT re-litigated here; this audit does not assert that the emission repair is invalid. This cycle adds NO new claim-bearing information. The charter never asserts any decision IS supporting/contrary/limiting; support-among-issued, the abstention count and the yield are published together; the frozen absolute bar remains unmet as written and is never re-derived. No serve recommendation is produced and the accepted BOUNDED-NEGATIVE verdict of record (VERDICT_39371834165.json) is untouched; human_gate_ready is never touched.",
+  "evidence_summary": {
+    "run_id": "39430582436",
+    "team_id": "frontier-counter-label-emission",
+    "charter_version": 1,
+    "producer": "/tmp/lex_team",
+    "team_snapshot_commit": "8eab86bfc0f76abf0c6ce2708ac0c0635968ba0f",
+    "accepted_base_commit": "437c71172f86e21e6c3a461691d976cb60d09552",
+    "prior_accepted_cycle": "39426324296",
+    "prior_gate": "PASS",
+    "prior_charter_status": "CLOSED (audit report: no further cycle under the same charter is justified)",
+    "original_promotion_run": "39422328377",
+    "original_promotion_commit": "44d4904becb6faa2f6deef896f00c071279c0067",
+    "promotion_outcome": "A_EMISSION_RECOVERED",
+    "cycle_count_under_same_v1_bytes": 3,
+    "charter_stop_promote_rule": "exactly ONE verdict cycle; TERMINATE IMMEDIATELY after promotion; HARD STOP",
+    "blocking_reason": "recurring byte-identical re-verification of an already-terminated charter; no new information; state file carries dangling provenance references; portfolio still lists the team RUN while the team state says continue_recommended=false (structural mismatch requiring Director)",
+    "byte_identity": {
+      "run_39430582436_vs_run_39422328377": {
+        "ATTRIBUTION.json": "identical",
+        "EMISSION.json": "identical",
+        "DETERMINISM.json": "identical",
+        "NON_VACUITY.json": "identical",
+        "MEASUREMENT_SUMMARY.json": "identical except environment paths (classifier_root, rules_path, packet_dir)",
+        "ARTIFACT_DIGESTS.json": "identical"
+      },
+      "independent_auditor_rerun": "claim-bearing ATTRIBUTION/EMISSION/DETERMINISM/NON_VACUITY reproduced byte-identically on the committed packet with the accepted classifier d236f599 and frozen rubric"
+    },
+    "engineering_rerun": {
+      "method": "python -m frontier_counter_label_emission.cli --packet <39319405429> --out <tmp> --determinism-runs 3",
+      "input_hashes_ok": true,
+      "classifier_config_byte_identical": true,
+      "frozen_rubric_byte_identical": true,
+      "frozen_rules_sha256_actual": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "n_scored_before": {"de-kapitalverletzung": 0, "fr-bail-entretien": 0, "it-responsabilita-medica": 0},
+      "n_scored_after": {"de-kapitalverletzung": 8, "fr-bail-entretien": 8, "it-responsabilita-medica": 4},
+      "n_emitted_after": {"de-kapitalverletzung": 0, "fr-bail-entretien": 0, "it-responsabilita-medica": 0},
+      "n_abstained_after": {"de-kapitalverletzung": 8, "fr-bail-entretien": 8, "it-responsabilita-medica": 4},
+      "determinism_identical": {"de-kapitalverletzung": true, "fr-bail-entretien": true, "it-responsabilita-medica": true},
+      "non_vacuity_pass": {"de-kapitalverletzung": true, "fr-bail-entretien": true, "it-responsabilita-medica": true},
+      "absolute_bar_status": {"de-kapitalverletzung": "LABEL_UNSOUND", "fr-bail-entretien": "LABEL_UNSOUND", "it-responsabilita-medica": "INSUFFICIENT_POPULATION"},
+      "absolute_bar_satisfied_anywhere": false
+    },
+    "tests": {
+      "command": "python3 -m pytest tests/frontier/frontier-counter-label-emission -q",
+      "result": "42 passed",
+      "note": "with the accepted evidence mounts reconstructed at /tmp/lex_accepted (classifier d236f599, frozen rubric 4457e971, packet 39319405429)"
+    },
+    "attribution": {
+      "de-kapitalverletzung": {"primary_cause": "e_EMISSION_WRITER_ABORT", "secondary_causes": ["c_HYDRATION"]},
+      "fr-bail-entretien": {"primary_cause": "e_EMISSION_WRITER_ABORT", "secondary_causes": ["c_HYDRATION"]},
+      "it-responsabilita-medica": {"primary_cause": "e_EMISSION_WRITER_ABORT", "secondary_causes": []}
+    },
+    "write_scope": {
+      "foreign_writes": [],
+      "files_changed": "8 files, all inside frontier/frontier-counter-label-emission/**, results/frontier/frontier-counter-label-emission/**, state/frontier/frontier-counter-label-emission.json",
+      "zero_product_or_evaluation_or_github_or_frozen_writes": true
+    },
+    "serve_recommendation": false,
+    "human_gate_ready_touched": false,
+    "owner_card": false,
+    "ready_for_owner_session": false,
+    "bounded_negative_verdict_untouched": "evaluation/vendored_frontier_serve_audit/VERDICT_39371834165.json",
+    "observations_not_blocking": [
+      "RULES.json adds a 5th cause class e_EMISSION_WRITER_ABORT beyond the four named in the charter question; it is frozen before any claim-bearing computation and the evidence supports it, so it is not treated as a gate defect.",
+      "REPORT.md section 6 says 33 tests while the state and this run report 42 (9 resume regression guards); cosmetic staleness only."
+    ]
+  }
+}
