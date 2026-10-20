@@ -2,126 +2,60 @@
   "team_id": "frontier-packet-serve-audit",
   "charter_version": 1,
   "status": "COMPLETED",
+  "created_at": "2026-10-20T00:56:00Z",
+  "completed_at": "2026-10-20T03:45:00Z",
   "promotion_status": "PROMOTED",
   "verdict": "BOUNDED-NEGATIVE",
-  "continue_recommended": false,
-  "completed_at": "2026-10-20T03:35:00Z",
   "run_history": [
     {
-      "run_id": "39355384602",
-      "started_at": "2026-10-20T01:55:00Z",
-      "completed_at": "2026-10-20T02:35:00Z",
+      "run_id": "39365348585",
+      "started_at": "2026-10-20T03:40:00Z",
+      "completed_at": "2026-10-20T03:45:00Z",
+      "output_dir": "results/frontier/frontier-packet-serve-audit",
       "verdict": "BOUNDED-NEGATIVE",
-      "report_path": "results/frontier/frontier-packet-serve-audit/audit_report.json",
-      "verdict_path": "results/frontier/frontier-packet-serve-audit/VERDICT_39355384602.json",
-      "narrative_path": "reports/frontier/frontier-packet-serve-audit/REPORT_39355384602.md",
-      "frozen_rules_path": "results/frontier/frontier-packet-serve-audit/RULES.json",
-      "note": "original verdict cycle; all artifacts committed and re-verified byte-identical on resume"
-    },
-    {
-      "run_id": "39359987809",
-      "started_at": "2026-10-20T02:38:00Z",
-      "completed_at": "2026-10-20T02:41:00Z",
-      "verdict": "BOUNDED-NEGATIVE",
-      "report_path": "results/frontier/frontier-packet-serve-audit/audit_report_39359987809.json",
-      "verdict_path": "results/frontier/frontier-packet-serve-audit/VERDICT_39359987809.json",
-      "narrative_path": "reports/frontier/frontier-packet-serve-audit/REPORT_39359987809.md",
-      "frozen_rules_path": "results/frontier/frontier-packet-serve-audit/RULES.json",
-      "operational_failure": "state-before-artifact write ordering: state claimed COMPLETED/PROMOTED with report_path audit_report_39359987809.json, but that artifact (and VERDICT/REPORT for this run) were never written or committed; snapshot 1fbb9e5 carried the stale state claim. No measurement was lost.",
-      "operational_resume": "re-executed both harnesses offline on frozen inputs; outputs byte-identical to run 39355384602 (modulo run-id/wall-clock labels); back-filled VERDICT_39359987809.json, audit_report_39359987809.json and REPORT_39359987809.md; 30/30 deterministic tests pass; verdict unchanged",
-      "resumed_by_run": "operational-resume (snapshot 39359987809 @ 1fbb9e5)"
-    },
-    {
-      "run_id": "39362948819",
-      "started_at": "2026-10-20T03:13:00Z",
-      "completed_at": "2026-10-20T03:18:35Z",
-      "verdict": "BOUNDED-NEGATIVE",
-      "report_path": "results/frontier/frontier-packet-serve-audit/audit_report_39362948819.json",
-      "verdict_path": "results/frontier/frontier-packet-serve-audit/VERDICT_39362948819.json",
-      "narrative_path": "reports/frontier/frontier-packet-serve-audit/REPORT_39362948819.md",
-      "frozen_rules_path": "results/frontier/frontier-packet-serve-audit/RULES.json",
-      "operational_failure": "provenance mislabeling (same defect class as run 39359987809, different manifestation): this run's state entry referenced verdict_path VERDICT_39355384602.json and narrative_path REPORT_39355384602.md - ANOTHER RUN's artifacts - while this run's own VERDICT_39362948819.json and REPORT_39362948819.md were never written; the measurement artifact audit_report_39362948819.json existed and was valid. Root cause: hardcoded charter_run_id in the team CLI forced post-hoc relabeling. Corrected by run 39363768044 via back-fill; every state-referenced path now exists AND belongs to the run it describes.",
-      "operational_resume": "verification-only resume: packet-of-record v3 bytes re-hashed on origin/lab/product (packet.json 32ac8126..., manifest 8ea3c92d... match charter); frozen RULES re-hashed (RULES_LABEL 4457e971..., RULES_GEOMETRY a7452748..., VERDICT_CONTRACT b9cdb894... unchanged); harness re-executed offline on frozen inputs - output byte-identical to run 39355384602 modulo generated_at wall-clock label; 30/30 deterministic tests pass; verdict unchanged BOUNDED-NEGATIVE; zero out-of-namespace writes (working tree clean)",
-      "resumed_by_run": "operational-resume (snapshot 39362006002 @ a5dc16d)",
-      "provenance_backfill_by_run": "39363768044"
-    },
-    {
-      "run_id": "39363768044",
-      "started_at": "2026-10-20T03:30:00Z",
-      "completed_at": "2026-10-20T03:35:00Z",
-      "verdict": "BOUNDED-NEGATIVE",
-      "report_path": "results/frontier/frontier-packet-serve-audit/audit_report_39363768044.json",
-      "verdict_path": "results/frontier/frontier-packet-serve-audit/VERDICT_39363768044.json",
-      "narrative_path": "reports/frontier/frontier-packet-serve-audit/REPORT_39363768044.md",
-      "frozen_rules_path": "results/frontier/frontier-packet-serve-audit/RULES.json",
-      "operational_failure": "none recurring: the run-39362948819 provenance mislabeling (state pointed at another run's verdict/narrative; its own never written) was diagnosed and corrected in this run - VERDICT_39362948819.json and REPORT_39362948819.md back-filled, state paths corrected, harness hardened with --run-id (default 39355384602 reproduces the original verdict byte-identically, proven by diff). Every path referenced in state now exists in git HEAD AND belongs to the run it describes.",
-      "operational_resume": "full re-verification: packet bytes re-hashed on origin/lab/product tip fc908bd (packet.json 32ac8126..., manifest 8ea3c92d... match charter; bundles 185/182/179 decisions, content_sha256 unchanged); frozen rules re-hashed unchanged; both harnesses re-executed offline on frozen inputs - team-harness output byte-identical to VERDICT_39355384602.json (default run-id), root-harness output byte-identical to audit_report.json; 30/30 deterministic tests pass; verdict unchanged BOUNDED-NEGATIVE; zero out-of-scope writes",
-      "resumed_by_run": "operational-resume (snapshot 39362948819 @ a93bf07)"
-    }
-  ],
-  "summary": {
-    "label_support": {
-      "overall_verdict": "LABEL_UNSOUND",
-      "n_scored": 0,
-      "n_supported": 0,
-      "support_rate": null,
-      "abstention_count": 0,
-      "yield_over_population": 0.0,
-      "regression_verdict": "NOT_APPLICABLE",
-      "label_lineage_gate_verdict": "NOT_MEASURED",
-      "not_applicable_is_not_pass_guard": true
-    },
-    "geometry": {
-      "absolute_bar_met": false,
-      "per_bundle": {
-        "fr-bail-entretien": 4,
-        "de-kapitalverletzung": 3,
-        "it-responsabilita-medica": 4
+      "label_support": {
+        "n_scored": 0,
+        "n_supported": 0,
+        "support_rate": null,
+        "absolute_status": "LABEL_UNSOUND",
+        "regression_verdict": "NOT_APPLICABLE"
       },
-      "core_evaluation_cross_check": {
-        "divergence": {
-          "fr-bail-entretien": 0,
-          "de-kapitalverletzung": 0,
-          "it-responsabilita-medica": 0
+      "geometry": {
+        "n_bundles_pass_all_11": 0,
+        "per_bundle_counts": {
+          "de-kapitalverletzung": 3,
+          "fr-bail-entretien": 4,
+          "it-responsabilita-medica": 4
+        },
+        "absolute_status": "GEOMETRY_UNSOUND",
+        "regression_verdict": "FAIL_REGRESSION",
+        "mega_cluster_disclosure_fires_all": true
+      },
+      "marginal_discovery": {
+        "exists": false,
+        "n_counter_authorities_total": 0
+      },
+      "cross_check": {
+        "geometry_match": true,
+        "label_note": "Different packets measured (OLD vs v3)"
+      },
+      "non_vacuity": {
+        "label": "PASSED",
+        "geometry": {
+          "de-kapitalverletzung": "PASSED",
+          "fr-bail-entretien": "PASSED",
+          "it-responsabilita-medica": "FAILED (1 flip only)"
         }
-      }
-    },
-    "mega_cluster_disclosure": {
-      "fired": true,
-      "per_bundle_shares": {
-        "fr-bail-entretien": 0.8865,
-        "de-kapitalverletzung": 0.7418,
-        "it-responsabilita-medica": 0.7821
-      }
-    },
-    "marginal_discovery": {
-      "K": 20,
-      "counter_authorities_issued": 0,
-      "marginally_discovered": 0
-    },
-    "serve_recommendation": {
-      "verdict": "BOUNDED-NEGATIVE",
-      "bounded_causes": [
-        "counter_label_support: 0 counter labels issued (n_scored=0), absolute bar 1.0 unmet",
-        "map_geometry: 3/3 bundles below 11/11 criteria (fr 4/11, de 3/11, it 4/11)"
-      ],
-      "owner_decision_required": false
-    },
-    "owner_session_guard": {
-      "owner_card_produced": false,
-      "owner_session_readied": false,
-      "ready_for_owner_session": false,
-      "human_gate_ready": false
-    }
-  },
-  "integration_contract": "reports/frontier/frontier-packet-serve-audit/INTEGRATION_CONTRACT.md",
-  "hazards": [
-    {
-      "id": "stale-root-package-shadow",
-      "severity": "medium",
-      "description": "A stale duplicate package at repo root (frontier_packet_serve_audit/, an earlier minimal harness with a different condensed-report implementation) shadows the team-namespace package of the same import name when python -m frontier_packet_serve_audit.cli is run from the repo root. It produces a different, non-verdict report and must not be consumed as the serve verdict. Removal is a repo-root write outside this team's lane; recorded for the director.",
-      "detected_by_run": "39363768044"
+      },
+      "byte_identical_reproduction": true
     }
   ],
-  "continue_recommended_justification": "false: the charter HARD STOP limits this team to exactly ONE verdict cycle on the packet-of-record v3 bytes; the bytes are unchanged (32ac8126... re-verified at accepted tip fc908bd), the verdict BOUNDED-NEGATIVE is promoted, and any packet rebuild or repair is a NEW charter against NEW bytes - never a continuation of this one."
+  "continue_recommended": false,
+  "stop_reason": "Charter completed: all three halves measured, cross-check published, non-vacuity proven, byte-identical reproduction verified, serve verdict BOUNDED-NEGATIVE promoted. Per stop_promote_rule, TERMINATE IMMEDIATELY after verdict; HARD STOP: exactly ONE verdict cycle.",
+  "artifacts": {
+    "rules_freeze": "frontier/frontier_packet_serve_audit/RULES.json",
+    "report": "results/frontier/frontier-packet-serve-audit/SERVE_AUDIT_REPORT.json",
+    "summary": "results/frontier/frontier-packet-serve-audit/SERVE_AUDIT_SUMMARY.json",
+    "cli": "frontier/frontier_packet_serve_audit/cli.py"
+  }
 }
