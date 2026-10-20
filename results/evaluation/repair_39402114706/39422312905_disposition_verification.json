@@ -4,7 +4,7 @@
  "cycle_id": "39402114706",
  "repair_round": 2,
  "disposition_of_blocked_gate": "CYCLE_39413028463",
- "generated_at_utc": "2026-10-20T13:09:03Z",
+ "generated_at_utc": "2026-10-20T13:11:34Z",
  "direction_version": 61,
  "python": "3.12.3",
  "pytest_installed": true,
@@ -20,13 +20,12 @@
   ],
   "returncode": 0,
   "counts": {
-   "passed": 10,
-   "skipped": 1
+   "passed": 11
   },
-  "summary_line": "10 passed, 1 skipped in 9.24s",
-  "passed": 10,
+  "summary_line": "11 passed in 9.21s",
+  "passed": 11,
   "failed": 0,
-  "skipped": 1
+  "skipped": 0
  },
  "negative_control_measurement": {
   "failed_tests": [
@@ -36,7 +35,7 @@
    "test_state_pytest_claim_names_this_dedicated_test"
   ],
   "returncode": 1,
-  "summary_line": "4 failed, 6 passed, 1 skipped in 9.16s"
+  "summary_line": "4 failed, 7 passed in 9.24s"
  },
  "regression_measurement": {
   "targets": [
@@ -49,7 +48,7 @@
   "counts": {
    "passed": 58
   },
-  "summary_line": "58 passed in 97.24s (0:01:37)",
+  "summary_line": "58 passed in 97.32s (0:01:37)",
   "passed": 58,
   "failed": 0,
   "skipped": 0
@@ -79,10 +78,10 @@
   "stderr_tail": ""
  },
  "n_checks": 36,
- "n_passed": 35,
- "n_failed": 1,
+ "n_passed": 36,
+ "n_failed": 0,
  "n_skipped": 0,
- "executed_checks_pass": false,
+ "executed_checks_pass": true,
  "checks": [
   {
    "check": "R1 hypothesis file re-hashes to the required value",
@@ -144,11 +143,17 @@
   },
   {
    "check": "R2 freeze-first ordering: freeze commit predates the claim-bearing record",
-   "status": "fail",
-   "pass": false,
+   "status": "pass",
+   "pass": true,
    "skipped": false,
    "expected": "6892f9f0 (or V61 07cf996ff) epoch < claim-bearing record epoch",
-   "observed": "",
+   "observed": {
+    "freeze_commit": "6892f9f0",
+    "freeze_epoch": 1792499935,
+    "claim_bearing_commit": "cc1632adc",
+    "claim_bearing_record": "results/evaluation/retrieval_counter_authority_benchmark/39422312905.json",
+    "claim_bearing_epoch": 1792501758
+   },
    "evidence": "git log --diff-filter=A on the committed benchmark record"
   },
   {
@@ -183,7 +188,7 @@
    "status": "pass",
    "pass": true,
    "skipped": false,
-   "expected": "10 passed / 0 failed / 1 skipped (must appear as one of the published environment-qualified branches)",
+   "expected": "11 passed / 0 failed / 0 skipped (must appear as one of the published environment-qualified branches)",
    "observed": {
     "published_branches": [
      [
@@ -233,9 +238,9 @@
       "0"
      ]
     ],
-    "fresh": "10 passed / 0 failed / 1 skipped"
+    "fresh": "11 passed / 0 failed / 0 skipped"
    },
-   "evidence": "pytest tests/evaluation/test_minimal_ca_benchmark.py -> 10 passed, 1 skipped in 9.24s"
+   "evidence": "pytest tests/evaluation/test_minimal_ca_benchmark.py -> 11 passed in 9.21s"
   },
   {
    "check": "negative control: re-injected pre-repair state fails the dedicated test",
@@ -515,7 +520,7 @@
      ]
     ],
     "measured": "58 passed / 0 failed / 0 skipped",
-    "summary_line": "58 passed in 97.24s (0:01:37)",
+    "summary_line": "58 passed in 97.32s (0:01:37)",
     "targets": [
      "tests/evaluation/test_frozen_bar_gates.py",
      "tests/evaluation/test_bar_gate_verdict_contract.py",
@@ -606,12 +611,12 @@
    "evidence": "a file named for run X holds run X's measurement"
   }
  ],
- "overall_pass": false,
- "claim_ceiling": "This artifact proves only that the required disposition fixes of audits CYCLE_39402114706 / CYCLE_39406033825 / CYCLE_39413028463 are present and re-measurable on the checks that actually executed (35/36 checks passed, 0 skipped), that the frozen pins re-hash unchanged, and (when the V3 packet mount is present) that the minimal_ca_benchmark still reproduces BENCHMARK_VALID_NO_FALSIFICATION on the packet-of-record V3 bytes. When the mount is absent the live-reproduction check is SKIPPED and is NOT a pass of the frozen verdict. It does NOT prove jurist usefulness, does NOT meet the absolute LABEL_SOUND / GEOMETRY_SOUND bars and does NOT unblock the human gate (standing accepted DO-NOT-SERVE orders). NOT_APPLICABLE is never a pass.",
+ "overall_pass": true,
+ "claim_ceiling": "This artifact proves only that the required disposition fixes of audits CYCLE_39402114706 / CYCLE_39406033825 / CYCLE_39413028463 are present and re-measurable on the checks that actually executed (36/36 checks passed, 0 skipped), that the frozen pins re-hash unchanged, and (when the V3 packet mount is present) that the minimal_ca_benchmark still reproduces BENCHMARK_VALID_NO_FALSIFICATION on the packet-of-record V3 bytes. When the mount is absent the live-reproduction check is SKIPPED and is NOT a pass of the frozen verdict. It does NOT prove jurist usefulness, does NOT meet the absolute LABEL_SOUND / GEOMETRY_SOUND bars and does NOT unblock the human gate (standing accepted DO-NOT-SERVE orders). NOT_APPLICABLE is never a pass.",
  "f3_hardening": {
   "rule": "mount-absent and caller-skipped checks carry status=skipped and never contribute a pass to overall_pass",
   "overall_pass_requires": "n_failed==0 AND n_skipped==0 AND n_passed==n_checks",
   "auditor_finding_addressed": "CYCLE_39413028463 F3"
  },
- "elapsed_s": 125.648
+ "elapsed_s": 125.634
 }
