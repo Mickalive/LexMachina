@@ -65,13 +65,16 @@ def score_bundle(bundle_path: str | Path, rules: FrozenRules, profile_key: str) 
         classes[r["primary_defect_class"]] = classes.get(r["primary_defect_class"], 0) + 1
     n_supported = sum(1 for r in scored if r["supported"])
     n_decisions = len(bundle.get("decisions") or [])
-    # Abstention: the abstain-and-disclose classifier issues no label.
-    # 'none' rows carry no counter label; 'abstained_unevidenced' is the
-    # disclosed abstention marker if present. 'cited' is a NON_QUOTE_REF
+    # Abstention accounting: 'none' rows carry no counter label and are
+    # descriptive row-status context, NOT abstentions. 'abstained_unevidenced'
+    # is the disclosed abstention marker if present. 'cited' is a NON_QUOTE_REF
     # placeholder, reported separately, never scored and never an abstention.
+    # The abstention_count is taken from the packet's committed disclosures
+    # (see score_packet); the status_counts below are descriptive only.
     from collections import Counter
     status_counts = Counter(d.get("counter_status") for d in (bundle.get("decisions") or []))
-    n_abstain = int(status_counts.get("none", 0)) + int(status_counts.get("abstained_unevidenced", 0))
+    n_none_rows = int(status_counts.get("none", 0))
+    n_abstained_marker = int(status_counts.get("abstained_unevidenced", 0))
     return {
         "bundle_path": str(bundle_path),
         "sha256": sha256_file(bundle_path),
@@ -79,8 +82,9 @@ def score_bundle(bundle_path: str | Path, rules: FrozenRules, profile_key: str) 
         "n_decisions": n_decisions,
         "n_scored": len(scored),
         "n_reported_only": len(reported_rows),
-        "n_abstain": n_abstain,
-        "yield_over_population": (len(scored) / n_decisions) if n_decisions else None,
+        "n_abstain": n_abstained_marker + n_none_rows,  # fallback only; see score_packet
+        "n_none_rows_descriptive": n_none_rows,
+        "yield_over_population": (n_supported / n_decisions) if n_decisions else 0.0,
         "n_supported": n_supported,
         "support_rate": (n_supported / len(scored)) if scored else None,
         "status_counts": dict(sorted(status_counts.items())),
@@ -100,8 +104,17 @@ def score_bundle(bundle_path: str | Path, rules: FrozenRules, profile_key: str) 
     }
 
 
-def score_packet(bundles: dict[str, str], rules: FrozenRules) -> dict:
-    """Score a {qid: bundle_path} packet; profile key == qid (frozen anchors)."""
+def score_packet(bundles: dict[str, str], rules: FrozenRules,
+                 abstain_by_qid: dict[str, int] | None = None) -> dict:
+    """Score a {qid: bundle_path} packet; profile key == qid (frozen anchors).
+
+    abstain_by_qid: the packet's OWN committed disclosures
+    (disclosures.json per_bundle.<qid>.counter_anchor.n_abstained) -- the
+    frozen metric definition's abstention count. When supplied it overrides
+    the bundle-status fallback in score_bundle and the source is recorded;
+    when omitted the fallback counts 'none' + 'abstained_unevidenced' rows
+    and says so explicitly (never silently).
+    """
     known_anchors = set(rules.anchors)
     unknown = [qid for qid in bundles if qid not in known_anchors]
     if unknown:
@@ -112,7 +125,18 @@ def score_packet(bundles: dict[str, str], rules: FrozenRules) -> dict:
     n_scored = sum(b["n_scored"] for b in per_bundle.values())
     n_supported = sum(b["n_supported"] for b in per_bundle.values())
     n_decisions = sum(b["n_decisions"] for b in per_bundle.values())
-    n_abstain = sum(b["n_abstain"] for b in per_bundle.values())
+    if abstain_by_qid is not None:
+        missing = [qid for qid in per_bundle if qid not in abstain_by_qid]
+        if missing:
+            raise ValueError(f"no disclosed abstention count for bundle(s) {missing!r}")
+        n_abstain = sum(int(abstain_by_qid[qid]) for qid in per_bundle)
+        abstention_source = ("packet disclosures.json per_bundle.counter_anchor.n_abstained "
+                             "(frozen RULES.json metric definition: abstention_count)")
+    else:
+        n_abstain = sum(b["n_abstain"] for b in per_bundle.values())
+        abstention_source = ("fallback: bundle status_counts of counter_status 'none' + "
+                             "'abstained_unevidenced' rows (descriptions only; the packet's "
+                             "disclosures were not supplied)")
     classes: dict[str, int] = {}
     for b in per_bundle.values():
         for k, v in b["classes"].items():
@@ -141,13 +165,23 @@ def score_packet(bundles: dict[str, str], rules: FrozenRules) -> dict:
         "support_rate": support_rate,
         "n_decisions": n_decisions,
         "n_abstain": n_abstain,
-        "yield_over_population": (n_scored / n_decisions) if n_decisions else None,
+        "abstention_source": abstention_source,
+        "yield_over_population": (n_supported / n_decisions) if n_decisions else 0.0,
+        "yield_definition": "n_supported / n_decisions (frozen RULES.json metric definition)",
         "classes": classes,
         "incumbent": dict(INCUMBENT),
         "lineage_matches_incumbent_population": lineage,
         "regression_verdict": regression_verdict,
         "gate_blocks_build": bool(lineage and regressed),
-        "per_bundle": per_bundle,
+        "per_bundle": {
+            qid: {
+                **b,
+                "n_abstain": (int(abstain_by_qid[qid]) if abstain_by_qid is not None
+                              else b["n_abstain"]),
+                "n_none_rows_descriptive": b["n_none_rows_descriptive"],
+            }
+            for qid, b in per_bundle.items()
+        },
     }
 
 

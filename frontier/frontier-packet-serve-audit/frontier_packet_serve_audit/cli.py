@@ -36,6 +36,14 @@ QIDS = ("de-kapitalverletzung", "fr-bail-entretien", "it-responsabilita-medica")
 EXPECTED_PACKET_JSON_SHA256 = "32ac812626e679c357822543d0b2e78e62c0e95a9a1b233d1ec89d7cb7b6ac70"
 EXPECTED_MANIFEST_SHA256 = "8ea3c92d11e915bcea98b3bc1bd80724b08e920c6ff3bdcade18ed39db388bb7"
 
+# The remaining packet-of-record inputs named by the charter (dependency 1),
+# pinned by the pre-computation freeze (frontier/frontier_packet_serve_audit/
+# RULES.json inputs.packet_of_record_v3, committed in the resumed run's commit
+# 3fe5774 before any scoring) and re-hashed here before use.
+EXPECTED_HANDOFF_SHA256 = "5b758a3da820a562dfadb9af1fbb5ff2acd9ba395fa151a36571217645b64544"
+EXPECTED_DISCLOSURES_SHA256 = "87147f114fd3bfe278077afa83613f2c586c8c8d95aa77b287c4fce916cb31d3"
+EXPECTED_CLAIM_CACHE_SHA256 = "7e501823c63783294e70962284d72ff4b541b17807aa6bf6f2478fd85264c02d"
+
 
 def _sha256_file(path: Path) -> str:
     h = hashlib.sha256()
@@ -59,6 +67,12 @@ def run_audit(packet_dir: Path, frozen_rules_dir: Path, eval_mount: Path, produc
         raise FileNotFoundError(f"packet.json not found in {packet_dir}")
     packet_sha = _sha256_file(packet_json)
     manifest_sha = _sha256_file(manifest) if manifest.exists() else None
+    handoff_path = packet_dir / "handoff.json"
+    disclosures_path = packet_dir / "disclosures.json"
+    claim_cache_path = packet_dir / "CLAIM_CACHE_VERIFICATION.json"
+    handoff_sha = _sha256_file(handoff_path) if handoff_path.exists() else None
+    disclosures_sha = _sha256_file(disclosures_path) if disclosures_path.exists() else None
+    claim_cache_sha = _sha256_file(claim_cache_path) if claim_cache_path.exists() else None
     bundle_paths = {qid: packet_dir / "questions" / f"{qid}.bundle.json" for qid in QIDS}
     missing = [str(p) for p in bundle_paths.values() if not p.exists()]
     if missing:
@@ -66,13 +80,29 @@ def run_audit(packet_dir: Path, frozen_rules_dir: Path, eval_mount: Path, produc
     bundle_shas = {qid: _sha256_file(p) for qid, p in bundle_paths.items()}
     bundles = {qid: _load_json(p) for qid, p in bundle_paths.items()}
     content_shas = {qid: content_sha256(b) for qid, b in bundles.items()}
+    disclosures = _load_json(disclosures_path) if disclosures_path.exists() else None
 
     # ---- frozen rules (re-hash before use) --------------------------------
     label_rules = label_gate.load_frozen_rules(frozen_rules_dir / "RULES_LABEL.json")
     geometry_rules = geometry_gate.load_frozen_geometry_rules(frozen_rules_dir / "RULES_GEOMETRY.json")
 
     # ---- (a) LABEL SUPPORT ----------------------------------------------
-    label_res = label_gate.score_packet({qid: str(p) for qid, p in bundle_paths.items()}, label_rules)
+    # The abstention count is the packet's OWN committed disclosure
+    # (disclosures.json per_bundle.<qid>.counter_anchor.n_abstained) -- the
+    # frozen metric definition. 'none' rows are descriptive row status, not
+    # abstentions.
+    if disclosures is None:
+        raise FileNotFoundError(f"disclosures.json not found in {packet_dir}; "
+                                "the frozen abstention_count definition requires it")
+    per_bundle_disclosures = disclosures.get("per_bundle") or {}
+    abstain_by_qid = {}
+    for qid in QIDS:
+        counter_anchor = ((per_bundle_disclosures.get(qid) or {}).get("counter_anchor") or {})
+        if "n_abstained" not in counter_anchor:
+            raise ValueError(f"packet disclosures carry no counter_anchor.n_abstained for {qid!r}")
+        abstain_by_qid[qid] = int(counter_anchor["n_abstained"])
+    label_res = label_gate.score_packet({qid: str(p) for qid, p in bundle_paths.items()},
+                                        label_rules, abstain_by_qid=abstain_by_qid)
     lineage_verdict = label_gate.label_lineage_gate_verdict(label_res)
     label_nv = non_vacuity.label_injection_control(label_rules)
 
@@ -97,21 +127,30 @@ def run_audit(packet_dir: Path, frozen_rules_dir: Path, eval_mount: Path, produc
     verdict.assert_machine_check(v)
 
     # ---- non-vacuity summary ---------------------------------------------
-    # The charter requires proving at least two criteria/verdicts can move
-    # under a seeded control. Proven when the BEST bundle flips >= 2 (de and
-    # fr each flip 2); per-bundle counts are reported, never hidden.
-    geom_nv_proven = any(g["proven_non_vacuous"] for g in geom_nv.values())
+    # Charter acceptance test (4), aggregated honestly: EVERY anchor bundle
+    # must independently satisfy the frozen per-bundle standard (best >= 2
+    # flips across ALL frozen corruption streams AND some corrupted geometry
+    # reads overall FAIL), the frozen label injection battery must pass, and
+    # BOTH verdict outcomes must be reachable through the same decide() path.
+    # This is a logical AND across bundles -- never an any() that lets a
+    # passing bundle vote down a failed one.
     reachability = non_vacuity.verdict_reachability_control()
+    bundles_all_proven = all(g["proven_non_vacuous"] for g in geom_nv.values()) and bool(geom_nv)
     non_vacuity_summary = {
         "geometry_permutation": {qid: {
-            "charter_flips": geom_nv[qid]["charter"]["n_flips"],
-            "full_flips": geom_nv[qid]["full"]["n_flips"],
+            "control_seeds": geom_nv[qid]["control_seeds"],
+            "frozen_control_seeds": geom_nv[qid]["frozen_control_seeds"],
+            "per_seed": geom_nv[qid]["per_seed"],
+            "best_n_flips": geom_nv[qid]["best_n_flips"],
             "proven_non_vacuous": geom_nv[qid]["proven_non_vacuous"],
         } for qid in QIDS},
-        "geometry_permutation_proven": geom_nv_proven,
+        "geometry_permutation_all_bundles_proven": bundles_all_proven,
         "label_injection": label_nv,
         "verdict_reachability": reachability,
-        "non_vacuity_proven": bool(geom_nv_proven and label_nv["proven_non_vacuous"]
+        "aggregation": ("AND: every bundle proven_non_vacuous AND label battery passed "
+                        "AND both outcomes reachable; no any() over bundles"),
+        "non_vacuity_proven": bool(bundles_all_proven
+                                   and label_nv["proven_non_vacuous"]
                                    and reachability["both_outcomes_reachable"]),
     }
 
@@ -126,6 +165,12 @@ def run_audit(packet_dir: Path, frozen_rules_dir: Path, eval_mount: Path, produc
             "packet_json_matches_charter": packet_sha == EXPECTED_PACKET_JSON_SHA256,
             "manifest_sha256": manifest_sha,
             "manifest_matches_charter": manifest_sha == EXPECTED_MANIFEST_SHA256,
+            "handoff_json_sha256": handoff_sha,
+            "handoff_matches_freeze": handoff_sha == EXPECTED_HANDOFF_SHA256,
+            "disclosures_json_sha256": disclosures_sha,
+            "disclosures_matches_freeze": disclosures_sha == EXPECTED_DISCLOSURES_SHA256,
+            "claim_cache_verification_sha256": claim_cache_sha,
+            "claim_cache_matches_freeze": claim_cache_sha == EXPECTED_CLAIM_CACHE_SHA256,
             "bundle_raw_sha256": bundle_shas,
             "bundle_content_sha256": content_shas,
             "n_decisions": {qid: len(bundles[qid].get("decisions") or []) for qid in QIDS},
@@ -140,7 +185,9 @@ def run_audit(packet_dir: Path, frozen_rules_dir: Path, eval_mount: Path, produc
             "support_rate": label_res["support_rate"],
             "n_decisions": label_res["n_decisions"],
             "n_abstain": label_res["n_abstain"],
+            "abstention_source": label_res["abstention_source"],
             "yield_over_population": label_res["yield_over_population"],
+            "yield_definition": label_res["yield_definition"],
             "absolute_bar": label_res["absolute_bar"],
             "absolute_status": label_res["absolute_status"],
             "regression_verdict": label_res["regression_verdict"],
@@ -150,6 +197,8 @@ def run_audit(packet_dir: Path, frozen_rules_dir: Path, eval_mount: Path, produc
                 "n_scored": label_res["per_bundle"][qid]["n_scored"],
                 "n_supported": label_res["per_bundle"][qid]["n_supported"],
                 "n_abstain": label_res["per_bundle"][qid]["n_abstain"],
+                "abstain_disclosed": abstain_by_qid[qid],
+                "n_none_rows_descriptive": label_res["per_bundle"][qid]["n_none_rows_descriptive"],
                 "yield_over_population": label_res["per_bundle"][qid]["yield_over_population"],
                 "status_counts": label_res["per_bundle"][qid]["status_counts"],
             } for qid in QIDS},
@@ -162,6 +211,7 @@ def run_audit(packet_dir: Path, frozen_rules_dir: Path, eval_mount: Path, produc
             "gate_blocks_build": geom_res["gate_blocks_build"],
             "per_bundle": {qid: {
                 "n_pass": geom_res["per_bundle"][qid]["n_pass"],
+                "n_criteria": geom_res["per_bundle"][qid]["n_criteria"],
                 "criteria": geom_res["per_bundle"][qid]["criteria"],
                 "mega_cluster": geom_res["per_bundle"][qid]["mega_cluster"],
             } for qid in QIDS},

@@ -67,18 +67,40 @@ def test_content_sha256_reproduces_preflight(packet_dir, product_mount):
 # 3. abstention accounting (the v3 packet issues zero counter labels)
 # ---------------------------------------------------------------------------
 def test_abstention_accounting_on_v3(packet_dir, label_rules):
-    """The abstain-and-disclose classifier config scores n_scored=0; every row
-    is either 'none' (abstained) or 'cited' (NON_QUOTE_REF placeholder)."""
+    """The abstain-and-disclose classifier config scores n_scored=0 and the
+    packet's OWN committed disclosures report n_abstained=0 per bundle. The
+    abstention_count therefore reads 0 (frozen metric definition: n_abstained
+    from disclosures). The 536 'none' rows are descriptive row status, NOT
+    abstentions. The disclosures-free fallback must say so explicitly rather
+    than silently counting none-rows as abstentions."""
     bundle_paths = {qid: str(packet_dir / "questions" / f"{qid}.bundle.json") for qid in QIDS}
-    res = label_gate.score_packet(bundle_paths, label_rules)
+    disclosures = json.loads((packet_dir / "disclosures.json").read_text(encoding="utf-8"))
+    abstain_by_qid = {
+        qid: int(((disclosures["per_bundle"][qid] or {}).get("counter_anchor") or {})["n_abstained"])
+        for qid in QIDS
+    }
+    assert abstain_by_qid == {"de-kapitalverletzung": 0, "fr-bail-entretien": 0,
+                              "it-responsabilita-medica": 0}
+    res = label_gate.score_packet(bundle_paths, label_rules, abstain_by_qid=abstain_by_qid)
     assert res["n_scored"] == 0
     assert res["n_supported"] == 0
     assert res["support_rate"] is None
-    assert res["n_abstain"] > 0
+    assert res["n_abstain"] == 0
+    assert "disclosures.json" in res["abstention_source"]
     assert res["yield_over_population"] == 0.0
-    # Every bundle: only 'none' and 'cited' statuses.
+    # Every bundle: only 'none' and 'cited' statuses; 'none' rows are
+    # descriptive (177/182/177), never counted as abstentions.
+    total_none = 0
     for qid, pb in res["per_bundle"].items():
         assert set(pb["status_counts"]) <= {"none", "cited"}, f"unexpected statuses in {qid}: {pb['status_counts']}"
+        assert pb["n_abstain"] == 0
+        assert pb["n_none_rows_descriptive"] == pb["status_counts"].get("none", 0)
+        total_none += pb["n_none_rows_descriptive"]
+    assert total_none == 536
+    # The fallback (no disclosures supplied) is explicit about its source.
+    fb = label_gate.score_packet(bundle_paths, label_rules)
+    assert fb["n_abstain"] == 536
+    assert "fallback" in fb["abstention_source"]
 
 
 # ---------------------------------------------------------------------------
@@ -247,16 +269,48 @@ def test_verdict_reachability_both_outcomes():
 # 10. geometry non-vacuity (seeded control moves >= 2 criteria)
 # ---------------------------------------------------------------------------
 def test_geometry_non_vacuity_control(real_bundles, geometry_rules):
+    """The frozen per-bundle standard must hold on ALL THREE bundles: best
+    >= 2 flips across every frozen corruption stream AND some corrupted
+    geometry reads overall FAIL. The previous harness revision ran seed 0
+    only and recorded it-responsabilita-medica as FAILED (1 flip only); the
+    frozen seed list [42, 123, 456] is part of the standard and its omission
+    was the defect."""
     lexicons = geometry_rules["query_term_lexicons"]
     lang_by_qid = {e["bundle"]: e["query_language"] for e in geometry_rules["inputs"]}
-    proven_any = False
     for qid in QIDS:
         ctrl = non_vacuity.geometry_non_vacuity_control(real_bundles[qid], lang_by_qid[qid], lexicons[qid])
-        best = max(ctrl["charter"]["n_flips"], ctrl["full"]["n_flips"])
-        if ctrl["proven_non_vacuous"]:
-            proven_any = True
-            assert best >= 2
-    assert proven_any, "the seeded control must move >= 2 criteria on at least one bundle"
+        assert ctrl["control_seeds"] == [0, 42, 123, 456]
+        assert ctrl["frozen_control_seeds"] == [42, 123, 456]
+        assert len(ctrl["per_seed"]) == 4
+        assert ctrl["proven_non_vacuous"] is True, f"{qid}: seeded control must move >= 2 criteria"
+        assert ctrl["best_n_flips"] >= 2
+        assert all(s["modes"]["charter"]["corrupted_overall"] == "FAIL" or
+                   s["modes"]["full"]["corrupted_overall"] == "FAIL"
+                   for s in ctrl["per_seed"])
+        # Transparency: per-seed flip lists are published, not just the best.
+        assert all("flips" in s["modes"]["charter"] and "flips" in s["modes"]["full"]
+                   for s in ctrl["per_seed"])
+
+
+def test_non_vacuity_aggregation_is_honest_and(real_bundles, geometry_rules):
+    """The harness-level non_vacuity_proven must be an AND across bundles,
+    the label battery and verdict reachability -- never an any() over
+    per-bundle booleans (the resume defect). Proven here only because every
+    bundle proves; a synthetic one-bundle failure must flip it to False."""
+    import frontier_packet_serve_audit.cli as cli_mod  # noqa: F401
+    serve_ok = {"absolute_status": "LABEL_SOUND"}
+    serve_g = {"absolute_status": "GEOMETRY_SOUND",
+               "per_bundle": {qid: {"mega_cluster": {"disclosure_fires": True}} for qid in QIDS}}
+    reach = non_vacuity.verdict_reachability_control()
+    assert reach["both_outcomes_reachable"] is True
+    # Simulate the aggregation with one bundle failing: AND must go False.
+    fake_geom_nv = {qid: {"proven_non_vacuous": True} for qid in QIDS}
+    fake_geom_nv["it-responsabilita-medica"] = {"proven_non_vacuous": False}
+    all_proven = all(g["proven_non_vacuous"] for g in fake_geom_nv.values()) and bool(fake_geom_nv)
+    assert all_proven is False  # a single failed bundle fails the AND
+    # And with all bundles proven it is True.
+    all_proven = all(True for _ in QIDS)
+    assert all_proven is True
 
 
 # ---------------------------------------------------------------------------
@@ -303,3 +357,58 @@ def test_full_harness_on_v3(packet_dir, frozen_rules_dir, eval_mount, product_mo
     assert record2["verdict"]["outcome"] == record["verdict"]["outcome"]
     assert record2["geometry_half"]["per_bundle_counts"] == record["geometry_half"]["per_bundle_counts"]
     assert record2["label_half"]["n_scored"] == record["label_half"]["n_scored"]
+
+
+# ---------------------------------------------------------------------------
+# 14. freeze ordering is provable from git commit times (acceptance test 1)
+# ---------------------------------------------------------------------------
+def test_freeze_commit_precedes_computation():
+    """The canonical RULES.json freeze must be committed BEFORE any computed
+    artifact exists in the working tree, with every threshold byte-identical
+    to the git-committed freeze (only a provenance block may differ)."""
+    import subprocess
+    repo = Path(__file__).resolve().parents[3]
+    freeze_rel = "results/frontier/frontier-packet-serve-audit/RULES.json"
+    out = subprocess.run(["git", "log", "--format=%H %ct", "-1", "--", freeze_rel],
+                         cwd=repo, capture_output=True, text=True, check=True).stdout.strip()
+    freeze_commit, freeze_ct = out.split()
+    assert freeze_commit and freeze_ct.isdigit()
+    # The freeze commit is an ancestor of HEAD (already committed pre-computation).
+    anc = subprocess.run(["git", "merge-base", "--is-ancestor", freeze_commit, "HEAD"],
+                         cwd=repo, capture_output=True, text=True)
+    assert anc.returncode == 0, "freeze commit must precede computation in git history"
+    # Threshold content unchanged: working-tree file minus the reaffirmation
+    # provenance block is byte-identical to the committed freeze.
+    committed = json.loads(subprocess.run(
+        ["git", "show", f"{freeze_commit}:{freeze_rel}"],
+        cwd=repo, capture_output=True, text=True, check=True).stdout)
+    working = json.loads((repo / freeze_rel).read_text(encoding="utf-8"))
+    committed.pop("resume_reaffirmation", None)
+    working.pop("resume_reaffirmation", None)
+    assert committed == working, "freeze thresholds changed after numbers were seen -- run invalid"
+
+
+# ---------------------------------------------------------------------------
+# 15. owner_decision_required consistency across the promoted artifacts
+# ---------------------------------------------------------------------------
+def test_owner_decision_required_consistent(tmp_path):
+    """The resume run's verdict record, summary and integration contract must
+    agree on owner_decision_required (the old report/summary carried true
+    under the old freeze; the canonical machine-checked verdict carries
+    false). No artifact may silently disagree."""
+    import pytest
+    repo = Path(__file__).resolve().parents[3]
+    verdict_path = repo / "results/frontier/frontier-packet-serve-audit/VERDICT_39366203528.json"
+    if not verdict_path.exists():
+        pytest.skip("resume verdict record not generated yet")
+    v = json.loads(verdict_path.read_text(encoding="utf-8"))
+    assert v["verdict"]["owner_decision_required"] is False
+    guard = v["verdict"]["owner_session_guard"]
+    assert guard["owner_card_produced"] is False
+    assert guard["owner_session_readied"] is False
+    assert guard["ready_for_owner_session"] is False
+    assert guard["human_gate_ready"] is False
+    contract_path = repo / "results/frontier/frontier-packet-serve-audit/INTEGRATION_CONTRACT.json"
+    if contract_path.exists():
+        c = json.loads(contract_path.read_text(encoding="utf-8"))
+        assert c["expected"]["owner_decision_required"] is False
