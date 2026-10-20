@@ -1,7 +1,15 @@
-# Integration Contract — frontier-packet-serve-audit (charter v1, run 39355384602)
+# Integration Contract — frontier-packet-serve-audit (charter v1)
 
 This contract names the exact artifacts Core Product and Core Evaluation must
 consume. The team writes NO product file and makes NO gate-flag change.
+
+The charter ran exactly ONE verdict cycle (HARD STOP). Run `39355384602`
+produced the verdict; producer run `39359987809` suffered a state-before-artifact
+write-ordering failure (stale state claim, no report artifacts). The operational
+resume re-verified the measurement byte-identically and back-filled the run
+`39359987809` artifacts; the verdict is unchanged. Consume the `39359987809`
+records (the verified latest) or the original `39355384602` records — both
+carry the same numbers.
 
 ## Verdict
 
@@ -17,10 +25,14 @@ or readied.
 
 | Artifact | Path (team namespace) | Consumer |
 |---|---|---|
-| Verdict record (machine-readable) | `results/frontier/frontier-packet-serve-audit/VERDICT_39355384602.json` | Product (packet admission), Evaluation (cross-check) |
+| Verdict record (verified latest, run 39359987809) | `results/frontier/frontier-packet-serve-audit/VERDICT_39359987809.json` | Product (packet admission), Evaluation (cross-check) |
+| Verdict record (original run 39355384602) | `results/frontier/frontier-packet-serve-audit/VERDICT_39355384602.json` | Product, Evaluation (historical) |
+| Audit report (run 39359987809, resume provenance) | `results/frontier/frontier-packet-serve-audit/audit_report_39359987809.json` | Director |
+| Audit report (original) | `results/frontier/frontier-packet-serve-audit/audit_report.json` | Director (historical) |
 | Freeze record (committed before scoring) | `results/frontier/frontier-packet-serve-audit/RULES.json` | Evaluation (freeze-ordering proof) |
 | This contract | `reports/frontier/frontier-packet-serve-audit/INTEGRATION_CONTRACT.md` | Product, Evaluation |
-| Audit report (narrative) | `reports/frontier/frontier-packet-serve-audit/REPORT_39355384602.md` | Director |
+| Audit report (narrative, original) | `reports/frontier/frontier-packet-serve-audit/REPORT_39355384602.md` | Director |
+| Operational-resume report | `reports/frontier/frontier-packet-serve-audit/REPORT_39359987809.md` | Director |
 | Team state | `state/frontier/frontier-packet-serve-audit.json` | Director |
 
 ## What the verdict record contains
