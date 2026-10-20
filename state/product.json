@@ -144,7 +144,7 @@
       "scope": "control-plane workflow scope; recorded, not edited from the lane"
     }
   ],
-  "current_run": "39355381575",
+  "current_run": 39357593249,
   "cycle_39056694835_frontier_serve_audit_intake": {
     "admission": "fail-closed",
     "claim_ceiling": [
@@ -661,7 +661,7 @@
     "resumes": "39221882428",
     "run_id": "39222442674"
   },
-  "cycle_status": "RUN_39355381575__DIRV59__SERVE_VERDICT_INTAKE_FAIL_CLOSED__PENDING_FRONTIER_PACKET_SERVE_AUDIT__ADMISSION_STILL_DENIED",
+  "cycle_status": "RUN_39357593249__DIRV59__SERVE_VERDICT_TAXONOMY_REPAIR__BOUNDED_NEGATIVE_NOW_DENIES__PENDING_FRONTIER_PACKET_SERVE_AUDIT__ADMISSION_STILL_DENIED",
   "direction_version": 59,
   "evidence_refs": [
     "results/product/gate_packet/rebuilt-39027045675/packet.json",
@@ -2988,9 +2988,9 @@
     "fixtures": "offline/test only; never merged into live results",
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
   },
-  "state_updated_at": "2026-10-19T17:58:42Z",
-  "state_updated_by": "product_cycle_39253287434_repair_2",
-  "state_updated_by_run": 39286804530,
+  "state_updated_at": "2026-10-20T02:45:24Z",
+  "state_updated_by": "product_cycle_39357593249_serve_verdict_taxonomy_repair",
+  "state_updated_by_run": 39357593249,
   "state_updated_from_resumed_snapshot_run": "39221882428",
   "supersedes_claims": {
     "gate_ceremony_is_one_query_only": "SUPERSEDED BY RUN 38792650692: the packet pre-registers three questions (FR/DE/IT), re-verifies each bundle at run time and hands the owner one deep link per question. The single-query path still works (product/human_gate_session.py is unchanged) and is still the way ONE session is finalized.",
@@ -5104,7 +5104,7 @@
       "module": "product/query/serve_verdict.py",
       "intake": "results/product/frontier_verdicts/frontier-packet-serve-audit_intake.json",
       "admission_wiring": "product/query/packet_admission.py assess() now embeds serve_audit and denies on an accepted DO-NOT-SERVE covering the packet",
-        "tests": "product/tests/test_serve_verdict_intake.py (11 tests)",
+      "tests": "product/tests/test_serve_verdict_intake.py (11 tests)",
       "packet_pin": "results/product/gate_packet/39319405429/packet.json raw sha256 32ac812626e679c357822543d0b2e78e62c0e95a9a1b233d1ec89d7cb7b6ac70 (re-hashed on disk, match=true)"
     },
     "measured": {
@@ -5126,5 +5126,38 @@
     },
     "next_work": "When frontier-packet-serve-audit lands an independently accepted verdict, harvest() it into the product-owned intake (append-only) and re-run packet admission. Do not self-certify serve readiness. Keep continue_recommended=true until human_gate_ready with a locally runnable path.",
     "report": "reports/product/CYCLE_39355381575.md"
+  },
+  "cycle_39357593249_serve_verdict_taxonomy_repair": {
+    "run_id": 39357593249,
+    "direction_version": 59,
+    "date": "2026-10-20",
+    "accepted_tip_at_dispatch": "53659e6",
+    "frontier_team_status": "INITIALIZED",
+    "frontier_accepted_run_id": null,
+    "serve_verdict_present": false,
+    "delta": {
+      "module": "product/query/serve_verdict.py",
+      "change": "BOUNDED-NEGATIVE moved from SERVE_RECS to DO_NOT_SERVE_RECS; it is a negative verdict (charter 1 outcome C) and must deny admission",
+      "tests": "product/tests/test_serve_verdict_intake.py +5 tests (BOUNDED-NEGATIVE denies, different-packet does not block, SERVE-CHANGED does not deny, DO-NOT-SERVE-AS-IS denies, all charter-1 verdicts classified)",
+      "attribution": "results/product/regression/CYCLE_39357593249_test_delta_attribution.json (+5 collected tests)"
+    },
+    "measured": {
+      "serve_channel_status": "PENDING_VERDICT",
+      "serve_deny_for_recommendation": false,
+      "packet_admitted": false,
+      "human_gate_ready": false,
+      "ready_for_owner_session": false,
+      "bounded_negative_denies": true,
+      "serve_does_not_deny": true,
+      "offline_slice_verdict": "PASS",
+      "tests": "16 passed (serve_verdict_intake), 57 passed (admission suite), 52 passed (mvp suite), 20 passed (delta_attribution)"
+    },
+    "posture": {
+      "packet_admitted": false,
+      "machine_gate_ready": false,
+      "human_gate_ready": false,
+      "ready_for_owner_session": false
+    },
+    "continue_recommended": true
   }
 }

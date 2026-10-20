@@ -97,13 +97,20 @@ from product import test_delta_attribution as tda  # noqa: E402
 #: tree 1242 collected, delta +17 uncommitted). The prior artifact was already
 #: stale by one collected test on the accepted tip; the regeneration closes both.
 #: The old artifact stays on disk untouched.
+#:
+#: REPOINT RECORD (cycle 39357593249): the working tree gained 5 tests
+#: (``product/tests/test_serve_verdict_intake.py``, the BOUNDED-NEGATIVE /
+#: SERVE-CHANGED / DO-NOT-SERVE-AS-IS verdict-taxonomy arm), so the pin moved
+#: from CYCLE_39262796670 to this cycle's regenerated artifact
+#: CYCLE_39357593249 (base 9727a45, head 53659e6, working tree 1273 collected,
+#: delta +5 uncommitted). The old artifact stays on disk untouched.
 ATTRIBUTION = (ROOT / "results" / "product" / "regression"
-               / "CYCLE_39262796670_test_delta_attribution.json")
+               / "CYCLE_39357593249_test_delta_attribution.json")
 #: The previous pin, kept as a readable constant so a reader can diff the two
 #: artifacts instead of trusting prose about them. Its own predecessor
 #: (CYCLE_39169296466_test_delta_attribution.json) is likewise still on disk.
 ATTRIBUTION_PREVIOUS_PIN = (ROOT / "results" / "product" / "regression"
-                            / "CYCLE_39172315384_test_delta_attribution.json")
+                             / "CYCLE_39262796670_test_delta_attribution.json")
 #: The full-run regression measurement whose base is the SAME named commit. An
 #: independent measurement path (full run, not collection-only) of the same tree.
 REGRESSION = (ROOT / "results" / "product" / "regression"
@@ -172,12 +179,12 @@ def test_head_total_is_corroborated_by_the_full_run_regression_artifact():
 def test_the_previous_pin_artifact_is_preserved_as_history():
     """The re-pointed pin moves a CHECK, never a piece of evidence.
 
-    ``CYCLE_39172315384_test_delta_attribution.json`` is the artifact the pin
-    named before this cycle's move (working-tree total 1191, head 2d8768e). The
-    artifact before it, ``CYCLE_39169296466_test_delta_attribution.json``
-    (working-tree total 1175, head 4acd595), and the one before that,
-    ``CYCLE_39149741259_test_delta_attribution.json`` (working-tree total 1169,
-    head 1d0d481), are still on disk too: the pin has now moved three times and
+    ``CYCLE_39262796670_test_delta_attribution.json`` is the artifact the pin
+    named before this cycle's move (working-tree total 1242, head 3e18eb7). The
+    artifact before it, ``CYCLE_39172315384_test_delta_attribution.json``
+    (working-tree total 1191, head 2d8768e), and the one before that,
+    ``CYCLE_39169296466_test_delta_attribution.json`` (working-tree total 1175,
+    head 4acd595), are still on disk too: the pin has now moved four times and
     no move may remove a measurement. Repointing ATTRIBUTION must not delete or
     rewrite any of them; the reason the pin moved is recorded at the constant,
     and the old numbers stay readable so a reader can compare the artifacts
@@ -187,20 +194,20 @@ def test_the_previous_pin_artifact_is_preserved_as_history():
         "the historical attribution artifact the previous pin named is gone - "
         "a pin move must never remove evidence")
     old = json.loads(ATTRIBUTION_PREVIOUS_PIN.read_text(encoding="utf-8"))
-    assert old["head"]["commit"].startswith("2d8768e"), (
+    assert old["head"]["commit"].startswith("3e18eb7"), (
         f"the historical artifact no longer records the tree it was published "
         f"for (head {old['head']['commit'][:7]})")
-    assert old["working_tree"]["collected_total"] == 1191, (
+    assert old["working_tree"]["collected_total"] == 1242, (
         "the historical artifact's working-tree total was edited; a re-pointed "
         "pin must leave the previous measurement byte-stable")
     grand = (ROOT / "results" / "product" / "regression"
-             / "CYCLE_39169296466_test_delta_attribution.json")
+             / "CYCLE_39172315384_test_delta_attribution.json")
     assert grand.exists(), (
-        "the artifact the pin named BEFORE the last move is gone; three pin moves "
+        "the artifact the pin named BEFORE the last move is gone; four pin moves "
         "must have preserved every historical measurement")
     prior = json.loads(grand.read_text(encoding="utf-8"))
-    assert prior["head"]["commit"].startswith("4acd595")
-    assert prior["working_tree"]["collected_total"] == 1175
+    assert prior["head"]["commit"].startswith("2d8768e")
+    assert prior["working_tree"]["collected_total"] == 1191
     great = (ROOT / "results" / "product" / "regression"
              / "CYCLE_39149741259_test_delta_attribution.json")
     assert great.exists(), (

@@ -83,17 +83,21 @@ CHARTER_OBSERVED = {
 
 SCHEMA = "product-serve-verdict-intake/packet-of-record/1"
 
-#: Recommendations that keep a packet unservable as-is.
+#: Recommendations that keep a packet unservable as-is.  Both
+#: DO-NOT-SERVE-UNCHANGED and BOUNDED-NEGATIVE are negative verdicts: the
+#: packet must NOT be served.  BOUNDED-NEGATIVE is explicitly "NOT a serve"
+#: (frontier-packet-serve-audit charter 1, stop_promote_rule outcome C).
 DO_NOT_SERVE_RECS = frozenset({
     "DO-NOT-SERVE",
     "DO-NOT-SERVE-UNCHANGED",
     "DO-NOT-SERVE-AS-IS",
+    "BOUNDED-NEGATIVE",
 })
 
 #: The single recommendation that may replace a standing DO-NOT-SERVE order
 #: under supersession condition (a).  Even then, product admission still needs
 #: both frozen bars met; this flag alone never opens the owner gate.
-SERVE_RECS = frozenset({"SERVE", "SERVE-CHANGED", "BOUNDED-NEGATIVE"})
+SERVE_RECS = frozenset({"SERVE", "SERVE-CHANGED"})
 
 
 def _sha256_file(path: Path) -> str | None:

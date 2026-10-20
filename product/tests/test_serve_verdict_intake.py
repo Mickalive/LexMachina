@@ -238,3 +238,83 @@ def test_missing_intake_file_fails_closed() -> None:
         assert "serve_audit_pending" in (out["blocking_reason"] or "")
     finally:
         sv.INTAKE_PATH = original
+
+
+# --------------------------------------------------------------------------- #
+# charter-1 verdict taxonomy: all three serve recommendations
+# --------------------------------------------------------------------------- #
+
+def test_accepted_bounded_negative_denies_even_when_bars_would_pass() -> None:
+    """BOUNDED-NEGATIVE is a negative verdict (charter 1 outcome C: 'NOT a
+    serve').  It must deny admission exactly like DO-NOT-SERVE-UNCHANGED."""
+    bars = _bars_snapshot(65, 65, 3, 3)
+    serve = _serve_intake(rec="BOUNDED-NEGATIVE", accepted=True)
+    out = sv.assess_for_packet(intake=serve)
+    assert out["deny_for_recommendation"] is True
+    assert "BOUNDED-NEGATIVE" in (out["blocking_reason"] or "")
+    adm = pa.assess(
+        snapshots=[("synthetic", bars)],
+        serve_assessment=out,
+    )
+    assert adm["bars"]["counter_label"]["satisfied"] is True
+    assert adm["bars"]["map_geometry"]["satisfied"] is True
+    assert adm["packet_admitted"] is False
+    assert adm["ready_for_owner_session_allowed"] is False
+    assert "BOUNDED-NEGATIVE" in adm["blocking_reason"]
+
+
+def test_accepted_bounded_negative_on_different_packet_does_not_block() -> None:
+    """An accepted BOUNDED-NEGATIVE on a DIFFERENT packet is disclosed but
+    does not by itself block this packet's bars."""
+    bars = _bars_snapshot(65, 65, 3, 3)
+    serve = _serve_intake(
+        rec="BOUNDED-NEGATIVE", accepted=True,
+        measured_sha="0" * 64,  # different packet
+    )
+    out = sv.assess_for_packet(intake=serve)
+    assert out["deny_for_recommendation"] is False
+    adm = pa.assess(
+        snapshots=[("synthetic", bars)],
+        serve_assessment=out,
+    )
+    assert adm["packet_admitted"] is True  # bars are the open gate here
+
+
+def test_serve_changed_does_not_deny_admission() -> None:
+    """SERVE-CHANGED is a serve-type recommendation: it does not block
+    admission (bars still govern)."""
+    bars = _bars_snapshot(65, 65, 3, 3)
+    serve = _serve_intake(rec="SERVE-CHANGED", accepted=True)
+    out = sv.assess_for_packet(intake=serve)
+    assert out["deny_for_recommendation"] is False
+    assert out["blocking_reason"] is None
+    adm = pa.assess(
+        snapshots=[("synthetic", bars)],
+        serve_assessment=out,
+    )
+    assert adm["packet_admitted"] is True
+
+
+def test_do_not_serve_as_is_denies_admission() -> None:
+    """DO-NOT-SERVE-AS-IS is a negative verdict: it denies admission."""
+    bars = _bars_snapshot(65, 65, 3, 3)
+    serve = _serve_intake(rec="DO-NOT-SERVE-AS-IS", accepted=True)
+    out = sv.assess_for_packet(intake=serve)
+    assert out["deny_for_recommendation"] is True
+    adm = pa.assess(
+        snapshots=[("synthetic", bars)],
+        serve_assessment=out,
+    )
+    assert adm["packet_admitted"] is False
+    assert "DO-NOT-SERVE-AS-IS" in adm["blocking_reason"]
+
+
+def test_all_charter_one_verdicts_classified() -> None:
+    """Every charter-1 serve recommendation is classified deny or non-deny."""
+    for rec in ("SERVE", "DO-NOT-SERVE-UNCHANGED", "BOUNDED-NEGATIVE"):
+        serve = _serve_intake(rec=rec, accepted=True)
+        out = sv.assess_for_packet(intake=serve)
+        if rec == "SERVE":
+            assert out["deny_for_recommendation"] is False
+        else:
+            assert out["deny_for_recommendation"] is True, rec
