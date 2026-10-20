@@ -1,0 +1,83 @@
+{
+  "schema": "frontier-counter-label-emission-integration-contract/1",
+  "team_id": "frontier-counter-label-emission",
+  "charter_version": 1,
+  "github_run_id": "39430582436",
+  "accept_commit_of_classifier": "d236f5990ddee9acf5cf17f59ee1cc3986905d6f",
+  "mode": "abstain-and-disclose (unchanged; never re-tuned here)",
+
+  "what_this_team_delivers": {
+    "drop_in_emission_module": {
+      "path": "frontier/frontier-counter-label-emission/frontier_counter_label_emission/",
+      "entrypoints": {
+        "attribution": "attribution.attribute_packet(packet_dir, scored_statuses) -> {qid: {primary_cause, secondary_causes, evidence, row_evidence, llm_reviewer}}",
+        "repair": "emission.promote_heuristic_proposals(bundle, scored_statuses=SCORED_STATUSES) -> new_bundle",
+        "classifier_bridge": "classifier_bridge.run_classifier_on_bundle(bundle, qid=...) -> emission_record",
+        "determinism": "determinism.run_determinism(bundle, qid=..., n_runs=3) -> {identical, signature, differing_rows}",
+        "non_vacuity": "determinism.run_non_vacuity(bundle, qid=...) -> {seeded_control, negative_control, non_vacuity_pass}",
+        "absolute_bar": "absolute_bar.compute_absolute_bar_status(emission_record, rules_data) -> {status, satisfied, ...}",
+        "cli": "python -m frontier_counter_label_emission.cli --packet <dir> --out <dir> --determinism-runs 3"
+      },
+      "dependencies": "python3 stdlib only; the accepted classifier is imported READ-ONLY from the product mount"
+    },
+    "measurement_record": {
+      "dir": "results/frontier/frontier-counter-label-emission/run_39430582436/",
+      "files": [
+        "ATTRIBUTION.json",
+        "EMISSION.json",
+        "DETERMINISM.json",
+        "NON_VACUITY.json",
+        "MEASUREMENT_SUMMARY.json",
+        "ARTIFACT_DIGESTS.json"
+      ]
+    },
+    "frozen_rules": {
+      "path": "frontier/frontier-counter-label-emission/RULES.json",
+      "frozen_at_commit": "d20a3edd6aee99d1969b32b6351fe5c63ea41bc5",
+      "frozen_at_utc_from_git": "2026-10-20T12:39:28Z"
+    }
+  },
+
+  "what_product_must_consume": {
+    "1_attribution_record": {
+      "file": "results/frontier/frontier-counter-label-emission/run_39430582436/ATTRIBUTION.json",
+      "use": "Names the primary cause of zero counter-label emission per bundle (e_EMISSION_WRITER_ABORT on all three v3 bundles) with byte-level evidence. Product appends this to its disclosure chain as the retrieval/emission-side cause named by the accepted BOUNDED-NEGATIVE verdict's cause #1."
+    },
+    "2_emission_module": {
+      "path": "frontier/frontier-counter-label-emission/frontier_counter_label_emission/",
+      "integration_point": "product/query/pipeline.py enrich_query_bundle, BETWEEN adversarial_retrieval_pass() and apply_anchor_labels(): call promote_heuristic_proposals(audited, scored_statuses=SCORED_STATUSES) so the gate-passed heuristic proposals reach the accepted classifier as scored proposals.",
+      "contract": "The module is a pure function of (bundle bytes, repair spec). It never touches geometry, ranks, clusters, existing scored labels, the accepted classifier, or either frozen rubric. It writes counter_proposal_source='heuristic_proposal_promotion_v1' on every promoted row so the seam is auditable.",
+      "safety": "The accepted classifier remains the safety net: any proposal whose evidence fails the frozen emission gate becomes a COUNTED abstention (counter_status='abstained_unevidenced'), never a shipped label."
+    },
+    "3_determinism_disclosure": {
+      "file": "results/frontier/frontier-counter-label-emission/run_39430582436/DETERMINISM.json",
+      "use": "Feeds Core Evaluation's open items 5/6 (FR counter-stage instability). The repaired emission path is byte-identical across 3 identical offline runs on all three bundles; the record is the determinism-or-disclosure response Product owes."
+    },
+    "4_measurement_summary": {
+      "file": "results/frontier/frontier-counter-label-emission/run_39430582436/MEASUREMENT_SUMMARY.json",
+      "use": "The full before/after three-number publication (n_proposed/n_scored/n_emitted/n_abstained, support-among-issued, abstention count, yield, absolute-bar status as written) for Product's append-only intake (serve_verdict.py pattern)."
+    }
+  },
+
+  "what_evaluation_must_cross_check": {
+    "input_hashes": "Every hash in MEASUREMENT_SUMMARY.json input_hash_verification against the committed packet bytes.",
+    "classifier_config": "classifier_hash_verification_before/after against the accepted d236f599 pins and RULES_LABEL.json sha256 4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608.",
+    "absolute_bar": "absolute_bar_status computed from the frozen rubric's own verdict_rule AS WRITTEN; NOT_APPLICABLE and NOT_MEASURED never a pass.",
+    "determinism": "DETERMINISM.json identical=true on all three bundles with n_runs=3.",
+    "non_vacuity": "NON_VACUITY.json seeded_control.pass and negative_control.pass both true.",
+    "support_among_issued": "Published beside abstention count and yield in EMISSION.json; never a bare support rate."
+  },
+
+  "invariants_this_team_never_breaks": [
+    "The accepted classifier config (d236f599) is byte-identical before and after every measurement.",
+    "Both frozen rubrics (RULES_LABEL.json sha256 4457e971...) are byte-identical.",
+    "The frozen absolute bar 1.0 is computed AS WRITTEN and never re-derived or re-tuned.",
+    "No row's geometry (x, y, cluster_id, is_outlier, rank) is moved.",
+    "No assertion that any decision IS supporting/contrary/limiting is made anywhere.",
+    "Zero writes to product/, evaluation/, results/product/, results/evaluation/, state/product.json, state/evaluation.json, .github/**, or any frozen artifact.",
+    "human_gate_ready is never touched; no serve recommendation is produced; the accepted BOUNDED-NEGATIVE verdict of record stands."
+  ],
+
+  "promotion_outcome": "A_EMISSION_RECOVERED",
+  "promotion_rationale": "The attribution names a primary cause (e_EMISSION_WRITER_ABORT) on all three v3 bundles. The minimal in-budget repair promotes the already gate-passed heuristic proposals into scored statuses, recovering n_scored>0 on all three bundles (8/8/4, up from 0/0/0). Determinism is proven (3 identical runs per bundle). The accepted classifier config and both frozen rubrics are re-verified byte-identical. The drop-in module, full three-number publication, and this integration contract are complete. The frozen absolute bar remains unmet as written (LABEL_UNSOUND / INSUFFICIENT_POPULATION) and is never re-derived; the value of the measurement is the recovered, evidenced, deterministic issuance itself. The accepted classifier abstains honestly on the heuristic proposals under the frozen rubric (pivot_absent / no_intent_marker / no_domain_anchor), which is the correct fail-closed behavior and is published beside the abstention count and yield."
+}
