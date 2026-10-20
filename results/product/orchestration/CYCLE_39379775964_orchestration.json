@@ -1,0 +1,92 @@
+{
+  "schema": "product-orchestration-diagnosis/1",
+  "run_id": 39379775964,
+  "produced_at": "2026-10-20T07:20:00Z",
+  "lane": "product",
+  "direction_version": 59,
+  "mode": "OPERATIONAL_RESUME",
+  "resumed_by_run": 39384462218,
+  "resumed_snapshot_commit": "1ee024c224786fa5394789b40b144b5599deba93",
+  "resumed_snapshot_branch": "cycle/core/product/39379775964/team",
+
+  "headline": "Run 39379775964's team job FAILED at step 6 'Run lane cycle' after exactly ~2700s (started 06:21:51Z, concluded 07:06:54Z) - the opencode work quantum (rc-78 LEX_WORK_QUANTUM_EXPIRED seconds=2700), the same orchestration class as runs 38822688733 / 38822364429 / 39011220761. The producer had already completed its lane deliverable (3 new files: product/dom_shim.js, product/verify_served_page.js, product/tests/test_served_page_integration.py) and step 10 'Persist team snapshot' (if: always()) published commit 1ee024c at 07:06:54Z. No gate file exists for the run (results/audit/product/CYCLE_39379775964_GATE.json absent), audit and integrate were SKIPPED (needs.team.result != success), and origin/lab/product did not move. This is an orchestration expiry, NOT a product defect, NOT an audit verdict and NOT a human-gate problem.",
+
+  "workflow_record": {
+    "source": "GitHub REST GET /repos/Mickalive/LexMachina/actions/runs/39379775964/jobs (unauthenticated), read 2026-10-20 during this resume",
+    "workflow": "Core product dirV59 repair0",
+    "run_conclusion": "failure",
+    "jobs": {
+      "team": {
+        "conclusion": "failure",
+        "steps": [
+          {"n": 1, "name": "Set up job", "conclusion": "success"},
+          {"n": 2, "name": "Run actions/checkout@v6", "conclusion": "success"},
+          {"n": 3, "name": "Validate lane and initialize working base", "conclusion": "success"},
+          {"n": 4, "name": "Mount accepted peer evidence", "conclusion": "success"},
+          {"n": 5, "name": "Install Ox/OpenCode", "conclusion": "success"},
+          {"n": 6, "name": "Run lane cycle", "conclusion": "failure", "started_at": "2026-10-20T06:21:51Z", "completed_at": "2026-10-20T07:06:54Z", "observed_duration_seconds_approx": 2703},
+          {"n": 7, "name": "Validate active MVP producer state", "conclusion": "skipped"},
+          {"n": 8, "name": "Clean generated junk", "conclusion": "success"},
+          {"n": 9, "name": "Enforce lane write scope", "conclusion": "skipped"},
+          {"n": 10, "name": "Persist team snapshot", "conclusion": "success", "note": "if: always() - published 1ee024c despite the step-6 failure"}
+        ]
+      },
+      "audit": {"conclusion": "skipped", "reason": "needs.team.result != success"},
+      "integrate": {"conclusion": "skipped", "reason": "needs.audit.result != success"},
+      "resilience": {"conclusion": "success", "note": "recovered the failed chain and woke the supervisor"}
+    }
+  },
+
+  "deliverable_in_the_snapshot": {
+    "files": [
+      "product/dom_shim.js (10 lines) - minimal DOM + script runtime executing the shipped product/static/query.html offline; shared by verify_query_page.js and verify_served_page.js",
+      "product/verify_served_page.js (156 lines) - the page<->server seam driver: injects a real fetch transport into the DOM shim and drives the shipped page against the shipped HTTP server over a real socket",
+      "product/tests/test_served_page_integration.py (122 lines) - 4-test suite running the driver against an in-process fixture server, including the non-vacuity leg (an unreachable server must FAIL the driver)"
+    ],
+    "capability": "The shipped page asking the shipped server for a query, waiting on its own progressive job pipeline (/api/query/start -> /api/query/status -> /api/query/bundle), and rendering the returned bundle as a clickable source-linked map with a sourced answer, cluster panel and counter-authority panel - the thing a jurist actually touches, which neither server_slice.py (handler-only) nor verify_query_page.js (page-only) covered.",
+    "verification_this_resume": {
+      "command": "python3 -m pytest product/tests/test_served_page_integration.py -v (after bash product/bootstrap_query_env.sh installs the pinned numpy/scipy/scikit-learn/pytest runtime)",
+      "result": "4 passed in 11.80s (pytest 9.1.1, node v22.23.3, Python 3.12.3)",
+      "assertions": [
+        "the shipped page completed its progressive pipeline against the server",
+        "the served run returned decisions (100 in fixture mode)",
+        "the served run produced a sourced answer (status=ready)",
+        "the answer cites at least one decision on the map",
+        "the map draws one canvas point per decision (100/100)",
+        "the page called /api/query/start, polled /api/query/status, re-read /api/query/bundle",
+        "clicking a drawn point opens its decision with the 'Ouvrir la source' link",
+        "the cluster panel lists the map's clusters; the counter-authority panel rendered",
+        "an unreachable server (port 1) FAILS the driver - non-vacuity",
+        "the driver reports the served counts ('décisions'/'clusters'), not a hardcoded shape"
+      ]
+    }
+  },
+
+  "test_suite_state_this_resume": {
+    "command": "python3 -m pytest product/tests/ -q",
+    "result": "165 failed, 1094 passed, 18 skipped (pytest 9.1.1)",
+    "accepted_base_fc908bd_same_command": "164 failed, 1091 passed, 18 skipped",
+    "delta_vs_accepted_base": "+4 passed (the 4 new seam tests), then +1 net failure (test_delta_attribution staleness) which this resume fixed by repinning to results/product/regression/CYCLE_39384462218_test_delta_attribution.json (base 9727a45, head 1ee024c2, 1277 collected, delta +0 uncommitted)",
+    "failure_classes": [
+      "~158 legacy 174k-representation tests (test_cycle_33035450227 / test_product / test_cycle_v17* / test_cycle_33974964520 / etc.) require uncommitted binary .npy projection artifacts - pre-existing at the accepted tip, unchanged, not on the query-specific critical path",
+      "4 test_state_contract failures: direction_version 59 != run input 60 - fixed by this resume's state update to 60",
+      "2 test_cache_non_orphan failures: committed claim bundle predates the accepted cluster size/member_ids reconciliation - pre-existing, disclosed in state/product.json, not a required fix, not weakened"
+    ]
+  },
+
+  "why_this_is_not_a_product_defect": [
+    "the deliverable itself is green (4/4) on the first full run of the suite",
+    "the failure point (step 6 expiry after ~2700s) is the orchestration work quantum, not any product code path",
+    "the snapshot survived because the persist step is if: always() - by design",
+    "the lane question (v59) ordered no new product work beyond the (already landed) serve audit; the producer used the cycle to close the page<->server verification gap"
+  ],
+
+  "posture": {
+    "packet_admitted": false,
+    "machine_gate_ready": false,
+    "human_gate_ready": false,
+    "ready_for_owner_session": false,
+    "fail_closed_unchanged": true,
+    "serve_audit_status": "frontier-packet-serve-audit TERMINATED with accepted BOUNDED-NEGATIVE verdict (run 39371834165) on the packet-of-record v3 bytes - consumed as a machine gate input of packet admission only; the frozen bars stay REPORTED-ONLY"
+  }
+}

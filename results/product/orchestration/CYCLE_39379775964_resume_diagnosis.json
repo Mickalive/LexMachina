@@ -1,0 +1,52 @@
+{
+  "schema": "product-resume-diagnosis/1",
+  "run_id": 39384462218,
+  "produced_at": "2026-10-20T07:20:00Z",
+  "lane": "product",
+  "direction_version": 60,
+  "mode": "OPERATIONAL_RESUME",
+  "resumed_snapshot_run": 39379775964,
+  "resumed_snapshot_commit": "1ee024c224786fa5394789b40b144b5599deba93",
+  "resumed_snapshot_branch": "cycle/core/product/39379775964/team",
+
+  "headline": "Run 39379775964's team job completed its lane cycle's writing, then FAILED at step 6 'Run lane cycle' on the ~2700s opencode work quantum (rc-78 LEX_WORK_QUANTUM_EXPIRED seconds=2700). The persisted snapshot (1ee024c) contains a complete, green deliverable: the page<->server integration seam for the shipped query-map product (dom_shim.js + verify_served_page.js + test_served_page_integration.py). This resume preserves that work intact, verifies it, records the diagnosis, repins the stale test-delta attribution, applies the direction pin v59->v60, and leaves the snapshot audit-ready. No restart from scratch; no product code replaced.",
+
+  "diagnosis_detail": "step 6 started 2026-10-20T06:21:51Z and concluded 2026-10-20T07:06:54Z (~2703s, matching the 2700s quantum). Step 10 'Persist team snapshot' (if: always()) committed and pushed 1ee024c at 07:06:54-57Z, seconds before the job concluded failure at 07:06:59Z. Audit and integrate were skipped; no CYCLE_39379775964 gate file exists; origin/lab/product has NOT advanced past fc908bd (accept product cycle 39357593249). Same orchestration class as runs 38822688733 / 38822364429 / 39011220761 (factory-wide requirement 10). Control-plane hardening item (recorded, not edited - .github/** is control-plane scope): the 2700s work quantum truncates lane cycles that run long; a lane whose deliverable is complete but unverified at expiry is stranded one full dispatch. Route-around used by this resume: verify and commit inside the resumed cycle instead of re-deriving.",
+
+  "accepted_base_unchanged": "fc908bd (origin/lab/product has NOT advanced since the 39357593249 acceptance; this resume promotes nothing until the independent audit gates it)",
+  "base_tree": "1ee024c224786fa5394789b40b144b5599deba93 (persisted producer snapshot of run 39379775964; all pre-commit measurements pinned to it)",
+
+  "delta_this_run": [
+    "results/product/orchestration/CYCLE_39379775964_orchestration.json (this run's diagnosis of the failed run, schema product-orchestration-diagnosis/1)",
+    "results/product/orchestration/CYCLE_39379775964_resume_diagnosis.json (this file)",
+    "results/product/regression/CYCLE_39384462218_test_delta_attribution.json (regenerated: base 9727a45 -> head 1ee024c2, 1277 collected, delta +154, +0 uncommitted)",
+    "product/tests/test_delta_attribution.py - attribution pin repointed CYCLE_39357593249 -> CYCLE_39384462218 with a recorded REPOINT REASON (the previous pin stays on disk untouched)",
+    "state/product.json - direction_version 59 -> 60 (the v59->v60 pin advance the direction says must be applied with the disclosed convention), current_run/prior_current_run/cycle_status/next_recommendation updated, resume entry added",
+    "reports/product/CYCLE_39384462218.md (this cycle's report)"
+  ],
+  "explicitly_not_touched": [
+    "no product/ code replaced or rewritten - the snapshot's 3 deliverable files are byte-identical to 1ee024c",
+    "no frozen bar, rubric, threshold, success rule, test assertion or scope weakened",
+    "no .github/** edit (control-plane scope, recorded only)",
+    "no Frontier team re-dispatch or re-charter",
+    "no live OpenCaseLaw call (fixture-mode seam verification only)",
+    "no measured artifact overwritten - the stale attribution artifact CYCLE_39357593249 stays on disk untouched; only the pin moved",
+    "no owner card, owner session or ready_for_owner_session=true produced or staged"
+  ],
+
+  "verification_this_resume": {
+    "seam_suite": "python3 -m pytest product/tests/test_served_page_integration.py -v -> 4 passed in 11.80s (node v22.23.3; fixture server, zero network)",
+    "full_suite": "python3 -m pytest product/tests/ -q -> 165 failed, 1094 passed, 18 skipped on 1ee024c BEFORE this resume's fixes; after the attribution repin and the state pin the delta is: +4 seam tests passing, attribution staleness fixed, direction-pin failures fixed",
+    "accepted_base_comparison": "fc908bd same command -> 164 failed, 1091 passed: every remaining failure class is pre-existing at the accepted tip (legacy 174k binary-artifact tests, 2 disclosed test_cache_non_orphan debt legs); none introduced by the snapshot or this resume",
+    "state_contract": "product/state_contract.py --check --direction-version 60 -> PASS after the state update (was exit 68 on the 59 pin)"
+  },
+
+  "posture_after_this_resume": {
+    "packet_admitted": false,
+    "machine_gate_ready": false,
+    "human_gate_ready": false,
+    "ready_for_owner_session": false,
+    "continue_recommended": true,
+    "reason_continue": "the fail-closed hold stands; the packet-of-record v3 remains NOT_SERVED under the accepted BOUNDED-NEGATIVE serve verdict (frontier-packet-serve-audit run 39371834165) and both frozen bars stay REPORTED-ONLY and unmet on its bytes (counter_label_support 0/0 at n_scored=0; geometry below 11/11 on every bundle). Per RESEARCH_PROTOCOL line 30, Product stays continue_recommended=true until human_gate_ready=true or the direction is genuinely superseded."
+  }
+}
