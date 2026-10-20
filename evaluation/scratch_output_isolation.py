@@ -34,6 +34,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -56,6 +57,56 @@ COMMITTED_EVIDENCE = [
     "results/evaluation/retrieval_counter_authority_benchmark/pytest_local_leg3_blanked_evidence.json",
     "reports/evaluation/RETRIEVAL_CA_BENCHMARK_pytest_local.md",
 ]
+
+#: Claim-bearing directories that must never carry a scratch/local run. Enumerated
+#: (not hard-coded by filename) so a scratch run under ANY new name is caught.
+#: Repair of audit CYCLE_39433092808 R5: the old check listed only the five
+#: ``pytest_local*`` paths above, so ``local_final`` / ``local_test_1`` /
+#: ``local_test_2`` leaked invisibly.
+CLAIM_BEARING_DIRS = (
+    "results/evaluation/retrieval_counter_authority_benchmark",
+    "results/evaluation/stand_ready_multilingual_probe",
+    "results/evaluation/repair_39402114706",
+    "reports/evaluation",
+)
+
+#: Substrings that mark a scratch/local run (the F9 / F-6 leak classes).
+SCRATCH_NAME_MARKERS = ("local_", "pytest_local", "test_resume", "PROBE_")
+
+#: A claim-bearing JSON result is named for a run id: the stem's first
+#: underscore/hyphen-delimited token must be >=6 digits.
+_RUN_ID_RE = re.compile(r"^\d{6,}$")
+
+
+def scan_claim_trees(repo: Path) -> list[dict]:
+    """Enumerate the claim-bearing trees and flag any scratch/local run.
+
+    Returns a list of findings; an empty list is the clean state.  Replaces the
+    hard-coded ``pytest_local*`` list with a directory enumeration so a leak
+    under a new name (``local_final``, ``local_test_1``, ``local_test_2``, ...)
+    is visible.
+    """
+    findings: list[dict] = []
+    for rel_dir in CLAIM_BEARING_DIRS:
+        d = repo / rel_dir
+        if not d.is_dir():
+            continue
+        for path in sorted(d.rglob("*")):
+            if not path.is_file():
+                continue
+            name = path.name
+            rel = path.relative_to(repo).as_posix()
+            # The designated scratch namespace is where scratch belongs; it is
+            # not itself a claim-bearing leak when it holds scratch names.
+            if "_scratch_namespaced" in rel:
+                continue
+            stem_token = path.stem.split("_")[0].split("-")[0]
+            if any(marker in name for marker in SCRATCH_NAME_MARKERS):
+                findings.append({"path": rel, "reason": "scratch-name marker"})
+            elif path.suffix == ".json" and not _RUN_ID_RE.match(stem_token):
+                findings.append({"path": rel,
+                                 "reason": "json stem is not a run id"})
+    return findings
 
 
 def _sha256(path: Path) -> str | None:
@@ -105,6 +156,8 @@ def measure(repo: Path, run_id: str = "pytest_local") -> dict:
                      "present_before": before[rel] is not None,
                      "mutated": before[rel] != after[rel]})
     n_mutated = sum(1 for r in rows if r["mutated"])
+    claim_tree_findings = scan_claim_trees(repo)
+    isolated = n_mutated == 0 and not claim_tree_findings
     return {
         "schema": SCHEMA,
         "lane": "evaluation",
@@ -116,10 +169,19 @@ def measure(repo: Path, run_id: str = "pytest_local") -> dict:
             "--report-dir, and tests/evaluation/"
             "test_benchmark_retrieval_counter_authority.py points both at "
             "tmp_path instead of the committed defaults."),
+        "claim_tree_scan": {
+            "claim_bearing_dirs": list(CLAIM_BEARING_DIRS),
+            "scratch_name_markers": list(SCRATCH_NAME_MARKERS),
+            "findings": claim_tree_findings,
+            "n_findings": len(claim_tree_findings),
+            "rule": ("a scratch invocation MUST pass --out-dir/--report-dir to a "
+                     "scratch path; a claim-bearing invocation is named for the "
+                     "real GITHUB_RUN_ID; never reuse an existing run id."),
+        },
         "committed_evidence": rows,
         "n_committed_artifacts": len(rows),
         "n_mutated": n_mutated,
-        "verdict": "SCRATCH_RUN_ISOLATED" if n_mutated == 0 else "SCRATCH_RUN_LEAKS",
+        "verdict": "SCRATCH_RUN_ISOLATED" if isolated else "SCRATCH_RUN_LEAKS",
         "scratch_run": run,
         "pre_fix_measurement_39173770080": {
             "n_mutated": 5,
@@ -153,6 +215,9 @@ def main(argv: list[str] | None = None) -> int:
     print(json.dumps({k: report[k] for k in
                       ("schema", "run_id", "verdict", "n_committed_artifacts",
                        "n_mutated")}, indent=1))
+    print(json.dumps({"claim_tree_findings": report["claim_tree_scan"]["findings"],
+                      "n_claim_tree_findings": report["claim_tree_scan"]["n_findings"]},
+                     indent=1))
     return 0 if report["verdict"] == "SCRATCH_RUN_ISOLATED" else 1
 
 

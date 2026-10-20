@@ -31,10 +31,16 @@ NON-WEAKENING CONTRACT
   claim-bearing artifact is rewritten by this module.
 * No universal-174k benchmark is executed.
 
-SCRATCH-RUN OBLIGATION: the DEFAULT output path is a NEW run-scoped filename under
-results/evaluation/repair_39402114706/ so an ad-hoc invocation can never rewrite the
-committed record of run 39406033825 (F-3B binding convention; F1 of audit
-CYCLE_39413028463).  If you need a different path, still pass ``--out`` explicitly.
+SCRATCH-RUN OBLIGATION: the DEFAULT output path is SCRATCH-NAMESPACED
+(results/evaluation/_scratch_namespaced/repair_39402114706/ad_hoc_*.json) so an
+ad-hoc invocation can never rewrite ANY committed claim-bearing record — not the
+run-39406033825 record (F-3B binding convention; F1 of audit CYCLE_39413028463) and
+not the run-39422312905 record either.  A claim-bearing invocation MUST pass an
+explicit ``--out`` under results/evaluation/repair_39402114706/ and MUST name the
+real GITHUB_RUN_ID via ``--run-id``.  (Repair of audit CYCLE_39433092808 R1: the
+previous default pointed at the committed 39422312905 file while the docstring
+claimed it never did, so ``--run-id local_final --out`` default overwrote a
+committed claim-bearing record.)
 
 F3 HARDENING (audit CYCLE_39413028463): mount-absent and caller-skipped observations
 are recorded with status="skipped" and NEVER count as a pass of overall_pass.
@@ -64,10 +70,13 @@ if str(_REPO_ROOT) not in sys.path:
 
 SCHEMA = "lex-evaluation-repair-verification/2"
 CYCLE_ID = "39402114706"
-#: Default output is ALWAYS a NEW run-scoped file so an ad-hoc invocation can never
-#: rewrite the committed record of run 39406033825 (F-3B binding convention).
-DEFAULT_RUN_ID = "39422312905"
-DEFAULT_OUT = (_REPO_ROOT / "results/evaluation/repair_39402114706"
+#: Default output is ALWAYS scratch-namespaced (NOT under the claim-bearing
+#: results/evaluation/repair_39402114706/ tree) so an ad-hoc invocation can never
+#: rewrite a committed claim-bearing record (F-3B binding convention; repair of
+#: audit CYCLE_39433092808 R1).  A claim-bearing invocation must pass an explicit
+#: ``--out`` and a real ``--run-id``.
+DEFAULT_RUN_ID = "ad_hoc"
+DEFAULT_OUT = (_REPO_ROOT / "results/evaluation/_scratch_namespaced/repair_39402114706"
                / f"{DEFAULT_RUN_ID}_disposition_verification.json")
 
 FROZEN_HYPOTHESIS_SHA256 = (
@@ -197,9 +206,10 @@ def _run_pytest(targets: list[str], timeout: int = 1800) -> dict:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", default=str(DEFAULT_OUT),
-                    help="machine record path (default: a NEW run-scoped disposition "
-                         "file; the committed record of run 39406033825 is never the "
-                         "default target)")
+                    help="machine record path (default: a SCRATCH-namespaced file; "
+                         "the committed records under "
+                         "results/evaluation/repair_39402114706/ are never the "
+                         "default target — pass an explicit --out for a claim)")
     ap.add_argument("--run-id", default=DEFAULT_RUN_ID)
     ap.add_argument("--skip-regression", action="store_true",
                     help="skip the 5-file accepted-instrument regression suite "
