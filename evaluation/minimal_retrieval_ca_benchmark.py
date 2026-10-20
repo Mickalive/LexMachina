@@ -1,19 +1,43 @@
 #!/usr/bin/env python3
 """Smallest executable retrieval/counter-authority benchmark that can falsify the product.
 
-Builds on the accepted mapping-free-recall-falsifier module (REUSE-FIRST).
-Measures the V3 packet-of-record (39319405429) using the accepted measurement
-engine and reports whether counter-authority discovery is working.
+FAST-MVP retrieval/counter-authority falsification benchmark on the packet-of-record
+V3 (39319405429) exact bytes.
+
+REUSE-FIRST CONTRACT (audit F5, repair run 39491098975)
+-------------------------------------------------------
+This wrapper does NOT re-implement any measurement. It INVOKES the accepted engine
+entry point ``evaluation.mapping_free_recall_falsifier.run()`` so the engine's own
+pre-run freeze-pin re-hash, post-run re-hash, input-drift enforcement, numeric
+environment disclosure (factory-wide requirement 30), product-mount head, frozen
+spec / frozen label rubric digests, analyst-mapping-not-consumed guard, retraction
+provenance, full per-gate ``measured`` payloads and detail-carrying ``failed_gates``
+are all produced and published. The wrapper then adds only thin framing:
+
+* the wrapper schema / entry-point labels and wrapper claim ceiling;
+* the wrapper instrument commit-time digest (recorded in state, never claimed frozen);
+* a hard guard: if the engine reports input drift, the wrapper converts the run to
+  NOT_MEASURED_VACUOUS (exit 2) so a drifted run can never surface as a product
+  verdict — this enforces the freeze record's own stated pin discipline and
+  introduces no new measurement threshold.
+
+What is reused unchanged: every gate predicate, tokeniser, stoplist, admissibility
+rule, non-vacuity control, verdict rule and exit-code contract of the accepted
+engine. What is NOT reused: nothing measurement-bearing is dropped anymore; the
+b1015e7b-era wrapper that called measure/non_vacuity/verdict_of directly and
+stripped the provenance layer is superseded by this file.
 
 Exit codes aligned with VERDICT_CONTRACT.json:
   0  PASS_NO_FALSIFICATION   - all measured gates passed (product not falsified)
   1  PRODUCT_FALSIFIED       - at least one gate failed on the exact accepted bytes
-  2  NOT_MEASURED_VACUOUS    - no bundle could be read (environment error)
+  2  NOT_MEASURED_VACUOUS    - no bundle could be read, a control did not hold,
+                               or the engine reported input drift
 """
 
 from __future__ import annotations
 
 import argparse
+import datetime
 import hashlib
 import json
 import sys
@@ -22,189 +46,205 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-from evaluation.mapping_free_recall_falsifier import (  # noqa: E402
-    measure,
-    non_vacuity,
-    SCHEMA,
-    EXIT_PASS,
-    EXIT_FALSIFIED,
-    EXIT_VACUOUS,
-    CLAIM_CEILING,
-    resolve_mount,
-    PACKETS,
-    verdict_of,
-)
+from evaluation import mapping_free_recall_falsifier as ENGINE  # noqa: E402
 
+WRAPPER_SCHEMA = "lex-evaluation-minimal-retrieval-ca-benchmark/1"
 DEFAULT_OUT_DIR = REPO_ROOT / "results/evaluation/minimal_retrieval_ca_benchmark"
 DEFAULT_REPORT_DIR = REPO_ROOT / "reports/evaluation"
 
+REUSE_DECLARATION = {
+    "invoked_entry_point": "evaluation.mapping_free_recall_falsifier.run()",
+    "reused_unchanged": [
+        "every mapping-free gate predicate (measure)",
+        "the non-vacuity battery (non_vacuity)",
+        "the verdict rule and exit-code contract (verdict_of)",
+        "the pre-run and post-run freeze-pin re-hash of every frozen repo and mount input",
+        "input_drift computation and the pin-discipline consequence",
+        "numeric_environment disclosure (factory-wide requirement 30)",
+        "product_mount_head, frozen_spec, frozen_label_rubric digests",
+        "analyst_mapping_not_consumed guard and retraction_provenance",
+        "full per-gate measured payloads and detail-carrying failed_gates",
+    ],
+    "added_by_this_wrapper": [
+        "wrapper schema / entry-point framing and wrapper claim ceiling",
+        "wrapper instrument commit-time digest (state-pinned, never claimed frozen)",
+        "hard drift guard: engine-reported input drift -> NOT_MEASURED_VACUOUS (exit 2)",
+        "default packet narrowed to the V3 packet-of-record exact bytes",
+    ],
+    "not_reused": "nothing measurement-bearing; the b1015e7b-era direct measure()/non_vacuity()/verdict_of() path that dropped the provenance layer is superseded",
+}
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
 
 def run_benchmark(run_id: str, out_dir: Path, report_dir: Path,
-                  product_mount: Path | None = None,
+                  product_mount: str | None = None,
                   packets: tuple[str, ...] | None = None) -> tuple[int, dict]:
-    """Run the smallest retrieval/CA falsification benchmark.
+    """Run the smallest retrieval/CA falsification benchmark via the accepted engine.
 
-    Uses the accepted mapping-free-recall-falsifier measurement engine.
-    Reuses all measurement predicates unchanged; adds no new threshold, gate,
-    tokeniser, or stoplist.
-
-    Returns (exit_code, record_dict).
+    Returns (exit_code, wrapper_record_dict).
     """
     if packets is None:
         packets = ("39319405429",)  # V3 packet-of-record exact bytes
 
-    mount = resolve_mount(product_mount)
-    if mount is None:
-        rec = {
-            "schema": SCHEMA,
-            "run_id": run_id,
-            "verdict": "NOT_MEASURED_VACUOUS",
-            "exit_code": EXIT_VACUOUS,
-            "detail": "no accepted product mount available",
-            "human_gate_ready": False,
-            "packet_admitted": False,
-            "machine_gate_ready": False,
-            "ready_for_owner_session": False,
-            "claim_ceiling": CLAIM_CEILING,
-        }
-        out_dir.mkdir(parents=True, exist_ok=True)
-        report_dir.mkdir(parents=True, exist_ok=True)
-        out_path = out_dir / f"{run_id}.json"
-        out_path.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
-        report_path = report_dir / f"RETRIEVAL_CA_BENCHMARK_{run_id}.md"
-        report_path.write_text(
-            f"# Minimal Retrieval / Counter-authority Falsification Benchmark — run {run_id}\n"
-            f"- Schema: `{SCHEMA}`\n"
-            f"- Verdict: **NOT_MEASURED_VACUOUS** (exit {EXIT_VACUOUS})\n"
-            f"- No accepted product mount; measurement impossible.\n"
-            f"- Elapsed: 0.000 s\n",
-            encoding="utf-8",
+    out_dir.mkdir(parents=True, exist_ok=True)
+    report_dir.mkdir(parents=True, exist_ok=True)
+    engine_out = out_dir / f"{run_id}_engine_mapping_free_recall_falsifier.json"
+
+    engine_code, engine_rec = ENGINE.run(run_id, engine_out, product_mount,
+                                         REPO_ROOT, packets)
+
+    hypothesis_path = REPO_ROOT / ENGINE.HYPOTHESIS_RELPATH
+    freeze_path = REPO_ROOT / ENGINE.FREEZE_RELPATH
+    wrapper_instrument_path = Path(__file__).resolve()
+
+    drift = engine_rec.get("input_drift") or []
+    drift_invalidates = bool(engine_rec.get("input_drift_invalidates_run")) or bool(drift)
+
+    if drift_invalidates:
+        # Hard guard: a drifted run is never a product verdict (freeze-record pin
+        # discipline, enforced at the wrapper layer; no new measurement threshold).
+        verdict = "NOT_MEASURED_VACUOUS"
+        code = ENGINE.EXIT_VACUOUS
+        drift_reason = (
+            f"input drift detected on {len(drift)} frozen input(s): {sorted(drift)}; "
+            "the run is invalidated under the freeze record's pin discipline and is "
+            "NEVER a pass and NEVER a bar-met"
         )
-        return EXIT_VACUOUS, rec
+    else:
+        verdict = engine_rec.get("verdict")
+        code = engine_code
+        drift_reason = None
 
-    measured = measure(mount, REPO_ROOT, packets)
-    vac = non_vacuity(measured["questions"], measured["scored_statuses_from_frozen_rubric"])
-    verdict, code = verdict_of(measured, vac)
-
-    # Count total gates from per-question gate lists
-    all_gates = []
-    for q in measured["questions"]:
-        for g in q.get("gates", []):
-            all_gates.append(g)
-    n_gates = len(all_gates)
-    n_passed = sum(1 for g in all_gates if g.get("passed") is True)
-    n_failed = sum(1 for g in all_gates if g.get("passed") is False)
-    n_reported = sum(1 for g in all_gates if g.get("passed") is None)
-    failed_gate_details = [g for g in all_gates if g.get("passed") is False]
-    failed_gates = [g["gate"] for g in failed_gate_details]
-
-    record = {
-        "schema": SCHEMA,
+    record: dict = {
+        "schema": WRAPPER_SCHEMA,
         "lane": "evaluation",
         "run_id": run_id,
         "direction_version": 61,
         "verdict": verdict,
         "exit_code": code,
         "entry_point": "python -m evaluation.minimal_retrieval_ca_benchmark",
-        "generated_at_utc": __import__("datetime").datetime.now(
-            __import__("datetime").timezone.utc
-        ).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "generated_at_utc": datetime.datetime.now(datetime.timezone.utc).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"),
+        "engine_entry_point": "python -m evaluation.mapping_free_recall_falsifier",
+        "engine_invoked_run": True,
+        "engine_record_path": str(engine_out.relative_to(REPO_ROOT))
+        if engine_out.is_relative_to(REPO_ROOT) else str(engine_out),
+        "reuse_declaration": REUSE_DECLARATION,
+        "wrapper_instrument": {
+            "path": str(wrapper_instrument_path.relative_to(REPO_ROOT)),
+            "sha256_commit_time": _sha256(wrapper_instrument_path),
+            "status": "NEW thin adapter; commit-time digest only, NEVER a freeze proof",
+        },
         "frozen_hypothesis": {
-            "path": "evaluation/MAPPING_FREE_RECALL_FALSIFIER_HYPOTHESIS_V1.json",
-            "sha256": hashlib.sha256(
-                (REPO_ROOT / "evaluation/MAPPING_FREE_RECALL_FALSIFIER_HYPOTHESIS_V1.json").read_bytes()
-            ).hexdigest(),
+            "path": ENGINE.HYPOTHESIS_RELPATH,
+            "sha256": _sha256(hypothesis_path),
         },
         "freeze_record": {
-            "path": "evaluation/MAPPING_FREE_RECALL_FALSIFIER_FREEZE_RECORD.json",
-            "sha256": hashlib.sha256(
-                (REPO_ROOT / "evaluation/MAPPING_FREE_RECALL_FALSIFIER_FREEZE_RECORD.json").read_bytes()
-            ).hexdigest(),
+            "path": ENGINE.FREEZE_RELPATH,
+            "sha256": _sha256(freeze_path),
         },
-        "product_mount": str(mount),
-        "packets_measured": list(packets),
-        "n_questions_measured": len(measured["questions"]),
-        "n_gates": n_gates,
-        "n_passed": n_passed,
-        "n_failed": n_failed,
-        "n_reported": n_reported,
-        "failed_gates": failed_gates,
-        "gates": [{"gate": g["gate"], "passed": g["passed"], "detail": g.get("detail", "")}
-                  for g in all_gates],
-        "per_question": [
-            {
-                "packet": q["packet"],
-                "qid": q["qid"],
-                "bundle_sha256": q["bundle_sha256"],
-                "admissibility_sha256": q["admissibility_sha256"],
-                "concepts": q["coverage"]["concepts"],
-                "concepts_with_zero_rows": q["coverage"]["concepts_with_zero_rows"],
-                "concept_row_counts": q["coverage"]["concept_row_counts"],
-            }
-            for q in measured["questions"]
-        ],
-        "admissibility": {
-            "rule": "SAME_NORM AND SAME_SUBJECT_TERMS, computed at run time with no analyst judgement",
-            "n_pairs_enumerated": measured["n_pairs_enumerated"],
-            "n_pairs_admissible": measured["n_pairs_admissible"],
-            "pairs": measured["frozen_id_overlap"],
-        },
-        "non_vacuity": {
-            "all_hold": vac["all_hold"],
-            "battery": vac["battery"],
-        },
+        # --- full provenance layer lifted verbatim from the engine record (F5) ---
+        "product_mount": engine_rec.get("product_mount"),
+        "product_mount_head": engine_rec.get("product_mount_head"),
+        "packets_measured": engine_rec.get("packets_measured"),
+        "rehash_before_execution": engine_rec.get("rehash_before_execution"),
+        "rehash_after_execution": engine_rec.get("rehash_after_execution"),
+        "input_drift": engine_rec.get("input_drift"),
+        "input_drift_invalidates_run": drift_invalidates,
+        "run_valid": not drift_invalidates,
+        "drift_guard": drift_reason,
+        "numeric_environment": engine_rec.get("numeric_environment"),
+        "frozen_spec": engine_rec.get("frozen_spec"),
+        "frozen_label_rubric": engine_rec.get("frozen_label_rubric"),
+        "analyst_mapping_not_consumed": engine_rec.get("analyst_mapping_not_consumed"),
+        "retraction_provenance": engine_rec.get("retraction_provenance"),
+        "engine_verdict_before_drift_guard": engine_rec.get("verdict"),
+        "engine_exit_code_before_drift_guard": engine_code,
+        # --- measurement lifted verbatim, measured payloads restored (F5) ---
+        "n_questions_measured": engine_rec.get("n_questions_measured"),
+        "n_gates": engine_rec.get("n_gates"),
+        "n_passed": engine_rec.get("n_passed"),
+        "n_failed": engine_rec.get("n_failed"),
+        "n_reported": engine_rec.get("n_reported"),
+        "failed_gates": engine_rec.get("failed_gates"),
+        "gates": engine_rec.get("gates"),
+        "per_question": engine_rec.get("per_question"),
+        "admissibility": engine_rec.get("admissibility"),
+        "non_vacuity": engine_rec.get("non_vacuity"),
         "no_new_thresholds": True,
         "no_174k_benchmark_rerun": True,
-        "claim_ceiling": CLAIM_CEILING,
+        "claim_ceiling": ENGINE.CLAIM_CEILING,
         "human_gate_ready": False,
         "packet_admitted": False,
         "machine_gate_ready": False,
         "ready_for_owner_session": False,
     }
 
-    out_dir.mkdir(parents=True, exist_ok=True)
-    report_dir.mkdir(parents=True, exist_ok=True)
-    report_path = report_dir / f"RETRIEVAL_CA_BENCHMARK_{run_id}.md"
     out_path = out_dir / f"{run_id}.json"
-    out_path.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    out_path.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n",
+                        encoding="utf-8")
 
-    # Human-readable report
+    failed_gates = record.get("failed_gates") or []
+    failed_names = [g["gate"] for g in failed_gates if isinstance(g, dict)]
     lines = [
         f"# Minimal Retrieval / Counter-authority Falsification Benchmark — run {run_id}",
         "",
-        f"- Schema: `{SCHEMA}`",
+        f"- Wrapper schema: `{WRAPPER_SCHEMA}`",
         f"- Direction: v{record['direction_version']} (factory direction v61)",
-        f"- Engine: `python -m evaluation.mapping_free_recall_falsifier` (accepted entry point, reused unchanged)",
-        f"- Packet: {packets[0]} (V3 packet-of-record exact bytes)",
+        f"- Engine: `evaluation.mapping_free_recall_falsifier.run()` invoked as the accepted "
+        f"entry point (full provenance layer restored, audit F5)",
+        f"- Packet: {', '.join(record.get('packets_measured') or [])} (V3 packet-of-record exact bytes)",
         f"- Combined verdict: **{verdict}** (exit {code})",
-        f"- Falsification proven: **{code == EXIT_FALSIFIED}**",
+        f"- Engine verdict before drift guard: **{record['engine_verdict_before_drift_guard']}** "
+        f"(exit {record['engine_exit_code_before_drift_guard']})",
+        f"- Falsification proven: **{code == ENGINE.EXIT_FALSIFIED}**",
+        f"- Input drift: {record['input_drift'] if record['input_drift'] else 'none'} "
+        f"(run_valid={record['run_valid']})",
+        f"- Product mount head: {record['product_mount_head']}",
         f"- Questions measured: {record['n_questions_measured']}",
-        f"- Gates: {record['n_gates']} total, {record['n_passed']} passed, {record['n_failed']} failed, {record['n_reported']} reported",
-        f"- Failed gates: {', '.join(record['failed_gates']) if record['failed_gates'] else 'none'}",
+        f"- Gates: {record['n_gates']} total, {record['n_passed']} passed, "
+        f"{record['n_failed']} failed, {record['n_reported']} reported",
+        f"- Failed gates: {', '.join(failed_names) if failed_names else 'none'}",
         "",
         "## Non-vacuity battery",
         "",
     ]
-    for battery in vac["battery"]:
-        lines.append(f"- **{battery['control']}**: holds={battery['holds']} — {battery['why']}")
+    vac = record.get("non_vacuity") or {}
+    for battery in vac.get("battery") or []:
+        lines.append(f"- **{battery.get('control')}**: holds={battery.get('holds')} — "
+                     f"{battery.get('why')}")
     lines += [
         "",
         "## Claim ceiling",
         "",
-        CLAIM_CEILING,
+        ENGINE.CLAIM_CEILING,
         "",
-        "## Provenance",
+        "## Provenance (restored layer)",
         f"- Frozen hypothesis SHA256: {record['frozen_hypothesis']['sha256']}",
         f"- Freeze record SHA256: {record['freeze_record']['sha256']}",
-        f"- Product mount: {record['product_mount']}",
-        f"- Failed gates: {', '.join(record['failed_gates']) if record['failed_gates'] else 'none'}",
+        f"- Engine record: `{record['engine_record_path']}`",
+        f"- Re-hash before execution: {len((record['rehash_before_execution'] or {}).get('repo') or {})} repo / "
+        f"{len((record['rehash_before_execution'] or {}).get('mount') or {})} mount inputs",
+        f"- Re-hash after execution: drift={record['input_drift'] or 'none'}",
+        f"- Numeric environment disclosed: {'yes' if record.get('numeric_environment') else 'no'} "
+        f"(factory requirement 30)",
+        f"- Analyst mapping not consumed: "
+        f"{(record.get('analyst_mapping_not_consumed') or {}).get('read_into_any_gate') is False}",
         "",
         f"Machine record: `{out_path.name}`",
-        f"Report: `{report_path.name}`",
+        f"Report: `{report_path_name(out_path, report_dir, run_id)}`",
     ]
+    report_path = report_dir / f"RETRIEVAL_CA_BENCHMARK_{run_id}.md"
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     return code, record
+
+
+def report_path_name(out_path: Path, report_dir: Path, run_id: str) -> str:
+    return f"RETRIEVAL_CA_BENCHMARK_{run_id}.md"
 
 
 def main(argv=None) -> int:
@@ -220,12 +260,11 @@ def main(argv=None) -> int:
     ap.add_argument("--report-dir", default=None,
                     help="directory for human-readable reports (default: committed tree; override for scratch run)")
     args = ap.parse_args(argv)
-    run_id = args.run_id or __import__("os").environ.get("GITHUB_RUN_ID", "local")
+    import os
+    run_id = args.run_id or os.environ.get("GITHUB_RUN_ID", "local")
     packets = tuple(p.strip() for p in args.packets.split(",") if p.strip()) if args.packets else None
-    out_dir = Path(args.out_dir) if args.out_dir else (
-        REPO_ROOT / "results" / "evaluation" / "minimal_retrieval_ca_benchmark")
-    report_dir = Path(args.report_dir) if args.report_dir else (
-        REPO_ROOT / "reports" / "evaluation")
+    out_dir = Path(args.out_dir) if args.out_dir else DEFAULT_OUT_DIR
+    report_dir = Path(args.report_dir) if args.report_dir else DEFAULT_REPORT_DIR
     exit_code, record = run_benchmark(run_id, out_dir, report_dir,
                                       product_mount=args.product_mount,
                                       packets=packets)
@@ -233,15 +272,19 @@ def main(argv=None) -> int:
         "verdict": record.get("verdict"),
         "exit_code": exit_code,
         "falsification_proven": exit_code == 1,
+        "engine_invoked_run": record.get("engine_invoked_run"),
+        "run_valid": record.get("run_valid"),
+        "input_drift": record.get("input_drift"),
         "n_questions_measured": record.get("n_questions_measured"),
         "n_gates": record.get("n_gates"),
         "n_passed": record.get("n_passed"),
         "n_failed": record.get("n_failed"),
-        "failed_gates": record.get("failed_gates"),
+        "failed_gates": [g["gate"] for g in record.get("failed_gates") or []],
         "reason": (
-            "counter-authority surface empty on all served questions"
-            if exit_code == 1
-            else ("no mount available" if exit_code == 2 else "all gates passed")
+            "input drift invalidated the run" if record.get("input_drift_invalidates_run")
+            else ("counter-authority surface empty on all served questions"
+                  if exit_code == 1 else ("no mount available" if exit_code == 2
+                                          else "all gates passed"))
         ),
     }, indent=1))
     return exit_code
