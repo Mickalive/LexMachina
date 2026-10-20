@@ -1,0 +1,71 @@
+{
+  "schema": "lex-evaluation-orchestration-resume-39471603258-hypothesis/1",
+  "hypothesis_id": "ORCHESTRATION_RESUME_39471603258_HYPOTHESIS_V1",
+  "frozen_before_execution": true,
+  "direction_version": 61,
+  "github_run_context": 39471603258,
+  "resumed_from_run": "39470495546",
+  "lane": "evaluation",
+  "ruling_question": "Why did the persisted producer snapshot of run 39470495546 fail to reach an independent audit, and can the lane (a) name the exact orchestration/validation failure, (b) verify that the claim-bearing deliverable (the mapping-free retrieval/counter-authority falsifier on packet-of-record V3, 39319405429) still reproduces from the committed tree and the accepted product mount, and (c) return the snapshot to an audit-ready state without deleting valid completed work or editing any frozen bar?",
+  "product_decision_unlocked": "Whether the lane can clear a self-inflicted scope violation (producer-authored audit artifacts) and stand ready solely for the next accepted measurement, instead of re-dispatching forever with no independent gate.",
+  "hypothesis": {
+    "H1_scope_violation": "The run 39470495546 producer wrote two files into the INDEPENDENT AUDITOR's protected namespace (results/audit/evaluation/ and reports/audit/evaluation/), which the core-lane team job's 'Enforce lane write scope' step does not permit. The team job therefore fails (exit 3), the audit job (needs: team, if: team.result == 'success') is skipped, and no independent gate is ever produced. Because 'Persist team snapshot' is guarded by if: always(), the out-of-scope writes are force-pushed anyway and the lane re-dispatches.",
+    "H2_prior_unaudited_measurement": "The measurement this cycle was chartered to audit (run 39462322100, V3 counter-authority surface falsifier) has no audit branch on origin, so it was never independently audited before run 39470495546.",
+    "H3_deliverable_reproduces": "The committed record results/evaluation/counter_authority_surface_falsifier/39462322100.json reproduces exactly from the committed tree and the accepted product mount (PRODUCT_FALSIFIED, exit 1, 18 gates, 11/4/3, empty counter-authority surface on all 3 served questions, zero input drift, non-vacuity holds), and tests/evaluation/test_counter_authority_surface_falsifier.py passes.",
+    "H4_audit_ready": "Removing the two out-of-scope audit-namespace files from the lane snapshot (after preserving their exact bytes and git blob oids in the lane namespace) restores the team job's write-scope invariant: the lane owns no NEW file under results/audit or reports/audit."
+  },
+  "baseline": {
+    "accepted_base_ref": "lab/evaluation",
+    "accepted_base_head": "cbda785300413c4b8e3e630ed652dcf75feb26c4 ('accept evaluation cycle 39457963802')",
+    "claim_bearing_measurement": "results/evaluation/counter_authority_surface_falsifier/39462322100.json (run 39462322100, proposed pending audit)",
+    "accepted_product_mount": "/tmp/lex_accepted/product @ f463a8171cb48e8d13f9216f2069d37f3b7e0942",
+    "no_new_threshold_or_bar": true
+  },
+  "frozen_inputs_rehash_only": {
+    "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+    "evaluation/frozen_bars/VERDICT_CONTRACT.json": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c",
+    "evaluation/retrieval_gate/frozen_retrieval_benchmark.json": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "evaluation/MINIMAL_CA_BENCHMARK_HYPOTHESIS_V1.json": "f0c7711c71e94d7b7303f5fa3a61b444d67bee6d3bbd7f0708ed13ff6ffc8072",
+    "evaluation/minimal_ca_benchmark.py": "567a9d2b231c5404b7324db2c30249e0961dbc90c698501d0ba5576c7297554b",
+    "evaluation/counter_authority_surface_falsifier.py": "0d0c6827c0983a66504040c81b29e36b8ec324b8f06fa80d250f8db192547171",
+    "evaluation/mapping_free_recall_falsifier.py": "58a2e77a66bb60385a53185e9426447e8465da9105e8a0cb8945d5fd77bfb302",
+    "V3_packet.json": "32ac812626e679c357822543d0b2e78e62c0e95a9a1b233d1ec89d7cb7b6ac70",
+    "de-kapitalverletzung.bundle.json": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
+    "fr-bail-entretien.bundle.json": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
+    "it-responsabilita-medica.bundle.json": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b"
+  },
+  "expected_findings": {
+    "out_of_scope_files_at_39470495546_head": [
+      "reports/audit/evaluation/CYCLE_39470495546.md",
+      "results/audit/evaluation/CYCLE_39470495546_GATE.json"
+    ],
+    "expected_replay_verdict": "PRODUCT_FALSIFIED",
+    "expected_replay_exit_code": 1,
+    "expected_replay_gates": "18 (11 passed / 4 failed / 3 reported)",
+    "expected_failed_gates": [
+      "mf::concept_coverage::39319405429::de-kapitalverletzung",
+      "mf::counter_authority_surface::39319405429::de-kapitalverletzung",
+      "mf::counter_authority_surface::39319405429::fr-bail-entretien",
+      "mf::counter_authority_surface::39319405429::it-responsabilita-medica"
+    ],
+    "expected_dedicated_tests": "12 passed / 0 failed / 0 skipped",
+    "expected_adjacent_regression": "68 passed / 172 subtests (measured this run; the 39462322100 report's '83 passed' does not reproduce and is recorded as a disclosure divergence)",
+    "never_a_pass": ["NOT_APPLICABLE", "NOT_MEASURED", "INSUFFICIENT_POPULATION", "mount-absent"]
+  },
+  "exit_semantics": {
+    "0": "diagnosis complete AND deliverable reproduced AND frozen pins re-hashed byte-identical",
+    "1": "at least one expected finding FAILED (published as-is)",
+    "2": "environment error / accepted product mount absent (never a pass)"
+  },
+  "claim_ceiling": "This cycle may claim exactly: (a) the 39470495546 snapshot's failure mechanism is a lane-owned write-scope violation in the auditor's protected namespace, proved from the committed tree and the workflow source; (b) the V3 counter-authority surface falsifier reproduces its committed record from the accepted mount; (c) the lane snapshot was returned to an in-scope, audit-ready state with the offending files re-homed, not destroyed. It must NOT claim: any verdict, gate or admission on any packet; that the absolute LABEL_SOUND or GEOMETRY_SOUND bars are met; that either DO-NOT-SERVE order is lifted; that the map helps a jurist; that any Frontier component was rebuilt or re-scored; that run 39462322100 is accepted (it is proposed pending audit); or any unblocking of the human gate. human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false, owner_decision_required=false.",
+  "non_negotiables": [
+    "No frozen bar, rubric, threshold, success rule or metric is regenerated, re-tuned or edited",
+    "A file named for run X holds run X's measurement; later re-measurements get NEW run-id filenames; delete nothing that is evidence - the two out-of-scope pseudo-audit files are re-homed byte-exactly with their git blob oids before removal from the auditor namespace",
+    "Mount-absent is never counted as a pass",
+    "overall_pass=false remains structurally pinned; per-artifact and per-leg results are the only actionable signal",
+    "Both DO-NOT-SERVE orders stand; admission stays fail-closed",
+    "No universal-174k benchmark is rerun",
+    ".github/** is control-plane scope and is NOT edited from this lane"
+  ]
+}
