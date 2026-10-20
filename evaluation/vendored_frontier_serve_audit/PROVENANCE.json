@@ -1,0 +1,26 @@
+{
+  "schema": "lex-evaluation-vendored-input-provenance/1",
+  "vendored_by_run": "39381093325",
+  "lane": "evaluation",
+  "purpose": "Byte-exact offline copy of the independently ACCEPTED serve verdict so the cross-check instrument reproduces in a bare checkout (the core-lane CI checkout fetches only the current run's team/audit refs + lab branches, so lab/frontier/* refs are invisible to the independent auditor - the documented ref-coverage artifact class, e.g. results/evaluation/f3b_escalation_source_correction/39297074815.json).",
+  "files": {
+    "VERDICT_39371834165.json": {
+      "sha256": "403aeb0c005b1fa9c4866277a8c302f87418cf89d78b93bb75e6eb99215954d4",
+      "git_blob_oid": "d7577401772d2523ec9d06f3d1885fda7b653250",
+      "source_ref": "refs/heads/lab/frontier/frontier-packet-serve-audit",
+      "source_commit": "95162685",
+      "source_commit_subject": "accept Frontier frontier-packet-serve-audit 39371834165",
+      "source_path": "results/frontier/frontier-packet-serve-audit/VERDICT_39371834165.json",
+      "fetch_method": "git cat-file -p origin/lab/frontier/frontier-packet-serve-audit:<source_path> (origin already fetched at dispatch by the core-lane workflow)",
+      "fetched_at_utc": "2026-10-20T06:55:00Z"
+    }
+  },
+  "acceptance_evidence": {
+    "audit_gate": "results/audit/frontier/frontier-packet-serve-audit/CYCLE_39371834165_GATE.json",
+    "audit_gate_value": "gate=PASS, safe_to_integrate=true, required_fixes=[]",
+    "audit_commit": "909258d2c27f5af45505e22149166cdf3318fce0",
+    "promote_commit": "95162685",
+    "portfolio": "state/frontier_portfolio.json on origin/main: team_id=frontier-packet-serve-audit, status=TERMINATED, promotion_status=PROMOTED, charter_version=1"
+  },
+  "rule": "REUSE BY RE-HASH, NEVER RE-DERIVE: the instrument re-hashes this copy against the pinned sha256 above before reading a single quantity, and cross-verifies the git blob oid when the source ref is present. A mismatch is an environment error (exit 2), never a product verdict. Nothing in the vendored file is edited, summarised or re-typed."
+}
