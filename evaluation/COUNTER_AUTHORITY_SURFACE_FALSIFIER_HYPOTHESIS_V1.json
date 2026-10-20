@@ -1,0 +1,56 @@
+{
+  "schema": "lex-evaluation-counter-authority-surface-falsifier-hypothesis/1",
+  "lane": "evaluation",
+  "direction_version": 61,
+  "instrument": "evaluation/counter_authority_surface_falsifier.py",
+  "entry_point": "python -m evaluation.counter_authority_surface_falsifier --run-id <id> --out <path>",
+  "frozen_before_execution": true,
+  "frozen_at_utc": "2026-10-20T17:10:00Z",
+  "title": "The lane's mapping-free retrieval / counter-authority falsifier, run for the first time on the packet-of-record V3's exact bytes",
+  "why_this_instrument": "The lane owns the smallest executable retrieval/counter-authority falsifier (evaluation/mapping_free_recall_falsifier.py, run 39225862749, verdict PRODUCT_FALSIFIED), but it has only ever been run on the served packet 38839347028 and the rebuilt packet rebuilt-39027045675. The PACKET OF RECORD is 39319405429 (packet.json raw sha256 32ac812626e679c357822543d0b2e78e62c0e95a9a1b233d1ec89d7cb7b6ac70): the accepted serve verdict, the frozen LABEL/GEOMETRY falsification battery and both standing DO-NOT-SERVE orders are all pinned to those exact bytes. The lane has therefore never run its mapping-free retrieval / counter-authority falsifier on the bytes the whole product verdict rests on. This instrument closes that hole by reusing the accepted measurement functions UNCHANGED on V3's exact bytes.",
+  "hypothesis": "The accepted mapping-free measurement functions (concept coverage, admission disclosure, source validity, duplicate suppression, counter-authority surface, language robustness and the frozen slug-to-question admissibility predicate), run on the packet-of-record V3's exact bytes, will falsify the product: the counter-authority surface is empty (n_issued=0) on all three served questions, so the product cannot surface contrary or limiting authority on the packet of record. A bounded negative is fully acceptable and is the expected result; it is never a pass and never a bar-met.",
+  "baseline": "The same accepted measurement functions are the baseline; the instrument imports evaluation.mapping_free_recall_falsifier.measure / non_vacuity / verdict_of unchanged and reuses evaluation.retrieval_gate.gates.row_cores and evaluation.subject_match_audit. No analyst mapping is read into any gate, aggregate or verdict.",
+  "product_decision_unlocked": "Whether retrieval and counter-authority discovery are good enough to justify the visual UX test. The packet-of-record's counter-authority surface is empty, so the map's audit layer cannot surface contrary authority and the comparative half of the central product question stays VACUOUS.",
+  "inputs_FROZEN": {
+    "product_mount": "/tmp/lex_accepted/product (read-only, accepted product branch; head recorded at run time)",
+    "packet_of_record": {
+      "id": "39319405429",
+      "packet_json_sha256": "32ac812626e679c357822543d0b2e78e62c0e95a9a1b233d1ec89d7cb7b6ac70",
+      "standing_status": "BUILT_NOT_SERVED WITHHELD_PENDING_SERVE; both DO-NOT-SERVE orders stand; this instrument changes neither",
+      "qids": [
+        "de-kapitalverletzung",
+        "fr-bail-entretien",
+        "it-responsabilita-medica"
+      ]
+    },
+    "frozen_repo_inputs": {
+      "evaluation/mapping_free_recall_falsifier.py": "58a2e77a66bb60385a53185e9426447e8465da9105e8a0cb8945d5fd77bfb302",
+      "evaluation/retrieval_gate/frozen_retrieval_benchmark.json": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+      "evaluation/subject_match_audit.py": "c207fd819ae4605de704d2cdc4a30254f39a9840994a2e43ea4ef10fb5656342",
+      "evaluation/retrieval_gate/gates.py": "f9bbbc7d61c927e9b687cfbcf140371d08fa6069509b0a1b6466d514ea37a6d9",
+      "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633"
+    },
+    "frozen_mount_inputs": "see COUNTER_AUTHORITY_SURFACE_FALSIFIER_FREEZE_RECORD.json (V3 packet.json + 3 bundles + 3 admissibility + 3 question files, all re-hashed before AND after execution)"
+  },
+  "gates_FROZEN": {
+    "reused_unchanged": "Every gate is the accepted mapping-free falsifier's gate, imported through its measure() function: mf::concept_coverage, mf::admission_disclosure, mf::source_validity, mf::duplicate_suppression, mf::counter_authority_surface, mf::language_robustness. The frozen slug-to-question admissibility predicate (SAME_NORM AND SAME_SUBJECT_TERMS) is also reused unchanged. This instrument introduces no new gate.",
+    "mf::counter_authority_surface::<packet>::<qid>": "PASS iff the bundle issues >=1 row whose counter status is a contrary/limiting/exception type AND every issued counter row carries a non-empty counter_evidence field. FAIL if no counter row is issued. This is the lane directive's known contrary/limiting-authority check, achieved without any mapping."
+  },
+  "non_vacuity_controls_FROZEN": {
+    "reused_unchanged": "A_blanked_pool_must_fail_concept_coverage, A2_blanked_row_must_fail_source_validity, C_oracle_pool_must_pass_concept_coverage, B_admissibility_predicate_must_reject_a_subject_swapped_pair - all imported from the accepted instrument's non_vacuity() and run on V3's measured questions."
+  },
+  "success_rule_FROZEN": "PASS_NO_FALSIFICATION (exit 0) iff every mapping-free gate passes on every measured V3 bundle AND every non-vacuity control holds. PRODUCT_FALSIFIED (exit 1) if any mapping-free gate fails on V3's exact bytes, naming the packet, the question id, the gate and the measured values. NOT_MEASURED_VACUOUS (exit 2) if no bundle could be read at all, or if a non-vacuity control does not hold. NOT_APPLICABLE is never a pass.",
+  "no_new_thresholds": "Every numeric threshold used here is either an accepted constant imported from evaluation/subject_match_audit.py or evaluation/retrieval_gate/gates.py, or an exact structural identity (distinct ids == n, empty string is falsy, >=1 issued counter row). This instrument introduces NO new threshold, NO new bar, NO new tokeniser, NO new stoplist and NO re-tuned rule.",
+  "network_policy": "zero network requests. The instrument is read-only over the accepted mount and committed records. Any live retrieval remains the accepted frozen retrieval benchmark's job and is not re-run.",
+  "what_this_does_NOT_claim": [
+    "It does NOT meet, move or re-derive the frozen absolute LABEL_SOUND or GEOMETRY_SOUND bars; they stay REPORTED-ONLY.",
+    "It does NOT lift the accepted DO-NOT-SERVE order on 38839347028 nor DO-NOT-SERVE-UNCHANGED on rebuilt-39027045675, and it does NOT change V3's BUILT_NOT_SERVED / WITHHELD_PENDING_SERVE status.",
+    "It does NOT certify admission of any packet; admission stays fail-closed.",
+    "It does NOT claim the map helps a jurist; that is the human product gate's question and it remains unanswered.",
+    "It does NOT build, tune, score or re-score any candidate for any Frontier team; the accepted frontier-counter-label-emission repair is never re-run here, and where its numbers touch the accepted ones they are published BESIDE with any divergence named as the headline.",
+    "It runs no obsolete universal-174k geometry benchmark.",
+    "It does NOT re-issue the run_bar_gates frozen label/geometry falsification battery (discharged on V3 by run 39379766198); this is a different instrument measuring a different product capability (retrieval / counter-authority discovery)."
+  ],
+  "success_rule_for_the_CYCLE": "The cycle succeeds if it produces committed executable code, tests, a machine record and a report whose every number is recomputable from the committed tree, and exits well inside the work quantum. A falsification result is an equally acceptable, and equally accepted, outcome."
+}
