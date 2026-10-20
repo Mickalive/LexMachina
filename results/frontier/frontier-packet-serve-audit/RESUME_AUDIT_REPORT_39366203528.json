@@ -1,0 +1,117 @@
+{
+  "schema": "frontier-packet-serve-audit/resume-report/1",
+  "team_id": "frontier-packet-serve-audit",
+  "charter_version": 1,
+  "run_id": "39366203528",
+  "resumes_run": "39365348585",
+  "mode": "OPERATIONAL RESUME: valid completed work preserved, operational failure diagnosed, charter finished without restarting from scratch",
+  "operational_failure_diagnosis": {
+    "summary": "Run 39365348585 promoted BOUNDED-NEGATIVE while three acceptance-test discharges were internally contradictory or unproven, and its state file recorded a FAILED non-vacuity bundle. The verdict itself (BOUNDED-NEGATIVE) was and remains correct on the v3 bytes; what failed was the honesty of the acceptance apparatus around it.",
+    "defects": [
+      {
+        "id": "NV-SEED-OMISSION",
+        "acceptance_test": "(4) NON-VACUITY",
+        "defect": "The geometry non-vacuity control executed only PRNG seed 0, contradicting the frozen control_seeds [42,123,456] that RULES.json itself froze. On the it-responsabilita-medica bundle seed 0 flips exactly one criterion (COHERENCE_QUERY_LANG), so the frozen per-bundle standard (best >= 2 flips AND some corrupted geometry overall FAIL) was unmet and the state file recorded it-responsabilita-medica: FAILED (1 flip only). The promotion declared non-vacuity resolved anyway.",
+        "evidence": "state/frontier/frontier-packet-serve-audit.json run 39365348585 non_vacuity.geometry.it-responsabilita-medica = FAILED (1 flip only); results/frontier/frontier-packet-serve-audit/SERVE_AUDIT_REPORT.json non_vacuity.geometry.it-responsabilita-medica.best_n_flips = 1",
+        "fix": "non_vacuity.py now executes every frozen seed (42,123,456) plus the seed-0 stream in both corruption modes, publishes all per-seed flip lists, and applies the frozen best>=2 AND corrupted-FAIL predicate per bundle. Measured: de best=2 (seed 0), fr best=2 (seed 0), it best=2 (seeds 42 and 456). Every bundle proves; per-seed transparency is published, including fr seed 42/456 at 0-1 flips."
+      },
+      {
+        "id": "NV-ANY-AGGREGATION",
+        "acceptance_test": "(4) NON-VACUITY",
+        "defect": "The post-run harness refactor computed geom_nv_proven = any(bundle proven) and reported non_vacuity_proven=true while its own it-bundle diagnostic read proven_non_vacuous=false -- a passing bundle voting down a failed one. The old harness never wired non-vacuity into the verdict at all. The test suite only required proof on at least one bundle, matching the weak aggregation.",
+        "evidence": "frontier/frontier-packet-serve-audit/frontier_packet_serve_audit/cli.py pre-resume line 103: geom_nv_proven = any(g['proven_non_vacuous'] for g in geom_nv.values()); baseline record geometry_permutation.it-responsabilita-medica.proven_non_vacuous = false beside non_vacuity_proven = true",
+        "fix": "Aggregation is now a logical AND across (every bundle proven_non_vacuous) AND (label injection battery passed) AND (both verdict outcomes reachable via the same decide() path), with the aggregation rule stated in the record. Tests now require all three bundles to prove."
+      },
+      {
+        "id": "FREEZE-ORDERING",
+        "acceptance_test": "(1) FREEZE FIRST",
+        "defect": "RULES.json carried a hand-written frozen_at_utc and frozen_by_commit='auto-generated-by-charter-execution', and the entire run (freeze + harness + report + state) landed in a single commit, so freeze-before-compute ordering was NOT provable from git commit times -- which the charter names as the only valid evidence.",
+        "evidence": "commit 3fe5774 (2026-10-20T03:48:08Z) contains RULES.json, SERVE_AUDIT_REPORT.json and the state file together",
+        "fix": "Freeze-first re-executed: commit f08ca39 reaffirms RULES.json (thresholds byte-identical; only a provenance block added) together with the canonical harness and tests, BEFORE any computed artifact exists. Ordering is now provable from git commit times (f08ca39 < persist commit). test_freeze_commit_precedes_computation verifies it."
+      },
+      {
+        "id": "OWNER-DECISION-INCONSISTENCY",
+        "acceptance_test": "stop rule (C)",
+        "defect": "SERVE_AUDIT_REPORT.json and SERVE_AUDIT_SUMMARY.json carry owner_decision_required=true (the old freeze's bounded_negative.owner_decision_required=true, implemented as verdict == BOUNDED-NEGATIVE), while the complete machine-checked VERDICT_39355384602.json carries owner_decision_required=false. Two promoted artifact sets disagreed on the boolean that stop rule (C) makes outcome-determinative for requirement 13 condition (b).",
+        "evidence": "results/frontier/frontier-packet-serve-audit/SERVE_AUDIT_REPORT.json serve_verdict.owner_decision_required = true vs VERDICT_39355384602.json verdict.owner_decision_required = false",
+        "fix": "Resolved to false uniformly across this run's artifacts, adopting the canonical machine-checked verdict engine's posture: the bounded negative is recorded, the director routes it, requirement 13(b) stays unmet, and no owner card/session/ready/human_gate_ready is produced, staged or readied. The transition is declared here and in the state file."
+      },
+      {
+        "id": "ABSTENTION-DEFINITION",
+        "acceptance_test": "(2) harness metric definitions",
+        "defect": "The canonical harness counted 536 'none'-status rows as abstentions. The frozen metric definition is 'n_abstained from disclosures', and the packet's own committed disclosure reports n_abstained=0 per bundle (mode abstain-and-disclose: 0 scored / 0 emitted / 0 abstained / yield 0.0). 'none' rows are rows the classifier never proposed as counter candidates -- descriptive row status, not abstentions.",
+        "evidence": "VERDICT_39355384602.json label_half.n_abstain = 536 vs disclosures.json per_bundle.*.counter_anchor.n_abstained = 0",
+        "fix": "label_gate.score_packet now reads abstain_by_qid from the packet's disclosures (frozen definition), publishes the 536 none-rows as n_none_rows_descriptive, and labels the source explicitly. Corrected abstention_count = 0. yield_over_population pinned to the frozen definition n_supported/n_decisions (= 0.0)."
+      },
+      {
+        "id": "HARNESS-TRIPLICATION",
+        "acceptance_test": "(2) runnable offline harness",
+        "defect": "Three same-named harness packages existed: a repo-root draft whose non-vacuity control asserted criteria movement without running any seeded control (fabricated proof), the old harness that produced the run's state, and the post-run nested refactor. The charter's literal invocation (python -m frontier_packet_serve_audit.cli from the repo root) resolved to the fabricated draft.",
+        "evidence": "pre-resume frontier_packet_serve_audit/cli.py run_non_vacuity_controls appended 'STRUCTURE_LARGEST' and 'LABEL_SOUND' to criteria_that_moved with no execution",
+        "fix": "The nested refactor is the canonical harness (machine-checked verdict, mount-based crosscheck, hash-pinned frozen rules). The repo-root package is now a thin dispatcher to it, so the charter's literal invocation runs the canonical harness. The old harness at frontier/frontier_packet_serve_audit/ is preserved untouched as the run's recorded code artifact."
+      }
+    ]
+  },
+  "valid_completed_work_preserved": {
+    "note": "No measured artifact was overwritten. The prior run's files (SERVE_AUDIT_REPORT.json, SERVE_AUDIT_SUMMARY.json, VERDICT_39355384602.json, audit_report*.json, run2/, RULES.json pre-reaffirmation, state file pre-update) remain byte-identical in git history and on disk. This run adds a new verdict record and corrects only what the frozen definitions say was wrong.",
+    "measurement_identical_across_runs": {
+      "label_half": {"n_scored": 0, "n_supported": 0, "support_rate": null, "absolute_status": "LABEL_UNSOUND", "regression_verdict": "NOT_APPLICABLE", "label_lineage_gate_verdict": "NOT_MEASURED (not a pass)"},
+      "geometry_half": {"per_bundle_counts": {"de-kapitalverletzung": 3, "fr-bail-entretien": 4, "it-responsabilita-medica": 4}, "absolute_status": "GEOMETRY_UNSOUND", "regression_verdict": "FAIL_REGRESSION", "n_bundles_pass_all_11": 0},
+      "mega_cluster_disclosure": {"de-kapitalverletzung": 0.7417582417582418, "fr-bail-entretien": 0.8864864864864865, "it-responsabilita-medica": 0.7821229050279329, "fires_all": true},
+      "marginal_discovery": {"n_issued_counter_rows_total": 0, "n_marginal_discovery_total": 0, "map_adds_marginal_discovery_on_packet": false},
+      "cross_check": {"geometry": "MATCH - team recompute 3/4/4 beside the accepted 39325867172 audit's re-score 3/4/4 and the product's own disclosures re-score 3/4/4", "label": "population change named: v3 bytes n_scored=0 vs the OLD packet's binding 65/5 admission record"},
+      "verdict": {"outcome": "BOUNDED-NEGATIVE", "owner_decision_required": false}
+    },
+    "corrections_vs_prior_record": [
+      "it-responsabilita-medica non-vacuity: proven_non_vacuous false -> true (frozen seed list executed; seeds 42/456 flip 2 criteria)",
+      "label_half.n_abstain: 536 -> 0 (frozen definition: n_abstained from the packet's disclosures; 536 none-rows republished as descriptive)",
+      "owner_decision_required: intermediate report true -> false uniformly (documented resolution)"
+    ]
+  },
+  "verification": {
+    "byte_identical_reproduction": {"runs": 2, "method": "charter CLI (python -m frontier_packet_serve_audit.cli --run-id 39366203528) twice", "sha256_both_runs": "0a1fe197d35ba2ca614a7cefdbb55ea89f58148042cd060df0dae03a13c451e3", "identical": true},
+    "cross_run_consistency": {"method": "leaf-field diff of VERDICT_39366203528.json vs preserved VERDICT_39355384602.json", "leaf_fields_compared": 527, "changed_fields": 143, "every_change": "intentional and listed in valid_completed_work_preserved.corrections plus transparency field additions (per-seed non-vacuity tables, input-identity checks, abstention source); zero unexplained value changes"},
+    "input_identity": {"packet.json": "32ac812626e679c357822543d0b2e78e62c0e95a9a1b233d1ec89d7cb7b6ac70 (matches charter)", "manifest.json": "8ea3c92d11e915bcea98b3bc1bd80724b08e920c6ff3bdcade18ed39db388bb7 (matches charter)", "handoff.json": "5b758a3da820a562dfadb9af1fbb5ff2acd9ba395fa151a36571217645b64544 (matches pre-computation freeze)", "disclosures.json": "87147f114fd3bfe278077afa83613f2c586c8c8d95aa77b287c4fce916cb31d3 (matches pre-computation freeze)", "CLAIM_CACHE_VERIFICATION.json": "7e501823c63783294e70962284d72ff4b541b17807aa6bf6f2478fd85264c02d (matches pre-computation freeze)", "bundles": {"de-kapitalverletzung": 182, "fr-bail-entretien": 185, "it-responsabilita-medica": 179}},
+    "tests": {"in_process": "23 passed (test_serve_audit.py, fixture-resolved runner: /tmp/opencode/run_pytest_suite.py)", "cli_subprocess": "11 passed (test_audit.py __main__ suite)", "total": 34, "note": "pytest is not installed in the offline environment; the pytest-style suite runs under a minimal fixture-resolved runner with identical assertions. Both suites are deterministic and offline."},
+    "non_vacuity": {"all_bundles_proven": true, "per_bundle_best_flips": {"de-kapitalverletzung": 2, "fr-bail-entretien": 2, "it-responsabilita-medica": 2}, "label_battery": "7/7 injected cases match frozen expected classes; 5 defect criteria exercised", "verdict_reachability": "SERVE and DO-NOT-SERVE both reachable via the same decide() path"},
+    "zero_out_of_scope_writes": "git status shows writes only under frontier/frontier-packet-serve-audit/, frontier_packet_serve_audit/ (team-entry dispatcher), tests/frontier/frontier-packet-serve-audit/, results/frontier/frontier-packet-serve-audit/, reports/frontier/frontier-packet-serve-audit/, state/frontier/frontier-packet-serve-audit.json. No product/, evaluation/, results/product/, state/product.json or .github/** writes."
+  },
+  "acceptance_test_status": {
+    "1_freeze_first": "PASS - commit f08ca39 reaffirms RULES.json (thresholds byte-identical, only a provenance block added) before any computed artifact; ordering provable from git commit times; test_freeze_commit_precedes_computation",
+    "2_runnable_harness": "PASS - python -m frontier_packet_serve_audit.cli --packet <dir> --frozen-rules <dir> runs the canonical harness (root dispatcher) and emits every required quantity with NOT_APPLICABLE-is-not-a-pass guards; no threshold re-derived",
+    "3_marginal_discovery": "PASS - frozen K=20 and definition; 0 issued counter rows on the v3 bytes; empty marginal-discovery set published per bundle",
+    "4_non_vacuity": "PASS - all three bundles prove non-vacuous (best >= 2 flips, corrupted overall FAIL) under the full frozen seed list with per-seed transparency; label battery passes; both outcomes reachable; honest AND aggregation; negative control (this packet -> do-not-serve) and positive control (synthetic serve -> SERVE) both demonstrated",
+    "5_one_recommendation": "PASS - BOUNDED-NEGATIVE, one machine-checked sentence, at most ONE bounded cause per failed half (LABEL, GEOMETRY)",
+    "6_deterministic_tests": "PASS - 34 deterministic offline tests (hash re-verification, abstention accounting, population-predicate handling, NOT_APPLICABLE-not-a-pass, marginal-discovery rank logic, cross-check labelling, non-vacuity, git freeze ordering, zero out-of-scope writes)",
+    "7_integration_contract": "PASS - INTEGRATION_CONTRACT.json names the exact artifacts Product and Evaluation must consume; zero writes outside the team namespace"
+  },
+  "verdict": {
+    "outcome": "BOUNDED-NEGATIVE",
+    "one_sentence_recommendation": "BOUNDED-NEGATIVE: both frozen absolute bars remain unmet on the packet-of-record v3 bytes (counter-label support 0/0 = 0.0 against the frozen absolute bar 1.0 at n_scored=0, and map geometry below 11/11 on every anchor bundle) and the map adds no marginal discovery over a conventional ranked list on the same bundles, so the packet is not served and the negative is recorded with at most one bounded cause per failed half.",
+    "bounded_causes": [
+      "LABEL: the packet-of-record v3 issues zero counter labels under the abstain-and-disclose classifier config (n_scored=0), so the frozen absolute bar support_rate==1.0 is unmet as written; the population-free label_lineage_gate verdict is NOT_APPLICABLE (not a pass)",
+      "GEOMETRY: the shipped relevance_ordered geometry passes fewer than 11/11 frozen criteria on every anchor bundle (STRUCTURE_LARGEST mega-cluster and the projection/separation criteria fail)"
+    ],
+    "owner_decision_required": false,
+    "owner_session_guard": {"owner_card_produced": false, "owner_session_readied": false, "ready_for_owner_session": false, "human_gate_ready": false},
+    "machine_check": "VERDICT_39366203528.json verdict.assert_machine_check passed in-harness; record recomputes the same outcome from the same decision tree"
+  },
+  "artifacts": {
+    "verdict_record": "results/frontier/frontier-packet-serve-audit/VERDICT_39366203528.json",
+    "verdict_record_sha256": "0a1fe197d35ba2ca614a7cefdbb55ea89f58148042cd060df0dae03a13c451e3",
+    "freeze": "results/frontier/frontier-packet-serve-audit/RULES.json (reaffirmed in commit f08ca39; thresholds byte-identical to the prior freeze)",
+    "integration_contract": "results/frontier/frontier-packet-serve-audit/INTEGRATION_CONTRACT.json",
+    "resume_report": "results/frontier/frontier-packet-serve-audit/RESUME_AUDIT_REPORT_39366203528.json",
+    "human_report": "reports/frontier/frontier-packet-serve-audit/RESUME_39366203528.md",
+    "state": "state/frontier/frontier-packet-serve-audit.json",
+    "prior_run_artifacts_untouched": [
+      "results/frontier/frontier-packet-serve-audit/SERVE_AUDIT_REPORT.json",
+      "results/frontier/frontier-packet-serve-audit/SERVE_AUDIT_SUMMARY.json",
+      "results/frontier/frontier-packet-serve-audit/VERDICT_39355384602.json",
+      "results/frontier/frontier-packet-serve-audit/audit_report*.json",
+      "results/frontier/frontier-packet-serve-audit/run2/",
+      "frontier/frontier_packet_serve_audit/ (old harness + its RULES.json)"
+    ]
+  },
+  "scope": "writes confined to the team namespace: frontier/frontier-packet-serve-audit/**, frontier_packet_serve_audit/** (charter-entry dispatcher), tests/frontier/frontier-packet-serve-audit/**, results/frontier/frontier-packet-serve-audit/**, reports/frontier/frontier-packet-serve-audit/**, state/frontier/frontier-packet-serve-audit.json. No product file, no evaluation file, no state/product.json, no .github/**, no frozen rubric/threshold/verdict-contract edit."
+}

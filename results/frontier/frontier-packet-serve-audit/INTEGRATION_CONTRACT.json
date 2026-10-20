@@ -1,0 +1,65 @@
+{
+  "schema": "frontier-packet-serve-audit/integration-contract/1",
+  "team_id": "frontier-packet-serve-audit",
+  "charter_version": 1,
+  "run_id": "39366203528",
+  "consumers": {
+    "core_product": {
+      "role": "owns the packet, its bytes and integration; consumes this verdict as a machine-gate INPUT of packet admission only",
+      "must_NOT": [
+        "treat this verdict as an owner card or owner-session trigger",
+        "re-derive or re-tune any frozen bar, rubric or verdict contract",
+        "serve the packet on the strength of this record"
+      ]
+    },
+    "core_evaluation": {
+      "role": "owns the frozen-bar re-score and the accepted verdict contract; consumes the cross-check tables as the published side-by-side",
+      "must_NOT": [
+        "edit any frozen rubric, threshold or verdict contract from this record",
+        "treat the abstention-count correction (536 -> 0) as a benchmark weakening -- it is the frozen definition (n_abstained from disclosures) applied as written"
+      ]
+    }
+  },
+  "artifacts": {
+    "verdict_record": {
+      "path": "results/frontier/frontier-packet-serve-audit/VERDICT_39366203528.json",
+      "sha256": "0a1fe197d35ba2ca614a7cefdbb55ea89f58148042cd060df0dae03a13c451e3",
+      "schema": "frontier-packet-serve-audit/1",
+      "machine_readable": true
+    },
+    "resume_report": {
+      "path": "results/frontier/frontier-packet-serve-audit/RESUME_AUDIT_REPORT_39366203528.json",
+      "machine_readable": true
+    },
+    "human_report": "reports/frontier/frontier-packet-serve-audit/RESUME_39366203528.md",
+    "integration_contract": "results/frontier/frontier-packet-serve-audit/INTEGRATION_CONTRACT.json",
+    "freeze": "results/frontier/frontier-packet-serve-audit/RULES.json (commit f08ca39; thresholds byte-identical to the prior freeze)",
+    "state": "state/frontier/frontier-packet-serve-audit.json",
+    "harness": "python -m frontier_packet_serve_audit.cli --packet <packet-of-record v3 dir> --frozen-rules /tmp/lex_accepted/core/evaluation/evaluation/frozen_bars [--run-id <id>] --out <team-namespace path>"
+  },
+  "expected": {
+    "verdict": "BOUNDED-NEGATIVE",
+    "one_sentence_recommendation": "BOUNDED-NEGATIVE: both frozen absolute bars remain unmet on the packet-of-record v3 bytes (counter-label support 0/0 = 0.0 against the frozen absolute bar 1.0 at n_scored=0, and map geometry below 11/11 on every anchor bundle) and the map adds no marginal discovery over a conventional ranked list on the same bundles, so the packet is not served and the negative is recorded with at most one bounded cause per failed half.",
+    "label_half": {"n_scored": 0, "n_supported": 0, "support_rate": null, "absolute_status": "LABEL_UNSOUND", "regression_verdict": "NOT_APPLICABLE", "label_lineage_gate_verdict": "NOT_MEASURED", "n_abstain": 0, "abstention_source": "packet disclosures.json per_bundle.counter_anchor.n_abstained", "yield_over_population": 0.0},
+    "geometry_half": {"per_bundle_counts": {"de-kapitalverletzung": 3, "fr-bail-entretien": 4, "it-responsabilita-medica": 4}, "absolute_status": "GEOMETRY_UNSOUND", "regression_verdict": "FAIL_REGRESSION", "n_bundles_pass_all_11": 0},
+    "mega_cluster_disclosure_fires_all_bundles": true,
+    "marginal_discovery": {"n_issued_counter_rows_total": 0, "n_marginal_discovery_total": 0, "map_adds_marginal_discovery_on_packet": false},
+    "cross_check_geometry": "MATCH: team 3/4/4 beside accepted 39325867172 audit re-score 3/4/4 and product disclosures re-score 3/4/4",
+    "cross_check_label": "population change named: v3 bytes n_scored=0 vs OLD packet binding 65/5 admission record",
+    "non_vacuity_proven": true,
+    "bounded_causes_max_one_per_failed_half": ["LABEL", "GEOMETRY"],
+    "owner_decision_required": false,
+    "owner_session_guard": {"owner_card_produced": false, "owner_session_readied": false, "ready_for_owner_session": false, "human_gate_ready": false},
+    "owner_artifacts_produced": "NONE -- no owner card, no owner session, no ready_for_owner_session, no human_gate_ready from any outcome of this charter"
+  },
+  "measurement_provenance": {
+    "packet_of_record_v3": "results/product/gate_packet/39319405429 (packet.json raw sha256 32ac812626e679c357822543d0b2e78e62c0e95a9a1b233d1ec89d7cb7b6ac70, manifest sha256 8ea3c92d11e915bcea98b3bc1bd80724b08e920c6ff3bdcade18ed39db388bb7)",
+    "bundles": {"fr-bail-entretien": 185, "de-kapitalverletzung": 182, "it-responsabilita-medica": 179},
+    "frozen_rules": {"RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608", "RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633", "VERDICT_CONTRACT.json": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c"},
+    "marginal_discovery_K": 20,
+    "reproduction": "byte-identical across runs (two runs, sha256 0a1fe197d35ba2ca614a7cefdbb55ea89f58148042cd060df0dae03a13c451e3)"
+  },
+  "prior_run_artifacts": {
+    "note": "preserved untouched; the prior run's SERVE_AUDIT_REPORT.json/SERVE_AUDIT_SUMMARY.json carry owner_decision_required=true under the prior freeze and the canonical record carries false -- the resume report RESUME_AUDIT_REPORT_39366203528.json documents the resolution. Consumers must read owner_decision_required from VERDICT_39366203528.json and INTEGRATION_CONTRACT.json only."
+  }
+}
