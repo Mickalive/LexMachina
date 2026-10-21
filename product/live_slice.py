@@ -27,6 +27,18 @@ infrastructure: it pins ``retrieval_mode="refresh"`` end to end and records
 3. an independent before/after diff of the product-owned cache directory, so
    the proof does not rest on the same instrument twice.
 
+Cache-root default (since cycle 39674781875)
+---------------------------------------------
+``refresh`` rewrites cache entries **in place**, and the tracked product cache
+contains a frozen 392-envelope subset pinned by
+``results/product/CYCLE_38759730609_cache_manifest.json``.  A refresh run
+against the tracked cache therefore breaks frozen evidence every time it
+touches a pinned key (measured: 19 entries in the 39128456801 freshness run,
+9 more in cycle 39667945530's two live runs).  ``run()`` now defaults to a
+throwaway cache directory it creates and removes itself; writing the tracked
+cache requires the explicit ``--tracked-cache`` flag.  ``--ephemeral-cache``
+is kept as a no-op-compatible alias of the default.
+
 What it claims
 --------------
 A **fresh-network wiring + budget** measurement of the canonical vertical slice
@@ -218,18 +230,34 @@ def run(query: str, *, top_n: int, enrich: bool, evidence_count: int,
     from product.query.pipeline import enrich_query_bundle, run_query_initial
     from product.query import pipeline
 
-    if cache_root is not None:
-        # A refresh rewrites cache entries IN PLACE, and the tracked product
-        # cache is covered by a frozen claim-cache manifest
-        # (results/product/CYCLE_38759730609_cache_manifest.json).  Measured
-        # consequence of forgetting this: the 39128456801 freshness run turned
-        # 19 manifest-covered entries into different bytes and took
-        # test_cache_non_orphan.py::test_claim_cache_manifest_is_intact_and_
-        # append_tolerant from green to red.  The frozen manifest is historical
-        # evidence and is never rewritten from this lane, so a freshness run
-        # that must not touch it points the adapter at its own directory.
-        cache_root.mkdir(parents=True, exist_ok=True)
-        pipeline.product_cache_dir = lambda: cache_root  # type: ignore[assignment]
+    if cache_root is None:
+        # DEFAULT SINCE CYCLE 39674781875: a refresh rewrites cache entries IN
+        # PLACE, and the tracked product cache is covered by a frozen claim-cache
+        # manifest (results/product/CYCLE_38759730609_cache_manifest.json).
+        # Measured consequence of letting the default be the tracked cache: the
+        # 39128456801 freshness run turned 19 manifest-covered entries into
+        # different bytes, and cycle 39667945530's two live runs turned 9 more
+        # (CYCLE_39667945530.json + FIX1 freshness probes list them under
+        # files_modified) - each time taking test_cache_non_orphan.py::
+        # test_claim_cache_manifest_is_intact_and_append_tolerant from green to
+        # red.  The flag existed (commit db3891e lineage) but was opt-in and was
+        # forgotten; the default now points the adapter at a throwaway
+        # directory, so forgetting is no longer possible.  --tracked-cache opts
+        # back in explicitly, e.g. to warm the tracked cache on purpose.
+        import tempfile
+
+        tmp_cache = tempfile.TemporaryDirectory(prefix="live-slice-cache-")
+        cache_root = Path(tmp_cache.name) / "query_cache"
+    else:
+        tmp_cache = None
+    # A refresh rewrites cache entries IN PLACE, and the tracked product
+    # cache is covered by a frozen claim-cache manifest
+    # (results/product/CYCLE_38759730609_cache_manifest.json).  The frozen
+    # manifest is historical evidence and is never rewritten from this lane,
+    # so a freshness run that must not touch it points the adapter at its
+    # own directory.
+    cache_root.mkdir(parents=True, exist_ok=True)
+    pipeline.product_cache_dir = lambda: cache_root  # type: ignore[assignment]
 
     # F2: the probe must fingerprint the root the ADAPTER is redirected to,
     # not the module-level cache_path binding.  Resolving it through the
@@ -389,6 +417,12 @@ def run(query: str, *, top_n: int, enrich: bool, evidence_count: int,
             "ready_for_owner_session": False,
         },
     }
+    if tmp_cache is not None:
+        # The throwaway cache is measurement input, not an output: every claim
+        # (adapter counters, independent before/after probe) is already in the
+        # record, so the directory is removed here, at the end of run(), and
+        # never leaks into the tracked product cache.
+        tmp_cache.cleanup()
     return {"record": record, "bundle": bundle}
 
 
@@ -401,34 +435,38 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--evidence", type=int, default=12, help="decisions hydrated for the answer")
     ap.add_argument("--no-enrich", action="store_true",
                     help="map-only: skip the answer + counter-authority pass")
+    ap.add_argument("--tracked-cache", action="store_true",
+                    help="OPT-IN ONLY: retrieve into the tracked product cache, whose "
+                         "entries are covered by a frozen claim-cache manifest - a "
+                         "refresh rewrites entries in place and would break the frozen "
+                         "subset; the default is a throwaway cache (cycle 39674781875)")
     ap.add_argument("--ephemeral-cache", action="store_true",
-                    help="retrieve into a throwaway cache dir instead of the tracked "
-                         "product cache, whose entries are covered by a frozen "
+                    help="retrieve into a throwaway cache dir (DEFAULT since cycle "
+                         "39674781875; kept for compatibility); the tracked product "
+                         "cache's entries are covered by a frozen "
                          "claim-cache manifest (recommended for freshness checks)")
     args = ap.parse_args(argv)
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     tag = args.run_id or time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
 
+    # Default and --ephemeral-cache both pass cache_root=None: run() points
+    # the adapter at a throwaway directory it creates and removes itself.
+    # --tracked-cache is the only way to write the frozen-covered tracked
+    # cache, and it must be asked for explicitly.
     cache_root = None
-    tmp_cache = None
-    if args.ephemeral_cache:
-        import tempfile
+    if args.tracked_cache:
+        from product.query.cache_path import product_cache_dir
 
-        tmp_cache = tempfile.TemporaryDirectory(prefix="live-slice-cache-")
-        cache_root = Path(tmp_cache.name) / "query_cache"
+        cache_root = product_cache_dir()
 
-    try:
-        out = run(args.query, top_n=args.n, enrich=not args.no_enrich,
-                  evidence_count=args.evidence, cache_root=cache_root)
-    finally:
-        if tmp_cache is not None:
-            tmp_cache.cleanup()
+    out = run(args.query, top_n=args.n, enrich=not args.no_enrich,
+              evidence_count=args.evidence, cache_root=cache_root)
     record, bundle = out["record"], out["bundle"]
     record["run_id"] = tag
-    record["cache_root"] = ("ephemeral (outside the tracked product cache)"
-                            if cache_root is not None else
-                            "results/product/query_cache")
+    record["cache_root"] = ("results/product/query_cache (tracked; explicit --tracked-cache)"
+                            if args.tracked_cache else
+                            "ephemeral (outside the tracked product cache)")
 
     bundle_path = OUT_DIR / f"{tag}_bundle.json"
     bundle_path.write_text(json.dumps(bundle, indent=1, sort_keys=True), encoding="utf-8")

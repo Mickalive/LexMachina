@@ -332,6 +332,62 @@ def test_run_imports_every_pipeline_name_it_calls():
         assert name in imported, f"{name} is called but not imported inside run()"
 
 
+def test_run_default_cache_root_is_never_the_tracked_frozen_covered_cache(
+        monkeypatch):
+    """Cycle 39674781875: the DEFAULT must not write the frozen-covered cache.
+
+    ``refresh`` rewrites cache entries in place; the tracked product cache
+    carries a frozen 392-envelope subset (manifest
+    ``results/product/CYCLE_38759730609_cache_manifest.json``).  Cycle
+    39667945530's two live runs used the tracked default and turned 9 pinned
+    envelopes into different bytes, taking
+    ``test_claim_cache_manifest_is_intact_and_append_tolerant`` red.  This
+    test pins the structural remedy: ``run()`` with ``cache_root=None`` points
+    the adapter at a directory OUTSIDE the tracked cache, a simulated adapter
+    write lands there (not in the tracked cache), and the throwaway directory
+    is removed when ``run()`` returns.
+    """
+    from product.query import pipeline
+    from product.query.cache_path import PRODUCT_CACHE_DIR
+
+    fixture = json.loads(_FIXTURE_BUNDLE.read_text(encoding="utf-8"))
+    fixture["provenance"]["retrieval"]["remote"].update({
+        "mode": "refresh",
+        "request_summary": {"cache_hits": 0, "network_calls": 1,
+                            "requests_logged": 1, "failures": 0},
+        "cache_stats": {"hits": 0, "misses": 1, "writes": 1},
+        "degraded": False,
+    })
+    seen: dict[str, str] = {}
+
+    def fake_initial(query, *, top_n=150, retrieval_mode="live"):
+        root = pipeline.product_cache_dir()
+        seen["root"] = str(root)
+        assert not root.is_relative_to(PRODUCT_CACHE_DIR), (
+            f"default run() pointed the adapter at the tracked cache: {root}")
+        root.mkdir(parents=True, exist_ok=True)
+        (root / "fake_envelope.json").write_text("{}", encoding="utf-8")
+        return copy.deepcopy(fixture)
+
+    monkeypatch.setattr(pipeline, "run_query_initial", fake_initial)
+    monkeypatch.setattr(
+        pipeline, "enrich_query_bundle",
+        lambda initial, **kw: copy.deepcopy(initial))
+    monkeypatch.setattr(pipeline, "product_cache_dir", pipeline.product_cache_dir)
+
+    out = live_slice.run("fixture query", top_n=100, enrich=True,
+                         evidence_count=2, cache_root=None)
+    record = out["record"]
+    assert record["stages_executed"]["canonical_chain"] is True
+    probe = record["freshness"]["independent_cache_probe"]
+    assert probe["n_files_touched"] == 1
+    assert probe["files_added"] == ["fake_envelope.json"]
+    assert not Path(seen["root"]).exists(), (
+        "the throwaway cache must be removed when run() returns")
+    # The tracked cache gained nothing from this default run.
+    assert not (PRODUCT_CACHE_DIR / "fake_envelope.json").exists()
+
+
 def test_cache_fingerprint_fingerprints_the_root_it_is_given(tmp_path):
     """F2 unit-level: the probe honours an explicit root (the redirected one)."""
     root_a, root_b = tmp_path / "a", tmp_path / "b"
