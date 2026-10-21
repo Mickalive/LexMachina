@@ -1,0 +1,65 @@
+{
+  "append_only_convention": "A file named for run X holds run X's measurement (F-3B convention, factory-wide requirement 30): this run writes results/evaluation/counter_probe_repair_verification/39687372110.json and reports/evaluation/COUNTER_PROBE_REPAIR_VERIFICATION_39687372110.md only, and nothing existing is overwritten, edited or deleted. The local reproduction of the accepted falsifier (local_verify_39687372110) is a separate file and touches no accepted artefact.",
+  "controls_frozen": [
+    "C1_baseline_reproduces_recorded_probes",
+    "C2_blank_prose_yields_no_plan_in_both_arms",
+    "C3_repair_target_exists",
+    "C4_fix_is_noop_without_the_placeholder",
+    "C5_fix_does_not_kill_probe_emission"
+  ],
+  "direction_version": 61,
+  "exit_code_contract": {
+    "0": "REPAIR_VERIFIED_ON_RECORDED_BYTES",
+    "1": "REPAIR_INSUFFICIENT_ON_RECORDED_BYTES",
+    "2": "ENVIRONMENT_OR_VACUOUS"
+  },
+  "freeze_history_note": "First freeze at 2026-10-21T22:43:38Z, before any claim-bearing execution of this instrument on the real population.",
+  "frozen_at_utc": "2026-10-21T22:43:38Z",
+  "frozen_before_claim_bearing_execution": true,
+  "frozen_rule": "per bundle with recorded adversarial probes: BASELINE arm = product.plan_adversarial_queries(query, prose); FIXED arm = product.plan_adversarial_queries(query, prose with every REDACTION_PLACEHOLDER occurrence replaced by a space), i.e. the evaluation-side emulation of the recommended product remedy (a). Gates: G1 holds iff every FIXED anchor (first ANCHOR_SLOTS whitespace tokens of the first FIXED probe query) contains no token of the product's own answer_key_terms(REDACTION_PLACEHOLDER); G2 holds iff on every bundle whose BASELINE anchor is contaminated the FIXED anchor shares at least one question content term under the product's own pool rule (len >= 6, not in _ANSWER_STOP, not a digit); G3 holds iff on every bundle whose BASELINE anchor is NOT contaminated the FIXED arm issues byte-for-byte the same probe query list as the BASELINE arm; G4 holds iff on every bundle whose row exists in the accepted record 39674402905 the FIXED anchor equals that record's published G4_counterfactual.de_redacted_anchor byte-for-byte. The run verdict is REPAIR_VERIFIED_ON_RECORDED_BYTES iff all four gates and all five controls pass and all pins hold; REPAIR_INSUFFICIENT_ON_RECORDED_BYTES iff at least one gate fails while all controls and pins hold; ENVIRONMENT_OR_VACUOUS iff any control fails, any pin drifts before or after execution, the population is empty, or zero accepted-record rows are G4-comparable. All comparisons are set/list equality on the product's own tokenisation: there is NO count, rate, frequency, share or percentage threshold anywhere in the rule, and none may be introduced after the result is seen.",
+  "gates_frozen": [
+    "G1_no_placeholder_token_in_fixed_anchor",
+    "G2_fixed_anchor_topical_on_contaminated_bundles",
+    "G3_fixed_is_noop_on_clean_anchor_bundles",
+    "G4_fixed_matches_accepted_counterfactual"
+  ],
+  "hypothesis": "evaluation/COUNTER_PROBE_REPAIR_VERIFICATION_HYPOTHESIS_V1.json",
+  "hypothesis_sha256": "09730af2d19d6c6ad8cf0e621da33858173b460172139cea3b78e150b18d8cc2",
+  "inputs": {
+    "accepted_artefacts_republished_read_only": [
+      "results/evaluation/counter_probe_anchor_falsifier/39674402905.json — accepted EXPLORATORY falsifier, verdict COUNTER_PROBE_ANCHOR_FALSIFIED, whose G4 de-redacted anchors are the cross-instrument comparison target of gate G4 and whose product_handoff names remedy (a)",
+      "evaluation/counter_probe_anchor_falsifier.py — the accepted falsifier instrument, imported for its ProductCode loader, population, manifest, pin machinery and label helpers so the product's tokenisation and planner are never re-implemented here"
+    ],
+    "primary_source": "/tmp/lex_accepted/product (the ephemeral accepted dispatch mount) — results/product/gate_packet/*/questions/*.bundle.json, 14 measurable bundles, population manifest 80306fd5fe05c04e36faa5d2adf6a2b98167280a05eb7ea48ce57ec17bdf73db (identical to the accepted falsifier's frozen mount manifest)",
+    "product_code": "the accepted mount's OWN product/query/adversarial_retrieval.py, product/query/retrieval.py and frontier/frontier-generative-audit/generative_audit/source_packing.py, loaded by the accepted falsifier's dependency-light importlib shim; their tokenisation, stoplist, planner semantics and placeholder constant are used as-is and never re-implemented here",
+    "secondary_source": "results/evaluation/rebuilt_packet_adjudication_39049030442/packet (committed in-repo byte source) — 3 measurable bundles, population manifest 66e2a07e3bc8397921241dbba71c5babd74de5d0480f20316785e97bb814ab8c; used only when the mount is absent, and the record says which source was used"
+  },
+  "instrument": "evaluation/counter_probe_repair_verification.py",
+  "instrument_sha256": "e0db007127e417678615b8551261d94d9a9bc09c1638b41f801f8d0ec0a8054d",
+  "network_calls": 0,
+  "not_pinned_because_not_used": {
+    "RULES_GEOMETRY.json": "not an input to this instrument; the absolute GEOMETRY_SOUND bar stays REPORTED-ONLY and untouched",
+    "RULES_LABEL.json": "not an input to this instrument; the absolute LABEL_SOUND bar stays REPORTED-ONLY and untouched",
+    "VERDICT_CONTRACT.json": "not an input; this instrument's exit codes are its own frozen contract above"
+  },
+  "numeric_environment": "Python 3.12 (CPython), pure-Python string replacement, set operations and list equality on committed bundle bytes and the product's own pure-Python tokeniser and planner: no BLAS/numpy reduction order, no float comparison, no rounding anywhere in the rule. The product's answer_key_terms and plan_adversarial_queries are pure functions (no network, no clock, no randomness), so the whole measurement is deterministic and re-runnable.",
+  "pin_discipline": "The engine re-hashes every pin BEFORE measurement (fail-closed: drift -> exit 2, zero measured bundles, never a product verdict) and AGAIN after execution, publishing both hash sets in the result. The population manifest is re-derived from the source tree and compared with the frozen digest, so a hand-picked or substituted bundle list cannot satisfy the pin. If the product lane lands remedy (a), the product pins drift by design and a NEW freeze under a NEW run id verifies the shipped planner.",
+  "pins": {
+    "evaluation/COUNTER_PROBE_REPAIR_VERIFICATION_HYPOTHESIS_V1.json": "09730af2d19d6c6ad8cf0e621da33858173b460172139cea3b78e150b18d8cc2",
+    "evaluation/counter_probe_anchor_falsifier.py": "2830b9ec3ac434ba479eb12ee609dba96aa53c28b64facfa0ace2fc44445098b",
+    "evaluation/counter_probe_repair_verification.py": "e0db007127e417678615b8551261d94d9a9bc09c1638b41f801f8d0ec0a8054d",
+    "results/evaluation/counter_probe_anchor_falsifier/39674402905.json": "87c059f6c980fc000fa7151889a59f42900c33d6d29c4fd2391eec7010911048"
+  },
+  "population_manifests": {
+    "mount": "80306fd5fe05c04e36faa5d2adf6a2b98167280a05eb7ea48ce57ec17bdf73db",
+    "secondary": "66e2a07e3bc8397921241dbba71c5babd74de5d0480f20316785e97bb814ab8c"
+  },
+  "pre_execution_validation": "Before this freeze the only executions were: (a) a --selftest run of this instrument on SYNTHETIC prose only, which loads the product code via the accepted falsifier's loader and exercises the contaminated-baseline, fixed-arm de-contamination, topicality, clean-prose no-op and D4-restoration paths, and which by construction never touches the real bundle population and never writes a result file; (b) a local reproduction of the ACCEPTED falsifier (run id local_verify_39687372110) confirming the environment reproduces the accepted EXPLORATORY verdict on the pinned mount; (c) a scratch computation of the population manifests and product-file digests needed to write these pins. No repair-verification measurement on the real population, no gate outcome, no control outcome and no result file existed at the moment of this freeze.",
+  "product_pins": {
+    "frontier/frontier-generative-audit/generative_audit/source_packing.py": "8d27a2263013136c43564041c299193583434019f641e468bc25cdf18e4154f1",
+    "product/query/adversarial_retrieval.py": "57b6a6f99793ef6663957ccdcd51a577feb9c8d7075efcc339f5c25bece065e1",
+    "product/query/retrieval.py": "30ad4190a99165fab725132dcdca593e89806db4d85de379cc46811cd02ad5a1"
+  },
+  "run_id": "39687372110",
+  "schema": "lex-evaluation-counter-probe-repair-verification-freeze/1"
+}
