@@ -29,7 +29,11 @@ Accepted run 39520368732 executed the factory direction's own falsification trig
 
 - `carries_scored_claim_change`: **false**
 - scored-row-id set (`decision_id`/`qid`/`row_id`/`anchor_qid` collection by the frozen instrument): baseline head `cc719eebf` = **6**, current head `c1a6547e` = **6**; 0 only-in-current, 0 only-in-baseline
-- `state/product.json` did move as a file (the trigger's `n_changed=1`): 53 keys added and 13 keys changed — all cycle-ledger, audit-posture and bookkeeping fields (e.g. `accepted_run_id`, `cycle_39319405429_packet_of_record_v3`, `direction_version`, `cycle_status`) — and zero scored rows
+- `state/product.json` did move as a file (the trigger's `n_changed=1`): **55 keys added and 13 keys changed**. This is **not** purely cycle-ledger/bookkeeping, even though no detector-visible scored claim moved:
+  - (a) the frozen scored-row-id **set** is unchanged — 6 → 6 with **0 only-in-current and 0 only-in-baseline**;
+  - (b) the 6 pre-existing id-bearing rows are **content-identical** between baseline head `cc719eebf` and current head `c1a6547e`;
+  - (c) the frozen detector collects a **set of `key=value` strings** for `decision_id`/`qid`/`row_id`/`anchor_qid`, so it is **duplicate-blind**;
+  - (d) the added key `v52_endgame_delivery` carries per-qid `n_scored` statistics (de 25 / fr 15 / it 25 / incumbent 65), rebuilt-packet pass counts, and **3 new qid-bearing bundle rows** (`fr-bail-entretien`, `de-kapitalverletzung`, `it-responsabilita-medica`) whose `qid` values duplicate existing set members; the changed key `frontier_verdict_adoption` carries label/geometry verdict fields.
 
 ### Composite
 
@@ -45,6 +49,19 @@ Accepted run 39520368732 executed the factory direction's own falsification trig
 ## Provenance correction (disclosed, not edited)
 
 The freeze record's key `evaluation_owned_pins_rehashed_at_freeze` overstated the freeze-timing of exactly three entries — the three frozen-bar digests (`RULES_LABEL` `4457e971...`, `RULES_GEOMETRY` `a7452748...`, `VERDICT_CONTRACT` `b9cdb894...`). All three digests are TRUE and re-verified against the committed tree (unmodified vs the accepted tip); the contemporaneous shell re-hash of those three happened after execution. The freeze record stays committed and unedited; the correction of record is `results/evaluation/trigger_reconciliation/39529073155/POST_HOC_PINS_DISCLOSURE_39529073155.json`. No check depended on those three files: the instrument enforces only its `FROZEN_PINS` (the two instruments + baseline manifest), which WERE contemporaneously hashed pre-freeze and match.
+
+## Correction of record (repair round 1 of rejected cycle 39529073155)
+
+The original (round 0) report line 32 read, verbatim:
+
+> - `state/product.json` did move as a file (the trigger's `n_changed=1`): 53 keys added and 13 keys changed — all cycle-ledger, audit-posture and bookkeeping fields (e.g. `accepted_run_id`, `cycle_39319405429_packet_of_record_v3`, `direction_version`, `cycle_status`) — and zero scored rows
+
+Independent audit `results/audit/evaluation/CYCLE_39529073155_GATE.json` (gate=REVISE, `required_fixes` D1/D2) found this false in two ways, both corrected above and in `state/evaluation.json`:
+
+1. **D1 (count):** the lane's own committed machine records (`39529073155_adjudication.json`, `39529073155_reconciliation.json`) and the auditor's independent baseline-vs-current diff both list **55** `keys_added` and **13** `keys_changed`; the prose said 53. The measurement records are correct and remain unedited.
+2. **D2 (characterization):** the 55/13 delta is **not** purely cycle-ledger/bookkeeping. The frozen scored-row-id **set** is unchanged 6→6 (0 only-in-either); the 6 pre-existing id-bearing rows are content-identical; the detector is a duplicate-blind set-of-value-strings metric; the added key `v52_endgame_delivery` carries per-qid `n_scored` statistics (de 25 / fr 15 / it 25 / incumbent 65), rebuilt-packet pass counts, and 3 new qid-bearing bundle rows whose `qid` values duplicate existing set members; the changed key `frontier_verdict_adoption` carries label/geometry verdict fields. The corrected statement is published in the "Scored-claim-movement leg" bullet above and in `state/evaluation.json`.
+
+The correction is **append-only**: the frozen instruments (`trigger_reconciliation.py` `cff603c6...`, `newhead_recompute.py` `88ee6107...`), the hypothesis (`8c898f2b...`), the freeze record, and the committed adjudication/reconciliation/trigger/control records are **not** edited. Machine disclosure: `results/evaluation/trigger_reconciliation/39529073155/REPAIR1_PROSE_CORRECTION_39529073155.json`.
 
 ## Claim ceiling
 

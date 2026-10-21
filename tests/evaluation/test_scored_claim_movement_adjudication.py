@@ -183,3 +183,62 @@ def test_verify_pins_refuses_tampered_hypothesis(tmp_path):
         shutil.copyfile(LANE / rel, dst)
     with pytest.raises(scma.EnvironmentError_, match="hypothesis hash mismatch"):
         scma.verify_frozen_pins(fake)
+
+
+# --------------------------------------------------------------------------- #
+# R1 PROSE-DRIFT GUARD (repair round 1 of rejected cycle 39529073155)
+#
+# The round-0 report/state claimed "53 keys added" and "all bookkeeping ...
+# zero scored rows"; both were false (audit CYCLE_39529073155_GATE.json
+# required_fixes D1/D2). The committed machine records say 55/13 and are the
+# source of truth. These tests pin the prose to the records so it cannot
+# drift back.
+# --------------------------------------------------------------------------- #
+ADJ_RECORD = LANE / ("results/evaluation/trigger_reconciliation/39529073155/"
+                     "39529073155_adjudication.json")
+REC_RECORD = LANE / ("results/evaluation/trigger_reconciliation/39529073155/"
+                     "39529073155_reconciliation.json")
+REPORT = LANE / "reports/evaluation/RETRIEVAL_CA_BENCHMARK_39529073155.md"
+STATE = LANE / "state/evaluation.json"
+
+
+def test_committed_records_key_diff_counts_are_55_and_13():
+    adj = json.loads(ADJ_RECORD.read_text(encoding="utf-8"))
+    leg = adj["scored_claim_movement_leg"]
+    assert len(leg["keys_added"]) == 55, len(leg["keys_added"])
+    assert len(leg["keys_changed"]) == 13, len(leg["keys_changed"])
+    assert leg["keys_removed"] == []
+    rec = json.loads(REC_RECORD.read_text(encoding="utf-8"))
+    sp = rec["state_product_json"]
+    assert len(sp["keys_added"]) == 55, len(sp["keys_added"])
+    assert len(sp["keys_changed"]) == 13, len(sp["keys_changed"])
+    assert sp["keys_removed"] == []
+
+
+def _operative_bullet(report: str) -> str:
+    """Return the Results bullet that states the key-diff count (not the
+    verbatim-quoted round-0 false claim inside the correction-of-record
+    section)."""
+    for line in report.splitlines():
+        if line.startswith("- `state/product.json` did move as a file"):
+            return line
+    raise AssertionError("operative state/product.json results bullet not found")
+
+
+def test_report_and_state_prose_carry_55_not_53():
+    report = REPORT.read_text(encoding="utf-8")
+    bullet = _operative_bullet(report)
+    assert "55 keys added and 13 keys changed" in bullet
+    assert "53 keys added" not in bullet
+    # the correction-of-record section must preserve the false claim verbatim
+    assert "## Correction of record (repair round 1 of rejected cycle 39529073155)" in report
+
+    state = json.loads(STATE.read_text(encoding="utf-8"))
+    headline = state["summary"]["headline"]
+    assert "55 added / 13 changed" in headline
+    assert "53 added / 13 changed" not in headline
+    assert "are cycle-ledger and posture bookkeeping, no scored rows" not in headline
+    leg = state["scored_claim_movement_adjudication_39529073155"]["movement_leg"]
+    assert "55 keys added / 13 changed" in leg
+    assert "53 keys added / 13 changed" not in leg
+    assert "are cycle-ledger/posture bookkeeping" not in leg

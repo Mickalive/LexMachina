@@ -1,0 +1,115 @@
+{
+  "schema": "lex-evaluation-prose-correction-disclosure/1",
+  "lane": "evaluation",
+  "run_id": "39529073155",
+  "repair_round": 1,
+  "rejected_cycle": "39529073155",
+  "audit_gate": "results/audit/evaluation/CYCLE_39529073155_GATE.json (gate=REVISE, safe_to_integrate=false)",
+  "required_fixes_applied": [
+    "D1_COUNT_53_to_55",
+    "D2_CHARACTERIZATION",
+    "APPEND_ONLY_DISCIPLINE"
+  ],
+  "false_claims_verbatim": {
+    "report_line32": "state/product.json did move as a file (the trigger's n_changed=1): 53 keys added and 13 keys changed — all cycle-ledger, audit-posture and bookkeeping fields (e.g. accepted_run_id, cycle_39319405429_packet_of_record_v3, direction_version, cycle_status) — and zero scored rows",
+    "state_summary_headline_fragment": "(6 -> 6, 0 only-in-either; the 53 added / 13 changed keys are cycle-ledger and posture bookkeeping, no scored rows)",
+    "state_movement_leg": "carries_scored_claim_change=false; scored-row-ids 6 -> 6; 0 only-in-current, 0 only-in-baseline; 53 keys added / 13 changed are cycle-ledger/posture bookkeeping"
+  },
+  "corrected_claims": {
+    "count": "55 keys added / 13 keys changed (0 removed) - the lane's own machine records and this auditor's independent diff both list 55/13",
+    "characterization": "the 55/13 delta is NOT purely cycle-ledger/bookkeeping even though no detector-visible scored claim moved: (a) frozen scored-row-id SET unchanged 6->6, 0 only-in-either; (b) the 6 pre-existing id-bearing rows are content-identical between cc719eebf and c1a6547e; (c) the frozen detector collects a set of key=value strings for decision_id/qid/row_id/anchor_qid and is duplicate-blind; (d) the added key v52_endgame_delivery carries per-qid n_scored statistics, rebuilt-packet pass counts and 3 new qid-bearing bundle rows whose qid values duplicate existing set members, and the changed key frontier_verdict_adoption carries label/geometry verdict fields",
+    "locations_corrected": [
+      "reports/evaluation/RETRIEVAL_CA_BENCHMARK_39529073155.md",
+      "state/evaluation.json summary.headline",
+      "state/evaluation.json scored_claim_movement_adjudication_39529073155.movement_leg"
+    ]
+  },
+  "independent_recomputation": {
+    "baseline_head": "cc719eebf351825b17c85d05fe83cc489ce123fd",
+    "current_head": "c1a6547ee88ac8bc4df1e17a756cd1633e5cd397",
+    "baseline_state_product_json_sha256": "1e478143f1e7e4d5490f6246364d0b8a7529458b7f5fa3b0947bb9d54751baf4",
+    "current_state_product_json_sha256": "0f2d35a171521d84b9acd7f440df0641e4e0a9ff894992a873a9e828ff55f2a8",
+    "keys_added": 55,
+    "keys_removed": 0,
+    "keys_changed": 13,
+    "keys_added_equals_committed_record": true,
+    "scored_row_ids_baseline": [
+      "decision_id=bger_4A_219_2015",
+      "decision_id=bger_4A_259_2016",
+      "decision_id=bger_4A_626_2013",
+      "qid=de-kapitalverletzung",
+      "qid=fr-bail-entretien",
+      "qid=it-responsabilita-medica"
+    ],
+    "scored_row_ids_current": [
+      "decision_id=bger_4A_219_2015",
+      "decision_id=bger_4A_259_2016",
+      "decision_id=bger_4A_626_2013",
+      "qid=de-kapitalverletzung",
+      "qid=fr-bail-entretien",
+      "qid=it-responsabilita-medica"
+    ],
+    "only_in_current": [],
+    "only_in_baseline": [],
+    "detector_semantics": "set of key=value strings over decision_id/qid/row_id/anchor_qid (evaluation/trigger_reconciliation.py::_scored_row_ids); duplicate-blind by construction",
+    "pre_existing_id_bearing_rows": 6,
+    "pre_existing_id_bearing_rows_content_identical": 6,
+    "added_key_v52_endgame_delivery": {
+      "n_scored_by_qid": {
+        "de-kapitalverletzung": 25,
+        "fr-bail-entretien": 15,
+        "incumbent_population": 65,
+        "it-responsabilita-medica": 25
+      },
+      "new_qid_bearing_bundle_rows": [
+        "fr-bail-entretien",
+        "de-kapitalverletzung",
+        "it-responsabilita-medica"
+      ],
+      "rebuilt_packet_block_present": true,
+      "readiness_flags": {
+        "human_gate_ready": false,
+        "machine_gate_ready": false,
+        "ready_for_owner_session": false,
+        "packet_admitted": null
+      },
+      "do_not_serve_order_present": true
+    },
+    "changed_key_frontier_verdict_adoption": {
+      "carries": [
+        "frontier_counter_label_integrity.verdict",
+        "frontier_served_packet_falsification.geometry_verdict",
+        "frontier_served_packet_falsification.label_verdict"
+      ]
+    }
+  },
+  "append_only_discipline": {
+    "frozen_files_unedited": {
+      "evaluation/trigger_reconciliation.py": "cff603c638ce5f310d82d9e2d6bf28a0a3b32eb752a9c20374255a97fdc62d48",
+      "evaluation/newhead_recompute.py": "88ee61075bce2eeb76bd0db431490b6b029bc2dc2806150f47ea5edbc6f48974",
+      "evaluation/scored_claim_movement_adjudication.py": "d2456c0bdbf5611e192349e551300971eb4129239578de006256f5f1aa54251b",
+      "evaluation/SCORED_CLAIM_MOVEMENT_ADJUDICATION_HYPOTHESIS_V1.json": "8c898f2b6ec2f91c695abb0edd814993065f536545a0301d1530c0e6f00cabc0",
+      "evaluation/SCORED_CLAIM_MOVEMENT_ADJUDICATION_FREEZE_RECORD_V1.json": "a224847aaa9fb371ef6c28cd3ce6332db6b3aed3acbaa195ee72804771740a02"
+    },
+    "committed_measurement_records_unedited": {
+      "results/evaluation/trigger_reconciliation/39529073155/39529073155_adjudication.json": "c47270005bcefc0d062303620f679c2b5fe462cb9083746da89ac2b7a380728e",
+      "results/evaluation/trigger_reconciliation/39529073155/39529073155_reconciliation.json": "b559853c3324a21687f8aaae2f5a00450c5c061f112f65776859a7df20e5dc62",
+      "results/evaluation/trigger_reconciliation/39529073155/39529073155_trigger.json": "4e5f4a08163db9aa3707de171eed5f7f3bedfdf1b5d54468b5047444e2020caa",
+      "results/evaluation/trigger_reconciliation/39529073155/control/39529073155_control_reconciliation.json": "92bf2efc7917803711f2fe44928a329b00a2b157aa751f366fc8d6f357dbb629",
+      "results/evaluation/trigger_reconciliation/39529073155/control/39529073155_control_trigger.json": "aff00839ae52e85fa85b16b9185b907d586a3bed577b244ce04758a6ec21d518",
+      "results/evaluation/trigger_reconciliation/39529073155/POST_HOC_PINS_DISCLOSURE_39529073155.json": "4011adf737d1731529f5cfc92934aa60e0c3d961b75c419979e621bb12d1f856"
+    },
+    "note": "The measurement records are correct (55/13, 6->6, NO_OP composite) and stay verbatim. Only the three prose locations were corrected and this disclosure artifact added."
+  },
+  "no_measurement_changed": true,
+  "no_packet_served": true,
+  "do_not_serve_orders_stand": true,
+  "readiness_flags": {
+    "human_gate_ready": false,
+    "machine_gate_ready": false,
+    "packet_admitted": false,
+    "ready_for_owner_session": false,
+    "owner_decision_required": false
+  },
+  "claim_ceiling": "REPAIR ROUND 1 of rejected cycle 39529073155: corrects the round-0 prose count (53->55) and characterization of the state/product.json delta in three locations; adds one dedicated regression test. It changes NO measurement, re-scores no packet, serves no packet, lifts no DO-NOT-SERVE order, re-measures no P1/P1ext, reruns no universal-174k benchmark and authorises no owner question."
+}
