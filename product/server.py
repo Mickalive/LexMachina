@@ -145,6 +145,9 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 _rate_limiter = RateLimiter()
 _response_cache = ResponseCache()
 
+# Query-mode lightweight navigation API (skips 174k corpus)
+_query_nav_api = None
+
 
 def get_client_id(handler) -> str:
     """Extract client identifier for rate limiting."""
@@ -218,8 +221,11 @@ def cached(ttl: int = CACHE_TTL, key_prefix: str = ""):
     return decorator
 
 
-def get_nav_api() -> NavigationAPI:
+def get_nav_api(query_mode: bool = False) -> NavigationAPI:
     """Get or initialize the navigation API with graceful degradation.
+
+    If query_mode is True, skip the 174k corpus initialization and return
+    a lightweight nav api that works with query-specific bundles instead.
 
     If the full NavigationAPI fails to initialize (e.g. missing artifacts,
     corrupt data), we log the failure and raise so callers can decide how
@@ -239,6 +245,66 @@ def get_nav_api() -> NavigationAPI:
         # Double-check after acquiring lock
         if _nav_api is not None:
             assert _nav_api is not None, "_nav_api should not be None here"
+            return _nav_api
+        
+        if query_mode:
+            # Query mode: return a lightweight nav api that works with
+            # query_result_bundles without loading the 174k corpus.
+            # The /api/query/* endpoints work through the pipeline (ocl_adapter)
+            # and do not depend on the 174k NavigationAPI.
+            from typing import Any
+            lightweight = {
+                '_initialized': False,
+                'corpus': type('CorpusLike', (), {
+                    'size': 0,
+                    'languages': {},
+                    'branches': {},
+                    'get': lambda self, x: None,
+                    'get_all_ids': lambda self: [],
+                    'get_summary': lambda self, x: {},
+                    'decisions': {},
+                    'corpora': {},
+                    'import_records': lambda self, x: {'imported': 0, 'imported_ids': []},
+                    'get_all': lambda self: {},
+                    'get_full': lambda self, x: {},
+                    'search': lambda self, *a, **k: [],
+                    'user_imported_ids': [],
+                    'to_full': lambda self, x: {},
+                })(),
+                'map_loader': type('MapLoaderLike', (), {
+                    'get_available_representations': lambda self: [],
+                    'get_zoom_levels': lambda self, x: [],
+                    'get_zoom_level': lambda self, x, y: None,
+                    'get_positions': lambda self, x: {},
+                    'get_stats': lambda self, x: {},
+                    'load': lambda self: 0,
+                    'DESIGN_PATTERNS': {},
+                })(),
+                'section_modes': type('SectionModeLoader', (), {
+                    'load': lambda self: None,
+                    'get_mode': lambda self, x: None,
+                    'get_available_modes': lambda self: [],
+                    'MODE_INFO': {},
+                    'get_clustering': lambda self, x, y: None,
+                })(),
+                'citation_loader': type('CitationLoader', (), {
+                    'load': lambda self: None,
+                    'get_outgoing': lambda self, x: [],
+                    'get_incoming': lambda self, x: [],
+                    'get_citation_count': lambda self, x: {'outgoing': 0, 'incoming': 0},
+                })(),
+                'zoom_coherence': type('ZoomCoherenceLoader', (), {
+                    'load': lambda self: None,
+                    'get_zoom_coherence_summary': lambda self: {},
+                    'get_zoom_coherence_flat_baseline': lambda self: {},
+                })(),
+                'language_analyzer': type('LanguageAnalyzer', (), {})(),
+                'tfidf_proximity': type('TFIDFProximity', (), {'_built': False, 'build_from_corpus': lambda self, x: None})(),
+                'proximity_explainer': None,
+                '_initialized': True,
+            }
+            _nav_api = lightweight
+            _nav_api_init_error = None
             return _nav_api
         
         base_dir = Path(__file__).parent
@@ -1187,19 +1253,24 @@ class ProductHandler(SimpleHTTPRequestHandler):
         pass
 
 
-def run_server(port=8080):
+def run_server(port=8080, query_mode: bool = False):
     """Start the product server."""
-    print(f"Initializing LexMachina navigation...")
-    nav = get_nav_api()
-    default_rep = get_default_representation(get_nav_api())
-    print(f"Loaded {nav.corpus.size} decisions, {len(nav.map_loader.get_available_representations())} maps, "
-          f"{len(nav.section_modes.modes)} section modes, citation graph: {nav.citation_loader.get_stats()}, "
-          f"zoom coherence: {nav.zoom_coherence._loaded}, TF-IDF model: {nav.tfidf_proximity._built}")
-    print(f"Available representations: {nav.map_loader.get_available_representations()}")
-    for rep in nav.map_loader.get_available_representations():
-        print(f"  {rep}: zoom levels = {nav.map_loader.get_zoom_levels(rep)}")
-    print(f"Default representation: {default_rep} (PRODUCTION DEFAULT per v15b-audit: wins full-harness LangDom/JuristPref/Boilerplate)")
-
+    print(f"Initializing LexMachina server{' (query mode)' if query_mode else ''}...")
+    nav = get_nav_api(query_mode=query_mode)
+    if query_mode:
+        default_rep = "query"
+        print(f"Query mode active: using OpenCaseLaw retrieval via ocl_adapter")
+        print(f"  Navigation API lightweight: initialized={nav.get('_initialized', False)}")
+    else:
+        default_rep = get_default_representation(get_nav_api())
+        print(f"Loaded {nav.corpus.size} decisions, {len(nav.map_loader.get_available_representations())} maps, "
+              f"{len(nav.section_modes.modes)} section modes, citation graph: {nav.citation_loader.get_stats()}, "
+              f"zoom coherence: {nav.zoom_coherence._loaded}, TF-IDF model: {nav.tfidf_proximity._built}")
+        print(f"Available representations: {nav.map_loader.get_available_representations()}")
+        for rep in nav.map_loader.get_available_representations():
+            print(f"  {rep}: zoom levels = {nav.map_loader.get_zoom_levels(rep)}")
+        print(f"Default representation: {default_rep} (PRODUCTION DEFAULT per v15b-audit: wins full-harness LangDom/JuristPref/Boilerplate)")
+    
     server = ThreadedHTTPServer(("0.0.0.0", port), ProductHandler)
     print(f"LexMachina server running on http://localhost:{port} (threaded)")
     try:
@@ -1210,5 +1281,19 @@ def run_server(port=8080):
 
 
 if __name__ == "__main__":
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8080
-    run_server(port)
+    port = 8080
+    query_mode = False
+    args = sys.argv[1:]
+    i = 0
+    while i < len(args):
+        if args[i] == "--query-mode":
+            query_mode = True
+        elif args[i].startswith("--") or args[i].startswith("-"):
+            pass  # skip unknown flags
+        else:
+            try:
+                port = int(args[i])
+            except (ValueError, IndexError):
+                pass
+        i += 1
+    run_server(port, query_mode=query_mode)
