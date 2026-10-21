@@ -12,7 +12,7 @@
 - Falsifier gates failed: **7**
 - Non-vacuity: **True**
 - Multilingual/provenance reuse leg (V3): **PARTIAL_MISS** (0/3 qids row_ok)
-- Elapsed: 1.257 s
+- Elapsed: 1.298 s
 
 ## Cells (identity mapping; hits of frozen id sets)
 

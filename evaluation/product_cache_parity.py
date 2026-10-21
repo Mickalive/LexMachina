@@ -795,8 +795,17 @@ def _v1_preservation(verdict: dict) -> dict:
             g2 = v2_cov.get(v2name)
             a = g.get("measured") or {}
             b = (g2 or {}).get("measured") or {}
+            # the V1 records store the hit COUNTS (n_product_hits /
+            # n_comparator_hits); the V2 coverage gates store the hit SETS.
+            # Both are compared, so the proof is never vacuous.
             diffs = [k for k in compared_keys
                      if a.get(k) is not None and a.get(k) != b.get(k)]
+            if a.get("n_product_hits") is not None and \
+                    a["n_product_hits"] != len(b.get("product_hits") or []):
+                diffs = diffs + ["n_product_hits"]
+            if a.get("n_comparator_hits") is not None and \
+                    a["n_comparator_hits"] != len(b.get("comparator_hits") or []):
+                diffs = diffs + ["n_comparator_hits"]
             same_pass = (g.get("passed") == (g2 or {}).get("passed"))
             rec_ok = rec_ok and (g2 is not None) and (not diffs) and same_pass
             mapping.append({
@@ -805,21 +814,35 @@ def _v1_preservation(verdict: dict) -> dict:
                 "v1_passed": g.get("passed"),
                 "v2_passed": (g2 or {}).get("passed"),
                 "passed_identical": same_pass,
-                "measured_differences": diffs,
-                "v1_comparator_hits": len(a.get("comparator_hits") or []),
+                "measured_differences": sorted(set(diffs)),
+                "quantities_compared": sorted(
+                    [k for k in compared_keys if a.get(k) is not None]
+                    + (["n_product_hits"] if a.get("n_product_hits") is not None else [])
+                    + (["n_comparator_hits"] if a.get("n_comparator_hits") is not None else [])),
+                "v1_comparator_hits": (a["n_comparator_hits"]
+                                       if a.get("n_comparator_hits") is not None
+                                       else len(a.get("comparator_hits") or [])),
                 "v2_comparator_hits": len(b.get("comparator_hits") or []),
-                "v1_product_hits": len(a.get("product_hits") or []),
+                "v1_product_hits": (a["n_product_hits"]
+                                    if a.get("n_product_hits") is not None
+                                    else len(a.get("product_hits") or [])),
                 "v2_product_hits": len(b.get("product_hits") or []),
             })
+        v1_failed = sorted(n for n, g in v1_fals.items() if g.get("passed") is False)
+        v2_failed = sorted(g["gate"] for g in v2_cov.values() if g.get("passed") is False)
+        renamed_v1_failed = sorted(n.replace("parity::same_query_",
+                                             "coverage::union_frozen_texts_")
+                                   for n in v1_failed)
         out["records"][rid] = {
             "present": True,
             "path": str(path.relative_to(REPO_ROOT)),
             "sha256": sha256_file(path),
             "v1_falsifier_gate_count": len(v1_fals),
-            "v1_failed_falsifier_gates": sorted(
-                n for n, g in v1_fals.items() if g.get("passed") is False),
-            "v2_failed_coverage_gates": sorted(
-                g["gate"] for g in v2_cov.values() if g.get("passed") is False),
+            "v1_failed_falsifier_gates": v1_failed,
+            "v2_failed_coverage_gates": v2_failed,
+            "failed_sets_identical": renamed_v1_failed == v2_failed,
+            "n_v1_failed": len(v1_failed),
+            "n_v2_failed": len(v2_failed),
             "gate_mapping": mapping,
             "all_preserved": rec_ok,
         }
