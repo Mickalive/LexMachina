@@ -1,5 +1,8 @@
 # Product-cache retrieval/counter-authority parity — run 39619144928
 
+> **Amended (repair round 1, run 39631600439):** the finding of this run is **restated** below — the verdict stands, its attribution does not. The original text of this report is preserved verbatim; see [Finding restatement](#finding-restatement-repair-round-1-run-39631600439).
+
+
 - Schema: `lex-evaluation-product-cache-parity/1`
 - Direction: v61 (derived from state/evaluation.json)
 - Hypothesis: `evaluation/PRODUCT_CACHE_PARITY_HYPOTHESIS_V1.json` sha256 `0e80f0de66fd...` (frozen BEFORE execution; pre-freeze reconnaissance disclosed in-file)
@@ -46,3 +49,40 @@ the product's own cached retrieval responses to the frozen queries recall strict
 This benchmark can establish ONE thing and nothing more: on the product's own cached retrieval responses to the frozen questions' exact query texts, how many of the frozen controlling-authority ids and frozen known counter-authority ids the PRODUCT's retrieval layer reaches compared with the plain OpenCaseLaw client's responses to the identical texts. It does NOT score any served bundle or packet (it therefore touches no packet-of-record byte and lifts no order); it does NOT re-classify any decision as supporting/contrary/limiting; it does NOT re-score, meet or move the frozen absolute LABEL_SOUND / GEOMETRY_SOUND bars (they stay REPORTED-ONLY); it does NOT lift the accepted DO-NOT-SERVE order on packet 38839347028 nor DO-NOT-SERVE-UNCHANGED on rebuilt-39027045675; it does NOT certify admission of any packet; it does NOT claim the map helps a jurist; it does NOT re-issue the retracted 39111232991 parity claim; it does NOT rebuild or re-dispatch any Frontier component (counter-anchor classifier accept d236f599, relevance_ordered geometry accept be5eba7f/dc3ffc6c and counter-label-emission accept 44d4904b stay closed). human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session all stay false; owner_decision_required stays false. NOT_MEASURED / NOT_APPLICABLE is never a pass.
 
 Machine record: `results/evaluation/product_cache_parity/39619144928.json`
+
+## Finding restatement (repair round 1, run 39631600439)
+
+The verdict `FAIL_PRODUCT_CACHE_PARITY` (exit 1) **stands as the verdict of the
+frozen success rule**. What is restated here is its **attribution**, which the
+independent audit of cycle 39628161040 (gate `REVISE`, required fix F1)
+recomputed and found mis-stated in the section above.
+
+**The comparator above is the union of six plain-OpenCaseLaw answers per
+question, while the product's cache executed only `baseline/fr` (1 of the 6
+frozen texts per question; 33 of 465 cache envelopes).** On the text the
+product actually executed, the product's cached answer reaches **at least** the
+plain-OpenCaseLaw answer in **all 7 parity cells** (product vs executed-text
+comparator: `0/0, 1/0, 1/1, 0/0, 0/0, 0/0, 1/0`), and **all 18 comparator-only
+ids come exclusively from texts the product never executed**.
+
+**Honest characterization:** a **multilingual/counter-channel retrieval-COVERAGE
+deficit** (1 of 6 frozen texts per question), **not** a same-query
+retrieval-quality regression.
+
+The per-(channel, language) comparator decomposition, the executed-text-only
+comparison, the two gated families (`parity::same_query_*` PASS 7/7,
+`coverage::union_frozen_texts_*` FAIL 7/7) and the 1:1 preservation proof of
+every V1 falsifier measurement are published in the repair record
+`results/evaluation/product_cache_parity/39631600439.json` (report
+`reports/evaluation/PRODUCT_CACHE_PARITY_39631600439.md`, repair record
+`results/evaluation/repair_39628161040/39631600439_parity_attribution_repair.json`).
+The V1 hypothesis, V1 freeze record and both V1 measurement records are
+byte-preserved (digests re-pinned in
+`evaluation/PRODUCT_CACHE_PARITY_FREEZE_RECORD_V2.json`).
+
+> **Superseded wording (preserved verbatim):** "the product's own cached
+> retrieval responses to the frozen queries recall strictly fewer frozen ids
+> than the plain OpenCaseLaw response to the identical query text:
+> retrieval-first parity is falsified on the named cells" — superseded as a
+> *characterization* by the restatement above; the original sentence is
+> retained verbatim and is not deleted.

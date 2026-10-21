@@ -21,8 +21,10 @@ run ids.  This instrument makes that snapshot audit-ready by:
    the failed resume snapshot, classifies in-scope vs out-of-scope paths,
    hashes the out-of-scope files and labels them
    TEAM_AUTHORED_SELF_CERTIFICATION_NOT_INDEPENDENT_AUDIT.  It deletes
-   nothing: the files stay in place as evidence, and this cycle's own delta is
-   strictly within the lane write scope.
+   nothing in this cycle: the files stay in this branch snapshot with their
+   digests recorded in the lane machine record (the integrate step's
+   audit-directory checkout removes them at promotion), and this cycle's own
+   delta is strictly within the lane write scope.
 4. STATE PROVENANCE - verifies that state/evaluation.json attributes each
    measurement to the run that produced it (no relabelled run ids) and that
    every standing order / fail-closed flag is unchanged.
@@ -83,6 +85,12 @@ JOB_EVIDENCE_RELPATH = f"results/evaluation/operational_resume/{RUN_ID}_job_evid
 
 PRODUCER_SNAPSHOT_COMMIT = "84f41d935d39c09e915586b6fef74873207f653b"
 FAILED_RESUME_COMMIT = "1dd93df6dd977b4757e4b8f942d58a2bb8d6b214"
+# The accepted lab/evaluation tip observed by the ORIGINAL execution of this
+# verifier.  The remote-tracking ref is not present in every checkout (the
+# repair worktree has no origin/lab/evaluation), so the value is pinned here
+# and the record states which source was used.
+ACCEPTED_LAB_EVALUATION_TIP_PINNED = (
+    "b6872c2f6bc7b62285e57716b2dfc5a4cf77d59d")
 
 OUT_RELPATH = f"results/evaluation/operational_resume/{RUN_ID}.json"
 REPORT_RELPATH = f"reports/evaluation/OPERATIONAL_RESUME_{RUN_ID}.md"
@@ -92,6 +100,29 @@ EXIT_DIVERGENCE = 1
 EXIT_ENVIRONMENT = 2
 
 OUT_OF_SCOPE_LABEL = "TEAM_AUTHORED_SELF_CERTIFICATION_NOT_INDEPENDENT_AUDIT"
+# Audit F4 of cycle 39631600439 (repair round 1 of 39628161040): the previous
+# disposition string said the inherited team-authored files were "preserved in
+# place ... deleted by no cycle", which is wrong.  They are preserved in THIS
+# branch snapshot with their digests recorded in the lane machine record, and
+# they are removed at promotion by the integrate step's audit-directory
+# checkout.  The superseded wording is kept verbatim next to the correction.
+OUT_OF_SCOPE_DISPOSITION_V1_VERBATIM = (
+    "preserved in place as evidence of the scope failure; not "
+    "consumed as an audit verdict; deleted by no cycle")
+OUT_OF_SCOPE_DISPOSITION = (
+    "preserved in this branch snapshot with digests recorded in the lane "
+    "machine record, removed at promotion by the integrate step's "
+    "audit-directory checkout; not consumed as an audit verdict")
+OUT_OF_SCOPE_DISPOSITION_AMENDMENT = {
+    "amended_by_run": "39631600439",
+    "amendment_reason": "audit F4 of the repair round 1 of cycle 39628161040: "
+                         "the previous disposition implied the inherited "
+                         "team-authored files would survive promotion, which is "
+                         "false - the integrate step's audit-directory checkout "
+                         "removes them",
+    "superseded_field": "disposition",
+    "superseded_value_verbatim": OUT_OF_SCOPE_DISPOSITION_V1_VERBATIM,
+}
 LANE_SCOPE_PREFIXES = ("evaluation/", "tests/evaluation/", "results/evaluation/",
                        "reports/evaluation/", "data/evaluation/")
 LANE_SCOPE_EXACT = (STATE_RELPATH,)
@@ -255,18 +286,27 @@ def snapshot_hygiene() -> dict:
             in_scope.append(entry)
         else:
             entry["label"] = OUT_OF_SCOPE_LABEL
-            entry["disposition"] = (
-                "preserved in place as evidence of the scope failure; not "
-                "consumed as an audit verdict; deleted by no cycle")
+            entry["disposition"] = OUT_OF_SCOPE_DISPOSITION
+            entry["disposition_v1_verbatim"] = OUT_OF_SCOPE_DISPOSITION_V1_VERBATIM
+            entry["disposition_amendment"] = OUT_OF_SCOPE_DISPOSITION_AMENDMENT
             out_scope.append(entry)
     parent = _git("rev-parse", f"{FAILED_RESUME_COMMIT}^")
     lab_tip = _git("rev-parse", "origin/lab/evaluation")
+    lab_tip_source = "git rev-parse origin/lab/evaluation"
+    if lab_tip is None:
+        # the ref is absent in this checkout; keep the value the original
+        # execution observed instead of silently dropping the fact
+        lab_tip = ACCEPTED_LAB_EVALUATION_TIP_PINNED
+        lab_tip_source = ("pinned: git rev-parse origin/lab/evaluation is "
+                          "unavailable in this checkout; the value is the one "
+                          "observed by the original execution of this verifier")
     return {"performed": True, "producer_commit": PRODUCER_SNAPSHOT_COMMIT,
             "failed_resume_commit": FAILED_RESUME_COMMIT,
             "base_evidence": {
                 "failed_resume_parent_commit": parent,
                 "parent_is_producer_snapshot": parent == PRODUCER_SNAPSHOT_COMMIT,
                 "accepted_lab_evaluation_tip": lab_tip,
+                "accepted_lab_evaluation_tip_source": lab_tip_source,
                 "parent_is_accepted_lab_tip": parent == lab_tip,
                 "interpretation": (
                     "the failed resume started from the run-39619144928 team "
@@ -430,12 +470,29 @@ def write_report(record: dict, report_path: Path) -> None:
         f"- Comparable quantities: **{comp['n_comparable']}**, matched: "
         f"**{comp['n_match']}**, divergent: **{comp['n_divergent']}**.",
         "",
-        "This is a genuine falsification of the retrieval-first claim on the "
+        "This cycle's reproduction confirms the same negative result the audit "
+        "recomputed: in the seven falsifier cells the product cache reaches "
+        "strictly fewer frozen controlling or counter-authority ids than the "
+        "plain OpenCaseLaw response to the UNION of the six frozen texts "
+        "(baseline+counter x fr/de/it) of that question. "
+        "ATTRIBUTION (corrected in repair round 1 of 39628161040, run "
+        "39631600439): the product's cache executed only `baseline/fr` of the "
+        "six frozen texts per question, so the seven failing comparisons are a "
+        "multilingual/counter-channel QUERY-COVERAGE deficit, NOT a same-text "
+        "retrieval regression. On the text the product actually ran, the "
+        "product reaches at least as many frozen ids as the plain client "
+        "(0/0, 1/0, 1/1, 0/0, 0/0, 0/0, 1/0), and all 18 comparator-only ids "
+        "come exclusively from texts the product never executed. "
+        "The frozen absolute bars are untouched and remain REPORTED-ONLY.",
+        "",
+        "> **Superseded wording (preserved verbatim, run 39631600439):** "
+        "\"This is a genuine falsification of the retrieval-first claim on the "
         "product's own cached responses: in the seven falsifier cells the "
         "product cache reaches strictly fewer frozen controlling or "
         "counter-authority ids than the plain OpenCaseLaw response to the "
-        "identical query text. "
-        "The frozen absolute bars are untouched and remain REPORTED-ONLY.",
+        "identical query text.\" — corrected above; the original sentence is "
+        "retained verbatim here and is not retracted as a historical record, it "
+        "is superseded as a characterization.",
         "",
         "## Snapshot hygiene",
         "",
@@ -445,8 +502,10 @@ def write_report(record: dict, report_path: Path) -> None:
     ]
     for e in hygiene.get("out_of_scope", []):
         lines.append(f"- `{e['path']}` — {e['label']}, "
-                     f"sha256 `{e.get('sha256_working_tree')}`; preserved in "
-                     "place, NOT an independent audit verdict.")
+                     f"sha256 `{e.get('sha256_working_tree')}`; preserved in this "
+                     "branch snapshot with digests recorded in the lane machine "
+                     "record, removed at promotion by the integrate step's "
+                     "audit-directory checkout; NOT an independent audit verdict.")
     base = hygiene.get("base_evidence") or {}
     lines += [
         f"- Base evidence: the failed resume's parent commit is "

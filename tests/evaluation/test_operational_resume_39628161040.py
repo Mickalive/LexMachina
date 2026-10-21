@@ -131,6 +131,27 @@ def test_out_of_scope_files_are_not_deleted():
         assert (REPO / entry["path"]).is_file(), entry["path"]
 
 
+def test_disposition_wording_is_corrected_and_the_old_one_is_kept_verbatim():
+    """Audit F4 (repair round 1 of 39628161040, run 39631600439).
+
+    The inherited team-authored files are NOT preserved across promotion: the
+    integrate step's audit-directory checkout removes them.  The wording is
+    corrected and the superseded wording is preserved verbatim beside it.
+    """
+    corrected = ("preserved in this branch snapshot with digests recorded in "
+                 "the lane machine record, removed at promotion by the "
+                 "integrate step's audit-directory checkout")
+    superseded = ("preserved in place as evidence of the scope failure; not "
+                  "consumed as an audit verdict; deleted by no cycle")
+    for entry in _hygiene()["out_of_scope"]:
+        assert corrected in entry["disposition"]
+        assert entry["disposition_v1_verbatim"] == superseded
+        assert entry["disposition_amendment"]["amended_by_run"] == "39631600439"
+    md = (REPO / "reports" / "evaluation" /
+          "OPERATIONAL_RESUME_39628161040.md").read_text(encoding="utf-8")
+    assert corrected in md
+
+
 def test_in_scope_delta_is_only_state():
     assert [e["path"] for e in _hygiene()["in_scope"]] == [
         "state/evaluation.json"]

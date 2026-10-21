@@ -1,0 +1,217 @@
+{
+ "schema": "lex-evaluation-parity-attribution-repair/1",
+ "run_id": "39631600439",
+ "repaired_cycle": "39628161040",
+ "generated_at_utc": "2026-10-21T16:44:54Z",
+ "entry_point": "python -m evaluation.repair_39631600439_parity_attribution",
+ "audit": {
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "n_required_fixes": 4,
+  "source": "/tmp/lex_prior_audit/results/audit/evaluation/CYCLE_39628161040_GATE.json"
+ },
+ "required_fixes_source": "results/audit gate CYCLE_39628161040_GATE.json (read-only; this cycle writes no audit file and certifies nothing about its own work)",
+ "v2_hypothesis_sha256": "c994487886bf593da92479caced69563aa45f7d8728d8c8850fa0ee52b01a5a2",
+ "v2_freeze_record_sha256": "d66ebe2a4ac8332afbd7b0d71bf59a3863263abea1d5ca0cd5c9dad53fdfe807",
+ "v2_record_sha256": "b8482edfd10b8d79ca2069bfcd0e7a42f8fb619d368a7017e5c9b8d02f070f85",
+ "v1_hypothesis_sha256": "0e80f0de66fd43837e4851f1793db1b56b15600b8d14ceab9c3b853369a4247c",
+ "v1_freeze_record_sha256": "d15db504a6290e0449c894eefabdf31a7b3929e4fc53819602ed12a297e15440",
+ "all_required_fixes_complete": true,
+ "verdict": "REPAIR_FIXES_VERIFIED",
+ "fixes": {
+  "F1": {
+   "required": "publish the per-(channel,language) comparator decomposition and the executed-text-only comparison for all 7 parity gates and restate the finding (the verdict may stand, the same-query-regression characterization may not)",
+   "checks": [
+    {
+     "check": "F1.decomposition_published_for_every_gated_cell",
+     "holds": true,
+     "detail": "8 (slug, kind) decomposition rows, each with the per-(channel, language) hit table, the executed-text-only comparison and the comparator-only id attribution"
+    },
+    {
+     "check": "F1.executed_text_only_comparison_for_all_7_parity_gates",
+     "holds": true,
+     "detail": "7 measurable same-text gates carry the executed-text-only comparison (product_hits vs comparator_hits)"
+    },
+    {
+     "check": "F1.comparator_only_ids_attributed_to_never_executed_texts",
+     "holds": true,
+     "detail": "18 comparator-only ids, 18 of them produced only by texts the product never executed"
+    },
+    {
+     "check": "F1.executed_text_comparison_never_below_product",
+     "holds": true,
+     "detail": "on the executed text the product reaches >= the plain comparator in all 7 same-text cells (0/0, 1/0, 1/1, 0/0, 0/0, 0/0, 1/0)"
+    },
+    {
+     "check": "F1.verdict_still_fail_but_attributed_to_coverage",
+     "holds": true,
+     "detail": "the FAIL verdict of the frozen success rule stands; the verdict_scope is coverage and the same-text family PASSes"
+    },
+    {
+     "check": "F1.restated_in_reports/evaluation/PRODUCT_CACHE_PARITY_39619144928.md",
+     "holds": true,
+     "detail": "the finding is restated with the per-(channel, language) decomposition pointer and the honest characterization"
+    },
+    {
+     "check": "F1.restated_in_reports/evaluation/PRODUCT_CACHE_PARITY_39628161040.md",
+     "holds": true,
+     "detail": "the finding is restated with the per-(channel, language) decomposition pointer and the honest characterization"
+    },
+    {
+     "check": "F1.restated_in_operational_resume_report",
+     "holds": true,
+     "detail": "the operational-resume report carries the corrected attribution and preserves the superseded sentence verbatim"
+    },
+    {
+     "check": "F1.restated_in_state_note",
+     "holds": true,
+     "detail": "state/evaluation.json product_cache_parity.note no longer claims a same-query retrieval-layer regression"
+    },
+    {
+     "check": "F1.decomposition_in_v2_report",
+     "holds": true,
+     "detail": "the V2 report publishes the decomposition and the attribution table"
+    }
+   ],
+   "complete": true
+  },
+  "F2": {
+   "required": "do not ship a measurement that contradicts the frozen rule governing it: either restrict the primary comparator to the executed text or publish a versioned hypothesis with a new freeze record and a pre-freeze disclosure that makes the coverage asymmetry an explicit gated quantity",
+   "checks": [
+    {
+     "check": "F2.versioned_hypothesis_frozen_before_execution",
+     "holds": true,
+     "detail": "V2 hypothesis + V2 freeze record exist, are versioned and are pinned by digest"
+    },
+    {
+     "check": "F2.pre_freeze_disclosure_present",
+     "holds": true,
+     "detail": "the V2 hypothesis discloses in-file that it is a re-specification authored after the V1 outcome was observed, and states the expected outcome"
+    },
+    {
+     "check": "F2.coverage_asymmetry_is_an_explicit_gated_quantity",
+     "holds": true,
+     "detail": "the gate list contains BOTH families: the like-for-like same-text family and the explicitly gated union-of-all-frozen-texts coverage family"
+    },
+    {
+     "check": "F2.frozen_rules_and_ids_unchanged",
+     "holds": true,
+     "detail": "no new threshold, no changed id set, no changed matcher; the gated comparisons grow 7 -> 14 while the failing comparisons stay 7"
+    },
+    {
+     "check": "F2.v1_chain_byte_preserved",
+     "holds": true,
+     "detail": "the V1 hypothesis, the V1 freeze record and both V1 measurement records re-hash to the digests pinned by the V2 freeze record"
+    },
+    {
+     "check": "F2.v1_failures_not_downgraded",
+     "holds": true,
+     "detail": "every V1 falsifier gate maps 1:1 onto a V2 coverage gate with identical measurements, and the same 7 comparisons still fail"
+    }
+   ],
+   "complete": true
+  },
+  "F3": {
+   "required": "add a synthetic case with a comparator pool containing texts the product never executed and assert that the gate cannot silently convert non-executed coverage into a same-text falsification",
+   "checks": [
+    {
+     "check": "F3.asymmetric_fixture_present",
+     "holds": true,
+     "detail": "the synthetic fixture builds a comparator pool that contains a text the product never executed"
+    },
+    {
+     "check": "F3.asymmetric_test_executes_and_passes",
+     "holds": true,
+     "detail": "the asymmetric-case test function ran and its assertions held"
+    },
+    {
+     "check": "F3.instrument_pins_the_asymmetry",
+     "holds": true,
+     "detail": "the instrument's own non-vacuity battery carries the C3 control that re-scores the executed-text pool and forbids a same-text falsification"
+    }
+   ],
+   "complete": true
+  },
+  "F4": {
+   "required": "correct the disposition wording of the inherited team-authored files to 'preserved in this branch snapshot with digests recorded in the lane machine record, removed at promotion by the integrate step's audit-directory checkout'",
+   "checks": [
+    {
+     "check": "F4.record_disposition_corrected",
+     "holds": true,
+     "detail": "every out-of-scope entry carries the corrected disposition wording"
+    },
+    {
+     "check": "F4.superseded_wording_preserved_verbatim",
+     "holds": true,
+     "detail": "the superseded disposition string is preserved verbatim beside the correction (no deletion, no silent rewrite)"
+    },
+    {
+     "check": "F4.report_wording_corrected",
+     "holds": true,
+     "detail": "the operational-resume report states the corrected disposition"
+    },
+    {
+     "check": "F4.state_wording_corrected",
+     "holds": true,
+     "detail": "state/evaluation.json operational_resume.diagnosis states the corrected disposition"
+    }
+   ],
+   "complete": true
+  }
+ },
+ "first_execution": {
+  "path": "results/evaluation/product_cache_parity/39631600439_first_execution.json",
+  "sha256": "5c744460d826b8da8f6b3187cfcf1c03508f5aeef901d65ce3e03c58e9ba7e79",
+  "preserved": true,
+  "differing_keys": [
+   "elapsed_s",
+   "generated_at_utc",
+   "v1_preservation"
+  ],
+  "claim_bearing_quantities_identical": true,
+  "note": "the first execution of this cycle is preserved verbatim; the only differences to the re-executed record are the timestamp, the elapsed time and the strengthened v1_preservation proof (the V1 records of that cycle store hit COUNTS, the first execution compared only the keys they both carried, which made the proof vacuous for one of the two V1 records)"
+ },
+ "lane_suite_regression": {
+  "present": true,
+  "is_audit_required_fix": false,
+  "record": "results/evaluation/orchestration/39631600439_shim_regression.json",
+  "sha256": "871cb1d75f301c464f811f65293b0d042169e7d8d9494f4dbe657924f83b9750",
+  "verdict": "SHIM_NO_NEW_FAILURE",
+  "baseline_label": "pre-repair tree at commit ae039b9c (detached worktree)",
+  "current_label": "repair round 1 tree of run 39631600439",
+  "n_new_failures": 0,
+  "n_no_longer_failing": 4,
+  "baseline_counts": {
+   "n_files": 74,
+   "n_passed": 840,
+   "n_failed": 22,
+   "n_skipped": 5,
+   "n_unsupported": 138,
+   "n_absent": 0
+  },
+  "current_counts": {
+   "n_files": 75,
+   "n_passed": 868,
+   "n_failed": 21,
+   "n_skipped": 5,
+   "n_unsupported": 138,
+   "n_absent": 0
+  },
+  "note": "supporting evidence, NOT one of the four audit required fixes: the lane suite under the no-pytest shim is NOT green in this rejected branch snapshot and is not claimed to be. The delta against the pre-repair tree at commit ae039b9c is 0 new failures; the pre-existing failures stay visible as pre-existing failures and UNSUPPORTED / SKIPPED cases are counted as NOT-RUN, never as passes."
+ },
+ "n_checks": 23,
+ "n_checks_passed": 23,
+ "measurements_untouched": {
+  "network_requests": 0,
+  "no_174k_benchmark_rerun": true,
+  "no_new_thresholds": true,
+  "frozen_inputs_unchanged": true,
+  "frozen_id_sets_unchanged": true,
+  "matcher_unchanged": true,
+  "verdict_withdrawn": false,
+  "v1_artifacts_deleted": false
+ },
+ "claim_ceiling": "This record proves only that the four required fixes of the independent audit of cycle 39628161040 are DISCHARGED and machine-checked against the committed artifacts: (F1) the per-(channel, language) comparator decomposition, the executed-text-only comparison for all 7 parity gates and the honest restatement of the finding are published, while the FAIL_PRODUCT_CACHE_PARITY verdict of the frozen success rule stands; (F2) the frozen-rule contradiction is removed by a versioned V2 hypothesis with its own freeze record and an in-file pre-freeze disclosure, with no new threshold, no changed id set, no changed matcher and the same 7 failing comparisons; (F3) the asymmetric synthetic case is executable and forbids a non-executed text's coverage from becoming a same-text falsification; (F4) the disposition wording of the inherited team-authored files is corrected, with the superseded wording preserved verbatim. It does NOT prove that the product's retrieval quality is worse than plain OpenCaseLaw on the text it ran (the like-for-like same-text family PASSes 7/7); it does NOT lift either DO-NOT-SERVE order, does NOT move the frozen absolute bars (REPORTED-ONLY), does NOT certify any packet, does NOT assert that any decision is supporting/contrary/limiting, and authorises NO owner question. This repair is NOT self-certified: an independent audit of THIS cycle is still owed and the evidence tier stays EXPLORATORY.",
+ "pending_independent_audit": true,
+ "exit_code": 0
+}
