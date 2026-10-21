@@ -413,9 +413,10 @@ def write_report(record: dict, report_path: Path) -> None:
         f"**{comp['n_match']}**, divergent: **{comp['n_divergent']}**.",
         "",
         "This is a genuine falsification of the retrieval-first claim on the "
-        "product's own cached responses: for seven measurable cells the product "
-        "cache reaches strictly fewer frozen controlling or counter-authority "
-        "ids than the plain OpenCaseLaw response to the identical query text. "
+        "product's own cached responses: in the seven falsifier cells the "
+        "product cache reaches strictly fewer frozen controlling or "
+        "counter-authority ids than the plain OpenCaseLaw response to the "
+        "identical query text. "
         "The frozen absolute bars are untouched and remain REPORTED-ONLY.",
         "",
         "## Snapshot hygiene",

@@ -35,7 +35,7 @@ The hypothesis and its original freeze record were authored and hashed before ru
 - Falsifier gates (7 in both records): `same_query_counter_not_below_baseline::rent-default`, `same_query_authority_not_below_baseline::corporate-criminal-liability`, `same_query_counter_not_below_baseline::corporate-criminal-liability`, `same_query_authority_not_below_baseline::business-judgment-rule`, `same_query_counter_not_below_baseline::business-judgment-rule`, `same_query_authority_not_below_baseline::petty-theft-dismissal`, `same_query_counter_not_below_baseline::petty-theft-dismissal`
 - Comparable quantities: **136**, matched: **136**, divergent: **0**.
 
-This is a genuine falsification of the retrieval-first claim on the product's own cached responses: for seven measurable cells the product cache reaches strictly fewer frozen controlling or counter-authority ids than the plain OpenCaseLaw response to the identical query text. The frozen absolute bars are untouched and remain REPORTED-ONLY.
+This is a genuine falsification of the retrieval-first claim on the product's own cached responses: in the seven falsifier cells the product cache reaches strictly fewer frozen controlling or counter-authority ids than the plain OpenCaseLaw response to the identical query text. The frozen absolute bars are untouched and remain REPORTED-ONLY.
 
 ## Snapshot hygiene
 
