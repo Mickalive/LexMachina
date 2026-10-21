@@ -125,7 +125,7 @@ def test_corrupted_pin_fails_closed():
 def test_absent_mount_run_is_not_measurable(tmp_path):
     rc = cac.run("test_absent", tmp_path / "no_mount", tmp_path / "out", tmp_path / "rep")
     assert rc == 2
-    rec = json.loads((tmp_path / "out" / "test_absent.json").read_text())
+    rec = json.loads((tmp_path / "out" / "test_absent" / "test_absent.json").read_text())
     assert rec["verdict"] == "NOT_MEASURABLE"
     assert "absent" in rec["reason"]
 
@@ -160,6 +160,6 @@ def test_real_mount_cli_exit_code_is_1(tmp_path):
                    "--out", str(tmp_path / "out"),
                    "--report-dir", str(tmp_path / "rep")])
     assert rc == 1
-    rec = json.loads((tmp_path / "out" / "test_real.json").read_text())
+    rec = json.loads((tmp_path / "out" / "test_real" / "test_real.json").read_text())
     assert rec["verdict"] == "CLAIM_ARTIFACT_DIVERGENCE"
     assert rec["non_vacuity"]["all_hold"] is True
