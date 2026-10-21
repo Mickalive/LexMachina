@@ -111,13 +111,38 @@ from product import test_delta_attribution as tda  # noqa: E402
 #: so the pin moved from CYCLE_39357593249 to this cycle's regenerated
 #: artifact CYCLE_39384462218 (base 9727a45, head 1ee024c2, working tree 1277
 #: collected, delta +0 uncommitted). The old artifact stays on disk untouched.
+#:
+#: REPOINT RECORD (cycle 39538762904): the working tree gained 29 tests that the
+#: pin CYCLE_39384462218 (working-tree total 1277) no longer measured - the
+#: counter-instability disclosure cycle 39422322667 (``5c0b2e3``, +16) and the
+#: frontier-counter-label-emission harvest cycle 3943548421 (``651b5c9``, +13)
+#: both touched ``product/tests/``. Measured live this cycle:
+#: ``tda.collect_count(ROOT)`` returned 1306 against the pin's 1277, so the
+#: staleness detector below was RED on the very tree that shipped. The pin moves
+#: to this cycle's regenerated artifact CYCLE_39538762904 (base 9727a45, head
+#: c3ad235, working tree 1306 collected, delta +0 uncommitted). The old artifact
+#: stays on disk byte-identical and joins ATTRIBUTION_HISTORY.
 ATTRIBUTION = (ROOT / "results" / "product" / "regression"
-               / "CYCLE_39384462218_test_delta_attribution.json")
+               / "CYCLE_39538762904_test_delta_attribution.json")
 #: The previous pin, kept as a readable constant so a reader can diff the two
-#: artifacts instead of trusting prose about them. Its own predecessor
-#: (CYCLE_39357593249_test_delta_attribution.json) is likewise still on disk.
+#: artifacts instead of trusting prose about them.
 ATTRIBUTION_PREVIOUS_PIN = (ROOT / "results" / "product" / "regression"
-                             / "CYCLE_39357593249_test_delta_attribution.json")
+                             / "CYCLE_39384462218_test_delta_attribution.json")
+#: Every attribution artifact this pin has ever named, oldest first, each of
+#: which must still exist. A pin move moves a CHECK; it never removes evidence.
+#: The newest entry is the pin this module currently reads.
+ATTRIBUTION_HISTORY = (
+    ROOT / "results" / "product" / "regression"
+    / "CYCLE_39172315384_test_delta_attribution.json",
+    ROOT / "results" / "product" / "regression"
+    / "CYCLE_39262796670_test_delta_attribution.json",
+    ROOT / "results" / "product" / "regression"
+    / "CYCLE_39357593249_test_delta_attribution.json",
+    ROOT / "results" / "product" / "regression"
+    / "CYCLE_39384462218_test_delta_attribution.json",
+    ROOT / "results" / "product" / "regression"
+    / "CYCLE_39538762904_test_delta_attribution.json",
+)
 #: The full-run regression measurement whose base is the SAME named commit. An
 #: independent measurement path (full run, not collection-only) of the same tree.
 REGRESSION = (ROOT / "results" / "product" / "regression"

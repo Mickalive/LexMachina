@@ -379,7 +379,20 @@ setTimeout(async () => {
           "each discovered authority names the probe channel that found it");
     check(advHtml.indexOf("marqueur de provenance de recherche, pas une qualification juridique") !== -1,
           "the discovery panel states that the marker is provenance, not a legal qualification");
-    check(advHtml.indexOf("découverte seule") !== -1 || discovered.every((r) => r.evidenced),
+    /* The label "découverte seule" belongs to a discovered row that is NOT a
+     * counter (``isCounter`` false): such a row carries only discovery
+     * provenance and must never be presented as a counter qualification. A
+     * discovered row that IS a counter is labelled by its evidence state
+     * instead - an unevidenced counter renders "non étayée · conservée pour
+     * visibilité", an evidenced one "qualifiée et étayée" - so the
+     * "découverte seule" string is correctly absent for it. The previous form
+     * ("the string is present OR every discovered row is evidenced") therefore
+     * failed a bundle whose discovered rows are all unevidenced COUNTERS: the
+     * page was right and the assertion was wrong. Scope the requirement to the
+     * rows it actually describes, so a bundle with no unqualified discovery is
+     * not failed for a label it never owed. */
+    const unqualified = discovered.filter((r) => !r.isCounter);
+    check(unqualified.length === 0 || advHtml.indexOf("découverte seule") !== -1,
           "an unqualified discovery is labelled as a discovery only");
 
     /* Clicking it opens the decision, and the panel says how it was found. */

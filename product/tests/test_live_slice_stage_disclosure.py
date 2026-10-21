@@ -211,9 +211,24 @@ def test_every_committed_record_discloses_its_stages_or_is_named_by_the_amendmen
         assert stages["canonical_chain"] is not fingerprint_map_only, (
             f"{name} declares canonical_chain={stages['canonical_chain']} "
             f"while its own fields say map_only={fingerprint_map_only}")
-        assert (payload.get("verdict") == "PASS") is bool(stages["canonical_chain"]), (
-            f"{name} publishes verdict {payload.get('verdict')!r} against "
-            f"canonical_chain={stages['canonical_chain']}")
+        # The guard's purpose is "no committed record may claim a chain PASS
+        # without stage evidence". That is a ONE-WAY requirement: a chain PASS
+        # requires canonical_chain, and a map-only PASS requires that the chain
+        # did NOT run. A FAIL verdict is NOT a chain PASS and may occur with the
+        # chain having run - ``verdict_for`` returns FAIL the moment any wiring
+        # check fails, so a full-chain run whose page contract or another check
+        # failed legitimately carries verdict FAIL with canonical_chain True
+        # (the committed CYCLE_39452421855_full.json is exactly that record).
+        # The previous bidirectional form wrongly failed that honest record.
+        verdict = payload.get("verdict")
+        if verdict == "PASS":
+            assert stages["canonical_chain"] is True, (
+                f"{name} publishes a chain PASS without declaring the canonical "
+                f"chain ran (canonical_chain={stages['canonical_chain']})")
+        elif verdict == "PASS_MAP_ONLY":
+            assert stages["canonical_chain"] is False, (
+                f"{name} publishes a map-only PASS while declaring the canonical "
+                f"chain ran (canonical_chain={stages['canonical_chain']})")
 
     # Debt marker flipped by repair round 1 of rejected cycle 39286804530
     # (audit F3: "the test's post-fix branch requires an actual staged record,

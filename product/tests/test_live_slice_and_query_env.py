@@ -207,9 +207,19 @@ def test_shipped_live_slice_artifact_verdict_matches_its_own_stage_fields():
         stages = data.get("stages_executed")
         if stages is None:
             continue
-        assert (data["verdict"] == "PASS") is bool(stages["canonical_chain"]), (
-            f"{name} publishes verdict {data['verdict']!r} against "
-            f"canonical_chain={stages['canonical_chain']}")
+        # One-way, not bidirectional: a chain PASS requires the chain ran and a
+        # map-only PASS requires it did not, but a FAIL verdict is allowed with
+        # the chain having run (``verdict_for`` returns FAIL as soon as any
+        # wiring check fails). See test_live_slice_stage_disclosure.py.
+        verdict = data["verdict"]
+        if verdict == "PASS":
+            assert stages["canonical_chain"] is True, (
+                f"{name} publishes a chain PASS without declaring the canonical "
+                f"chain ran (canonical_chain={stages['canonical_chain']})")
+        elif verdict == "PASS_MAP_ONLY":
+            assert stages["canonical_chain"] is False, (
+                f"{name} publishes a map-only PASS while declaring the canonical "
+                f"chain ran (canonical_chain={stages['canonical_chain']})")
 
     fresh = build()
     assert fresh["verdict"] == "PASS", fresh.get("failures")
