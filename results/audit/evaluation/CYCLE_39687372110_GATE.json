@@ -1,0 +1,64 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "run_id": 39687372110,
+  "lane": "evaluation",
+  "direction_version": 61,
+  "repair_round": 0,
+  "audited_commits": [
+    "c174e63a83cf176fa74c5eb36648c3d1008792e3",
+    "60215e0c352da1b11d67410045aab2b823e1de32",
+    "5ee96ed2f6b0d989aefdd0486fd0f5acb21cdfe6"
+  ],
+  "audited_base": "70e31693",
+  "producer_verdict": "REPAIR_VERIFIED_ON_RECORDED_BYTES",
+  "producer_exit_code": 0,
+  "claim_ceiling": "On the pinned recorded bytes of the accepted 14-bundle product population (population manifest 80306fd5fe05c04e36faa5d2adf6a2b98167280a05eb7ea48ce57ec17bdf73db; product pins product/query/adversarial_retrieval.py=57b6a6f99793ef6663957ccdcd51a577feb9c8d7075efcc339f5c25bece065e1, product/query/retrieval.py=30ad4190a99165fab725132dcdca593e89806db4d85de379cc46811cd02ad5a1, frontier/frontier-generative-audit/generative_audit/source_packing.py=8d27a2263013136c43564041c299193583434019f641e468bc25cdf18e4154f1), the recommended product remedy (a) - strip the redaction placeholder '[citation removed: not in retrieved set]' from the answer prose before the product's own probe planner - repairs the probe-anchor bounded cause: G1 PASS (0/14 FIXED anchors carry a placeholder-derived token vs 2/14 baseline contaminated), G2 PASS (2/2 baseline-contaminated German anchors regain a question-topical anchor), G3 PASS (12/12 clean-anchor bundles byte-for-byte unperturbed, including the 4 ph>0 non-contaminated ones), G4 PASS (14/14 FIXED anchors equal the accepted falsifier 39674402905's published G4 de-redacted anchors byte-for-byte), with all five controls C1-C5 held and all 8 pins holding before and after execution, 0 network calls, offline on committed bytes. It does NOT claim that the product fix has landed (the pinned planner is byte-identical to the accepted run's unfixed planner); it is NOT a counter-authority recall, live-retrieval or label-emission measurement; NOT a measurement of the mapping-free counter_authority_surface gates; NOT a LABEL_SOUND / GEOMETRY_SOUND claim (both stay REPORTED-ONLY); NOT a jurist-usefulness or map claim; NOT a serve recommendation; it lifts no DO-NOT-SERVE order, admission stays fail-closed, human_gate_ready and owner_decision_required stay false, and it does not authorise skipping re-measurement once the product lands the fix (product pins then drift by design and a NEW run id must verify the shipped planner). Evidence tier EXPLORATORY. The accepted V3 falsification of the product's counter-authority surface (run 39680754374, audited CYCLE_39684675951) is NOT withdrawn by this cycle.",
+  "evidence_summary": "Independent recomputation of run 39687372110 (evaluation lane, counter-probe repair-verification falsifier, verdict REPAIR_VERIFIED_ON_RECORDED_BYTES). FREEZE-FIRST VERIFIED: reconstruction of committed timestamps and record generated_at_utc gives local reproduction 22:38:40 -> hypothesis/freeze created 22:43:38 -> freeze COMMITTED 22:45:36 (c174e63a) -> attempt 1 executed 22:45:42 -> re-freeze 22:47:12 -> re-freeze committed 22:47:53 -> corrected claim-bearing execution 22:47:54 -> shim 22:50:16 -> final commit 22:52:20; the freeze precedes every claim-bearing execution and the pre-freeze reconnaissance is disclosed verbatim (including the published de-redacted anchors that make the G2 prediction derivable). RE-FREEZE ATTACK REFUTED: git diff of hypothesis + freeze record between the attempt-1 freeze and the re-freeze shows ONLY instrument_sha256, hypothesis_sha256, pins, freeze_history/freeze_history_note and refrozen_at_utc changed; frozen_rule, gates_frozen, controls_frozen, exit_code_contract, population_manifests, product_pins, numeric_environment, pin_discipline and the hypothesis claim_ceiling/hypothesis/controls/metric/baseline/product_handoff/no_thresholds_statement/pre_freeze_disclosure are byte-identical; the code change is a single predicate ('is not True' -> 'is False') plus a comment, because the buggy implementation contradicted its own frozen C4 sentence ('for every bundle whose answer prose contains no redaction placeholder') by failing the control on the 6 not-applicable (ph>0, None) rows; attempt 1 is preserved verbatim (sha256 967bfd52..., verdict ENVIRONMENT_OR_VACUOUS, exit 2, control_failures=[C4...], its own pins chain to the exact c174e63a blobs) and is never presented as a verdict - this is an implementation-bug repair, not a benchmark relaxation. INDEPENDENT CHECKS: accepted falsifier record sha256 87c059f6... = frozen pin; G4 re-derived from the two committed JSON files 14/14 identical with recorded probes and contamination flags also identical; all 4 repo pins, the hypothesis/instrument digests and the record's four embedded digests re-hashed and matched; population manifest identical to the accepted falsifier's; the freeze record's product_pins identical to the accepted record's product pins (proving the mount bytes are unchanged and that the fix has NOT landed); MUTATION TEST on the real committed rows shows each of G1/G2/G3/G4 fails only under its own violation and G4 is fail-closed with zero comparable accepted rows; C4 predicate semantics on the real rows = 8 applicable True / 6 not-applicable None (non-vacuous over 8 bundles); the local_verify_39687372110 artefact is a genuine re-execution (different run id and timestamp, identical deterministic measurements on 14/14 rows), not a copy; no network imports in either instrument; history preserved - 14 new files and only state/evaluation.json modified (accepted record, instrument, rubrics and all prior results byte-unchanged); state flags unchanged and fail-closed (human_gate_ready/machine_gate_ready/packet_admitted/ready_for_owner_session/owner_decision_required all false, evidence_tier EXPLORATORY, 75/75 evidence_refs resolve). MVP CHECK: this cycle claims nothing about the shortest user-visible capability - the accepted minimal_ca_benchmark_v3 falsification (zero counter-authority rows on de/fr/it of the V3 packet) stands unwithdrawn, admission stays fail-closed, and the producer state accurately marks the milestone incomplete and recommends continuation. NO universal-174k benchmark was run, no rubric/bar/verdict-contract was read for enforcement, no product source was modified. AUDIT LIMITATION: the ephemeral accepted mount /tmp/lex_accepted/product and the product sources are absent from the audit job's filesystem, so the product planner could not be re-executed by the auditor; the two-arm measurement was therefore verified indirectly but tightly (product-byte pin equality with the accepted run, row-for-row agreement with the accepted record and the independent local reproduction, plus full re-execution of the gate/control logic with mutation testing). NON-BLOCKING OBSERVATIONS (no repair round required): M1 cycle report enumerates '3 product files, 2 population manifests' (=9) while only 8 pin checks run (only the active source label's manifest is checked); M2 the state's '27 passed / 0 failed / 0 skipped' is true in the producer image but 2 of the 27 cases are skipif(MOUNT_PRESENT)-gated - the auditor's independent shim re-run without the mount yields 25 passed / 2 skipped, so the state should note the mount dependency; M3 state/evaluation.json rewrote accepted text benchmark_result.reason from the escaped '\\u2014' to a literal em dash (semantically identical, needless byte edit); M4 network_calls=0 is asserted rather than instrumented (corroborated indirectly). Verdict PASS, safe_to_integrate=true, required_fixes=[].",
+  "independent_recomputation": {
+    "method": "fresh-context auditor re-derived every checkable quantity from the committed bytes in /tmp/lex_team and from the mounted control plane (/tmp/lex_control, factory_direction v61), without reusing the producer's narrative",
+    "checks": [
+      {"check": "accepted_record_sha256_equals_frozen_pin", "result": "PASS"},
+      {"check": "G4_fixed_anchor_vs_accepted_de_redacted_anchor_14_rows", "result": "PASS"},
+      {"check": "recorded_probe_queries_and_contamination_flags_match_accepted_record", "result": "PASS"},
+      {"check": "freeze_record_pins_rehashed", "result": "PASS"},
+      {"check": "record_embedded_digests_match_committed_files", "result": "PASS"},
+      {"check": "population_manifest_equals_accepted_falsifier_manifest", "result": "PASS"},
+      {"check": "product_pins_equal_accepted_record_product_pins", "result": "PASS"},
+      {"check": "refreeze_changed_only_implementation_and_digests", "result": "PASS"},
+      {"check": "attempt1_record_preserved_and_pins_to_pre_fix_blobs", "result": "PASS"},
+      {"check": "gate_mutation_test_on_real_rows", "result": "PASS"},
+      {"check": "C4_predicate_semantics_on_real_rows", "result": "PASS"},
+      {"check": "local_verify_is_independent_reexecution", "result": "PASS"},
+      {"check": "shim_rerun_of_new_test_file", "result": "25 passed / 2 skipped (2 mount-gated skipif cases)"},
+      {"check": "history_preservation_only_state_modified", "result": "PASS"},
+      {"check": "state_flags_fail_closed_and_refs_resolve", "result": "PASS"},
+      {"check": "no_network_imports_in_instruments", "result": "PASS"}
+    ],
+    "not_reproducible_here": "the ephemeral accepted mount /tmp/lex_accepted/product (and therefore the product planner) is absent from the audit job filesystem; the two-arm product computation was verified indirectly via pin equality with the accepted run, row-for-row agreement with the accepted record and the independent local reproduction, and full re-execution of the gate/control logic"
+  },
+  "standing_orders_confirmed": {
+    "do_not_serve_38839347028": true,
+    "do_not_serve_unchanged_rebuilt_39027045675": true,
+    "absolute_bars_unmet": "LABEL_SOUND and GEOMETRY_SOUND remain REPORTED-ONLY and untouched; RULES_LABEL.json / RULES_GEOMETRY.json / VERDICT_CONTRACT.json are not inputs to this instrument",
+    "accepted_v3_counter_authority_falsification_not_withdrawn": true,
+    "product_fix_has_not_landed": true,
+    "packet_admitted": false,
+    "machine_gate_ready": false,
+    "human_gate_ready": false,
+    "ready_for_owner_session": false,
+    "owner_decision_required": false,
+    "universal_174k_rerun": false,
+    "new_thresholds_introduced": false,
+    "product_source_modified": false
+  },
+  "non_blocking_observations": [
+    "M1 report prose enumerates '3 product files, 2 population manifests' (=9) against the 8 pin checks actually executed (only the active source label's manifest is checked)",
+    "M2 state's '27 passed / 0 failed / 0 skipped' is mount-dependent: 2 of the 27 cases are skipif(MOUNT_PRESENT); the auditor's independent re-run without the mount gives 25 passed / 2 skipped - the state should note the dependency",
+    "M3 state/evaluation.json rewrote accepted historical text benchmark_result.reason from escaped '\\u2014' to a literal em dash (semantically identical, needless byte-level edit of accepted state)",
+    "M4 network_calls=0 is asserted by the producer rather than instrumented (corroborated indirectly by zero network imports and byte-for-byte replay of 56 recorded probe queries)"
+  ],
+  "audit_report": "reports/audit/evaluation/CYCLE_39687372110.md",
+  "auditor_note": "Audit artifacts written to the audit-job checkout at the house-mandated relative paths; nothing was written into /tmp/lex_team. The gate verdict is independent of the producer workspace."
+}
