@@ -1,0 +1,40 @@
+{
+  "schema": "lex-evaluation-hypothesis/1",
+  "name": "CLAIM_ARTIFACT_CROSSCHECK_HYPOTHESIS_V1",
+  "direction_version": 61,
+  "frozen_before_execution": true,
+  "question": "Do the newest claim-bearing product artifacts in the accepted product tree state the same gate/admission status as the accepted Evaluation evidence, and does any report in the accepted tree assert a readiness claim that the accepted product state contradicts?",
+  "product_decision_unlocked": "Whether Product's newest shipped claim-bearing artifacts misstate the accepted gate/admission status (in particular any report asserting human_gate_ready=true while the accepted state is false and both frozen absolute bars are unmet), so that the misstatement is named and routed back to Product under factory-wide requirement 13.",
+  "baseline": "Evaluation's accepted status (state/evaluation.json: human_gate_ready=false, machine_gate_ready=false, ready_for_owner_session=false, packet_admitted=false, owner_decision_required=false) and the accepted serve verdict BOUNDED-NEGATIVE (DO-NOT-SERVE orders in force; LABEL_UNSOUND; GEOMETRY_UNSOUND).",
+  "subject_artifacts": [
+    "state/product.json",
+    "reports/product/CYCLE_39452421855.md",
+    "reports/product/CYCLE_39462272998_query_map_mvp_vertical_slice.md",
+    "reports/audit/product/CYCLE_39528906392.md",
+    "results/audit/product/CYCLE_39528906392_GATE.json"
+  ],
+  "metrics_pinned": [
+    "status::product_state_vs_evaluation_accepted::<field> - MATCH / DIVERGENCE / NOT_COMPARABLE for human_gate_ready, machine_gate_ready, ready_for_owner_session, packet_admitted, owner_decision_required, direction_version",
+    "claim::report_readiness_assertion::<report>::<field> - MATCH / DIVERGENCE / NO_ASSERTION for human_gate_ready, ready_for_owner_session, packet_admitted, machine_gate_ready extracted mechanically from each product report and compared against the product's accepted state",
+    "pin::frozen_rehash - the four frozen pins re-hashed before and after execution must equal the digests frozen in CLAIM_ARTIFACT_CROSSCHECK_FREEZE_RECORD.json",
+    "serve::accepted_verdict_status - the vendored accepted serve verdict must read BOUNDED-NEGATIVE with DO-NOT-SERVE in force, LABEL_UNSOUND and GEOMETRY_UNSOUND",
+    "mount::identity - the product mount HEAD and the subject-file sha256 set must equal the frozen mount identity"
+  ],
+  "success_rule": "exit 0 only when every comparable row MATCHes and every non-vacuity control holds; any DIVERGENCE is exit 1 with the diverging rows named as the headline; a missing product mount, a missing subject artifact, or a corrupted frozen pin is exit 2 (NOT_MEASURABLE, never a pass).",
+  "non_vacuity_controls": [
+    "N1: a report copy with a planted contradictory readiness claim must be detected as a divergence by the real row comparator",
+    "N2: a corrupted frozen pin digest must fail closed (exit 2)",
+    "N3: an absent product mount must fail closed (exit 2), never a pass"
+  ],
+  "claim_ceiling": "PROVENANCE / CLAIM CONFORMANCE only: verifies that the accepted product tree's newest claim-bearing artifacts state the same gate/admission status as the accepted Evaluation evidence and names any divergence. Re-derives no threshold, bar, rubric or verdict contract; serves no packet; lifts no DO-NOT-SERVE order; authorises no owner question; does not re-measure retrieval or counter-authority recall.",
+  "no_new_thresholds": true,
+  "no_174k_benchmark_rerun": true,
+  "reuses": [
+    "accepted Evaluation status (state/evaluation.json)",
+    "accepted serve verdict (evaluation/vendored_frontier_serve_audit/VERDICT_39371834165.json)",
+    "frozen bars RULES_LABEL.json / RULES_GEOMETRY.json / VERDICT_CONTRACT.json",
+    "frozen retrieval spec evaluation/retrieval_gate/frozen_retrieval_benchmark.json"
+  ],
+  "owner_decision_required": false,
+  "human_gate_ready": false
+}
