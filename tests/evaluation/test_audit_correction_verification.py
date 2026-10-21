@@ -85,7 +85,15 @@ def test_state_file_has_mandatory_fields():
     # 55->56, 56->57, 57->58).  Cycle 39381093325 disclosed the stale 58 pin as
     # a pre-existing test defect and advanced it to 60 alongside the v60 state
     # block; no historical hypothesis/freeze pin is touched by this change.
-    assert state["direction_version"] == 60
+    # REPAIR of run 39520368732 (v61): the pin is advanced 60 -> 61 to match the
+    # v61 lane state. This is the SEVENTH advance in the same disclosed convention
+    # (49->50, 50->52, 52->55, 55->56, 56->57, 57->58, 58->60, 60->61) and it is
+    # EXPECTED, not a new defect: the producer snapshot of 39520368732 advanced
+    # state direction_version to 61 (the v61 rewrite) while leaving this pin at 60,
+    # which made the lane's own pytest scope red (61 == 60). No frozen benchmark,
+    # rubric, incumbent, threshold or success rule is touched; the state file's
+    # direction_version (61) is authoritative.
+    assert state["direction_version"] == 61
 
 
 def test_evidence_refs_exist():
