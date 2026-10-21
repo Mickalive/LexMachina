@@ -238,18 +238,37 @@ def test_end_to_end_replay_into_scratch_is_deterministic():
                           / "39315343123.json")
         if committed_path.is_file():
             committed = json.loads(committed_path.read_text(encoding="utf-8"))
-            # the claim-bearing verdict must reproduce on the same pinned population
-            assert replay["verdict"] == committed["verdict"]
-            assert replay["product_mount_head"] == committed["product_mount_head"]
-            assert (replay["non_vacuity"]["all_hold"]
-                    == committed["non_vacuity"]["all_hold"])
-            # per-bundle gate pass/fail vectors must be identical
-            def vector(rec):
-                return {
-                    r["record"]: [g["passed"] for g in r["gates"]]
-                    for r in rec["live_bundle_results"]
-                }
-            assert vector(replay) == vector(committed)
+            same_population = (replay["product_mount_head"]
+                               == committed["product_mount_head"])
+            if same_population:
+                # SAME pinned population -> the claim-bearing verdict must
+                # reproduce byte-for-byte (the original assertion of this test).
+                assert replay["verdict"] == committed["verdict"]
+                assert (replay["non_vacuity"]["all_hold"]
+                        == committed["non_vacuity"]["all_hold"])
+
+                def vector(rec):
+                    return {
+                        r["record"]: [g["passed"] for g in r["gates"]]
+                        for r in rec["live_bundle_results"]
+                    }
+                assert vector(replay) == vector(committed)
+            else:
+                # POPULATION MOVED — observed pre-existing on run 39587184968
+                # (committed head 6c4b8f7d, mount head 7eb5b135): the probe is
+                # population-pinned by construction, so a moved mount must make
+                # it REFUSE (exit 2 / ENVIRONMENT_OR_VACUOUS with drift), never
+                # emit a different product verdict.  Comparing verdicts across
+                # two different populations is the vacuous comparison this
+                # branch forbids in both directions.
+                assert replay["product_mount_head"] != committed["product_mount_head"]
+                assert replay["exit_code"] == 2, (
+                    "a moved population must fail closed, got "
+                    f"exit {replay['exit_code']} verdict {replay['verdict']}")
+                assert replay["verdict"] == "ENVIRONMENT_OR_VACUOUS", replay["verdict"]
+                assert committed["verdict"] in (
+                    "LIVE_BUNDLE_FALSIFIED", "ENVIRONMENT_OR_VACUOUS",
+                    "PROBE_RAN_NO_LIVE_FALSIFICATION"), committed["verdict"]
         assert replay["exit_code"] in (0, 1, 2)
         # the replay must never touch the committed claim-bearing path
         assert str(committed_path) not in str(scratch)

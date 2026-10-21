@@ -1,0 +1,114 @@
+{
+ "schema": "lex-evaluation-no-pytest-runner/1",
+ "run_id": "local_prefreeze2",
+ "generated_at_utc": "2026-10-21T11:05:53Z",
+ "python": "3.12.3",
+ "pytest_available": false,
+ "supported_constructs": [
+  "plain test function with no parameters",
+  "pytest.mark.skipif(condition, reason=...)",
+  "pytest.raises",
+  "module-level `from evaluation import ... as ...`"
+ ],
+ "verdict": "SHIM_FAIL",
+ "n_files": 1,
+ "n_passed": 14,
+ "n_failed": 1,
+ "n_skipped": 1,
+ "n_unsupported": 0,
+ "n_absent": 0,
+ "results": [
+  {
+   "test_file": "tests/evaluation/test_counter_channel_language_reach.py",
+   "test_file_sha256": "eac3bb70ac70142a2a809513e445388218961c83f83aa0c076ae96e086b7c576",
+   "status": "FAIL",
+   "n_passed": 14,
+   "n_failed": 3,
+   "n_skipped": 1,
+   "n_unsupported": 0,
+   "cases": [
+    {
+     "test": "test_baseline_language_cells_are_republished_read_only",
+     "status": "PASS"
+    },
+    {
+     "test": "test_c1_missing_response_is_never_a_product_verdict",
+     "status": "PASS"
+    },
+    {
+     "test": "test_c3_oracle_flip_both_directions",
+     "status": "PASS"
+    },
+    {
+     "test": "test_committed_result_if_present_reproduces_from_pinned_inputs",
+     "status": "SKIPPED",
+     "reason": "committed claim-bearing result not produced yet"
+    },
+    {
+     "test": "test_controls_all_hold_on_the_pinned_record",
+     "status": "PASS"
+    },
+    {
+     "test": "test_decomposition_union_is_subset_of_accepted_pooled_gate",
+     "status": "PASS"
+    },
+    {
+     "test": "test_freeze_record_pins_the_accepted_inputs",
+     "status": "FAIL",
+     "error": "AssertionError: hypothesis must be committed before execution",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 142, in run_file\n    fn()\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_counter_channel_language_reach.py\", line 189, in test_freeze_record_pins_the_accepted_inputs\n    assert HYP_PATH.is_file(), \"hypothesis must be committed before execution\"\n           ^^^^^^^^^^^^^^^^^^\nAssertionError: hypothesis must be committed before execution\n"
+    },
+    {
+     "test": "test_full_run_scratch_is_reproducible_and_writes_nothing_claim_bearing",
+     "status": "FAIL",
+     "error": "AssertionError: ",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 142, in run_file\n    fn()\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_counter_channel_language_reach.py\", line 207, in test_full_run_scratch_is_reproducible_and_writes_nothing_claim_bearing\n    assert HYP_PATH.is_file() and FREEZE_PATH.is_file()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+     "test": "test_measure_is_deterministic_on_the_pinned_record",
+     "status": "PASS"
+    },
+    {
+     "test": "test_measure_reports_every_language_row_count_and_never_invents_hits",
+     "status": "PASS"
+    },
+    {
+     "test": "test_pin_drift_fails_closed",
+     "status": "FAIL",
+     "error": "FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/evaluation/COUNTER_CHANNEL_LANGUAGE_REACH_FREEZE_RECORD_V1.json'",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 142, in run_file\n    fn()\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_counter_channel_language_reach.py\", line 254, in test_pin_drift_fails_closed\n    result, exit_code = ENGINE.run(SPEC_PATH, bad_record, HYP_PATH, FREEZE_PATH, out,\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/counter_channel_language_reach.py\", line 583, in run\n    freeze = json.loads(freeze_path.read_text(encoding=\"utf-8\"))\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/pathlib.py\", line 1029, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/pathlib.py\", line 1015, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/evaluation/COUNTER_CHANNEL_LANGUAGE_REACH_FREEZE_RECORD_V1.json'\n"
+    },
+    {
+     "test": "test_rule_not_measured_on_empty_frozen_set_even_if_all_zero",
+     "status": "PASS"
+    },
+    {
+     "test": "test_rule_not_measured_when_a_counter_query_is_unanswered",
+     "status": "PASS"
+    },
+    {
+     "test": "test_rule_reach_held_when_every_language_hits_at_least_one",
+     "status": "PASS"
+    },
+    {
+     "test": "test_rule_reach_lost_when_one_language_zero",
+     "status": "PASS"
+    },
+    {
+     "test": "test_verdict_environment_on_pin_drift",
+     "status": "PASS"
+    },
+    {
+     "test": "test_verdict_environment_when_control_fails",
+     "status": "PASS"
+    },
+    {
+     "test": "test_verdict_lost_and_held_are_distinguishable",
+     "status": "PASS"
+    }
+   ]
+  }
+ ],
+ "what_this_is_not": "NOT pytest. This runner does not discover, collect, fixture-inject, xfail or report the way pytest does. A case needing a fixture, a parametrisation or a construct outside supported_constructs is reported UNSUPPORTED and counted as NOT-RUN, never as passed, so the counts here are an UPPER BOUND on what pytest would execute. A SHIM_PASS does NOT withdraw the standing disclosure that the lane's pytest scope is unexecuted in the producer image and that the snapshot-audit READY verdict is conditional on that absence.",
+ "why_it_exists": "An unexecuted test file is an unverified claim. This converts the lane's pytest-style tests into a measurement in an image where pytest is absent, without pretending the absence is fixed."
+}

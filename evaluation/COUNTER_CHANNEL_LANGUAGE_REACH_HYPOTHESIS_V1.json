@@ -1,0 +1,46 @@
+{
+  "schema": "lex-evaluation-counter-channel-language-reach-hypothesis/1",
+  "instrument": "evaluation/counter_channel_language_reach.py",
+  "instrument_sha256": "0672c600f036a7261f2a21217440c2ef332d130ae3a8a32ed73302f576d2fc90",
+  "freeze_record": "evaluation/COUNTER_CHANNEL_LANGUAGE_REACH_FREEZE_RECORD_V1.json",
+  "direction_version": 61,
+  "run_context": "core-lane run 39587184968, lanes.evaluation v61 (FAST MVP mode: smallest executable retrieval/counter-authority benchmark that can falsify the product; no universal-174k benchmark)",
+  "created_at_utc": "2026-10-21T11:05:59Z",
+  "hypothesis": "For every frozen question with a non-empty known-counter set, the frozen COUNTER-authority channel reaches at least one known contrary/limiting authority from EACH of the FR, DE and IT counter queries of the frozen retrieval benchmark. I.e. the independent adversarial counter pass, issued in any single one of the three official languages, does not lose all known counter authority for that question. This is the cut the Master Prompt's adversarial research requirement depends on and it is NOT what the accepted suite measures: the accepted counter gate pools all three languages (90 counter rows of 240), while the accepted per-language gates cover the BASELINE channel only.",
+  "baseline": "Two accepted numbers, both republished read-only beside this run's own measurement and neither re-decided: (1) the accepted pooled counter gate `counter::known_counter_recall::<slug>` of the pinned accepted offline-replay record (all channels, all languages, 240 rows per question); (2) the accepted per-language BASELINE cells `authority::baseline_lang_recall::<slug>::<lang>` of the same record. The unit of comparison is the frozen known_counter_ids set of each question, matched with the ACCEPTED `gates.match_authorities` id matcher.",
+  "metric": "Per (question x language) hit set of the frozen known_counter_ids inside that language's counter-channel rows only (30 rows per language), plus (reported-only) the cross-language set differences, the counter-channel union, and `pooled_only` = pooled-gate hits that no single-language counter query reaches. All numbers are reported with numerator and denominator; no rate is thresholded.",
+  "frozen_rule": "per slug, with a non-empty frozen known-counter set and all three counter queries answered (status 200 and rows > 0): REACH_LOST iff some language's counter channel reaches ZERO known counter ids; REACH_HELD iff every language's counter channel reaches >= 1 known counter id. NOT_MEASURED_NO_RESPONSE (a counter query unanswered / empty) and NOT_MEASURED_EMPTY_FROZEN_SET (frozen set empty) are never a pass and never a fail.",
+  "exit_code_contract": {
+    "0": "COUNTER_SINGLE_LANGUAGE_REACH_HELD — at least one slug measured, none REACH_LOST, all non-vacuity controls hold",
+    "1": "COUNTER_SINGLE_LANGUAGE_REACH_LOST — at least one slug REACH_LOST (hypothesis falsified) and all controls hold",
+    "2": "ENVIRONMENT_OR_VACUOUS — any frozen pin drifted before or after execution, a non-vacuity control failed, or no slug was measurable"
+  },
+  "controls": [
+    "C1_unanswered_counter_query_is_NOT_MEASURED_not_a_verdict — blanking one question's counter queries and marking them 503 must classify NOT_MEASURED_NO_RESPONSE (never a product verdict from missing data).",
+    "C2_counter_channel_union_is_subset_of_accepted_pooled_counter_gate — the per-language cut pools a strict subset of the accepted gate's rows, so its hit set can never exceed the accepted gate's; a violation means the decomposition is unfaithful and must not be published (exit 2).",
+    "C3_rule_flips_HELD_when_one_language_loses_reach — an ORACLE counter pool reaching every known id from every language must classify REACH_HELD, and removing only the IT injection (keeping the IT query answered with an unrelated row) must flip every non-empty-set slug to REACH_LOST; otherwise an observed HELD would be vacuous."
+  ],
+  "no_thresholds_statement": "'reaches zero' is set emptiness on frozen ids. No bar, rubric, threshold, stoplist, tokeniser, projection constant or verdict contract of the frozen suite is read for enforcement, edited, re-derived, re-tuned or paraphrased; RULES_LABEL.json / RULES_GEOMETRY.json / VERDICT_CONTRACT.json are not inputs to this instrument and the frozen absolute LABEL_SOUND / GEOMETRY_SOUND bars stay REPORTED-ONLY and untouched.",
+  "inputs_pinned": {
+    "evaluation/retrieval_gate/frozen_retrieval_benchmark.json": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "results/evaluation/retrieval_benchmark/39117425713.json": "f976d53a2b8481db42bb1d0dde5f673b1b5bd5284d2b6c5fe6dcc3115cdebd75",
+    "evaluation/retrieval_gate/gates.py": "f9bbbc7d61c927e9b687cfbcf140371d08fa6069509b0a1b6466d514ea37a6d9",
+    "evaluation/retrieval_gate/frozen.py": "46add5d0a537679db02d87a45ec945779c66349c75c8ed39ae59b57a482ba5c3"
+  },
+  "record_choice_justification": "39117425713 is the ACCEPTED offline replay of the frozen 24 queries (audit gate PASS for run 39117425713, safe_to_integrate=true) and is already the pinned FROZEN_RECORD of the accepted stand-ready multilingual probe (evaluation/stand_ready_multilingual_probe.py) and the accepted concept-seed instrument (evaluation/concept_seed_beside_frozen_cells.py). Reusing it keeps this cycle offline, deterministic and on cached input.",
+  "pre_freeze_disclosure": "Reconnaissance preceded this freeze and is disclosed verbatim so no reader mistakes this run for a blind confirmation. Before freezing, I computed the per-language counter-channel hit COUNTS on the pinned record by calling the accepted gates.match_authorities directly (an exploratory, never-published calculation): rent-default fr 1 / de 1 / it 0 of 9; corporate-criminal-liability fr 0 / de 3 / it 0 of 6; business-judgment-rule fr 0 / de 1 / it 0 of 4; petty-theft-dismissal fr 3 / de 3 / it 1 of 9. Those counts indicate the REACH_LOST outcome is likely. What was NOT inspected before freezing and is measured for the first time here: the exact per-language hit ID SETS and their pairwise differences, the `pooled_only` decomposition against the accepted pooled gate, the three non-vacuity controls, the pin/reproducibility layer and the report. The hypothesis, rule and exit codes are frozen as written above; nothing will be adjusted after seeing the result, and a REACH_HELD result would have been published exactly the same way.",
+  "claim_ceiling": "This instrument establishes exactly one thing: on the ACCEPTED offline-replay retrieval record of the frozen 4-question benchmark, whether each of the FR/DE/IT counter-authority queries independently reaches at least one of the frozen known counter ids of its question. It is a retrieval-layer measurement of the FROZEN BASELINE channel, NOT a measurement of Product's shipped counter-emission stage (that is attributed by frontier-counter-label-emission, already cross-checked in run 39457963802), NOT a claim about LABEL_SOUND or GEOMETRY_SOUND (both stay REPORTED-ONLY), NOT a claim about jurist usefulness or about the map, and NOT a serve recommendation. It lifts no DO-NOT-SERVE order; packet admission stays fail-closed; human_gate_ready and owner_decision_required stay false. No universal-174k benchmark is run.",
+  "freeze_history": [
+    {
+      "seq": 1,
+      "at_utc": "2026-10-21T11:06:44Z",
+      "note": "initial freeze of hypothesis/rule/exit codes/controls (engine sha d3c6ce88...). A subsequent scratch validation run (tmp paths, no claim-bearing output written, no measurement numbers observed) raised a plumbing ValueError in out_path display before any result file was produced; the engine was corrected without touching the rule, metric, controls, exit codes, inputs or thresholds, and the pins were re-frozen with the corrected engine sha. The hypothesis text above is byte-identical to the initial freeze apart from this freeze_history block and the instrument_sha256 field."
+    },
+    {
+      "seq": 2,
+      "at_utc": "2026-10-21T11:14:00Z",
+      "note": "second pre-execution re-freeze: report-rendering plumbing fixed after the scratch test surfaced a KeyError in render_report (wrong dict key) and an UnboundLocalError in a caption line. Only the report renderer changed; measurement, rule, metric, controls, exit codes, inputs, thresholds and claim ceiling are byte-identical. The scratch validation wrote no result file (the exception fired before write_text), so no claim-bearing measurement output existed at edit time; a subsequent dry render of the report text (no file written to results/) was used only to confirm the renderer works, and nothing measurement-bearing was changed after it.",
+      "engine_sha256": "0672c600f036a7261f2a21217440c2ef332d130ae3a8a32ed73302f576d2fc90"
+    }
+  ]
+}

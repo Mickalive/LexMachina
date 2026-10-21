@@ -1,0 +1,46 @@
+{
+  "schema": "lex-evaluation-counter-channel-language-reach-freeze/1",
+  "frozen_at_utc": "2026-10-21T11:06:44Z",
+  "frozen_before_claim_bearing_execution": true,
+  "direction_version": 61,
+  "run_id": "39587184968",
+  "hypothesis": "evaluation/COUNTER_CHANNEL_LANGUAGE_REACH_HYPOTHESIS_V1.json",
+  "hypothesis_sha256": "138ddd8eb225c9261be62520f3b35d23ce973cf8ea34aa66eed3bac7dd15d322",
+  "instrument": "evaluation/counter_channel_language_reach.py",
+  "instrument_sha256": "0672c600f036a7261f2a21217440c2ef332d130ae3a8a32ed73302f576d2fc90",
+  "pins": {
+    "evaluation/counter_channel_language_reach.py": "0672c600f036a7261f2a21217440c2ef332d130ae3a8a32ed73302f576d2fc90",
+    "evaluation/COUNTER_CHANNEL_LANGUAGE_REACH_HYPOTHESIS_V1.json": "138ddd8eb225c9261be62520f3b35d23ce973cf8ea34aa66eed3bac7dd15d322",
+    "evaluation/retrieval_gate/frozen_retrieval_benchmark.json": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "results/evaluation/retrieval_benchmark/39117425713.json": "f976d53a2b8481db42bb1d0dde5f673b1b5bd5284d2b6c5fe6dcc3115cdebd75",
+    "evaluation/retrieval_gate/gates.py": "f9bbbc7d61c927e9b687cfbcf140371d08fa6069509b0a1b6466d514ea37a6d9",
+    "evaluation/retrieval_gate/frozen.py": "46add5d0a537679db02d87a45ec945779c66349c75c8ed39ae59b57a482ba5c3"
+  },
+  "frozen_rule": "per slug, with a non-empty frozen known-counter set and all three counter queries answered (status 200 and rows > 0): REACH_LOST iff some language's counter channel reaches ZERO known counter ids; REACH_HELD iff every language's counter channel reaches >= 1 known counter id. NOT_MEASURED_NO_RESPONSE and NOT_MEASURED_EMPTY_FROZEN_SET are never a pass and never a fail.",
+  "exit_code_contract": {
+    "0": "COUNTER_SINGLE_LANGUAGE_REACH_HELD",
+    "1": "COUNTER_SINGLE_LANGUAGE_REACH_LOST",
+    "2": "ENVIRONMENT_OR_VACUOUS"
+  },
+  "controls_frozen": [
+    "C1_unanswered_counter_query_is_NOT_MEASURED_not_a_verdict",
+    "C2_counter_channel_union_is_subset_of_accepted_pooled_counter_gate",
+    "C3_rule_flips_HELD_when_one_language_loses_reach"
+  ],
+  "inputs": {
+    "frozen_spec": "evaluation/retrieval_gate/frozen_retrieval_benchmark.json (sha256 187b0e54..., the standing accepted frozen retrieval benchmark; freeze record of that spec b06a2ad0... is unchanged)",
+    "measurement_record": "results/evaluation/retrieval_benchmark/39117425713.json — accepted offline replay, audit gate PASS for run 39117425713 (safe_to_integrate=true); 24 queries = 4 questions x (3 baseline + 3 counter) languages, all status 200, replayed from the evaluation-owned raw cache",
+    "matcher": "evaluation.retrieval_gate.gates.match_authorities / row_cores / _pool (accepted, never re-derived)",
+    "frozen_module": "evaluation.retrieval_gate.frozen (LANGUAGES=('fr','de','it'), alnum_core, normalize_text; accepted, never re-derived)"
+  },
+  "not_pinned_because_not_used": {
+    "RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608 — not an input to this instrument; absolute bar stays REPORTED-ONLY and untouched",
+    "RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633 — not an input to this instrument; absolute bar stays REPORTED-ONLY and untouched",
+    "VERDICT_CONTRACT.json": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c — not an input; this instrument's exit codes are its own frozen contract above"
+  },
+  "pin_discipline": "The engine re-hashes every pin BEFORE measurement (fail-closed: drift -> exit 2, zero measured slugs, never a product verdict) and AGAIN after execution, publishing both hash sets in the result. The bytes actually read are substituted for the pinned path, so a tampered --record/--spec/--hypothesis cannot satisfy a pin.",
+  "numeric_environment": "Python 3.12.3, CPython, pure-Python set operations on committed record bytes (no BLAS/numpy reduction order, no float comparison, no rounding anywhere in the rule).",
+  "append_only_convention": "A file named for run X holds run X's measurement (F-3B convention, factory-wide requirement 30): this run writes results/evaluation/counter_channel_language_reach/39587184968.json only, and nothing existing is overwritten, edited or deleted.",
+  "refrozen_at_utc": "2026-10-21T11:14:00Z",
+  "freeze_history_note": "Freeze revision BEFORE any claim-bearing execution: the first freeze (2026-10-21T11:06:44Z) was followed only by scratch validation runs writing into temp dirs; the engine hit an out_path display ValueError before any result file existed, so no measurement output was ever produced or observed. The fix touched path display only — rule, metric, controls, exit codes, inputs and thresholds are byte-identical — and both pins were re-frozen with the corrected engine sha before the claim-bearing run. Second re-freeze at 2026-10-21T11:14:00Z: report-rendering plumbing (a dict key typo and a caption UnboundLocalError) corrected after a scratch test; measurement code, rule, metric, controls, exit codes, inputs, thresholds and claim ceiling unchanged; the scratch run failed BEFORE writing any result file, so no measurement output existed. Both re-freezes happened before the claim-bearing run."
+}
