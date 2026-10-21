@@ -64,12 +64,10 @@ import argparse
 import hashlib
 import importlib.util
 import json
-import re
 import sys
 import types
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 SCHEMA = "lex-evaluation-counter-probe-anchor-falsifier/1"
 
@@ -355,7 +353,7 @@ def measure_bundle(item: dict, product: ProductCode, *, packet_label: str) -> di
         "G2_anchor_topical": bool(anchor_topical),
         "question_content_terms": q_term_list,
         "G3_adversarial_rows": len(new_ids),
-        "G3_rows_topical_vs_question": n_topical,
+        "G3_rows_topical_vs_question": n_topicical,
         "G3_row_topical_rate": row_rate,
         "G3_rows_topical_vs_product_pool": n_pool_topical,
         "G3_row_topical_rate_product_pool": pool_rate,
@@ -726,6 +724,7 @@ def main(argv: list[str] | None = None) -> int:
         },
         "n_bundles": len(measurements),
         "n_contaminated": n_contaminated,
+        "contaminated_bundles": [m["source_path"] for m in contaminated],
         "n_non_topical_anchor": len(non_topical),
         "placeholder_tokens": ph_tokens,
         "redaction_placeholder": product.redaction_placeholder,
