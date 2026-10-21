@@ -1,0 +1,57 @@
+{
+  "append_only_convention": "A file named for run X holds run X's measurement (F-3B convention, factory-wide requirement 30): this run writes results/evaluation/counter_probe_anchor_falsifier/39674402905.json and reports/evaluation/COUNTER_PROBE_ANCHOR_FALSIFIER_39674402905.md only, and nothing existing is overwritten, edited or deleted.",
+  "controls_frozen": [
+    "C1_replay_fidelity",
+    "C2_blank_prose_yields_no_plan",
+    "C3_clean_bundle_not_flagged",
+    "C4_de_redaction_is_a_no_op_without_the_placeholder",
+    "C5_gate_discriminates_not_merely_detects_placeholder"
+  ],
+  "direction_version": 61,
+  "exit_code_contract": {
+    "0": "COUNTER_PROBE_ANCHOR_NOT_FALSIFIED",
+    "1": "COUNTER_PROBE_ANCHOR_FALSIFIED",
+    "2": "ENVIRONMENT_OR_VACUOUS"
+  },
+  "freeze_history_note": "First freeze of this instrument. The hypothesis file's `pre_freeze_disclosure` records verbatim what was observed before the freeze, so the run is not a blind confirmation. The rule, metric, controls, exit codes, pins and claim ceiling are frozen as written; the only permitted subsequent edit to the frozen files is a freeze_history entry that discloses a pre-execution plumbing change, which would require re-freezing both digests before any claim-bearing run.",
+  "frozen_at_utc": "2026-10-21T21:29:13Z",
+  "frozen_before_claim_bearing_execution": true,
+  "frozen_rule": "per bundle with recorded adversarial probes: CONTAMINATED iff (recorded_anchor INTERSECT answer_key_terms(REDACTION_PLACEHOLDER)) is non-empty; NOT_CONTAMINATED otherwise. The run verdict is COUNTER_PROBE_ANCHOR_FALSIFIED iff at least one measured bundle is CONTAMINATED and all five non-vacuity controls pass; COUNTER_PROBE_ANCHOR_NOT_FALSIFIED iff no measured bundle is CONTAMINATED and all five controls pass; ENVIRONMENT_OR_VACUOUS iff any control fails, any pin drifts before or after execution, or the measurable population is empty. CONTAMINATED is a set intersection on the product's own tokenisation and stoplist: there is NO count, rate, frequency, share or percentage threshold anywhere in the rule, and none may be introduced after the result is seen. The topicality measures are REPORTED-ONLY and can never change the verdict.",
+  "hypothesis": "evaluation/COUNTER_PROBE_ANCHOR_FALSIFIER_HYPOTHESIS_V1.json",
+  "hypothesis_sha256": "a3cdbda6115f3ddce0be93d738222a0f67ef1883f189093d37508dbdbe1aba53",
+  "inputs": {
+    "accepted_artefacts_republished_read_only": [
+      "evaluation/vendored_frontier_counter_emission/ATTRIBUTION.json (cause classes c_HYDRATION, e_EMISSION_WRITER_ABORT only — label side)",
+      "results/evaluation/counter_emission_crosscheck/39457963802.json (accept cbda7853, ZERO_DIVERGENCE over 96 comparable quantities)"
+    ],
+    "primary_source": "/tmp/lex_accepted/product (the ephemeral accepted dispatch mount) — results/product/gate_packet/*/questions/*.bundle.json, 14 measurable bundles, population manifest 80306fd5fe05c04e36faa5d2adf6a2b98167280a05eb7ea48ce57ec17bdf73db",
+    "product_code": "the accepted mount's OWN product/query/adversarial_retrieval.py, product/query/retrieval.py and frontier/frontier-generative-audit/generative_audit/source_packing.py, loaded by a dependency-light importlib shim; their tokenisation, stoplist, anchor semantics and placeholder constant are used as-is and never re-implemented here",
+    "secondary_source": "results/evaluation/rebuilt_packet_adjudication_39049030442/packet (committed in-repo byte source) — 3 measurable bundles, population manifest 66e2a07e3bc8397921241dbba71c5babd74de5d0480f20316785e97bb814ab8c; used only when the mount is absent, and the record says which source was used"
+  },
+  "instrument": "evaluation/counter_probe_anchor_falsifier.py",
+  "instrument_sha256": "5ca5b9a7963a0256d916b5a8642c094e5155ecf92bfeb101b20f8573ca656ba7",
+  "network_calls": 0,
+  "not_pinned_because_not_used": {
+    "RULES_GEOMETRY.json": "not an input to this instrument; the absolute GEOMETRY_SOUND bar stays REPORTED-ONLY and untouched",
+    "RULES_LABEL.json": "not an input to this instrument; the absolute LABEL_SOUND bar stays REPORTED-ONLY and untouched",
+    "VERDICT_CONTRACT.json": "not an input; this instrument's exit codes are its own frozen contract above"
+  },
+  "numeric_environment": "Python 3 (CPython), pure-Python set operations on committed bundle bytes and the product's own pure-Python tokeniser: no BLAS/numpy reduction order, no float comparison, no rounding anywhere in the rule. The product's `answer_key_terms` and `plan_adversarial_queries` are pure functions (no network, no clock, no randomness), so the whole measurement is deterministic and re-runnable.",
+  "pin_discipline": "The engine re-hashes every pin BEFORE measurement (fail-closed: drift -> exit 2, zero measured bundles, never a product verdict) and AGAIN after execution, publishing both hash sets in the result. The population manifest is re-derived from the source tree and compared with the frozen digest, so a hand-picked or substituted bundle list cannot satisfy the pin.",
+  "pins": {
+    "evaluation/COUNTER_PROBE_ANCHOR_FALSIFIER_HYPOTHESIS_V1.json": "a3cdbda6115f3ddce0be93d738222a0f67ef1883f189093d37508dbdbe1aba53",
+    "evaluation/counter_probe_anchor_falsifier.py": "5ca5b9a7963a0256d916b5a8642c094e5155ecf92bfeb101b20f8573ca656ba7"
+  },
+  "population_manifests": {
+    "mount": "80306fd5fe05c04e36faa5d2adf6a2b98167280a05eb7ea48ce57ec17bdf73db",
+    "secondary": "66e2a07e3bc8397921241dbba71c5babd74de5d0480f20316785e97bb814ab8c"
+  },
+  "pre_execution_validation": "Before this freeze the only executions were: (a) a `--selftest` run of the instrument, which loads the product code and exercises the loader, the placeholder token set, the product's D4 blank-prose guard, a topical-prose anchor and the anchor geometry on SYNTHETIC prose, and which by construction never touches the real bundle population and never writes a result file; and (b) a scratch computation of the population manifests and the product-file digests needed to write these pins. No real bundle measurement, no control outcome, no verdict and no result file existed at the moment of this freeze.",
+  "product_pins": {
+    "frontier/frontier-generative-audit/generative_audit/source_packing.py": "8d27a2263013136c43564041c299193583434019f641e468bc25cdf18e4154f1",
+    "product/query/adversarial_retrieval.py": "57b6a6f99793ef6663957ccdcd51a577feb9c8d7075efcc339f5c25bece065e1",
+    "product/query/retrieval.py": "30ad4190a99165fab725132dcdca593e89806db4d85de379cc46811cd02ad5a1"
+  },
+  "run_id": "39674402905",
+  "schema": "lex-evaluation-counter-probe-anchor-falsifier-freeze/1"
+}
