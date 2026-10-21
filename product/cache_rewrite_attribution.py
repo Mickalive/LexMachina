@@ -217,9 +217,33 @@ def current_tree_integrity(entries: dict[str, str]) -> dict[str, Any]:
     }
 
 
+#: Length of the abbreviated commit sha this module publishes.
+#:
+#: ``git log --format=%h`` is NOT a fixed width: git auto-scales the
+#: abbreviation to the repository's size, so the same commit renders as
+#: ``3f94e0e`` on one git build and ``3f94e0e8c`` on another.  That made the
+#: committed attribution artifact of run 39674781875 FAIL to reproduce from the
+#: committed tree on a git build with a different auto-abbreviation length -
+#: the binding defect class of this factory ("a published claim does not
+#: reproduce from the committed tree").  The abbreviation is therefore pinned
+#: to a fixed width.  The published artifact shape is deliberately UNCHANGED:
+#: the committed artifact must reproduce byte-for-byte, so the rule is stated
+#: here and in product/tests/test_cache_rewrite_attribution.py, not added to
+#: the artifact.
+SHORT_SHA_LENGTH = 7
+
+
+def short_sha(rev: str) -> str:
+    """A FIXED-WIDTH abbreviated sha. Never ``%h``: that width is git's choice."""
+    out = _git("rev-parse", "--short=%d" % SHORT_SHA_LENGTH, rev).strip()
+    return out or rev
+
+
 def commit_subject(rev: str) -> str:
+    """``<short-sha> <subject>``, with the short sha pinned to a fixed width."""
     try:
-        return _git("log", "-1", "--format=%h %s", rev).strip()
+        subject = _git("log", "-1", "--format=%s", rev).strip()
+        return f"{short_sha(rev)} {subject}".strip()
     except MeasurementError:
         return rev
 

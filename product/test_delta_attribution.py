@@ -124,9 +124,24 @@ def module_count(root: Path, module: str, tests_dir: str = TESTS_DIR) -> int:
     raise RefuseToPublish(f"module {module} did not report a collection count at {root}")
 
 
+#: Length of the abbreviated commit sha this module publishes.
+#:
+#: ``git show --format=%h`` is NOT a fixed width: git auto-scales the
+#: abbreviation to the repository's size, so the same commit renders as
+#: ``dc924cd`` on one git build and ``dc924cddde`` on another.  Every
+#: attribution artifact this lane has published names its commits with that
+#: abbreviation, so an unpinned width makes a published decomposition
+#: unreproducible from the committed tree on a git build with a different
+#: auto-abbreviation length - the binding defect class of this factory.  The
+#: width is therefore pinned, and the historical artifacts' 7-character shas
+#: keep their exact published form.
+SHORT_SHA_LENGTH = 7
+
+
 def _commit_meta(sha: str) -> dict[str, str]:
-    raw = _git("show", "-s", "--format=%h%x1f%s%x1f%aI", sha).strip()
-    short, subject, date = raw.split("\x1f")
+    short = _git("rev-parse", "--short=%d" % SHORT_SHA_LENGTH, sha).strip() or sha[:SHORT_SHA_LENGTH]
+    raw = _git("show", "-s", "--format=%s%x1f%aI", sha).strip()
+    subject, date = raw.split("\x1f")
     return {"commit": sha, "short": short, "subject": subject, "authored": date}
 
 

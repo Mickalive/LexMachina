@@ -1,0 +1,120 @@
+{
+  "schema": "product-resume-diagnosis/1",
+  "run_id": 39689729561,
+  "lane": "product",
+  "direction_version": 61,
+  "producer_snapshot": "90d62836a91262f33d7fb91aca34467003ab3d21",
+  "parent_snapshot": "dc924cddde20ad20691fdbdeabd5e71742231f3d",
+  "resumed_from_run": 39684006959,
+  "method": {
+    "how_the_defects_were_found": "every claim in the lane's own evidence was re-derived from the committed tree instead of read from prose: the committed guards were run on the resumed tree, each red guard was reduced to the smallest reproduction that still fails, and each root cause was fixed in the instrument that produced the claim rather than in the prose that repeated it.",
+    "baseline": "the accepted product tip (origin/lab/product = 5cf909878) was checked out read-only as the RED baseline, so a defect this cycle inherited is not charged to this cycle and a defect this cycle introduced is not hidden behind an inherited one.",
+    "environment": {
+      "python": "3.12.3",
+      "pytest": "9.1.1",
+      "git": "2.55.0",
+      "numpy": "2.5.4",
+      "scipy": "1.18.1",
+      "scikit_learn": "1.9.1"
+    },
+    "note": "no GitHub run could be inspected: the runtime carries no GH_TOKEN, so the diagnosis is derived from the committed tree the run produced, not from the run's own log."
+  },
+  "defects": [
+    {
+      "id": "D1",
+      "title": "the lane state named a report of record that was never written",
+      "severity": "blocking",
+      "status": "FIXED",
+      "reproduction": "python3 -m pytest -q product/tests/test_state_cycle_39674781875.py",
+      "observed": "two failures: 'the report of record is missing' and 'the report of record does not cite 20261020T174538Z.json; the report of record must cite it'. The lane state carried verification.report_of_record = 'reports/product/CYCLE_39674781875.md' and the file did not exist. A third guard failed for the same reason: product/tests/test_report_artifact_arithmetic.py reported 'artifact 20261020T174538Z.json is cited by no report - an artifact with no report of record makes the sweep vacuous'.",
+      "root_cause": "the cycle shipped the evidence and the state that names it, but no report of record. Nine committed live-slice artifacts (five timestamped map-only records from 2026-10-20, the CYCLE_39452421855 full/map-only pair and the two CYCLE_39667945530 records) were cited by no report at the accepted base, so the citation-count sweep was vacuous over exactly the records that carry the answer and the counter-authority accounting.",
+      "repair": "reports/product/CYCLE_39674781875.md was written from the artifacts: it cites all nine previously uncited artifacts, quotes their own recorded fields, records the served fixture path, quotes the measured collected-test decomposition verbatim, and states the fail-closed posture. The numbers in it are re-derived from the artifacts, not typed from the prose of the rejected cycle.",
+      "evidence": [
+        "reports/product/CYCLE_39674781875.md",
+        "product/tests/test_state_cycle_39674781875.py",
+        "product/tests/test_report_artifact_arithmetic.py"
+      ]
+    },
+    {
+      "id": "D2",
+      "title": "both attribution tools published git's auto-abbreviated short sha, whose width is not fixed",
+      "severity": "blocking",
+      "status": "FIXED",
+      "reproduction": "python3 -m pytest -q product/tests/test_cache_rewrite_attribution.py",
+      "observed": "'the committed attribution artifact does not match a fresh measurement'. A fresh measurement of the same tree produced range.base_subject '3f94e0e8c (cache-rewrite manifest commit)' where the committed artifact records '3f94e0e (cache-rewrite manifest commit)'. git auto-scales the abbreviation to the repository size, so the same commit renders with 7 characters on one git build and 9 on another (git 2.55.0 here). The artifact could not be reproduced from the committed tree on this machine, which is the binding defect class of this factory: a published measurement that no longer re-derives is not evidence.",
+      "root_cause": "product/cache_rewrite_attribution.py and product/test_delta_attribution.py both took the short sha from git's %h format specifier, which is not a fixed width.",
+      "repair": "both tools now ask git for an explicit width (git rev-parse --short=7) and fall back to the commit's own first 7 characters. The published artifact's shape was NOT changed, so the historical artifact keeps its exact published form and now reproduces byte-for-byte on this machine. The width is pinned in the tool, not in the prose.",
+      "evidence": [
+        "product/cache_rewrite_attribution.py",
+        "product/test_delta_attribution.py",
+        "results/product/cache_attribution/CYCLE_39674781875_manifest_rewrite_attribution.json",
+        "product/tests/test_cache_rewrite_attribution.py"
+      ]
+    },
+    {
+      "id": "D3",
+      "title": "the pinned attribution artifact carried no independent cross-check",
+      "severity": "blocking",
+      "status": "FIXED",
+      "reproduction": "python3 -m pytest -q product/tests/test_delta_attribution.py",
+      "observed": "test_head_total_is_corroborated_by_the_full_run_regression_artifact failed with \"assert 'NOT_RUN' == 'COMPARED'\". The artifact's cross_check recorded status NOT_RUN and why 'no regression-scope artifact supplied', so the base collected total had never been corroborated by the independent full-run measurement the lane already holds.",
+      "root_cause": "the artifact was generated without passing the committed regression-scope artifact to the tool's --regression-artifact option.",
+      "repair": "this cycle's attribution is regenerated with --regression-artifact results/product/regression/CYCLE_39144924680_regression_scope.json, so the cross-check runs, the base is corroborated by a full suite run of the same named commit, and the head disagreement that follows is the documented, expected one (this cycle added tests). The pin moves with a recorded reason; every older artifact stays on disk.",
+      "evidence": [
+        "results/product/regression/CYCLE_39689729561_test_delta_attribution.json",
+        "results/product/regression/CYCLE_39144924680_regression_scope.json",
+        "product/tests/test_delta_attribution.py"
+      ]
+    },
+    {
+      "id": "D4",
+      "title": "the accepted cycle 39543057762 deleted 91 top-level claim-bearing records from the lane state, four of which committed guards read",
+      "severity": "blocking",
+      "status": "FIXED",
+      "reproduction": "python3 -m pytest -q product/tests/test_canvas_ring_strokes.py product/tests/test_regression_scope_honesty.py product/tests/test_frontier_serve_audit_intake.py",
+      "observed": "four guards were RED on the accepted tip and stayed red through every later cycle: test_canvas_ring_strokes.py (v55_delivery), test_regression_scope_honesty.py (repair_39048942749_d1_d2_a2 and repair_39051003925_f1_f2_f3) and test_frontier_serve_audit_intake.py (cycle_39056694835_frontier_serve_audit_intake). state/product.json had been reduced from 108 top-level keys to 24 by a wholesale replacement (commit bdfcc9813).",
+      "root_cause": "the two earlier restorations restored the verification register and two disclosure blocks and disclosed that the other 93 deleted records stayed preserved-only on the ground that their values would be 'stale or contradictory'. That reasoning is correct for a pointer the present cycle owns and wrong for a historical record a guard reads: a guard that reads a historical record cannot be satisfied by a preserved-only copy.",
+      "repair": "product/state_register_restore.py now restores exactly the four guard-read records, byte-exact, from the preserved bytes of the deleted state (results/product/state_register/CYCLE_39538762904_state_product.json, sha256 0f2d35a171521d84b9acd7f440df0641e4e0a9ff894992a873a9e828ff55f2a8). The other 89 deleted records stay preserved-only, exactly as the earlier restorations disclosed, and the state says so with the number.",
+      "evidence": [
+        "product/state_register_restore.py",
+        "results/product/state_register/CYCLE_39538762904_state_product.json",
+        "state/product.json",
+        "product/tests/test_state_cycle_39689729561.py"
+      ]
+    }
+  ],
+  "inherited_reds_left_unchanged": [
+    {
+      "id": "R1",
+      "scope": "18 legacy 174k test modules",
+      "observed": "collection fails with ModuleNotFoundError: sentence_transformers (an optional dependency of the PAUSEd legacy lane).",
+      "why_left": "out of the direction's scope: the legacy 174k corpus, dense embeddings and scraping are closed by direction v61, and the query-specific path does not load them. Recorded in the lane state as pre_existing_collection_errors."
+    },
+    {
+      "id": "R2",
+      "scope": "product/tests/test_cache_non_orphan.py",
+      "observed": "the frozen-subset claim-bundle replay does not reproduce the committed claim bundle leaf-for-leaf in this environment (cluster labels, sizes, member_ids and several provenance leaves differ).",
+      "why_left": "pre-existing at the accepted tip and environment-scoped: the lane's own rule is that rebuilt-packet byte identity is environment-scoped, and the recorded numeric environment must accompany any such claim. Re-deriving it here would need the environment that produced the accepted claim artifact; no claim is made on it in this cycle."
+    },
+    {
+      "id": "R3",
+      "scope": "product/tests/test_http_api_integration.py",
+      "observed": "the neighbours API and the universal 174k map assertions fail against the absent legacy corpus.",
+      "why_left": "same scope closure as R1: the 174k corpus is closed by the direction and is not on the query-specific path."
+    },
+    {
+      "id": "R4",
+      "scope": "product/tests/test_counter_instability_disclosure.py",
+      "observed": "KeyError: 'open_items' while reading the accepted main state's results/accepted-state/evaluation.json.",
+      "why_left": "the file is the accepted handoff state's own artifact on main, not a product-owned file this lane may edit; the disclosure this cycle is about is the run-to-run counter-instability disclosure, which is a separate, still-open direction item and is not re-litigated here."
+    }
+  ],
+  "not_done": [
+    "no frozen bar, threshold, metric, dataset, rubric, scope or guard was weakened, moved, deleted or edited to make a result pass",
+    "no .github/** edit, no Frontier re-dispatch, no packet bytes touched",
+    "no owner card, owner session or ready_for_owner_session=true produced",
+    "no legacy 174k corpus work, no dense embeddings, no scraping, no 3-D work",
+    "the serve-verdict work discharged by the direction was not redone or re-litigated"
+  ],
+  "claim_ceiling": "A diagnosis and repair of the lane's own bookkeeping and measurement instruments. It scores no frozen bar, measures no answer quality, measures no live OpenCaseLaw latency and makes no legal-usefulness or human-gate claim."
+}

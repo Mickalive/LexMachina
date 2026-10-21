@@ -217,6 +217,114 @@ CLAIM_39660515863 = (
     "carried."
 )
 
+#: The top-level records that accepted cycle 39543057762 deleted and that a
+#: COMMITTED GUARD on this lane requires the live state to carry.
+#:
+#: The two earlier restorations deliberately did NOT write the 93 deleted
+#: top-level records back, on the ground that "generic pointers and per-cycle
+#: claim blocks" would be stale.  That reasoning is right for a pointer whose
+#: current value the present cycle owns (``accepted_commit``, ``audit_gate``,
+#: ``current_run``, ``state_updated_at`` ...) and WRONG for a claim-bearing
+#: historical record that a committed guard reads.  Four of them are read
+#: directly by guards that were RED on the accepted tip:
+#:
+#:   * ``v55_delivery`` - product/tests/test_canvas_ring_strokes.py requires
+#:     the live state to carry the amber dashed-ring / "retained for visibility"
+#:     owner-facing claim, and the direction's ordered work (4) requires that
+#:     posture to stay published;
+#:   * ``repair_39048942749_d1_d2_a2`` and ``repair_39051003925_f1_f2_f3`` -
+#:     product/tests/test_regression_scope_honesty.py reads both and asserts
+#:     they stay self-consistent about gate positions and about the WITHDRAWN
+#:     regression-scope sentence;
+#:   * ``cycle_39056694835_frontier_serve_audit_intake`` -
+#:     product/tests/test_frontier_serve_audit_intake.py asserts the block is
+#:     present and still says what it said on that day
+#:     (PENDING_ACCEPTANCE_NOT_FIRED / DO-NOT-SERVE in force / fail-closed).
+#:
+#: These are restored BYTE-EXACT from the preserved artifact, so the historical
+#: record is not rewritten to agree with today.  The remaining deleted records
+#: stay preserved-only, exactly as the two earlier restorations disclosed.
+GUARD_REQUIRED_TOP_LEVEL_RECORDS = (
+    "cycle_39056694835_frontier_serve_audit_intake",
+    "repair_39048942749_d1_d2_a2",
+    "repair_39051003925_f1_f2_f3",
+    "v55_delivery",
+)
+
+#: The third restoration.  This cycle's own disclosure.
+RECORD_39689729561 = {
+    "run_id": "39689729561",
+    "deleting_run": "39543057762",
+    "defect": (
+        "accepted cycle 39543057762 (commit bdfcc9813) replaced state/product.json "
+        "wholesale and deleted the top-level 'verification' register plus 93 further "
+        "top-level records. The two earlier restorations restored the register and "
+        "two disclosure blocks, and disclosed that the other 93 top-level records "
+        "stayed preserved-only on the ground that their values would be 'stale or "
+        "contradictory'. Four of those 93 are CLAIM-BEARING HISTORICAL RECORDS that "
+        "committed guards read directly, and the guards were RED on the accepted tip "
+        "and stayed red through every later cycle: "
+        "product/tests/test_canvas_ring_strokes.py (v55_delivery), "
+        "product/tests/test_regression_scope_honesty.py (repair_39048942749_d1_d2_a2, "
+        "repair_39051003925_f1_f2_f3) and "
+        "product/tests/test_frontier_serve_audit_intake.py "
+        "(cycle_39056694835_frontier_serve_audit_intake). The 'stale' reasoning is "
+        "correct for a pointer the present cycle owns and wrong for a historical "
+        "record a guard reads; the four are therefore restored byte-exact."),
+    "restored": [
+        "cycle_39056694835_frontier_serve_audit_intake (byte-exact; the serve-audit "
+        "intake of that day, still saying PENDING_ACCEPTANCE_NOT_FIRED / "
+        "DO-NOT-SERVE in force / fail-closed)",
+        "repair_39048942749_d1_d2_a2 (byte-exact; the D1/D2/A2 repair record whose "
+        "regression_scope sentence is WITHDRAWN IN FULL)",
+        "repair_39051003925_f1_f2_f3 (byte-exact; the F1/F2/F3 repair record, "
+        "self-consistent about gate positions)",
+        "v55_delivery (byte-exact; the owner-facing amber dashed-ring / 'retained "
+        "for visibility' claim the render contract probe checks)",
+    ],
+    "preserved_bytes": {
+        "artifact": "results/product/state_register/CYCLE_39538762904_state_product.json",
+        "sha256": "{sha256}",
+        "source_commit": "6663c32",
+        "source_run": "39538762904",
+        "note": ("the deleted bytes are preserved verbatim; nothing was removed and "
+                 "the file named for the run that carried them holds that run's "
+                 "measurement"),
+    },
+    "not_restored_into_the_live_state": (
+        "the other 89 deleted top-level records stay preserved-only in the same "
+        "artifact, exactly as the two earlier restorations disclosed: they are "
+        "generic pointers (accepted_commit, audit_artifact, audit_gate, "
+        "audit_report, audit_required_fixes, audit_safe_to_integrate, "
+        "state_updated_at, current_run, ...) or per-cycle claim blocks that no "
+        "committed guard reads, and writing a stale pointer back into the live "
+        "state would misstate the present cycle."),
+    "live_state_precedence": (
+        "for every key the live state already carries, the live value wins; this "
+        "tool only ADDS the restored keys and the disclosure records, so the state "
+        "can grow and never shrinks silently."),
+    "claim_ceiling": (
+        "This is a restoration of deleted lane state, not a new measurement and not "
+        "a legal claim. It scores no frozen bar, changes no threshold, changes no "
+        "product behaviour and moves no gate position."),
+}
+
+CLAIM_39689729561 = (
+    "RESTORED BY RUN 39689729561: accepted cycle 39543057762 (commit bdfcc9813) "
+    "replaced state/product.json wholesale and deleted 93 top-level records "
+    "besides the 'verification' register. The two earlier restorations restored "
+    "the register and two disclosure blocks and disclosed that the rest stayed "
+    "preserved-only. Four of them are CLAIM-BEARING HISTORICAL RECORDS that "
+    "committed guards read directly - v55_delivery, repair_39048942749_d1_d2_a2, "
+    "repair_39051003925_f1_f2_f3 and "
+    "cycle_39056694835_frontier_serve_audit_intake - and the guards that read them "
+    "were RED on the accepted tip. They are restored byte-exact from "
+    "results/product/state_register/CYCLE_39538762904_state_product.json "
+    "(sha256 {sha256}); the deleted bytes are preserved there and nothing was "
+    "deleted. The live state keeps its own value for every key it already "
+    "carried."
+)
+
 RESTORATIONS = (
     _restoration(
         record_key="state_register_restoration_39651573572",
@@ -247,6 +355,18 @@ RESTORATIONS = (
         record=RECORD_39674781875,
         claim_key="state_register_deleted_by_39660515863",
         claim=CLAIM_39660515863,
+    ),
+    _restoration(
+        record_key="state_register_restoration_39689729561",
+        deleting_run="39543057762",
+        restoring_run="39689729561",
+        artifact="CYCLE_39538762904_state_product.json",
+        source_commit="6663c32",
+        source_run="39538762904",
+        restored_keys=GUARD_REQUIRED_TOP_LEVEL_RECORDS,
+        record=RECORD_39689729561,
+        claim_key="state_register_deleted_by_39543057762_top_level_claim_records",
+        claim=CLAIM_39689729561,
     ),
 )
 
