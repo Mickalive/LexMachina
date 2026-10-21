@@ -276,18 +276,22 @@ def recompute_sweep(sweep: dict) -> dict:
 
     return {
         "n_groups": (sweep.get("group_structure") or {}).get("n_groups"),
-        "expected_group_keys": sorted(
-            ((sweep.get("group_structure") or {}).get("expected_group_keys")
+        "expected_n_groups": (sweep.get("group_structure") or {}).get(
+            "expected_n_groups"),
+        "expected_structure_keys": sorted(
+            ((sweep.get("group_structure") or {}).get("expected_group_sizes")
+             or (sweep.get("group_structure") or {}).get("group_sizes")
              or {}).keys()),
         "de": {
             "jaccard": de_ro.get("jaccard"),
             "rank_changed": (de_ro.get("rank") or {}).get("n_rank_changed"),
             "cluster": de_ro.get("cluster") or {},
             "counter_leg_status": de_counter.get("status"),
+            "counter_leg_runs_compared": de_counter.get("runs_compared") or [],
+            "counter_leg_detail": de_counter.get("detail"),
             "counter_stage_applicable_in_any_de_run": any(
-                ((per_run_one or {}).get("stage_applicability") or {}).get(
-                    "applicable")
-                for per_run_one in ((de_counter.get("per_run_measured") or {}).values())),
+                ((m or {}).get("stage_applicability") or {}).get("applicable")
+                for m in (de_counter.get("per_run_measured") or {}).values()),
         },
         "fr": {
             "jaccard": fr_ro.get("jaccard"),
@@ -520,18 +524,31 @@ def build_rows(product: dict, lane_state_items: dict, main_items: dict,
         f"{sweep_re['other_applicable_legs']}"))
 
     de_applies = str((product["de_applies"] or {}).get("counter_stage_evidence") or "")
-    q10_match = (de["counter_leg_status"] == "NOT_APPLICABLE"
-                 and "UNTESTED" in de_applies)
+    de_runs = de.get("counter_leg_runs_compared") or []
+    de_runs_both_na = (
+        de["counter_leg_status"] == "NOT_APPLICABLE"
+        and len(de_runs) == 2
+        and "NOT_APPLICABLE in run(s)" in str(de.get("counter_leg_detail") or "")
+        and all(r in str(de.get("counter_leg_detail") or "") for r in de_runs))
+    q10_match = (de_runs_both_na
+                 and "UNTESTED" in de_applies
+                 and "NOT_APPLICABLE in both DE runs" in de_applies)
     rows.append(_row(
         "Q10_de_untested", "quantity",
         "DE attribution: counter stability UNTESTED (NOT_APPLICABLE in both "
         "DE runs)",
-        de_applies, {"counter_leg_status": de["counter_leg_status"]},
-        q10_match, "exact status + required phrase"))
+        de_applies,
+        {"counter_leg_status": de["counter_leg_status"],
+         "runs_compared": de_runs,
+         "detail": de.get("counter_leg_detail"),
+         "both_runs_not_applicable": de_runs_both_na},
+        q10_match, "exact status + both-runs naming + required phrase"))
     it_applies = str((product["it_applies"] or {}).get("counter_stage_evidence") or "")
+    structure_keys = sweep_re["expected_structure_keys"]
     q11_match = (sweep_re["n_groups"] == 2
-                 and not any(k.upper().startswith("IT") for k in
-                              sweep_re["expected_group_keys"])
+                 and sweep_re["expected_n_groups"] == 2
+                 and len(structure_keys) > 0
+                 and not any(k.upper().startswith("IT") for k in structure_keys)
                  and "NOT MEASURED" in it_applies
                  and "no IT same-query group" in it_applies)
     rows.append(_row(
@@ -539,8 +556,10 @@ def build_rows(product: dict, lane_state_items: dict, main_items: dict,
         "IT attribution: no IT same-query group in the 2-group population",
         it_applies,
         {"n_groups": sweep_re["n_groups"],
-         "expected_group_keys": sweep_re["expected_group_keys"]},
-        q11_match, "exact structure + required phrase"))
+         "expected_n_groups": sweep_re["expected_n_groups"],
+         "structure_keys": structure_keys},
+        q11_match, "exact structure (non-empty keys, no it- prefix) + "
+        "required phrase"))
     ans_a = fr["answer_a"].get("n_cited_decision_ids")
     ans_b = fr["answer_b"].get("n_cited_decision_ids")
     prose_differs = (fr["answer_a"].get("prose_sha256")
@@ -783,6 +802,23 @@ def run(mount: Path, out_path: Path | None = None) -> dict:
         "hypothesis_sha256": HYP_SHA256,
         "freeze_record_sha256": sha256_file(FREEZE_PATH),
         "instrument": "evaluation/disclosure_provenance_crosscheck.py",
+        "instrument_sha256": sha256_file(Path(__file__).resolve()),
+        "numeric_environment": {
+            "python": sys.version.split()[0],
+            "platform": sys.platform,
+        },
+        "instrument_strengthening_disclosure": (
+            "An initial execution of this run wrote "
+            "39516448683_initial_instrument_execution_preserved.json "
+            "(preserved, never deleted). Before publication the Q10/Q11 "
+            "structural checks were STRENGTHENED only (DE both-runs "
+            "not-applicable naming; non-empty structure keys with no it- "
+            "prefix; instrument digest + numeric environment recorded). No "
+            "check was weakened, no row was dropped, the frozen hypothesis "
+            "and success rule are untouched, and this artifact is the "
+            "measurement of record for run 39516448683."
+            if (OUT_DIR / f"{RUN_ID}_initial_instrument_execution_preserved.json"
+                ).is_file() else None),
         "subject_under_test": {
             "product_mount": str(mount),
             "disclosure_artifact": str(disclosure_path),
