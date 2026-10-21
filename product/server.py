@@ -19,8 +19,24 @@ from collections import OrderedDict
 from functools import wraps
 from typing import Tuple, Dict, Optional, Any, List
 
-# Add product directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
+# Both roots must be importable, whichever way this file is launched:
+#   python3 product/server.py <port>   (sys.path[0] == product/)
+#   python3 -m product.server           (sys.path[0] == repository root)
+#   imported by a test from the repository root
+#
+# The REPOSITORY ROOT is REQUIRED, not optional: product/query/bundle.py does
+# `from product.query.counter_status import ...`, so the package `product` must
+# be importable.  Cycle 39646409851 replaced the repository root with the
+# product directory, and the shipped launch command then failed every
+# /api/query/* endpoint with "ModuleNotFoundError: No module named 'product'"
+# (the handler died without answering).  The PRODUCT directory is required
+# because `from app.navigation import ...` and `from query.pipeline import ...`
+# resolve against it.  This mirrors product/query_app.py exactly.
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+_PRODUCT_ROOT = Path(__file__).resolve().parent
+for _import_root in (_PRODUCT_ROOT, _REPO_ROOT):
+    if str(_import_root) not in sys.path:
+        sys.path.insert(0, str(_import_root))
 
 import logging
 
@@ -379,6 +395,27 @@ def get_default_representation(nav_api=None) -> str:
         if "cited_outcome_hybrid_0.5_174k" in available:
             return "cited_outcome_hybrid_0.5_174k"
     return "cited_outcome_hybrid_0.5"
+
+
+#: Content type per file extension for the shipped static assets.  The type must
+#: follow the file, not the route: the ``/static/`` route added by cycle
+#: 39646409851 served every non-``.js`` asset as ``text/css``, which breaks the
+#: shipped ``query.html`` page in a browser.
+_STATIC_CONTENT_TYPES = {
+    ".js": "application/javascript",
+    ".css": "text/css",
+    ".html": "text/html",
+    ".json": "application/json",
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".ico": "image/x-icon",
+}
+
+
+def _static_content_type(path: str) -> str:
+    """Return the content type for a static asset path."""
+    suffix = Path(path).suffix.lower()
+    return _STATIC_CONTENT_TYPES.get(suffix, "application/octet-stream")
 
 
 class ProductHandler(SimpleHTTPRequestHandler):
@@ -803,12 +840,17 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/" or path == "/index.html":
             self._serve_file("static/index.html", "text/html")
         elif path.startswith("/static/"):
-            # Strip /static/ prefix since _serve_file prepends "static/"
-            self._serve_file(path[1:], "application/javascript" if path.endswith(".js") else "text/css")
+            # Everything under /static/ is served from product/static/ ONLY.
+            # The content type must follow the file, not the route: serving the
+            # shipped query.html as text/css breaks the page in a browser
+            # (cycle 39646409851 shipped exactly that), and an unconfined
+            # /static/ route answers /static/../server.py with the server's own
+            # source.
+            self._serve_static(path[len("/static/"):], _static_content_type(path))
         elif path.endswith(".js"):
-            self._serve_file(f"static{path}", "application/javascript")
+            self._serve_static(path, "application/javascript")
         elif path.endswith(".css"):
-            self._serve_file(f"static{path}", "text/css")
+            self._serve_static(path, "text/css")
         else:
             self.send_error(404)
 
@@ -1252,17 +1294,43 @@ class ProductHandler(SimpleHTTPRequestHandler):
         self.wfile.write(json.dumps(data, ensure_ascii=False).encode("utf-8"))
 
     def _serve_file(self, filepath, content_type):
-        """Serve a static file."""
-        base_dir = Path(__file__).parent
-        full_path = base_dir / filepath
-        if full_path.exists():
-            self.send_response(200)
-            self.send_header("Content-Type", content_type)
-            self.end_headers()
-            with open(full_path, "rb") as f:
-                self.wfile.write(f.read())
-        else:
+        """Serve a file that lives under the product directory."""
+        base_dir = Path(__file__).resolve().parent
+        try:
+            full_path = (base_dir / filepath).resolve()
+        except (OSError, ValueError):
             self.send_error(404)
+            return
+        if base_dir not in full_path.parents or not full_path.is_file():
+            self.send_error(404)
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.end_headers()
+        with open(full_path, "rb") as f:
+            self.wfile.write(f.read())
+
+    def _serve_static(self, rel_path, content_type):
+        """Serve a file that lives under ``product/static/`` and nowhere else.
+
+        The resolved path must stay INSIDE ``product/static``: the ``/static/``
+        route added by cycle 39646409851 otherwise answered
+        ``/static/../server.py`` with the server's own source (HTTP 200).
+        """
+        static_dir = (Path(__file__).resolve().parent / "static").resolve()
+        try:
+            full_path = (static_dir / rel_path.lstrip("/")).resolve()
+        except (OSError, ValueError):
+            self.send_error(404)
+            return
+        if static_dir not in full_path.parents or not full_path.is_file():
+            self.send_error(404)
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.end_headers()
+        with open(full_path, "rb") as f:
+            self.wfile.write(f.read())
 
     def log_message(self, format, *args):
         """Suppress default logging for cleaner output."""
