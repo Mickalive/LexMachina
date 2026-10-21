@@ -127,7 +127,7 @@
         "detail": "Blanked counter_evidence causes n_scored=0, gate_blocks_build=true"
       }
     ],
-    "reason": "both deliberately regressed inputs make the gates fail — the benchmark can falsify",
+    "reason": "both deliberately regressed inputs make the gates fail \u2014 the benchmark can falsify",
     "frozen_spec_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
     "v3_bundle_sha256": {
       "de-kapitalverletzung": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
@@ -335,5 +335,6 @@
     "product_handoff": "A PRODUCT defect, not an evaluation defect; the fix belongs to the product lane and this lane's write scope forbids touching product code. Either (a) exclude the redaction placeholder from the probe key terms in product/query/adversarial_retrieval.py (strip REDACTION_PLACEHOLDER from the prose before answer_key_terms, or exclude the placeholder's tokens from the candidate set) - the smaller change, and it keeps the audit's redaction intact - or (b) plan the probes from the PRE-redaction prose by reordering product/query/pipeline.py so adversarial_retrieval_pass sees the prose the answer was written from. Option (b) alone does not help if the answer itself lacks legal vocabulary, so (a) is the recommended remedy.",
     "claim_ceiling": "Establishes exactly one thing: on the accepted product's recorded counter-probe queries, whether the topic anchor contains a token the product's own key-term extractor derives from the generative audit's redaction placeholder, and whether the de-redaction counterfactual changes that anchor. NOT a label-emission measurement, NOT a counter-authority recall measurement against any frozen known-counter set, NOT a LABEL_SOUND or GEOMETRY_SOUND claim (both stay REPORTED-ONLY), NOT a serve recommendation, NOT a jurist-usefulness or map claim. The reported adversarial-row topicality rates are OBSERVATIONAL (the counterfactual cannot re-run the live retrieval) and are reported with numerator and denominator and no threshold. Lifts no DO-NOT-SERVE order; packet admission stays fail-closed; human_gate_ready and owner_decision_required stay false. No universal-174k benchmark was run.",
     "note": "The result file and the report were produced by a run whose frozen hypothesis, freeze record, rule, metric, controls and exit codes were committed BEFORE the first claim-bearing execution (commit f2c39900). Two re-freezes happened before the claim-bearing run, both disclosed in the freeze record's freeze_history_note and the hypothesis's freeze_history: (1) a pre-execution NameError plumbing failure that aborted BEFORE the result file was written, so no measurement output, verdict, control outcome or per-bundle number existed or was observed; (2) a display-only packet-label derivation fix, after which the verdict, the contaminated set, the de-redaction counterfactuals and all five control outcomes were re-measured and verified byte-identical. The pre-freeze reconnaissance is disclosed verbatim in the hypothesis's pre_freeze_disclosure."
-  }
+  },
+  "github_run": 39680754374
 }
