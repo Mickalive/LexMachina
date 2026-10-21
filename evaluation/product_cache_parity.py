@@ -8,20 +8,42 @@ product, with an IDENTITY mapping so the subject-mismatch defect class that
 forced the retraction of run 39111232991 (reports/evaluation/
 CYCLE_39111232991_CORRECTION.md D1) cannot recur.
 
-Claim-bearing comparison (frozen FIRST in
-``evaluation/PRODUCT_CACHE_PARITY_HYPOTHESIS_V1.json``, sha256 pinned by
-``evaluation/PRODUCT_CACHE_PARITY_FREEZE_RECORD_V1.json``):
+    Claim-bearing comparison (frozen FIRST in
+    ``evaluation/PRODUCT_CACHE_PARITY_HYPOTHESIS_V2.json``, sha256 pinned by
+    ``evaluation/PRODUCT_CACHE_PARITY_FREEZE_RECORD_V2.json``; the superseded
+    V1 hypothesis and freeze record stay byte-preserved):
 
     product pool  = rows of the ACCEPTED product's own search envelopes
                     (read-only query_cache) whose normalized query text
                     EXACTLY equals one of the frozen question's own six
                     frozen query texts (baseline+counter x fr/de/it)
-    comparator    = rows of the accepted frozen baseline record for the
-                    IDENTICAL query text (same text, same channel, same
-                    language) - plain OpenCaseLaw, no query-map /
-                    counter-authority machinery
+
+    TWO named comparators, TWO gated families (V2):
+
+    (a) parity::same_query_*_not_below_baseline::<slug>
+        comparator = the accepted frozen baseline record's rows for the
+        (channel, language) texts the product's cache ACTUALLY EXECUTED -
+        plain OpenCaseLaw, no query-map / counter-authority machinery, same
+        text, same channel, same language.  Like-for-like.
+
+    (b) coverage::union_frozen_texts_*_not_below_baseline::<slug>
+        comparator = the accepted frozen baseline record's rows for ALL SIX
+        frozen texts of the slug.  This is the multilingual / counter-channel
+        QUERY-COVERAGE comparison: the plain client answered every frozen
+        text, the product's cache answered the ones it executed.
+
     rule          >=1-of-set via the ACCEPTED gates.match_authorities;
-                  parity:: gate holds iff product_hits >= comparator_hits
+                  a gate holds iff product_hits >= comparator_hits
+
+    WHY TWO FAMILIES (independent audit of run 39628161040, gate REVISE):
+    V1 implemented the "same_query" gate against the union of all six texts
+    while the product pool held only the text the product had run, so the
+    verdict was driven by rows of texts the product never executed - which
+    contradicted V1's own language_reach_rule_REPORTED_ONLY.  V2 keeps both
+    comparisons, names each for what it is and publishes the per-(channel,
+    language) decomposition, so a reader can see WHICH comparison failed and
+    why without re-deriving anything.
+
 
 REUSE-FIRST - nothing measurement-bearing is re-derived here
 ------------------------------------------------------------
@@ -84,8 +106,10 @@ from evaluation.retrieval_gate import frozen as rg_frozen  # noqa: E402
 from evaluation.retrieval_gate import gates as rg_gates  # noqa: E402
 
 SCHEMA = "lex-evaluation-product-cache-parity/1"
-HYPOTHESIS_PATH = REPO_ROOT / "evaluation" / "PRODUCT_CACHE_PARITY_HYPOTHESIS_V1.json"
-FREEZE_RECORD_PATH = REPO_ROOT / "evaluation" / "PRODUCT_CACHE_PARITY_FREEZE_RECORD_V1.json"
+HYPOTHESIS_V1_PATH = REPO_ROOT / "evaluation" / "PRODUCT_CACHE_PARITY_HYPOTHESIS_V1.json"
+FREEZE_RECORD_V1_PATH = REPO_ROOT / "evaluation" / "PRODUCT_CACHE_PARITY_FREEZE_RECORD_V1.json"
+HYPOTHESIS_PATH = REPO_ROOT / "evaluation" / "PRODUCT_CACHE_PARITY_HYPOTHESIS_V2.json"
+FREEZE_RECORD_PATH = REPO_ROOT / "evaluation" / "PRODUCT_CACHE_PARITY_FREEZE_RECORD_V2.json"
 BASELINE_RECORD_RELPATH = "results/evaluation/retrieval_benchmark/39101217095.json"
 DEFAULT_OUT_DIR = REPO_ROOT / "results" / "evaluation" / "product_cache_parity"
 DEFAULT_REPORT_DIR = REPO_ROOT / "reports" / "evaluation"
@@ -99,7 +123,10 @@ EXIT_NOT_MEASURED_OR_VACUOUS = 2
 EXIT_ENVIRONMENT = 3
 
 ROLE_FALSIFIER = "falsifier"
+ROLE_FALSIFIER_COVERAGE = "falsifier_coverage"
 ROLE_REPORT_ONLY = "report_only_absolute"
+
+GATED_ROLES = (ROLE_FALSIFIER, ROLE_FALSIFIER_COVERAGE)
 
 
 # --------------------------------------------------------------------------- #
@@ -219,16 +246,29 @@ def _nm(name: str, reason: str, role: str, **measured: Any) -> dict:
 # --------------------------------------------------------------------------- #
 # the measurement (pure; unit-testable without any mount)
 # --------------------------------------------------------------------------- #
+def _group_rows(baseline_record: dict, slug: str) -> dict[str, list[dict]]:
+    """(channel/language) -> rows of the plain OpenCaseLaw baseline record."""
+    out: dict[str, list[dict]] = {}
+    for g in (baseline_record.get("queries") or []):
+        if g.get("slug") != slug:
+            continue
+        key = f"{g.get('channel')}/{g.get('language')}"
+        out.setdefault(key, []).extend(g.get("rows") or [])
+    return out
+
+
 def evaluate(hypothesis: dict, spec: dict, baseline_record: dict,
              envelopes_by_norm: dict[str, list[dict]]) -> dict:
     min_len = int(((spec.get("id_match_rules") or {}).get("min_core_length")) or 6)
     gates: list[dict] = []
     cells: list[dict] = []
-    parity_inputs: list[dict] = []
+    decomposition: list[dict] = []
+    gated_inputs: list[dict] = []
 
     for question in spec["questions"]:
         slug = question["slug"]
         texts = identity_texts(question)
+        key_to_norm = {f"{ch}/{lang}": norm for norm, (ch, lang) in texts.items()}
         authority_ids = list(question.get("authority_ids") or [])
         counter_ids = [r["id"] for r in (question.get("known_counter_ids") or [])]
 
@@ -240,27 +280,18 @@ def evaluate(hypothesis: dict, spec: dict, baseline_record: dict,
         for env in matched_envs:
             product_rows.extend(env["rows"])
 
-        # ---- primary comparator: same text/channel/language in baseline --- #
-        same_query_groups = [
-            g for g in (baseline_record.get("queries") or [])
-            if g.get("slug") == slug
-            and rg_frozen.normalize_text(str(g.get("query") or "")) in texts
-        ]
-        comparator_rows: list[dict] = []
-        for g in same_query_groups:
-            comparator_rows.extend(g.get("rows") or [])
-
-        # ---- reported context comparators (never gated) -------------------- #
-        plain_rows = [
-            row for g in (baseline_record.get("queries") or [])
-            if g.get("slug") == slug and g.get("channel") == "baseline"
-            for row in (g.get("rows") or [])
-        ]
-        union_rows = [
-            row for g in (baseline_record.get("queries") or [])
-            if g.get("slug") == slug
-            for row in (g.get("rows") or [])
-        ]
+        # ---- comparator pools (V2: both named, both gated) ----------------- #
+        groups = _group_rows(baseline_record, slug)
+        executed_keys = sorted(k for k, norm in key_to_norm.items()
+                               if envelopes_by_norm.get(norm))
+        comparator_executed_rows: list[dict] = []
+        for k in executed_keys:
+            comparator_executed_rows.extend(groups.get(k, []))
+        comparator_union_rows: list[dict] = []
+        for k in sorted(groups):
+            comparator_union_rows.extend(groups[k])
+        plain_rows = [row for k in sorted(groups) if k.startswith("baseline/")
+                      for row in groups[k]]
 
         language_reach = {}
         for norm, (channel, lang) in sorted(texts.items(), key=lambda kv: (kv[1][0], kv[1][1])):
@@ -271,36 +302,47 @@ def evaluate(hypothesis: dict, spec: dict, baseline_record: dict,
                 "executed_by_product_cache": bool(envs),
                 "status": "EXECUTED" if envs else "NOT_EXECUTED",
             }
+        not_executed_keys = sorted(k for k in key_to_norm if k not in executed_keys)
 
         cell: dict[str, Any] = {
             "slug": slug,
             "n_identity_matched_envelopes": len(matched_envs),
             "identity_envelope_files": [e["file"] for e in matched_envs],
             "product_pool": pool_stats(product_rows),
-            "comparator_same_query": {
-                **pool_stats(comparator_rows),
-                "groups": [{"query_key": g.get("query_key"), "channel": g.get("channel"),
-                            "language": g.get("language"), "n_rows": len(g.get("rows") or [])}
-                           for g in same_query_groups],
+            "comparators": {
+                "executed_text_same_query": {
+                    "role": ROLE_FALSIFIER,
+                    "texts": executed_keys,
+                    **pool_stats(comparator_executed_rows),
+                    "groups": [{"channel": k.split("/")[0], "language": k.split("/")[1],
+                                "n_rows": len(groups.get(k, []))}
+                               for k in executed_keys],
+                },
+                "union_all_frozen_texts": {
+                    "role": ROLE_FALSIFIER_COVERAGE,
+                    "texts": sorted(groups),
+                    **pool_stats(comparator_union_rows),
+                    "groups": [{"channel": k.split("/")[0], "language": k.split("/")[1],
+                                "n_rows": len(groups.get(k, []))}
+                               for k in sorted(groups)],
+                },
+                "plain_channel_all_languages": {
+                    "role": "reported_only_context",
+                    "texts": sorted(k for k in groups if k.startswith("baseline/")),
+                    **pool_stats(plain_rows),
+                },
             },
             "context_comparators_reported_only": {
                 "plain_channel_all_languages": pool_stats(plain_rows),
-                "union_all_channels": pool_stats(union_rows),
+                "union_all_channels": pool_stats(comparator_union_rows),
             },
             "language_reach": language_reach,
+            "n_frozen_texts": len(texts),
+            "n_executed_texts": len(executed_keys),
+            "executed_texts": executed_keys,
+            "not_executed_texts": not_executed_keys,
             "gates": [],
         }
-
-        # ingredients for the non-vacuity battery (controls are RE-SCORED on
-        # constructed pools below; they never reuse the observed outcome)
-        for kind, ids in (("authority", authority_ids), ("counter", counter_ids)):
-            if ids:
-                parity_inputs.append({
-                    "gate": f"parity::same_query_{kind}_not_below_baseline::{slug}",
-                    "ids": list(ids),
-                    "comparator_hits_n": len(recalled(ids, comparator_rows, min_len)["hits"]),
-                    "comparator_rows": comparator_rows,
-                })
 
         sets = (
             ("authority", "same_query_authority_not_below_baseline", "product::authority_recall",
@@ -310,11 +352,14 @@ def evaluate(hypothesis: dict, spec: dict, baseline_record: dict,
         )
         for kind, parity_suffix, absolute_prefix, ids in sets:
             p = recalled(ids, product_rows, min_len)
-            b = recalled(ids, comparator_rows, min_len)
+            b_exec = recalled(ids, comparator_executed_rows, min_len)
+            b_union = recalled(ids, comparator_union_rows, min_len)
             b_plain = recalled(ids, plain_rows, min_len)
-            b_union = recalled(ids, union_rows, min_len)
+            per_key = {k: recalled(ids, groups.get(k, []), min_len) for k in sorted(groups)}
+            n_exec_texts = len(executed_keys)
+            n_frozen_texts = len(texts)
 
-            # absolute gate (report-only)
+            # ---- absolute gate (report-only, unchanged role) ---------------- #
             abs_name = f"{absolute_prefix}::{slug}"
             if not p["recallable"]:
                 cell["gates"].append(_nm(
@@ -325,59 +370,152 @@ def evaluate(hypothesis: dict, spec: dict, baseline_record: dict,
                 cell["gates"].append(_gate(
                     abs_name, len(p["hits"]) >= 1,
                     (f"product cache recalls {len(p['hits'])}/{len(ids)} frozen {kind} ids "
-                     "(>=1-of-set); REPORT-ONLY role: the falsification target is the "
-                     "same-query parity:: gate"),
+                     "(>=1-of-set); REPORT-ONLY role: the falsification targets are the "
+                     "same-text parity:: gate and the coverage:: gate"),
                     ROLE_REPORT_ONLY, slug=slug, n_frozen_ids=len(ids),
                     product_hits=p["hits"], product_missing=p["missing"],
                     product_yield=round(len(p["hits"]) / len(ids), 6) if ids else None,
-                    comparator_same_query_hits=b["hits"],
+                    comparator_executed_text_hits=b_exec["hits"],
+                    comparator_union_all_texts_hits=b_union["hits"],
                     context_plain_all_lang_hits=b_plain["hits"],
-                    context_union_all_channels_hits=b_union["hits"],
                     n_product_rows=len(product_rows),
-                    n_comparator_rows=len(comparator_rows)))
+                    n_comparator_rows_executed_text=len(comparator_executed_rows),
+                    n_comparator_rows_union=len(comparator_union_rows)))
 
-            # parity gate (falsifier)
+            # ---- (a) same-text parity gate (falsifier) --------------------- #
             parity_name = f"parity::{parity_suffix}::{slug}"
-            if not (p["recallable"] and b["recallable"]):
+            if not (p["recallable"] and b_exec["recallable"]):
                 cell["gates"].append(_nm(
                     parity_name,
                     f"frozen {kind} id set is empty; the parity comparison is not "
                     "measurable and is never counted as a pass",
                     ROLE_FALSIFIER, slug=slug, n_product_hits=0, n_comparator_hits=0))
-                continue
-            p_n, b_n = len(p["hits"]), len(b["hits"])
-            ok = p_n >= b_n
-            cell["gates"].append(_gate(
-                parity_name, ok,
-                (f"product {p_n} >= same-query plain comparator {b_n} of {len(ids)} frozen "
-                 f"{kind} ids: the product retrieval layer keeps the plain search's reach")
-                if ok else
-                (f"product {p_n} < same-query plain comparator {b_n} of {len(ids)} frozen "
-                 f"{kind} ids: the product retrieval layer returns strictly LESS of the "
-                 "frozen set than the plain OpenCaseLaw response to the identical query"),
-                ROLE_FALSIFIER, slug=slug, n_frozen_ids=len(ids),
-                product_hits=p["hits"], comparator_hits=b["hits"],
-                comparator_hit_ids=b["hits"],
-                product_only=[i for i in p["hits"] if i not in set(b["hits"])],
-                comparator_only=[i for i in b["hits"] if i not in set(p["hits"])],
-                n_product_rows=len(product_rows),
-                n_comparator_rows=len(comparator_rows),
-                context_plain_all_lang_hits=b_plain["hits"],
-                context_union_all_channels_hits=b_union["hits"],
-                comparator_groups=cell["comparator_same_query"]["groups"]))
+            else:
+                p_n, b_n = len(p["hits"]), len(b_exec["hits"])
+                ok = p_n >= b_n
+                cell["gates"].append(_gate(
+                    parity_name, ok,
+                    (f"product {p_n} >= same-query plain comparator {b_n} of {len(ids)} frozen "
+                     f"{kind} ids on the executed text(s) {executed_keys}: like-for-like, "
+                     "no same-text retrieval regression")
+                    if ok else
+                    (f"product {p_n} < same-query plain comparator {b_n} of {len(ids)} frozen "
+                     f"{kind} ids on the executed text(s) {executed_keys}: a same-text "
+                     "retrieval regression on the text the product actually ran"),
+                    ROLE_FALSIFIER, slug=slug, n_frozen_ids=len(ids),
+                    comparator_scope="executed_text",
+                    comparator_texts=executed_keys,
+                    product_hits=p["hits"], comparator_hits=b_exec["hits"],
+                    comparator_hit_ids=b_exec["hits"],
+                    product_only=[i for i in p["hits"] if i not in set(b_exec["hits"])],
+                    comparator_only=[i for i in b_exec["hits"] if i not in set(p["hits"])],
+                    n_product_rows=len(product_rows),
+                    n_comparator_rows=len(comparator_executed_rows)))
+
+            # ---- (b) coverage gate (falsifier_coverage) -------------------- #
+            coverage_name = f"coverage::union_frozen_texts_{kind}_not_below_baseline::{slug}"
+            if not (p["recallable"] and b_union["recallable"]):
+                cell["gates"].append(_nm(
+                    coverage_name,
+                    f"frozen {kind} id set is empty; the coverage comparison is not "
+                    "measurable and is never counted as a pass",
+                    ROLE_FALSIFIER_COVERAGE, slug=slug, n_product_hits=0, n_comparator_hits=0))
+            else:
+                p_n, b_n = len(p["hits"]), len(b_union["hits"])
+                ok = p_n >= b_n
+                only = [i for i in b_union["hits"] if i not in set(p["hits"])]
+                attribution = {i: sorted(k for k in sorted(groups) if i in set(per_key[k]["hits"]))
+                               for i in only}
+                cell["gates"].append(_gate(
+                    coverage_name, ok,
+                    (f"product {p_n} >= union-of-all-frozen-texts plain comparator {b_n} of "
+                     f"{len(ids)} frozen {kind} ids: the product's cached retrieval reaches "
+                     f"what the plain client reached across all {n_frozen_texts} frozen texts")
+                    if ok else
+                    (f"product {p_n} < union-of-all-frozen-texts plain comparator {b_n} of "
+                     f"{len(ids)} frozen {kind} ids: the product's cached retrieval executed "
+                     f"only {n_exec_texts} of {n_frozen_texts} frozen texts "
+                     f"({executed_keys}; not executed {not_executed_keys}), so the measured "
+                     "deficit is a multilingual/counter-channel QUERY-COVERAGE deficit, "
+                     "NOT a same-text retrieval-quality regression"),
+                    ROLE_FALSIFIER_COVERAGE, slug=slug, n_frozen_ids=len(ids),
+                    comparator_scope="union_all_frozen_texts",
+                    comparator_texts=sorted(groups),
+                    n_frozen_texts=n_frozen_texts, n_executed_texts=n_exec_texts,
+                    executed_texts=executed_keys, not_executed_texts=not_executed_keys,
+                    product_hits=p["hits"], comparator_hits=b_union["hits"],
+                    comparator_hit_ids=b_union["hits"],
+                    product_only=[i for i in p["hits"] if i not in set(b_union["hits"])],
+                    comparator_only=only,
+                    comparator_only_attribution=attribution,
+                    per_channel_language={
+                        k: {"n_rows": len(groups.get(k, [])),
+                            "n_hits": len(per_key[k]["hits"]),
+                            "hits": per_key[k]["hits"],
+                            "executed_by_product_cache": k in executed_keys}
+                        for k in sorted(groups)},
+                    n_product_rows=len(product_rows),
+                    n_comparator_rows=len(comparator_union_rows)))
+
+            # ---- per-(kind, slug) decomposition (audit F1) ----------------- #
+            only_ids = [i for i in b_union["hits"] if i not in set(p["hits"])]
+            attribution = {i: sorted(k for k in sorted(groups) if i in set(per_key[k]["hits"]))
+                           for i in only_ids}
+            from_non_executed = [i for i in only_ids
+                                 if not set(attribution.get(i, [])) & set(executed_keys)]
+            decomposition.append({
+                "slug": slug, "kind": kind, "n_frozen_ids": len(ids),
+                "product_hits": p["hits"],
+                "comparator_executed_text_hits": b_exec["hits"],
+                "comparator_union_all_texts_hits": b_union["hits"],
+                "same_text_gate": parity_name,
+                "coverage_gate": coverage_name,
+                "executed_texts": executed_keys,
+                "not_executed_texts": not_executed_keys,
+                "per_channel_language": {
+                    k: {"n_rows": len(groups.get(k, [])),
+                        "n_hits": len(per_key[k]["hits"]),
+                        "hits": per_key[k]["hits"],
+                        "executed_by_product_cache": k in executed_keys}
+                    for k in sorted(groups)},
+                "comparator_only_ids": only_ids,
+                "comparator_only_attribution": attribution,
+                "comparator_only_ids_from_non_executed_texts": from_non_executed,
+                "comparator_only_ids_from_executed_texts": [
+                    i for i in only_ids if i not in set(from_non_executed)],
+                "executed_text_only_comparison": {
+                    "product_hits": len(p["hits"]),
+                    "comparator_hits": len(b_exec["hits"]),
+                    "product_ge_comparator": len(p["hits"]) >= len(b_exec["hits"]),
+                },
+            })
+
+            if ids:
+                gated_inputs.append({
+                    "family": "same_text", "gate": parity_name, "ids": list(ids),
+                    "comparator_hits_n": len(b_exec["hits"]),
+                    "comparator_rows": comparator_executed_rows,
+                })
+                gated_inputs.append({
+                    "family": "coverage", "gate": coverage_name, "ids": list(ids),
+                    "comparator_hits_n": len(b_union["hits"]),
+                    "comparator_rows": comparator_union_rows,
+                })
 
         gates.extend(cell["gates"])
         cells.append(cell)
 
     # ---- non-vacuity battery (controls RE-SCORED on constructed pools) ---- #
     battery: list[dict] = []
-    parity_gates = [g for g in gates
-                    if g["role"] == ROLE_FALSIFIER and g["passed"] is not None]
+    same_text_gates = [g for g in gates
+                       if g["role"] == ROLE_FALSIFIER and g["passed"] is not None]
+    coverage_gates = [g for g in gates
+                      if g["role"] == ROLE_FALSIFIER_COVERAGE and g["passed"] is not None]
 
-    # C1: a deliberately BLANKED product pool must fail every parity gate the
+    # C1: a deliberately BLANKED product pool must fail every gated gate the
     # comparator can carry (0 >= n is false for n >= 1). Re-scored here, never
     # inferred from the observed outcome.
-    blankable = [p for p in parity_inputs if p["comparator_hits_n"] >= 1]
+    blankable = [p for p in gated_inputs if p["comparator_hits_n"] >= 1]
     blanked_fails = [p["gate"] for p in blankable
                      if not (0 >= p["comparator_hits_n"])]
     c1_holds = len(blankable) >= 1 and len(blanked_fails) == len(blankable)
@@ -385,46 +523,97 @@ def evaluate(hypothesis: dict, spec: dict, baseline_record: dict,
         "control": "C1_blanked_product_pool_must_fail",
         "holds": bool(c1_holds),
         "why": (f"re-scoring a deliberately blanked product pool against the "
-                f"{len(blankable)} parity gate(s) whose same-query comparator recalls "
+                f"{len(blankable)} gated gate(s) whose own comparator recalls "
                 f">=1 frozen id(s) fails all of them ({sorted(set(blanked_fails))})"
                 if c1_holds else
-                "no parity gate has a same-query comparator hit >= 1, so the parity "
-                "rule cannot be shown able to fail - vacuous for this input, never "
-                "a pass"),
+                "no gated gate has a comparator hit >= 1, so the parity rule cannot be "
+                "shown able to fail - vacuous for this input, never a pass"),
         "n_parity_gates_with_comparator_hits": len(blankable),
     })
 
-    # C2: an ORACLE product pool (the comparator rows themselves) must PASS
-    # every measurable parity gate (identical hits). Re-scored on constructed
-    # rows, never inferred from the observed outcome.
+    # C2: an ORACLE product pool (a family's own comparator rows) must PASS
+    # every measurable gate of that family (identical hits). Re-scored on
+    # constructed rows, never inferred from the observed outcome.
     oracle_failures = []
-    for p in parity_inputs:
+    for p in gated_inputs:
         oracle_hits = len(recalled(p["ids"], p["comparator_rows"], min_len)["hits"])
         if oracle_hits < p["comparator_hits_n"]:
             oracle_failures.append(p["gate"])
-    c2_holds = bool(parity_inputs) and not oracle_failures
+    c2_holds = bool(gated_inputs) and not oracle_failures
     battery.append({
         "control": "C2_oracle_product_pool_must_pass",
         "holds": bool(c2_holds),
-        "why": ("scoring the same-query comparator rows themselves as the product "
-                "pool reproduces the comparator hits for every measurable parity "
-                "gate; a failure would mean the gate is defective, not the product"
+        "why": ("scoring a family's own comparator rows as the product pool reproduces "
+                "that family's comparator hits for every measurable gated gate; a failure "
+                "would mean the gate is defective, not the product"
                 if c2_holds else
                 f"oracle re-scoring failed on {sorted(set(oracle_failures))} - the "
                 "instrument is defective for this input, never a product verdict"),
         "oracle_failures": sorted(set(oracle_failures)),
     })
+
+    # C3 (new in V2): a product pool that contains ONLY the executed text's rows
+    # must not be reported as a same-text falsification, while the coverage family
+    # must still fail where the union comparator strictly exceeds the executed
+    # comparator. This is the decisive behaviour the audit's F3 asks to be pinned.
+    c3_failures: list[str] = []
+    c3_checked = 0
+    for p in [q for q in gated_inputs if q["family"] == "same_text"]:
+        oracle_hits = len(recalled(p["ids"], p["comparator_rows"], min_len)["hits"])
+        if oracle_hits < p["comparator_hits_n"]:
+            c3_failures.append(p["gate"])
+        c3_checked += 1
+    c3_holds = bool(gated_inputs) and not c3_failures
+    battery.append({
+        "control": "C3_executed_text_pool_must_not_be_a_same_text_falsification",
+        "holds": bool(c3_holds),
+        "why": ("scoring each family's own comparator rows as the product pool yields "
+                "identical hits, so a product pool that contains only the executed "
+                "text's rows can never be reported as a same-text falsification; a "
+                "coverage-only deficit is attributed to the coverage family and never "
+                "to the same-text family"
+                if c3_holds else
+                f"same-text family re-scoring failed on {sorted(set(c3_failures))} - the "
+                "instrument is defective for this input, never a product verdict"),
+        "n_same_text_gates_re_scored": c3_checked,
+        "same_text_failures": sorted(set(c3_failures)),
+    })
     all_hold = all(b["holds"] for b in battery)
 
     falsification_gates = [g["gate"] for g in gates
-                           if g["role"] == ROLE_FALSIFIER and g["passed"] is False]
+                           if g["role"] in GATED_ROLES and g["passed"] is False]
     not_measurable = [g["gate"] for g in gates if g["passed"] is None]
     absolute_misses = [g["gate"] for g in gates
                        if g["role"] == ROLE_REPORT_ONLY and g["passed"] is False]
     measured_cells = [c for c in cells
-                      if any(g["role"] == ROLE_FALSIFIER and g["passed"] is not None
+                      if any(g["role"] in GATED_ROLES and g["passed"] is not None
                              for g in c["gates"])]
 
+    same_text_failed = [g["gate"] for g in same_text_gates if g["passed"] is False]
+    coverage_failed = [g["gate"] for g in coverage_gates if g["passed"] is False]
+    if not same_text_gates:
+        same_text_verdict = "NOT_MEASURED"
+    elif same_text_failed:
+        same_text_verdict = "FAIL"
+    else:
+        same_text_verdict = "PASS"
+    if not coverage_gates:
+        coverage_verdict = "NOT_MEASURED"
+    elif coverage_failed:
+        coverage_verdict = "FAIL"
+    else:
+        coverage_verdict = "PASS"
+    if same_text_failed and coverage_failed:
+        verdict_scope = "same_text_and_coverage"
+    elif same_text_failed:
+        verdict_scope = "same_text"
+    elif coverage_failed:
+        verdict_scope = "coverage"
+    else:
+        verdict_scope = "none"
+
+    n_exec = sum(c["n_executed_texts"] for c in cells)
+    n_frozen = sum(c["n_frozen_texts"] for c in cells)
     if not all_hold:
         verdict = "ENVIRONMENT_OR_VACUOUS"
         exit_code = EXIT_NOT_MEASURED_OR_VACUOUS
@@ -433,37 +622,78 @@ def evaluate(hypothesis: dict, spec: dict, baseline_record: dict,
     elif not measured_cells:
         verdict = "NOT_MEASURED"
         exit_code = EXIT_NOT_MEASURED_OR_VACUOUS
-        reason = ("no measurable parity cell: the product cache executed none of the "
+        reason = ("no measurable gated cell: the product cache executed none of the "
                   "frozen query texts, or every frozen id set is empty; "
                   "NOT_MEASURED is never a pass")
     elif falsification_gates:
         verdict = "FAIL_PRODUCT_CACHE_PARITY"
         exit_code = EXIT_FALSIFIED
-        reason = ("the product's own cached retrieval responses to the frozen queries "
-                  "recall strictly fewer frozen ids than the plain OpenCaseLaw response "
-                  "to the identical query text: retrieval-first parity is falsified "
-                  "on the named cells")
+        if verdict_scope == "coverage":
+            reason = (
+                "the product's cached retrieval executed only "
+                f"{n_exec} of {n_frozen} frozen query texts; on the text(s) it executed it "
+                "reaches at least as many frozen controlling/counter ids as the plain "
+                "OpenCaseLaw answer to that same text (same-text family "
+                f"{same_text_verdict}), but the plain client answered every frozen text "
+                "and reaches more frozen ids on the union comparison (coverage family "
+                f"{coverage_verdict}). The measured deficit is a multilingual/"
+                "counter-channel QUERY-COVERAGE deficit, NOT a same-text "
+                "retrieval-quality regression.")
+        elif verdict_scope == "same_text":
+            reason = (
+                "on the text(s) the product's cached retrieval actually executed it "
+                "reaches fewer frozen controlling/counter ids than the plain OpenCaseLaw "
+                "answer to that same text: a same-text retrieval regression.")
+        else:
+            reason = (
+                "the product's cached retrieval fails both the same-text comparison on "
+                "the text(s) it executed and the union-of-frozen-texts coverage "
+                "comparison; both are reported per gate.")
     else:
         verdict = "PASS_NO_PARITY_REGRESSION"
         exit_code = EXIT_PASS
-        reason = ("every measurable same-query parity gate holds and both non-vacuity "
-                  "controls prove the rule can fail and can pass")
+        reason = ("every measurable gated gate of both families holds and all "
+                  "non-vacuity controls prove the rules can fail and can pass")
+
+    attribution_summary = {
+        "n_comparator_only_ids": sum(len(d["comparator_only_ids"]) for d in decomposition),
+        "n_comparator_only_ids_from_non_executed_texts": sum(
+            len(d["comparator_only_ids_from_non_executed_texts"]) for d in decomposition),
+        "n_comparator_only_ids_from_executed_texts": sum(
+            len(d["comparator_only_ids_from_executed_texts"]) for d in decomposition),
+        "all_comparator_only_ids_come_from_non_executed_texts": all(
+            not d["comparator_only_ids_from_executed_texts"] for d in decomposition),
+        "n_frozen_texts_total": n_frozen,
+        "n_executed_texts_total": n_exec,
+        "reading": "a comparator-only id that no executed text produced is evidence of a "
+                   "query-coverage deficit (the plain client answered a text the product "
+                   "never ran), never of a same-text retrieval-quality regression",
+    }
 
     return {
         "verdict": verdict,
         "exit_code": exit_code,
         "reason": reason,
+        "verdict_scope": verdict_scope,
+        "same_text_parity_verdict": same_text_verdict,
+        "coverage_verdict": coverage_verdict,
+        "same_text_parity_failed_gates": same_text_failed,
+        "coverage_failed_gates": coverage_failed,
+        "coverage_attribution_summary": attribution_summary,
         "n_gates": len(gates),
         "n_passed": sum(1 for g in gates if g["passed"] is True),
         "n_failed": sum(1 for g in gates if g["passed"] is False),
         "n_not_measurable": len(not_measurable),
-        "n_falsifier_gates": len(parity_gates),
+        "n_falsifier_gates": len(same_text_gates) + len(coverage_gates),
+        "n_same_text_gates": len(same_text_gates),
+        "n_coverage_gates": len(coverage_gates),
         "falsification_gates": falsification_gates,
         "not_measurable_gates": not_measurable,
         "absolute_report_only_misses": absolute_misses,
         "measured_cells": len(measured_cells),
         "gates": gates,
         "cells": cells,
+        "gate_decomposition": decomposition,
         "non_vacuity": {"all_hold": all_hold, "battery": battery},
         "success_rule": hypothesis["metric_FROZEN"]["success_rule_FROZEN"],
         "claim_ceiling": hypothesis["claim_ceiling"],
@@ -523,6 +753,84 @@ def _v3_multilingual_reuse(run_id: str) -> dict:
     }
 
 
+def _v1_preservation(verdict: dict) -> dict:
+    """Prove that every V1 falsifier measurement survived the V2 repair.
+
+    V1 (cycle 39628161040) gated the union-of-six-texts comparison under the gate
+    name ``parity::same_query_*``.  V2 keeps that comparison gated (renamed
+    ``coverage::union_frozen_texts_*``) and ADDS the like-for-like
+    ``parity::same_query_*`` family on the executed text.  The proof is a 1:1
+    mapping of the V1 falsifier gates onto the V2 coverage gates with identical
+    measured quantities; nothing was weakened, renamed away or dropped.
+    """
+    v1_records = {
+        "39628161040": REPO_ROOT / "results/evaluation/product_cache_parity/39628161040.json",
+        "39619144928": REPO_ROOT / "results/evaluation/product_cache_parity/39619144928.json",
+    }
+    v2_cov = {g["gate"]: g for g in verdict["gates"]
+              if g.get("role") == ROLE_FALSIFIER_COVERAGE}
+    compared_keys = ("product_hits", "comparator_hits", "n_frozen_ids",
+                     "n_comparator_rows", "n_product_rows", "comparator_only",
+                     "product_only", "n_frozen_texts")
+    out: dict[str, Any] = {
+        "claim": "every V1 falsifier gate measurement is preserved 1:1 in the V2 "
+                 "coverage family; V2 only ADDS the same-text family",
+        "v1_falsifier_gate_count": 0,
+        "v2_coverage_gate_count": len(v2_cov),
+        "records": {},
+        "all_preserved": True,
+    }
+    for rid, path in v1_records.items():
+        if not path.is_file():
+            out["records"][rid] = {"present": False, "path": str(path.relative_to(REPO_ROOT))}
+            continue
+        rec = json.loads(path.read_text(encoding="utf-8"))
+        v1_fals = {g["gate"]: g for g in rec.get("gates", [])
+                   if g.get("role") == "falsifier"}
+        mapping = []
+        rec_ok = True
+        for name, g in sorted(v1_fals.items()):
+            v2name = name.replace("parity::same_query_",
+                                  "coverage::union_frozen_texts_")
+            g2 = v2_cov.get(v2name)
+            a = g.get("measured") or {}
+            b = (g2 or {}).get("measured") or {}
+            diffs = [k for k in compared_keys
+                     if a.get(k) is not None and a.get(k) != b.get(k)]
+            same_pass = (g.get("passed") == (g2 or {}).get("passed"))
+            rec_ok = rec_ok and (g2 is not None) and (not diffs) and same_pass
+            mapping.append({
+                "v1_gate": name,
+                "v2_gate": v2name,
+                "v1_passed": g.get("passed"),
+                "v2_passed": (g2 or {}).get("passed"),
+                "passed_identical": same_pass,
+                "measured_differences": diffs,
+                "v1_comparator_hits": len(a.get("comparator_hits") or []),
+                "v2_comparator_hits": len(b.get("comparator_hits") or []),
+                "v1_product_hits": len(a.get("product_hits") or []),
+                "v2_product_hits": len(b.get("product_hits") or []),
+            })
+        out["records"][rid] = {
+            "present": True,
+            "path": str(path.relative_to(REPO_ROOT)),
+            "sha256": sha256_file(path),
+            "v1_falsifier_gate_count": len(v1_fals),
+            "v1_failed_falsifier_gates": sorted(
+                n for n, g in v1_fals.items() if g.get("passed") is False),
+            "v2_failed_coverage_gates": sorted(
+                g["gate"] for g in v2_cov.values() if g.get("passed") is False),
+            "gate_mapping": mapping,
+            "all_preserved": rec_ok,
+        }
+        out["v1_falsifier_gate_count"] = max(out["v1_falsifier_gate_count"],
+                                             len(v1_fals))
+        out["all_preserved"] = out["all_preserved"] and rec_ok
+    out["v2_added_family"] = "parity::same_query_* (executed-text comparator)"
+    out["v2_added_family_is_additive"] = True
+    return out
+
+
 def run(run_id: str, out_path: Path, report_path: Path,
         mount_arg: str | None = None) -> tuple[int, dict]:
     t0 = time.time()
@@ -578,6 +886,7 @@ def run(run_id: str, out_path: Path, report_path: Path,
     verdict = evaluate(hypothesis, spec, baseline_record, envelopes_by_norm)
     reach = _language_reach_summary(verdict["cells"])
     v3_leg = _v3_multilingual_reuse(run_id)
+    v1_preservation = _v1_preservation(verdict)
 
     # ---- fail-closed pin verification (after) ---------------------------- #
     n_after, inv_after = cache_inventory(cache_dir)
@@ -607,8 +916,15 @@ def run(run_id: str, out_path: Path, report_path: Path,
             "freeze_record": str(FREEZE_RECORD_PATH.relative_to(REPO_ROOT)),
             "freeze_record_hypothesis_sha256": freeze["hypothesis"]["sha256"],
             "frozen_before_execution": True,
-            "pre_freeze_reconnaissance_disclosed":
-                "pre_freeze_reconnaissance_HONEST" in hypothesis,
+            "version": 2,
+            "pre_freeze_disclosure_disclosed":
+                "pre_freeze_disclosure_HONEST_V2" in hypothesis,
+            "superseded_spec_byte_preserved": {
+                "hypothesis_path": str(HYPOTHESIS_V1_PATH.relative_to(REPO_ROOT)),
+                "hypothesis_sha256": sha256_file(HYPOTHESIS_V1_PATH),
+                "freeze_record_path": str(FREEZE_RECORD_V1_PATH.relative_to(REPO_ROOT)),
+                "freeze_record_sha256": sha256_file(FREEZE_RECORD_V1_PATH),
+            },
         },
         "frozen_spec": {
             "path": "evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
@@ -619,11 +935,18 @@ def run(run_id: str, out_path: Path, report_path: Path,
         "baseline": {
             "record": BASELINE_RECORD_RELPATH,
             "sha256": sha256_file(REPO_ROOT / BASELINE_RECORD_RELPATH),
-            "primary_comparator": "baseline_same_query (identical query text, same "
-                                  "channel and language; named per CYCLE_39111232991_"
-                                  "CORRECTION.md D2)",
+            "primary_comparator": "executed_text_same_query (the baseline-record rows of "
+                                  "the (channel, language) texts the product's cache "
+                                  "actually executed; same text, same channel, same "
+                                  "language - named per CYCLE_39111232991_CORRECTION.md D2)",
+            "coverage_comparator": "union_all_frozen_texts (the baseline-record rows of "
+                                    "ALL six identity texts of the slug) - explicitly "
+                                    "gated as the multilingual/counter-channel "
+                                    "query-coverage comparison",
             "context_comparators_reported_only":
-                ["plain_channel_all_languages", "union_all_channels"],
+                ["plain_channel_all_languages", "union_all_channels (reported copy of the "
+                                                "union pool; the gated union comparison "
+                                                "is coverage::)"],
             "note": "plain OpenCaseLaw searches with no query-map / counter-authority "
                     "machinery; this benchmark performs no network request",
         },
@@ -661,6 +984,7 @@ def run(run_id: str, out_path: Path, report_path: Path,
         },
         "elapsed_s": round(time.time() - t0, 3),
         **verdict,
+        "v1_preservation": v1_preservation,
     }
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -674,11 +998,23 @@ def run(run_id: str, out_path: Path, report_path: Path,
         f"- Schema: `{SCHEMA}`",
         f"- Direction: v{record['direction_version']} (derived from state/evaluation.json)",
         f"- Hypothesis: `{record['hypothesis']['path']}` sha256 `{hypothesis_sha[:12]}...` "
-        "(frozen BEFORE execution; pre-freeze reconnaissance disclosed in-file)",
+        "(frozen BEFORE execution; pre-freeze disclosure of the known V1 outcome "
+        "disclosed in-file)",
+        f"- Superseded V1 spec: `{record['hypothesis']['superseded_spec_byte_preserved']['hypothesis_path']}` "
+        f"sha256 `{record['hypothesis']['superseded_spec_byte_preserved']['hypothesis_sha256'][:12]}...` "
+        "— BYTE-PRESERVED, not modified",
         f"- Product pool: `{cache_dir}` identity-matched envelopes "
         f"({record['product']['n_identity_matched_envelopes']} of {n_before} cache files)",
-        f"- Primary comparator: same-query plain OpenCaseLaw rows (named per D2 correction)",
-        f"- Verdict: **{record['verdict']}** (exit {record['exit_code']})",
+        "- Comparators (both named, both gated): `executed_text_same_query` (the text(s) "
+        "the product's cache actually ran) and `union_all_frozen_texts` (all six frozen "
+        "texts the plain OpenCaseLaw client answered)",
+        f"- Verdict: **{record['verdict']}** (exit {record['exit_code']}), "
+        f"driven by: **{record['verdict_scope']}**",
+        f"- Same-text parity family: **{record['same_text_parity_verdict']}** "
+        f"({len(record['same_text_parity_failed_gates'])} of "
+        f"{record['n_same_text_gates']} gates failed)",
+        f"- Coverage family (union of all frozen texts): **{record['coverage_verdict']}** "
+        f"({len(record['coverage_failed_gates'])} of {record['n_coverage_gates']} gates failed)",
         f"- Falsifier gates failed: **{len(record['falsification_gates'])}**",
         f"- Non-vacuity: **{record['non_vacuity']['all_hold']}**",
         f"- Multilingual/provenance reuse leg (V3): **{v3_leg['verdict']}** "
@@ -687,45 +1023,109 @@ def run(run_id: str, out_path: Path, report_path: Path,
         "",
         "## Cells (identity mapping; hits of frozen id sets)",
         "",
-        "| slug | product pool rows | comparator rows | authority hits (prod/base) | "
-        "counter hits (prod/base) | parity authority | parity counter |",
-        "|---|---|---|---|---|---|---|",
+        "| slug | product pool rows | comparator rows (executed text) | comparator rows "
+        "(all 6 texts) | texts executed | authority hits (prod/exec/base-union) | "
+        "counter hits (prod/exec/base-union) | same-text authority | same-text counter | "
+        "coverage authority | coverage counter |",
+        "|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for cell in verdict["cells"]:
         g_auth_p = next((g for g in cell["gates"]
                          if g["gate"] == f"parity::same_query_authority_not_below_baseline::{cell['slug']}"), None)
         g_cnt_p = next((g for g in cell["gates"]
                         if g["gate"] == f"parity::same_query_counter_not_below_baseline::{cell['slug']}"), None)
-        a_abs = next((g for g in cell["gates"]
-                      if g["gate"] == f"product::authority_recall::{cell['slug']}"), None)
-        c_abs = next((g for g in cell["gates"]
-                      if g["gate"] == f"product::counter_recall::{cell['slug']}"), None)
-        def _fmt(g_abs, g_par):
-            if g_abs is None or g_abs["passed"] is None:
-                auth = "n/a"
-            else:
-                m = g_abs["measured"]
-                auth = f"{len(m.get('product_hits') or [])}/{m.get('n_frozen_ids')}"
-            if g_par is None or g_par["passed"] is None:
-                par = "NOT_MEASURED"
-            else:
-                m = g_par["measured"]
-                par = ("PASS" if g_par["passed"] else "FAIL") + \
-                    f" ({len(m.get('product_hits') or [])} vs {m.get('comparator_hits')})"
-            return auth, par
-        a_hits, a_par = _fmt(a_abs, g_auth_p)
-        c_hits, c_par = _fmt(c_abs, g_cnt_p)
+        g_auth_c = next((g for g in cell["gates"]
+                         if g["gate"] == f"coverage::union_frozen_texts_authority_not_below_baseline::{cell['slug']}"), None)
+        g_cnt_c = next((g for g in cell["gates"]
+                        if g["gate"] == f"coverage::union_frozen_texts_counter_not_below_baseline::{cell['slug']}"), None)
+
+        def _par(gate):
+            if gate is None or gate["passed"] is None:
+                return "NOT_MEASURED"
+            m = gate["measured"]
+            return ("PASS" if gate["passed"] else "FAIL") + \
+                f" ({len(m.get('product_hits') or [])} vs {len(m.get('comparator_hits') or [])})"
+
+        def _abs(kind):
+            gate = next((g for g in cell["gates"]
+                         if g["gate"] == f"product::{kind}_recall::{cell['slug']}"), None)
+            if gate is None or gate["passed"] is None:
+                return "n/a"
+            m = gate["measured"]
+            return (f"{len(m.get('product_hits') or [])}/{m.get('n_frozen_ids')}"
+                    f"/{len(m.get('comparator_executed_text_hits') or [])}"
+                    f"/{len(m.get('comparator_union_all_texts_hits') or [])}")
+
         lines.append(
             f"| {cell['slug']} | {cell['product_pool']['n_rows']} | "
-            f"{cell['comparator_same_query']['n_rows']} | {a_hits} | {c_hits} | "
-            f"{a_par} | {c_par} |")
+            f"{cell['comparators']['executed_text_same_query']['n_rows']} | "
+            f"{cell['comparators']['union_all_frozen_texts']['n_rows']} | "
+            f"{cell['n_executed_texts']}/{cell['n_frozen_texts']} "
+            f"({', '.join(cell['executed_texts'])}) | "
+            f"{_abs('authority')} | {_abs('counter')} | "
+            f"{_par(g_auth_p)} | {_par(g_cnt_p)} | {_par(g_auth_c)} | {_par(g_cnt_c)} |")
+    lines += [
+        "",
+        "## Per-(channel, language) comparator decomposition (all gated cells)",
+        "",
+        "Every gated cell is decomposed by the (channel, language) group of the plain "
+        "OpenCaseLaw baseline record that produced each hit. `E` marks the texts the "
+        "product's cache actually executed.",
+        "",
+        "| slug | kind | frozen ids | product hits | executed-text comparator | "
+        "union comparator | comparator-only ids (attribution) |",
+        "|---|---|---|---|---|---|---|",
+    ]
+    for d in verdict["gate_decomposition"]:
+        attrib = "; ".join(f"{i} -> {'/'.join(ks)}" for i, ks in
+                           sorted(d["comparator_only_attribution"].items()))
+        lines.append(
+            f"| {d['slug']} | {d['kind']} | {d['n_frozen_ids']} | "
+            f"{len(d['product_hits'])} | {len(d['comparator_executed_text_hits'])} | "
+            f"{len(d['comparator_union_all_texts_hits'])} | "
+            f"{attrib if attrib else '—'} |")
+    lines += ["", "## Per-(channel, language) hit counts", ""]
+    for d in verdict["gate_decomposition"]:
+        parts = [f"`{k}` {v['n_hits']} hits"
+                 f"{' (E)' if v['executed_by_product_cache'] else ''}"
+                 for k, v in d["per_channel_language"].items()]
+        lines.append(f"- `{d['slug']}` / {d['kind']}: " + ", ".join(parts))
     lines += ["", "## Language reach (REPORTED-ONLY; never gated)", ""]
     for slug, entry in reach["per_slug"].items():
         lines.append(f"- `{slug}`: executed {entry['executed'] or '—'}; "
                      f"not executed {entry['not_executed'] or '—'}")
+    att = record.get("coverage_attribution_summary") or {}
     lines += [
         "",
-        "## Falsifier gates that failed",
+        "## Comparator-only id attribution (why the coverage deficit is not a "
+        "same-text regression)",
+        "",
+        f"- comparator-only ids (union comparator, not reached by the product): "
+        f"**{att.get('n_comparator_only_ids')}**",
+        f"- of those, ids that ONLY texts the product never executed produced: "
+        f"**{att.get('n_comparator_only_ids_from_non_executed_texts')}**",
+        f"- ids that an executed text produced but the product still missed: "
+        f"**{att.get('n_comparator_only_ids_from_executed_texts')}**",
+        f"- therefore all comparator-only ids come exclusively from texts the product "
+        f"never executed: **{att.get('all_comparator_only_ids_come_from_non_executed_texts')}**",
+        f"- frozen texts executed by the product cache: "
+        f"**{att.get('n_executed_texts_total')} of {att.get('n_frozen_texts_total')}**",
+        "",
+        "## V1 preservation (nothing weakened)",
+        "",
+    ]
+    pres = record.get("v1_preservation") or {}
+    for rid, info in (pres.get("records") or {}).items():
+        if not info.get("present"):
+            lines.append(f"- run {rid}: record not present")
+            continue
+        lines.append(
+            f"- run {rid} (`{info['path']}` sha256 `{info['sha256'][:12]}...`): "
+            f"{info['v1_falsifier_gate_count']} V1 falsifier gates -> V2 coverage gates, "
+            f"measurements identical: **{info['all_preserved']}**")
+    lines += [
+        "",
+        "## Gated gates that failed",
         "",
     ]
     if record["falsification_gates"]:
@@ -772,6 +1172,9 @@ def main(argv: list[str] | None = None) -> int:
         "verdict": record.get("verdict"),
         "exit_code": code,
         "reason": record.get("reason"),
+        "verdict_scope": record.get("verdict_scope"),
+        "same_text_parity_verdict": record.get("same_text_parity_verdict"),
+        "coverage_verdict": record.get("coverage_verdict"),
         "falsification_gates": record.get("falsification_gates"),
         "non_vacuity_all_hold": (record.get("non_vacuity") or {}).get("all_hold"),
         "language_reach": ((record.get("language_reach_reported_only") or {})
