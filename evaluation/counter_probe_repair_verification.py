@@ -276,8 +276,11 @@ def run_controls(measurements: list[dict], product: cpa.ProductCode) -> dict:
         "n_baseline_contaminated": n_contaminated,
     }
 
+    # The frozen control C4 applies ONLY to bundles whose prose contains no
+    # placeholder (C4_placeholder_absent_noop is None for ph>0 bundles and must
+    # not count as a failure): `is False`, never `is not True`.
     placebo_bad = [m["source_path"] for m in measurements
-                   if m["C4_placeholder_absent_noop"] is not True]
+                   if m["C4_placeholder_absent_noop"] is False]
     controls["C4_fix_is_noop_without_the_placeholder"] = {
         "description": ("for every bundle whose answer prose contains no redaction "
                         "placeholder, the FIXED arm is a byte-for-byte no-op — the "
