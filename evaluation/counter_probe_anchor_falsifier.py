@@ -535,11 +535,11 @@ def render_report(record: dict) -> str:
     a("")
     a("## Per-bundle result")
     a("")
-    a("| packet | lang | ph | anchor | contaminated | anchor topical | "
+    a("| packet | question | lang | ph | anchor | contaminated | anchor topical | "
       "rows topical (question) | de-redacted anchor |")
-    a("|---|---|---|---|---|---|---|---|")
+    a("|---|---|---|---|---|---|---|---|---|")
     for m in record["bundles"]:
-        a(f"| {m['packet']} | {m['language']} | "
+        a(f"| {m['packet']} | {m['question_slug']} | {m['language']} | "
           f"{m['placeholder_occurrences_in_prose']} | "
           f"`{' '.join(m['recorded_anchor'])}` | "
           f"{'**YES**' if m['G1_anchor_contaminated'] else 'no'} | "
@@ -665,9 +665,10 @@ def main(argv: list[str] | None = None) -> int:
 
     measurements: list[dict] = []
     for item in items:
-        packet, lang = _label_of(item["path"], item["bundle"])
+        packet, lang = _label_of(item["path"], item["bundle"], source_label)
         m = measure_bundle(item, product, packet_label=packet)
         m["language"] = lang
+        m["question_slug"] = item["path"].stem
         measurements.append(m)
 
     controls = run_controls(measurements, product)
@@ -760,9 +761,28 @@ def main(argv: list[str] | None = None) -> int:
     return exit_code
 
 
-def _label_of(path: Path, bundle: dict) -> tuple[str, str]:
-    parts = path.parts
-    packet = parts[-4] if len(parts) >= 4 else path.parent.name
+def _label_of(path: Path, bundle: dict, source_label: str) -> tuple[str, str]:
+    """(packet label, language) of a bundle, derived from its path.
+
+    The packet id is the directory that holds ``questions/`` when that is a
+    real id; the generic container names (``gate_packet``, ``packet``) are
+    skipped, and the source label is the last resort.  The question slug is
+    always carried separately so a row is identifiable whatever the label.
+    """
+    parts = list(path.parts)
+    packet = ""
+    if "questions" in parts:
+        i = parts.index("questions")
+        for cand in (parts[i - 1] if i >= 1 else "",
+                     parts[i - 2] if i >= 2 else ""):
+            if cand and cand not in ("gate_packet", "packet") and not cand.isdigit():
+                packet = cand
+                break
+            if cand and cand.isdigit():
+                packet = cand
+                break
+    if not packet:
+        packet = source_label
     stem = path.stem
     lang = stem.split("-", 1)[0] if "-" in stem else "?"
     return packet, lang

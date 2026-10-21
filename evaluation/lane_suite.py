@@ -718,7 +718,20 @@ def run_pytest(log: _Log) -> None:
           # committed/re-executed label binding in the coverage instrument).
           # No frozen benchmark, rubric, incumbent or success rule is touched
           # by adding the file.
-          "tests/evaluation/test_v57_open_items.py"],
+          "tests/evaluation/test_v57_open_items.py",
+          # run 39674402905 (disclosed scope extension, not a re-freeze): the
+          # counter-probe TOPIC-ANCHOR falsifier's frozen-hypothesis pin, its
+          # rule/exit-code quoting check, the reachability of the falsifier in
+          # both directions on synthetic input, the five non-vacuity controls,
+          # the de-redaction counterfactual that isolates the generative-audit's
+          # redaction placeholder as the cause, and the absent-environment
+          # exit-2 refusal. POST-FREEZE ADDITION in the sense of
+          # evaluation/retrieval_gate/id_hygiene.py: no gate is added to any
+          # frozen verdict file, no accepted verdict is overwritten and no
+          # frozen rubric/threshold/bar/incumbent is touched. The accepted
+          # counter-emission attribution and cross-check are read-only inputs
+          # and are NOT re-litigated.
+          "tests/evaluation/test_counter_probe_anchor_falsifier.py"],
         cwd=str(_LANE_ROOT), capture_output=True, text=True, timeout=900)
     tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
     log.add("active lane pytest suite", proc.returncode == 0, tail[0])
