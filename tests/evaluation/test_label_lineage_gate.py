@@ -182,9 +182,9 @@ def test_count_readings_are_published_and_never_enforced(tmp_path):
 @needs_mount
 def test_discover_population_matches_the_accepted_population_of_record():
     pop = label_lineage_gate.discover_population(ACCEPTED_ROOT)
-    assert pop["n_packet_dirs"] == 5
+    assert pop["n_packet_dirs"] == 8
     assert sorted(e["packet_id"] for e in pop["in_scope"]) == \
-        ["38799024807", "38812599575", "38839347028"]
+        ["38799024807", "38812599575", "38839347028", "39275520116", "39319405429", "rebuilt-39027045675"]
     assert sorted(o["packet_id"] for o in pop["out_of_scope"]) == \
         ["38838116453", "offline_machinery_rehearsal"]
     # nothing silently dropped: every out-of-scope packet carries a reason
