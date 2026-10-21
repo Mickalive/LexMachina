@@ -7,6 +7,7 @@ through narrow adapters rather than reimplemented here.
 from __future__ import annotations
 
 import copy
+import json
 import re
 import sys
 import time
@@ -16,6 +17,14 @@ from typing import Any
 from .answer import build_answer, counter_authority_pass
 from .answer_contract import ensure_coverage
 from .answer_gap import ensure_cited_answer
+from .answer_provider import (
+    answer_timeout_from_env,
+    budget_from_env,
+    build_runner,
+    probe_models,
+    probe_timeout_from_env,
+    select_model,
+)
 from .bundle import build_bundle, validate_bundle
 from .qmap import _body, build_map, find_citations, shared_citation_relations
 from . import relation_channel
@@ -48,6 +57,7 @@ from generative_audit.integration_contract import (  # noqa: E402
     run_generative_audit,
 )
 from generative_audit.adversarial import AdversarialFinding  # noqa: E402
+from generative_audit.provider import ANSWER_MODEL_PREFERENCE, Provider  # noqa: E402
 
 from .audit_seam import apply as _apply_audit_seam  # noqa: E402
 
@@ -58,6 +68,25 @@ AUDIT_SEAM = _apply_audit_seam()
 
 MIN_LIVE_RESULTS = 100
 MAX_RESULTS = 300
+
+
+def _answer_model_candidates() -> list[str]:
+    """The free-model candidates for the live sourced answer, in probe order.
+
+    The order mirrors the accepted component's own ordering (its preference
+    list first, then the remaining healthy models) so the probe measures the
+    models the answer would actually try.  ``paths.healthy_models()`` is the
+    product seam's filtered wrapper (``product/query/audit_seam.py``), so the
+    excluded models never enter the probe.
+    """
+    from generative_audit import paths
+
+    healthy = [m for m in paths.healthy_models() if m]
+    ordered = [m for m in ANSWER_MODEL_PREFERENCE if m in healthy]
+    for model in healthy:
+        if model not in ordered:
+            ordered.append(model)
+    return ordered or [m for m in ANSWER_MODEL_PREFERENCE if m]
 
 
 def _text_for(d: dict) -> str:
@@ -730,8 +759,21 @@ def _merge_hydrated_evidence(bundle: dict, *, retrieval_mode: str, evidence_coun
     return out
 
 
-def _extractive_degraded_fallback(bundle: dict, error: str, max_cites: int) -> dict:
-    """Last-resort UI continuity only; never represented as the normal answer path."""
+def _extractive_degraded_fallback(
+    bundle: dict,
+    error: str,
+    max_cites: int,
+    diagnostics: dict[str, Any] | None = None,
+) -> dict:
+    """Last-resort UI continuity only; never represented as the normal answer path.
+
+    ``diagnostics`` carries the live answer attempt's own evidence (the model
+    probe, the per-model attempt list and the budgets).  It is published with
+    the fallback because a degraded answer that cannot explain itself is not
+    auditable: the shipped path dropped the component's attempt list here, so
+    the bundle recorded "opencode CLI failed (rc=1): " with no model and no
+    reason (producer cycle 39667945530).
+    """
     out = copy.deepcopy(bundle)
     ranked = sorted(out["decisions"], key=lambda d: d.get("rank") or 10**9)
     answer = build_answer(out["query"], ranked, max_cites=max_cites)
@@ -760,12 +802,18 @@ def _extractive_degraded_fallback(bundle: dict, error: str, max_cites: int) -> d
             d["counter_evidence_verified"] = False
     answer["status"] = "degraded"
     out["answer"] = answer
-    out.setdefault("provenance", {})["generative_audit"] = {
+    ga = {
         "degraded": True,
         "provider_error": error,
         "fallback": "extractive_tfidf_v1",
         "counter_fallback": counter_info,
     }
+    if diagnostics:
+        # The accepted component already publishes its own "answer_provider"
+        # key (model_used + provider_attempts); the product's own record lives
+        # under a distinct key so neither side overwrites the other.
+        ga["product_answer_provider"] = diagnostics
+    out.setdefault("provenance", {})["generative_audit"] = ga
     return out
 
 
@@ -901,6 +949,7 @@ def enrich_query_bundle(
     work = _merge_hydrated_evidence(initial_bundle, retrieval_mode=retrieval_mode, evidence_count=evidence_count)
     timing_local_enrich = time.time() - t0
 
+    provider_diagnostics: dict[str, Any] = {}
     try:
         fixture_ids = [d["decision_id"] for d in work["decisions"][:2]]
         fixture_findings = None
@@ -915,8 +964,41 @@ def enrich_query_bundle(
                 uncertainty=0.2,
                 confidence=0.9,
             )]
+        # --- live answer provider ---------------------------------------
+        # The shipped path gave every candidate model the same 120 s timeout
+        # and reported only the LAST error, which the CLI leaves empty on
+        # stdout (producer cycle 39667945530: 287.964 s spent, answer
+        # degraded, cause "opencode CLI failed (rc=1): ").  The product now
+        # probes the candidates, picks the first live one, gives the answer a
+        # measured budget (182.2 s observed) and keeps the whole attempt
+        # record.  Fixture mode is untouched: no probe, no CLI call.
+        provider = None
+        if not fixture_generation:
+            candidates = _answer_model_candidates()
+            probe_records = probe_models(candidates, timeout_s=probe_timeout_from_env())
+            selected = select_model(probe_records)
+            provider_diagnostics = {
+                "runner": "product/query/answer_provider.py",
+                "candidates": list(candidates),
+                "probe": probe_records,
+                "selected_model": selected,
+                "per_model_timeout_s": answer_timeout_from_env(),
+                "leg_budget_s": budget_from_env().total_s,
+            }
+            if selected is None:
+                raise RuntimeError(
+                    "no candidate free model answered the liveness probe: "
+                    + json.dumps(probe_records, ensure_ascii=False)[:600]
+                )
+            provider = Provider(
+                model=selected,
+                fixture_mode=False,
+                runner=build_runner(budget_from_env()),
+                timeout=answer_timeout_from_env(),
+            )
         audited = run_generative_audit(
             work,
+            provider=provider,
             fixture_mode=fixture_generation,
             fixture_answer=("Fixture grounded answer " + " ".join(f"[{x}]" for x in fixture_ids)) if fixture_generation else None,
             fixture_cited_ids=fixture_ids if fixture_generation else None,
@@ -925,11 +1007,27 @@ def enrich_query_bundle(
         )
         ga = audited.get("provenance", {}).get("generative_audit", {})
         provider_error = ga.get("provider_error")
+        if provider_diagnostics:
+            # Live mode only: the product's own record of the live attempt.
+            # In fixture mode there is no live attempt and no record is added.
+            provider_diagnostics.update({
+                "model_used": ga.get("model"),
+                "provider_attempts": ga.get("provider_attempts") or [],
+            })
         if provider_error or not str(audited.get("answer", {}).get("prose") or "").strip():
             raise RuntimeError(provider_error or "generative provider returned empty answer")
         audited["answer"]["status"] = "ready"
+        if provider_diagnostics:
+            audited.setdefault("provenance", {}).setdefault("generative_audit", {})[
+                "product_answer_provider"
+            ] = provider_diagnostics
     except Exception as exc:
-        audited = _extractive_degraded_fallback(work, f"{type(exc).__name__}: {exc}", max_cites=max_cites)
+        audited = _extractive_degraded_fallback(
+            work,
+            f"{type(exc).__name__}: {exc}",
+            max_cites=max_cites,
+            diagnostics=provider_diagnostics,
+        )
 
     # Answer-completeness contract: the model intermittently dropped the
     # Art. 257d(2) effective-dating condition (see results/product/reality_check/
