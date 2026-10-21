@@ -1,0 +1,20 @@
+{
+  "schema": "lex-evaluation-scored-claim-movement-post-hoc-pins-disclosure/1",
+  "lane": "evaluation",
+  "run_id": "39529073155",
+  "produced_at_utc": "2026-10-21T02:10:00Z",
+  "why_this_artifact_exists": "evaluation/SCORED_CLAIM_MOVEMENT_ADJUDICATION_FREEZE_RECORD_V1.json (committed at 9105273a) lists evaluation/frozen_bars/RULES_LABEL.json, RULES_GEOMETRY.json and VERDICT_CONTRACT.json under the key 'evaluation_owned_pins_rehashed_at_freeze'. The three digests written there are the canonical direction-pinned digests, and they are TRUE against the committed tree, but the contemporaneous shell re-hash of those three files was executed AFTER the claim-bearing execution (this artifact's recording), not before the freeze commit. The three pins that WERE contemporaneously shell-hashed before the freeze commit - and that the instrument itself enforces via FROZEN_PINS - are evaluation/trigger_reconciliation.py (cff603c6...), evaluation/newhead_recompute.py (88ee6107...) and the baseline manifest (93bb4e8e...); their pre-freeze shell hashes are preserved in the cycle's first observation batch and match the freeze record exactly.",
+  "false_pin_preserved_verbatim": "evaluation_owned_pins_rehashed_at_freeze.{evaluation/frozen_bars/RULES_LABEL.json, evaluation/frozen_bars/RULES_GEOMETRY.json, evaluation/frozen_bars/VERDICT_CONTRACT.json} in evaluation/SCORED_CLAIM_MOVEMENT_ADJUDICATION_FREEZE_RECORD_V1.json - the key name 'rehashed_at_freeze' overstates the timing for exactly these three entries and no others",
+  "true_values_verified_post_execution": {
+    "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608 (matches the canonical direction pin)",
+    "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633 (matches the canonical direction pin)",
+    "evaluation/frozen_bars/VERDICT_CONTRACT.json": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c (matches the canonical direction pin)",
+    "git_status_of_the_three_files": "unmodified in the committed tree (no diff against the accepted tip 58b8269a)"
+  },
+  "did_any_check_depend_on_the_overclaim": false,
+  "did_any_check_depend_on_the_three_bars": false,
+  "why_not": "The adjudication instrument enforces only FROZEN_PINS (the two instruments + the baseline manifest). The frozen bars are not read by evaluation.trigger_reconciliation, evaluation.newhead_recompute --mode trigger or this wrapper at any point. Separately, evaluation.newhead_recompute.main() calls evaluation.reality_gate.frozen.load_frozen() before dispatching the trigger subprocess, and both real and control invocations returned exit 0, so the frozen reality-benchmark integrity guard passed inside the frozen instrument on both runs; that fact is disclosed from the instrument's own behaviour, not from this file.",
+  "disposition": "The freeze record stays committed and unedited (append-only evidence). This disclosure is the correction of record: the three frozen-bar digests are TRUE and re-verified now; the freeze-timing claim for exactly those three entries is WITHDRAWN as overstated; nothing else in the freeze record is amended.",
+  "no_threshold_or_bar_edits": true,
+  "claim_ceiling": "Disclosure artifact only. It corrects one provenance-timing overclaim in this cycle's own freeze record and re-publishes three verified digests. It scores no bar, re-derives no rubric and lifts no order."
+}
