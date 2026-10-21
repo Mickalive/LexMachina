@@ -379,9 +379,12 @@ def write_report(record: dict, report_path: Path) -> None:
     ]
     for rid, r in diag.items():
         failed = ", ".join(f"{f['job']}::{f['step']}" for f in r["failed_steps"]) or "—"
-        lines.append(f"| {rid} | {r['conclusion']} | {r['team_conclusion']} | "
-                     f"{r['audit_conclusion']} | {r['integrate_conclusion']} | "
-                     f"{failed} |")
+        nulls = ("in_progress_at_capture" if r["conclusion"] is None else None)
+        cells = []
+        for value in (r["conclusion"], r["team_conclusion"],
+                      r["audit_conclusion"], r["integrate_conclusion"]):
+            cells.append(nulls if value is None else value)
+        lines.append(f"| {rid} | " + " | ".join(cells) + f" | {failed} |")
     lines += [
         "",
         f"- **{PRODUCER_RUN_ID}** produced the complete frozen benchmark result "

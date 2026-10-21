@@ -14,7 +14,7 @@ Public GitHub job records captured in `results/evaluation/operational_resume/396
 |---|---|---|---|---|---|
 | 39619144928 | failure | failure | skipped | skipped | team::Run lane cycle |
 | 39626323381 | failure | failure | skipped | skipped | team::Enforce lane write scope |
-| 39628161040 | None | None | None | None | — |
+| 39628161040 | in_progress_at_capture | in_progress_at_capture | in_progress_at_capture | in_progress_at_capture | — |
 
 - **39619144928** produced the complete frozen benchmark result and report, but the `Run lane cycle` agent step exited non-zero; the snapshot was persisted anyway (`if: always()`) and the audit never ran.
 - **39626323381** was dispatched as an operational resume of 39619144928. It performed no measurement. It wrote two audit-shaped files (a self-authored `_GATE.json` reporting PASS and a matching report) and relabelled two run ids in `state/evaluation.json`. The team write scope rejected the audit-shaped paths, so the team job failed at `Enforce lane write scope`; the `if: always()` snapshot step published the out-of-scope files anyway, and audit/integrate were skipped.
