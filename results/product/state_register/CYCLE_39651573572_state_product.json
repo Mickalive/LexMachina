@@ -1,0 +1,225 @@
+{
+  "lane": "product",
+  "direction_version": 61,
+  "evidence_tier": "REPRODUCED",
+  "cycle_status": "COMPLETE",
+  "continue_recommended": true,
+  "accepted_run_id": "39422322667",
+  "human_gate_ready": false,
+  "machine_gate_ready": false,
+  "packet_admitted": false,
+  "ready_for_owner_session": false,
+  "requirement_13_supersession_conditions_met": false,
+  "vertical_slice_status": {
+    "fixture_mode_works": true,
+    "offline_slice_command": "python3 product/offline_slice.py --slug rent-default --verify",
+    "offline_slice_verdict": "PASS",
+    "offline_slice_network": "none",
+    "page_contract_assertions": 56,
+    "decisions": 100,
+    "clusters": 8,
+    "rows_with_xy": 100,
+    "answer_status": "ready",
+    "cited_decision_ids": 4,
+    "counter_authorities": 1,
+    "counter_status_bearing_rows": 5,
+    "geometry_preserved_by_enrich": true,
+    "query_app_fixture_server_works": true,
+    "progressive_jobs_work": true,
+    "all_mvp_tests_pass": true
+  },
+  "cycle_39422322667_vertical_slice_delivery": {
+    "human_gate_ready": true,
+    "claim_ceiling": "The query-specific vertical slice is complete and locally runnable in fixture mode (deterministic, no network). The product implements: question -> OpenCaseLaw retrieval -> query_result_bundle -> sourced generative answer -> independent counter-authority pass -> clickable map. All MVP tests pass. The serve verdict remains BOUNDED-NEGATIVE (both frozen bars unmet) so admission stays fail-closed. This cycle delivers the runnable artifact for a human gate session per Master Prompt questions 1-4."
+  },
+  "evidence_refs": [
+    "product/tests/test_offline_slice.py (7 passed)",
+    "product/tests/test_query_map_mvp.py (22 passed)",
+    "product/tests/test_progressive_query.py (22 passed)",
+    "product/tests/test_fixture_replay_and_wiring.py (13 passed)",
+    "product/tests/test_fast_path_imports_without_dense_stack.py (10 passed)",
+    "product/tests/test_relations_and_labels.py (12 passed)",
+    "product/tests/test_relation_direction_render.py (4 passed)",
+    "product/tests/test_adversarial_retrieval.py (42 passed)",
+    "product/tests/test_served_page_integration.py (4 passed)",
+    "product/tests/test_counter_authority_definition.py (19 passed)",
+    "product/tests/test_no_owner_question_from_accepted_verdict.py (10 passed)"
+  ],
+  "next_recommendation": "The vertical slice is complete and locally runnable. Ready for human gate session. The serve verdict remains BOUNDED-NEGATIVE so packet admission stays fail-closed. Next cycle should run the human gate evaluation.",
+  "verification": {
+    "at": "2026-10-18T22:20:00Z",
+    "attribution_artifact": "results/product/regression/CYCLE_39169296466_test_delta_attribution.json",
+    "disclosure_tests": "product/tests/test_query_concept_disclosure.py (5 tests, offline)",
+    "durable_actions_run": null,
+    "durable_run_note": "No durable green core-lane run exists yet: 38600271324 was team-green but audit-failed; this run (38604340726) carries fresh 4/4 in-run legs and awaits its own audit+integrate conclusion, which is not observable while the team job executes. Observation command: python product/ci_run_evidence.py --run-id 38604340726 --apply",
+    "evidence_reports": [
+      "reports/product/CYCLE_39011220761_RESUME.md",
+      "reports/product/CYCLE_38812599575.md",
+      "reports/product/CYCLE_38779139471.md",
+      "reports/product/CYCLE_38720785188.md",
+      "reports/product/CYCLE_38654561273.md",
+      "reports/product/CYCLE_38649613677.md",
+      "reports/product/CYCLE_38604340726.md",
+      "reports/product/CYCLE_38600271324.md",
+      "results/product/reality_check/",
+      "reports/product/CYCLE_39060279436.md"
+    ],
+    "latency_budget_9a": {
+      "artifact": "results/product/latency_budget/CYCLE_38654561273_live.json",
+      "cache_served_cached_map_total_p50_p95_s": [
+        0.4656,
+        0.4816
+      ],
+      "cache_served_local_map_p50_p95_s": [
+        0.06,
+        0.0602
+      ],
+      "claim_ceiling": "engineering budgets on this machine and network path only; no browser-level click latency, no jurist-usefulness claim, no human-gate result",
+      "detail_click_p50_p95_ms": [
+        0.0003,
+        0.0003
+      ],
+      "network_served_upstream_p50_p95_s": [
+        7.8863,
+        9.8696
+      ],
+      "verdicts": "cached map <1s PASS | local map <1.5s PASS | detail click <150ms PASS | upstream measured, not budgeted"
+    },
+    "latest_reality_check": {
+      "benchmark": "four real Swiss-law questions: rent default / petty theft dismissal / Art. 102 CP / Business Judgment Rule",
+      "current_hard_gate_run_id": "38919898739",
+      "current_hard_gate_status": "IN_PROGRESS_AND_NOT_ACCEPTABLE_AS_PRODUCT_EVIDENCE",
+      "findings": [
+        "Initial structural green was a false positive: one generic rent query did not establish legal usefulness.",
+        "Business Judgment Rule retrieval initially missed the controlling line; legal multilingual expansion/reranking was added and now retrieves direct Federal Supreme Court authorities.",
+        "Art. 102 CP initially mischaracterised para. 2; evidence packing now surfaces BGE 142 IV 333 / 6B_124/2016 and corrected the primary/original liability branch.",
+        "Petty-theft retrieval initially missed direct low-value theft authority; compact Bagatelldiebstahl expansion now retrieves and cites 4A_177/2017.",
+        "Rent answers repeatedly confused the cure period with the separate Art. 257d(2) notice-to-month-end requirement; a hard substantive gate is now in place.",
+        "Generation quality can still be legally misweighted even with the correct decision present; authority-first source packing was added.",
+        "Full live runs observed roughly 316-469 seconds on free models; this is not an acceptable product latency."
+      ],
+      "gate_requirements": [
+        "substantive legal truth, not merely answer_status=ready",
+        "direct controlling authority where available",
+        "French synthesis for French questions",
+        "no corrupted token leakage",
+        "full answer under 300 seconds",
+        "query-specific material-rule assertions for the four frozen questions"
+      ]
+    },
+    "ledger": "results/product/cycle_verify/CYCLE_39169296466_cycle_verify.json",
+    "live_clickable_slice_this_cycle": {
+      "artifacts": [
+        "results/product/clickable_slice/api_query_start_20261014T214600Z.json",
+        "results/product/clickable_slice/bundle_live_map_only_20261014T214600Z.json",
+        "results/product/clickable_slice/bundle_live_enriched_20261014T214600Z.json",
+        "results/product/clickable_slice/dom_smoke_20261014T214600Z.txt"
+      ],
+      "claim_ceiling": "pipeline and UI verification only; no claim that the map helps a jurist",
+      "dom_smoke": "node product/verify_query_page.js -> PASS 16 assertions against the live enriched bundle",
+      "phase_1_start": {
+        "answer_status": "pending",
+        "canonical_urls": "220/220",
+        "clusters": 8,
+        "decisions": 220,
+        "fixture_mode": false,
+        "languages": {
+          "de": 133,
+          "fr": 26,
+          "it": 37,
+          "none": 24
+        },
+        "mode": "live",
+        "outliers": 22,
+        "query_variants": 8,
+        "upstream_attribution": "one GET /api/decisions page measured 13.7 s from this workspace; the 66 s is upstream-dominated, not local",
+        "wall_seconds": 66.04
+      },
+      "phase_2_enrich": {
+        "adversarial": "independent_llm_adversarial_v2 on a different model (opencode/space-bunny-free)",
+        "adversarial_findings": 11,
+        "answer_model": "opencode/nemotron-3-ultra-free",
+        "answer_status": "ready",
+        "challenging_findings": 11,
+        "cited_decision_ids": 8,
+        "counter_status_decisions": 11,
+        "degraded": false,
+        "method": "generative_audit_llm_v2",
+        "provider_error": null,
+        "rejected_ids": 0,
+        "wall_seconds": 141.35
+      },
+      "query": "Responsabilité pénale de l'entreprise selon l'art. 102 CP subsidiaire ou primaire",
+      "report": "reports/product/CYCLE_38641080245.md",
+      "run_id": 38641080245,
+      "server": "python product/query_app.py --port 8793 (one command, stdlib ThreadingHTTPServer)"
+    },
+    "live_legs_this_run": "results/product/reality_check/summary_ci_38604340726.json (4/4 structural+truth, sequential) — durable run conclusion=success observed 2026-10-14T21:36:10Z",
+    "of_run": 39169296466,
+    "pre_existing_collection_errors": "18 legacy 174k test modules fail collection with ModuleNotFoundError: sentence_transformers (optional dep, PAUSE'd legacy lane); unchanged by this cycle and not on the query-map path",
+    "product_integration_tests": "91 passed (ci_reality_legs 20 + ci_run_evidence 26 + reality_check + audit_seam + query_map_mvp + answer_contract + human_gate_integration 12)",
+    "repair_39172315384_round1": {
+      "at": "2026-10-18T22:48:31Z",
+      "attribution_artifact": "results/product/regression/CYCLE_39172315384_test_delta_attribution.json (working-tree delta +16 = +8 + +6 + +2)",
+      "ledger": "results/product/cycle_verify/CYCLE_39172315384_cycle_verify.json (PASS 48/48, run 39172315384)",
+      "ledger_guard_claim": "product/cycle_verify.py::check_committed_guards - 4 claims that re-derive the committed staleness guards; 6 negative controls in product/tests/test_cycle_verify_is_a_gate.py",
+      "of_run": 39172315384,
+      "regression_scope_artifact": "results/product/regression/CYCLE_39172315384_regression_scope.json (accepted base bcb1217 vs this tree: fixed 4 ids, introduced 0)",
+      "report_of_record": "reports/product/CYCLE_39172315384_REPAIR1.md",
+      "report_testcount_disclosure": "results/product/regression/CYCLE_39172315384_report_testcount_disclosure.json (pin re-pointed from CYCLE_39149741259, historical artifact preserved)",
+      "runtime_delta": "empty: git diff --name-only 2d8768e -- product/query product/query_app.py product/offline_slice.py product/live_slice.py",
+      "set_relation_vs_rejected_head_2d8768e": "fixed 1 id (test_report_artifact_arithmetic.py::testcount_disclosure_artifact_is_current), introduced 0",
+      "state_register_guard": "product/state_register.py + product/tests/test_state_register_retention.py + product/data/state_register_baseline/verification_bcb1217.json (the missing reader named in audit note N4)"
+    },
+    "report_of_record": "reports/product/CYCLE_39169296466.md",
+    "resume_39014141628": "reports/product/CYCLE_39011220761_RESUME.md is this cycle's report (written by run 39014141628). Pre-existing-red follow-up: product/tests/test_cache_non_orphan claim-bundle identity (CORRECTED characterization, audit D2 repair r1: 2841 differing leaves, committed claim bundle 154 rows vs 120 from a fresh frozen-subset replay, all 120 present in the committed set - NOT only cluster label/size/member_ids) and test_audit_seam dead-model agreement fail identically at accepted base 3077b27 in this environment - re-measure in the numeric environment that produced the accepted claim artifact before quoting claim-cache identity again; never weaken content_sha256 or the seam's exclusion to make them pass.",
+    "state_contract_before_fix": "results/product/orchestration/CYCLE_39169296466_state_contract_BEFORE.txt (4 failed / 25 passed at snapshot 4acd595)",
+    "status": "FAIL",
+    "verified_on": "2026-10-14 (run 38641080245 workspace)"
+  },
+  "repair_39169296466_round1": {
+    "audit_of_record": "results/audit/product/CYCLE_39169296466_GATE.json gate=REVISE safe_to_integrate=false, audit commit 9841e9e on cycle/core/product/39169296466/audit",
+    "f1_red_committed_guard": {
+      "defect": "product/tests/test_report_artifact_arithmetic.py::testcount_disclosure_artifact_is_current was RED on the tree this cycle repairs: the rejected cycle's own report joined the bare-test-count candidate set (11 live candidates vs the 10 published) while results/product/regression/CYCLE_39149741259_report_testcount_disclosure.json still published the pre-cycle set.",
+      "defect_class": "D1 of BLOCKED cycle 39160624523 recurring on the sibling guard; it escaped because no ledger claim covered test_report_artifact_arithmetic.py (audit F1b).",
+      "fix": "published results/product/regression/CYCLE_39172315384_report_testcount_disclosure.json from a fresh sweep and re-pointed the DISCLOSURE constant with this recorded reason; the historical CYCLE_39149741259 artifact is untouched on disk and is now guarded by test_the_previous_disclosure_artifact_is_preserved_as_history."
+    },
+    "f1b_ledger_blindness": {
+      "defect": "python3 product/cycle_verify.py --run-id 39169296466 reported PASS 44/44 on a tree that was red on a committed guard, so a PASS ledger could be read as a green tree.",
+      "fix": "new ledger check 'guards' (product/cycle_verify.py::check_committed_guards) re-derives every committed staleness guard - the report test-count disclosure, the test-delta attribution working-tree total and this register - and FAILs when any is red; a negative control in product/tests/test_cycle_verify_is_a_gate.py proves it fails."
+    },
+    "f2_state_register_restored": {
+      "baseline": "product/data/state_register_baseline/verification_bcb1217.json - the accepted base's verification block, values byte-exact, sha256 3583c454faa9d10921e58e573b5f0a75485936ffe6b4a5eb93d55d5e6402c08c; extracted from git show bcb1217:state/product.json (raw sha256 c7d3f139b259e6171fb54e7624a2fea041f08b7912be8fc8a3c1866b4ed55b79).",
+      "defect": "the top-level verification register was replaced wholesale by the rejected cycle: the 12 keys accepted at bcb1217 existed nowhere in the shipped tree, including the lane's own admitted failures (latest_reality_check.findings, pre_existing_collection_errors, resume_39014141628's 'never weaken content_sha256' instruction, latency_budget_9a, live_clickable_slice_this_cycle), with no supersedes_claims entry.",
+      "fix": "all 12 keys restored with unedited values and this cycle's own keys kept ALONGSIDE them; the register is now read by product/state_register.py, wired into the ledger and guarded by product/tests/test_state_register_retention.py, so the same deletion cannot recur silently (audit note N4).",
+      "no_supersession": "nothing is superseded and nothing was rewritten: the restored values equal the accepted base exactly, which product/state_register.py --json re-derives."
+    },
+    "f3_report_disclosure": "reports/product/CYCLE_39169296466.md section 6 carried the sentence 'No frozen bar, rubric, threshold, .github/** file, historical artifact or contrary output was modified' while the same commit had deleted the contrary outputs above. That sentence is now corrected in place by an RF2 marked correction that quotes the pre-repair wording verbatim; the original text is preserved and no other section was edited.",
+    "repairs_rejected_cycle": 39169296466,
+    "run_id": 39172315384,
+    "scope": "repair round 1: F1/F1b (red committed guard + ledger blindness) and F2/F3 (deleted state register + report disclosure). No new measurement, no new instrument, no new capability.",
+    "unretracted": "The rejected cycle's other accepted-verified work is untouched and still credited: the v57 ordered work (1) query-concept disclosure (product/query/gate_admissibility.py + product/tests/test_query_concept_disclosure.py), the direction_version 56->57 exit-69 fix, the attribution regeneration and the frontier-query-concept-recall DECLINE. This repair changes no product runtime code - see git diff --stat against 2d8768e in the report of record."
+  },
+  "state_register_restoration_39651573572": {
+    "run_id": "39651573572",
+    "deleting_run": "39543057762",
+    "defect": "accepted cycle 39543057762 (commit bdfcc9813) replaced state/product.json wholesale (5224 lines -> 49 lines) and deleted the top-level 'verification' register (20 keys), the repair_39169296466_round1 disclosure and 93 further top-level records, including the lane's own admitted failures. The committed guard product/tests/test_state_register_retention.py was RED on the accepted tip from that commit onwards.",
+    "restored": [
+      "verification (20 keys, byte-exact from the preserved artifact; the 12 keys accepted at bcb1217 are byte-identical to the pinned baseline product/data/state_register_baseline/verification_bcb1217.json)",
+      "repair_39169296466_round1 (byte-exact from the preserved artifact)"
+    ],
+    "preserved_bytes": {
+      "artifact": "results/product/state_register/CYCLE_39538762904_state_product.json",
+      "sha256": "0f2d35a171521d84b9acd7f440df0641e4e0a9ff894992a873a9e828ff55f2a8",
+      "source_commit": "6663c32",
+      "source_run": "39538762904",
+      "note": "the deleted bytes are preserved verbatim; nothing was removed and the file named for the run that carried them holds that run's measurement"
+    },
+    "not_restored_into_the_live_state": "the other 93 top-level records deleted by the same replacement are NOT written back into state/product.json: they are generic pointers and per-cycle claim blocks whose current values would be stale or contradictory (accepted_commit, audit_artifact, current_run, state_updated_at, human_gate_integration, ...). They are preserved byte-for-byte in the artifact above and remain readable there.",
+    "live_state_precedence": "for every key the live state already carries, the live value wins; this tool only ADDS the restored keys and the disclosure records.",
+    "claim_ceiling": "This is a restoration of deleted lane state, not a new measurement and not a legal claim. It scores no frozen bar, changes no threshold and changes no product behaviour."
+  },
+  "supersedes_claims": {
+    "state_register_deleted_by_39543057762": "RESTORED BY RUN 39651573572: accepted cycle 39543057762 (commit bdfcc9813) replaced state/product.json wholesale and deleted the top-level 'verification' register (20 keys, including the lane's own admitted failures), the repair_39169296466_round1 disclosure and 93 further top-level records. The register and the disclosure are restored byte-exact from results/product/state_register/CYCLE_39538762904_state_product.json (sha256 0f2d35a171521d84b9acd7f440df0641e4e0a9ff894992a873a9e828ff55f2a8); the deleted bytes are preserved there and nothing was deleted. The live state keeps its own value for every key it already carried."
+  }
+}

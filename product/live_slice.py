@@ -33,11 +33,26 @@ Cache-root default (since cycle 39674781875)
 contains a frozen 392-envelope subset pinned by
 ``results/product/CYCLE_38759730609_cache_manifest.json``.  A refresh run
 against the tracked cache therefore breaks frozen evidence every time it
-touches a pinned key (measured: 19 entries in the 39128456801 freshness run,
-9 more in cycle 39667945530's two live runs).  ``run()`` now defaults to a
-throwaway cache directory it creates and removes itself; writing the tracked
-cache requires the explicit ``--tracked-cache`` flag.  ``--ephemeral-cache``
-is kept as a no-op-compatible alias of the default.
+touches a pinned key.  ``run()`` now defaults to a throwaway cache directory
+it creates and removes itself; writing the tracked cache requires the explicit
+``--tracked-cache`` flag.  ``--ephemeral-cache`` is kept as a no-op-compatible
+alias of the default.
+
+Measured attribution (machine-checked by ``product/cache_rewrite_attribution.py``
+and pinned by ``product/tests/test_cache_rewrite_attribution.py``; artifact of
+record ``results/product/cache_attribution/CYCLE_39674781875_manifest_rewrite_attribution.json``):
+the 39128456801 freshness run modified 19 tracked cache files in its working
+tree, 10 of them manifest-covered, and none of those writes reached a commit;
+manifest-covered entries rewritten by commit 3f94e0e = 9; attributed to the
+two recorded runs' own probes = 7; carrying no probe attribution = 2
+(11/11c69a8b8d6957fcb1348469a840098bf523ea1d558853b7ab008e978d714927.json and
+88/88a3a731a6829455f6911b8931a1f4c3e9235d5d7a64519018e16563a3e33598.json).
+An earlier wording of this sentence credited all nine manifest-covered
+rewrites to the two recorded runs; the two files above are the correction -
+they were rewritten in the same commit and no recorded probe lists them, so
+they are published as unattributed instead of being folded into a run's count.
+The superseded wording is quoted verbatim in the report of record
+``reports/product/CYCLE_39674781875.md``.
 
 What it claims
 --------------
@@ -235,15 +250,21 @@ def run(query: str, *, top_n: int, enrich: bool, evidence_count: int,
         # PLACE, and the tracked product cache is covered by a frozen claim-cache
         # manifest (results/product/CYCLE_38759730609_cache_manifest.json).
         # Measured consequence of letting the default be the tracked cache: the
-        # 39128456801 freshness run turned 19 manifest-covered entries into
-        # different bytes, and cycle 39667945530's two live runs turned 9 more
-        # (CYCLE_39667945530.json + FIX1 freshness probes list them under
-        # files_modified) - each time taking test_cache_non_orphan.py::
-        # test_claim_cache_manifest_is_intact_and_append_tolerant from green to
-        # red.  The flag existed (commit db3891e lineage) but was opt-in and was
-        # forgotten; the default now points the adapter at a throwaway
-        # directory, so forgetting is no longer possible.  --tracked-cache opts
-        # back in explicitly, e.g. to warm the tracked cache on purpose.
+        # 39128456801 freshness run modified 19 tracked cache files in its
+        # working tree (10 of them manifest-covered; none of those writes
+        # reached a commit), and commit 3f94e0e - which carried cycle
+        # 39667945530's two live runs - rewrote 9 manifest-covered entries.
+        # The two recorded runs' own probes list 7 of those 9; the other 2
+        # (11/11c69a8b..., 88/88a3a731...) carry NO probe attribution and are
+        # published as unattributed by product/cache_rewrite_attribution.py
+        # (artifact results/product/cache_attribution/
+        # CYCLE_39674781875_manifest_rewrite_attribution.json).  Each rewrite
+        # took test_cache_non_orphan.py::test_claim_cache_manifest_is_intact_
+        # and_append_tolerant from green to red.  The flag existed (commit
+        # db3891e lineage) but was opt-in and was forgotten; the default now
+        # points the adapter at a throwaway directory, so forgetting is no
+        # longer possible.  --tracked-cache opts back in explicitly, e.g. to
+        # warm the tracked cache on purpose.
         import tempfile
 
         tmp_cache = tempfile.TemporaryDirectory(prefix="live-slice-cache-")
