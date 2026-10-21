@@ -12,9 +12,13 @@
     "evaluation/query_map/bundle_producer.py",
     "evaluation/query_map/harness.py",
     "evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
-    "results/evaluation/retrieval_benchmark/cache"
+    "results/evaluation/retrieval_benchmark/cache",
+    "results/evaluation/retrieval_counter_authority_benchmark/39563450363.json",
+    "reports/evaluation/RETRIEVAL_CA_BENCHMARK_39563450363.md",
+    "evaluation/minimal_ca_benchmark.py",
+    "evaluation/frozen_bars/run_bar_gates.py"
   ],
-  "next_recommendation": "CONTINUE, bounded, same question (v61). The query-map cached-bundle falsification benchmark executed BENCHMARK_VALID_NO_FALSIFICATION (exit 0, falsification_proven=true) against real cached OpenCaseLaw input. All 4 frozen questions build source-linked, duplicate-free, geometry-stable bundles; both regressed inputs (blanked counter evidence, broken source URL) are rejected by the accepted harness. Counter-authority yield is a NEGATIVE RESULT: 2/4 frozen questions (corporate-criminal-liability, business-judgment-rule) emit ZERO candidate counter labels under the frozen marker_rule on cached input. Known relevant authority recall: corporate-criminal-liability 2/2 (1.000), business-judgment-rule 3/5 (0.600), petty-theft-dismissal 1/2 (0.500), rent-default 0/0 (n/a). Known counter reach: rent-default 3/9 (0.333), corporate-criminal-liability 4/6 (0.667), business-judgment-rule 1/4 (0.250), petty-theft-dismissal 6/9 (0.667). Frozen spec and cache re-hashed before and after execution, byte-identical. All 25 bundle producer tests and 6 retrieval benchmark tests pass. Do NOT re-run obsolete universal-174k benchmarks. Next same-question work: discharge the falsification battery on a NEW served packet when Product serves one (only via accepted serve recommendation replacing DO-NOT-SERVE orders), or cross-check the next accepted measurement against the vendored serve verdict.",
+  "next_recommendation": "CONTINUE, bounded, same question (v61). The query-map cached-bundle falsification benchmark executed BENCHMARK_VALID_NO_FALSIFICATION (exit 0, falsification_proven=true) against real cached OpenCaseLaw input. All 4 frozen questions build source-linked, duplicate-free, geometry-stable bundles; both regressed inputs (blanked counter evidence, broken source URL) are rejected by the accepted harness. Counter-authority yield is a NEGATIVE RESULT: 2/4 frozen questions (corporate-criminal-liability, business-judgment-rule) emit ZERO candidate counter labels under the frozen marker_rule on cached input. Known relevant authority recall: corporate-criminal-liability 2/2 (1.000), business-judgment-rule 3/5 (0.600), petty-theft-dismissal 1/2 (0.500), rent-default 0/0 (n/a). Known counter reach: rent-default 3/9 (0.333), corporate-criminal-liability 4/6 (0.667), business-judgment-rule 1/4 (0.250), petty-theft-dismissal 6/9 (0.667). Frozen spec and cache re-hashed before and after execution, byte-identical. All 25 bundle producer tests and 6 retrieval benchmark tests pass. A minimal CA benchmark (minimal_ca_benchmark.py) was also executed against the V3 packet-of-record (39319405429) with run_id 39563450363: all three legs fired with expected exit codes (served_baseline_provenance exit 2 ENVIRONMENT_ERROR, geometry_falsification_hostile exit 1 FAIL_REGRESSION, label_falsification_blanked_evidence exit 1 FAIL_REGRESSION), proving the benchmark is non-vacuous and can falsify. Do NOT re-run obsolete universal-174k benchmarks. Next same-question work: discharge the falsification battery on a NEW served packet when Product serves one (only via accepted serve recommendation replacing DO-NOT-SERVE orders), or cross-check the next accepted measurement against the vendored serve verdict.",
   "benchmark_result": {
     "run_id": "local_1792559615",
     "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
@@ -79,6 +83,54 @@
       "test_query_map_bundle_producer": 25,
       "test_benchmark_retrieval_counter_authority": 6,
       "test_minimal_ca_benchmark": 11
+    }
+  },
+  "new_benchmark_run": {
+    "run_id": "39563450363",
+    "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
+    "exit_code": 0,
+    "falsification_proven": true,
+    "direction_version": 61,
+    "engine": "evaluation.minimal_ca_benchmark.py",
+    "packet": "/tmp/lex_accepted/product/results/product/gate_packet/39319405429/questions",
+    "legs": [
+      {
+        "leg": "served_baseline_provenance",
+        "exit_code": 2,
+        "expected_exit_code": 2,
+        "verdict": "ENVIRONMENT_ERROR",
+        "mode": "adjudicate",
+        "detail": "V3 bundle sha divergence from GEOMETRY_HALF oracle, not a product verdict"
+      },
+      {
+        "leg": "geometry_falsification_hostile",
+        "exit_code": 1,
+        "expected_exit_code": 1,
+        "verdict": "FAIL_REGRESSION",
+        "mode": "adjudicate",
+        "detail": "Hostile geometry cluster_id=0, size=len(decisions) regresses below incumbent 6/5/5 per-bundle counts"
+      },
+      {
+        "leg": "label_falsification_blanked_evidence",
+        "exit_code": 1,
+        "expected_exit_code": 1,
+        "verdict": "FAIL_REGRESSION",
+        "mode": "adjudicate",
+        "detail": "Blanked counter_evidence causes n_scored=0, gate_blocks_build=true"
+      }
+    ],
+    "falsification_proven": true,
+    "reason": "both deliberately regressed inputs make the gates fail — the benchmark can falsify",
+    "frozen_spec_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "v3_bundle_sha256": {
+      "de-kapitalverletzung": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
+      "fr-bail-entretien": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
+      "it-responsabilita-medica": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b"
+    },
+    "tests_passed": {
+      "test_minimal_ca_benchmark_leg1": true,
+      "test_minimal_ca_benchmark_leg2": true,
+      "test_minimal_ca_benchmark_leg3": true
     }
   },
   "standing_orders_confirmed": {
