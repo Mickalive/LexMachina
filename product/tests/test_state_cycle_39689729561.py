@@ -151,7 +151,7 @@ def test_the_preserved_bytes_are_the_bytes_the_state_names() -> None:
         f"{record['preserved_bytes']['sha256']}; re-derive rather than re-pin")
     assert record["deleting_run"] == "39543057762", (
         "the restoration must name the run that deleted the records")
-    assert record["run_id"] == RUN_ID
+    assert str(record["run_id"]) == str(RUN_ID)
 
 
 def test_the_restoration_discloses_what_it_did_not_restore() -> None:
@@ -180,12 +180,19 @@ def test_both_attribution_tools_publish_a_fixed_width_short_sha() -> None:
 
     artifact = _json(ROOT / "results" / "product" / "cache_attribution"
                      / "CYCLE_39674781875_manifest_rewrite_attribution.json")
+    for key in ("base", "head"):
+        sha = artifact["range"][key]
+        assert len(sha) == tda.SHORT_SHA_LENGTH, (
+            f"the published cache-attribution range {key} names a "
+            f"{len(sha)}-character sha ({sha}); the committed artifact must keep "
+            f"its published {tda.SHORT_SHA_LENGTH}-character form")
     for key in ("base_subject", "head_subject"):
         subject = artifact["range"][key]
-        sha = subject.rsplit(" ", 1)[-1]
+        sha = subject.split(" ", 1)[0]
         assert len(sha) == tda.SHORT_SHA_LENGTH, (
-            f"the published cache-attribution {key} names a {len(sha)}-character "
-            f"sha ({sha}); the committed artifact must keep its published form")
+            f"the published cache-attribution {key} leads with a "
+            f"{len(sha)}-character sha ({sha}); the committed artifact must keep "
+            f"its published {tda.SHORT_SHA_LENGTH}-character form")
 
 
 def test_the_cache_attribution_artifact_still_reproduces_from_the_tree() -> None:

@@ -128,14 +128,25 @@ LIVE_SLICE_SCHEMA = "product-live-slice/1"
 #: re-measured artifact ``CYCLE_39422322667_report_testcount_disclosure.json``;
 #: the 39389625385 artifact stays on disk byte-identical and is now named in
 #: ``DISCLOSURE_HISTORY``.
+#: REPOINT RECORD (cycle 39689729561, operational resume): the pinned
+#: disclosure measured the report set as it stood at cycle 39422322667, and this
+#: cycle ADDED a report of record that cites nine live-slice artifacts at once
+#: (reports/product/CYCLE_39674781875.md, the report cycle 39674781875 owed and
+#: never shipped). The artifact/report pair count therefore moved 10 -> 19, so
+#: the published scope was stale and ``test_measured_scope_is_published_not_
+#: aspirational`` was RED on the tree this cycle inherited. The sweep was
+#: re-run over the repaired tree and published under
+#: ``CYCLE_39689729561_report_testcount_disclosure.json``; the 39422322667
+#: artifact stays on disk byte-identical and is now named in
+#: ``DISCLOSURE_HISTORY``.
 DISCLOSURE = (ROOT / "results" / "product" / "regression"
-               / "CYCLE_39422322667_report_testcount_disclosure.json")
+               / "CYCLE_39689729561_report_testcount_disclosure.json")
 #: The previous pin, kept as a readable constant so a reader can diff the two
 #: artifacts instead of trusting prose about them.
 DISCLOSURE_PREVIOUS_PIN = (ROOT / "results" / "product" / "regression"
-                            / "CYCLE_39389625385_report_testcount_disclosure.json")
-#: Every disclosure artifact this pin has ever named, oldest first, each of which
-#: must still exist. A pin move moves a CHECK; it never removes evidence.
+                            / "CYCLE_39422322667_report_testcount_disclosure.json")
+#: Every disclosure artifact this pin has ever named, oldest first, each of
+#: which must still exist. A pin move moves a CHECK; it never removes evidence.
 DISCLOSURE_HISTORY = (
     ROOT / "results" / "product" / "regression"
     / "CYCLE_39149741259_report_testcount_disclosure.json",
@@ -151,6 +162,8 @@ DISCLOSURE_HISTORY = (
     / "CYCLE_39286804530_report_testcount_disclosure.json",
     ROOT / "results" / "product" / "regression"
     / "CYCLE_39389625385_report_testcount_disclosure.json",
+    ROOT / "results" / "product" / "regression"
+    / "CYCLE_39422322667_report_testcount_disclosure.json",
 )
 
 #: The PRE-REPAIR BYTES of the report of record, extracted once from git
