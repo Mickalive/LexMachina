@@ -1,0 +1,144 @@
+{
+  "schema": "lex-evaluation-product-cache-parity-hypothesis/2",
+  "frozen_before_execution": true,
+  "frozen_at_utc": "2026-10-21T16:18:00Z",
+  "frozen_by": "core-evaluation",
+  "github_run_id": 39631600439,
+  "direction_version_at_freeze": 61,
+  "repair_context": {
+    "repair_of_rejected_cycle": "39628161040",
+    "repair_round": 1,
+    "prior_audit_gate": "REVISE",
+    "prior_audit_required_fixes_addressed_by_this_file": ["F1", "F2"],
+    "why_a_versioned_hypothesis_is_required": "V1's own metric_FROZEN.never_weakened_after_results clause states: 'This file is written and hashed BEFORE the scorer executes. If any predicate here must change after the first execution, that is a NEW frozen spec with a NEW digest and this file stays byte-preserved.' The independent audit of run 39628161040 (gate REVISE, F2) found that the V1 implementation drove its verdict with comparator rows from frozen texts the product never executed, while V1's own language_reach_rule_REPORTED_ONLY freezes 'not executed' coverage as REPORTED-ONLY and non-gating. The audit therefore offered exactly two legal repairs, and this file takes the second: 'publish a versioned hypothesis with a new freeze record and pre-freeze disclosure that makes the coverage asymmetry an explicit gated quantity'. V1 stays byte-preserved; this file is the new frozen spec with a new digest.",
+    "not_a_new_benchmark": "Same four frozen questions, same frozen id sets, same accepted matcher, same >=1-of-set operator, same two comparator pools, same non-vacuity battery, same absolute report-only gates, same V3 multilingual/provenance leg, same verdict vocabulary, zero network, zero universal-174k rerun. Nothing is rebuilt, re-tuned, re-derived or widened."
+  },
+  "supersedes": {
+    "path": "evaluation/PRODUCT_CACHE_PARITY_HYPOTHESIS_V1.json",
+    "sha256": "0e80f0de66fd43837e4851f1793db1b56b15600b8d14ceab9c3b853369a4247c",
+    "status": "BYTE_PRESERVED_NOT_MODIFIED",
+    "v1_freeze_record": "evaluation/PRODUCT_CACHE_PARITY_FREEZE_RECORD_V1.json",
+    "v1_freeze_record_sha256": "d15db504a6290e0449c894eefabdf31a7b3929e4fc53819602ed12a297e15440",
+    "v1_records_preserved": [
+      "results/evaluation/product_cache_parity/39619144928.json (sha256 9ba862fc39efc1aefc81d2b0a630f1c4987381633583737927a6368a7d5ccb60)",
+      "results/evaluation/product_cache_parity/39628161040.json (sha256 c38d6c9dc600cd8714a39a71dfec0966964d41b4b8bb93bfe24038585fcbea2f)"
+    ]
+  },
+  "question": "On the SAME frozen retrieval-benchmark questions, does the PRODUCT's own retrieval layer - the accepted search envelopes in its read-only query_cache - reach at least as many of the frozen controlling-authority ids and the frozen known counter-authority ids as the plain OpenCaseLaw client's responses, measured (a) LIKE-FOR-LIKE on the frozen query text(s) the product actually executed and (b) as an explicit QUERY-COVERAGE comparison against the union of all frozen texts (baseline+counter channels x fr/de/it) the plain OpenCaseLaw client answered? Identity mapping only (slug == slug, exact normalized query-text match); no analyst slug-to-question mapping is consumed anywhere, so the subject-mismatch defect class that forced the retraction of run 39111232991 (correction record results/evaluation/subject_match_audit/39113690481.json) cannot recur.",
+  "what_changed_versus_V1": {
+    "change_1_same_text_comparator_is_now_like_for_like": {
+      "v1_as_written": "comparators_NAMED.primary (baseline_same_query) = 'rows of the baseline record groups whose query text normalizes to one of the slug's identity texts (same text, same channel, same language)' with the stated purpose 'strictest like-for-like: the product pool and the comparator are responses to the SAME search'.",
+      "v1_as_implemented": "the primary comparator was the UNION of all six identity texts (240 rows/slug), while the product pool contained only the texts the product actually executed. The gate name said 'same_query' while the comparison was not same-query.",
+      "v2": "the primary same-text comparator is the union of the baseline-record groups whose (channel, language) the product's cache EXECUTED, i.e. exactly the texts the product pool contains. The gate name parity::same_query_* now matches what it compares.",
+      "why_this_is_not_a_weakening": "the union-of-six-texts comparison is NOT dropped; it is promoted from a silent driver of a same-text gate to an explicitly named, explicitly gated coverage gate (change_2). The total number of gated comparisons rises from 7 to 14; the set of FAILING comparisons is unchanged (the same 7 (kind, slug) pairs fail, on the same comparator pool, with the same operator and the same frozen id sets)."
+    },
+    "change_2_coverage_asymmetry_becomes_an_explicit_gated_quantity": {
+      "v1": "language_reach_rule_REPORTED_ONLY froze 'not executed' coverage as a REPORTED-ONLY, non-gating table, while the verdict was in fact driven by comparator rows from those very non-executed texts. The frozen rule and the published verdict contradicted each other.",
+      "v2": "the union-of-all-frozen-texts comparison is now an explicitly named gated family coverage::union_frozen_texts_{authority,counter}_not_below_baseline::<slug> with role=falsifier_coverage. The coverage asymmetry is therefore an explicit, gated quantity, exactly as the audit's F2 option (b) requires. The language_reach table itself stays REPORTED-ONLY and is still published in full.",
+      "why_this_is_not_a_weakening": "gating is added, never removed. V1 gated 7 comparisons; V2 gates 14 (7 same-text + 7 coverage). No comparison V1 gated is dropped: the union comparison V1 gated is still gated, under a name that says what it is.",
+      "the_negative_result_is_preserved_at_full_strength": "V1's FAIL_PRODUCT_CACHE_PARITY verdict (exit 1, 7 falsifier gates) remains the outcome of this benchmark under V2: the same 7 (kind, slug) pairs fail, on the same comparator pool, with the same numbers. What changes is the ATTRIBUTION, not the strength: the failure is a multilingual/counter-channel QUERY-COVERAGE deficit (the product's cache executed 1 of the 6 frozen texts per question), not a same-text retrieval-quality regression."
+    },
+    "change_3_decomposition_is_published": "for every one of the 7 (kind, slug) pairs the record publishes the per-(channel, language) comparator hit decomposition, the executed-text-only comparison, the union comparison and the per-id attribution of every comparator-only id to the (channel, language) group that produced it. This is the audit's F1 requirement and it is also the artefact that makes the attribution falsifiable by a reader."
+  },
+  "what_did_NOT_change": {
+    "frozen_id_sets": "evaluation/retrieval_gate/frozen_retrieval_benchmark.json sha256 187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72 (re-hashed fail-closed before and after execution); spec questions[].authority_ids and questions[].known_counter_ids[].id are used verbatim",
+    "matcher": "evaluation.retrieval_gate.gates.match_authorities / row_cores / extract_rows and evaluation.retrieval_gate.frozen.normalize_text (imported, never re-derived, never re-tuned)",
+    "min_core_length": "read at run time from the frozen spec id_match_rules (6); never overridden",
+    "recall_semantics": ">=1-of-set per frozen id set; unchanged",
+    "baseline_record": "results/evaluation/retrieval_benchmark/39101217095.json sha256 49dd60ad0ee96ed1de7225da4653b752c13fb058cfed05a613e0440d67c32ac9 (plain OpenCaseLaw searches, no query-map or counter-authority machinery)",
+    "comparator_pools": "the same two pools as V1 (the executed-text group union and the union of all six frozen texts); no pool is added, dropped or re-sliced",
+    "absolute_gates": "product::authority_recall::<slug> and product::counter_recall::<slug> stay role=report_only_absolute and are never counted as falsifiers",
+    "non_vacuity_battery": "C1_blanked_product_pool_must_fail and C2_oracle_product_pool_must_pass, unchanged in substance; under V2 both are evaluated per gated family (same-text family and coverage family), which is a stricter application of the same two controls",
+    "verdict_vocabulary": "unchanged: PASS_NO_PARITY_REGRESSION 0 / FAIL_PRODUCT_CACHE_PARITY 1 / NOT_MEASURED 2 / ENVIRONMENT_OR_VACUOUS 2",
+    "v3_multilingual_provenance_leg": "re-executed unchanged under this run id on the packet-of-record V3 bytes (append-only)",
+    "standing_orders": "both DO-NOT-SERVE orders stand; human_gate_ready, machine_gate_ready, packet_admitted, ready_for_owner_session and owner_decision_required all stay false; the absolute LABEL_SOUND / GEOMETRY_SOUND bars stay REPORTED-ONLY",
+    "cost": "network_requests = 0, no_174k_benchmark_rerun = true, no_new_thresholds = true"
+  },
+  "pre_freeze_disclosure_HONEST_V2": {
+    "what_happened": "This V2 file was authored in repair round 1 of rejected cycle 39628161040, i.e. AFTER the V1 measurement of runs 39619144928 and 39628161040 had been observed and AFTER the independent audit of run 39628161040 (gate REVISE) had recomputed the comparator decomposition from the accepted baseline record. It therefore CANNOT be presented as a pre-registered prediction and is never cited as one. It is a RE-SPECIFICATION of the same frozen id sets, matcher, comparator pools and operator under an explicitly disclosed coverage gate.",
+    "what_the_author_already_knows": "On the accepted product mount the product cache executed baseline/fr only (1 of the 6 frozen texts per question); the union comparator reaches more frozen ids than the product pool on all 7 (kind, slug) pairs; the executed-text comparator is reached or exceeded by the product pool. The audit's independent recomputation (results/audit/evaluation/CYCLE_39628161040_GATE.json, evidence_summary) reached the same numbers.",
+    "what_is_still_measured_fresh": "Every number in the V2 record is recomputed by the scorer from the committed baseline record, the committed frozen spec and the read-only accepted product mount. The decomposition, the per-(channel, language) attribution, the two families' gate outcomes and the non-vacuity battery are all computed at run time, not copied from the audit.",
+    "why_this_does_not_launder_the_result": "The freeze of V2 precedes the V2 execution, so no V2 predicate was chosen after seeing a V2 number. Every predicate V2 uses is a set-cardinality comparison (>=1-of-set, product_hits >= comparator_hits), an exact structural identity (exact normalized query-text equality) or a name taken from the frozen spec; V2 introduces no constant that could be tuned. The expectation the author holds is disclosed below so that a reader can see the prediction and the observation side by side.",
+    "pre_freeze_expectation_disclosed": "Expected under V2 on the accepted mount: the 7 same-text parity gates PASS (the product reaches or exceeds the plain comparator on the only text it executed: 0/0, 1/0, 1/1, 0/0, 0/0, 0/0, 1/0) and the 7 coverage gates FAIL (the product executed 1 of 6 frozen texts, so the union comparator reaches ids the product pool does not). The overall verdict is therefore expected to remain FAIL_PRODUCT_CACHE_PARITY (exit 1) with the failure attributed to coverage. If the executed measurement deviates from this expectation in any respect, the deviation is published as observed; nothing is re-tuned to remove it."
+  },
+  "mapping_rule_IDENTITY_ONLY": {
+    "rule": "cell slug == frozen slug; the product pool for a slug is the union of rows from every accepted product query_cache envelope whose normalized query text EXACTLY equals one of that slug's own six frozen query texts (baseline+counter x fr/de/it, evaluation.retrieval_gate.frozen.normalize_text)",
+    "analyst_mapping_consumed": false,
+    "why": "the 39111232991 retraction established n_admissible_cells=0 for any analyst slug-to-served-question mapping; identity matching is the only mapping-free rule in which a product-side claim cannot inherit D1",
+    "relationship_to_retracted_claim": "this instrument does NOT re-issue the retracted 39111232991 FAIL_PARITY_REGRESSION product-layer claim (served bundle vs baseline-union under an analyst mapping). It measures a different population (product search envelopes), a different comparator set (same-text AND explicitly gated coverage) and a different mapping (identity). The retracted record stays byte-preserved and its status STANDS_AS_A_HARNESS_RESULT is unchanged."
+  },
+  "comparators_NAMED_V2": {
+    "primary_same_text": {
+      "name": "executed_text_same_query",
+      "definition": "rows of the baseline record groups whose (channel, language) the product's query_cache EXECUTED for that slug (identity match on the normalized frozen query text). When the product executed one text, this is exactly that text's group.",
+      "gate_family": "parity::same_query_{authority,counter}_not_below_baseline::<slug>",
+      "role": "falsifier",
+      "why": "strictest like-for-like: the product pool and this comparator are responses to the SAME search, which is what the lane directive defines as the baseline ('the same OpenCaseLaw search/result set without the additional query-map/counter-authority machinery') and what the D2 correction requires the comparator to be."
+    },
+    "coverage": {
+      "name": "union_all_frozen_texts",
+      "definition": "rows of ALL six identity texts of the slug (baseline+counter x fr/de/it) of the accepted plain-OpenCaseLaw baseline record",
+      "gate_family": "coverage::union_frozen_texts_{authority,counter}_not_below_baseline::<slug>",
+      "role": "falsifier_coverage",
+      "why_gated_now": "V1 froze 'not executed' coverage as REPORTED-ONLY while its verdict was driven by exactly that coverage. The audit's F2 requires the coverage asymmetry to become an explicit gated quantity (or the same-text comparator to be restricted and the non-executed texts demoted to REPORTED-ONLY). V2 takes the gated route so that the negative result V1 measured is not downgraded to a footnote, while the same-text comparison is made honest.",
+      "how_to_read_a_failure_here": "A coverage-gate failure says: the product's cached retrieval did not reach the frozen ids that the plain OpenCaseLaw client reached when it answered the frozen texts the product never ran. It does NOT say the product's retrieval quality is worse than plain OpenCaseLaw on the text it did run; that is the same-text family, which is reported beside it."
+    },
+    "reported_context_never_gated": [
+      {
+        "name": "baseline_plain_channel_all_languages",
+        "definition": "all baseline-channel groups of the slug (3 languages, 150 rows)",
+        "why_reported": "the comparator the D2 correction measured; published so a reader can reproduce the 39113690481 D2 numbers (rent 1 / corp 3 / petty 5 known-counter hits) beside this run"
+      },
+      {
+        "name": "per_channel_language_decomposition",
+        "definition": "the six (channel, language) groups of the slug, each with its row count and its own frozen-id hits",
+        "why_reported": "the per-(channel, language) attribution the audit's F1 requires; it is the evidence that makes the coverage attribution checkable rather than asserted"
+      }
+    ]
+  },
+  "metric_FROZEN": {
+    "recall_semantics": ">=1-of-set per frozen id set, via the accepted gates.match_authorities (min_core_length from the frozen spec id_match_rules, read at run time)",
+    "authority_sets": "spec questions[].authority_ids (empty for rent-default -> not measurable, never a pass)",
+    "counter_sets": "spec questions[].known_counter_ids[].id",
+    "success_rule_FROZEN": "PASS_NO_PARITY_REGRESSION (exit 0) if and only if every MEASURABLE gate of BOTH gated families holds (product_hits >= its comparator_hits) and every non-vacuity control holds. Any measurable gate of either family with product_hits < comparator_hits is FAIL_PRODUCT_CACHE_PARITY (exit 1). Zero measurable gated cells, a pin mismatch, a missing mount, or a failed non-vacuity control is ENVIRONMENT_OR_VACUOUS / NOT_MEASURED (exit 2) - never a pass and never a bar-met. The gate family that drove the verdict is published (verdict_scope) together with the two family verdicts (same_text_parity_verdict, coverage_verdict), so a reader can see WHICH comparison failed without having to re-derive it. The absolute product:: recall gates (>=1-of-set) are REPORTED with role=report_only_absolute and are NOT counted as falsifiers: an absolute miss whose same-query plain comparator also misses is not a product-layer defect, and a miss the plain search did not suffer is already caught by the corresponding parity:: gate. Every side publishes hits, misses and yields together.",
+    "no_new_thresholds": "V2 introduces no numeric constant: the operator is the same set-cardinality comparison, the id sets are the same frozen sets, the matcher and its min_core_length are the same, and the two comparator pools are the same two pools V1 used.",
+    "never_weakened_after_results": "This file is written and hashed BEFORE the V2 scorer executes. If any predicate here must change after the V2 execution, that is a NEW frozen spec (V3) with a NEW digest, and this file stays byte-preserved."
+  },
+  "gate_names_FROZEN_V2": [
+    "provenance::frozen_inputs_identity",
+    "product::authority_recall::<slug> (role=report_only_absolute, slugs with non-empty authority_ids)",
+    "product::counter_recall::<slug> (role=report_only_absolute, slugs with non-empty known_counter_ids)",
+    "parity::same_query_authority_not_below_baseline::<slug> (role=falsifier, executed-text comparator, measurable cells only)",
+    "parity::same_query_counter_not_below_baseline::<slug> (role=falsifier, executed-text comparator, measurable cells only)",
+    "coverage::union_frozen_texts_authority_not_below_baseline::<slug> (role=falsifier_coverage, union comparator, measurable cells only)",
+    "coverage::union_frozen_texts_counter_not_below_baseline::<slug> (role=falsifier_coverage, union comparator, measurable cells only)"
+  ],
+  "non_vacuity_FROZEN_V2": [
+    "C1_blanked_product_pool_must_fail: scoring an empty product pool against every gated gate of either family whose own comparator_hits >= 1 must FAIL that gate. If NO gated gate has comparator_hits >= 1, the battery cannot be proven and the run is ENVIRONMENT_OR_VACUOUS (published as-is).",
+    "C2_oracle_product_pool_must_pass: scoring a family's own comparator rows as the product pool must PASS every measurable gate of that family (identical hits). A failure means the gate is defective, not the product.",
+    "C3_coverage_family_is_not_vacuous: the coverage family must be able to hold - it must PASS when the product pool contains the rows of all frozen texts the union comparator used. A coverage family that can never pass would be a defective gate, not a product verdict."
+  ],
+  "language_reach_rule_REPORTED_ONLY": {
+    "rule": "for each slug x channel x language of the frozen spec, publish the count of identity-matched product envelopes and whether the frozen text was EXECUTED by the product cache",
+    "gate": null,
+    "why": "'not executed' is a coverage measurement, not a fail; the accepted not-measurable convention forbids converting it into a fail. The table is the multilingual robustness disclosure the lane directive requires (FR/DE/IT query robustness) on the product side.",
+    "how_V2_reconciles_this_with_change_2": "The table stays REPORTED-ONLY and no gate is NAMED after a language. What V2 gates is not the per-text execution flag but the REACH COMPARISON against the union comparator: the coverage gate asks whether the product's cached retrieval, as a whole, reaches what the plain client reached when it answered every frozen text. That comparison is a set-cardinality comparison on the frozen id sets - the same operation V1 already performed - and it is now named for what it measures."
+  },
+  "v3_multilingual_provenance_reuse_LEG": {
+    "rule": "re-execute evaluation.run_v3_multilingual_provenance_reuse.check_bundle under THIS run id on the packet-of-record V3 bundles (sha-pinned 9b856e2b / 054bec47 / 345e20d1), publishing per-qid row_ok, missing fields and bad urls; earlier committed records under other run ids are never overwritten",
+    "success_rule": "published as-is; any miss is evidence, never weakened (the accepted run already published PARTIAL_MISS 0/3 for the V3 bundles)"
+  },
+  "environment_contract": {
+    "network": "none - the scorer reads only the committed baseline record, the frozen spec and read-only files under the accepted product mount",
+    "mounts": ["/tmp/lex_accepted/product (read-only accepted product mount; override via LEX_ACCEPTED_PRODUCT_MOUNT or --product-mount)"],
+    "numeric_environment_disclosure": "python version, platform, envelope file count and every input sha256 are recorded in the run record; no cross-machine byte-identity is claimed",
+    "write_scope": "results/evaluation/product_cache_parity/<run_id>.json and reports/evaluation/PRODUCT_CACHE_PARITY_<run_id>.md only; a scratch invocation MUST pass --out/--report"
+  },
+  "verdict_vocabulary_FROZEN": {
+    "PASS_NO_PARITY_REGRESSION": 0,
+    "FAIL_PRODUCT_CACHE_PARITY": 1,
+    "NOT_MEASURED": 2,
+    "ENVIRONMENT_OR_VACUOUS": 2
+  },
+  "claim_ceiling": "This benchmark can establish TWO things and nothing more: (1) on the frozen query text(s) the product's own cached retrieval actually executed, how many of the frozen controlling-authority ids and frozen known counter-authority ids the PRODUCT's retrieval layer reaches compared with the plain OpenCaseLaw client's response to that same text; and (2) how much of what the plain OpenCaseLaw client reached when it answered ALL the frozen texts (baseline+counter channels x fr/de/it) the product's cached retrieval reaches at all, i.e. the multilingual/counter-channel QUERY-COVERAGE deficit. It does NOT claim that the product's retrieval quality is worse than plain OpenCaseLaw on the text it ran (that is the separately gated same-text family, reported beside the coverage family); it does NOT score any served bundle or packet (it therefore touches no packet-of-record byte and lifts no order); it does NOT re-classify any decision as supporting/contrary/limiting; it does NOT re-score, meet or move the frozen absolute LABEL_SOUND / GEOMETRY_SOUND bars (they stay REPORTED-ONLY); it does NOT lift the accepted DO-NOT-SERVE order on packet 38839347028 nor DO-NOT-SERVE-UNCHANGED on rebuilt-39027045675; it does NOT certify admission of any packet; it does NOT claim the map helps a jurist; it does NOT re-issue the retracted 39111232991 parity claim; it does NOT rebuild or re-dispatch any Frontier component (counter-anchor classifier accept d236f599, relevance_ordered geometry accept be5eba7f/dc3ffc6c and counter-label-emission accept 44d4904b stay closed). human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session all stay false; owner_decision_required stays false. NOT_MEASURED / NOT_APPLICABLE is never a pass."
+}
