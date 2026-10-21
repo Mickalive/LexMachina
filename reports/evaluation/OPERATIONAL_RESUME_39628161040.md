@@ -42,6 +42,7 @@ This is a genuine falsification of the retrieval-first claim on the product's ow
 - Delta `84f41d935d39c09e915586b6fef74873207f653b..1dd93df6dd977b4757e4b8f942d58a2bb8d6b214`: 1 in-scope, 2 out-of-scope path(s).
 - `reports/audit/evaluation/CYCLE_39626323381.md` — TEAM_AUTHORED_SELF_CERTIFICATION_NOT_INDEPENDENT_AUDIT, sha256 `a912dc5478c0b5085e4f0d52c87daec2f4f04a45cb316b0f32615bb8534ea523`; preserved in place, NOT an independent audit verdict.
 - `results/audit/evaluation/CYCLE_39626323381_GATE.json` — TEAM_AUTHORED_SELF_CERTIFICATION_NOT_INDEPENDENT_AUDIT, sha256 `dc216eea78497f355f60f51e5fb2f7651c55eb0e4da1c3e1367e1d7bee7e6d5c`; preserved in place, NOT an independent audit verdict.
+- Base evidence: the failed resume's parent commit is `84f41d935d39c09e915586b6fef74873207f653b`; it equals the 39619144928 snapshot (True) and differs from the accepted `lab/evaluation` tip (`b6872c2f6bc7b62285e57716b2dfc5a4cf77d59d`), proving the run was an operational resume of the producer snapshot rather than a fresh dispatch.
 - This cycle's own delta contains no path outside the evaluation lane scope; the out-of-scope files are inherited evidence of the failure, never consumed.
 
 ## State provenance repair

@@ -259,8 +259,23 @@ def snapshot_hygiene() -> dict:
                 "preserved in place as evidence of the scope failure; not "
                 "consumed as an audit verdict; deleted by no cycle")
             out_scope.append(entry)
+    parent = _git("rev-parse", f"{FAILED_RESUME_COMMIT}^")
+    lab_tip = _git("rev-parse", "origin/lab/evaluation")
     return {"performed": True, "producer_commit": PRODUCER_SNAPSHOT_COMMIT,
             "failed_resume_commit": FAILED_RESUME_COMMIT,
+            "base_evidence": {
+                "failed_resume_parent_commit": parent,
+                "parent_is_producer_snapshot": parent == PRODUCER_SNAPSHOT_COMMIT,
+                "accepted_lab_evaluation_tip": lab_tip,
+                "parent_is_accepted_lab_tip": parent == lab_tip,
+                "interpretation": (
+                    "the failed resume started from the run-39619144928 team "
+                    "snapshot, not from lab/evaluation; that is consistent with "
+                    "an operational resume of 39619144928 and inconsistent with "
+                    "a fresh dispatch. It was not a repair dispatch: the "
+                    "39619144928 audit ref did not exist (audit was skipped), so "
+                    "a repair checkout would have failed before the agent ran."),
+            },
             "all_changed_paths": paths, "in_scope": in_scope,
             "out_of_scope": out_scope,
             "all_accounted": len(in_scope) + len(out_scope) == len(paths),
@@ -429,7 +444,16 @@ def write_report(record: dict, report_path: Path) -> None:
         lines.append(f"- `{e['path']}` — {e['label']}, "
                      f"sha256 `{e.get('sha256_working_tree')}`; preserved in "
                      "place, NOT an independent audit verdict.")
+    base = hygiene.get("base_evidence") or {}
     lines += [
+        f"- Base evidence: the failed resume's parent commit is "
+        f"`{base.get('failed_resume_parent_commit')}`; it equals the "
+        f"{PRODUCER_RUN_ID} snapshot "
+        f"({base.get('parent_is_producer_snapshot')}) and differs from the "
+        f"accepted `lab/evaluation` tip "
+        f"(`{base.get('accepted_lab_evaluation_tip')}`), proving the run was an "
+        "operational resume of the producer snapshot rather than a fresh "
+        "dispatch.",
         "- This cycle's own delta contains no path outside the evaluation lane "
         "scope; the out-of-scope files are inherited evidence of the failure, "
         "never consumed.",

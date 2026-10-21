@@ -142,6 +142,12 @@ def test_all_changed_paths_accounted_for():
     assert hygiene["this_cycle_writes_outside_scope"] is False
 
 
+def test_base_evidence_proves_the_resume_was_not_a_fresh_dispatch():
+    base = _hygiene()["base_evidence"]
+    assert base["parent_is_producer_snapshot"] is True
+    assert base["parent_is_accepted_lab_tip"] is False
+
+
 # --------------------------------------------------------------------------- #
 # state provenance
 # --------------------------------------------------------------------------- #
