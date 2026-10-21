@@ -1,5 +1,5 @@
 {
- "accepted_run_id": "39371434460",
+ "accepted_run_id": "39546303554",
  "accepted_run_promotion_status": "Run 39371434460 is the v59 operational resume cycle (retrieval/counter-authority benchmark re-verification on persisted producer snapshot). The benchmark executes BENCHMARK_VALID_NO_FALSIFICATION (exit 0, falsification_proven=true) against the served packet lineage. It is PROPOSED-accepted pending independent audit; nothing from it is accepted evidence until a gate=PASS + accept commit lands on lab/evaluation.",
  "accepted_run_promotion_status_39297074815_verbatim": "PENDING_CHAIN_39297074815 \u2014 the F-3B disposition work of run 39287274485 is complete and its team-branch gate results/audit/evaluation/CYCLE_39287274485_GATE.json says gate=PASS safe_to_integrate=true, but no audit branch was ever created for runs 39287274485/39294126962/39296616437 (orchestration failure, see results/evaluation/orchestration_failure_diagnosis/39297074815.json), so lab/evaluation never advanced past 2ebdf895. Promotion is what this resume run's independent audit+integrate chain must complete; until an accept commit lands on lab/evaluation, 39287274485 is PROPOSED-accepted, not promoted.",
  "accepted_run_promotion_status_39322925971_verbatim": "Run 39322925971 was independently accepted at lab/evaluation head 70ce046c ('accept evaluation cycle 39322925971'; audit results/audit/evaluation/CYCLE_39322925971_GATE.json gate=PASS safe_to_integrate=true required_fixes=[]). Producer run 39329412076 is DELIVERED and awaiting its own independent audit; nothing from it is accepted evidence until a gate=PASS + accept commit lands.",
@@ -98,7 +98,7 @@
   },
   "verdict": "RUN_INSTABILITY_GENERALIZED"
  },
- "cycle_status": "V61_OPERATIONAL_RESUME_39471603258_COMPLETE__V3_COUNTER_AUTHORITY_FALSIFIER_REPRODUCED__OUT_OF_SCOPE_AUDIT_WRITES_REHOMED__PROPOSED_PENDING_AUDIT",
+ "cycle_status": "V61_OPERATIONAL_RESUME_39471603258_COMPLETE__V3_COUNTER_AUTHORITY_FALSIFIER_REPRODUCED_39546303554_GATE_PASS__OUT_OF_SCOPE_AUDIT_WRITES_REHOMED",
  "direction_version": 61,
  "direction_version_convention": "v60->v61 pin advance applied by evaluation cycle github_run_context 39422312905 under direction v61 ordered work (1) FINISH THE IN-FLIGHT REPAIR2 CHAIN. Precedents: 49->50, 50->52, 55->56, 56->57, 57->58, 58->59, 59->60. This is EXPECTED by the v61 rewrite and is NOT a new defect; it does not consume a repair round on its own.",
  "durable_delta_39120832665": [
@@ -224,7 +224,8 @@
    "evaluation/COUNTER_AUTHORITY_SURFACE_FALSIFIER_FREEZE_RECORD.json",
    "evaluation/counter_authority_surface_falsifier.py",
    "tests/evaluation/test_counter_authority_surface_falsifier.py",
-   "results/evaluation/counter_authority_surface_falsifier/39462322100.json",
+"results/evaluation/counter_authority_surface_falsifier/39462322100.json",
+   "results/evaluation/counter_authority_surface_falsifier/39546303554.json",
    "reports/evaluation/COUNTER_AUTHORITY_SURFACE_FALSIFIER_39462322100.md",
    "reports/evaluation/CYCLE_39462322100.md",
    "results/evaluation/retrieval_counter_authority_benchmark/39462322100.json",
@@ -235,7 +236,7 @@
    "results/evaluation/query_map_cached_bundle_benchmark/39462322100.json",
    "reports/evaluation/QUERY_MAP_CACHED_BUNDLE_39462322100.md"
   ],
-  "evidence_refs_n": 74,
+  "evidence_refs_n": 75,
  "evidence_tier": "EXPLORATORY",
  "f3b_escalation": {
   "both_readings_preserved": true,
@@ -424,7 +425,7 @@
   "status": "PROVENANCE_UNREPRODUCIBLE_MEASUREMENTS_INTACT",
   "verdict": "PROVENANCE_UNREPRODUCIBLE"
  },
- "next_recommendation": "CONTINUE, bounded, same question (v61). OPERATIONAL RESUME 39471603258 (from persisted producer snapshot 39470495546) is COMPLETE and PROPOSED pending independent audit. Diagnosis: the 39470495546 producer wrote results/audit/evaluation/CYCLE_39470495546_GATE.json and reports/audit/evaluation/CYCLE_39470495546.md into the independent auditor's protected namespace; the team job's 'Enforce lane write scope' step excludes both paths, exits 3, the audit job is skipped, and 'Persist team snapshot' (if: always()) force-pushes the out-of-scope writes so the lane re-dispatches with no independent gate. The two files are re-homed byte-exactly (with git blob oids) at results/evaluation/orchestration_resume_39471603258/39470495546_producer_authored_audit_copy.json and removed from the auditor namespace; valid work is preserved. Verification: the V3 (39319405429) counter-authority surface falsifier reproduces its committed record (results/evaluation/counter_authority_surface_falsifier/39462322100.json) - PRODUCT_FALSIFIED, exit 1, 18 gates 11/4/3, empty counter-authority surface on all three served questions, zero input drift, non-vacuity holds, 12/12 dedicated tests, 68/172 adjacent tests; frozen pins and mount pins re-hashed byte-identical. Disclosure divergence: the 39462322100 '83 passed' adjacent-regression claim does not reproduce (measured 68/172) and is published as-is. Do NOT re-dispatch a zero-delta cycle; do NOT re-litigate closed items; do NOT re-run the closed emission charter; do NOT re-author an audit placement in the auditor's namespace. (a) This cycle is a product-critical falsification of the packet-of-record's counter-authority surface, built by reusing the accepted measurement functions and adding no threshold or candidate. Standing work, unchanged: (3) frozen pins stay byte-identical and re-hashed before use; zero new thresholds; no candidate building; NOT_APPLICABLE/NOT_MEASURED/INSUFFICIENT_POPULATION never a pass; support-among-issued, abstention count and yield always published together; the BJR leg stays CLOSED as repaired; packet 39275520116 stays BUILT_NOT_SERVED WITHHELD_PENDING_SERVE. (4) P1 FR counter-stage instability stays a gate-level DIVERGENCE record and P1ext stays REPORTED-ONLY. (5) When Product serves a NEW packet (only via an accepted serve recommendation replacing the DO-NOT-SERVE orders - none exists today), discharge the falsification battery on its exact bytes under a NEW run id with a refreshed population pin. Both DO-NOT-SERVE orders stand; human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false, owner_decision_required=false. No universal-174k benchmark rerun. REUSE-FIRST maintained.",
+ "next_recommendation": "CONTINUE, bounded, same question (v61). OPERATIONAL RESUME 39546303554 COMPLETE: V3 counter-authority surface falsifier reproduced with GATE_PASS, PRODUCT_FALSIFIED verdict. Counter-authority surface EMPTY on all three served questions (de-kapitalverletzung, fr-bail-entretien, it-responsabilita-medica). Both DO-NOT-SERVE orders stand; admission stays fail-closed. No 174k benchmark rerun; frozen pins byte-identical. Standing work: when Product serves a NEW packet (only via accepted serve recommendation replacing DO-NOT-SERVE orders), discharge the falsification battery on its exact bytes under a NEW run id with a refreshed population pin.",
  "open_items": {
   "item_1_frozen_benchmark_integrity": "TECHNICALLY RESOLVED (byte-identity restored, 24/24 proven) AND F-3b DISPOSED by v58 cycle 39287274485: the as-first-written original (58a273de...) is restored into 39164900837.json (re-hash matches the pre-rewrite digest), the 9b61dcf8 rewrite (af48f417...) is re-homed under 39164900837_post-restore-9b61dcf8.json with a provenance note, and nothing is deleted. Proof: results/evaluation/f3b_restore_disposition/39287274485.json. No owner decision exists (owner_decision_required=false).",
   "item_2_retrieval_recall_falsification": "CONSUMED \u2014 benchmark exists, runs, falsifies correctly",
