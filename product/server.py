@@ -19,8 +19,8 @@ from collections import OrderedDict
 from functools import wraps
 from typing import Tuple, Dict, Optional, Any, List
 
-# Add parent to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add product directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent))
 
 import logging
 
@@ -691,40 +691,48 @@ class ProductHandler(SimpleHTTPRequestHandler):
                 "nav_api_initialized": nav_ok,
                 "nav_api_error": _nav_api_init_error,
             }
+            # Check if we're in query mode (lightweight nav_api is a dict)
+            is_query_mode = isinstance(nav, dict) and nav.get("_initialized") is True
             if nav_ok and nav is not None:
-                health["corpus_decisions"] = nav.corpus.size
-                health["maps_loaded"] = len(nav.map_loader.get_available_representations())
+                if is_query_mode:
+                    health["corpus_decisions"] = 0
+                    health["maps_loaded"] = 0
+                    health["mode"] = "query"
+                    health["query_pipeline"] = "ready"
+                else:
+                    health["corpus_decisions"] = nav.corpus.size
+                    health["maps_loaded"] = len(nav.map_loader.get_available_representations())
 
-                # Include startup validation summary on first call (cached)
-                if ProductHandler._startup_validation is None:
-                    try:
-                        ProductHandler._startup_validation = nav.startup_validation()
-                    except Exception as e:
-                        ProductHandler._startup_validation = {"error": str(e)}
-                sv = ProductHandler._startup_validation
-                health["startup_validation"] = {
-                    "total_representations": sv.get("total_representations", 0),
-                    "passing": sv.get("passing", 0),
-                    "warnings": sv.get("warnings", 0),
-                    "failing": sv.get("failing", 0),
-                    "elapsed_ms": sv.get("elapsed_ms", 0),
-                }
-
-                # Representation health summary
-                try:
-                    rep_summary = _health_checker.get_health_summary(nav.map_loader)
-                    health["representation_health"] = {
-                        "total": rep_summary["total"],
-                        "healthy": rep_summary["healthy"],
-                        "degraded": rep_summary["degraded"],
-                        "failed": rep_summary["failed"],
-                        "healthy_pct": rep_summary["healthy_pct"],
+                    # Include startup validation summary on first call (cached)
+                    if ProductHandler._startup_validation is None:
+                        try:
+                            ProductHandler._startup_validation = nav.startup_validation()
+                        except Exception as e:
+                            ProductHandler._startup_validation = {"error": str(e)}
+                    sv = ProductHandler._startup_validation
+                    health["startup_validation"] = {
+                        "total_representations": sv.get("total_representations", 0),
+                        "passing": sv.get("passing", 0),
+                        "warnings": sv.get("warnings", 0),
+                        "failing": sv.get("failing", 0),
+                        "elapsed_ms": sv.get("elapsed_ms", 0),
                     }
-                    if rep_summary["degraded"] > 0 or rep_summary["failed"] > 0:
+
+                    # Representation health summary
+                    try:
+                        rep_summary = _health_checker.get_health_summary(nav.map_loader)
+                        health["representation_health"] = {
+                            "total": rep_summary["total"],
+                            "healthy": rep_summary["healthy"],
+                            "degraded": rep_summary["degraded"],
+                            "failed": rep_summary["failed"],
+                            "healthy_pct": rep_summary["healthy_pct"],
+                        }
+                        if rep_summary["degraded"] > 0 or rep_summary["failed"] > 0:
+                            overall_status = "degraded"
+                    except Exception as e:
+                        health["representation_health"] = {"error": str(e)}
                         overall_status = "degraded"
-                except Exception as e:
-                    health["representation_health"] = {"error": str(e)}
-                    overall_status = "degraded"
             else:
                 overall_status = "failed"
                 health["corpus_decisions"] = 0
@@ -772,18 +780,21 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/api/query/run":
             q = params.get("q", [""])[0]
             n = int(params.get("n", ["120"])[0])
-            self._handle_cached(f"query_run:{q}:{n}", lambda: self._run_query_bundle(q, n))
+            retrieval_mode = params.get("mode", ["live"])[0]
+            self._handle_cached(f"query_run:{q}:{n}:{retrieval_mode}", lambda: self._run_query_bundle(q, n, retrieval_mode))
         elif path == "/api/query/answer":
             q = params.get("q", [""])[0]
             n = int(params.get("n", ["120"])[0])
-            self._handle_cached(f"query_answer:{q}:{n}",
-                                lambda: self._run_query_bundle(q, n)["answer"])
+            retrieval_mode = params.get("mode", ["live"])[0]
+            self._handle_cached(f"query_answer:{q}:{n}:{retrieval_mode}",
+                                lambda: self._run_query_bundle(q, n, retrieval_mode)["answer"])
         elif path == "/api/query/map":
             q = params.get("q", [""])[0]
             n = int(params.get("n", ["120"])[0])
-            self._handle_cached(f"query_map:{q}:{n}", lambda: {
+            retrieval_mode = params.get("mode", ["live"])[0]
+            self._handle_cached(f"query_map:{q}:{n}:{retrieval_mode}", lambda: {
                 "query": q,
-                "bundle": self._run_query_bundle(q, n),
+                "bundle": self._run_query_bundle(q, n, retrieval_mode),
             })
         elif path == "/query" or path == "/query.html":
             self._serve_file("static/query.html", "text/html")
@@ -791,6 +802,9 @@ class ProductHandler(SimpleHTTPRequestHandler):
         # Static files
         elif path == "/" or path == "/index.html":
             self._serve_file("static/index.html", "text/html")
+        elif path.startswith("/static/"):
+            # Strip /static/ prefix since _serve_file prepends "static/"
+            self._serve_file(path[1:], "application/javascript" if path.endswith(".js") else "text/css")
         elif path.endswith(".js"):
             self._serve_file(f"static{path}", "application/javascript")
         elif path.endswith(".css"):
@@ -1205,7 +1219,7 @@ class ProductHandler(SimpleHTTPRequestHandler):
 
         return result
 
-    def _run_query_bundle(self, q: str, n: int):
+    def _run_query_bundle(self, q: str, n: int, retrieval_mode: str = "live"):
         """Run the query-map MVP pipeline. Raises ValueError on bad input."""
         try:
             from query.pipeline import run_query as _run_query
@@ -1216,8 +1230,10 @@ class ProductHandler(SimpleHTTPRequestHandler):
         if not (q or "").strip():
             return {"error": "q parameter required"}
         n = max(10, min(300, n))
+        # Fixture mode should also use fixture generation to avoid LLM calls
+        fixture_gen = (retrieval_mode == "fixture")
         try:
-            bundle = _run_query(q, top_n=n)
+            bundle = _run_query(q, top_n=n, retrieval_mode=retrieval_mode, fixture_generation=fixture_gen)
         except Exception as e:
             logger.error("query pipeline failed: %s", e)
             return {"error": f"query pipeline failed: {e}"}
