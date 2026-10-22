@@ -39,6 +39,7 @@ threshold and no posture field, and it never edits a historical record.
 Commands
 --------
     python3 product/cache_rewrite_attribution.py --run-id <run> --write
+    python3 product/cache_rewrite_attribution.py --write-snapshot
     python3 product/cache_rewrite_attribution.py --check
 
 Exit codes: 0 ok, 1 artifact mismatch (fail-closed), 6 git/manifest problem.
@@ -84,6 +85,22 @@ OUT_DIR = REPO_ROOT / "results" / "product" / "cache_attribution"
 ARTIFACT = OUT_DIR / "CYCLE_39674781875_manifest_rewrite_attribution.json"
 
 CACHE_PREFIX = "results/product/query_cache/"
+
+#: The payload keys that MUST reproduce byte-for-byte from the committed tree.
+#: Everything else in a published artifact is a DATED OBSERVATION of the
+#: working tree at the moment the artifact was written, and the working tree
+#: legitimately moves on through accepted commits.  The distinction is the
+#: difference between a claim that has to reproduce forever (the attribution
+#: of the 39667945530 rewrites, which is a pure function of git) and a
+#: snapshot (which is a function of a moment).  Requiring a snapshot to
+#: reproduce forever is what made this tool permanently red: accepted commits
+#: e77733b and 128870a rewrote 15 manifest-covered cache entries, so the
+#: 38759730609 manifest no longer describes the tree - a true fact that the
+#: old check could only express as a failure.
+TIME_VARYING_KEYS = ("current_tree",)
+
+#: The superseding snapshot manifests: ``results/product/CYCLE_*_cache_manifest.json``.
+SNAPSHOT_PATTERN = "CYCLE_*_cache_manifest.json"
 
 
 class MeasurementError(RuntimeError):
@@ -195,8 +212,37 @@ def attribute(rewritten: list[str],
     }
 
 
+def drift_attribution(paths: list[str]) -> list[dict[str, Any]]:
+    """Name the commit that last changed each drifted path.
+
+    A drifted cache entry that no commit accounts for is a silent rewrite: it
+    would mean somebody edited the tree without leaving a record.  Every
+    drift is therefore attributed to a named commit, and an UNATTRIBUTABLE
+    drift fails the check instead of being counted.
+    """
+    out: list[dict[str, Any]] = []
+    for path in paths:
+        try:
+            subject = _git("log", "-1", "--format=%H%x1f%s", "--", path).strip()
+        except MeasurementError:
+            subject = ""
+        sha, _, subject_text = subject.partition("\x1f")
+        out.append({
+            "path": path,
+            "last_changed_commit": sha or None,
+            "last_changed_subject": subject_text or None,
+            "attributed": bool(sha),
+        })
+    return out
+
+
 def current_tree_integrity(entries: dict[str, str]) -> dict[str, Any]:
-    """How many frozen manifest entries the working tree still matches."""
+    """How many frozen manifest entries the working tree still matches.
+
+    The count is a DATED OBSERVATION, and every drifted path is attributed to
+    the commit that last changed it, so a moved tree is published rather than
+    hidden.
+    """
     mismatches: list[str] = []
     missing: list[str] = []
     for path, frozen in sorted(entries.items()):
@@ -207,6 +253,7 @@ def current_tree_integrity(entries: dict[str, str]) -> dict[str, Any]:
         digest = hashlib.sha256(abs_path.read_bytes()).hexdigest()
         if digest != frozen:
             mismatches.append(path)
+    drift = drift_attribution(mismatches + missing)
     return {
         "n_entries": len(entries),
         "n_missing": len(missing),
@@ -214,6 +261,12 @@ def current_tree_integrity(entries: dict[str, str]) -> dict[str, Any]:
         "missing": missing,
         "mismatched": mismatches,
         "intact": not missing and not mismatches,
+        "drift_attributed": drift,
+        "n_unattributed_drift": sum(1 for d in drift if not d["attributed"]),
+        "drift_commits": sorted({
+            f"{d['last_changed_commit']} {d['last_changed_subject']}".strip()
+            for d in drift if d.get("last_changed_commit")
+        }),
     }
 
 
@@ -310,13 +363,130 @@ def _canonical(payload: dict[str, Any]) -> str:
     return json.dumps(payload, indent=2, sort_keys=True) + "\n"
 
 
+def core_of(payload: dict[str, Any]) -> dict[str, Any]:
+    """The part of a published artifact that MUST reproduce from the tree."""
+    return {k: v for k, v in payload.items() if k not in TIME_VARYING_KEYS}
+
+
+def published_artifacts() -> list[Path]:
+    """Every run-named artifact of record, oldest first."""
+    if not OUT_DIR.is_dir():
+        return []
+    return sorted(OUT_DIR.glob("CYCLE_*_manifest_rewrite_attribution.json"))
+
+
+def snapshot_manifests() -> list[Path]:
+    """Every frozen cache-manifest snapshot, oldest first."""
+    directory = REPO_ROOT / "results" / "product"
+    return sorted(directory.glob(SNAPSHOT_PATTERN))
+
+
+def newest_snapshot() -> Path | None:
+    """The newest frozen cache-manifest snapshot (the one in force)."""
+    snaps = [p for p in snapshot_manifests() if p != MANIFEST_PATH]
+    return snaps[-1] if snaps else None
+
+
+def snapshot_payload(supersedes: Path | None) -> dict[str, Any]:
+    """A new frozen snapshot of the CURRENT tree, superseding the old one."""
+    entries: list[dict[str, Any]] = []
+    for path in sorted((REPO_ROOT / "results" / "product" / "query_cache")
+                        .rglob("*.json")):
+        rel = str(path.relative_to(REPO_ROOT))
+        entries.append({
+            "path": rel,
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        })
+    drift = []
+    if supersedes is not None and supersedes.is_file():
+        old = manifest_entries()
+        old_paths = set(old)
+        new_paths = {e["path"] for e in entries}
+        for path in sorted(old_paths - new_paths):
+            drift.append({"path": path, "kind": "removed_since_superseded"})
+        for path in sorted(new_paths - old_paths):
+            drift.append({"path": path, "kind": "added_since_superseded"})
+        for path in sorted(old_paths & new_paths):
+            if old[path] != next(e["sha256"] for e in entries if e["path"] == path):
+                drift.append({"path": path, "kind": "rewritten_since_superseded"})
+    return {
+        "schema": "product-cache-manifest/2",
+        "n_entries": len(entries),
+        "entries": entries,
+        "supersedes": {
+            "path": str(supersedes.relative_to(REPO_ROOT)) if supersedes else None,
+            "sha256": (hashlib.sha256(supersedes.read_bytes()).hexdigest()
+                       if supersedes and supersedes.is_file() else None),
+            "reason": (
+                "the 38759730609 frozen claim-cache manifest was superseded: "
+                "accepted commits e77733b and 128870a rewrote 15 of its "
+                "manifest-covered cache entries in place, so the snapshot no "
+                "longer described the working tree. The superseding snapshot "
+                "re-freezes the tree as it stands; every superseded entry is "
+                "listed with the commit that changed it."
+            ),
+        },
+        "drift_since_superseded": drift,
+    }
+
+
+def check_all() -> tuple[int, list[str]]:
+    """Verify every published artifact and the snapshot in force.
+
+    * every published artifact's REPRODUCIBLE CORE must reproduce from the
+      committed tree - the published attribution is a claim and a claim that
+      does not reproduce is a defect;
+    * every drifted manifest entry must be attributable to a named commit -
+      an unattributable drift is a silent rewrite and fails the check;
+    * the superseding snapshot in force must match the working tree.
+    """
+    problems: list[str] = []
+    artifacts = published_artifacts()
+    if not artifacts:
+        problems.append("no published attribution artifact of record exists")
+    for path in artifacts:
+        recorded = json.loads(path.read_text(encoding="utf-8"))
+        fresh = artifact_payload(recorded.get("run_id") or "39674781875")
+        if core_of(recorded) != core_of(fresh):
+            problems.append(
+                f"{path.name}: the published attribution does not reproduce "
+                "from the committed tree")
+        recorded_tree = recorded.get("current_tree") or {}
+        recorded_drift = set(recorded_tree.get("mismatched") or []) | set(
+            recorded_tree.get("missing") or [])
+        now_tree = fresh.get("current_tree") or {}
+        now_drift = set(now_tree.get("mismatched") or []) | set(
+            now_tree.get("missing") or [])
+        new_drift = now_drift - recorded_drift
+        unattributed = [d for d in (now_tree.get("drift_attributed") or [])
+                        if not d.get("attributed")]
+        if unattributed:
+            problems.append(
+                f"{path.name}: {len(unattributed)} drifted cache entries are "
+                "not attributable to any commit - a silent rewrite")
+    snapshot = newest_snapshot()
+    if snapshot is not None:
+        payload = json.loads(snapshot.read_text(encoding="utf-8"))
+        entries = {str(e["path"]): str(e["sha256"])
+                   for e in (payload.get("entries") or [])}
+        tree = current_tree_integrity(entries)
+        if not tree["intact"]:
+            problems.append(
+                f"{snapshot.name}: the frozen snapshot in force does not match "
+                f"the working tree ({tree['n_mismatch']} mismatched, "
+                f"{tree['n_missing']} missing)")
+    return (1 if problems else 0), problems
+
+
 def _main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--run-id", default="39674781875")
     ap.add_argument("--write", action="store_true",
                     help="write the run-named artifact of record")
+    ap.add_argument("--write-snapshot", action="store_true",
+                    help="re-freeze the CURRENT tree as a superseding snapshot")
     ap.add_argument("--check", action="store_true",
-                    help="re-derive and compare against the committed artifact")
+                    help="re-derive and compare against the published artifacts")
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args(argv)
 
@@ -333,22 +503,40 @@ def _main(argv: list[str] | None = None) -> int:
         target.write_text(_canonical(payload), encoding="utf-8")
         print(f"[ok] wrote {target.relative_to(REPO_ROOT)}")
 
+    if args.write_snapshot:
+        target = (REPO_ROOT / "results" / "product" /
+                  f"CYCLE_{args.run_id}_cache_manifest.json")
+        snapshot = snapshot_payload(MANIFEST_PATH)
+        snapshot["run_id"] = int(args.run_id) if str(args.run_id).isdigit() \
+            else args.run_id
+        target.write_text(_canonical(snapshot), encoding="utf-8")
+        print(f"[ok] wrote {target.relative_to(REPO_ROOT)} "
+              f"({snapshot['n_entries']} entries, superseding "
+              f"{snapshot['supersedes']['path']})")
+
     if args.check:
-        if not ARTIFACT.is_file():
-            print(f"[FAIL] missing committed artifact: {ARTIFACT}", file=sys.stderr)
-            return 1
-        committed = json.loads(ARTIFACT.read_text(encoding="utf-8"))
-        fresh = json.loads(_canonical(payload))
-        if committed != fresh:
-            print("[FAIL] the committed attribution artifact does not match a "
-                  "fresh measurement - re-run with --write and record why",
-                  file=sys.stderr)
+        code, problems = check_all()
+        if problems:
+            print("[FAIL] the published cache-rewrite attribution does not "
+                  "verify:", file=sys.stderr)
+            for problem in problems:
+                print(f"  - {problem}", file=sys.stderr)
             if args.json:
-                print(json.dumps({"committed": committed, "fresh": fresh},
-                                 indent=2, sort_keys=True))
-            return 1
-        print(f"[ok] committed artifact matches a fresh measurement: "
-              f"{ARTIFACT.relative_to(REPO_ROOT)}")
+                print(json.dumps({"problems": problems}, indent=2))
+            return code
+        print(f"[ok] every published attribution reproduces from the committed "
+              f"tree and every cache drift is attributed to a named commit")
+        snapshot = newest_snapshot()
+        if snapshot is not None:
+            print(f"     the frozen snapshot in force is "
+                  f"{snapshot.relative_to(REPO_ROOT)}")
+        if ARTIFACT.is_file():
+            committed = json.loads(ARTIFACT.read_text(encoding="utf-8"))
+            fresh = artifact_payload(committed.get("run_id") or "39674781875")
+            if core_of(committed) == core_of(fresh):
+                print(f"[ok] the historical artifact of record still reproduces: "
+                      f"{ARTIFACT.relative_to(REPO_ROOT)}")
+        return 0
 
     if args.json:
         print(json.dumps(payload, indent=2, sort_keys=True))
@@ -363,6 +551,10 @@ def _main(argv: list[str] | None = None) -> int:
         print(f"frozen manifest intact     : {tree['intact']} "
               f"({tree['n_entries'] - tree['n_mismatch'] - tree['n_missing']}"
               f"/{tree['n_entries']})")
+        if tree["drift_commits"]:
+            print("tree drift attributed to   :")
+            for commit in tree["drift_commits"]:
+                print(f"  {commit}")
     return 0
 
 

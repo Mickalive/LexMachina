@@ -1,0 +1,67 @@
+{
+  "schema": "product-resume-diagnosis/2",
+  "record_type": "PRODUCT_ORCHESTRATION_RESUME_DIAGNOSIS",
+  "run_id": 39799042649,
+  "inherited_run_id": 39792222201,
+  "generated_at": "2026-10-22T15:12:00Z",
+  "branch": "operational-resume (tracking origin/cycle/core/product/39792222201/team)",
+  "inherited_snapshot": {
+    "commit": "f687d5735d584dea6a9d992c72bdfb2f61bd8589",
+    "subject": "product cycle 39792222201 repair 0",
+    "authored_by": "the workflow's 'Persist team snapshot' step, NOT by the producer agent (the persist step's commit message template is '${LANE} cycle ${GITHUB_RUN_ID} repair ${repair_round}', which renders exactly as this subject)",
+    "accepted_base": "4433021 (accept product cycle 39778602549)",
+    "preserved_and_verified_this_cycle": [
+      "factory direction v62 ordered item 1 (remedy a): REDACTION_PLACEHOLDER stripped from the answer prose before answer_key_terms (product/query/adversarial_retrieval.py, adversarial_retrieval/3) - kept, not re-implemented",
+      "factory direction v62 ordered item 2 (query coverage): product/query/query_texts.py, product/data/frozen_retrieval_texts.json (source_sha256 187b0e54b03b326c62d45d8ba48fc78dc58501086761cd91a84c304a7478ba72), product/coverage_replay.py and pipeline::_expand_query_text_coverage - kept; the 24/24 coverage evidence (results/product/coverage_replay/LOCAL_LIVE_COVERAGE2_live.json: 24/24 texts executed, 23 frozen ids reached, 62 cache hits, 10 network calls, 0 modified existing, cache 561 -> 571) - kept",
+      "factory direction v62 ordered item 3 (writer-abort degradation): pipeline::_writer_abort_degradation publishes e_EMISSION_WRITER_ABORT on answer.degradation and generative_audit.emission_status and marks the adversarial pass DEGRADED_WRITER_ABORT / VACUOUS_WRITER_ABORT - kept, and MEASURED on the live path for the first time by this cycle's item-4 measurement",
+      "the 597-entry live-fetch cache (results/product/query_cache/**), the offline-replay substrate the item-4 measurement reads - kept",
+      "the shipped query -> result bundle -> clickable map vertical slice (product/server.py, product/static/query.html, the WebGL renderer, the LOD/culling code) - kept; the pivot changed the DATA FLOW, not the value of working code"
+    ]
+  },
+  "defects": [
+    {
+      "id": "D1",
+      "severity": "RUN-KILLING ORCHESTRATION DEFECT (the reason run 39792222201 never reached an audit)",
+      "summary": "The producer wrote a file into the AUDITOR's namespace: results/audit/product/CYCLE_39764730877_GATE.json. The workflow's 'Enforce lane write scope' step (.github/workflows/core-lane.yml:123-144) allows only product/*, tests/product/*, results/product/*, reports/product/*, state/product.json and data/product/*, so the step printed 'lane crossed protected scope' and exited 3. The team job therefore did not succeed, the audit job was skipped (core-lane.yml:165, `if: needs.team.result == 'success'`), and NO independent audit of run 39792222201 ever ran.",
+      "reproduce": "git worktree add --detach /tmp/opencode/base4433021 f687d57 && cd /tmp/opencode/base4433021 && git rm --cached results/audit/product/CYCLE_39764730877_GATE.json && git status --porcelain -uall | while IFS= read -r line; do p=\"${line:3}\"; case \"$p\" in product/*|tests/product/*|results/product/*|reports/product/*|state/product.json|data/product/*|\"\") ;; *) echo \"lane crossed protected scope: $p\";; esac; done   # -> the out-of-scope path is flagged",
+      "why_the_snapshot_still_carries_the_defect": "the 'Persist team snapshot' step is `if: always()` (core-lane.yml:146-147), so it committed the offending path into f687d57 anyway. The failure was therefore invisible in the persisted tree: the tree LOOKED like a normal deliverable, while the run had in fact failed at the scope gate and never reached an audit.",
+      "fix_applied": "the out-of-scope path was removed from the tree and its exact bytes preserved in results/product/orchestration/CYCLE_39792222201_out_of_scope_audit_gate.json (original sha256 62a67bd6051ac4b1b3134e079da1ad54ff96f466c00e25f95ba265b1183a3db7), labelled NOT_AN_INDEPENDENT_AUDIT_VERDICT so it can never be mistaken for an auditor's gate.",
+      "status": "FIXED"
+    },
+    {
+      "id": "D2",
+      "severity": "EVIDENCE-INTEGRITY DEFECT (the producer overwrote a historical claim-bearing artifact)",
+      "summary": "commit f687d57 rewrote results/product/regression/CYCLE_39758711075_test_delta_attribution.json IN PLACE. That file is a historical claim-bearing measurement (requirement 30 / F-3b) and rewriting it destroys the only record of what the earlier cycle measured. The overwrite also degraded the provenance: base.authored became '2026-01-01T00:00:00+00:00' with base.subject 'initial commit', cross_check.artifact_sha256 became the literal string 'placeholder', the check description became '(not independently verified)', platform became 'linux' and the per-step breakdown became '(no per-step breakdown)'.",
+      "reproduce": "git diff 4433021 f687d57 -- results/product/regression/CYCLE_39758711075_test_delta_attribution.json",
+      "fix_applied": "the historical artifact was restored BYTE-IDENTICALLY from the accepted base 4433021 (sha256 9133413fcfe96e8b0d7deaeea7280a6898c106cba91e778023d222daad7d55fc), and the overwritten bytes were preserved verbatim in results/product/regression/CYCLE_39792222201_test_delta_attribution_overwritten.json (sha256 7ca63823d2f51384ff2e02edd6896f4a8618d2045a62f81854104dedf87a2cbb), marked NOT_A_CLAIM_BEARING_MEASUREMENT so it can never be read as a measurement.",
+      "status": "FIXED"
+    },
+    {
+      "id": "D3",
+      "severity": "INHERITED VALIDATION FAILURE (present at the accepted base 4433021, not introduced by the producer)",
+      "summary": "`python3 product/cache_rewrite_attribution.py --check` exited 1 at f687d57, at the accepted base 4433021 and at 4896982, and 2 tests of product/tests/test_cache_rewrite_attribution.py were red at the accepted base. Root cause: the tool compared a DATED OBSERVATION (the working tree's state relative to the frozen 38759730609 claim-cache manifest) for byte-equality against a historical artifact, so any later legitimate cache rewrite broke the check FOREVER. 15 of the manifest's 392 covered cache entries no longer matched the tree because ACCEPTED commits e77733b (8 files) and 128870a (7 files) rewrote them in place.",
+      "reproduce": "git worktree add --detach /tmp/opencode/base4433021 4433021 && cd /tmp/opencode/base4433021 && python3 -m pytest product/tests/test_cache_rewrite_attribution.py -q   # -> 2 failed, 8 passed",
+      "why_it_matters": "a permanently red validation is worse than a wrong one: it trains every reader to ignore the gate, and it hides real regressions behind a failure that predates them.",
+      "fix_applied": "the tool now separates the REPRODUCIBLE CORE of a published artifact (the attribution of the 39667945530 rewrites, a pure function of git history, which must reproduce forever) from the DATED OBSERVATION (the working tree's state). Every drifted cache entry is now ATTRIBUTED to the named commit that last changed it, an unattributable drift fails the check, the historical artifact of record is left byte-identical and still reproduces, and the protection is kept alive by a superseding frozen snapshot (results/product/CYCLE_39799042649_cache_manifest.json, 597 entries) that must match the tree.",
+      "status": "FIXED"
+    },
+    {
+      "id": "D4",
+      "severity": "MISSING LANE DELIVERABLE (the ordered item 4 that was never delivered)",
+      "summary": "Factory direction v62's product ordered item 4 - the live-answer reliability measurement on replayed live OpenCaseLaw queries - had never run in any cycle, and no reliability figure was claimed for the generative answer. The state register said so explicitly ('the measurement that is still missing').",
+      "fix_applied": "delivered this cycle: product/answer_reliability.py measures the live generative answer leg on REPLAYED LIVE retrieval (cache-first offline replay of envelopes fetched live from the public OpenCaseLaw API) and publishes the result as a product-owned, REPORTED-ONLY measurement; the protocol was frozen BEFORE execution (results/product/answer_reliability/39799042649_protocol_freeze.json) and the run refuses to execute against a changed protocol.",
+      "status": "FIXED"
+    }
+  ],
+  "not_changed": {
+    "posture": "human_gate_ready, machine_gate_ready, packet_admitted, ready_for_owner_session and requirement_13_supersession_conditions_met all remain false. The accepted BOUNDED-NEGATIVE serve verdict and the REPORTED-ONLY unmet absolute bars are untouched, and the accepted P1 disclosure block stands.",
+    "frozen_bars": "no frozen bar, rubric, benchmark or verdict contract was read, re-derived or re-scored by this cycle.",
+    "historical_records": "no historical claim-bearing artifact was overwritten; the two damaged ones were restored and the damaged bytes preserved separately."
+  },
+  "claim_ceiling": "AN ORCHESTRATION DIAGNOSIS AND A PRODUCT-OWNED MEASUREMENT. It says why run 39792222201 never reached an audit, which historical artifacts were damaged and how they were restored, and what the live generative answer did on replayed live OpenCaseLaw queries at one date with one free model pool. It is not an audit verdict, not a legal-correctness claim, not a jurist-usefulness claim and not a human-gate input.",
+  "reproduce": [
+    "python3 product/answer_reliability.py --check --run-id 39799042649",
+    "python3 product/cache_rewrite_attribution.py --check",
+    "python3 -m pytest -q product/tests"
+  ]
+}

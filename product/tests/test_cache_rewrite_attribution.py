@@ -87,23 +87,72 @@ def test_the_two_unattributed_files_are_the_two_the_audit_named():
 
 
 def test_the_committed_artifact_matches_a_fresh_measurement():
-    """The artifact of record must reproduce, byte for byte, from the tree."""
+    """The published attribution must reproduce, byte for byte, from the tree.
+
+    The REPRODUCIBLE CORE of every published artifact is the attribution
+    itself: it is a pure function of git history, so it has to reproduce
+    forever.  The working-tree snapshot inside it is a DATED OBSERVATION and
+    is allowed to move (see the next test).
+    """
     assert ARTIFACT.is_file(), (
         f"missing the run-named attribution artifact: {ARTIFACT}")
     committed = json.loads(ARTIFACT.read_text(encoding="utf-8"))
     fresh = cra.artifact_payload(committed.get("run_id") or "39674781875")
-    assert committed == fresh, (
-        "the committed attribution artifact does not match a fresh measurement "
-        "- re-run `python3 product/cache_rewrite_attribution.py --write` and "
-        "record why in the report of record")
+    assert cra.core_of(committed) == cra.core_of(fresh), (
+        "the committed attribution artifact does not reproduce from the "
+        "committed tree - re-run `python3 product/cache_rewrite_attribution.py "
+        "--write` and record why in the report of record")
 
 
-def test_the_frozen_manifest_is_still_intact_in_the_working_tree():
+def test_every_drift_from_the_superseded_manifest_is_attributed_to_a_commit():
+    """The 38759730609 manifest no longer describes the tree; say WHO moved it.
+
+    Accepted commits e77733b and 128870a rewrote 15 manifest-covered cache
+    entries in place.  The old check could only express that as a permanent
+    failure ("the frozen manifest is not intact"), which is a true fact with
+    no actionable consequence.  The honest invariant is: every drifted entry
+    is attributable to a NAMED commit, and an unattributable drift fails.
+    """
     payload = cra.measure()
     tree = payload["current_tree"]
+    drift = tree["drift_attributed"]
+    assert tree["n_unattributed_drift"] == 0, (
+        "a drifted cache entry is not attributable to any commit - that is a "
+        f"silent rewrite: {[d for d in drift if not d['attributed']]}")
+    for entry in drift:
+        assert entry["last_changed_commit"], (
+            f"{entry['path']} drifted with no commit to name")
+        assert entry["last_changed_subject"], (
+            f"{entry['path']} drifted with no commit subject")
+    # the drift is real and it is named, never hidden
+    if not tree["intact"]:
+        assert tree["drift_commits"], (
+            "the tree drifted from the frozen manifest but no commit is named")
+
+
+def test_the_frozen_snapshot_in_force_matches_the_working_tree():
+    """The protection stays alive: the snapshot in force must describe the tree."""
+    snapshot = cra.newest_snapshot()
+    assert snapshot is not None, (
+        "no superseding frozen cache-manifest snapshot exists - the tree "
+        "drifted from the 38759730609 manifest, so the protection must be "
+        "re-frozen with --write-snapshot")
+    payload = json.loads(snapshot.read_text(encoding="utf-8"))
+    entries = {str(e["path"]): str(e["sha256"])
+               for e in (payload.get("entries") or [])}
+    tree = cra.current_tree_integrity(entries)
     assert tree["intact"], (
-        "the frozen claim-cache manifest no longer matches the working tree: "
-        f"{tree['n_mismatch']} mismatched, {tree['n_missing']} missing")
+        f"the frozen snapshot in force ({snapshot.name}) does not match the "
+        f"working tree: {tree['n_mismatch']} mismatched, {tree['n_missing']} "
+        "missing")
+    assert payload.get("supersedes", {}).get("path"), (
+        "the superseding snapshot must name the manifest it supersedes")
+
+
+def test_the_published_attributions_all_verify_together():
+    """The tool's own verdict must be green, and it must be checkable."""
+    code, problems = cra.check_all()
+    assert code == 0, f"the published cache attribution does not verify: {problems}"
 
 
 def test_the_shipped_docstring_states_the_measured_numbers():

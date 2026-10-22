@@ -459,6 +459,8 @@ def run_leg(leg: dict[str, Any], *, top_n: int, evidence_count: int,
     from product.query.pipeline import enrich_query_bundle, run_query_initial
 
     os.environ["LEX_ANSWER_TIMEOUT_S"] = str(float(answer_timeout_s))
+    os.environ["LEX_ANSWER_LEG_BUDGET_S"] = str(float(
+        PROTOCOL.get("leg_budget_s") or 420))
     record: dict[str, Any] = {
         "leg_id": leg["leg_id"],
         "slug": leg["slug"],
