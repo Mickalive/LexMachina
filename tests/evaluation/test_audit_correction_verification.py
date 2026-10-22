@@ -93,7 +93,15 @@ def test_state_file_has_mandatory_fields():
     # which made the lane's own pytest scope red (61 == 60). No frozen benchmark,
     # rubric, incumbent, threshold or success rule is touched; the state file's
     # direction_version (61) is authoritative.
-    assert state["direction_version"] == 61
+    # REPAIR of run 39759523387 (repair 1 of rejected cycle 39751745107; v62): the
+    # pin is advanced 61 -> 62 to match the v62 lane state. This is the EIGHTH
+    # advance in the same disclosed convention (49->50, 50->52, 52->55, 55->56,
+    # 56->57, 57->58, 58->60, 60->61, 61->62) and it is EXPECTED, not a new defect:
+    # rejected cycle 39751745107 advanced state direction_version to 62 while
+    # leaving this pin at 61, which made the lane's own pytest scope red
+    # (62 == 61). No frozen benchmark, rubric, incumbent, threshold or success
+    # rule is touched; the state file's direction_version (62) is authoritative.
+    assert state["direction_version"] == 62
 
 
 def test_evidence_refs_exist():

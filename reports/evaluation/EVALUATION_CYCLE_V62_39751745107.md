@@ -30,11 +30,27 @@
 
 **Discriminating finding**: Zero counter-authority emission is a STANDING property of the two most recent packets (both n_issued=0 on all three languages), NOT a V3-specific regression. The legacy served packet 38839347028 issued 25/15 de/fr rows. Collapse occurred between 38839347028 and 39275520116.
 
-### 3. Minimal CA Benchmark V3 — PRODUCT_FALSIFIED on V3 Packet (Run 39732040165)
-- 18 gates, 11 passed / 4 failed / 3 reported
+### 3. Minimal CA Benchmark V3 — EXECUTED, PENDING INDEPENDENT AUDIT (Run 39732040165)
+
+> **CORRECTED by repair round 1 of run 39759523387 (audit CYCLE_39751745107,
+> required_fixes 5-6).** The original wording of this section presented run
+> 39732040165 as a cycle deliverable under accepted framing. There is NO
+> independent audit gate for 39732040165 (no
+> `results/audit/evaluation/CYCLE_39732040165_GATE.json` in any tree). Its
+> numbers are producer-attested and PENDING INDEPENDENT AUDIT; they are not
+> accepted evidence. The ACCEPTED minimal-CA-benchmark record is a DIFFERENT
+> thing: cycle 39388198135 via accept commit 5644ce71
+> (BENCHMARK_VALID_NO_FALSIFICATION — proves the frozen gates can falsify a
+> deliberately regressed input; it never accepted run 39732040165). The
+> control-plane state's audited reference run is
+> `test_operational_resume_39680754374` (audit 39684675951, gate REVISE,
+> safe_to_integrate true). See
+> `reports/evaluation/EVALUATION_CYCLE_V62_39751745107_REPAIR1.md`.
+
+- 18 gates, 11 passed / 4 failed / 3 reported (producer-attested, pending audit)
 - Failed gates: concept_coverage (de-kapitalverletzung), counter_authority_surface (all 3 languages)
-- Non-vacuity controls: ALL HOLD
-- Benchmark is non-vacuous: deliberately regressed inputs make gates fail (FAIL_REGRESSION)
+- Non-vacuity controls: ALL HOLD (producer-attested, pending audit)
+- Benchmark is non-vacuous: deliberately regressed inputs make gates fail (FAIL_REGRESSION) — this validity property is what cycle 39388198135 / accept 5644ce71 established as accepted evidence
 
 ### 4. Counter-Probe Bounded Cause — ATTRIBUTED ON BOTH SIDES
 | Side | Measurement | Status |
@@ -45,7 +61,7 @@
 ### 5. Falsification Battery & Serve Verdict — DISCHARGED / LANDED
 - Falsification battery DISCHARGED on V3 exact bytes (39379766198)
 - Serve verdict LANDED and CROSS-CHECKED (frontier-packet-serve-audit 39371834165, BOUNDED-NEGATIVE)
-- Minimal CA benchmark on V3 packet ACCEPTED (5644ce71)
+- Minimal CA benchmark VALIDITY accepted via 5644ce71 (cycle 39388198135, BENCHMARK_VALID_NO_FALSIFICATION — gates-can-falsify-regressed-inputs only; CORRECTED by repair 39759523387: this commit did NOT accept run 39732040165)
 
 ---
 
@@ -71,7 +87,15 @@ The operational resume of persisted producer snapshot 39470495546 (run 394716032
 
 ## Evidence References (Updated)
 
-Both state files updated with 118 evidence references including:
+> **CORRECTED by repair round 1 of run 39759523387**: the original sentence
+> below claimed "118 evidence references" in "both state files". The actual
+> lengths were 108 (root) and 84 (lane) and the two `evidence_refs_n`
+> metadata fields wrongly said 118/92. After the repair both files carry
+> `evidence_refs_n` equal to their list length (108 / 84), every ref is a
+> resolvable file, and new repair artifacts are disclosed under the separate
+> `repair_round_1_refs` key so the historical counts stay stable.
+
+Both state files updated with evidence references including:
 - retrieval_pool_attribution_v2 hypothesis, freeze record, instrument, result, audit gate, audit report
 - mapping_free_recall_falsifier runs on two packets (39693031072, 39725464259)
 - minimal_ca_benchmark_v3 on V3 packet (39732040165)

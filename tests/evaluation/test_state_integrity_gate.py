@@ -33,6 +33,23 @@ def _tmp_repo(tmp_path: Path, root_state: dict, lane_state: dict,
     (repo / "evaluation" / "state" / "evaluation.json").write_text(
         lane_raw if lane_raw is not None else json.dumps(lane_state, indent=2) + "\n",
         encoding="utf-8")
+    # synthetic accepted-run gate so controls isolate THEIR check, not
+    # accepted_run_audited (control 7 overrides by never calling this helper's
+    # gate for its own run — it keeps 99999999999 gateless via _tmp_repo_bare)
+    _gate(repo, str(root_state.get("accepted_run_id", "99999999999")))
+    return repo
+
+
+def _tmp_repo_bare(tmp_path: Path, root_state: dict, lane_state: dict) -> Path:
+    """Like _tmp_repo but writes NO accepted-run gate (for control 7)."""
+    repo = tmp_path / "repo"
+    (repo / "state").mkdir(parents=True)
+    (repo / "evaluation" / "state").mkdir(parents=True)
+    (repo / "results" / "audit" / "evaluation").mkdir(parents=True)
+    (repo / "state" / "evaluation.json").write_text(
+        json.dumps(root_state, indent=2) + "\n", encoding="utf-8")
+    (repo / "evaluation" / "state" / "evaluation.json").write_text(
+        json.dumps(lane_state, indent=2) + "\n", encoding="utf-8")
     return repo
 
 
@@ -158,7 +175,7 @@ def test_control_6_parity_break_bites(tmp_path):
 
 def test_control_7_accepted_run_without_gate_bites(tmp_path):
     root, lane = _base_states()  # accepted_run_id 99999999999 has no gate file
-    repo = _tmp_repo(tmp_path, root, lane)
+    repo = _tmp_repo_bare(tmp_path, root, lane)
     code, out = gate_run(repo_root=repo, spec_path=SPEC_PATH)
     assert code == EXIT_FAIL
     failed = _check_ids_failed(code, out)

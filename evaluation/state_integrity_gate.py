@@ -193,12 +193,16 @@ def run(repo_root: Path = REPO_ROOT, spec_path: Path = SPEC_PATH) -> tuple[int, 
     failed = [c for c in checks if not c["passed"]]
     verdict = "ALL_CHECKS_PASS" if not failed else "AT_LEAST_ONE_CHECK_FAILED"
     code = EXIT_PASS if not failed else EXIT_FAIL
+    try:
+        spec_display = str(spec_path.relative_to(repo_root))
+    except ValueError:
+        spec_display = str(spec_path)
     out = {
         "schema": SCHEMA,
         "verdict": verdict,
         "exit_code": code,
         "generated_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "spec_path": str(spec_path.relative_to(repo_root)),
+        "spec_path": spec_display,
         "spec_sha256": sha256_file(spec_path),
         "n_checks": len(checks),
         "n_passed": len(checks) - len(failed),
