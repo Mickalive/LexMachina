@@ -143,9 +143,15 @@
     "results/evaluation/orchestration/39771077625_test_stand_ready_multilingual_probe_pytest_shim.json",
     "results/evaluation/orchestration/39771077625_test_query_map_bundle_producer_pytest_shim.json",
     "results/evaluation/state_integrity_gate/39771077625_pre.json",
-    "results/evaluation/state_integrity_gate/39771077625_post.json"
+    "results/evaluation/state_integrity_gate/39771077625_post.json",
+    "results/evaluation/minimal_retrieval_ca_benchmark/local_fast_mvp.json",
+    "reports/evaluation/RETRIEVAL_CA_BENCHMARK_local_fast_mvp.md",
+    "results/evaluation/minimal_retrieval_ca_benchmark/local_fast_mvp_engine_mapping_free_recall_falsifier.json",
+    "results/evaluation/orchestration/local_fast_mvp_pytest_shim.json",
+    "evaluation/minimal_retrieval_ca_benchmark.py",
+    "tests/evaluation/test_minimal_retrieval_ca_benchmark.py"
   ],
-  "evidence_refs_n": 133,
+  "evidence_refs_n": 139,
   "supersession": {
     "accepted_run_id_advanced": "39744816712 -> 39766474798",
     "why": "cycles 39759523387 and 39766474798 both carry in-tree independent audit gates (results/audit/evaluation/CYCLE_<run>_GATE.json, gate=PASS, safe_to_integrate=true) and accept commits (161bb482, 070babbe); accepted_run_id names the newest such run. This run (39771077625) is PENDING_INDEPENDENT_AUDIT and is NOT promoted as accepted evidence.",
@@ -1037,6 +1043,59 @@
     "pre": "results/evaluation/state_integrity_gate/39771077625_pre.json (AT_LEAST_ONE_CHECK_FAILED: the single inherited failure root_lane_parity@both)",
     "post": "results/evaluation/state_integrity_gate/39771077625_post.json",
     "note": "the POST record is produced by a gate run over the updated states BEFORE its own ref is appended (the gate resolves every evidence_ref at execution time); the appended ref resolves in the committed tree and a final verification run 39771077625_final.json re-checks the FINAL committed state and is published beside it",
+    "accepted_as_evidence": false,
+    "pending_independent_audit": true
+  },
+  "minimal_retrieval_ca_benchmark_local_fast_mvp": {
+    "run_id": "local_fast_mvp",
+    "verdict": "PRODUCT_FALSIFIED",
+    "exit_code": 1,
+    "direction_version": 61,
+    "engine": "evaluation.minimal_retrieval_ca_benchmark (wrapper) -> evaluation.mapping_free_recall_falsifier (engine)",
+    "packet": "39319405429",
+    "n_questions_measured": 3,
+    "n_gates": 18,
+    "n_passed": 11,
+    "n_failed": 4,
+    "n_reported": 3,
+    "failed_gates": [
+      "mf::concept_coverage::39319405429::de-kapitalverletzung",
+      "mf::counter_authority_surface::39319405429::de-kapitalverletzung",
+      "mf::counter_authority_surface::39319405429::fr-bail-entretien",
+      "mf::counter_authority_surface::39319405429::it-responsabilita-medica"
+    ],
+    "input_drift": [],
+    "run_valid": true,
+    "non_vacuity_all_hold": true,
+    "numeric_environment_disclosed": true,
+    "product_mount_head": "443302120a5b7221d8bb5c605848b29eb68bca19",
+    "wrapper_schema": "lex-evaluation-minimal-retrieval-ca-benchmark/1",
+    "wrapper_instrument_sha256": "7631c1a373040744aeafe0b5015182d90bf4257d767d07b30d3a1bd21947ba4f",
+    "engine_hypothesis_sha256": "d1135f9f919140a30dd31250cdb2e782fc3b32a74e39472a24d31560d7de009d",
+    "engine_freeze_record_sha256": "431aa87b8abeaec3b849d66bce7c0d6b1bcb1ea0fdd5f31bef4b3da122d229f5",
+    "frozen_spec_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "frozen_label_rubric_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "v3_bundle_shas": {
+      "de-kapitalverletzung": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
+      "fr-bail-entretien": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
+      "it-responsabilita-medica": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b"
+    },
+    "claim_ceiling": "This benchmark proves only that on the exact accepted packet bytes (V3 packet-of-record 39319405429), the served bundles fail the frozen mapping-free retrieval and counter-authority surface gates. It does NOT meet, move or re-derive the frozen absolute LABEL_SOUND or GEOMETRY_SOUND bars (they stay REPORTED-ONLY). It does NOT lift the accepted DO-NOT-SERVE order on packet 38839347028 nor DO-NOT-SERVE-UNCHANGED on rebuilt-39027045675. It does NOT certify admission of any packet; admission stays fail-closed. It does NOT claim the map helps a jurist. It builds and re-scores no candidate for Frontier team frontier-query-concept-recall. human_gate_ready stays false. It runs no obsolete universal-174k geometry benchmark. No new thresholds introduced.",
+    "finding": "On the V3 packet-of-record exact bytes (39319405429), the product's mapping-free retrieval and counter-authority surface gates fail on all three served questions (German, French, Italian bundles). The German bundle has 2/8 core concepts with zero retrieval (kapitalverletzung, uberwachungspflicht). All three language bundles emit ZERO counter-authority rows under the frozen rubric. All five non-vacuity controls pass (blanked pool fails, oracle pool passes, subject-swapped predicate rejects, blanked row fails source validity). This is the smallest executable retrieval/counter-authority falsification benchmark on the V3 packet-of-record exact bytes. No universal-174k benchmark was run.",
+    "product_handoff": "A PRODUCT defect, not an evaluation defect; the fix belongs to the product lane. The counter-authority surface failure on the V3 bytes means the product's CA discovery is insufficient for the visual UX test. The counter_probe_anchor_falsifier (run 39674402905) attributes the zero emission to the redaction placeholder '[citation removed: not in retrieved set]' displacing real legal vocabulary in the probe anchor terms. The counter_probe_repair_verification (run 39687372110) verified that remedy (a) - strip the redaction placeholder from the answer prose before the probe planner - repairs the anchor on recorded bytes. The product lane should land remedy (a) in product/query/adversarial_retrieval.py, then re-freeze and re-score.",
+    "evidence_tier": "EXPLORATORY",
+    "test_suite": {
+      "runner": "evaluation/no_pytest_runner.py (stdlib shim; pytest ABSENT in the producer image)",
+      "passed": 21,
+      "failed": 0,
+      "skipped": 0,
+      "unsupported": 0,
+      "verdict": "SHIM_PASS",
+      "record": "results/evaluation/orchestration/local_fast_mvp_pytest_shim.json"
+    },
+    "result_file": "results/evaluation/minimal_retrieval_ca_benchmark/local_fast_mvp.json",
+    "report_file": "reports/evaluation/RETRIEVAL_CA_BENCHMARK_local_fast_mvp.md",
+    "engine_record_file": "results/evaluation/minimal_retrieval_ca_benchmark/local_fast_mvp_engine_mapping_free_recall_falsifier.json",
     "accepted_as_evidence": false,
     "pending_independent_audit": true
   }
