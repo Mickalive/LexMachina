@@ -1,0 +1,67 @@
+{
+  "schema": "lex-evaluation-shipped-planner-remedy-verification-hypothesis/1",
+  "hypothesis_id": "SHIPPED_PLANNER_REMEDY_VERIFICATION_V1",
+  "direction_version": 62,
+  "lane": "evaluation",
+  "frozen_at_utc": "2026-10-22T17:05:00Z",
+  "frozen_before_claim_bearing_execution": true,
+  "run_id_of_record": "39813664201",
+  "question": "Does the SHIPPED product counter-probe planner (product/query/adversarial_retrieval.py at accepted product head 44330212, ADVERSARIAL_RETRIEVAL_VERSION adversarial_retrieval/3) reproduce, byte-for-byte on the pinned recorded 14-bundle population, the probe queries and topic anchors that the ACCEPTED offline repair verification (run 39687372110, verdict REPAIR_VERIFIED_ON_RECORDED_BYTES) produced by synthetically applying remedy (a)?",
+  "why_this_is_the_ordered_item": "Factory direction v62 evaluation ordered item (1): stand ready for remedy (a) to land in the product lane, then re-freeze the repair verification against the NEW shipped planner under a NEW run id. Remedy (a) HAS landed (product cycle 39752638579; planner sha drift 57b6a6f9... -> 9764a37e...; strip_redaction_placeholders present at line 285 of the shipped planner). The accepted repair verification is pinned pre-remedy by design (its freeze record states: 'If the product lane lands remedy (a), the product pins drift by design and a NEW freeze under a NEW run id verifies the shipped planner'), so this is that NEW freeze. It is the retrieval/counter-authority falsification benchmark for the landed fix, and it is the smallest executable artifact that can falsify whether the fix the product shipped is the fix evaluation verified.",
+  "hypothesis": "For every one of the 14 recorded fixture bundles, the shipped planner's plan_adversarial_queries(query, answer_prose) issues probe queries byte-for-byte equal to the accepted repair-verification record's FIXED arm (fixed_probe_queries), and its topic anchor (first 4 tokens of the probe) equals the accepted FIXED anchor; consequently the four accepted repair gates re-expressed on shipped bytes (G1s anchor clean, G2s formerly-contaminated anchors topical, G3s clean bundles unperturbed vs accepted BASELINE, G4s shipped==accepted FIXED) all hold.",
+  "baseline": "The accepted offline repair verification run 39687372110 (record sha256 53b3fc9c71c81bb238a000eadde5bf3bacd7d37349fa1a43017d5527e651e340), whose per-bundle BASELINE and FIXED arms are the comparison of record. The accepted anchor falsifier run 39674402905 (record sha256 87c059f6c980fc000fa7151889a59f42900c33d6d29c4fd2391eec7010911048) is the upstream source of the population and the de-redacted counterfactual anchors.",
+  "population": {
+    "definition": "the same 14 recorded bundles with non-empty provenance.adversarial_retrieval.probes on the accepted product mount /tmp/lex_accepted/product, across packets 38838116453, 38839347028, 39275520116, 39319405429, rebuilt-39027045675",
+    "n_bundles": 14,
+    "n_baseline_contaminated_expected": 2,
+    "n_baseline_clean_expected": 12,
+    "population_manifest_sha256_expected": "80306fd5fe05c04e36faa5d2adf6a2b98167280a05eb7ea48ce57ec17bdf73db",
+    "note": "the recorded probe queries inside the bundles were produced by the PRE-remedy planner and are the BASELINE arm; the bundles themselves are frozen evidence and are never regenerated or edited by this instrument"
+  },
+  "gates": {
+    "G1s_shipped_anchor_clean": "on every one of the 14 bundles the shipped planner's topic anchor contains no token the shipped answer_key_terms extracts from the accepted redaction placeholder (expected tokens: citation, removed, retrieved)",
+    "G2s_formerly_contaminated_regain_topicality": "on each of the 2 bundles whose accepted BASELINE anchor was placeholder-contaminated (39275520116 de-kapitalverletzung, 39319405429 de-kapitalverletzung), the shipped anchor shares at least one content term (shipped content_terms pool rule) with the question it attacks",
+    "G3s_clean_bundles_unperturbed": "on each of the 12 bundles whose accepted BASELINE anchor was clean, the shipped probe queries equal the accepted BASELINE probe queries byte-for-byte (for clean bundles accepted FIXED == accepted BASELINE, so this is also the no-op requirement)",
+    "G4s_shipped_matches_accepted_fixed": "on all 14 bundles, the shipped probe queries equal the accepted repair-verification record's FIXED probe queries byte-for-byte AND the shipped anchor equals the accepted FIXED anchor"
+  },
+  "controls": {
+    "C1s_fixture_integrity": "the accepted repair-verification record re-hashes to its pin AND its verdict is REPAIR_VERIFIED_ON_RECORDED_BYTES",
+    "C2s_placeholder_preconditions_intact": "the accepted REDACTION_PLACEHOLDER constant is still exactly '[citation removed: not in retrieved set]' in the shipped source_packing, and the shipped answer_key_terms applied to the placeholder alone still derives exactly the token class {citation, removed, retrieved}",
+    "C3s_defect_was_real": "the accepted repair-verification record contains at least one baseline-contaminated row (expected exactly 2)",
+    "C4s_planted_preremedy_extractor_detects_the_defect": "a PRE-REMEDY-EMULATED key-term extractor (identical ranking/filters but WITHOUT the placeholder strip, computed locally from the shipped tokenize + _ANSWER_STOP which remedy (a) did not change) must reproduce the placeholder-contaminated anchor on exactly the 2 formerly-contaminated bundles and stay clean on the other 12 - this is the planted-divergence control proving the gate battery can detect the defect class it protects against",
+    "C5s_zero_network": "the instrument performs zero network calls; the product loader path is offline module loading and file reads only"
+  },
+  "non_vacuity_disclosure": "C4s is the non-vacuity control of this instrument. Without it, a shipped tree whose extractor derived no tokens at all would trivially pass G1s. With it, the control battery must observe the pre-remedy defect signature on the known-contaminated bundles before any G1s pass is claimed.",
+  "exit_code_contract": {
+    "0": "SHIPPED_PLANNER_MATCHES_VERIFIED_REMEDY - every gate passes and every control holds",
+    "1": "SHIPPED_PLANNER_DIVERGES_FROM_VERIFIED_REMEDY - at least one gate fails on shipped bytes; this FALSIFIES the landed fix as the verified fix (or as a full equivalent of it on this population)",
+    "2": "ENVIRONMENT_OR_VACUOUS - pin drift, loader failure, empty population or a failed control; exit 2 is NEVER a product verdict and NEVER a landing verdict"
+  },
+  "success_rule": "verdict SHIPPED_PLANNER_MATCHES_VERIFIED_REMEDY with exit 0 requires all four gates passing AND all five controls holding AND pins re-hashing clean both before and after execution.",
+  "falsification_rule": "any single bundle where shipped probe queries != accepted FIXED probe queries, or any G1s/G2s/G3s failure, yields verdict SHIPPED_PLANNER_DIVERGES_FROM_VERIFIED_REMEDY with exit 1 and the failing bundles are published in full.",
+  "claim_ceiling": "This instrument establishes exactly one thing: whether the SHIPPED planner at the pinned product head reproduces, byte-for-byte on the pinned recorded 14-bundle population, the probe queries and anchors that the accepted offline repair verification verified synthetically. It is NOT a counter-authority RECALL measurement (no probe is executed against OpenCaseLaw; network_calls=0); it is NOT a re-score of the mapping-free counter_authority_surface gates (the V3 packet-of-record bytes stay frozen with 0 issued counter rows and the ordered re-score awaits REGENERATED bundles, which do not exist because no accepted serve recommendation exists); it is NOT a label or geometry bar claim (both stay REPORTED-ONLY and unmet); it is NOT a serve recommendation and lifts no DO-NOT-SERVE order; admission stays fail-closed; human_gate_ready, machine_gate_ready, packet_admitted, ready_for_owner_session and owner_decision_required stay false. It re-derives no threshold, bar, rubric or verdict contract; the frozen RULES_LABEL/RULES_GEOMETRY/VERDICT_CONTRACT hashes are not consumed by this instrument and are not re-tuned. It runs no obsolete universal-174k benchmark.",
+  "inputs_pinned": {
+    "product_mount": "/tmp/lex_accepted/product",
+    "product_mount_head_expected": "443302120a5b7221d8bb5c605848b29eb68bca19",
+    "product_pins": {
+      "product/query/adversarial_retrieval.py": "9764a37e8bc7c8c31a329ba15db89657e8ee47dde8ada924fa55d5e755fd06a9",
+      "product/query/retrieval.py": "30ad4190a99165fab725132dcdca593e89806db4d85de379cc46811cd02ad5a1",
+      "frontier/frontier-generative-audit/generative_audit/source_packing.py": "8d27a2263013136c43564041c299193583434019f641e468bc25cdf18e4154f1"
+    },
+    "repo_pins": {
+      "results/evaluation/counter_probe_anchor_falsifier/39674402905.json": "87c059f6c980fc000fa7151889a59f42900c33d6d29c4fd2391eec7010911048",
+      "results/evaluation/counter_probe_repair_verification/39687372110.json": "53b3fc9c71c81bb238a000eadde5bf3bacd7d37349fa1a43017d5527e651e340",
+      "evaluation/counter_probe_anchor_falsifier.py": "2830b9ec3ac434ba479eb12ee609dba96aa53c28b64facfa0ace2fc44445098b"
+    },
+    "pre_remedy_planner_pin_disclosed": "57b6a6f99793ef6663957ccdcd51a577feb9c8d7075efcc339f5c25bece065e1",
+    "pin_drift_disclosure": "the pre-remedy planner pin is EXPECTED to drift and is recorded for provenance only; the new planner pin above is the pin of record for this run. Pin drift is the documented fail-closed design of the accepted freeze, not a defect."
+  },
+  "determinism": "pure offline computation from frozen bytes; no RNG; no threshold; no projection constant",
+  "what_will_NOT_be_concluded": [
+    "that counter-authority recall improved (no probe executes)",
+    "that the mapping-free counter_authority_surface gates now pass (V3 bytes are frozen pre-remedy)",
+    "that any frozen bar is met",
+    "that any packet may be served or admitted",
+    "that the map helps a jurist (human product gate question)"
+  ]
+}
