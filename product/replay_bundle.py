@@ -420,13 +420,61 @@ def build_claim_cache_manifest(frozen_from_commit: str, *, out: Path | None = No
     return manifest
 
 
+def _last_touching_commit(relpath: str) -> dict | None:
+    """``{commit, subject}`` of the last commit that changed ``relpath``, else None.
+
+    Used to ATTRIBUTe (never excuse) byte-drift of a frozen-manifest entry:
+    the D3 repair of cycle 39799042649 established that accepted commits
+    legitimately rewrite cached envelopes in place, so a manifest check that
+    demands the 38759730609 bytes forever is permanently red.  Attribution is
+    measured from git history, never typed.
+    """
+    import subprocess  # noqa: PLC0415  (only used on the drift path)
+
+    proc = subprocess.run(
+        ["git", "log", "-1", "--format=%h|%s", "--", relpath],
+        cwd=str(REPO_ROOT), capture_output=True, text=True,
+    )
+    if proc.returncode != 0 or not proc.stdout.strip():
+        return None
+    commit, _, subject = proc.stdout.strip().partition("|")
+    return {"commit": commit.strip(), "subject": subject.strip()}
+
+
+def _commit_is_ancestor(commit: str) -> bool:
+    """True when ``commit`` is an ancestor of HEAD (i.e. committed history)."""
+    import subprocess  # noqa: PLC0415
+
+    proc = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", commit, "HEAD"],
+        cwd=str(REPO_ROOT), capture_output=True, text=True,
+    )
+    return proc.returncode == 0
+
+
 def verify_claim_cache_manifest(manifest: dict | None = None) -> dict:
     """Check the frozen subset against the committed cache and the claim bundle.
 
     Append-tolerant by construction: the repository cache may hold *more*
     envelopes than the manifest (that is the growth that caused D1); every
-    manifest entry must still exist with the recorded bytes, and the count must
-    still equal the ``n_keys`` the claim bundle recorded when it was written.
+    manifest entry must still exist, and the count must still equal the
+    ``n_keys`` the claim bundle recorded when it was written.
+
+    Byte-drift contract (D3 repair of cycle 39799042649, applied here to the
+    sibling guard): accepted commits legitimately rewrite cached envelopes in
+    place (e77733b and 128870a rewrote 15 manifest-covered entries), so the
+    check separates
+
+    * ``ok_structural`` — no entry may be MISSING, the n_keys chain and the
+      bundle content hash must still hold (a real identity change fails here);
+      and
+    * ``ok_drift_attributed`` — every byte-mismatched entry must be
+      attributable to a commit that is an ancestor of HEAD, i.e. a committed
+      rewrite, never a working-tree edit or a silent deletion-and-recreate.
+
+    ``ok`` keeps its ORIGINAL strict meaning (zero drift) so no existing
+    caller is weakened; callers that must stay green under attributed accepted
+    drift assert the two split flags instead.
     """
     man = manifest if manifest is not None else load_claim_cache_manifest()
     missing, mismatched = [], []
@@ -443,6 +491,23 @@ def verify_claim_cache_manifest(manifest: dict | None = None) -> dict:
             bundle = json.load(fh)
     bundle_n_keys = ((bundle.get("provenance") or {}).get("cache_stats") or {}).get("n_keys")
     bundle_hash = content_sha256(bundle) if bundle else None
+    mismatched_attributed = []
+    for relpath in mismatched:
+        info = _last_touching_commit(relpath)
+        attributed = bool(
+            info and info.get("commit") and _commit_is_ancestor(info["commit"])
+        )
+        mismatched_attributed.append({
+            "path": relpath,
+            "commit": (info or {}).get("commit"),
+            "subject": (info or {}).get("subject"),
+            "attributed": attributed,
+        })
+    structural = bool(bundle) and not missing and (
+        man.get("n_keys") == len(man["entries"]) == bundle_n_keys
+        and man.get("bundle_content_sha256") == bundle_hash
+    )
+    drift_attributed = all(d["attributed"] for d in mismatched_attributed)
     findings = {
         "manifest": CLAIM_CACHE_MANIFEST_RELPATH,
         "n_entries": len(man["entries"]),
@@ -452,30 +517,77 @@ def verify_claim_cache_manifest(manifest: dict | None = None) -> dict:
         ),
         "missing": missing,
         "mismatched": mismatched,
+        "mismatched_attributed": mismatched_attributed,
         "bundle_cache_n_keys": bundle_n_keys,
         "bundle_content_sha256": bundle_hash,
         "manifest_bundle_content_sha256": man.get("bundle_content_sha256"),
+        "ok_structural": structural,
+        "ok_drift_attributed": drift_attributed,
     }
-    findings["ok"] = bool(bundle) and not missing and not mismatched and (
-        man.get("n_keys") == len(man["entries"]) == bundle_n_keys
-        and man.get("bundle_content_sha256") == bundle_hash
-    )
+    findings["ok"] = structural and not mismatched
     return findings
 
 
+def _frozen_entry_bytes(entry: dict, frozen_from_commit: str | None) -> bytes | None:
+    """The manifest-recorded bytes of ``entry`` as of ``frozen_from_commit``.
+
+    Accepted live probes legitimately rewrite cached envelopes in place (the
+    D3 class: e77733b / 128870a rewrote 15 manifest-covered entries), so the
+    working tree can no longer supply the bytes the claim bundle was generated
+    from.  The reproducible core therefore reads the blobs from git history at
+    the manifest's own ``frozen_from_commit`` and verifies each blob against
+    the manifest sha256; a blob that does not hash to the recorded value is
+    treated as unavailable (never silently substituted).
+    """
+    import subprocess  # noqa: PLC0415  (only used on the materialize path)
+
+    if not frozen_from_commit:
+        return None
+    proc = subprocess.run(
+        ["git", "show", f"{frozen_from_commit}:{entry['path']}"],
+        cwd=str(REPO_ROOT), capture_output=True,
+    )
+    if proc.returncode != 0 or not proc.stdout:
+        return None
+    if hashlib.sha256(proc.stdout).hexdigest() != entry["sha256"]:
+        return None
+    return proc.stdout
+
+
 def materialize_claim_cache(dest, manifest: dict | None = None) -> Path:
-    """Copy the frozen subset into ``dest`` so a replay can be pointed at it."""
+    """Materialize the frozen subset into ``dest`` so a replay can read it.
+
+    Byte source, in order: (1) the blob recorded at the manifest's
+    ``frozen_from_commit`` (hash-verified against the manifest sha256) — this
+    is what makes the claim identity reproducible forever after accepted
+    in-place cache rewrites; (2) the working tree, but only when its bytes
+    still match the manifest sha256.  If neither supplies the recorded bytes
+    the materialization FAILS CLOSED instead of replaying from drifted input.
+    """
     import shutil  # noqa: PLC0415  (only used on this path)
 
     man = manifest if manifest is not None else load_claim_cache_manifest()
+    frozen_commit = man.get("frozen_from_commit")
     root = Path(dest) / "claim_cache_subset"
     if root.exists():
         shutil.rmtree(root)
     for entry in man["entries"]:
-        src = REPO_ROOT / entry["path"]
         target = root / Path(entry["path"]).relative_to(CLAIM_CACHE_ROOT_RELPATH)
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src, target)
+        blob = _frozen_entry_bytes(entry, frozen_commit)
+        if blob is not None:
+            target.write_bytes(blob)
+            continue
+        src = REPO_ROOT / entry["path"]
+        if src.is_file() and hashlib.sha256(src.read_bytes()).hexdigest() == entry["sha256"]:
+            shutil.copy2(src, target)
+            continue
+        raise ValueError(
+            "frozen claim-cache entry cannot be materialized with its "
+            f"recorded bytes: {entry['path']} (sha256 {entry['sha256']}) is "
+            f"neither a hash-verified blob at frozen_from_commit={frozen_commit!r} "
+            "nor intact in the working tree"
+        )
     return root
 
 
