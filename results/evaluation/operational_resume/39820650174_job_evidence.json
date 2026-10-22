@@ -1,0 +1,114 @@
+{
+  "schema": "lex-evaluation-operational-resume-job-evidence/1",
+  "run_id": "39820650174",
+  "repository": "Mickalive/LexMachina",
+  "generated_at_utc": "2026-10-22T17:30:00Z",
+  "producer_run_id": "39813664201",
+  "resumed_from_run_id": "39820233238",
+  "diagnosis": {
+    "producer_failure": "The producer team job hit the 45-minute agent work quantum after committing both measurements: exit code 78, with annotations 'Agent quantum ended cleanly; workflow must snapshot and resume rather than hang.' and 'LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2302'. The workflow still executed 'Persist team snapshot' (success) but skipped 'Validate active MVP producer state' and 'Enforce lane write scope', and skipped the audit/integrate jobs. The snapshot therefore contains completed work and stale state.",
+    "resume_failure": "Run 39820233238 was dispatched from main 4fe03f1d as the resume of the producer snapshot. Its team job failed after 106 seconds with exit code 67 and annotation 'LEX_ZERO_DELTA_REPAIR'. The wrapper sets LEX_REQUIRE_DELTA=1 unconditionally for the evaluation lane and exits 67 when the current HEAD equals the start HEAD and the branch has no delta. The resume snapshot is byte-identical to the producer snapshot, so a verification-only resume can never satisfy that guard. 'Validate active MVP producer state' was skipped again and no state repair occurred.",
+    "orchestration_defect": "The zero-delta guard is directionally wrong for an operational resume whose purpose is to verify already-committed work and repair state: it treats 'no new commits yet' as a failed cycle, so it prevents the very cycle that would produce the required state delta. This run records the diagnosis and produces the missing delta (verification artifacts + state repair); it does not weaken the guard retroactively.",
+    "snapshot_identity": "Both origin/cycle/core/evaluation/39813664201/team and origin/cycle/core/evaluation/39820233238/team resolve to c87a33bcfc5cfd81fdbfb1c2b2f540e8a1c65ad3; the diff between them is empty."
+  },
+  "runs": [
+    {
+      "run_id": "39813664201",
+      "name": "Core evaluation dirV62 repair0",
+      "event": "workflow_dispatch",
+      "conclusion": "failure",
+      "created_at": "2026-10-22T16:23:38Z",
+      "updated_at": "2026-10-22T17:09:54Z",
+      "head_branch": "main",
+      "head_sha": "8d9785fedff8366bedf1b6da5df15e7a0fc4f77e",
+      "team_job": {
+        "id": 119946362236,
+        "conclusion": "failure",
+        "started_at": "2026-10-22T16:23:42Z",
+        "completed_at": "2026-10-22T17:09:43Z",
+        "annotations": [
+          {"level": "failure", "message": "Process completed with exit code 78."},
+          {"level": "warning", "message": "Agent quantum ended cleanly; workflow must snapshot and resume rather than hang."},
+          {"level": "warning", "message": "LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2302"}
+        ],
+        "skipped_steps": ["Validate active MVP producer state", "Enforce lane write scope"]
+      },
+      "other_jobs": [
+        {"name": "resilience", "conclusion": "success"},
+        {"name": "audit", "conclusion": "skipped"},
+        {"name": "integrate", "conclusion": "skipped"}
+      ],
+      "snapshot_ref": "refs/heads/cycle/core/evaluation/39813664201/team",
+      "snapshot_commit": "c87a33bcfc5cfd81fdbfb1c2b2f540e8a1c65ad3"
+    },
+    {
+      "run_id": "39820233238",
+      "name": "Core evaluation dirV62 repair0",
+      "event": "workflow_dispatch",
+      "conclusion": "failure",
+      "created_at": "2026-10-22T17:09:50Z",
+      "updated_at": "2026-10-22T17:12:50Z",
+      "head_branch": "main",
+      "head_sha": "4fe03f1dd05a31faa8ade9a25b51b4d2e0e3cf7d",
+      "team_job": {
+        "id": 119969302346,
+        "conclusion": "failure",
+        "started_at": "2026-10-22T17:09:56Z",
+        "completed_at": "2026-10-22T17:12:34Z",
+        "annotations": [
+          {"level": "failure", "message": "Process completed with exit code 67."},
+          {"level": "failure", "message": "LEX_ZERO_DELTA_REPAIR"}
+        ],
+        "skipped_steps": ["Validate active MVP producer state", "Enforce lane write scope"]
+      },
+      "other_jobs": [
+        {"name": "resilience", "conclusion": "success"},
+        {"name": "audit", "conclusion": "skipped"},
+        {"name": "integrate", "conclusion": "skipped"}
+      ],
+      "snapshot_ref": "refs/heads/cycle/core/evaluation/39820233238/team",
+      "snapshot_commit": "c87a33bcfc5cfd81fdbfb1c2b2f540e8a1c65ad3"
+    },
+    {
+      "run_id": "39820650174",
+      "name": "Core evaluation dirV62 repair0",
+      "event": "workflow_dispatch",
+      "created_at": "2026-10-22T17:12:45Z",
+      "head_branch": "main",
+      "head_sha": "4fe03f1dd05a31faa8ade9a25b51b4d2e0e3cf7d",
+      "team_job_id": 119970760382,
+      "note": "the run executing this cycle; its own final metadata is published by the workflow, not asserted here"
+    }
+  ],
+  "accepted_refs": {
+    "lab_evaluation_tip": "57ad380ec5d6c7422c4817b018e5c18a4e029158",
+    "newest_in_tree_audit_gate": "results/audit/evaluation/CYCLE_39806933576_GATE.json"
+  },
+  "production_artifacts_verified": {
+    "shipped_planner_verification": {
+      "result": "results/evaluation/shipped_planner_remedy_verification/39813664201.json",
+      "sha256": "1f8a6675e61930cf35bae7a9610f4672354433b6234fc96e18b98da08691372f",
+      "verdict": "SHIPPED_PLANNER_MATCHES_VERIFIED_REMEDY",
+      "exit_code": 0
+    },
+    "coverage_remediation_crosscheck": {
+      "result": "results/evaluation/coverage_remediation_crosscheck/39813664201.json",
+      "sha256": "03eba8ed7d96f263a027c689fd830483ad77afd7baaec7ed52b98f1a1a77fffc",
+      "verdict": "COVERAGE_EVIDENCE_REPRODUCES",
+      "exit_code": 0,
+      "fresh_replay": "results/evaluation/coverage_remediation_crosscheck/39813664201_fresh_offline_replay.json",
+      "fresh_replay_sha256": "f425bb3f4bd127447f083c6a125b009eb108b5d43ab61ad0ce4ae084e6f0b11a"
+    }
+  },
+  "evidence_sources": [
+    "https://api.github.com/repos/Mickalive/LexMachina/actions/runs/39813664201",
+    "https://api.github.com/repos/Mickalive/LexMachina/actions/runs/39813664201/jobs",
+    "https://api.github.com/repos/Mickalive/LexMachina/check-runs/119946362236/annotations",
+    "https://api.github.com/repos/Mickalive/LexMachina/actions/runs/39820233238",
+    "https://api.github.com/repos/Mickalive/LexMachina/actions/runs/39820233238/jobs",
+    "https://api.github.com/repos/Mickalive/LexMachina/check-runs/119969302346/annotations",
+    "git ls-remote origin refs/heads/cycle/core/evaluation/39813664201/team refs/heads/cycle/core/evaluation/39820233238/team refs/heads/lab/evaluation"
+  ],
+  "log_access_note": "Raw job logs require repository admin rights (the public log endpoint returns 403 'Must have admin rights to Repository'). The annotations, job step statuses and git refs above are public and are the evidence used; no log content is asserted beyond them.",
+  "network_policy": "the evidence above was fetched before the claim-bearing instruments; both instruments themselves made zero network calls and ran under an armed socket guard"
+}
