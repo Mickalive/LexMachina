@@ -1,0 +1,119 @@
+{
+  "schema": "lex-product-counter-signal-hypothesis/1",
+  "hypothesis_id": "PRODUCT_COUNTER_SIGNAL_LAYER_H1",
+  "run_id": "39838415410",
+  "lane": "evaluation",
+  "direction_version": 62,
+  "status": "FROZEN_BEFORE_CLAIM_BEARING_RUN",
+  "question": "Does the shipped product adversarial_retrieval/3 heuristic counter-signal layer reach any frozen known-counter authority on the 24-envelope cached OpenCaseLaw sample, and does it beat the frozen marker rule on the marker rule's own text surface?",
+  "primary_claim": "On the offline cached product path (classifier input `full_text or regeste`; cached rows have no full_text, so regeste), the shipped counter-signal layer emits at least one admissible counter signal on at least one of the 14 frozen known-counter authorities reachable in the bundle.",
+  "product_relevance": "The shipped classifier is the admission signal for the later independent LLM reviewer in apply_adversarial_pass. If it never signals a known authority, that authority cannot be preferentially admitted to the bounded reviewer set. This is a product capability measurement, not a legal-correctness judgment of the reviewer.",
+  "surfaces": {
+    "offline_primary": "apply_adversarial_pass fallback: full_text or regeste; cached envelopes carry no full_text",
+    "optimistic_same_surface": "title + regeste + snippet; the frozen marker rule's own text surface",
+    "hydrated_sensitivity": "product query-cache detail full_text where available; not a simulation of live top-12 hydration selection"
+  },
+  "population": {
+    "questions": 4,
+    "cache_envelopes": 24,
+    "known_counter_ids": 28,
+    "known_counter_reached_expected": 14,
+    "known_counter_sources": "frozen_retrieval_benchmark.json known_counter_ids, reached by bundle_producer.match_frozen_id"
+  },
+  "falsification_rule": {
+    "primary_falsified_if": "G2 false",
+    "also_falsified_if": [
+      "G1 false",
+      "G5 false"
+    ],
+    "invalid_if": [
+      "G6 false",
+      "G7 false",
+      "any frozen control false"
+    ],
+    "not_falsified_if": "G1, G2, G5, G6, G7 all true",
+    "exit_codes": {
+      "0": "PRODUCT_COUNTER_SIGNAL_LAYER_NOT_FALSIFIED",
+      "1": "PRODUCT_COUNTER_SIGNAL_LAYER_FALSIFIED_ON_CACHED_SURFACE",
+      "2": "ENVIRONMENT_OR_CONTROL_FAILURE"
+    }
+  },
+  "metrics": {
+    "product_signal_n": "rows where classify_against_intent returns a status and verbatim evidence",
+    "known_signalled_n": "reached known-counter rows with an offline primary signal",
+    "known_marker_labelled_n": "reached known-counter rows labelled by the frozen marker rule",
+    "known_optimistic_signalled_n": "reached known-counter rows signalled on title+regeste+snippet",
+    "known_hydrated_n": "reached known-counter rows with non-empty product-cache full_text",
+    "known_hydrated_signalled_n": "hydrated reached known rows with a full_text signal"
+  },
+  "gates": {
+    "G1_offline_product_signal_on_every_question": {
+      "rule": "product_signal_n > 0 for all 4 questions"
+    },
+    "G2_offline_product_signal_reaches_known_counter_authority": {
+      "rule": "aggregate known_signalled_n > 0",
+      "role": "primary falsifier"
+    },
+    "G3_hydrated_product_signal_reaches_known_counter_authority": {
+      "rule": "aggregate known_hydrated_signalled_n > 0",
+      "role": "diagnostic, not a product pass"
+    },
+    "G4_hydration_surface_available_for_g3": {
+      "rule": "aggregate known_hydrated_n > 0",
+      "role": "non-vacuity guard for G3"
+    },
+    "G5_same_surface_product_signal_not_worse_than_marker_rule_on_known": {
+      "rule": "known_optimistic_signalled_n >= known_marker_labelled_n",
+      "role": "falsifier"
+    },
+    "G6_every_signal_has_verbatim_evidence": {
+      "rule": "every product signal has a counter status and non-empty evidence"
+    },
+    "G7_pool_provenance_and_duplicate_free": {
+      "rule": "pool sizes match accepted run 39834312064, final pools are duplicate-free, 24 cache envelopes"
+    }
+  },
+  "controls": {
+    "C1_pins_unchanged": "spec, accepted record, marker record, bundle producer, hypothesis, freeze record, product files",
+    "C2_cache_and_pool_parity": "24 cache envelopes unchanged; product query cache manifest unchanged; pool and marker counts match accepted run",
+    "C3_product_module_identity": "adversarial_retrieval/3, classify_against_intent and bundle_topic_terms present, build_answer present",
+    "C4_planted_detection_and_blank_topic_vacuity": "planted exception row signals; blank topic returns none; negative row returns none",
+    "C5_zero_network": "socket connect/create_connection calls == 0",
+    "C6_deterministic_repeat": "two independent measurement passes produce identical signal id sets",
+    "C7_product_head_matches_freeze": "git HEAD equals frozen head"
+  },
+  "claim_ceiling": {
+    "measured": "shipped heuristic signal layer on cached regeste and product-cache full_text surfaces with deterministic extractive topic proxy",
+    "not_measured": [
+      "live generative answer quality or UI",
+      "the independent LLM counter reviewer that writes user-visible counter_status",
+      "live top-12 hydration selection",
+      "legal correctness of frozen known_counter_ids beyond their provenance",
+      "universal-174k or any external retrieval run"
+    ]
+  },
+  "pre_freeze_recon": {
+    "disclosure": "Scratch reconnaissance was run before this freeze and is recorded in the freeze record; the formal run is confirmatory, not blind.",
+    "observed_offline_product_signal_n_by_question": [
+      "rent-default:4",
+      "corporate-criminal-liability:8",
+      "business-judgment-rule:2",
+      "petty-theft-dismissal:2"
+    ],
+    "observed_optimistic_product_signal_n_by_question": [
+      "rent-default:11",
+      "corporate-criminal-liability:15",
+      "business-judgment-rule:18",
+      "petty-theft-dismissal:4"
+    ],
+    "observed_known_expected_n": 28,
+    "observed_known_reached_n": 14,
+    "observed_known_signalled_n": 0,
+    "observed_known_marker_labelled_n": 1,
+    "observed_known_optimistic_signalled_n": 0,
+    "observed_known_hydrated_n": 5,
+    "observed_known_hydrated_signalled_n": 3,
+    "observed_product_cache_files": 609,
+    "observed_product_cache_full_text_docs": 145
+  }
+}

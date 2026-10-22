@@ -7,7 +7,7 @@
   "human_gate_ready": false,
   "machine_gate_ready": false,
   "lane": "evaluation",
-  "github_run": "39834312064",
+  "github_run": "39838415410",
   "query_map_cached_bundle_benchmark": {
     "run_id": "39834312064",
     "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
@@ -130,6 +130,14 @@
       "failed": 0,
       "unsupported": 2,
       "record": "results/evaluation/orchestration/39834312064_ordc_pytest_shim.json"
+    },
+    "product_counter_surface_benchmark": {
+      "file": "tests/evaluation/test_product_counter_surface_benchmark.py",
+      "verdict": "SHIM_PASS",
+      "passed": 6,
+      "failed": 0,
+      "unsupported": 0,
+      "record": "results/evaluation/orchestration/39838415410_product_counter_surface_pytest_shim.json"
     }
   },
   "evidence_refs": [
@@ -145,8 +153,49 @@
     "results/evaluation/orchestration/39834312064_mfr_pytest_shim.json",
     "results/evaluation/orchestration/39834312064_cma_pytest_shim.json",
     "results/evaluation/orchestration/39834312064_arc_pytest_shim.json",
-    "results/evaluation/orchestration/39834312064_ordc_pytest_shim.json"
+    "results/evaluation/orchestration/39834312064_ordc_pytest_shim.json",
+    "evaluation/PRODUCT_COUNTER_SURFACE_BENCHMARK_HYPOTHESIS_V1.json",
+    "evaluation/PRODUCT_COUNTER_SURFACE_BENCHMARK_FREEZE_RECORD_V1.json",
+    "evaluation/product_counter_surface_benchmark.py",
+    "tests/evaluation/test_product_counter_surface_benchmark.py",
+    "results/evaluation/product_counter_surface_benchmark/39838415410.json",
+    "reports/evaluation/PRODUCT_COUNTER_SIGNAL_LAYER_39838415410.md",
+    "results/evaluation/orchestration/39838415410_product_counter_surface_pytest_shim.json"
   ],
-  "evidence_refs_n": 13,
-  "next_recommendation": "The query-map cached-bundle benchmark (BENCHMARK_VALID_NO_FALSIFICATION) confirms the evaluation lane's core falsification capability is operational on real OpenCaseLaw cached input. The counter-authority yield remains a NEGATIVE RESULT (2/4 questions with zero counter candidates under the frozen marker_rule). This is a measurement of the retrieval-side capability gap, not a product defect. The minimal CA benchmark on the V3 packet-of-record bytes (PRODUCT_FALSIFIED) remains the product-side falsification. Continue running the cached-bundle benchmark as the lane's executable regression guard; do not rerun obsolete universal-174k benchmarks. The minimal_ca_benchmark test suite fails because the state no longer carries the minimal_ca_benchmark top-level keys (the lane's work has moved to the cached-bundle benchmark); this is expected and not a regression in the cached-bundle capability."
+  "evidence_refs_n": 20,
+  "next_recommendation": "The shipped adversarial_retrieval/3 admission signal layer is falsified on the offline cached counter surface: 0/14 reached known counter authorities signalled, versus 1 labelled by the frozen marker rule on its own title+regeste+snippet surface. Hydrated sensitivity is positive (3/5 reached rows with product-cache full text), but hydration covers only 5/14 reached rows. Product-side repair candidates are broader hydration and/or lexicon alignment; the live independent LLM reviewer remains unmeasured. Preserve this negative result; do not rerun universal-174k benchmarks. The existing coverage_remediation_crosscheck V1 remains frozen to run 39813664201/product head 44330212 and was not executed against the current head; a V2 re-freeze is required if ordered item (2) coverage cross-check is resumed.",
+  "acceptance_status": "PENDING_ACCEPT_AUDIT",
+  "product_counter_signal_benchmark": {
+    "run_id": "39838415410",
+    "verdict": "PRODUCT_COUNTER_SIGNAL_LAYER_FALSIFIED_ON_CACHED_SURFACE",
+    "exit_code": 1,
+    "product_head": "fe219a197e4bfb129984a732ab9adca917556eac",
+    "product_version": "adversarial_retrieval/3",
+    "hypothesis_sha256": "3c57196a5363a3e14bf44df526a814bef47465704dc89a07b3e1e75faf3a5f2c",
+    "freeze_record_sha256": "ce06239924304a6b8a7ab3b04458685bfb331a8916aed39aa83ec74ab05cdb5e",
+    "frozen_spec_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "cache_envelopes": 24,
+    "known_counter_expected": 28,
+    "known_counter_reached": 14,
+    "offline_product_signals": 16,
+    "offline_known_signalled": 0,
+    "marker_known_labelled": 1,
+    "same_surface_product_known_signalled": 0,
+    "hydrated_known_reached": 5,
+    "hydrated_known_signalled": 3,
+    "failed_gates": [
+      "G2_offline_product_signal_reaches_known_counter_authority",
+      "G5_same_surface_product_signal_not_worse_than_marker_rule_on_known"
+    ],
+    "controls_passed": "7/7",
+    "n_passed_tests": 6,
+    "n_failed_tests": 0,
+    "n_unsupported_tests": 0,
+    "result_file": "results/evaluation/product_counter_surface_benchmark/39838415410.json",
+    "result_sha256": "ed79678e48640a17f7d67f8353b5be6456007fe82cee9e92d2fcb082d7172a6d",
+    "report_file": "reports/evaluation/PRODUCT_COUNTER_SIGNAL_LAYER_39838415410.md",
+    "report_sha256": "a388160d5217a47c58669bce43eb81ec742a4c9fea9f56f27d1d1744c52384ac",
+    "test_record": "results/evaluation/orchestration/39838415410_product_counter_surface_pytest_shim.json",
+    "claim_ceiling": "Offline cached regeste surface: 0/14 known authorities signalled. Hydrated sensitivity: 3/5 reached rows with product-cache full text signalled; hydration covered only 5/14. Does NOT measure the live independent LLM counter reviewer, live top-12 hydration, the full live apply_adversarial_pass admission path (every final-bundle row is classified, including baseline rows), legal correctness, or any external retrieval."
+  }
 }
