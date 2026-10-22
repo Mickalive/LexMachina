@@ -172,12 +172,26 @@ from product import test_delta_attribution as tda  # noqa: E402
 #: with it, to CYCLE_39674781875 (head dc924cd, working tree 1361), so the
 #: history guard checks the artifact that really was the previous pin. Every
 #: older artifact stays on disk byte-identical and joins ATTRIBUTION_HISTORY.
+#:
+#: REPOINT RECORD (cycle 39758711075, operational resume of snapshot 39752638579):
+#: the inherited snapshot commit 3b9d33b added test_query_text_coverage.py and
+#: extended test_adversarial_retrieval.py (+20 collected) and this resume adds
+#: the D4 regression tests and the cycle-claims module (+17 collected), while
+#: the pin still named CYCLE_39689729561 (working-tree total 1373). Measured
+#: live this cycle: ``tda.collect_count(ROOT)`` returned 1413 against the pin's
+#: 1373, so the staleness detector was RED on the tree this cycle ships - the
+#: exact defect (D3) the resume diagnosis records. The pin moves to this
+#: cycle's regenerated artifact CYCLE_39758711075 (base 9727a45, head WORKTREE,
+#: working tree 1413 collected). ATTRIBUTION_PREVIOUS_PIN moves with it, to
+#: CYCLE_39689729561 (head eb3fb98, working tree 1373), so the history guard
+#: checks the artifact that really was the previous pin. Every older artifact
+#: stays on disk byte-identical and joins ATTRIBUTION_HISTORY.
 ATTRIBUTION = (ROOT / "results" / "product" / "regression"
-               / "CYCLE_39689729561_test_delta_attribution.json")
+               / "CYCLE_39758711075_test_delta_attribution.json")
 #: The previous pin, kept as a readable constant so a reader can diff the two
 #: artifacts instead of trusting prose about them.
 ATTRIBUTION_PREVIOUS_PIN = (ROOT / "results" / "product" / "regression"
-                             / "CYCLE_39674781875_test_delta_attribution.json")
+                             / "CYCLE_39689729561_test_delta_attribution.json")
 #: Every attribution artifact this pin has ever named, oldest first, each of
 #: which must still exist. A pin move moves a CHECK; it never removes evidence.
 #: The newest entry is the pin this module currently reads.
@@ -198,6 +212,8 @@ ATTRIBUTION_HISTORY = (
     / "CYCLE_39674781875_test_delta_attribution.json",
     ROOT / "results" / "product" / "regression"
     / "CYCLE_39689729561_test_delta_attribution.json",
+    ROOT / "results" / "product" / "regression"
+    / "CYCLE_39758711075_test_delta_attribution.json",
 )
 #: The full-run regression measurement whose base is the SAME named commit. An
 #: independent measurement path (full run, not collection-only) of the same tree.

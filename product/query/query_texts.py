@@ -262,26 +262,51 @@ def plan_missing_texts(query: str, *, already_executed: Iterable[str] = (),
 # candidate merge (adapter candidate rows; pure, deterministic)
 # --------------------------------------------------------------------------
 
+#: Court-code prefixes OpenCaseLaw publishers sometimes stamp onto a docket
+#: (``BGE 142 IV 333`` vs ``142 IV 333`` for the same ruling).  Stripped only
+#: as a *leading repeat of the row's own court code*, never as a fuzzy match,
+#: so two different dockets cannot collapse by accident.
+def _bare_docket(court: str, docket: str) -> str:
+    """Alphanumeric docket with any leading court-code repeats removed."""
+    bare = re.sub(r"[^a-z0-9]", "", docket.lower())
+    code = re.sub(r"[^a-z0-9]", "", court.lower())
+    if code:
+        while bare.startswith(code) and len(bare) > len(code):
+            bare = bare[len(code):]
+    return bare
+
+
 def _identity(row: dict) -> tuple[str, str] | None:
     docket = str(row.get("docket_number") or "").strip().lower()
     if not docket:
         return None
     court = str(row.get("court") or "").strip().lower()
-    return (court, re.sub(r"[^a-z0-9]", "", docket))
+    return (court, _bare_docket(court, docket))
 
 
 def merge_coverage_candidates(base: list[dict], extra: list[dict]) -> tuple[list[dict], dict]:
     """Append only genuinely new decisions; never move or replace a base row.
 
-    Identity is ``decision_id`` first and (court, docket) second, matching the
-    product's own duplicate-identity rule.  A row found by an extra text that
-    is already present keeps its original rank/score and merely gains the extra
-    ``channels``; a row already reachable is never counted twice.
+    Identity is ``decision_id`` first, ``canonical_decision_id`` second and
+    (court, bare-docket) third.  The bare docket strips only leading repeats
+    of the row's own court code (``BGE 142 IV 333`` == ``142 IV 333`` for
+    court ``bge``), which is the duplicate-identity form OpenCaseLaw search
+    envelopes actually produce across query variants; without it a coverage
+    merge can ship two rows of the same ruling under two citation-identical
+    ``citation`` values and break the product's citation-ownership contract
+    (regression pinned by ``test_run_query_initial_offline_replay_contract``).
+    A row found by an extra text that is already present keeps its original
+    rank/score and merely gains the extra ``channels``; a row already
+    reachable is never counted twice.
     """
     merged = [dict(row) for row in base]
     by_id = {str(r.get("decision_id")): i for i, r in enumerate(merged)}
+    by_cid: dict[str, int] = {}
     by_identity: dict[tuple[str, str], int] = {}
     for i, row in enumerate(merged):
+        cid = str(row.get("canonical_decision_id") or "").strip()
+        if cid:
+            by_cid.setdefault(cid, i)
         ident = _identity(row)
         if ident is not None:
             by_identity.setdefault(ident, i)
@@ -290,8 +315,11 @@ def merge_coverage_candidates(base: list[dict], extra: list[dict]) -> tuple[list
     reinforced_ids: list[str] = []
     for row in extra:
         did = str(row.get("decision_id") or "")
+        cid = str(row.get("canonical_decision_id") or "").strip()
         ident = _identity(row)
         index = by_id.get(did) if did else None
+        if index is None and cid:
+            index = by_cid.get(cid)
         if index is None and ident is not None:
             index = by_identity.get(ident)
         if index is not None:
@@ -306,6 +334,8 @@ def merge_coverage_candidates(base: list[dict], extra: list[dict]) -> tuple[list
         merged.append(copied)
         if did:
             by_id[did] = len(merged) - 1
+        if cid:
+            by_cid.setdefault(cid, len(merged) - 1)
         if ident is not None:
             by_identity.setdefault(ident, len(merged) - 1)
         if did:

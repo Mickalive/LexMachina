@@ -109,6 +109,48 @@ def test_merge_adds_new_rows_and_never_duplicates_identity():
     assert stats["added_decision_ids"] == ["b"]
 
 
+def test_merge_merges_court_code_prefixed_docket_aliases():
+    """operational-resume regression (run 39758711075): OpenCaseLaw search
+    envelopes publish the same BGE ruling under two docket spellings -
+    ``142 IV 333`` and ``BGE 142 IV 333`` - with different decision_ids.  A
+    coverage merge that keys only on the raw docket ships both rows, both
+    carry the same ``citation`` string, and the product's citation-ownership
+    contract fails (``test_run_query_initial_offline_replay_contract``)."""
+    base = [_cand("bge_142 IV 333", "142 IV 333")]
+    base[0]["court"] = "bge"
+    extra = [_cand("bge_BGE_142_IV_333", "BGE 142 IV 333")]
+    extra[0]["court"] = "bge"
+    merged, stats = qt.merge_coverage_candidates(base, extra)
+    assert stats["n_added"] == 0, stats
+    assert [m["decision_id"] for m in merged] == ["bge_142 IV 333"]
+
+
+def test_merge_merges_on_canonical_decision_id_even_when_dockets_differ():
+    base = [_cand("id_a", "1A_1/2020")]
+    base[0]["canonical_decision_id"] = "bge_canon"
+    extra = [_cand("id_alias", "BGE 1A 1 2020")]
+    extra[0]["canonical_decision_id"] = "bge_canon"
+    merged, stats = qt.merge_coverage_candidates(base, extra)
+    assert stats["n_added"] == 0
+    assert [m["decision_id"] for m in merged] == ["id_a"]
+
+
+def test_bare_docket_strip_is_prefix_only_and_court_scoped():
+    # a docket that merely contains the court code mid-string is untouched
+    assert qt._bare_docket("bge", "Verfahren bge 99") == "verfahrenbge99"
+    # leading repeats collapse to the bare number sequence
+    assert qt._bare_docket("bge", "BGE BGE 142 IV 333") == "142iv333"
+    assert qt._bare_docket("bge", "142 IV 333") == "142iv333"
+    # a different court's code is never stripped from another court's docket
+    assert qt._bare_docket("bge", "ge142") == "ge142"
+    # distinct dockets under the same court stay distinct
+    base = [_cand("x", "1A_1/2020")]
+    extra = [_cand("y", "2A_1/2020")]
+    merged, stats = qt.merge_coverage_candidates(base, extra)
+    assert stats["n_added"] == 1
+    assert len(merged) == 2
+
+
 # --------------------------------------------------------------------------
 # 3. pipeline execution seam
 # --------------------------------------------------------------------------

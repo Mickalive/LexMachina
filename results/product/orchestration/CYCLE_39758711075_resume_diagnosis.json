@@ -1,0 +1,91 @@
+{
+  "schema": "product-resume-diagnosis/2",
+  "record_type": "PRODUCT_ORCHESTRATION_RESUME_DIAGNOSIS",
+  "run_id": 39758711075,
+  "inherited_run_id": 39752638579,
+  "generated_at": "2026-10-22T10:40:00Z",
+  "branch": "operational-resume (tracking origin/cycle/core/product/39752638579/team)",
+  "inherited_snapshot": {
+    "commit": "3b9d33b209f76187bc066c9a04c64038650501f7",
+    "subject": "product cycle 39752638579 repair 0",
+    "only_commit_on_branch": true,
+    "delivered_and_verified_this_cycle": [
+      "factory direction v62 ordered item 1 (remedy a): product/query/adversarial_retrieval.py bumped to adversarial_retrieval/3 with REDACTION_PLACEHOLDER stripped from answer prose before answer_key_terms (strip_redaction_placeholders); evaluation run 39687372110 verified this remedy on the pinned recorded bytes",
+      "factory direction v62 ordered item 2 (query coverage): product/query/query_texts.py (frozen-text planning, counter-intent planning, coverage merge), product/data/frozen_retrieval_texts.json (source_sha256 187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72, the accepted benchmark pin), product/coverage_replay.py (live/offline executor) and product/query/pipeline.py::_expand_query_text_coverage wired into _retrieve",
+      "factory direction v62 ordered item 3 (writer-abort degradation): product/query/pipeline.py::_writer_abort_degradation publishes e_EMISSION_WRITER_ABORT as a first-class field on answer.degradation and generative_audit.emission_status, and adversarial_retrieval_pass marks the pass DEGRADED_WRITER_ABORT / VACUOUS_WRITER_ABORT; product/static/query.html degradedNote renders the named abort",
+      "coverage replay evidence committed under results/product/coverage_replay/: LOCAL_LIVE_COVERAGE_live.json (20/20 texts executed, 36 network calls, 16 frozen ids reached), LOCAL_LIVE_COVERAGE2_live.json (24/24 texts executed, 10 network calls, 23 frozen ids reached, cache 561 -> 571 with 0 modified existing), LOCAL_OFFLINE_VERIFY_offline.json (20/20 texts replayed from cache, 56 cache hits, 0 network calls) and LOCAL_OFFLINE_SMOKE_offline.json (the pre-cache smoke, 20 misses, kept as the negative control)",
+      "46 new cache envelopes committed (results/product/query_cache/**), the live-fetch substrate the offline replays read",
+      "tests: product/tests/test_adversarial_retrieval.py extended (+writer-abort degradation section, 62 tests green with test_query_text_coverage.py at resume start) and product/tests/test_query_text_coverage.py added (planning/merge/pipeline-seam sections)"
+    ]
+  },
+  "defects": [
+    {
+      "id": "D1",
+      "severity": "VALIDATION_FAILURE (the run-killing defect)",
+      "summary": "state/product.json was left at direction_version 61 while the run was dispatched with factory direction 62, so the workflow's 'Validate active MVP producer state' step (product/state_contract.py, exit 69) fails and no audit can be reached.",
+      "reproduce": "python3 product/state_contract.py --check   # FAIL: direction_version 61 != run input 62 (workflow exits 69)",
+      "observation": "Inherited state/product.json carried direction_version 61, cycle_status COMPLETE, current_run 39689729561 - i.e. the lane register was never advanced by the inherited run, so the commit landed but the workflow validation step could not pass.",
+      "repair": "This cycle advances the canonical state to direction_version 62 with a cycle_39758711075 current_run record (operational resume of 39752638579), keeping every fail-closed posture flag unchanged.",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D2",
+      "severity": "MISSING_REPORT_OF_RECORD",
+      "summary": "The inherited run committed code and evidence but no reports/product/CYCLE_39752638579.md, so an auditor had no cycle report to verify and no claims ledger to check.",
+      "reproduce": "ls reports/product/CYCLE_39752638579.md   # ENOENT (still absent; the inherited cycle stays report-less by history)",
+      "observation": "The branch carried exactly one commit (3b9d33b) and no report file; every prior resume in this lane treated a missing report of record as the first defect class (cycle 39689729561 diagnosis).",
+      "repair": "reports/product/CYCLE_39758711075.md is this cycle's report of record: it adopts the inherited work as this cycle's deliverable, cites every committed artifact by path, and states the fail-closed posture.",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D3",
+      "severity": "STALE_COMMITTED_GUARD",
+      "summary": "The pinned collected-test attribution artifact (CYCLE_39689729561_test_delta_attribution.json, working-tree total 1373) no longer equals what this tree collects (1393), so test_delta_attribution's staleness detector is red on the shipping tree.",
+      "reproduce": "python3 -m pytest product/tests/test_delta_attribution.py -q   # FAIL: this tree collects 1393 tests but the committed attribution says 1373",
+      "observation": "The inherited run added test_query_text_coverage.py and extended test_adversarial_retrieval.py without regenerating/repointing the attribution, the exact staleness class the guard exists to catch.",
+      "repair": "Regenerate the attribution for this cycle (base 9727a45, run 39758711075) and repoint the pin with a recorded REPOINT RECORD; the old artifact stays on disk byte-identical and joins ATTRIBUTION_HISTORY.",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D4",
+      "severity": "HEAD_ONLY_TEST_REGRESSION (real code defect in the inherited commit)",
+      "summary": "The coverage merge keyed identity on the raw (court, docket) pair, but OpenCaseLaw envelopes publish the same BGE ruling under two docket spellings (e.g. docket '142 IV 333' and 'BGE 142 IV 333', ids bge_142 IV 333 and bge_BGE_142_IV_333). The merge shipped both rows, both carried citation 'BGE 142 IV 333', and the product's citation-ownership contract failed.",
+      "reproduce": "python3 -m pytest product/tests/test_cache_non_orphan.py::test_run_query_initial_offline_replay_contract -q   # FAIL at 3b9d33b, PASS after this cycle's fix (measured both ways in this cycle)",
+      "observation": "diff of full-suite FAILED sets base 4896982 vs head 3b9d33b: exactly two head-only failures - this one and the D3 staleness detector. Offline replay of the recorded query showed the two extra rows were added by the coverage merge (provenance.coverage_expansion n_added=2).",
+      "repair": "product/query/query_texts.py::_bare_docket strips only leading repeats of the row's own court code from the alphanumeric docket, and merge_coverage_candidates also keys on canonical_decision_id; three regression tests pin the behaviour (court-code alias merge, canonical-id merge, prefix-only negative control). Verified: the offline replay contract test is green and the bundle again carries no shared citation.",
+      "status": "REPAIRED"
+    },
+    {
+      "id": "D5",
+      "severity": "INHERITED (reproduced at accepted base 4896982; disclosed, not repaired this cycle)",
+      "summary": "Eight manifest-covered cache envelopes (results/product/CYCLE_38759730609_cache_manifest.json) no longer match the working tree, so test_cache_non_orphan's manifest-integrity tests and cache_rewrite_attribution.py --check are red - identically at the accepted base and at head.",
+      "reproduce": "git worktree add /tmp/base 4896982 && cd /tmp/base && python3 -m pytest product/tests/test_cache_non_orphan.py -q   # the same 8 mismatched files, same failure",
+      "observation": "git log names the last rewriting commit for all 8 files as e77733b 'product cycle 39695438314 repair 1' - an ACCEPTED cycle's commit, i.e. the rewrites predate the inherited snapshot. The committed attribution artifact is scoped to the recorded runs of cycle 39674781875 and correctly does not silently absorb them.",
+      "repair": "None this cycle. Per the append-only evidence convention this is an accepted-cycle-owned integrity disposition (a new measurement is a new artifact under a new run id, never an in-place rewrite of the frozen manifest or the committed attribution). Disclosed here and in the report so the audit sees the same failure at base and at head.",
+      "status": "DISCLOSED_INHERITED"
+    },
+    {
+      "id": "D6",
+      "severity": "INHERITED (environment-scope; disclosed, not repaired this cycle)",
+      "summary": "166 legacy/evaluation tests fail identically at base 4896982 and at head (fractal-map section_scaled_v2 artifacts absent from this checkout, model-health seam vs the newer control-plane snapshot, counter-instability disclosure fixture). None is a head-only failure.",
+      "reproduce": "python3 -m pytest product/tests/ -q -p no:cacheprovider   # base 4896982: 169 failed / 1185 passed / 19 skipped; head after this cycle's repairs: see the report of record's measured sweep",
+      "observation": "Full-suite FAILED-set diff by test id, base vs head, isolates exactly the two head-only defects D3 and D4; everything else is shared. The 174k fractal-map tests expect product/results/fractal_map/** artifacts that this sparse lane checkout never carried.",
+      "repair": "None. Disclosed; the lane's MVP-critical-path tests (query-map vertical slice, adversarial retrieval, coverage, server, offline slice) are green.",
+      "status": "DISCLOSED_INHERITED"
+    }
+  ],
+  "verification_performed_this_cycle": [
+    "bash product/bootstrap_query_env.sh -> pinned runtime OK (numpy 2.5.4, scipy 1.18.1, scikit-learn 1.9.1, pytest 9.1.1)",
+    "python3 -m pytest product/tests/test_adversarial_retrieval.py product/tests/test_query_text_coverage.py -q -> 62 passed",
+    "offline replay of the recorded query (run_query_initial, retrieval_mode=offline) before the fix showed n_added=2 duplicate rows sharing citations BGE 142 IV 333 / BGE 146 IV 68; after the fix the same replay merges them (n_added=0) and the citation-ownership contract holds",
+    "full-suite FAILED-set diff by test id, base 4896982 vs head: head-only = D3 + D4 before repair; both repaired this cycle"
+  ],
+  "claim_ceiling": "This diagnosis names defects observed in THIS checkout at THESE commits, each with a reproduction command that was executed. It scores no frozen bar, re-derives no evaluation gate and asserts no serve or human-gate readiness.",
+  "fail_closed_posture": {
+    "packet_admitted": false,
+    "machine_gate_ready": false,
+    "human_gate_ready": false,
+    "ready_for_owner_session": false,
+    "note": "unchanged by this resume; the accepted BOUNDED-NEGATIVE serve verdict and both DO-NOT-SERVE orders stand"
+  }
+}
