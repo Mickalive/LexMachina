@@ -248,6 +248,54 @@ def test_answer_key_terms_drops_stopwords_and_digits():
     assert "und" not in terms and "der" not in terms and "2024" not in terms
 
 
+#: Remedy (a), direction v62 ordered item 1.  The accepted generative-audit
+#: component replaces an unsupported citation marker with this exact literal.
+#: Evaluated on the recorded bytes by run 39687372110 (REPAIR_VERIFIED_ON_
+#: RECORDED_BYTES): the placeholder's tokens must never become probe anchors.
+REDACTION = "[citation removed: not in retrieved set]"
+
+
+def test_redaction_placeholder_is_stripped_before_key_terms():
+    contaminated = f"Die Kündigung ist zulässig. {REDACTION} Die Kündigung ist zulässig."
+    terms = adv.answer_key_terms(contaminated)
+    assert "kündigung" in terms and "zulässig" in terms
+    for leaked in ("citation", "removed", "retrieved", "set"):
+        assert leaked not in terms, f"placeholder token leaked into probe anchors: {leaked}"
+
+
+def test_placeholder_cannot_displace_real_legal_vocabulary():
+    # Three placeholders outweigh a one-mention legal noun on the raw prose.
+    contaminated = (f"{REDACTION} {REDACTION} {REDACTION} "
+                    "Die fristlose Kündigung nach Art. 337 OR ist nur aus wichtigem Grund zulässig.")
+    terms = adv.answer_key_terms(contaminated, limit=4)
+    assert "kündigung" in terms
+    assert not {"citation", "removed", "retrieved"} & set(terms)
+
+
+def test_plan_issued_from_a_contaminated_answer_carries_no_placeholder_tokens():
+    contaminated = ANSWER_DE + " " + " ".join([REDACTION] * 4)
+    plan = adv.plan_adversarial_queries("Mietvertrag", contaminated)
+    assert plan, "a contaminated but otherwise usable answer must still be attackable"
+    anchors = {t for probe in plan for t in probe["answer_terms_used"]}
+    assert not {"citation", "removed", "retrieved"} & anchors
+    assert anchors, "the stripped answer must still yield legal anchors"
+
+
+def test_strip_only_removes_the_redaction_placeholder():
+    prose = "Die Miete ist geschuldet [BGE 142 III 333]. " + REDACTION + " Art. 257d OR gilt."
+    cleaned = adv.strip_redaction_placeholders(prose)
+    assert REDACTION not in cleaned
+    assert "[BGE 142 III 333]" in cleaned
+    assert "Art. 257d OR" in cleaned
+
+
+def test_clean_answer_is_byte_identical_after_the_remedy():
+    # Evaluation verified 12 clean bundles were byte-identical; the product-side
+    # guarantee is that stripping is a no-op on prose without the placeholder.
+    assert adv.strip_redaction_placeholders(ANSWER_DE) == ANSWER_DE
+    assert adv.answer_key_terms(ANSWER_DE) == adv.answer_key_terms(ANSWER_DE)
+
+
 def test_product_channels_are_disjoint_from_adapter_channels():
     from ocl_adapter.normalize import (
         CHANNEL_CITE_IN, CHANNEL_CITE_OUT, CHANNEL_LANG, CHANNEL_LEADING,
@@ -715,3 +763,78 @@ def test_apply_adversarial_pass_always_writes_the_verified_flag(fake_client):
     for d in out["decisions"]:
         assert "counter_evidence_verified" in d
         assert isinstance(d["counter_evidence_verified"], bool)
+
+
+# --------------------------------------------------------------------------
+# 7. direction v62 ordered item 3: e_EMISSION_WRITER_ABORT is explicit
+# --------------------------------------------------------------------------
+
+def test_writer_abort_is_a_first_class_degradation_field():
+    from product.query import pipeline
+
+    bundle = _map_bundle(n=10)
+    out = pipeline._extractive_degraded_fallback(bundle, "ProviderError: down", max_cites=4)
+    a = out["answer"]
+    assert a["status"] == "degraded"
+    assert a["degradation"]["code"] == "e_EMISSION_WRITER_ABORT"
+    assert a["degradation"]["stage"] == "generative_writer"
+    assert a["degradation"]["adversarial_pass_status"] == "DEGRADED"
+    ga = out["provenance"]["generative_audit"]
+    assert ga["emission_status"] == "WRITER_ABORT"
+    assert ga["degradation"]["code"] == "e_EMISSION_WRITER_ABORT"
+
+
+def test_writer_abort_marks_the_adversarial_pass_degraded_but_keeps_rows():
+    """A provider outage must never render as "no contrary authority exists"."""
+    from product.query import pipeline
+
+    bundle = _map_bundle(n=30)
+    bundle["answer"] = {
+        **bundle["answer"],
+        "prose": ANSWER_DE,
+        "status": "degraded",
+        "degradation": {"code": "e_EMISSION_WRITER_ABORT", "stage": "generative_writer"},
+    }
+    # No network: the fetch is replaced with an empty result, so this exercises
+    # the disclosure path without depending on an upstream service.
+    out = pipeline.adversarial_retrieval_pass(
+        bundle, retrieval_mode="offline", max_new=0, hydrate_top=0
+    )
+    prov = out["provenance"]["adversarial_retrieval"]
+    assert prov["degradation_code"] == "e_EMISSION_WRITER_ABORT"
+    assert prov["degraded"] is True
+    assert prov["adversarial_status"] in {"DEGRADED_WRITER_ABORT", "VACUOUS_WRITER_ABORT"}
+    assert "measurement gap" in prov.get("disclosure", "") or \
+        prov["adversarial_status"] == "VACUOUS_WRITER_ABORT"
+    # the map keeps every row it already had
+    assert len(out["decisions"]) >= len(bundle["decisions"])
+
+
+def test_writer_abort_with_empty_answer_is_vacuous_not_silent():
+    from product.query import pipeline
+
+    bundle = _map_bundle(n=10)
+    bundle["answer"] = {
+        **bundle["answer"],
+        "prose": "",
+        "status": "degraded",
+        "degradation": {"code": "e_EMISSION_WRITER_ABORT"},
+    }
+    out = pipeline.adversarial_retrieval_pass(bundle, retrieval_mode="offline")
+    prov = out["provenance"]["adversarial_retrieval"]
+    assert prov["skipped"] is True
+    assert prov["adversarial_status"] == "VACUOUS_WRITER_ABORT"
+    assert prov["degradation_code"] == "e_EMISSION_WRITER_ABORT"
+    assert prov["degraded"] is True
+
+
+def test_healthy_answer_is_not_marked_degraded():
+    from product.query import pipeline
+
+    bundle = _map_bundle(n=10)
+    bundle["answer"] = {**bundle["answer"], "prose": ANSWER_DE, "status": "ready"}
+    out = pipeline.adversarial_retrieval_pass(bundle, retrieval_mode="offline", max_new=0)
+    prov = out["provenance"]["adversarial_retrieval"]
+    assert prov["degraded"] is False
+    assert prov["degradation_code"] is None
+    assert prov["adversarial_status"] == "MEASURED"

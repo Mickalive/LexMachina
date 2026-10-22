@@ -277,6 +277,12 @@ function renderBundle(b){
   if(window.LexGateSwitch)LexGateSwitch.notifyBundleChanged();
 }
 function degradedNote(a){
+  /* Direction v62 ordered item 3: an aborted generative writer is named by its
+     accepted attribution code, so a provider outage can never read as "no
+     contrary authority exists". Disclosure only - no label is asserted. */
+  const abort=(a.degradation&&a.degradation.code)||"";
+  if(abort==="e_EMISSION_WRITER_ABORT")
+    return "Écrivain génératif interrompu (e_EMISSION_WRITER_ABORT) : réponse extractive de secours. La passe contradictoire est DÉGRADÉE — un ensemble contraire vide signifie « non mesuré », jamais « aucune autorité contraire n’existe ».";
   if(a.method==="concept_coverage_extractive_v1")
     return "Le modèle génératif n’a cité aucune décision. La réponse ci-dessous est composée par le produit à partir d’extraits verbatim des décisions citées, et nomme les notions de la question que le corpus récupéré ne couvre pas (voir « provenance.answer_gap_contract »).";
   return "Le fournisseur génératif est indisponible : réponse extractive de secours. La carte et les sources restent valides, mais ce n’est pas le mode produit cible.";

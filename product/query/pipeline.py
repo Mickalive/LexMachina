@@ -39,6 +39,11 @@ from .adversarial_retrieval import (
 from .counter_anchor import apply_anchor_labels
 from .counter_emission_repair import apply_counter_emission_repair
 from . import concept_seed
+from .query_texts import (
+    merge_coverage_candidates,
+    plan_missing_texts,
+    plan_query_texts,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RETRIEVAL_ROOT = REPO_ROOT / "frontier" / "frontier-query-retrieval"
@@ -68,6 +73,45 @@ AUDIT_SEAM = _apply_audit_seam()
 
 MIN_LIVE_RESULTS = 100
 MAX_RESULTS = 300
+
+#: Coverage-expansion budget (direction v62 ordered item 2).  The primary
+#: pass executes one query text; Evaluation run 39631600439 measured that this
+#: left 20 of 24 frozen texts unexecuted.  Each planned text gets one bounded
+#: search stage, no citations/leading fan-out, and a hard request cap.
+COVERAGE_MAX_TEXTS = 6
+COVERAGE_MAX_REQUESTS_PER_TEXT = 4
+
+#: Accepted attribution cause class for a generative writer that produced no
+#: answer (``frontier-counter-label-emission`` intake, cause E).  Factory
+#: direction v62 ordered item 3: the bundle must publish this code so a
+#: provider outage can never be read as "no contrary authority exists".
+WRITER_ABORT_CODE = "e_EMISSION_WRITER_ABORT"
+
+
+def _writer_abort_degradation(error: str) -> dict[str, Any]:
+    """The disclosure record stamped on every extractive-degraded answer.
+
+    Disclosure-only: it never changes a threshold, bar, rubric or verdict
+    contract, and it never labels any decision supporting/contrary/limiting.
+    """
+    return {
+        "code": WRITER_ABORT_CODE,
+        "stage": "generative_writer",
+        "cause_class_source": (
+            "accepted frontier-counter-label-emission attribution "
+            "(results/product/frontier_verdicts/"
+            "frontier-counter-label-emission_intake.json)"
+        ),
+        "error": error,
+        "adversarial_pass_status": "DEGRADED",
+        "disclosure": (
+            "the generative writer aborted, so the provisional answer is the "
+            "extractive fallback; the adversarial pass is marked DEGRADED and "
+            "an empty counter set here means 'not measured', never 'no "
+            "contrary authority exists'"
+        ),
+    }
+
 
 
 def _answer_model_candidates() -> list[str]:
@@ -180,6 +224,144 @@ def replay_fixture_query(
     return out
 
 
+def _coverage_text_config(top_n: int, mode: str) -> AdapterConfig:
+    """Bounded config for ONE extra coverage text.
+
+    One search stage, one page per variant, no citation/leading fan-out, and a
+    hard request cap: the coverage pass must add recall without turning a
+    single query into a second full retrieval.  ``mode`` is preserved, so an
+    offline replay can only read the cache and a live run writes the envelope
+    it fetched (the same cache the evaluation parity reads).
+    """
+    base = _retrieval_config(top_n, mode)
+    return base.replace(
+        stages=("search",),
+        target=max(20, min(50, top_n // 3)),
+        max_candidates=max(24, min(80, top_n)),
+        page_size=min(20, max(10, top_n // 10)),
+        max_pages_per_variant=1,
+        lang_max_pages=1,
+        max_requests=COVERAGE_MAX_REQUESTS_PER_TEXT,
+        stop_when_target_met=True,
+        leading_cases=False,
+        citation_expansion=False,
+    )
+
+
+def _expand_query_text_coverage(
+    candidate: dict,
+    query: str,
+    *,
+    top_n: int,
+    mode: str,
+    include_primary: bool = False,
+) -> dict:
+    """Execute/replay the planned multilingual + counter-intent texts.
+
+    Evaluation run 39631600439 measured 4/24 frozen texts executed and all 18
+    comparator-only ids coming from never-executed texts.  This pass closes the
+    coverage gap additively:
+
+    * identity-matched frozen questions run their remaining five frozen texts;
+    * any other query runs three deterministic counter-intent texts;
+    * offline/replay mode reads the cache only and records a miss as a miss;
+    * already-present decisions are never duplicated or re-ranked.
+
+    Every outcome is published under ``provenance.coverage_expansion`` so the
+    reader can see which texts ran, which were cache misses, and how many rows
+    they added.  No frozen id set is scored here (that is Core Evaluation's).
+    """
+    out = candidate
+    execd = [
+        str(v.get("text") or "")
+        for v in (out.get("provenance", {}).get("query_variants") or [])
+        if isinstance(v, dict)
+    ]
+    plan = plan_missing_texts(
+        query, already_executed=execd, include_primary=include_primary
+    )
+    planned_total = plan_query_texts(query)
+    prov = out.setdefault("provenance", {})["coverage_expansion"] = {
+        "component": "product/query/query_texts.py",
+        "planned_texts": [
+            {"channel": p.get("channel"), "language": p.get("language"),
+             "text": p.get("text"), "source": p.get("source")}
+            for p in planned_total
+        ],
+        "n_planned": len(planned_total),
+        "n_to_execute": len(plan),
+        "mode": mode,
+        "per_text": [],
+        "n_added": 0,
+        "n_reinforced": 0,
+        "claim_ceiling": (
+            "executes/replays additional query texts and reports what each "
+            "returned; it scores no frozen id set and asserts no legal label"
+        ),
+    }
+    if not plan:
+        prov["skipped"] = True
+        prov["skip_reason"] = "no planned text beyond the primary query text"
+        return out
+
+    cfg = _coverage_text_config(top_n, mode)
+    extra_rows: list[dict] = []
+    for entry in plan[:COVERAGE_MAX_TEXTS]:
+        t0 = time.time()
+        record: dict[str, Any] = {
+            "channel": entry.get("channel"),
+            "language": entry.get("language"),
+            "source": entry.get("source"),
+            "text": entry.get("text"),
+        }
+        try:
+            sub = build_candidate_bundle(
+                str(entry.get("text") or ""),
+                config=cfg,
+                hydrate_top=0,
+                hydrate_ids=[],
+                include_structure=False,
+            )
+            rows = list(sub.get("candidates") or [])
+            sub_prov = sub.get("provenance") or {}
+            request_summary = sub_prov.get("request_summary") or {}
+            record.update({
+                "n_candidates": len(rows),
+                "network_calls": request_summary.get("network_calls"),
+                "cache_hits": request_summary.get("cache_hits"),
+                "degraded": bool(sub_prov.get("degraded")),
+                "failures": sub_prov.get("failures") or [],
+                "seconds": round(time.time() - t0, 3),
+            })
+            extra_rows.extend(rows)
+        except Exception as exc:  # a coverage miss must never cost the bundle
+            record.update({
+                "n_candidates": 0,
+                "error": f"{type(exc).__name__}: {exc}",
+                "seconds": round(time.time() - t0, 3),
+            })
+        prov["per_text"].append(record)
+
+    merged, stats = merge_coverage_candidates(list(out.get("candidates") or []), extra_rows)
+    if stats["n_added"]:
+        out["candidates"] = merged
+        out["n_candidates"] = len(merged)
+        # Keep the adapter's deterministic ordering; the product reranks later.
+        try:
+            from ocl_adapter import rank_candidates
+            out["candidates"] = rank_candidates(out["candidates"])
+            for rank, row in enumerate(out["candidates"], start=1):
+                row["rank"] = rank
+        except Exception:
+            pass
+    prov.update(stats)
+    prov["n_cache_miss_texts"] = sum(
+        1 for r in prov["per_text"]
+        if r.get("n_candidates") == 0
+    )
+    return out
+
+
 def _retrieve(
     query: str,
     top_n: int,
@@ -197,13 +379,29 @@ def _retrieve(
     if mode not in {"live", "offline", "refresh"}:
         raise ValueError(f"unsupported retrieval mode: {mode}")
     cfg = _retrieval_config(top_n, mode)
-    return build_candidate_bundle(
+    candidate = build_candidate_bundle(
         query,
         config=cfg,
         hydrate_top=hydrate_top,
         hydrate_ids=hydrate_ids,
         include_structure=True,
     )
+    # Coverage expansion belongs to the PRIMARY retrieval call only.  A lazy
+    # hydration call must not re-issue extra searches to fetch one decision id.
+    if not hydrate_ids and not hydrate_top:
+        if not candidate.get("candidates") and mode == "offline":
+            # Cache-first fallback: the primary request key missed the cache
+            # (e.g. a frozen envelope recorded by another client config), so
+            # replay the planned texts under the coverage config, including the
+            # query text itself.  A miss is still recorded, never fabricated.
+            candidate = _expand_query_text_coverage(
+                candidate, query, top_n=top_n, mode=mode, include_primary=True
+            )
+        else:
+            candidate = _expand_query_text_coverage(
+                candidate, query, top_n=top_n, mode=mode
+            )
+    return candidate
 
 
 #: Citation-expansion channels.  A record that only exists because of one of
@@ -801,12 +999,19 @@ def _extractive_degraded_fallback(
             d["counter_status"] = "none"
             d["counter_evidence_verified"] = False
     answer["status"] = "degraded"
+    degradation = _writer_abort_degradation(error)
+    answer["degradation"] = degradation
     out["answer"] = answer
     ga = {
         "degraded": True,
         "provider_error": error,
         "fallback": "extractive_tfidf_v1",
         "counter_fallback": counter_info,
+        # Ordered item 3 (direction v62): the abort is a first-class field, not
+        # only prose inside provider_error.  A downstream reader can branch on
+        # the code without parsing a free-text error.
+        "emission_status": "WRITER_ABORT",
+        "degradation": degradation,
     }
     if diagnostics:
         # The accepted component already publishes its own "answer_provider"
@@ -843,20 +1048,44 @@ def adversarial_retrieval_pass(
         str((bundle.get("answer") or {}).get("prose") or ""),
         max_intents=max_intents,
     )
+    # Ordered item 3 (direction v62): a generative-writer abort is a property of
+    # the pass, not only of the answer.  Publish it beside every outcome so
+    # "the writer died" can never be rendered as "no counter authority exists".
+    writer_abort = str(
+        ((bundle.get("answer") or {}).get("degradation") or {}).get("code") or ""
+    )
+    abort_fields = {
+        "degraded": bool(writer_abort),
+        "degradation_code": writer_abort or None,
+        "adversarial_status": (
+            "DEGRADED_WRITER_ABORT" if writer_abort else "MEASURED"
+        ),
+    }
+    if writer_abort:
+        abort_fields["disclosure"] = (
+            "the generative writer aborted (e_EMISSION_WRITER_ABORT); the "
+            "adversarial pass is DEGRADED: an empty counter set is a "
+            "measurement gap, not evidence that no contrary authority exists"
+        )
     if not plan:
         # Vacuous pass (cycle 38828034436 audit D4): the answer carries no
         # usable legal vocabulary, so no probe is fabricated and the pass is
         # recorded as skipped — not as "found nothing adversarial".
         out = copy.deepcopy(bundle)
         out.setdefault("provenance", {})["adversarial_retrieval"] = {
-            "component": "adversarial_retrieval/2",
+            "component": ADVERSARIAL_RETRIEVAL_VERSION,
             "attempted": True,
             "skipped": True,
             "skip_reason": "vacuous_pass: the provisional answer carries no usable legal vocabulary; no probe fabricated",
             "n_new_rows": 0,
             "n_counter_rows": 0,
             "claim_ceiling": "no adversarial retrieval ran; no claim of independence is made",
+            **abort_fields,
         }
+        if writer_abort:
+            out["provenance"]["adversarial_retrieval"]["adversarial_status"] = (
+                "VACUOUS_WRITER_ABORT"
+            )
         return out
     existing_ids = {str(d.get("decision_id")) for d in bundle.get("decisions") or []}
     exclude_identities = set()
@@ -883,6 +1112,7 @@ def adversarial_retrieval_pass(
         adv_prov = out.setdefault("provenance", {}).setdefault("adversarial_retrieval", {})
         adv_prov["pass_seconds"] = round(time.time() - t_adv, 4)
         adv_prov["fetch_seconds"] = adv_prov.get("seconds")
+        adv_prov.update(abort_fields)
         return out
     except Exception as exc:
         # A non-critical stage must never cost the researcher their bundle. The
@@ -896,6 +1126,7 @@ def adversarial_retrieval_pass(
             "n_new_rows": 0,
             "n_counter_rows": 0,
             "claim_ceiling": "the independent adversarial route did not complete; no claim of independence is made",
+            **abort_fields,
         }
         return out
 

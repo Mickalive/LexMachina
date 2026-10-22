@@ -89,7 +89,15 @@ from .retrieval import tokenize  # noqa: E402
 #: - labelling is topic-gated, disposal/boilerplate-guarded, and reports only
 #:   the markers present in the cited evidence sentence (D2: /1 licensed labels
 #:   from negation-blind, boilerplate-blind, topic-blind substrings).
-ADVERSARIAL_RETRIEVAL_VERSION = "adversarial_retrieval/2"
+#:
+#: /3 (factory direction v62 ordered item 1; the remedy is Core Evaluation's
+#: verified fix, run 39687372110 ``REPAIR_VERIFIED_ON_RECORDED_BYTES``):
+#: - the accepted generative-audit citation-redaction placeholder is stripped
+#:   from the provisional answer before key-term extraction, so the persisted
+#:   token sequence is a function of the legal proposition only.  On the two
+#:   baseline-contaminated bundles this removed every placeholder anchor and
+#:   left the twelve clean bundles byte-identical.
+ADVERSARIAL_RETRIEVAL_VERSION = "adversarial_retrieval/3"
 
 #: The product's *own* channels.  These strings are disjoint from the accepted
 #: adapter's channel inventory (``search``, ``search.language_filter``,
@@ -252,6 +260,41 @@ COUNTER_STATUS_BY_INTENT = {
     "older_line": "candidate-limiting",
 }
 
+#: Literal placeholder the accepted generative-audit component substitutes for
+#: a citation marker that is not in the retrieved set
+#: (``frontier-generative-audit/generative_audit/source_packing.py``:
+#: ``REDACTION_PLACEHOLDER``).  It is answer *machinery*, not legal prose.
+#:
+#: Remedy (a) of factory direction v62 / accepted evaluation run 39687372110
+#: (``REPAIR_VERIFIED_ON_RECORDED_BYTES``): the shipped planner anchored its
+#: counter probes on the raw post-redaction answer, so the placeholder's own
+#: tokens (``citation``, ``removed``, ``retrieved``) could rank among the key
+#: terms and displace the actual legal vocabulary.  Two baseline-contaminated
+#: bundles were remediated to zero contaminated anchors by excluding exactly
+#: these tokens; the twelve clean bundles were unchanged.
+REDACTION_PLACEHOLDER = "[citation removed: not in retrieved set]"
+
+#: Tolerate bracket/case/spacing drift without inventing broader stripping: the
+#: removed text is fixed, only brackets and internal whitespace may vary.
+_REDACTION_PLACEHOLDER_RE = re.compile(
+    r"\[\s*citation\s+removed\s*:\s*not\s+in\s+retrieved\s+set\s*\]",
+    re.IGNORECASE,
+)
+
+
+def strip_redaction_placeholders(text: str) -> str:
+    """Remove generative-audit redaction placeholders from answer prose.
+
+    The placeholder is emitted by the accepted component whenever the model
+    cited a decision that retrieval did not return.  It is not part of the
+    proposition, so it must never become adversarial probe vocabulary.  This
+    is a pure, deterministic string transform; it does not change the answer
+    the user sees (the component already redacted it) and it never removes a
+    real legal term.
+    """
+    return _REDACTION_PLACEHOLDER_RE.sub(" ", text or "")
+
+
 DEFAULT_MAX_NEW = 40
 DEFAULT_HYDRATE_TOP = 12
 DEFAULT_PAGE_SIZE = 25
@@ -270,9 +313,13 @@ def answer_key_terms(answer_prose: str, *, limit: int = 8) -> list[str]:
 
     Answer-derived rather than query-derived on purpose: the adversarial pass
     must attack the *proposition*, not the question wording.
+
+    The accepted generative-audit component's redaction placeholder is removed
+    first: it is answer machinery stamped onto the prose for every citation the
+    retrieval set could not support, and its tokens are not legal vocabulary.
     """
     counts: dict[str, int] = {}
-    for token in tokenize(answer_prose or ""):
+    for token in tokenize(strip_redaction_placeholders(answer_prose or "")):
         if token in _ANSWER_STOP or len(token) < 4 or token.isdigit():
             continue
         counts[token] = counts.get(token, 0) + 1
