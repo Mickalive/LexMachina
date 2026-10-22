@@ -137,6 +137,7 @@ h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#737b88;ma
       <option value="all">Toutes</option>
       <option value="counter">Contre-autorités</option>
       <option value="adversarial">Passe contradictoire</option>
+      <option value="surface">Surface contraire</option>
       <option value="cited">Citées</option>
       <option value="outlier">Outliers</option>
     </select>
@@ -145,7 +146,7 @@ h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#737b88;ma
   </div>
   <div id="mapWrap">
     <canvas id="cv"></canvas><div id="detail"></div>
-    <div id="legend">couleur = cluster · gris = contexte non regroupé (hors cluster) · contour rouge = contre-autorité étayée · contour pointillé ambré = non étayée (conservée pour visibilité) · or = citée · anneau cyan = trouvée par la passe contradictoire indépendante (provenance de recherche, pas une qualification) · point pâle = outlier</div>
+    <div id="legend">couleur = cluster · gris = contexte non regroupé (hors cluster) · contour rouge = contre-autorité étayée · contour pointillé ambré = non étayée (conservée pour visibilité) · or = citée · anneau cyan = trouvée par la passe contradictoire indépendante (provenance de recherche, pas une qualification) · anneau violet = surface contraire heuristique (marqueur limitatif du texte, exploration uniquement, jamais une qualification) · point pâle = outlier</div>
     <!-- Relation-channel disclosure. MVP §7 asks for "citation/relation edges
          available on selection". When the channel is genuinely empty the jurist
          must be told WHY at the point of use, with the measured counts — an
@@ -212,6 +213,15 @@ function advChannels(d){
 }
 function isAdversarial(d){return advChannels(d).length>0}
 function advLabel(c){return ADV_LABEL[c]||c}
+/* Pool counter-surface scan (direction v63 item 7a): a heuristic surface over
+   the RENDERED pool — a verbatim sentence of the decision's own text carries a
+   limitation marker and shares a topical term with the answer/query. It is an
+   exploration aid for the map, NEVER a qualification: counter_status stays the
+   exclusive product of the accepted emission/anchor path, so a surface-only
+   row never renders as a counter ring or pill. */
+const SURFACE_RING="#7a4fd6";
+function hasSurface(d){return !!(d.counter_surface_signal&&d.counter_surface_signal.heuristic_status)}
+function surfaceOnly(d){return hasSurface(d)&&!isCounter(d)}
 function bodyText(d){return [d.decision_id,d.court,d.docket_number,d.snippet,Array.isArray(d.citation)?d.citation.join(" "):d.citation].join(" ").toLowerCase()}
 
 function filtered(){
@@ -223,6 +233,7 @@ function filtered(){
     if(q&&!bodyText(d).includes(q))return false;
     if(cf==="counter"&&!isCounter(d))return false;
     if(cf==="adversarial"&&!isAdversarial(d))return false;
+    if(cf==="surface"&&!hasSurface(d))return false;
     if(cf==="cited"&&d.counter_status!=="cited")return false;
     if(cf==="outlier"&&!d.is_outlier)return false;
     return true;
@@ -262,6 +273,16 @@ function draw(){
     if(isAdversarial(p)){ctx.lineWidth=1.6;
       ctx.beginPath();ctx.arc(s.x,s.y,r+2.6,0,Math.PI*2);
       ctx.strokeStyle=ADV_RING;ctx.stroke()}
+    /* Counter-surface halo (direction v63 item 7a): a THIRD distinct radius
+       (r+4.2), SOLID not dashed — canvas_probe.js's contract tally counts a
+       dashed non-contract stroke as a stray "dashed_other", and the F1
+       underpaint guard keys on concentric same-radius thinner rings; a solid
+       ring at its own radius is counted by neither rule and paints over
+       nothing.  Surface-only rows only: a qualified counter already wears its
+       contract contour and keeps exactly one qualification mark. */
+    if(surfaceOnly(p)){ctx.lineWidth=1.4;
+      ctx.beginPath();ctx.arc(s.x,s.y,r+4.2,0,Math.PI*2);
+      ctx.strokeStyle=SURFACE_RING;ctx.stroke()}
   }
 }
 cv.onclick=e=>{
@@ -466,12 +487,17 @@ function showDetail(id){
     (isCounter(d)&&!counterEvidenced(d)?'<span class="pill amber">non étayée · conservée pour visibilité</span>':"")+
     (d.counter_status==="cited"?'<span class="pill gold">citée</span>':"")+
     advChannels(d).map(c=>'<span class="pill disc">passe contradictoire · '+esc(advLabel(c))+"</span>").join("")+
+    (surfaceOnly(d)?'<span class="pill disc">surface contraire · '+esc((d.counter_surface_signal.intent||"")+" ("+(d.counter_surface_signal.heuristic_status||"")+")")+"</span>":"")+
     '<p>'+esc(d.snippet||"")+'</p>'+
     (counterEvidenced(d)?'<p><b>Élément contraire :</b> '+esc(d.counter_evidence)+'</p>':"")+
     (isCounter(d)&&!counterEvidenced(d)?'<p class="warn"><b>Contre-autorité non étayée :</b> aucune preuve textuelle à l’appui (incertitude '+esc(d.counter_uncertainty??"?")+'). Ligne conservée pour visibilité, sans valeur de classification.</p>':"")+
     (isAdversarial(d)?'<p><b>Passe contradictoire indépendante :</b> trouvée par le canal '+
        esc(advChannels(d).map(advLabel).join(", "))+' ('+esc(advChannels(d).join(", "))+'). '+
        esc(advState(d).txt)+' — ce marqueur indique comment la décision a été retrouvée, pas son effet juridique.</p>':"")+
+    (surfaceOnly(d)?'<p><b>Surface contraire (heuristique) :</b> marqueur limitatif « '+
+       esc((d.counter_surface_signal.markers||[]).join(" », « "))+' » relevé dans le texte de la décision ('+
+       esc(d.counter_surface_signal.text_source||"")+'). « '+esc((d.counter_surface_signal.evidence||"").slice(0,300))+' » '+
+       '— surface d’exploration issue du scan du pool rendu; ce n’est JAMAIS une qualification juridique (counter_status inchangé).</p>':"")+
     (c?'<p><b>Cluster :</b> '+esc(c.label)+'</p>':"")+
     (rels.length?'<p><b>Relations :</b><br>'+rels.map(relLine).join("<br>")+"</p>":''+
       (relationChannelNote()?'<p><b>Relations :</b> '+esc(relationChannelNote())+"</p>":""))+

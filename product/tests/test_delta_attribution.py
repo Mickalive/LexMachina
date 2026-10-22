@@ -219,6 +219,29 @@ from product import test_delta_attribution as tda  # noqa: E402
 #: under this round's own run id, so that a file named for a run holds that
 #: run's measurement. Both are committed; neither replaces the other; the
 #: older one is never rewritten again.
+#:
+#: ARTIFACT LANDING RECORD (counter-surface cycle 39852776080, run 39852776080):
+#: the pin artifact above was regenerated in place a second time, by the same
+#: rule: it must carry run id 39758711075 AND measure the tree this cycle ships
+#: (the staleness detectors in this module and in
+#: ``product/tests/test_state_cycle_39758711075.py`` and
+#: ``product/tests/test_state_cycle_39764730877.py`` compare its
+#: ``working_tree.collected_total`` against a live collection). This cycle adds
+#: ``product/tests/test_counter_surface.py`` (+21 collected over accepted base
+#: ``fe219a1``), so the committed artifact said 1440 while the tree collected
+#: 1461. Command:
+#: ``python3 product/test_delta_attribution.py --base 9727a45 --head WORKTREE
+#: --run-id 39758711075 --regression-artifact
+#: results/product/regression/CYCLE_39144924680_regression_scope.json --out
+#: results/product/regression/CYCLE_39758711075_test_delta_attribution.json``;
+#: the range endpoint moved to ``fe219a1`` (still an ancestor of HEAD), the
+#: cross-check stays COMPARED with base_agrees true (base 9727a45 = 1123 under
+#: both measurement paths), and the +21 working-tree delta is attributed to the
+#: one untracked new module. The same measurement is also written under this
+#: cycle's own run id
+#: (``CYCLE_39852776080_test_delta_attribution.json``) so a file named for a
+#: run holds that run's measurement; no historical artifact is rewritten. The
+#: pin constant itself does NOT move.
 ATTRIBUTION = (ROOT / "results" / "product" / "regression"
                / "CYCLE_39758711075_test_delta_attribution.json")
 #: The previous pin, kept as a readable constant so a reader can diff the two

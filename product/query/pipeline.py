@@ -38,6 +38,7 @@ from .adversarial_retrieval import (
 )
 from .counter_anchor import apply_anchor_labels
 from .counter_emission_repair import apply_counter_emission_repair
+from .counter_surface import apply_counter_surface
 from . import concept_seed
 from .query_texts import (
     merge_coverage_candidates,
@@ -1328,6 +1329,21 @@ def enrich_query_bundle(
             audited,
             qid=(initial_bundle.get("provenance") or {}).get("qid"),
         )
+
+    # Direction v63 ordered item 7(a) — pool counter-surface coverage.  The
+    # accepted cached falsification measured 0/14 known authorities signalled
+    # and 5/14 hydrated on the offline path: the counter surface only ever
+    # examined adversarial-survivor rows, so an authority the initial pass
+    # already retrieved was never looked at.  The scan hydrates a bounded,
+    # marker-preferring subset of the rendered pool and writes a heuristic
+    # ``counter_surface_signal`` (verbatim evidence + markers) plus provenance.
+    # It runs AFTER the accepted emission/anchor stages and writes NO scored
+    # counter field, so the frozen label path and its population are untouched
+    # by construction.  Kill-switch: LEXMACHINA_COUNTER_SURFACE=off.
+    audited = apply_counter_surface(
+        audited,
+        retrieval_mode=retrieval_mode if retrieval_mode in {"live", "fixture", "offline", "refresh"} else "live",
+    )
 
     # The adversarial/generative stage must never move the already visible map.
     original_geo = {
