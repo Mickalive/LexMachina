@@ -29,6 +29,21 @@ Exit codes (frozen contract)
 1  SHIPPED_PLANNER_DIVERGES_FROM_VERIFIED_REMEDY  (falsifies the landed fix)
 2  ENVIRONMENT_OR_VACUOUS  (never a product verdict)
 
+Seq-2 control correction (disclosed; see FREEZE_RECORD_V1 freeze_history)
+------------------------------------------------------------------------
+Attempt 1 (preserved as
+``results/evaluation/shipped_planner_remedy_verification/
+39813664201_attempt1_control_implementation_bug.json``, sha256 68bd363a…)
+exited 2 ENVIRONMENT_OR_VACUOUS and claimed nothing, because it derived the
+placeholder token class from the SHIPPED ``answer_key_terms`` — which, on a
+tree where remedy (a) has landed, strips the placeholder and therefore derives
+ZERO tokens from it by design.  That made C2s self-defeating, C4s blind and
+G1s vacuous.  Seq-2 derives the token class from the PRE-REMEDY-EMULATED
+extractor (identical ranking/filters without the strip), pinned to exactly
+{citation, removed, retrieved}; the shipped extractor's zero-token output on
+the placeholder is additionally recorded as the remedy's own signature.
+No gate outcome, verdict, population, exit contract or claim ceiling changed.
+
 Usage::
 
     python -m evaluation.shipped_planner_remedy_verification \
@@ -164,9 +179,10 @@ def run(run_id: str, mount: Path) -> tuple[int, dict]:
 
     # C1s: fixture integrity ------------------------------------------------
     repair_record_sha = sha256_file(ACCEPTED_REPAIR_RECORD)
-    c1_ok = (repair_record_sha == (freeze.get("repo_pins") or {}).get(
+    repair_record_pin = (freeze.get("pins") or {}).get(
         "results/evaluation/counter_probe_repair_verification/39687372110.json")
-        and fixture.get("verdict") == "REPAIR_VERIFIED_ON_RECORDED_BYTES")
+    c1_ok = (repair_record_sha == repair_record_pin
+             and fixture.get("verdict") == "REPAIR_VERIFIED_ON_RECORDED_BYTES")
 
     try:
         product = cpa.ProductCode(mount)
@@ -175,9 +191,13 @@ def run(run_id: str, mount: Path) -> tuple[int, dict]:
                           "loader_error": repr(exc), "pins_before": pins_before,
                           "claim_ceiling": "product loader failure is never a product verdict"}
 
-    # C2s: placeholder preconditions intact ---------------------------------
+    # Placeholder token class: derived from the PRE-REMEDY-EMULATED extractor.
+    # On a landed-remedy tree the SHIPPED extractor strips the placeholder and
+    # derives zero tokens by design, so the shipped extractor can never define
+    # the defect class the gates test against (Seq-2 disclosed correction).
     ph = str(product.redaction_placeholder or "")
-    ph_tokens = sorted(set(product.placeholder_tokens()))
+    ph_tokens = sorted(set(preremedy_key_terms(product, ph)))
+    shipped_ph_tokens = sorted(set(product.placeholder_tokens()))
     c2_ok = (ph == "[citation removed: not in retrieved set]"
              and ph_tokens == ["citation", "removed", "retrieved"])
 
@@ -309,10 +329,11 @@ def run(run_id: str, mount: Path) -> tuple[int, dict]:
             "record_verdict": fixture.get("verdict"),
         },
         "C2s_placeholder_preconditions_intact": {
-            "description": "REDACTION_PLACEHOLDER unchanged and shipped answer_key_terms derives exactly {citation, removed, retrieved} from it",
+            "description": "REDACTION_PLACEHOLDER unchanged; the PRE-REMEDY-emulated extractor derives exactly {citation, removed, retrieved} from it (the defect token class); the SHIPPED extractor's zero-token output on the placeholder is recorded as the remedy's own signature",
             "holds": bool(c2_ok),
             "placeholder": ph,
-            "placeholder_tokens": ph_tokens,
+            "placeholder_tokens_preremedy": ph_tokens,
+            "placeholder_tokens_shipped": shipped_ph_tokens,
         },
         "C3s_defect_was_real": {
             "description": "the accepted record carries at least one baseline-contaminated row",
@@ -426,6 +447,8 @@ def run(run_id: str, mount: Path) -> tuple[int, dict]:
         "n_measured": len(measured),
         "n_baseline_contaminated": n_baseline_contaminated,
         "placeholder_tokens": ph_tokens,
+        "placeholder_tokens_derivation": "PRE-REMEDY-emulated extractor (Seq-2 disclosed correction; the shipped extractor strips the placeholder and derives none by design)",
+        "placeholder_tokens_shipped_extractor": shipped_ph_tokens,
         "redaction_placeholder": ph,
         "pins_before": pins_before,
         "pins_after": pins_after,
