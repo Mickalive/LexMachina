@@ -1,0 +1,43 @@
+{
+  "append_only_convention": "one result per run id under results/evaluation/coverage_remediation_crosscheck/<run_id>.json; reports follow reports/evaluation/COVERAGE_REMEDIATION_CROSSCHECK_<run_id>.md; a re-measurement is a NEW artifact under a NEW run id",
+  "controls_frozen_in_hypothesis": [
+    "D1_frozen_spec_rehash",
+    "D2_planted_union_detects_a_fake_id",
+    "D3_planted_reach_loss_detects_falsification"
+  ],
+  "direction_version": 62,
+  "exit_code_contract": {
+    "0": "COVERAGE_EVIDENCE_REPRODUCES",
+    "1": "COVERAGE_EVIDENCE_DIVERGES",
+    "2": "ENVIRONMENT_OR_VACUOUS (never a product verdict)"
+  },
+  "freeze_history_note": "Single freeze. Hypothesis, instrument and these pins are committed freeze-first BEFORE the first claim-bearing execution. No prior run of this instrument exists.",
+  "freeze_id": "COVERAGE_REMEDIATION_CROSSCHECK_FREEZE_V1",
+  "fresh_replay_protocol": "hardlink-copy (cp -al, fallback cp -a) the accepted product mount to an evaluation-owned scratch directory under /tmp/opencode; run the shipped product/coverage_replay.py --mode offline there so every write lands in the scratch tree and the accepted mount is never written; copy only the produced JSON back into results/evaluation/coverage_remediation_crosscheck/ as the fresh-replay artifact of this run",
+  "frozen_at_utc": "2026-10-22T17:38:00Z",
+  "frozen_before_claim_bearing_execution": true,
+  "gates_frozen_in_hypothesis": [
+    "V1_frozen_text_snapshot_pins_the_accepted_benchmark",
+    "V2_fresh_offline_replay_is_offline_and_cache_pure",
+    "V3_reach_unions_recompute_and_offline_replay_supersets_committed_reach"
+  ],
+  "lane": "evaluation",
+  "network_policy": "offline mode only; any network call is a V2 gate failure",
+  "no_thresholds_or_bars_touched": true,
+  "no_universal_174k_benchmark": true,
+  "pins": {
+    "evaluation/COVERAGE_REMEDIATION_CROSSCHECK_HYPOTHESIS_V1.json": "691f90da3e788dce4ae6731d4726a45caea226fe001aa373aaebd3917e5c955f",
+    "evaluation/coverage_remediation_crosscheck.py": "d7d62b269bc1331dcb33d4d21c4980a8449ea26d175afcd1a9703115c72a7359",
+    "evaluation/retrieval_gate/frozen_retrieval_benchmark.json": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72"
+  },
+  "product_mount": "/tmp/lex_accepted/product",
+  "product_mount_head_expected": "443302120a5b7221d8bb5c605848b29eb68bca19",
+  "product_pins": {
+    "product/coverage_replay.py": "a8cb8cfad3db13f0920c094d1b877c1523629f0c445259857ac54ee104875121",
+    "product/data/frozen_retrieval_texts.json": "19f84b84599dd2ecf1e972e9edece5161d0fcc3b9b9692f18b81c6b081924622",
+    "results/product/coverage_replay/LOCAL_LIVE_COVERAGE2_live.json": "5fb6ac0a12db007b5e138f4af09c715be571b9cb0d36162b6c1db616787b3bf0",
+    "results/product/coverage_replay/LOCAL_OFFLINE_VERIFY_offline.json": "d476ae6aa30a8e0d1a9ed530f8e8a2f6f43b38818ec8719a50a6db993f95b9b4"
+  },
+  "run_id_of_record": "39813664201",
+  "schema": "lex-evaluation-coverage-remediation-crosscheck-freeze-record/1"
+}

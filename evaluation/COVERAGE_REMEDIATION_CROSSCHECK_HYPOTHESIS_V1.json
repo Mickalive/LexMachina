@@ -1,0 +1,39 @@
+{
+  "schema": "lex-evaluation-coverage-remediation-crosscheck-hypothesis/1",
+  "hypothesis_id": "COVERAGE_REMEDIATION_CROSSCHECK_V1",
+  "direction_version": 62,
+  "lane": "evaluation",
+  "frozen_at_utc": "2026-10-22T17:35:00Z",
+  "frozen_before_claim_bearing_execution": true,
+  "run_id_of_record": "39813664201",
+  "question": "Does the product lane's committed query-coverage remediation evidence (product ordered item 2: execute/replay the 24 frozen multilingual+counter-intent query texts so multilingual and counter-intent recall is no longer bounded by coverage) reproduce under independent evaluation-side re-derivation AND a fresh evaluation-owned offline replay through the shipped product code with zero network?",
+  "why_this_is_the_ordered_item": "Factory direction v62 evaluation ordered item (2): the product lane's four deliverables are each cross-checked here under a NEW run id as they land. Deliverables 1 (remedy (a)) and 3 (e_EMISSION_WRITER_ABORT disclosure) are code-side; deliverable 2 (the 4-of-24 query-coverage remediation) shipped with committed replay evidence results/product/coverage_replay/LOCAL_LIVE_COVERAGE2_live.json (24/24 executed, 23 frozen ids reached) and LOCAL_OFFLINE_VERIFY_offline.json (20/24 replayed, 56 cache hits, 0 network, 16 frozen ids reached) at product head 44330212. This is the retrieval-side half of the smallest executable retrieval/counter-authority benchmark for that deliverable. Deliverable 4 (live-answer reliability) has NOT landed and is out of scope this cycle.",
+  "hypothesis": "Three things hold simultaneously: (V1) the product-owned frozen-text snapshot pins the accepted frozen retrieval benchmark exactly (source_sha256 == 187b0e54...); (V2) a fresh evaluation-owned offline replay of the same 24 texts through the SHIPPED product code (coverage_replay semantics: same planner, same adapter, same cache) completes with ZERO network calls and leaves the product cache byte-unmodified; (V3) the frozen-id reach unions recompute exactly from the per_text rows (record's own n_frozen_ids_reached equals the recomputed union) in BOTH the committed live evidence and the fresh offline replay, and the fresh offline replay's reached set SUPERSETS the committed offline replay's 16-id reached set (monotone cache growth allowed; reach LOSS is falsification).",
+  "baseline": "the product's own committed replay evidence at product head 44330212 (LOCAL_LIVE_COVERAGE2_live.json sha256 and LOCAL_OFFLINE_VERIFY_offline.json sha256 re-hashed as pins) and, as REPORTED-ONLY pre-remediation context, the accepted evaluation measurement that the pre-remediation product executed only 4 of 24 frozen texts (product_cache_parity run 39631600439).",
+  "gates": {
+    "V1_frozen_text_snapshot_pins_the_accepted_benchmark": "product/data/frozen_retrieval_texts.json source_sha256 equals the accepted frozen retrieval benchmark sha256 187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72 and the on-disk evaluation/retrieval_gate/frozen_retrieval_benchmark.json re-hashes to the same value",
+    "V2_fresh_offline_replay_is_offline_and_cache_pure": "the fresh evaluation-owned offline replay records n_network_calls == 0 AND the product cache fingerprint before == after (n_modified_existing == 0 AND n_added == 0)",
+    "V3_reach_unions_recompute_and_offline_replay_supersets_committed_reach": "for each of the three evidence files (committed live, committed offline, fresh offline) the recomputed union of per_text all_frozen_ids_reached equals the file's own n_frozen_ids_reached; AND the fresh offline reached set is a superset of the committed offline reached set (16 ids); a reach LOSS is falsification"
+  },
+  "controls": {
+    "D1_frozen_spec_rehash": "evaluation/retrieval_gate/frozen_retrieval_benchmark.json re-hashes to 187b0e54... before and after the run",
+    "D2_planted_union_detects_a_fake_id": "a planted fake id injected into one in-memory copy of a per_text row must appear in the recomputed union (proves the union computation is not vacuous); the planted id never touches any written artifact",
+    "D3_planted_reach_loss_detects_falsification": "removing one id from the fresh offline per_text rows in memory must make the V3 superset check fail (proves the falsification path is executable)"
+  },
+  "exit_code_contract": {
+    "0": "COVERAGE_EVIDENCE_REPRODUCES - all three gates pass and all three controls hold",
+    "1": "COVERAGE_EVIDENCE_DIVERGES - at least one gate fails (a reach loss, a network call in offline mode, a cache mutation, a broken pin or a non-recomputable union)",
+    "2": "ENVIRONMENT_OR_VACUOUS - missing inputs, scratch-copy failure or a failed control; never a product verdict"
+  },
+  "population": "the 24 frozen multilingual+counter-intent texts of the four frozen reality questions, exactly as pinned by product/data/frozen_retrieval_texts.json (source_sha256 187b0e54...)",
+  "claim_ceiling": "This instrument establishes exactly one thing: that the product lane's committed query-coverage remediation evidence is internally consistent (its reach unions recompute from its own per_text rows), pin-clean (the snapshot pins the accepted frozen benchmark), and REPLAYABLE offline through the shipped product code from the product's own cache with zero network, with no reach loss against the committed offline evidence. It is NOT a counter-authority recall measurement under the frozen known-counter sets (the marker/lexicon blindness finding of accepted run 39771077625 stands unchanged: lexical norm+limitation conjunctions still hide retrieved known counter authorities; coverage fixes the CHANNEL gap, not the lexicon gap); it is NOT a re-score of the mapping-free counter_authority_surface gates; it is NOT a label or geometry bar claim (both stay REPORTED-ONLY and unmet); it is NOT a serve recommendation and lifts no DO-NOT-SERVE order; admission stays fail-closed; human_gate_ready, machine_gate_ready, packet_admitted, ready_for_owner_session and owner_decision_required stay false. It re-derives no threshold, bar, rubric or verdict contract and runs no obsolete universal-174k benchmark.",
+  "network_policy": "the fresh replay runs the product adapter in offline mode only; any network call is a V2 gate failure, not a retry target",
+  "determinism": "offline replay from a content-addressed cache; reach computation is exact id membership; no RNG, no threshold",
+  "inputs_pinned_before_execution": {
+    "product_mount": "/tmp/lex_accepted/product",
+    "product_mount_head_expected": "443302120a5b7221d8bb5c605848b29eb68bca19",
+    "frozen_retrieval_benchmark": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "committed_live_evidence": "results/product/coverage_replay/LOCAL_LIVE_COVERAGE2_live.json (sha256 recorded at freeze time in the freeze record)",
+    "committed_offline_evidence": "results/product/coverage_replay/LOCAL_OFFLINE_VERIFY_offline.json (sha256 recorded at freeze time in the freeze record)"
+  }
+}
