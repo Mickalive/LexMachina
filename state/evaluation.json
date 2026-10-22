@@ -1,51 +1,42 @@
 {
-  "accepted_run_id": "39766474798",
+  "accepted_run_id": "39804070494",
   "benchmark_result": {
-    "direction_version": 61,
-    "engine": "evaluation.minimal_ca_benchmark.py",
-    "exit_code": 0,
+    "direction_version": 62,
+    "engine": "evaluation.minimal_retrieval_ca_benchmark (wrapper) -> evaluation.mapping_free_recall_falsifier (engine)",
+    "exit_code": 1,
     "falsification_proven": true,
     "frozen_spec_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
-    "legs": [
-      {
-        "detail": "V3 bundle sha divergence from GEOMETRY_HALF oracle, not a product verdict",
-        "exit_code": 2,
-        "expected_exit_code": 2,
-        "leg": "served_baseline_provenance",
-        "mode": "adjudicate",
-        "verdict": "ENVIRONMENT_ERROR"
-      },
-      {
-        "detail": "Hostile geometry cluster_id=0, size=len(decisions) regresses below incumbent 6/5/5 per-bundle counts",
-        "exit_code": 1,
-        "expected_exit_code": 1,
-        "leg": "geometry_falsification_hostile",
-        "mode": "adjudicate",
-        "verdict": "FAIL_REGRESSION"
-      },
-      {
-        "detail": "Blanked counter_evidence causes n_scored=0, gate_blocks_build=true",
-        "exit_code": 1,
-        "expected_exit_code": 1,
-        "leg": "label_falsification_blanked_evidence",
-        "mode": "adjudicate",
-        "verdict": "FAIL_REGRESSION"
-      }
+    "failed_gates": [
+      "mf::concept_coverage::39319405429::de-kapitalverletzung",
+      "mf::counter_authority_surface::39319405429::de-kapitalverletzung",
+      "mf::counter_authority_surface::39319405429::fr-bail-entretien",
+      "mf::counter_authority_surface::39319405429::it-responsabilita-medica"
     ],
-    "packet": "/tmp/lex_accepted/product/results/product/gate_packet/39319405429/questions",
-    "reason": "both deliberately regressed inputs make the gates fail \u2014 the benchmark can falsify",
-    "run_id": "39471603258",
-    "tests_passed": {
-      "test_minimal_ca_benchmark_leg1": true,
-      "test_minimal_ca_benchmark_leg2": true,
-      "test_minimal_ca_benchmark_leg3": true
-    },
-    "v3_bundle_sha256": {
+    "finding": "On the V3 packet-of-record exact bytes (39319405429), the product's mapping-free retrieval and counter-authority surface gates fail on all three served questions (German, French, Italian bundles). The German bundle has 2/8 core concepts with zero retrieval (kapitalverletzung, uberwachungspflicht). All three language bundles emit ZERO counter-authority rows under the frozen rubric. All four non-vacuity controls hold (blanked pool fails, oracle pool passes, subject-swapped predicate rejects, blanked row fails source validity). This is the smallest executable retrieval/counter-authority falsification benchmark on the V3 packet-of-record exact bytes. No universal-174k benchmark was run.",
+    "frozen_label_rubric_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "input_drift": [],
+    "n_failed": 4,
+    "n_gates": 18,
+    "n_passed": 11,
+    "n_questions_measured": 3,
+    "n_reported": 3,
+    "non_vacuity_all_hold": true,
+    "numeric_environment_disclosed": true,
+    "packet": "39319405429",
+    "product_handoff": "A PRODUCT defect, not an evaluation defect; the fix belongs to the product lane. The counter-authority surface failure on the V3 bytes means the product's CA discovery is insufficient for the visual UX test. The counter_probe_anchor_falsifier (run 39674402905) attributes the zero emission to the redaction placeholder '[citation removed: not in retrieved set]' displacing real legal vocabulary in the probe anchor terms. The counter_probe_repair_verification (run 39687372110) verified that remedy (a) - strip the redaction placeholder from the answer prose before the probe planner - repairs the anchor on recorded bytes. The product lane should land remedy (a) in product/query/adversarial_retrieval.py, then re-freeze and re-score.",
+    "product_mount_head": "443302120a5b7221d8bb5c605848b29eb68bca19",
+    "report_file": "reports/evaluation/RETRIEVAL_CA_BENCHMARK_39804070494.md",
+    "result_file": "results/evaluation/minimal_retrieval_ca_benchmark/39804070494.json",
+    "run_id": "39804070494",
+    "run_valid": true,
+    "v3_bundle_shas": {
       "de-kapitalverletzung": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
       "fr-bail-entretien": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
       "it-responsabilita-medica": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b"
     },
-    "verdict": "BENCHMARK_VALID_NO_FALSIFICATION"
+    "verdict": "PRODUCT_FALSIFIED",
+    "wrapper_instrument_sha256": "7631c1a373040744aeafe0b5015182d90bf4257d767d07b30d3a1bd21947ba4f",
+    "wrapper_schema": "lex-evaluation-minimal-retrieval-ca-benchmark/1"
   },
   "benchmark_result_39693031072": {
     "claim_ceiling": "This instrument establishes exactly one thing: on the exact accepted packet bytes, whether the served bundles satisfy the frozen mapping-free gates. It does NOT meet, move or re-derive the frozen absolute LABEL_SOUND or GEOMETRY_SOUND bars, which stay REPORTED-ONLY; it does NOT lift the accepted DO-NOT-SERVE order on packet 38839347028 nor DO-NOT-SERVE-UNCHANGED on rebuilt-39027045675; it does NOT certify admission of any packet; admission stays fail-closed. It does NOT claim the map helps a jurist; that remains the human product gate's question. It builds and re-scores no candidate for Frontier team frontier-query-concept-recall. human_gate_ready stays false. It runs no obsolete universal-174k geometry benchmark.",
