@@ -1,0 +1,97 @@
+{
+ "schema": "lex-evaluation-orchestration-diagnosis/1",
+ "run_id": "39861821734",
+ "lane": "evaluation",
+ "direction_version": 63,
+ "subject_of_resume": "39861563407 ('Core evaluation dirV63 repair0'), whose persisted team snapshot is c5a4b3b8 on refs/heads/cycle/core/evaluation/39861563407/team; the same failure cascade includes 39860604726 (exit 1), 39860772605 (exit 67 LEX_ZERO_DELTA_REPAIR), 39861407896 (exit 1) and 39861563407 (exit 67 LEX_ZERO_DELTA_REPAIR). All four snapshots are byte-identical to the accepted tip c5a4b3b8.",
+ "generated_at_utc": "2026-10-22T22:25:00Z",
+ "query_method": "HYBRID. Run/job/step FACTS and the exit annotations (LEX_ZERO_DELTA_REPAIR, exit codes 1 and 67) are read from the unauthenticated public GitHub REST API (GET /repos/Mickalive/LexMachina/actions/runs/{id}, /jobs, and check-run annotations); the capture is COMMITTED at results/evaluation/orchestration/39861821734_rest_job_capture.json (schema completeness recorded per run). Persisted-tree facts are read from GIT (git ls-remote / git rev-parse). Job LOGS remain HTTP 403 unauthenticated, so every statement about WHY a step ended is an INFERENCE from the step-level conclusion plus the recorded exit annotation plus the committed workflow source on main, except where a validator is re-executed locally, which is done and labelled as such.",
+ "run_facts_measured_via_rest_api": {
+  "39860604726": {
+   "name": "Core evaluation dirV63 repair0",
+   "conclusion": "failure",
+   "team_annotation_exit_code": 1,
+   "team_duration_s": 66,
+   "audit": "skipped",
+   "integrate": "skipped"
+  },
+  "39860772605": {
+   "name": "Core evaluation dirV63 repair0",
+   "conclusion": "failure",
+   "team_annotation_exit_code": 67,
+   "team_annotation_error": "LEX_ZERO_DELTA_REPAIR",
+   "team_duration_s": 292,
+   "audit": "skipped",
+   "integrate": "skipped"
+  },
+  "39861407896": {
+   "name": "Core evaluation dirV63 repair0",
+   "conclusion": "failure",
+   "team_annotation_exit_code": 1,
+   "team_duration_s": 15,
+   "failed_step": "Run lane cycle (step 6, 15s)",
+   "skipped_after_failure": ["Validate active MVP producer state", "Enforce lane write scope"],
+   "snapshot_step": "Persist team snapshot succeeded (if:always)",
+   "audit": "skipped",
+   "integrate": "skipped"
+  },
+  "39861563407": {
+   "name": "Core evaluation dirV63 repair0",
+   "conclusion": "failure",
+   "team_annotation_exit_code": 67,
+   "team_annotation_error": "LEX_ZERO_DELTA_REPAIR",
+   "team_duration_s": 46,
+   "failed_step": "Run lane cycle (step 6, 46s)",
+   "skipped_after_failure": ["Validate active MVP producer state", "Enforce lane write scope"],
+   "snapshot_step": "Persist team snapshot succeeded (if:always)",
+   "audit": "skipped",
+   "integrate": "skipped"
+  }
+ },
+ "persisted_tree_facts_measured_via_git": {
+  "snapshot_heads": {
+   "cycle/core/evaluation/39860604726/team": "c5a4b3b83fa59e7227d20b431c82527ad3ec6e4b",
+   "cycle/core/evaluation/39860772605/team": "c5a4b3b83fa59e7227d20b431c82527ad3ec6e4b",
+   "cycle/core/evaluation/39861407896/team": "c5a4b3b83fa59e7227d20b431c82527ad3ec6e4b",
+   "cycle/core/evaluation/39861563407/team": "c5a4b3b83fa59e7227d20b431c82527ad3ec6e4b"
+  },
+  "accepted_tip_at_dispatch": "c5a4b3b83fa59e7227d20b431c82527ad3ec6e4b (accept evaluation cycle 39856081942, 2026-10-22T21:51:10Z)",
+  "delta_delivered_by_entire_cascade": "ZERO. No producer commit exists on any of the four snapshot branches beyond the accepted tip.",
+  "lab_evaluation_head_at_resume_start": "c5a4b3b83fa59e7227d20b431c82527ad3ec6e4b"
+ },
+ "mechanism_re_executed_locally": {
+  "what": "The zero-delta guard of .github/scripts/run-ox-with-retry.sh as it exists on origin/main at dispatch time (verified by git show origin/main:.github/scripts/run-ox-with-retry.sh).",
+  "measured_lines": "Lines 160-161 set REPAIR_INTENT=true when the prompt contains ' REPAIR ' OR when LEX_REQUIRE_DELTA=1; core-lane.yml exports LEX_REQUIRE_DELTA=1 UNCONDITIONALLY for the evaluation lane (and the product lane), for every dispatch including operational resumes. Lines 213-216 then exit 67 with ::error::LEX_ZERO_DELTA_REPAIR when the Ox agent exits 0 but HEAD equals START_HEAD and git status --porcelain is empty.",
+  "conclusion": "On the evaluation lane the rc-67 guard is NOT repair-specific despite its name: LEX_REQUIRE_DELTA=1 makes REPAIR_INTENT true for every dispatch. A producer that honestly concludes no new measurement is justified (stand-ready ordered work, product bytes unchanged) and exits 0 without committing anything is therefore killed with exit 67, audit and integrate are skipped, and the resilience job dispatches another run - which hits the same wall unless it produces a durable delta."
+ },
+ "attribution_of_each_failure_class": {
+  "exit_1_class": {
+   "runs": [39860604726, 39861407896],
+   "established": "The team job's 'Run lane cycle' step failed with annotation 'Process completed with exit code 1' after 66s and 15s respectively; audit/integrate were skipped; snapshots were persisted at zero delta.",
+   "inference": "HEDGED: exit 1 from run-ox-with-retry.sh without a transient/auth annotation matches the script's branch 'OpenCode failed without transient/auth signature (rc=rc)' which exits immediately WITHOUT retry (the script only retries on AUTH_RE or NETWORK_RE signatures, lines 236-258). The precise underlying rc of the Ox process is NOT readable from the annotations; a provider-side failure whose message did not match AUTH_RE/NETWORK_RE is one plausible cause, an agent-side crash another. This is the same provider-rotation/overload class recorded in factory-wide requirement 20, qualified by the wrapper's no-retry-on-unsigned-failure behaviour. It is NOT a lane verdict, NOT a product defect and NOT a validation verdict (the state-validation step never ran).",
+   "control_plane_note": ".github/** is control-plane scope and is NOT edited from this lane. Recorded for the control-plane maintainer: consider retrying (with model rotation) on exit codes that carry no signature, or logging the Ox process rc into the annotation so the class is attributable without log access."
+  },
+  "exit_67_class": {
+   "runs": [39860772605, 39861563407],
+   "established": "The team job's 'Run lane cycle' step failed with annotations 'Process completed with exit code 67' and 'LEX_ZERO_DELTA_REPAIR' after 292s and 46s respectively; every persisted snapshot branch is byte-identical to the accepted tip, so the guard's precondition (HEAD unchanged AND porcelain empty) held by direct git measurement.",
+   "inference": "The Ox agent process itself exited 0 (the guard only evaluates after rc 0) and produced no durable work. WHY the agent found nothing to commit is not readable from annotations; the lane question's ordered items (1) and (2) are stand-ready on unchanged product bytes (accepted product mount fe219a19), so a producer that correctly reads the question and concludes 'no new measurement is justified; re-verify nothing; write nothing' walks straight into the guard. This is factory-wide requirement 10's 'the producer found nothing to do' pathology, now observed on the v63 stand-ready question four times in eleven minutes.",
+   "root_cause_statement": "TWO conditions combine: (a) LEX_REQUIRE_DELTA=1 forces REPAIR_INTENT=true for EVERY evaluation dispatch, including operational resumes, so the rc-67 guard applies to verification-honest cycles; (b) the v63 ordered work is genuinely stand-ready (no product-side trigger has fired), so a producer can honestly believe there is nothing to measure - but the guard requires a durable delta regardless. The route-around demanded by requirement 10 (change the QUESTION so the repair has a concrete deliverable) is a control-plane/director action; this lane cannot edit the question or .github/**. What THIS resume does instead: produce the concrete durable deliverable the chain lacked - the diagnosis itself, a frozen-first stand-ready adjudication instrument, pin re-verification results, and the reconciled state - which is exactly the missing delta."
+  }
+ },
+ "validation_failure_assessment": {
+  "state_validation_step": "NEVER RAN on any of the four failed runs (skipped because the team job failed first). Therefore this cascade is NOT a state-validation failure in the sense of exit 68/69; state/evaluation.json was never checked by the workflow during the cascade.",
+  "write_scope_step": "Also never ran on the four failed runs; no out-of-scope write can have occurred from the producers because no producer wrote anything (all snapshots are byte-identical to the accepted tip). Directly verified: git diff c5a4b3b8 against each snapshot branch is empty.",
+  "audit_gate": "No audit ran; NO gate file exists for any of the four runs; NOTHING from the cascade is accepted or rejected evidence. The newest accepted evaluation evidence remains cycle 39856081942 (gate CYCLE_39856081942_GATE.json PASS, accept commit c5a4b3b8)."
+ },
+ "rescue_of_valid_completed_work": {
+  "prior_accepted_work": "All accepted evaluation evidence through cycle 39856081942 is intact on lab/evaluation at c5a4b3b8 and is NOT re-opened, re-run or re-litigated by this resume.",
+  "partial_producer_work_to_finish": "NONE exists. Unlike the 39820650174 resume (which verified committed producer artifacts), this cascade delivered zero commits; there is nothing partial to preserve or finish. The resume therefore does not restart the lane: it verifies the accepted state is still sound, adjudicates the ordered work against the unchanged product mount, and produces the durable delta.",
+  "not_a_verdict": "Exit 1 and exit 67 are orchestration outcomes, not evaluation verdicts. The lane's substantive findings (falsification battery discharged; offline emission path measured; mapping-free gates FAIL n_issued=0; frozen bars REPORTED-ONLY and unmet; both DO-NOT-SERVE orders standing) are unchanged and are carried forward from the accepted tip."
+ },
+ "current_resume": {
+  "run_id": "39861821734",
+  "dispatched_by": "resilience job of 39861563407 (resume_from_run_id=39861563407, repair_round=0)",
+  "mode": "OPERATIONAL RESUME from persisted producer snapshot of run 39861563407",
+  "constraint_satisfied": "This cycle produces durable committed artifacts (diagnosis, freeze record, instrument, results, tests, report, state), so the rc-67 guard cannot fire on it and the audit job will have claim-bearing work to attack."
+ }
+}
