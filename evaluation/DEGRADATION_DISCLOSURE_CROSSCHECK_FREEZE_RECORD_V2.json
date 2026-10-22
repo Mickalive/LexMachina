@@ -5,7 +5,7 @@
   "direction_version": 62,
   "run_id_of_record": "39820650174",
   "instrument_version": "V2",
-  "frozen_at_utc": "2026-10-22T17:29:00Z",
+  "frozen_at_utc": "2026-10-22T17:28:40Z",
   "frozen_before_claim_bearing_execution": true,
   "why_a_new_freeze": "V1 (freeze at 17:26:04Z, executed at 17:26:5x, result committed at 17:27:26Z) failed exactly one sub-check: product_visibility_visible on the bare fallback output. The V1 result is preserved verbatim. Source lines committed before this freeze show the sub-check was stage-blind: the fallback is built before the adversarial pass, and degradation_visibility.visible requires the pass to be marked. V2 splits the stage predicate (G1 no longer requires visible; G2/G4 do), changes nothing else, and adds C6 to prove the V1 result is untouched.",
   "v1_result_preserved": {
@@ -56,5 +56,5 @@
   "no_thresholds_or_bars_touched": true,
   "no_universal_174k_benchmark": true,
   "append_only_convention": "V2 result written under results/evaluation/degradation_disclosure_crosscheck/39820650174_v2.json; the V1 result and both V1 freeze artifacts are read-only inputs and are re-hashed by C6",
-  "timestamp_integrity_note": "frozen_at_utc is the container's real UTC clock; the V2 freeze commit precedes the V2 execution and follows the committed V1 result"
+  "timestamp_integrity_note": "frozen_at_utc is rounded backward to avoid postdating the freeze commit; the ordering authority is the git commit, not this field. The first committed value (17:29:00Z) postdated its freeze commit (17:28:45Z) by 15 seconds and was corrected to 17:28:40Z in this follow-up freeze-record commit BEFORE any V2 execution; no gate, control, pin, population or claim ceiling changed. Freeze-first ordering for V2 is established by the freeze commits preceding the V2 result."
 }
