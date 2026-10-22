@@ -19,6 +19,7 @@ from pathlib import Path
 import pytest
 
 from evaluation import degradation_disclosure_crosscheck as ddc
+from evaluation import degradation_disclosure_crosscheck_v2 as ddc2
 from evaluation import operational_resume_verification as orv
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -31,6 +32,9 @@ RESUME_RESULT = ROOT / "results/evaluation/operational_resume/39820650174.json"
 DDC_HYP = ROOT / "evaluation/DEGRADATION_DISCLOSURE_CROSSCHECK_HYPOTHESIS_V1.json"
 DDC_FREEZE = ROOT / "evaluation/DEGRADATION_DISCLOSURE_CROSSCHECK_FREEZE_RECORD_V1.json"
 DDC_RESULT = ROOT / "results/evaluation/degradation_disclosure_crosscheck/39820650174.json"
+DDC2_HYP = ROOT / "evaluation/DEGRADATION_DISCLOSURE_CROSSCHECK_HYPOTHESIS_V2.json"
+DDC2_FREEZE = ROOT / "evaluation/DEGRADATION_DISCLOSURE_CROSSCHECK_FREEZE_RECORD_V2.json"
+DDC2_RESULT = ROOT / "results/evaluation/degradation_disclosure_crosscheck/39820650174_v2.json"
 
 CODE = "e_EMISSION_WRITER_ABORT"
 
@@ -44,7 +48,7 @@ def _sha(path: Path) -> str:
 # --------------------------------------------------------------------------- #
 
 
-@pytest.mark.parametrize("freeze_path", [RESUME_FREEZE, DDC_FREEZE])
+@pytest.mark.parametrize("freeze_path", [RESUME_FREEZE, DDC_FREEZE, DDC2_FREEZE])
 def test_freeze_pins_match_disk_bytes(freeze_path: Path):
     freeze = json.loads(freeze_path.read_text(encoding="utf-8"))
     for rel, expected in freeze["pins"].items():
@@ -61,11 +65,15 @@ def test_freeze_records_name_this_run_and_its_hypotheses():
     assert r["direction_version"] == d["direction_version"] == 62
     assert r["pins"]["evaluation/OPERATIONAL_RESUME_39820650174_HYPOTHESIS_V1.json"] == _sha(RESUME_HYP)
     assert d["pins"]["evaluation/DEGRADATION_DISCLOSURE_CROSSCHECK_HYPOTHESIS_V1.json"] == _sha(DDC_HYP)
+    d2 = json.loads(DDC2_FREEZE.read_text(encoding="utf-8"))
+    assert d2["run_id_of_record"] == "39820650174"
+    assert d2["pins"]["evaluation/DEGRADATION_DISCLOSURE_CROSSCHECK_HYPOTHESIS_V2.json"] == _sha(DDC2_HYP)
+    assert d2["pins"]["results/evaluation/degradation_disclosure_crosscheck/39820650174.json"] == _sha(DDC_RESULT)
 
 
 @pytest.mark.skipif(not MOUNT_PRESENT, reason="accepted product mount absent")
 def test_product_pins_in_freezes_match_mount():
-    for freeze_path in (RESUME_FREEZE, DDC_FREEZE):
+    for freeze_path in (RESUME_FREEZE, DDC_FREEZE, DDC2_FREEZE):
         freeze = json.loads(freeze_path.read_text(encoding="utf-8"))
         for rel, expected in freeze.get("product_pins", {}).items():
             path = MOUNT / rel
@@ -81,17 +89,19 @@ def test_product_pins_in_freezes_match_mount():
 def test_wrong_run_id_is_exit_2_for_both_instruments():
     r_code, r_rec = orv.run("123", MOUNT)
     d_code, d_rec = ddc.run("123", MOUNT)
-    assert r_code == d_code == 2
-    assert r_rec["verdict"] == d_rec["verdict"] == "ENVIRONMENT_OR_VACUOUS"
-    assert r_rec["exit_code"] == d_rec["exit_code"] == 2
+    d2_code, d2_rec = ddc2.run("123", MOUNT)
+    assert r_code == d_code == d2_code == 2
+    assert r_rec["verdict"] == d_rec["verdict"] == d2_rec["verdict"] == "ENVIRONMENT_OR_VACUOUS"
+    assert r_rec["exit_code"] == d_rec["exit_code"] == d2_rec["exit_code"] == 2
 
 
 def test_absent_mount_is_exit_2_for_both_instruments():
     missing = Path("/nonexistent/lexmachina-accepted-mount")
     r_code, r_rec = orv.run("39820650174", missing)
     d_code, d_rec = ddc.run("39820650174", missing)
-    assert r_code == d_code == 2
-    assert r_rec["verdict"] == d_rec["verdict"] == "ENVIRONMENT_OR_VACUOUS"
+    d2_code, d2_rec = ddc2.run("39820650174", missing)
+    assert r_code == d_code == d2_code == 2
+    assert r_rec["verdict"] == d_rec["verdict"] == d2_rec["verdict"] == "ENVIRONMENT_OR_VACUOUS"
 
 
 # --------------------------------------------------------------------------- #
@@ -200,6 +210,26 @@ def test_g3_detects_a_measured_relabel_on_a_vacuous_pass():
     assert ddc.predicate_g3(tampered, f)["passed"] is False
 
 
+def test_g1_v2_gates_the_stage_without_the_complete_bundle_visibility_flag():
+    f = _fallback()
+    vis = {"degraded": True, "degradation_code": CODE, "visible": False}
+    gate = ddc2.predicate_g1_v2(f, f, "RuntimeError: boom", vis)
+    assert gate["passed"] is True
+    assert gate["stage_observation"]["observed"] is False
+    tampered = json.loads(json.dumps(f))
+    del tampered["answer"]["degradation"]
+    assert ddc2.predicate_g1_v2(tampered, f, "RuntimeError: boom", vis)["passed"] is False
+
+
+def test_v1_result_is_still_preserved_verbatim():
+    if not DDC_RESULT.is_file():
+        pytest.skip("V1 result absent (pre-execution tree)")
+    assert _sha(DDC_RESULT) == ddc2.V1_RESULT_SHA
+    rec = json.loads(DDC_RESULT.read_text(encoding="utf-8"))
+    assert rec["verdict"] == "DEGRADATION_DISCLOSURE_GAP"
+    assert rec["exit_code"] == 1
+
+
 def test_g4_detects_an_injected_abort_on_the_healthy_leg():
     h = _healthy_pass()
     assert ddc.predicate_g4(h, h, _visibility(False, None))["passed"] is True
@@ -248,6 +278,7 @@ def test_planner_matches_is_exact():
     [
         (RESUME_RESULT, "lex-evaluation-operational-resume-verification/1", 6, 4),
         (DDC_RESULT, "lex-evaluation-degradation-disclosure-crosscheck/1", 4, 5),
+        (DDC2_RESULT, "lex-evaluation-degradation-disclosure-crosscheck/1", 4, 6),
     ],
 )
 def test_recorded_result_claims_only_with_consistent_exit(result_path: Path, schema: str,
