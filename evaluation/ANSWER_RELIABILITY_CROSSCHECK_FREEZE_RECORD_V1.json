@@ -1,0 +1,47 @@
+{
+  "schema": "lex-evaluation-freeze-record/1",
+  "run_id": "39827806011",
+  "lane": "evaluation",
+  "direction_version": 62,
+  "title": "Live-answer reliability cross-check freeze (v62 ordered item 2d)",
+  "frozen_before_execution": true,
+  "frozen_at_utc": "2026-10-22T18:21:00Z",
+  "freeze_history": [
+    {
+      "seq": 1,
+      "note": "Initial freeze. Hypothesis and freeze record committed to the evaluation namespace before the instrument is executed. No gate, control, quantity, tolerance or exit code may change after this point."
+    }
+  ],
+  "hypothesis_path": "evaluation/ANSWER_RELIABILITY_CROSSCHECK_HYPOTHESIS_V1.json",
+  "hypothesis_sha256": "1129f8e83178966c4f752e5cd01e55e8b42bc8d048bcb024eb2f27cd6b710902",
+  "instrument_path": "evaluation/answer_reliability_crosscheck.py",
+  "frozen_run_id_of_record": "39827806011",
+  "product_mount": "/tmp/lex_accepted/product",
+  "product_head_expected": "fe219a197e4bfb129984a732ab9adca917556eac",
+  "product_pins": {
+    "results/product/answer_reliability/39799042649_measurement.json": "b41d25fc04583b2c4fa330d70a1547dd22c6fe77e8814f07030099a7b9606ec7",
+    "results/product/answer_reliability/39799042649_protocol_freeze.json": "fd3fc30dba6f1161c9c0968032a0c9cff8c386dd14b5a6072773c8dfc1e3dd5f",
+    "product/query/pipeline.py": "f59bba1fe41433d74f3fc5e962c20d3b957959caf27df501173e2a144029c078",
+    "product/query/adversarial_retrieval.py": "9764a37e8bc7c8c31a329ba15db89657e8ee47dde8ada924fa55d5e755fd06a9",
+    "product/query/answer.py": "acbc161436429e95c4bff04234e69be2e7a1e7333837e589753bbaae727f5f08",
+    "product/answer_reliability.py": "46e195dea1c034a6d736fcddf7bcec71a5c2210aa2ada76e234d19085c1ffffb"
+  },
+  "embedded_protocol_sha256": "418c516f537618655c920c2de321c100add372d7e09c4d74c9f3738d87dce3b1",
+  "tolerances": {
+    "float_metrics_abs_tol": 1e-6,
+    "float_metrics_rationale": "The product publishes stability_jaccard_min rounded to 6 decimal places (0.666667). Every other float metric is published at full Python float precision and is compared exactly (tolerance 0.0 is applied implicitly by the 1e-6 band which is far below any real divergence).",
+    "no_other_tolerances": true
+  },
+  "exit_contract": {
+    "0": "ANSWER_RELIABILITY_CROSSCHECK_PASSES — every comparable quantity matches and the product claim boolean is honest",
+    "1": "ANSWER_RELIABILITY_CROSSCHECK_DIVERGES — a comparable quantity diverges, the product claim is dishonest, or a control failed",
+    "2": "ENVIRONMENT_OR_VACUOUS — pins or inputs absent; never a product verdict"
+  },
+  "frozen_bars_rehash": {
+    "RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+    "VERDICT_CONTRACT.json": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c",
+    "note": "This instrument does NOT consume these bars. They are recorded here only so the standing freeze-first discipline is visible in the same artifact."
+  },
+  "claim_ceiling": "Cross-check of the product-owned live-answer reliability measurement only. No frozen bar is scored, no serve recommendation is issued, admission stays fail-closed, human_gate_ready stays false. Zero network. No universal-174k benchmark."
+}
