@@ -1,0 +1,65 @@
+{
+  "schema": "lex-evaluation-mapping-free-39275520116-extension-hypothesis/1",
+  "lane": "evaluation",
+  "direction_version": 61,
+  "github_run": 39725464259,
+  "instrument": "evaluation/mapping_free_recall_falsifier.py",
+  "entry_point": "python -m evaluation.mapping_free_recall_falsifier --run-id 39725464259 --packets 39275520116",
+  "frozen_before_execution": true,
+  "frozen_at_utc": "2026-10-22T05:10:42Z",
+  "title": "Mapping-free retrieval/counter-authority falsifier EXTENDED to the never-measured withheld packet 39275520116",
+  "why_this_cycle": "The accepted mapping-free recall falsifier (instrument sha256 58a2e77a...) has been executed on three of the four claim-relevant recorded packets: 38839347028 + rebuilt-39027045675 (accepted run 39225862749: 36 gates, 6 failed, PRODUCT_FALSIFIED) and the V3 packet-of-record 39319405429 (accepted runs 39522789347 and 39693031072: 18 gates, 4 failed, PRODUCT_FALSIFIED). Packet 39275520116 — the intermediate packet the v61 direction holds as BUILT_NOT_SERVED WITHHELD_PENDING_SERVE, and a member of the accepted 14-bundle counter-probe population (results/evaluation/counter_probe_repair_verification/39687372110.json) — has NEVER been scored by this instrument (verified: no prior mapping_free_recall_falsifier record carries 39275520116 in packets_measured). This is the smallest executable retrieval/counter-authority measurement that can still falsify the product on recorded bytes, reusing the accepted instrument verbatim. No obsolete universal-174k benchmark is run.",
+  "hypothesis": "On the exact recorded bytes of packet 39275520116, the shipped counter-authority surface fails the frozen mf::counter_authority_surface gates on at least one of the three served languages (de-kapitalverletzung, fr-bail-entretien, it-responsabilita-medica). A bounded alternative is equally accepted: if every mapping-free gate passes on this packet, the instrument returns PASS_NO_FALSIFICATION and the V3 zero-emission is narrowed to a packet-specific regression between 39275520116 and 39319405429. Either outcome is a first-class result.",
+  "discriminating_purpose": "The accepted V3 falsification (run 39693031072) showed ZERO counter-authority rows issued on all three V3 languages. The accepted legacy run 39225862749 showed the older packets issued counter rows (n_issued 25 de / 15 fr on 38839347028) but failed the gate on empty-evidence defects. The open question this run answers: is the zero/near-zero counter-authority emission a STANDING property of the shipped stage across the two most recent packets (39275520116 and 39319405429), or did the emission collapse occur strictly BETWEEN them? This changes the product handoff: a standing failure implicates the shipped adversarial stage generally; a between-packets regression narrows the bounded cause to the V3 rebuild. This is retrieval/CA-surface measurement only; the accepted counter-emission attribution (cause classes c_HYDRATION and e_EMISSION_WRITER_ABORT) and the serve-verdict cross-check 39457963802 cover the LABEL stage and do not answer this question.",
+  "inputs_FROZEN": {
+    "product_mount": "/tmp/lex_accepted/product (read-only accepted product branch; head at freeze 489698218200a8e37a0c527158b3c16664bb1173)",
+    "packet": {
+      "id": "39275520116",
+      "standing_status": "BUILT_NOT_SERVED, WITHHELD_PENDING_SERVE (v61 direction); no DO-NOT-SERVE order targets it, and it is never served while admission stays fail-closed",
+      "packet_json_sha256": "32399b5cbf74276cfd4fc0566930ebd3814b0ef0064a07fa6c57aa51e16f35f0",
+      "bundles": {
+        "de-kapitalverletzung": "324590a833788de1e20a12bbfff43cb5d2203a7e78209485ab4e46ce614c7996",
+        "fr-bail-entretien": "31a80c2c9515cf6eb4471286ff36ce40d91f08fa6c0af26a08f49d01ba1c0353",
+        "it-responsabilita-medica": "8c1231bff47e68380bdd082b4d94df6a24bcb2b523b10b4467367643d844bd97"
+      },
+      "admissibility": {
+        "de-kapitalverletzung": "1adc078b0ca027a20c8204a4f258c7d253dedba9560f0c62836066c01e938a25",
+        "fr-bail-entretien": "4a9a136c4fc711899b077e82aa17770380967f5eddac6b0a04654d9870370a32",
+        "it-responsabilita-medica": "0486c080625014583263c7fd32b5b433cff99c225413a9c1b43677accceae43a"
+      },
+      "question_records": {
+        "de-kapitalverletzung": "f15a5004119a46e9211a433276c120c517c0c835934545ad456a2b7f549adbe9",
+        "fr-bail-entretien": "9fcdead1295b3cc850649424f11fca036d02b8e9126c612b2490e8f83052f068",
+        "it-responsabilita-medica": "0120571aedd4aaab44002d57c524e7030393d3d1676ab2dab7f05f2711824e97"
+      }
+    },
+    "frozen_repo_inputs": {
+      "evaluation/mapping_free_recall_falsifier.py": "58a2e77a66bb60385a53185e9426447e8465da9105e8a0cb8945d5fd77bfb302",
+      "evaluation/MAPPING_FREE_RECALL_FALSIFIER_HYPOTHESIS_V1.json": "d1135f9f919140a30dd31250cdb2e782fc3b32a74e39472a24d31560d7de009d",
+      "evaluation/MAPPING_FREE_RECALL_FALSIFIER_FREEZE_RECORD.json": "431aa87b8abeaec3b849d66bce7c0d6b1bcb1ea0fdd5f31bef4b3da122d229f5",
+      "evaluation/MAPPING_FREE_RECALL_FALSIFIER_FREEZE_RECORD_V1.json": "ff466aa8ff16d5767c498587a6755103ed212088876f1aa43f2d04120e29e9fe",
+      "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "evaluation/retrieval_gate/frozen_retrieval_benchmark.json": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72"
+    }
+  },
+  "gates_FROZEN": "UNCHANGED from the accepted instrument: the six mapping-free gates per question (concept_coverage, admission_disclosure, source_validity, duplicate_suppression, counter_authority_surface, language_robustness REPORTED-only) with their accepted pass conditions, the accepted admissibility predicate and the accepted non-vacuity battery A/A2/B/C. This extension changes NO gate, NO threshold, NO tokeniser, NO rubric and NO success rule; it changes only the packet sample.",
+  "success_rule_FROZEN": "The instrument's own exit-code contract as written: exit 0 PASS_NO_FALSIFICATION iff every mapping-free gate passes on every measured bundle and every non-vacuity control holds; exit 1 PRODUCT_FALSIFIED iff any mapping-free gate fails on the exact frozen bytes, naming packet/question/gate/measured values; exit 2 NOT_MEASURED_VACUOUS iff no bundle could be read or a non-vacuity control fails — never a pass, never a bar-met.",
+  "comparison_baselines_FROZEN": {
+    "38839347028_rebuilt": "accepted run 39225862749 (PRODUCT_FALSIFIED, 6/36 gates failed; counter_authority_surface failed on all three 38839347028 languages and on rebuilt fr+it)",
+    "39319405429_v3": "accepted run 39693031072 (PRODUCT_FALSIFIED, 4/18 gates failed; counter_authority_surface failed on all three languages with n_issued=0)",
+    "39275520116": "THIS RUN — never previously measured by this instrument"
+  },
+  "non_duplication_proof": "grep over results/evaluation/mapping_free_recall_falsifier/*.json: no record carries 39275520116 in packets_measured (records 39225862749, 39522789347, 39693031072, local_v3_multilingual, test_falsifier, verify all cover only 38839347028/rebuilt-39027045675 or 39319405429). The counter_probe instruments (39674402905, 39687372110) touch 39275520116 bytes but measure probe-anchor contamination and remedy verification, NOT the mapping-free retrieval/CA-surface gates; their claim ceilings say so.",
+  "no_new_thresholds": true,
+  "no_174k_benchmark_rerun": true,
+  "network_policy": "zero network requests; read-only over the accepted mount and committed records",
+  "what_this_does_NOT_claim": [
+    "It does NOT meet, move or re-derive the frozen absolute LABEL_SOUND or GEOMETRY_SOUND bars; they stay REPORTED-ONLY.",
+    "It lifts no DO-NOT-SERVE order; both orders (38839347028 under requirement 13; rebuilt-39027045675 outcome B) stand; packet 39275520116 stays BUILT_NOT_SERVED WITHHELD_PENDING_SERVE.",
+    "It does NOT certify admission of any packet; admission stays fail-closed (packet_admitted=false, machine_gate_ready=false, human_gate_ready=false, ready_for_owner_session=false).",
+    "It does NOT claim the map helps a jurist; that remains the human product gate's question.",
+    "It does NOT re-score any Frontier candidate; frontier-query-concept-recall and the counter-anchor classifier remain closed.",
+    "It runs no obsolete universal-174k geometry benchmark."
+  ],
+  "success_rule_for_the_CYCLE": "The cycle succeeds if it produces committed freeze artifacts before execution, a machine record whose every number re-derives from the committed tree, the stand-ready probes (remedy-(a) landed check, new-served-packet check, frontier-counter-label-emission status) as status observations, passing lane regression tests, an updated append-only lane state and a report, all inside the work quantum. A falsification result is an equally accepted outcome."
+}
