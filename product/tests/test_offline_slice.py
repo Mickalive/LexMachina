@@ -75,6 +75,47 @@ def test_map_only_mode_makes_no_answer_claim(monkeypatch, tmp_path, capsys):
     assert stats["geometry_preserved_by_enrich"] is None
 
 
+def test_map_only_claim_ceiling_is_mode_conditional(monkeypatch, tmp_path, capsys):
+    """Audit F4 of rejected cycle 39764730877, executable.
+
+    The committed ``--no-enrich`` summary advertised the full loop
+    (``query -> bundle -> sourced answer -> counter-authority pass ->
+    clickable map``) while its own stats said ``enriched=false`` /
+    ``answer_status=pending``. The ceiling is now derived from the MEASURED
+    ``enriched`` flag of the bundle, so a map-only run cannot advertise the two
+    halves it skipped - in either direction: a full-loop run still must carry
+    the full-loop ceiling and the ``OFFLINE WIRING EVIDENCE ONLY`` prefix both
+    modes share.
+    """
+    monkeypatch.setattr(socket.socket, "connect", _no_network)
+
+    # map-only half: the real CLI, real fixture bundle, no enrichment
+    rc = ofs.main(["--slug", "rent-default", "--out", str(tmp_path / "map"), "--no-enrich"])
+    assert rc == 0, capsys.readouterr().out
+    map_summary = json.loads((tmp_path / "map" / "summary.json").read_text(encoding="utf-8"))
+    ceiling = map_summary["claim_ceiling"]
+    assert map_summary["mode"] == "map_only"
+    assert "OFFLINE WIRING EVIDENCE ONLY" in ceiling
+    assert "sourced answer -> counter-authority pass" not in ceiling, (
+        "a run that skipped the answer and counter halves still advertises them")
+    assert "MAP-ONLY" in ceiling and "NO claim" in ceiling
+    assert "no frozen gate is evaluated" in ceiling
+
+    # full-loop half: the default mode keeps the full-loop ceiling
+    rc = ofs.main(["--slug", "rent-default", "--out", str(tmp_path / "full")])
+    assert rc == 0, capsys.readouterr().out
+    full = json.loads((tmp_path / "full" / "summary.json").read_text(encoding="utf-8"))
+    assert full["mode"] == "full_loop"
+    assert full["stats"]["enriched"] is True
+    assert full["claim_ceiling"] == ofs.CLAIM_CEILING_ENRICHED
+    assert "sourced answer -> counter-authority pass" in full["claim_ceiling"]
+
+    # the two ceilings are one function of one measured flag, not free prose
+    assert ofs.claim_ceiling(enriched=True) == ofs.CLAIM_CEILING_ENRICHED
+    assert ofs.claim_ceiling(enriched=False) == ofs.CLAIM_CEILING_MAP_ONLY
+    assert ofs.claim_ceiling(True) != ofs.claim_ceiling(False)
+
+
 def test_verdict_fails_when_enrichment_moves_a_rendered_point(monkeypatch, tmp_path, capsys):
     """Non-vacuity: the geometry-preservation claim is checked, not assumed."""
     def _moved(*_a, **_k):

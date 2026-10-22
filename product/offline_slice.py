@@ -139,6 +139,36 @@ def summarise(bundle: dict) -> dict:
     }
 
 
+#: The claim ceiling of a FULL-LOOP slice (retrieval -> bundle -> sourced answer
+#: -> counter-authority pass -> clickable map). Kept as one definition so the
+#: summary writer and the tests cannot drift.
+CLAIM_CEILING_ENRICHED = (
+    "OFFLINE WIRING EVIDENCE ONLY: runnable vertical-slice check of "
+    "query -> bundle -> sourced answer -> counter-authority pass -> "
+    "clickable map from recorded envelopes (fixture provider); no frozen "
+    "gate is evaluated and no legal-usefulness claim is made."
+)
+#: Audit F4 (rejected cycle 39764730877): a ``--no-enrich`` run wrote the
+#: ceiling above even though it skipped both middle halves of the loop, so the
+#: artifact advertised capabilities it had not exercised. The ceiling is
+#: MODE-CONDITIONAL on the measured ``enriched`` flag of the bundle itself: a
+#: run that did not execute the answer and counter halves may only claim the
+#: halves it ran, whichever flag or fixture produced it.
+CLAIM_CEILING_MAP_ONLY = (
+    "OFFLINE WIRING EVIDENCE ONLY: MAP-ONLY vertical-slice check of "
+    "query -> bundle -> clickable map from recorded envelopes. This run did "
+    "NOT execute the sourced answer or the counter-authority pass "
+    "(enriched=false, answer_status pending), so the summary makes NO claim "
+    "about either of them; no frozen gate is evaluated and no "
+    "legal-usefulness claim is made."
+)
+
+
+def claim_ceiling(enriched: bool) -> str:
+    """The ceiling that matches the mode the run actually executed."""
+    return CLAIM_CEILING_ENRICHED if enriched else CLAIM_CEILING_MAP_ONLY
+
+
 def verify_page(bundle_path: Path) -> tuple[bool, str]:
     node = subprocess.run(["bash", "-lc", "command -v node"], capture_output=True, text=True)
     if node.returncode != 0:
@@ -224,11 +254,9 @@ def main(argv: list[str] | None = None) -> int:
         {"slug": args.slug, "seconds": elapsed, "verified": ok,
          "page_contract": page_ok, "page_contract_detail": page_last,
          "stats": stats,
+         "mode": "full_loop" if stats["enriched"] else "map_only",
          "bundle": _repo_relative(bundle_path),
-         "claim_ceiling": "OFFLINE WIRING EVIDENCE ONLY: runnable vertical-slice check of "
-                          "query -> bundle -> sourced answer -> counter-authority pass -> "
-                          "clickable map from recorded envelopes (fixture provider); no frozen "
-                          "gate is evaluated and no legal-usefulness claim is made."},
+         "claim_ceiling": claim_ceiling(enriched=stats["enriched"])},
         ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
     return 0 if ok else 1
 

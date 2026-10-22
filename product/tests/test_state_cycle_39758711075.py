@@ -84,8 +84,18 @@ def test_state_carries_the_dispatched_direction_version():
 
 
 def test_state_names_this_run_and_the_inherited_snapshot():
+    """This cycle's delivery record survives; current_run may only move forward.
+
+    AUDIT F3 of rejected cycle 39764730877 required the lane state to advance
+    ``current_run`` to the repairing run, so a historical cycle's guard can no
+    longer demand ``current_run == 39758711075`` - that would make the state
+    unadvanceable. The pin moves from the transient field to the durable one:
+    the delivery record this cycle wrote must still be present and complete,
+    and ``current_run`` must never have moved BACKWARD past it.
+    """
     st = _state()
-    assert st["current_run"] == str(RUN_ID) or st["current_run"] == RUN_ID
+    assert int(st["current_run"]) >= RUN_ID, (
+        f"current_run {st['current_run']!r} moved backward past this cycle's record")
     delivery = st[f"cycle_{RUN_ID}_vertical_slice_delivery"]
     assert delivery["inherited_snapshot_commit"].startswith("3b9d33b")
     assert delivery["run_id"] == RUN_ID

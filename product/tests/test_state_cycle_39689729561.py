@@ -272,6 +272,20 @@ def test_the_diagnosis_artifact_names_every_defect_it_claims() -> None:
 
 
 def test_the_posture_is_fail_closed_and_the_accepted_run_pointer_is_intact() -> None:
+    """Fail-closed posture + accepted-run pointer + this cycle's state record.
+
+    AUDIT F2b of rejected cycle 39764730877: three pins here were historical
+    values that had gone stale on the shipping tree - ``accepted_run_id`` read
+    ``39660515863`` against the truly accepted ``39695438314`` (accept commit
+    ``4896982``), ``direction_version`` read ``61`` against the dispatched
+    control plane, and ``current_run`` was hard-pinned to this cycle even
+    though the lane state legitimately advances ``current_run`` every cycle.
+    Refreshed, not relaxed: the fail-closed flags stay asserted false, the
+    pointer is asserted to name an accepted run that is not this one, the
+    direction is asserted equal to the dispatched control plane, and this
+    cycle's DELIVERY RECORD (which must survive every later cycle) is asserted
+    in its place of the old current_run pin.
+    """
     state = _state()
     assert state["human_gate_ready"] is False
     assert state["machine_gate_ready"] is False
@@ -279,10 +293,27 @@ def test_the_posture_is_fail_closed_and_the_accepted_run_pointer_is_intact() -> 
     assert state["ready_for_owner_session"] is False
     assert state["requirement_13_supersession_conditions_met"] is False
     assert state["continue_recommended"] is True
-    assert state["accepted_run_id"] == "39660515863", (
-        "accepted_run_id names the last ACCEPTED run; cycle 39689729561 is not "
-        "accepted, so the pointer must not move")
-    assert state["direction_version"] == 61
+    assert state["accepted_run_id"] == "39695438314", (
+        "accepted_run_id must name the last ACCEPTED run (39695438314, accept "
+        "commit 4896982); it must never name this cycle or a rejected one")
+    assert str(RUN_ID) not in str(state["accepted_run_id"]), (
+        "an unaccepted cycle moved the accepted-run pointer")
+    expected = None
+    mounted = Path("/tmp/lex_control/state/factory_direction.json")
+    if mounted.is_file():
+        expected = json.loads(mounted.read_text(encoding="utf-8")).get("version")
+    if isinstance(expected, int):
+        assert state["direction_version"] == expected, (
+            f"state direction_version {state['direction_version']} != dispatched {expected}")
+    else:
+        assert state["direction_version"] == 62  # this repair round's disclosed pin
     assert state["cycle_status"] != "INITIALIZED"
-    assert state["current_run"] == RUN_ID, (
-        "the lane state must name the run that produced it")
+    # current_run advances with each cycle; what must never be dropped is this
+    # cycle's own record, and current_run may only move FORWARD from it.
+    delivery = state.get(DELIVERY_KEY)
+    assert delivery is not None, f"state dropped {DELIVERY_KEY}"
+    assert delivery["run_id"] == RUN_ID
+    assert str(state["current_run"]).isdigit(), (
+        f"current_run {state['current_run']!r} is not a run id")
+    assert int(state["current_run"]) >= RUN_ID, (
+        "current_run moved BACKWARD past a cycle that has a delivery record")

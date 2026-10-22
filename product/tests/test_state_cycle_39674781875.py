@@ -103,6 +103,19 @@ def test_the_audit_required_fixes_are_addressed_in_the_state_itself() -> None:
 
 
 def test_the_posture_is_fail_closed_and_the_accepted_run_pointer_is_intact() -> None:
+    """Fail-closed posture + the accepted-run pointer, at TODAY's accepted state.
+
+    AUDIT F2b of rejected cycle 39764730877: this guard hard-pinned
+    ``accepted_run_id == "39660515863"`` and ``direction_version == 61``, both
+    of which are historical values. The truly accepted run is ``39695438314``
+    (accept commit ``4896982``) and the state legitimately advances its
+    direction version every time the control plane does - so a historical
+    cycle's posture test must pin the INVARIANTS (the fail-closed flags and the
+    pointer's meaning), not the values that were current when it was written.
+    Refreshed, not relaxed: the flags are asserted false, the pointer is
+    asserted to name an ACCEPTED run (not this cycle, not a rejected one), and
+    the direction version is asserted equal to the dispatched control plane.
+    """
     state = _state()
     assert state["human_gate_ready"] is False
     assert state["machine_gate_ready"] is False
@@ -110,10 +123,26 @@ def test_the_posture_is_fail_closed_and_the_accepted_run_pointer_is_intact() -> 
     assert state["ready_for_owner_session"] is False
     assert state["requirement_13_supersession_conditions_met"] is False
     assert state["continue_recommended"] is True
-    assert state["accepted_run_id"] == "39660515863", (
-        "accepted_run_id names the last ACCEPTED run; cycle 39674781875 is not "
-        "accepted, so the pointer must not move")
-    assert state["direction_version"] == 61
+    # The accepted-run pointer: 39695438314 is accepted by commit 4896982, the
+    # accept commit in this branch's history. Re-point only when a NEW accept
+    # lands, and never to this (or any rejected) run.
+    assert state["accepted_run_id"] == "39695438314", (
+        "accepted_run_id must name the last ACCEPTED run (39695438314, accept "
+        "commit 4896982); it must never name this cycle or a rejected one")
+    assert str(RUN_ID) not in str(state["accepted_run_id"]), (
+        "an unaccepted cycle moved the accepted-run pointer")
+    # Direction version: equal to the dispatched control plane when mounted,
+    # otherwise to this cycle's disclosed pin (the state contract checks the
+    # same equality against the run input).
+    expected = None
+    mounted = Path("/tmp/lex_control/state/factory_direction.json")
+    if mounted.is_file():
+        expected = json.loads(mounted.read_text(encoding="utf-8")).get("version")
+    if isinstance(expected, int):
+        assert state["direction_version"] == expected, (
+            f"state direction_version {state['direction_version']} != dispatched {expected}")
+    else:
+        assert state["direction_version"] == 62  # this repair round's disclosed pin
     assert state["cycle_status"] != "INITIALIZED"
 
 
