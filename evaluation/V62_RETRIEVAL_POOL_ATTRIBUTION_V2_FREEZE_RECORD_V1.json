@@ -1,0 +1,55 @@
+{
+  "schema": "lex-evaluation-v62-retrieval-pool-attribution-v2-freeze/1",
+  "lane": "evaluation",
+  "direction_version": 62,
+  "github_run": 39739350804,
+  "instrument": "evaluation/retrieval_pool_attribution_v2.py",
+  "instrument_sha256": "4ecd08cfae4d50022c23e1a3975dc01ba5cb2ceee70616f9090ea3dbcf1e4cc3",
+  "instrument_v1_retained": "evaluation/retrieval_pool_attribution.py",
+  "instrument_v1_sha256": "3ade35c21a7087cd39d52b60775a6085428f80491d5a08b002599c09ca9dbac3",
+  "hypothesis": "evaluation/V62_RETRIEVAL_POOL_ATTRIBUTION_V2_HYPOTHESIS_V1.json",
+  "hypothesis_sha256": "3bd97b5e03a706a49d1f2df792ec8ff0e0fea94f34a48856cf956770a83432e3",
+  "frozen_at_utc": "2026-10-22T08:22:00Z",
+  "frozen_before_claim_bearing_execution": true,
+  "freeze_discipline": "This record and its hypothesis are committed BEFORE the V2 claim-bearing live execution of run 39739350804. No cause class, threshold, horizon, control, success rule, request parameter or exit code may be edited after a V2 claim-bearing result is observed; an edit invalidates the V2 run and must be declared as a NEW frozen spec, never as a tuning. V2 imports the V1 module unchanged (sha256 3ade35c2...) and re-derives no measurement rule of its own: the concept rule and the row projection come from evaluation/subject_match_audit.py, the request parameters from the accepted bundle's own provenance.",
+  "ordering_proof_contract": "Freeze ordering is demonstrated from the git commit time of the commit adding evaluation/V62_RETRIEVAL_POOL_ATTRIBUTION_V2_HYPOTHESIS_V1.json versus the first commit containing results/evaluation/retrieval_pool_attribution/39739350804_v2.json. Reproduce with: git log --diff-filter=A --format='%H %cI %s' -- evaluation/V62_RETRIEVAL_POOL_ATTRIBUTION_V2_HYPOTHESIS_V1.json",
+  "append_only_convention": "V1's record (results/evaluation/retrieval_pool_attribution/39739350804.json, sha256 189347576f390ed0375b091a7129919c946f6db87b269748420e9f23917bb6cf) and V1's frozen hypothesis and freeze record are retained byte-identically and are never overwritten, edited or deleted. V2 writes results/evaluation/retrieval_pool_attribution/39739350804_v2.json only.",
+  "unchanged_parameters": {
+    "base_url": "https://mcp.opencaselaw.ch/api",
+    "endpoint": "/decisions",
+    "query_source": "the accepted questions/<qid>.question.json field 'question'",
+    "limit_source": "the accepted bundle's provenance.searches[0].limit",
+    "offset_rule": "offset = page_index * limit, starting at 0",
+    "sort": "relevance",
+    "fields": "full",
+    "include_pinpoint": false,
+    "language": "not sent for the original variant",
+    "max_pages": 8,
+    "horizon_rows": 400,
+    "page0_jaccard_min": 0.9,
+    "nonsense_control_query": "zzqxvlexmachinaNonexistentControlToken",
+    "user_agent": "LexMachina-Evaluation/1.0 (v62 retrieval pool attribution)",
+    "soft_pace_min_interval_seconds": 0.25,
+    "oracle_pages": 2,
+    "remedy_probe_limit": 50
+  },
+  "frozen_controls": [
+    "c1_page0_fidelity", "c2_nonsense_query_zero_rows", "c3_accepted_record_parity",
+    "c4_full_text_independence", "c5_scan_horizon_full_windows",
+    "c6_like_for_like_page0", "c7a_oracle_mechanism_proves_reachable",
+    "c7b_corpus_term_absence_is_a_class_not_vacuity"
+  ],
+  "frozen_cause_classes": [
+    "BEYOND_PAGE0_ONLY", "PAGE0_COVERS_ONLY", "POOL_NEVER_COVERS", "POOL_COVERS",
+    "CORPUS_TERM_ABSENCE (declared by this freeze)"
+  ],
+  "exit_code_contract": {
+    "0": "POOL_ATTRIBUTION_NO_NEW_DEFECT",
+    "1": "POOL_ATTRIBUTION_DEFECT_ATTRIBUTED",
+    "2": "NOT_MEASURED_VACUOUS (never a pass, never a bar-met)"
+  },
+  "live_measurement_disclosure": "V2 performs network calls against the public OpenCaseLaw API, like V1. It must: the pool behind the served rows is not reconstructible from the accepted mount (the packet's own CLAIM_CACHE_VERIFICATION.json names 26 envelopes as the packet-of-record build's own retrieval envelopes and declares deleted_or_missing [], yet none of them exists in the accepted mount). Every record carries live_measurement true, the corpus-drift control C1 and the horizon disclosure of C5.",
+  "numeric_environment": "Integer counting, set cardinality and substring matching over strings only. No numpy/BLAS reduction and no float comparison enters any verdict. Disclosed in the result record per factory-wide requirement 30.",
+  "pre_freeze_disclosure": "Before this freeze the following were executed: (a) the V1 claim-bearing live run of run 39739350804, verdict NOT_MEASURED_VACUOUS exit 2, record retained; (b) an offline re-computation from the accepted mount and the V1 record comparing served and live page-0 coverage per question and per base, which is what exposed C6's basis error; (c) no other live call. The V1 outcome was KNOWN at freeze time and is disclosed.",
+  "claim_ceiling": "This freeze establishes the pre-run sample pins, the request shape, the horizon, the cause classes, the thresholds, the controls and the exit-code vocabulary of ONE attribution measurement and declares the three corrections V1's own measurements forced. It meets, moves and re-derives NO frozen absolute bar; it lifts NO DO-NOT-SERVE order; it certifies NO admission; it claims NO jurist usefulness; it does NOT re-issue, weaken or re-score the accepted falsification. human_gate_ready stays false."
+}

@@ -1,0 +1,87 @@
+{
+  "schema": "lex-evaluation-v62-retrieval-pool-attribution-v2-hypothesis/1",
+  "lane": "evaluation",
+  "direction_version": 62,
+  "github_run": 39739350804,
+  "frozen_at_utc": "2026-10-22T08:22:00Z",
+  "status": "DECLARED NEW FROZEN SPEC (V2). V1's record (results/evaluation/retrieval_pool_attribution/39739350804.json, sha256 189347576f390ed0375b091a7129919c946f6db87b269748420e9f23917bb6cf) is KEPT, UNTOUCHED and published next to this one. V1's verdict was NOT_MEASURED_VACUOUS (exit 2).",
+  "question": "Same question as V1: the accepted falsification mf::concept_coverage::39319405429::de-kapitalverletzung names two core concepts (kapitalverletzung, uberwachungspflicht) with zero served rows and does not say why. V2 decides WHICH of the frozen cause classes holds, with the cause classes, the thresholds, the horizon, the success rules and the exit codes UNCHANGED from V1.",
+  "why_a_v2_exists": {
+    "v1_verdict": "NOT_MEASURED_VACUOUS (exit 2)",
+    "v1_controls_that_did_not_hold": ["c5_pool_scan_complete", "c6_cross_language_page0_sanity", "c7_oracle_concept_reachable"],
+    "v1_measurements_that_show_the_controls_were_mis_specified": {
+      "c5": "The endpoint's reported total GROWS with the offset (254 at offset 0, 442, 638, 846, 1049, 1234, 1446, 1644 at offsets 50..350) and has_more stayed true for all eight fetched pages. 'The scan consumed every reported page' is therefore unsatisfiable on this endpoint by construction and would have masked the measurement.",
+      "c6": "V1 compared the served page-0 coverage computed WITH lazily hydrated full_text against the live page-0 coverage computed WITHOUT it. On the DE and IT questions the two page-0 id sets are identical (Jaccard 1.0) and the like-for-like LEXICAL counts are identical as well (DE: all 8 concepts; IT: all 13 concepts); the only differences came from the basis mismatch and, for FR, from 12 rows the corpus added since the packet build.",
+      "c7": "A query for 'Kapitalverletzung' returned 50 rows in which the token occurs 0 times, while the same mechanism found 'Überwachungspflicht' in 27 of 50 rows. A corpus fact was being counted as a measurement failure."
+    },
+    "not_a_tuning": "No cause class, threshold, horizon, success rule or exit code changes between V1 and V2. The three corrections fix what was measured, not what is concluded."
+  },
+  "unchanged_from_v1": {
+    "sample": "packet 39319405429 in /tmp/lex_accepted/product at head 489698218200a8e37a0c527158b3c16664bb1173; primary question de-kapitalverletzung; cross-language controls fr-bail-entretien and it-responsabilita-medica",
+    "concept_rule": "evaluation.subject_match_audit.question_concepts (accepted, not re-derived)",
+    "row_projection": "evaluation.subject_match_audit.row_match_text over title, regeste, snippet, full_text, citation, decision_id (accepted, not re-derived)",
+    "request_shape": "GET https://mcp.opencaselaw.ch/api/decisions with the product's OWN recorded parameters (query from the accepted question.json, limit from the accepted bundle provenance.searches[0].limit, sort=relevance, fields=full, include_pinpoint=false, no language parameter)",
+    "horizon": "8 pages of 50 rows = 400 rows. UNCHANGED, so no class can flip in either direction because of a horizon change.",
+    "page0_jaccard_min": 0.9,
+    "nonsense_control_query": "zzqxvlexmachinaNonexistentControlToken",
+    "cause_classes": ["BEYOND_PAGE0_ONLY", "PAGE0_COVERS_ONLY", "POOL_NEVER_COVERS", "POOL_COVERS"],
+    "dominant_class_rule": "the class with the most concepts; ties broken by the frozen priority BEYOND_PAGE0 > PAGE0_COVERS_ONLY > POOL_NEVER_COVERS",
+    "success_rules": "every control holds AND every zero concept is classified AND the dominant class is published with its remedy",
+    "exit_codes": {"0": "POOL_ATTRIBUTION_NO_NEW_DEFECT", "1": "POOL_ATTRIBUTION_DEFECT_ATTRIBUTED", "2": "NOT_MEASURED_VACUOUS"}
+  },
+  "v2_corrections": {
+    "c5": {
+      "v1": "the scan consumed every reported page (last page has_more == false)",
+      "v2": "every fetched page returned a FULL window (no silent truncation) AND the horizon, the reported total per page, the has_more flag at the horizon and the endpoint's pool_complete state are DISCLOSED in the record",
+      "rationale": "the endpoint's pool does not close, so the V1 demand was unsatisfiable by construction; the V2 demand (no silent truncation, full disclosure of the horizon) is the strongest satisfiable form"
+    },
+    "c6": {
+      "v1": "the two cross-language questions whose served coverage has no zero concept also have no zero concept on the live page 0",
+      "v2": "LIKE FOR LIKE: for EVERY question and EVERY concept, the served page-0 LEXICAL count must not exceed the live page-0 count (the replay may not lose coverage relative to the served bytes) AND the two zero-concept sets must be identical; the per-concept counts and the page-0 Jaccard are published for every question",
+      "rationale": "the V1 comparison used two different measurement bases; the V2 form adds a STRICTER content requirement (no coverage loss, identical zero sets) and removes the basis error"
+    },
+    "c7": {
+      "v1": "for every zero concept a concept-only query reaches at least one row containing the concept",
+      "v2": "C7a: at least one zero concept must be reachable by a concept-only query (the detection mechanism proves itself). C7b: a concept the oracle cannot reach is REPORTED as the declared cause class CORPUS_TERM_ABSENCE and never as a vacuous measurement; the oracle must not have errored.",
+      "rationale": "the corpus not using a term is a fact about the corpus, not a failure of the measurement"
+    }
+  },
+  "v2_additions": {
+    "oracle_depth": "the concept-only oracle reads 2 pages (100 rows) instead of 1, so the corpus-term-absence claim does not rest on a single page of a fuzzy search",
+    "remedy_probe": "REPORTED, never gated: the question's own query is replayed with its zero concepts appended - the product's own expansion mechanism, which the accepted FR bundle already records as the variant lexicon_expansion:any:f5c7b3a6 - and the coverage gain is published",
+    "declared_cause_class": "CORPUS_TERM_ABSENCE: the concept term does not occur in the corpus rows a concept-only query returns, so the question asks in a vocabulary the corpus does not use. Remedy: expand the query with the corpus's own vocabulary (the product already owns that mechanism and does not apply it to the German question)."
+  },
+  "hypotheses": {
+    "H1_the_two_zero_concepts_are_not_a_paging_artifact": "Within the frozen horizon of 400 rows of the product's own ranked result set for the served German question, the two zero concepts occur 0 times, while the other six concepts occur at least once. If this holds, raising the page budget ALONE cannot surface them.",
+    "H2_the_corpus_carries_at_least_one_of_the_two_terms": "A concept-only query for 'Überwachungspflicht' returns rows in which the token occurs, so the corpus carries the term and the question's own query simply does not surface those rows.",
+    "H3_the_other_term_is_absent_from_the_corpus_vocabulary": "A concept-only query for 'Kapitalverletzung' returns rows in which the token does NOT occur, so the question asks in a vocabulary the corpus does not use.",
+    "H4_the_remedy_is_query_side": "Replaying the question with its zero concepts appended (the product's own expansion mechanism) reaches rows that carry the missing concepts, so the attributable defect is on the query side and the named remedy is query expansion / concept injection, NOT more paging and NOT an assembly change.",
+    "H5_the_bundle_total_is_not_the_pool_size": "The endpoint's reported total grows with the offset, so the packet's recorded total (254) is the value at offset 0 and is NOT the size of the candidate pool; the product fetched 50 of at least 400 rows."
+  },
+  "frozen_sample": {
+    "mount": "/tmp/lex_accepted/product",
+    "mount_head_at_freeze": "489698218200a8e37a0c527158b3c16664bb1173",
+    "packet": "39319405429",
+    "pins_unchanged_from_v1": {
+      "results/product/gate_packet/39319405429/questions/de-kapitalverletzung.bundle.json": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
+      "results/product/gate_packet/39319405429/questions/de-kapitalverletzung.question.json": "f79dec05182cea555e748d338841da2163a32632eb8408c065f9d20760209c2a",
+      "results/product/gate_packet/39319405429/questions/fr-bail-entretien.bundle.json": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
+      "results/product/gate_packet/39319405429/questions/it-responsabilita-medica.bundle.json": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b",
+      "results/evaluation/mapping_free_recall_falsifier/39693031072.json": "c1c27a55a36f29885c32bb3319e09d37cad128f7ad08442ed9d68e91334189fb",
+      "evaluation/subject_match_audit.py": "c207fd819ae4605de704d2cdc4a30254f39a9840994a2e43ea4ef10fb5656342"
+    },
+    "v1_artifacts_retained": {
+      "evaluation/retrieval_pool_attribution.py": "3ade35c21a7087cd39d52b60775a6085428f80491d5a08b002599c09ca9dbac3",
+      "evaluation/V62_RETRIEVAL_POOL_ATTRIBUTION_HYPOTHESIS_V1.json": "60c8d179624c2a58520b8588c47a653e598e7dde802ac289a5f693b189be9337",
+      "evaluation/V62_RETRIEVAL_POOL_ATTRIBUTION_FREEZE_RECORD_V1.json": "9348c2b785b1ae8b245459393b33d2d8a53843e0010894eb92f018f90105ce39",
+      "results/evaluation/retrieval_pool_attribution/39739350804.json": "189347576f390ed0375b091a7129919c946f6db87b269748420e9f23917bb6cf"
+    }
+  },
+  "metrics_and_success_rules": {
+    "success": "every V2 control holds AND every zero concept carries a cause class AND the dominant class is published with its named remedy AND the remedy probe is published",
+    "failure_mode_that_must_not_be_smoothed": "if any V2 control fails, the run is NOT_MEASURED_VACUOUS (exit 2) and is published as such; a vacuous run is never reported as a pass and never as an attribution",
+    "discriminating_surprise": "if the two concepts DO appear beyond the 400-row horizon, the class flips to BEYOND_PAGE0 and the remedy flips to 'fetch more pages'; the horizon was frozen at 400 BEFORE this run and is NOT changed by this run, so the flip would be a real finding, not a tuning"
+  },
+  "pre_freeze_disclosure": "Before this freeze the following were executed and are disclosed: (a) the V1 claim-bearing live run of run 39739350804 (NOT_MEASURED_VACUOUS, exit 2), whose full record is retained; (b) an OFFLINE re-computation from the accepted mount and the V1 record comparing the served page-0 LEXICAL coverage with the live page-0 coverage per question, which is what showed C6's basis error (published in the V62 cycle report); (c) no further live calls. The V1 outcome was KNOWN when this spec was frozen and is disclosed here so that no auditor can mistake V2 for a blind retry.",
+  "claim_ceiling": "This spec freezes the sample, the request shape, the horizon, the cause classes, the thresholds, the controls and the exit-code vocabulary of the V2 attribution measurement, and declares the three corrections that V1's own measurements forced. It meets, moves and re-derives NO frozen absolute bar; it lifts NO DO-NOT-SERVE order; it certifies NO packet admission; it claims NO jurist usefulness; it does NOT re-issue, weaken or re-score the accepted falsification; human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session stay false; no obsolete universal-174k benchmark is run. The measurement is LIVE against the public OpenCaseLaw corpus and every record says so."
+}
