@@ -1,13 +1,13 @@
 {
   "accepted_run_id": "39834312064",
-  "direction_version": 62,
+  "direction_version": 63,
   "evidence_tier": "EXPLORATORY",
   "cycle_status": "COMPLETE",
   "continue_recommended": true,
   "human_gate_ready": false,
   "machine_gate_ready": false,
   "lane": "evaluation",
-  "github_run": "39838415410",
+  "github_run": 39852758814,
   "query_map_cached_bundle_benchmark": {
     "run_id": "39834312064",
     "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
@@ -163,7 +163,7 @@
     "results/evaluation/orchestration/39838415410_product_counter_surface_pytest_shim.json"
   ],
   "evidence_refs_n": 20,
-  "next_recommendation": "The shipped adversarial_retrieval/3 admission signal layer is falsified on the offline cached counter surface: 0/14 reached known counter authorities signalled, versus 1 labelled by the frozen marker rule on its own title+regeste+snippet surface. Hydrated sensitivity is positive (3/5 reached rows with product-cache full text), but hydration covers only 5/14 reached rows. Product-side repair candidates are broader hydration and/or lexicon alignment; the live independent LLM reviewer remains unmeasured. Preserve this negative result; do not rerun universal-174k benchmarks. The existing coverage_remediation_crosscheck V1 remains frozen to run 39813664201/product head 44330212 and was not executed against the current head; a V2 re-freeze is required if ordered item (2) coverage cross-check is resumed.",
+  "next_recommendation": "Product-side repair: strip redaction placeholder from probe anchor terms in product/query/adversarial_retrieval.py, then re-freeze and re-score. Do not rerun universal-174k benchmarks.",
   "acceptance_status": "PENDING_ACCEPT_AUDIT",
   "product_counter_signal_benchmark": {
     "run_id": "39838415410",
@@ -197,5 +197,42 @@
     "report_sha256": "a388160d5217a47c58669bce43eb81ec742a4c9fea9f56f27d1d1744c52384ac",
     "test_record": "results/evaluation/orchestration/39838415410_product_counter_surface_pytest_shim.json",
     "claim_ceiling": "Offline cached regeste surface: 0/14 known authorities signalled. Hydrated sensitivity: 3/5 reached rows with product-cache full text signalled; hydration covered only 5/14. Does NOT measure the live independent LLM counter reviewer, live top-12 hydration, the full live apply_adversarial_pass admission path (every final-bundle row is classified, including baseline rows), legal correctness, or any external retrieval."
+  },
+  "benchmark_result": {
+    "run_id": "39852758814",
+    "direction_version": 63,
+    "engine": "evaluation.minimal_retrieval_ca_benchmark (wrapper) -> evaluation.mapping_free_recall_falsifier (engine)",
+    "exit_code": 1,
+    "falsification_proven": true,
+    "verdict": "PRODUCT_FALSIFIED",
+    "frozen_spec_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "failed_gates": [
+      "mf::concept_coverage::39319405429::de-kapitalverletzung",
+      "mf::counter_authority_surface::39319405429::de-kapitalverletzung",
+      "mf::counter_authority_surface::39319405429::fr-bail-entretien",
+      "mf::counter_authority_surface::39319405429::it-responsabilita-medica"
+    ],
+    "finding": "On the V3 packet-of-record exact bytes (39319405429), the product mapping-free retrieval and counter-authority surface gates fail on all three served questions (German, French, Italian bundles). The German bundle has 2/8 core concepts with zero retrieval (kapitalverletzung, uberwachungspflicht). All three language bundles emit ZERO counter-authority rows under the frozen rubric. All four non-vacuity controls hold (blanked pool fails, oracle pool passes, subject-swapped predicate rejects, blanked row fails source validity). This is the smallest executable retrieval/counter-authority falsification benchmark on the V3 packet-of-record exact bytes. No universal-174k benchmark was run.",
+    "frozen_label_rubric_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "input_drift": [],
+    "n_failed": 4,
+    "n_gates": 18,
+    "n_passed": 11,
+    "n_questions_measured": 3,
+    "n_reported": 3,
+    "non_vacuity_all_hold": true,
+    "numeric_environment_disclosed": true,
+    "packet": "39319405429",
+    "product_handoff": "A PRODUCT defect, not an evaluation defect; the fix belongs to the product lane. The counter-authority surface failure on the V3 bytes means the product CA discovery is insufficient for the visual UX test. The counter_probe_anchor_falsifier run 39674402905 attributes the zero emission to the redaction placeholder citation removed not in retrieved set displacing real legal vocabulary in the probe anchor terms. The counter_probe_repair_verification run 39687372110 verified that remedy a strip the redaction placeholder from the answer prose before the probe planner repairs the anchor on recorded bytes. The product lane should land remedy a in product/query/adversarial_retrieval.py, then re-freeze and re-score.",
+    "product_mount_head": "/tmp/lex_accepted/product",
+    "report_file": "reports/evaluation/RETRIEVAL_CA_BENCHMARK_39852758814.md",
+    "result_file": "results/evaluation/retrieval_counter_authority_benchmark/39852758814.json",
+    "run_valid": true,
+    "v3_bundle_shas": {
+      "de-kapitalverletzung": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
+      "fr-bail-entretien": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
+      "it-responsabilita-medica": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b"
+    },
+    "wrapper_schema": "lex-evaluation-minimal-retrieval-ca-benchmark/1"
   }
 }
