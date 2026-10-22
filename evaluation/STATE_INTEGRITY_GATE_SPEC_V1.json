@@ -1,0 +1,60 @@
+{
+  "schema": "lex-evaluation-state-integrity-gate-spec/1",
+  "lane": "evaluation",
+  "direction_version": 62,
+  "frozen_for_repair_run": "39759523387",
+  "repairs_rejected_cycle": "39751745107",
+  "repair_round": 1,
+  "frozen_before_execution": true,
+  "purpose": "Permanently discharge the defect class found by independent audit CYCLE_39751745107 (gate REVISE, required_fixes D1-D6: evidence_refs_n/list-length mismatches, an invalid evidence-ref path, loss of the canonical two-space evidence_refs indentation, and promotion of unaudited run 39732040165 as ACCEPTED claim-bearing evidence). This instrument is a STATE-CLAIM gate, not a product measurement: it scores the lane's own state/report claim path, never a packet, never a frozen bar.",
+  "checks": [
+    {
+      "id": "evidence_refs_n_matches",
+      "applies_to": ["state/evaluation.json", "evaluation/state/evaluation.json"],
+      "rule": "evidence_refs_n == len(evidence_refs). Any other value is an internally inconsistent metadata claim (audit fixes 1 and 2).",
+      "fail_class": "D1_D2_COUNT_MISMATCH"
+    },
+    {
+      "id": "evidence_refs_resolve",
+      "applies_to": ["state/evaluation.json", "evaluation/state/evaluation.json"],
+      "rule": "Every evidence_refs entry resolves to an existing FILE in the committed tree (first whitespace-delimited token, trailing comma stripped; directories do not count, matching the lane's long-standing test_evidence_refs_exist contract). Non-file refs are invalid provenance claims (audit fix 3, same class).",
+      "fail_class": "D3_INVALID_REF_PATH"
+    },
+    {
+      "id": "evidence_refs_canonical_indent",
+      "applies_to": ["state/evaluation.json", "evaluation/state/evaluation.json"],
+      "rule": "In the raw file, the line carrying the top-level \"evidence_refs\" key begins with exactly two spaces (canonical two-space indentation; audit fix 4).",
+      "fail_class": "D4_INDENT_REGRESSION"
+    },
+    {
+      "id": "no_unaudited_promotion",
+      "applies_to": ["state/evaluation.json", "evaluation/state/evaluation.json"],
+      "rule": "For every block that carries a claim_bearing_run whose numeric run id is >= FROZED_PROMOTION_CUTOFF_RUN (inclusive), the block must EITHER name a run that has results/audit/evaluation/CYCLE_<run>_GATE.json in the committed tree, OR carry an explicit non-promotion disclosure: audit_status == 'PENDING_INDEPENDENT_AUDIT' or pending_independent_audit == true or accepted_as_evidence == false. Runs numerically below the cutoff are inventoried INFORMATIONALLY only and never fail this check: they are historical accepted/negative evidence preserved verbatim under AGENTS.md items 5-6 and predate this defect class. The cutoff is frozen here, before execution, to the exact run the audit named.",
+      "frozen_promotion_cutoff_run": "39732040165",
+      "fail_class": "D5_D6_UNAUDITED_PROMOTION"
+    },
+    {
+      "id": "accepted_run_audited",
+      "applies_to": ["state/evaluation.json", "evaluation/state/evaluation.json"],
+      "rule": "The state's accepted_run_id has results/audit/evaluation/CYCLE_<run>_GATE.json present in the committed tree.",
+      "fail_class": "ACCEPTED_RUN_WITHOUT_GATE"
+    },
+    {
+      "id": "root_lane_parity",
+      "applies_to": ["state/evaluation.json", "evaluation/state/evaluation.json"],
+      "rule": "accepted_run_id, direction_version and github_run are identical in the root control-plane state and the lane state (audit fix 6 reconciliation).",
+      "fail_class": "D6_STATE_DIVERGENCE"
+    }
+  ],
+  "exit_codes": {
+    "0": "ALL_CHECKS_PASS",
+    "1": "AT_LEAST_ONE_CHECK_FAILED",
+    "2": "ENVIRONMENT_ERROR (a state file or the tree is unreadable; never a pass, never a fail)"
+  },
+  "non_claims": [
+    "This gate does NOT re-score, move or re-derive any frozen absolute LABEL_SOUND / GEOMETRY_SOUND bar; those stay REPORTED-ONLY and unmet on the v3 bytes.",
+    "This gate does NOT lift any accepted DO-NOT-SERVE order, certify packet admission, or claim the map helps a jurist.",
+    "This gate does NOT run any universal-174k benchmark.",
+    "This gate does NOT audit any measurement's numbers; it only checks the lane's state/report claim path for the six named defect classes."
+  ]
+}
