@@ -238,19 +238,57 @@ def test_frozen_rules_integrity():
 
 
 def test_packet_integrity():
-    """All five packet-of-record inputs re-hash to the charter/freeze pins."""
+    """Every SCORED packet-of-record input re-hashes to the charter/freeze
+    pins, hard. handoff.json and disclosures.json are non-scored inputs: if
+    the product lane regenerated them for the SAME packet id, the harness must
+    DECLARE the drift with BOTH the freeze pin and the observed sha256 (never
+    silently accept it, never overwrite a historical measured artifact), and
+    the declaration must be backed by byte-identical scored inputs."""
     base = PACKET_DIR
-    pins = {
+    hard_pins = {
         "packet.json": "32ac812626e679c357822543d0b2e78e62c0e95a9a1b233d1ec89d7cb7b6ac70",
         "manifest.json": "8ea3c92d11e915bcea98b3bc1bd80724b08e920c6ff3bdcade18ed39db388bb7",
-        "handoff.json": "5b758a3da820a562dfadb9af1fbb5ff2acd9ba395fa151a36571217645b64544",
-        "disclosures.json": "87147f114fd3bfe278077afa83613f2c586c8c8d95aa77b287c4fce916cb31d3",
         "CLAIM_CACHE_VERIFICATION.json": "7e501823c63783294e70962284d72ff4b541b17807aa6bf6f2478fd85264c02d",
+        "questions/de-kapitalverletzung.bundle.json":
+            "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
+        "questions/fr-bail-entretien.bundle.json":
+            "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
+        "questions/it-responsabilita-medica.bundle.json":
+            "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b",
     }
-    for name, expected in pins.items():
+    for name, expected in hard_pins.items():
         actual = sha256_file(f"{base}/{name}")
         assert actual == expected, f"{name} mismatch: {actual} != {expected}"
-    print("packet integrity: all five packet-of-record inputs match charter pins")
+
+    freeze_pins = {
+        "handoff.json": "5b758a3da820a562dfadb9af1fbb5ff2acd9ba395fa151a36571217645b64544",
+        "disclosures.json": "87147f114fd3bfe278077afa83613f2c586c8c8d95aa77b287c4fce916cb31d3",
+    }
+    observed = {name: sha256_file(f"{base}/{name}") for name in freeze_pins}
+    drift = {name: observed[name] != pin for name, pin in freeze_pins.items()}
+
+    # Whatever the current state, the harness record must declare it exactly:
+    # both hashes present, per-input match flags, and scored inputs unchanged.
+    with tempfile.TemporaryDirectory() as tmpdir:
+        record = run_audit(str(Path(tmpdir) / "record.json"))
+    ii = record["input_identity"]
+    declared = ii["non_scored_input_drift"]["inputs"]
+    for name, pin in freeze_pins.items():
+        assert declared[name]["freeze_pin_sha256"] == pin, f"{name}: freeze pin not recorded"
+        assert declared[name]["observed_sha256"] == observed[name], f"{name}: observed sha not recorded"
+        assert declared[name]["matches_freeze"] == (not drift[name]), f"{name}: match flag wrong"
+        assert ii[f"{name.split('.')[0]}_json_sha256"] == observed[name]
+        assert ii[f"{name.split('.')[0]}_matches_freeze"] == (not drift[name])
+    if any(drift.values()):
+        assert ii["non_scored_input_drift"]["any_drift"] is True
+        assert "DECLARED INPUT-IDENTITY DRIFT" in ii["non_scored_input_drift"]["declaration"]
+        # A declared drift MUST NOT touch the scored inputs: no re-scoring.
+        assert ii["scored_inputs"]["all_match_charter_and_freeze"] is True
+        assert ii["scored_inputs"]["re_scoring_required"] is False
+    else:
+        assert ii["non_scored_input_drift"]["any_drift"] is False
+    print(f"packet integrity: scored inputs byte-identical to charter/freeze pins; "
+          f"non-scored drift declared={drift}")
 
 
 def test_zero_writes_outside_team_namespace():
@@ -270,6 +308,87 @@ def pins_packet() -> str:
     return "32ac812626e679c357822543d0b2e78e62c0e95a9a1b233d1ec89d7cb7b6ac70"
 
 
+# ---------------------------------------------------------------------------
+# measured-quantity byte identity against the preserved historical verdicts
+# ---------------------------------------------------------------------------
+PRESERVED_VERDICTS = [
+    "VERDICT_39371834165.json",  # measured on the pre-regeneration freeze pins
+    "VERDICT_39807847816.json",  # accepted verdict of record on these bytes
+]
+MEASURED_SECTIONS = ("label_half", "geometry_half", "marginal_discovery",
+                     "non_vacuity", "verdict", "frozen_rules")
+
+
+def test_measured_quantities_byte_identical_to_preserved_records():
+    """A fresh run on the accepted successor bytes must reproduce every
+    MEASURED quantity byte-identically against both preserved verdicts: the
+    product-side regeneration of handoff.json/disclosures.json therefore did
+    NOT need re-scoring (charter stop rule: a repair that needs re-scoring is a
+    NEW charter). Only the declared identity/cross-check provenance blocks are
+    allowed to differ."""
+    results_dir = REPO / "results/frontier/frontier-packet-serve-audit"
+    with tempfile.TemporaryDirectory() as tmpdir:
+        fresh = run_audit(str(Path(tmpdir) / "record.json"))
+    for name in PRESERVED_VERDICTS:
+        path = results_dir / name
+        assert path.exists(), f"preserved verdict {name} missing"
+        preserved = json.loads(path.read_text(encoding="utf-8"))
+        for section in MEASURED_SECTIONS:
+            assert preserved[section] == fresh[section], (
+                f"{name}:{section} diverged from a fresh run -- measured quantities must "
+                "reproduce byte-identically across the product-side input regeneration")
+        assert preserved["input_identity"]["bundle_raw_sha256"] == \
+            fresh["input_identity"]["bundle_raw_sha256"]
+        assert preserved["input_identity"]["n_decisions"] == \
+            fresh["input_identity"]["n_decisions"]
+    # The verdict sentence itself is unchanged: the standing recommendation
+    # still holds on the successor bytes.
+    assert fresh["verdict"]["outcome"] == "BOUNDED-NEGATIVE"
+    print("measured quantities byte-identical to VERDICT_39371834165 and "
+          "VERDICT_39807847816 (label/geometry/marginal/non-vacuity/verdict/rules)")
+
+
+def test_crosscheck_publishes_core_evaluation_same_bytes_numbers():
+    """Acceptance test (2): Core Evaluation's published numbers on the SAME
+    bytes are placed beside this team's recomputation, every quantity, with any
+    divergence named in the headline."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        record = run_audit(str(Path(tmpdir) / "record.json"))
+    xc = record["crosscheck"]
+    same = xc["published_numbers"]["core_evaluation_same_bytes_adjudication"]
+    assert same["found"] is True, "Core Evaluation same-bytes adjudication must be consumed"
+    assert same["same_bytes_as_this_run"] is True
+    assert same["packet_json_sha256"] == pins_packet()
+    rows = {r["quantity"]: r for r in xc["core_evaluation_same_bytes_side_by_side"]}
+    # Every frozen label and geometry quantity is published side by side.
+    for quantity in ("label.n_scored", "label.n_supported", "label.support_rate",
+                     "label.absolute_status", "label.regression_verdict",
+                     "geometry.per_bundle_counts.de-kapitalverletzung",
+                     "geometry.per_bundle_counts.fr-bail-entretien",
+                     "geometry.per_bundle_counts.it-responsabilita-medica",
+                     "geometry.n_bundles_pass_all_11", "geometry.absolute_status",
+                     "geometry.regression_verdict"):
+        assert quantity in rows, f"quantity {quantity} not published beside Evaluation's"
+        assert rows[quantity]["match"] is True, (
+            f"{quantity} DIVERGES: team={rows[quantity]['team_recomputed']} "
+            f"core_evaluation={rows[quantity]['core_evaluation_same_bytes']}")
+    # NOT_APPLICABLE is published as a marker and never counted as a pass.
+    assert rows["label.regression_verdict"]["team_recomputed"] == "NOT_APPLICABLE"
+    assert rows["label.regression_verdict"]["not_applicable_is_not_pass"] is True
+    # The accepted 39325867172 audit gate resolves on an accepted mount and
+    # its published per-criterion counts appear beside this team's numbers.
+    audit = xc["published_numbers"]["accepted_39325867172_audit"]
+    assert audit["found"] is True, "accepted 39325867172 audit gate unresolved (null published)"
+    assert audit["resolved_mount"] in ("evaluation", "product")
+    assert audit["sha256"] and len(audit["sha256"]) == 64
+    assert audit["geometry_rescore_parsed"] is not None
+    for row in xc["geometry_side_by_side"]:
+        assert row["match_audit"] is True, f"audit rescore diverges on {row['qid']}"
+    assert any("DIVERGENCE" in h for h in xc["divergence_headline"])
+    print("cross-check: Core Evaluation same-bytes label+geometry numbers published "
+          "beside this team's (all MATCH); accepted 39325867172 audit 3/4/4 resolved and matched")
+
+
 if __name__ == "__main__":
     test_frozen_rules_integrity()
     test_packet_integrity()
@@ -281,5 +400,7 @@ if __name__ == "__main__":
     test_serve_recommendation()
     test_negative_control()
     test_positive_control_reachability()
+    test_measured_quantities_byte_identical_to_preserved_records()
+    test_crosscheck_publishes_core_evaluation_same_bytes_numbers()
     test_zero_writes_outside_team_namespace()
     print("\nALL TESTS PASSED")

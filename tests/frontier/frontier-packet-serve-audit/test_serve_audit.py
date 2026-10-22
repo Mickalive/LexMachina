@@ -412,3 +412,157 @@ def test_owner_decision_required_consistent(tmp_path):
     if contract_path.exists():
         c = json.loads(contract_path.read_text(encoding="utf-8"))
         assert c["expected"]["owner_decision_required"] is False
+
+
+# ---------------------------------------------------------------------------
+# 16. cross-check against Core Evaluation's SAME-BYTES published numbers
+# ---------------------------------------------------------------------------
+def _scored(packet_dir, label_rules, geometry_rules):
+    bundle_paths = {qid: str(packet_dir / "questions" / f"{qid}.bundle.json") for qid in QIDS}
+    bundles = {qid: json.loads(Path(p).read_text(encoding="utf-8")) for qid, p in bundle_paths.items()}
+    return bundles, label_gate.score_packet(bundle_paths, label_rules), \
+        geometry_gate.score_packet(bundles, geometry_rules)
+
+
+def test_crosscheck_same_bytes_numbers_match(packet_dir, label_rules, geometry_rules,
+                                             eval_mount, product_mount):
+    """Charter acceptance test (2): Core Evaluation HAS published its
+    frozen-bar re-score on these exact bytes (39379766198); every quantity must
+    appear beside this team's recomputation and MATCH (divergence would be the
+    headline finding)."""
+    from frontier_packet_serve_audit.cli import EXPECTED_PACKET_JSON_SHA256
+    bundles, label_res, geom_res = _scored(packet_dir, label_rules, geometry_rules)
+    xc = crosscheck.build_crosscheck(label_res, geom_res, eval_mount, product_mount,
+                                     packet_json_sha256=EXPECTED_PACKET_JSON_SHA256)
+    same = xc["published_numbers"]["core_evaluation_same_bytes_adjudication"]
+    assert same["found"] is True
+    assert same["same_bytes_as_this_run"] is True
+    rows = {r["quantity"]: r for r in xc["core_evaluation_same_bytes_side_by_side"]}
+    assert rows["label.n_scored"]["team_recomputed"] == 0
+    assert rows["label.n_scored"]["core_evaluation_same_bytes"] == 0
+    assert rows["label.support_rate"]["match"] is True          # both null = agreement
+    assert rows["label.regression_verdict"]["core_evaluation_same_bytes"] == "NOT_APPLICABLE"
+    assert rows["geometry.per_bundle_counts.de-kapitalverletzung"]["core_evaluation_same_bytes"] == 3
+    assert rows["geometry.per_bundle_counts.fr-bail-entretien"]["core_evaluation_same_bytes"] == 4
+    assert rows["geometry.per_bundle_counts.it-responsabilita-medica"]["core_evaluation_same_bytes"] == 4
+    for q in ("label.n_scored", "label.n_supported", "label.absolute_status",
+              "label.regression_verdict", "geometry.n_bundles_pass_all_11",
+              "geometry.absolute_status", "geometry.regression_verdict"):
+        assert rows[q]["match"] is True, f"{q} diverges from Core Evaluation's same-bytes numbers"
+
+
+def test_crosscheck_not_applicable_never_counted_as_pass(packet_dir, label_rules,
+                                                         geometry_rules, eval_mount, product_mount):
+    """The NOT_APPLICABLE regression verdict published beside Evaluation's own
+    NOT_APPLICABLE must carry the not-a-pass guard on both sides."""
+    _, label_res, geom_res = _scored(packet_dir, label_rules, geometry_rules)
+    xc = crosscheck.build_crosscheck(label_res, geom_res, eval_mount, product_mount)
+    rows = {r["quantity"]: r for r in xc["core_evaluation_same_bytes_side_by_side"]}
+    row = rows["label.regression_verdict"]
+    assert row["team_recomputed"] == "NOT_APPLICABLE"
+    assert row["core_evaluation_same_bytes"] == "NOT_APPLICABLE"
+    assert row["not_applicable_is_not_pass"] is True
+    # No row anywhere may present NOT_APPLICABLE/NOT_MEASURED as a pass.
+    for r in xc["core_evaluation_same_bytes_side_by_side"]:
+        if r["team_recomputed"] in ("NOT_APPLICABLE", "NOT_MEASURED"):
+            assert r["not_applicable_is_not_pass"] is True
+
+
+def test_crosscheck_resolves_accepted_audit_gate(packet_dir, label_rules, geometry_rules,
+                                                 eval_mount, product_mount):
+    """The accepted 39325867172 audit gate is a PRODUCT lane artifact; resolving
+    it from the evaluation mount alone published nulls. It must resolve on
+    whichever accepted mount carries it, with its sha256 and its published
+    per-criterion re-score parsed verbatim."""
+    _, label_res, geom_res = _scored(packet_dir, label_rules, geometry_rules)
+    xc = crosscheck.build_crosscheck(label_res, geom_res, eval_mount, product_mount)
+    audit = xc["published_numbers"]["accepted_39325867172_audit"]
+    assert audit["found"] is True
+    assert audit["resolved_mount"] in ("evaluation", "product")
+    assert audit["sha256"] and len(audit["sha256"]) == 64
+    parsed = audit["geometry_rescore_parsed"]
+    assert parsed is not None
+    assert parsed["de-kapitalverletzung"] == 3
+    assert parsed["fr-bail-entretien"] == 4
+    assert parsed["it-responsabilita-medica"] == 4
+    for row in xc["geometry_side_by_side"]:
+        assert row["match_audit"] is True
+
+
+def test_crosscheck_names_divergence_when_same_bytes_numbers_differ(packet_dir, label_rules,
+                                                                   geometry_rules, eval_mount,
+                                                                   product_mount):
+    """Seeded control: if this team's recomputation disagreed with Core
+    Evaluation's same-bytes number, the divergence MUST be named in the
+    headline (never silently matched)."""
+    _, label_res, geom_res = _scored(packet_dir, label_rules, geometry_rules)
+    tampered = dict(geom_res)
+    tampered["per_bundle_counts"] = dict(geom_res["per_bundle_counts"])
+    tampered["per_bundle_counts"]["de-kapitalverletzung"] = 9
+    xc = crosscheck.build_crosscheck(label_res, tampered, eval_mount, product_mount)
+    assert any("CORE-EVALUATION SAME-BYTES DIVERGENCE" in h
+               for h in xc["divergence_headline"]), xc["divergence_headline"]
+    rows = {r["quantity"]: r for r in xc["core_evaluation_same_bytes_side_by_side"]}
+    assert rows["geometry.per_bundle_counts.de-kapitalverletzung"]["match"] is False
+
+
+def test_crosscheck_absent_sources_recorded_not_invented(tmp_path):
+    """With no Evaluation/product mount present, published numbers are recorded
+    as ABSENT with an explicit note -- never invented, never blocking."""
+    label_res = {"n_scored": 0, "n_supported": 0, "support_rate": None,
+                 "absolute_status": "LABEL_UNSOUND", "regression_verdict": "NOT_APPLICABLE",
+                 "gate_blocks_build": False}
+    geom_res = {"per_bundle_counts": {"de-kapitalverletzung": 3, "fr-bail-entretien": 4,
+                                      "it-responsabilita-medica": 4},
+                "absolute_status": "GEOMETRY_UNSOUND", "regression_verdict": "FAIL_REGRESSION",
+                "n_bundles_pass_all_11": 0, "gate_blocks_build": True}
+    xc = crosscheck.build_crosscheck(label_res, geom_res, tmp_path, tmp_path)
+    same = xc["published_numbers"]["core_evaluation_same_bytes_adjudication"]
+    assert same["found"] is False
+    assert "never invented" in same["note"]
+    audit = xc["published_numbers"]["accepted_39325867172_audit"]
+    assert audit["found"] is False
+    assert audit["geometry_rescore_parsed"] is None
+    rows = xc["core_evaluation_same_bytes_side_by_side"]
+    assert len(rows) == 1 and rows[0]["match"] is None
+    assert "absent" in rows[0]["note"]
+
+
+# ---------------------------------------------------------------------------
+# 17. byte-identity proof is machine-checked, not asserted (acceptance test 1)
+# ---------------------------------------------------------------------------
+def test_byte_identity_proof_machine_checked(packet_dir, frozen_rules_dir,
+                                             eval_mount, product_mount):
+    """The published BYTE_IDENTITY proof must be recomputable: every preserved
+    reference reproduces with zero measured-quantity differences, zero
+    unexpected differences, and only the declared provenance paths listed."""
+    from frontier_packet_serve_audit import byte_identity
+    results_dir = REPO_ROOT / "results/frontier/frontier-packet-serve-audit"
+    proof_path = results_dir / "BYTE_IDENTITY_39811229541.json"
+    assert proof_path.exists(), "byte-identity proof artifact missing"
+    stored = json.loads(proof_path.read_text(encoding="utf-8"))
+    assert stored["thresholds_or_rubrics_changed"] is False
+
+    fresh, _elapsed = run_audit(packet_dir, frozen_rules_dir, eval_mount, product_mount)
+    for check in stored["checks"]:
+        ref_path = Path(check["reference_path"])
+        assert ref_path.exists(), f"reference missing: {ref_path}"
+        ref = json.loads(ref_path.read_text(encoding="utf-8"))
+        recomputed = byte_identity.compare(fresh, ref, ref_path)
+        assert recomputed["measured_quantities_byte_identical"] is True, (
+            f"{ref_path.name}: measured quantities diverged -- reproduction broken")
+        assert recomputed["unexpected_differences"] == [], (
+            f"{ref_path.name}: undeclared difference {recomputed['unexpected_differences']}")
+        assert recomputed["reproduces"] is True
+        assert check["reproduces"] is True
+        assert check["measured_quantity_differences"] == []
+        assert check["unexpected_differences"] == []
+        # The declared list in the stored proof must equal the recomputed one
+        # (provenance paths only; charter_run_id value differs per run by design).
+        stored_paths = sorted(d["path"] for d in check["declared_provenance_differences"])
+        fresh_paths = sorted(d["path"] for d in recomputed["declared_provenance_differences"])
+        assert stored_paths == fresh_paths, (ref_path.name, stored_paths, fresh_paths)
+    assert stored["byte_identical_reproduction_demonstrated"] is True
+    # Every measured section named in the proof is actually present in the record.
+    for section in stored["measured_sections"]:
+        assert byte_identity._get(fresh, section) is not byte_identity._MISSING, section

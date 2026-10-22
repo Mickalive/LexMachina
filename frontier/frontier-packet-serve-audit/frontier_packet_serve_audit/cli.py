@@ -44,6 +44,30 @@ EXPECTED_HANDOFF_SHA256 = "5b758a3da820a562dfadb9af1fbb5ff2acd9ba395fa151a365712
 EXPECTED_DISCLOSURES_SHA256 = "87147f114fd3bfe278077afa83613f2c586c8c8d95aa77b287c4fce916cb31d3"
 EXPECTED_CLAIM_CACHE_SHA256 = "7e501823c63783294e70962284d72ff4b541b17807aa6bf6f2478fd85264c02d"
 
+# Bundle raw sha256 as pinned by the pre-computation freeze
+# (results/frontier/frontier-packet-serve-audit/RULES.json input_packet.bundles,
+# committed before any scoring). These are the SCORED inputs: a bundle byte
+# change would need re-scoring and would be a NEW charter, so they are pinned
+# hard and never relaxed.
+EXPECTED_BUNDLE_RAW_SHA256 = {
+    "de-kapitalverletzung": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
+    "fr-bail-entretien": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
+    "it-responsabilita-medica": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b",
+}
+
+DRIFT_DECLARATION = (
+    "DECLARED INPUT-IDENTITY DRIFT (charter dependency 1 / acceptance test 1): handoff.json "
+    "and/or disclosures.json no longer hash to this team's pre-computation freeze pins. The "
+    "product lane regenerated them for the SAME packet id (39319405429). Both the freeze pin "
+    "and the observed sha256 are recorded side by side and no historical measured artifact is "
+    "overwritten. This is NOT a packet rebuild and NOT a repair that needs re-scoring: "
+    "packet.json, manifest.json, all three scored bundles and CLAIM_CACHE_VERIFICATION.json "
+    "remain byte-identical to the charter pins, so the scored population and every measured "
+    "quantity are unchanged. Per the charter stop rule a repair that needs re-scoring is a NEW "
+    "charter; this one does not, so the SAME charter keeps measuring the accepted successor "
+    "bytes. No threshold, rubric, K or verdict contract is touched by this declaration."
+)
+
 
 def _sha256_file(path: Path) -> str:
     h = hashlib.sha256()
@@ -119,9 +143,6 @@ def run_audit(packet_dir: Path, frozen_rules_dir: Path, eval_mount: Path, produc
     # ---- (c) MARGINAL DISCOVERY ------------------------------------------
     marginal = marginal_discovery.measure_packet(bundles)
 
-    # ---- CROSS-CHECK ------------------------------------------------------
-    xcheck = crosscheck.build_crosscheck(label_res, geom_res, eval_mount, product_mount)
-
     # ---- VERDICT ----------------------------------------------------------
     v = verdict.decide(label_res, geom_res, marginal)
     verdict.assert_machine_check(v)
@@ -154,6 +175,14 @@ def run_audit(packet_dir: Path, frozen_rules_dir: Path, eval_mount: Path, produc
                                    and reachability["both_outcomes_reachable"]),
     }
 
+    # ---- CROSS-CHECK ------------------------------------------------------
+    # Placed BESIDE Core Evaluation's published numbers on the same bytes
+    # (charter acceptance test (2)). Consumes accepted mount artifacts
+    # read-only; re-derives no threshold.
+    xcheck = crosscheck.build_crosscheck(label_res, geom_res, eval_mount, product_mount,
+                                         packet_json_sha256=packet_sha,
+                                         team_non_vacuity=non_vacuity_summary)
+
     record = {
         "schema": "frontier-packet-serve-audit/1",
         "team_id": "frontier-packet-serve-audit",
@@ -174,6 +203,42 @@ def run_audit(packet_dir: Path, frozen_rules_dir: Path, eval_mount: Path, produc
             "bundle_raw_sha256": bundle_shas,
             "bundle_content_sha256": content_shas,
             "n_decisions": {qid: len(bundles[qid].get("decisions") or []) for qid in QIDS},
+            "scored_inputs": {
+                "definition": "packet.json, manifest.json, the three anchor bundles and "
+                              "CLAIM_CACHE_VERIFICATION.json -- the bytes the frozen label "
+                              "and geometry scorers actually read",
+                "expected_bundle_raw_sha256_freeze_pin": EXPECTED_BUNDLE_RAW_SHA256,
+                "bundle_raw_match_freeze": {qid: bundle_shas[qid] == EXPECTED_BUNDLE_RAW_SHA256[qid]
+                                            for qid in QIDS},
+                "all_match_charter_and_freeze": bool(
+                    packet_sha == EXPECTED_PACKET_JSON_SHA256
+                    and manifest_sha == EXPECTED_MANIFEST_SHA256
+                    and claim_cache_sha == EXPECTED_CLAIM_CACHE_SHA256
+                    and all(bundle_shas[qid] == EXPECTED_BUNDLE_RAW_SHA256[qid] for qid in QIDS)),
+                "re_scoring_required": False,
+                "re_scoring_required_reason": "every scored input is byte-identical to the "
+                                              "charter/freeze pins",
+            },
+            "non_scored_input_drift": {
+                "inputs": {
+                    "handoff.json": {
+                        "freeze_pin_sha256": EXPECTED_HANDOFF_SHA256,
+                        "observed_sha256": handoff_sha,
+                        "matches_freeze": handoff_sha == EXPECTED_HANDOFF_SHA256,
+                        "role": "provenance/metadata only; never read by a frozen scorer",
+                    },
+                    "disclosures.json": {
+                        "freeze_pin_sha256": EXPECTED_DISCLOSURES_SHA256,
+                        "observed_sha256": disclosures_sha,
+                        "matches_freeze": disclosures_sha == EXPECTED_DISCLOSURES_SHA256,
+                        "role": "abstention count source (counter_anchor.n_abstained); "
+                                "observed values published in label_half.per_bundle.",
+                    },
+                },
+                "any_drift": bool(handoff_sha != EXPECTED_HANDOFF_SHA256
+                                  or disclosures_sha != EXPECTED_DISCLOSURES_SHA256),
+                "declaration": DRIFT_DECLARATION,
+            },
         },
         "frozen_rules": {
             "rules_label_sha256": label_rules.sha256,
