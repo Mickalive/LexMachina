@@ -1,0 +1,72 @@
+{
+  "schema": "lex-evaluation-v62-retrieval-pool-attribution-hypothesis/1",
+  "lane": "evaluation",
+  "direction_version": 62,
+  "github_run": 39739350804,
+  "frozen_at_utc": "2026-10-22T07:46:54Z",
+  "question": "The accepted falsification mf::concept_coverage::39319405429::de-kapitalverletzung says that two of the eight core concepts of the served German question (kapitalverletzung, uberwachungspflicht) retrieve ZERO served rows. It does NOT say why, and the three candidate causes need three DIFFERENT product remedies. v62 evaluation lane question, FAST-MVP framing: attribute that one accepted failure to exactly one of three frozen cause classes with a SMALLEST EXECUTABLE measurement, so the product lane is told WHICH change to make instead of guessing. Class A RETRIEVAL_BUDGET: the ranked candidate pool holds the concept but the product fetched one page only (max_pages_per_variant=1, max_requests=1) -> remedy: raise the per-variant page budget. Class B SERVED_ASSEMBLY: the fetched page 0 already holds the concept but the shipped bundle dropped it -> remedy: fix the bundle assembly / channel merge. Class C QUERY_RECALL: the concept is in no page of the product's own ranked result set -> remedy: query expansion / concept injection, not paging.",
+  "hypotheses": {
+    "H1_pool_is_larger_than_the_page_the_product_fetched": "The product's own accepted request record (bundle provenance.searches[0]: limit 50, offset 0, total 254 total_is_lower_bound true, has_more true, next_offset 50; provenance.targets: max_pages_per_variant 1, max_requests 1, max_candidates 50) shows the served German question fetched 50 of at least 254 ranked candidates. The un-fetched part of the pool is therefore the first thing to measure.",
+    "H2_attribution_is_decidable": "For each of the two zero-row concepts the concept's location in the product's own ranked result set is decidable from a live replay of the product's own recorded request: absent from every fetched page (C), present only beyond page 0 (A), or present in page 0 but missing from the shipped bundle (B).",
+    "H3_the_replay_is_faithful_enough_to_decide": "A live replay of the product's own request reproduces the served page-0 id set closely enough that the pool beyond page 0 is the pool the product would have had (frozen fidelity threshold: Jaccard of the live and served page-0 id sets >= 0.90). Below the threshold the corpus drifted and the attribution is NOT_MEASURED_VACUOUS.",
+    "H4_the_zero_concepts_are_a_real_lexical_gap": "The two concepts are zero in the served bundle with AND without the hydrated full_text, so the accepted failure is not an artefact of lazy full-text hydration; and a concept-only query reaches at least one row that contains the concept, so the corpus can express the concept and the question's ranked pool simply does not put it in front of the product.",
+    "H5_the_pool_cannot_be_reconstructed_offline": "The accepted product mount cannot reproduce the pool behind the served rows: the accepted packet's own results/product/gate_packet/39319405429/CLAIM_CACHE_VERIFICATION.json names 26 cache envelopes as 'the packet-of-record build's own retrieval envelopes for the three preregistered gate questions' and declares deleted_or_missing [] with append-only discipline holding, yet none of the 26 exists in the accepted mount, whose results/product/query_cache holds 525 files while the bundle's own provenance.cache_stats reports n_keys 1434 for the build. A live replay is therefore the only way to see the pool."
+  },
+  "frozen_sample": {
+    "mount": "/tmp/lex_accepted/product",
+    "mount_head_at_freeze": "489698218200a8e37a0c527158b3c16664bb1173",
+    "packet": "39319405429",
+    "primary_question": "de-kapitalverletzung",
+    "cross_language_questions": ["fr-bail-entretien", "it-responsabilita-medica"],
+    "pins": {
+      "results/product/gate_packet/39319405429/questions/de-kapitalverletzung.bundle.json": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
+      "results/product/gate_packet/39319405429/questions/de-kapitalverletzung.question.json": "f79dec05182cea555e748d338841da2163a32632eb8408c065f9d20760209c2a",
+      "results/product/gate_packet/39319405429/questions/fr-bail-entretien.bundle.json": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
+      "results/product/gate_packet/39319405429/questions/it-responsabilita-medica.bundle.json": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b",
+      "results/product/gate_packet/39319405429/CLAIM_CACHE_VERIFICATION.json": "7e501823c63783294e70962284d72ff4b541b17807aa6bf6f2478fd85264c02d",
+      "results/evaluation/mapping_free_recall_falsifier/39693031072.json": "c1c27a55a36f29885c32bb3319e09d37cad128f7ad08442ed9d68e91334189fb",
+      "evaluation/subject_match_audit.py": "c207fd819ae4605de704d2cdc4a30254f39a9840994a2e43ea4ef10fb5656342",
+      "evaluation/mapping_free_recall_falsifier.py": "58a2e77a66bb60385a53185e9426447e8465da9105e8a0cb8945d5fd77bfb302"
+    }
+  },
+  "frozen_method": {
+    "request_shape": "GET https://mcp.opencaselaw.ch/api/decisions with the parameters the PRODUCT itself recorded: query = the accepted question.json 'question' text, limit = bundle provenance.searches[0].limit, offset = page_index * limit, sort = relevance, fields = full, include_pinpoint = false, no language parameter for the original variant. The base URL and the parameter shape are the accepted product adapter's own (frontier/frontier-query-retrieval/ocl_adapter/client.py search_page, DEFAULT_BASE_URL in ocl_adapter/config.py), not an invention of this lane.",
+    "pool_scan": "Walk the product's own ranked result set from offset 0 with limit = the bundle's recorded limit, until the endpoint reports has_more == false, with a frozen page budget of 8 pages (400 rows). The primary question is scanned to the end of the pool; the two cross-language questions are scanned for page 0 only (they are controls, not subjects).",
+    "concept_rule": "evaluation.subject_match_audit.question_concepts on the accepted question.json 'question' text. NOT re-derived. The row text is evaluation.subject_match_audit.row_match_text over the accepted field names title, regeste, snippet, full_text, citation, decision_id. The live rows are projected onto those field names with the accepted normaliser's documented citation rule (citation_string_{language}, then de/fr/it, then court + docket_number); a live search row carries no full_text (the product hydrates it lazily) and the live measurement is therefore LEXICAL, which is why the served side is also measured LEXICAL for the comparison.",
+    "zero_concept_input": "Recomputed from the accepted served bundle with the accepted rule (never copied from a record); cross-checked against the accepted record results/evaluation/mapping_free_recall_falsifier/39693031072.json by control C3.",
+    "cause_classes": {
+      "BEYOND_PAGE0_ONLY": "the concept is in 0 rows of the live page 0 and in >= 1 row of a page beyond page 0 -> RETRIEVAL_BUDGET_DEFECT",
+      "PAGE0_COVERS_ONLY": "the concept is in >= 1 row of the live page 0 and in 0 rows beyond, while the shipped bundle has 0 -> SERVED_ASSEMBLY_DEFECT",
+      "POOL_NEVER_COVERS": "the concept is in 0 rows of every fetched page -> QUERY_RECALL_DEFECT",
+      "POOL_COVERS": "the concept is in >= 1 row of the live pool and the shipped bundle already has >= 1 -> no retrieval or assembly defect is attributable"
+    },
+    "dominant_class": "The class with the most concepts; ties are broken by the frozen priority BEYOND_PAGE0 > PAGE0_COVERS_ONLY > POOL_NEVER_COVERS (the most actionable remedy first). Every per-concept class is published in full, so a tie never hides a class.",
+    "thresholds": {
+      "page0_jaccard_min": 0.9,
+      "max_pages": 8,
+      "nonsense_control_query": "zzqxvlexmachinaNonexistentControlToken"
+    },
+    "controls": {
+      "C1_page0_fidelity": "Jaccard of the live and served page-0 id sets >= 0.90 (EXACT at >= 0.999). Below -> NOT_MEASURED_VACUOUS.",
+      "C2_nonsense_query_zero_rows": "the nonsense query returns 0 rows, so a measured zero is a real zero.",
+      "C3_accepted_record_parity": "the recomputed served coverage equals the accepted record's per-question concept counts and zero list.",
+      "C4_full_text_independence": "every zero concept is zero in the served bundle with AND without full_text.",
+      "C5_pool_scan_complete": "the scan consumed every reported page (last page has_more == false).",
+      "C6_cross_language_page0_sanity": "the two questions whose served coverage has NO zero concept also have NO zero concept on the live page 0 (the method does not manufacture zeros).",
+      "C7_oracle_concept_reachable": "for every zero concept, a concept-only query reaches at least one row containing the concept (the corpus can express it)."
+    },
+    "exit_codes": {
+      "0": "POOL_ATTRIBUTION_NO_NEW_DEFECT",
+      "1": "POOL_ATTRIBUTION_DEFECT_ATTRIBUTED",
+      "2": "NOT_MEASURED_VACUOUS (never a pass, never a bar-met)"
+    }
+  },
+  "metrics_and_success_rules": {
+    "success": "every frozen control holds AND the per-concept cause class is decided for every zero concept AND the dominant class is published with its named remedy.",
+    "failure_mode_that_must_not_be_smoothed": "if any control fails, the run is NOT_MEASURED_VACUOUS (exit 2) and must be published as such; a vacuous run is never reported as a pass and never as an attribution.",
+    "discriminating_surprise": "H2 expects the two concepts to be decidable. If the live pool carries NEITHER concept at any page, the cause class is QUERY_RECALL_DEFECT and the remedy is query expansion, NOT paging - the opposite of the obvious reading of the bundle's own total. If the concepts turn up in page 0, the defect is SERVED_ASSEMBLY. Either outcome is a valid, publishable attribution; neither may be re-labelled after the fact."
+  },
+  "expected_outcome_disclosure": "The frozen expectation is deliberately NOT a verdict. The live replay of the served question's page 0 was already observed (pre-freeze probe, disclosed below) to share 49 of 50 ids with the shipped page-0 rows, so the corpus is expected to have drifted by roughly one row; the pooled pages beyond offset 0 have never been observed by this lane. The dominant class is therefore unknown at freeze time and is whatever the frozen rules produce.",
+  "pre_freeze_disclosure": "Before this freeze the following executions were made, and they are disclosed as implementation validation, never as claim-bearing measurement: (a) a sha256 pin computation over the repo, the accepted mount, the accepted packet files and the accepted record; (b) ONE live GET /decisions with the product's own parameters and offset 0 for the served German question, whose returned ids were compared with the shipped page-0 ids (49 of 50 shared; one id present live only, one present in the bundle only) - this probe read NO page beyond offset 0 and computed NO concept coverage; (c) ONE live GET /decisions with query=Kapitalverletzung&limit=2 to confirm the endpoint's response shape and field names. The offline unit suite tests/evaluation/test_retrieval_pool_attribution.py (11 cases) was executed under evaluation/no_pytest_runner.py and passed 11/0/0. Nothing else was executed.",
+  "claim_ceiling": "This hypothesis freezes the sample, the request shape, the concept rule, the cause classes, the thresholds, the controls and the exit-code vocabulary BEFORE the claim-bearing live execution of run 39739350804. It meets, moves and re-derives NO frozen absolute bar (LABEL_SOUND and GEOMETRY_SOUND stay REPORTED-ONLY); it lifts NO DO-NOT-SERVE order; it certifies NO packet admission; it claims NO jurist usefulness; it does NOT re-issue, weaken or re-score the accepted falsification, which stands unchanged; human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session stay false; owner_decision_required stays false; no obsolete universal-174k benchmark is run. The measurement is a LIVE measurement against the public OpenCaseLaw corpus and every record says so."
+}

@@ -1,0 +1,64 @@
+{
+  "schema": "lex-evaluation-v62-retrieval-pool-attribution-freeze/1",
+  "lane": "evaluation",
+  "direction_version": 62,
+  "github_run": 39739350804,
+  "instrument": "evaluation/retrieval_pool_attribution.py",
+  "instrument_sha256": "3ade35c21a7087cd39d52b60775a6085428f80491d5a08b002599c09ca9dbac3",
+  "instrument_test": "tests/evaluation/test_retrieval_pool_attribution.py",
+  "instrument_test_sha256": "a853540c7dc22f0ffef1a6ecd527522be96494d908ec76a2fd57d4450dce4517",
+  "hypothesis": "evaluation/V62_RETRIEVAL_POOL_ATTRIBUTION_HYPOTHESIS_V1.json",
+  "hypothesis_sha256": "60c8d179624c2a58520b8588c47a653e598e7dde802ac289a5f693b189be9337",
+  "frozen_at_utc": "2026-10-22T07:46:54Z",
+  "frozen_before_claim_bearing_execution": true,
+  "freeze_discipline": "This record and its hypothesis are committed BEFORE the claim-bearing live execution of run 39739350804 (the live OpenCaseLaw pool scan of the served German question, its two concept-only oracle queries, its nonsense control and the two cross-language page-0 controls). No cause class, threshold, control, success rule, request parameter or exit code may be edited after a claim-bearing result is observed; an edit invalidates the run and must be declared as a NEW frozen spec, never as a tuning. The instrument imports the ACCEPTED concept rule and row-text projection from evaluation/subject_match_audit.py and reads the request parameters out of the ACCEPTED bundle's own provenance; it re-derives no rule of its own.",
+  "ordering_proof_contract": "Freeze ordering is demonstrated from the git commit time of the commit adding evaluation/V62_RETRIEVAL_POOL_ATTRIBUTION_HYPOTHESIS_V1.json versus the first commit containing results/evaluation/retrieval_pool_attribution/39739350804.json. Reproduce with: git log --diff-filter=A --format='%H %cI %s' -- evaluation/V62_RETRIEVAL_POOL_ATTRIBUTION_HYPOTHESIS_V1.json",
+  "append_only_convention": "A file named for run X holds run X's measurement (F-3B convention): this run writes results/evaluation/retrieval_pool_attribution/39739350804.json, results/evaluation/minimal_ca_benchmark_v3/39739350804.json, results/evaluation/minimal_ca_benchmark_v3/39739350804_engine_mapping_free_recall_falsifier.json, results/evaluation/remedy_a_landed_probe/39739350804.json, results/evaluation/orchestration/39739350804_*.json, reports/evaluation/V62_STAND_READY_CYCLE_39739350804.md and state/evaluation.json (v62 block) only; nothing existing is overwritten, edited or deleted. The 39732040165 artifacts of the earlier producer attempt stay untouched.",
+  "frozen_sample": {
+    "mount": "/tmp/lex_accepted/product",
+    "mount_head_at_freeze": "489698218200a8e37a0c527158b3c16664bb1173",
+    "packet": "39319405429",
+    "mount_input_digests_before_execution": {
+      "results/product/gate_packet/39319405429/questions/de-kapitalverletzung.bundle.json": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
+      "results/product/gate_packet/39319405429/questions/de-kapitalverletzung.question.json": "f79dec05182cea555e748d338841da2163a32632eb8408c065f9d20760209c2a",
+      "results/product/gate_packet/39319405429/questions/fr-bail-entretien.bundle.json": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
+      "results/product/gate_packet/39319405429/questions/it-responsabilita-medica.bundle.json": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b",
+      "results/product/gate_packet/39319405429/CLAIM_CACHE_VERIFICATION.json": "7e501823c63783294e70962284d72ff4b541b17807aa6bf6f2478fd85264c02d"
+    },
+    "repo_input_digests": {
+      "results/evaluation/mapping_free_recall_falsifier/39693031072.json": "c1c27a55a36f29885c32bb3319e09d37cad128f7ad08442ed9d68e91334189fb",
+      "evaluation/subject_match_audit.py": "c207fd819ae4605de704d2cdc4a30254f39a9840994a2e43ea4ef10fb5656342",
+      "evaluation/mapping_free_recall_falsifier.py": "58a2e77a66bb60385a53185e9426447e8465da9105e8a0cb8945d5fd77bfb302"
+    }
+  },
+  "frozen_parameters": {
+    "base_url": "https://mcp.opencaselaw.ch/api",
+    "endpoint": "/decisions",
+    "query_source": "the accepted questions/<qid>.question.json field 'question'",
+    "limit_source": "the accepted bundle's provenance.searches[0].limit",
+    "offset_rule": "offset = page_index * limit, starting at 0",
+    "sort": "relevance",
+    "fields": "full",
+    "include_pinpoint": false,
+    "language": "not sent for the original variant (the accepted bundle records language_filter null for it)",
+    "max_pages": 8,
+    "page0_jaccard_min": 0.9,
+    "nonsense_control_query": "zzqxvlexmachinaNonexistentControlToken",
+    "user_agent": "LexMachina-Evaluation/1.0 (v62 retrieval pool attribution)",
+    "soft_pace_min_interval_seconds": 0.25
+  },
+  "frozen_controls": [
+    "C1_page0_fidelity", "C2_nonsense_query_zero_rows", "C3_accepted_record_parity",
+    "C4_full_text_independence", "C5_pool_scan_complete", "C6_cross_language_page0_sanity",
+    "C7_oracle_concept_reachable"
+  ],
+  "exit_code_contract": {
+    "0": "POOL_ATTRIBUTION_NO_NEW_DEFECT",
+    "1": "POOL_ATTRIBUTION_DEFECT_ATTRIBUTED",
+    "2": "NOT_MEASURED_VACUOUS (never a pass, never a bar-met)"
+  },
+  "live_measurement_disclosure": "This is the first evaluation instrument in this lane that performs network calls against the public OpenCaseLaw API. It must, because the question it answers is unanswerable offline: the accepted packet's own CLAIM_CACHE_VERIFICATION.json names 26 cache envelopes as the packet-of-record build's own retrieval envelopes and declares deleted_or_missing [] with append-only discipline holding, yet NONE of the 26 exists in the accepted mount (525 committed query_cache files against the bundle's own provenance.cache_stats.n_keys 1434). Every result record carries live_measurement true, the corpus-drift controls C1 and C5, and the timestamp of the measurement.",
+  "numeric_environment": "The instrument performs integer counting, set cardinality and substring matching over strings. No numpy/BLAS reduction and no float comparison enters any verdict. The numeric environment is disclosed in the result record per factory-wide requirement 30.",
+  "pre_freeze_disclosure": "Before this freeze the only executions were: (a) sha256 pin computation over the repo, the accepted mount and the accepted packet files; (b) ONE live GET /decisions at offset 0 with the product's own parameters for the served German question, comparing returned ids with the shipped page-0 ids (49 of 50 shared) - no page beyond offset 0 was read and no concept coverage was computed; (c) ONE live GET /decisions with query=Kapitalverletzung&limit=2 confirming the response shape; (d) the offline unit suite under evaluation/no_pytest_runner.py, 11 passed / 0 failed. All of it is implementation validation, never a claim-bearing measurement.",
+  "claim_ceiling": "This freeze establishes the pre-run sample pins, the request shape, the cause classes, the thresholds, the controls and the exit-code vocabulary of ONE attribution measurement. It meets, moves and re-derives NO frozen absolute bar; it lifts NO DO-NOT-SERVE order; it certifies NO admission; it claims NO jurist usefulness; it does NOT re-issue, weaken or re-score the accepted falsification. human_gate_ready stays false."
+}
