@@ -1,0 +1,41 @@
+{
+  "schema": "lex-evaluation-operational-resume-hypothesis/1",
+  "hypothesis_id": "OPERATIONAL_RESUME_39820650174_V2",
+  "lane": "evaluation",
+  "direction_version": 62,
+  "run_id_of_record": "39820650174",
+  "resumed_snapshot_run_id": "39820233238",
+  "producer_snapshot_run_id": "39813664201",
+  "supersedes_ancestry_predicate_of": "OPERATIONAL_RESUME_39820650174_V1",
+  "v1_result_preserved": "results/evaluation/operational_resume/39820650174.json (verdict RESUME_DIVERGENCE, exit 1; not overwritten)",
+  "question": "Is the producer snapshot audit-ready under the same six gates as V1, with the R5 ancestry decision re-derived so that a shallow single-commit accepted mount cannot be misread as a planner change?",
+  "why_v2": "V1 failed only R5. The planner hash matched exactly (9764a37e...), but the accepted mount is a shallow single-commit clone: the producer product head 44330212 is absent locally, so 'git merge-base --is-ancestor' returned 128 (bad object), and V1 collapsed that unmeasurable case to False. Public compare evidence (pinned at results/evaluation/operational_resume/39820650174_product_ancestry.json) shows base == merge_base == 44330212, head == fe219a19, behind_by 0, status ahead - the producer head IS an ancestor and five later product accepts followed. V2 distinguishes MEASURED_ANCESTOR, MEASURED_NOT_ANCESTOR and NOT_MEASURABLE_SHALLOW_MOUNT, and uses the pinned evidence only in the third case. The V1 result is preserved and checked by C6.",
+  "hypothesis": "R1-R4 and R6 hold exactly as frozen in V1. R5 holds because the shipped planner hash 9764a37e... equals the producer-recorded planner and (a) local git measures the producer head 44330212 as an ancestor when the object is present, or (b) when the mount is shallow and the object is absent, the pinned public compare evidence satisfies base == producer head, head == current mount head, merge_base == producer head, behind_by == 0 and status in {ahead, identical}. A locally measured NOT_ANCESTOR always fails, regardless of the evidence. The state remains reconciled: both files identical, github_run 39820650174, direction_version 62, accepted_run_id 39806933576 (newest in-tree PASS audit gate), evidence_refs_n == len and every ref resolvable, all admission/human flags false.",
+  "baseline": "the same producer artifacts, V1 freeze and V1 result as V1, plus the pinned public ancestry evidence. No producer result is re-run and no new measurement is made.",
+  "gates": {
+    "R1_snapshot_identity_and_scope": "unchanged from V1",
+    "R2_freeze_pins_hold": "unchanged from V1",
+    "R3_recorded_results_internally_consistent": "unchanged from V1",
+    "R4_coverage_unions_recompute_without_reach_loss": "unchanged from V1",
+    "R5_shipped_planner_unchanged_at_current_mount": "planner hash matches AND ancestry is MEASURED_ANCESTOR, OR (ancestry is NOT_MEASURABLE_SHALLOW_MOUNT AND pinned evidence attests the producer head is an ancestor). Local MEASURED_NOT_ANCESTOR fails.",
+    "R6_state_reconciled_and_resolvable": "unchanged from V1"
+  },
+  "controls": {
+    "C1_planted_pin_drift_is_detected": "unchanged from V1",
+    "C2_planted_reach_loss_is_detected": "unchanged from V1",
+    "C3_planted_planner_mismatch_is_detected": "unchanged from V1",
+    "C4_wrong_run_id_is_exit_2": "unchanged from V1",
+    "C5_planted_non_ancestor_evidence_fails_R5": "flipping merge_base in an in-memory copy of the ancestry evidence must make ancestry_evidence_attests return false",
+    "C6_v1_result_is_preserved_verbatim": "the V1 result still hashes to 55ffdba8... and still carries verdict RESUME_DIVERGENCE with exit_code 1"
+  },
+  "exit_code_contract": {
+    "0": "RESUME_VERIFIED_AND_AUDIT_READY",
+    "1": "RESUME_DIVERGENCE",
+    "2": "ENVIRONMENT_OR_VACUOUS"
+  },
+  "population": "the two committed producer instruments and their results at snapshot c87a33bc, the frozen benchmark, the product mount's shipped planner, the pinned ancestry evidence, and this run's reconciled state files. No new packet, bundle or retrieval.",
+  "claim_ceiling": "Same as V1: the producer snapshot's completed v62 ordered-item-(1)/(2) work is in-scope, pin-clean, internally reproducible from its committed artifacts, and the shipped planner it verified is still the shipped planner at the current accepted mount (ancestry established from pinned public evidence because the mount is shallow). It is NOT a new counter-authority, retrieval, label, geometry, live-answer or serve measurement, does not move or meet either frozen bar (both stay REPORTED-ONLY/unmet on the v3 bytes), lifts no DO-NOT-SERVE order, and keeps all admission/human flags false. No universal-174k benchmark.",
+  "freeze_first_disclosure": "V1 was frozen and executed first; its R5 failure is preserved verbatim. The V2 ancestry correction is derived from the public compare evidence and the mount's shallow-clone state, both recorded before this freeze. No other gate is changed. If V2 fails, it is reported, not re-frozen again in this cycle.",
+  "network_policy": "zero network at execution: the instrument reads committed files and runs local git; the public compare response is a pinned input file, not a live call.",
+  "determinism": "SHA-256 hashing, exact set membership, exact JSON field comparison; no RNG, threshold or model."
+}
