@@ -1,0 +1,79 @@
+{
+ "schema": "lex-evaluation-orchestration-diagnosis/1",
+ "run_id": 39872787455,
+ "run_display_title": "Core evaluation dirV63 repair1",
+ "workflow_name": "Core evaluation dirV63 repair1",
+ "event": "workflow_dispatch",
+ "head_branch": "main",
+ "head_sha": "33ae95441c5d363febecdc4d4a95c91aa4968eae",
+ "status": "completed",
+ "conclusion": "failure",
+ "run_attempt": 1,
+ "created_at_utc": "2026-10-22T23:35:25Z",
+ "updated_at_utc": "2026-10-22T23:40:47Z",
+ "captured_at_utc": "2026-10-22T23:43:00Z",
+ "capture_method": "GitHub REST API, unauthenticated GET /repos/Mickalive/LexMachina/actions/runs/39872787455 and /jobs?per_page=100; plus local git ls-remote/rev-parse of the persisted branches. Job log download returned HTTP 403 'Must have admin rights to Repository' and is therefore NOT available; every statement below is either a REST fact or an explicitly hedged inference.",
+ "rest_job_facts": {
+  "team": {
+   "job_id": 120151074961,
+   "conclusion": "failure",
+   "failed_step": {"number": 6, "name": "Run lane cycle", "conclusion": "failure"},
+   "skipped_steps": [
+    {"number": 7, "name": "Validate active MVP producer state", "conclusion": "skipped"},
+    {"number": 9, "name": "Enforce lane write scope", "conclusion": "skipped"}
+   ],
+   "successful_steps_after_failure": [
+    {"number": 8, "name": "Clean generated junk", "conclusion": "success"},
+    {"number": 10, "name": "Persist team snapshot", "conclusion": "success"}
+   ]
+  },
+  "audit": {"job_id": 120152835995, "conclusion": "skipped"},
+  "integrate": {"job_id": 120152836709, "conclusion": "skipped"},
+  "resilience": {"job_id": 120152835272, "conclusion": "success"}
+ },
+ "snapshot_facts_measured_via_git": {
+  "cycle/core/evaluation/39872787455/team": "a07602e4858920902d926e75267619642261e0b1",
+  "cycle/core/evaluation/39872787455/team-attempt-1": "a07602e4858920902d926e75267619642261e0b1",
+  "cycle/core/evaluation/39870661520/team": "a07602e4858920902d926e75267619642261e0b1",
+  "cycle/core/evaluation/39870661520/team-attempt-1": "a07602e4858920902d926e75267619642261e0b1",
+  "cycle/core/evaluation/39870661520/audit": "cd537601547fdedc18986b3376dd5cad055d0401",
+  "byte_identical_to_rejected_snapshot": true,
+  "durable_delta_from_producer_step": "none - the persisted tree is exactly the rejected tree a07602e4; the snapshot commit message still reads 'evaluation cycle 39870661520 repair 0'",
+  "persisted_tree_contains_only_the_three_rejected_files": [
+   "reports/evaluation/RETRIEVAL_CA_BENCHMARK_local_verification.md",
+   "results/evaluation/minimal_retrieval_ca_benchmark/local_verification.json",
+   "results/evaluation/minimal_retrieval_ca_benchmark/local_verification_engine_mapping_free_recall_falsifier.json"
+  ]
+ },
+ "input_context": {
+  "dispatch_kind": "repair round 1 of rejected cycle 39870661520",
+  "basis": "run display title contains 'repair1' and the persisted snapshot is exactly the team branch of 39870661520; the repair input id itself is not exposed in the public REST run object, so this is an INFERENCE from those two facts, not a REST field",
+  "prior_audit_gate": {
+   "path": "results/audit/evaluation/CYCLE_39870661520_GATE.json",
+   "gate": "REVISE",
+   "safe_to_integrate": false,
+   "required_fixes": ["D1 provenance rebind", "D2 state contract", "D3 duplicate disclosure + re-open trigger adjudication"],
+   "explicit_instruction": "Do not re-run the falsification a sixth time for this repair: the frozen measurement stands; the repair is provenance/state reconciliation only."
+  }
+ },
+ "diagnosis": {
+  "direct_cause": "The producer step 'Run lane cycle' (step 6) exited nonzero. Every later validation/scope step was skipped; the snapshot persist step ran with if:always() and succeeded. The audit and integrate jobs were skipped because needs.team.result != success.",
+  "validation_outcome": "The workflow's own 'Validate active MVP producer state' step did not execute and therefore did not reject the state. The failure occurred earlier, inside the agent/wrapper step.",
+  "zero_delta_mechanism": "Evaluation dispatches run with LEX_REQUIRE_DELTA=1. The shared launcher run-ox-with-retry.sh exits 67 with LEX_ZERO_DELTA_REPAIR when the agent exits 0 but leaves neither a new commit nor a dirty tree. The persisted snapshot is byte-identical to the input snapshot, which is CONSISTENT WITH that guard firing, but the exact runtime stdout is unavailable (logs 403), so this attribution is INFERENCE, not log-confirmed.",
+  "why_no_durable_delta_survived": "Persist runs unconditionally and commits `git add -A`; because the tree already equalled a07602e4, `git commit` was a no-op and the force-push re-published the same commit. No repair content was lost: nothing had been written.",
+  "negative_result": "Round-1 repair produced zero discharge of D1/D2/D3. The rejected provenance/state defects therefore remain open at the resumed snapshot and are the exact work this cycle must complete."
+ },
+ "remediation_in_this_cycle": {
+  "D1": "metadata-only rebind of both machine records into run-bound records for the current dispatch (run 39873360672), preserving the originals verbatim and naming measurement_origin_run_id=39870661520",
+  "D2": "write the missing state/evaluation.json contract for this cycle (proposed/github run, acceptance status, accepted_run_id=39866970583, evidence_refs, next_recommendation, continue_recommended=false)",
+  "D3": "publish the byte-duplicate lineage vs accepted 39854748616 and re-adjudicate the three re-open triggers as NOT FIRED with their basis",
+  "benchmark_reexecuted": false,
+  "reason_no_reexecution": "the accepted audit ordered provenance/state reconciliation only and the measurement is independently re-verified as byte-identical to accepted 39854748616"
+ },
+ "claim_ceiling": "Diagnosis evidence only. It establishes the public REST job/step facts of run 39872787455, the byte-equality of its persisted snapshot with the rejected 39870661520 tree, and a hedged mechanism attribution. It does not recover the unavailable agent log, does not assign blame to a model, and makes no measurement claim.",
+ "provenance": {
+  "rest_capture_source": "https://api.github.com/repos/Mickalive/LexMachina/actions/runs/39872787455 and /jobs?per_page=100",
+  "log_access": "HTTP 403, admin rights required - unavailable and not fabricated",
+  "network_calls_during_this_cycle_instrument": []
+ }
+}
