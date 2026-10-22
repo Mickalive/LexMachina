@@ -1,0 +1,49 @@
+{
+  "schema": "lex-evaluation-freeze-record/1",
+  "freeze_id": "DEGRADATION_DISCLOSURE_CROSSCHECK_FREEZE_V1",
+  "lane": "evaluation",
+  "direction_version": 62,
+  "run_id_of_record": "39820650174",
+  "frozen_at_utc": "2026-10-22T17:26:04Z",
+  "frozen_before_claim_bearing_execution": true,
+  "why_a_new_freeze": "New run id and a disclosure question that was ordered by the product audit of cycle 39815102517 (item 3) but never independently cross-checked by evaluation. The instrument executes the shipped fallback and adversarial-pass code on the two recorded bundles. No prior freeze covers this question; the v62 frozen benchmark, rubric and bars are pinned but not re-derived or re-scored.",
+  "freeze_history_note": "First freeze for this question. The two recorded bundles were produced by product cycle 39667945530 before ordered item 3 landed; their pre-fix state is recorded as context, not as a current failure. Append-only: prior product and evaluation results are preserved verbatim.",
+  "gates_frozen_in_hypothesis": [
+    "G1_abort_is_a_first_class_answer_field",
+    "G2_adversarial_pass_inherits_the_abort",
+    "G3_empty_prose_is_vacuous_not_measured",
+    "G4_healthy_bundle_stays_non_degraded"
+  ],
+  "controls_frozen_in_hypothesis": [
+    "C1_deleting_the_answer_field_fails_G1",
+    "C2_relabelling_the_pass_as_measured_fails_G2",
+    "C3_injecting_an_abort_into_the_healthy_leg_fails_G4",
+    "C4_network_guard_is_armed_and_unused",
+    "C5_product_and_input_pins_hold_before_and_after"
+  ],
+  "exit_code_contract": {
+    "0": "DEGRADATION_DISCLOSURE_VISIBLE",
+    "1": "DEGRADATION_DISCLOSURE_GAP",
+    "2": "ENVIRONMENT_OR_VACUOUS"
+  },
+  "pins": {
+    "evaluation/DEGRADATION_DISCLOSURE_CROSSCHECK_HYPOTHESIS_V1.json": "23397408168d076930cce76bfb328c72fca00fc8f1fb32c1be78f804ce6ba2d2",
+    "evaluation/degradation_disclosure_crosscheck.py": "a2a0e12dce3c9ed068c1a38ec26b82f9904fcb78a4742fd037c2380e9212422f",
+    "evaluation/retrieval_gate/frozen_retrieval_benchmark.json": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72"
+  },
+  "product_mount": "/tmp/lex_accepted/product",
+  "product_mount_head_expected": "fe219a19",
+  "product_pins": {
+    "product/query/pipeline.py": "f59bba1fe41433d74f3fc5e962c20d3b957959caf27df501173e2a144029c078",
+    "product/query/adversarial_retrieval.py": "9764a37e8bc7c8c31a329ba15db89657e8ee47dde8ada924fa55d5e755fd06a9",
+    "product/query/answer.py": "acbc161436429e95c4bff04234e69be2e7a1e7333837e589753bbaae727f5f08",
+    "product/answer_reliability.py": "46e195dea1c034a6d736fcddf7bcec71a5c2210aa2ada76e234d19085c1ffffb",
+    "results/product/live_slice/CYCLE_39667945530_bundle.json": "d58eea71818ec8515e47a3e115fca4c9446f311baa740b3f267097b841bdbf2d",
+    "results/product/live_slice/CYCLE_39667945530_FIX1_bundle.json": "f8123012f1b9d61314cd06bb1563260ca9393aee4f06fdadc717566a81edd1b0"
+  },
+  "network_policy": "zero network; adversarial_retrieval_pass is called offline with max_new=0 and hydrate_top=0 under an armed socket guard",
+  "no_thresholds_or_bars_touched": true,
+  "no_universal_174k_benchmark": true,
+  "append_only_convention": "result written under results/evaluation/degradation_disclosure_crosscheck/39820650174.json; no prior result file is edited; the recorded product bundles are read-only inputs",
+  "timestamp_integrity_note": "frozen_at_utc is the container's real UTC clock at freeze time; the freeze commit precedes the claim-bearing execution, and the result records both digests."
+}
