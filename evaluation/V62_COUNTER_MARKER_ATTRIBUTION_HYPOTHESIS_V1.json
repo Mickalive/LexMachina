@@ -1,0 +1,85 @@
+{
+  "schema": "lex-evaluation-v62-counter-marker-attribution-hypothesis/1",
+  "lane": "evaluation",
+  "direction_version": 62,
+  "github_run": 39771077625,
+  "frozen_at_utc": "2026-10-22T12:05:00Z",
+  "question": "v62 evaluation ordered work, FAST-MVP framing. The ACCEPTED cached-bundle benchmark (run 39766474798, gate PASS, record sha256 5fd695aa243e9f47858e05fe2e1b3875cf9f6b7baa484802047539839c941708) measured a NEGATIVE RESULT on real cached OpenCaseLaw rows: the frozen counter-marker rule (a norm_token AND a limitation_token in title+regeste+snippet) yields ZERO counter candidates for 2/4 frozen questions (corporate-criminal-liability, business-judgment-rule) while the SAME pool contains 4/6 and 1/4 of the questions' own frozen known_counter_ids. The record does NOT say WHY. This cycle attributes that accepted negative result to exactly one frozen cause class per question with the SMALLEST EXECUTABLE offline benchmark, so the product lane is told which layer to change instead of guessing: (i) the marker/lexicon layer is blind on known-counter rows the counter channel already retrieved (remedy: richer evidence surface, richer lexicon, or an adjudicated classifier - never 'retrieve more'); (ii) the counter channel never retrieved the known-counter rows at all (remedy: counter-query expansion); or (iii) no defect (the accepted negative result would diverge and must be published as a divergence, never smoothed). Ordered stand-ready companions, all offline: re-probe whether product remedy (a) has landed; record the new-served-packet / cross-check duty status; re-measure the V3 multilingual/provenance invariants under this run id. NO obsolete universal-174k benchmark is run and none may be.",
+  "hypotheses": {
+    "H1_zero_yield_reproduces_with_parity": "Re-running the accepted bundle producer's marker rule over the same 24 cached envelopes reproduces the accepted per-question counter-candidate counts EXACTLY ({rent-default: 16, corporate-criminal-liability: 0, business-judgment-rule: 0, petty-theft-dismissal: 4}) and the accepted pool sizes ({223, 218, 221, 205}). Parity is control C3; a divergence invalidates the run as NOT_MEASURED_VACUOUS, never a silent re-pin.",
+    "H2_reached_known_counter_rows_are_marker_blind": "For both zero-yield questions, at least one frozen known_counter_id is reached in the pool by the frozen id-match rule AND every reached known-counter row is UNLABELLED by the marker rule - the counter channel retrieved the very authorities the marker layer cannot label. The dominant per-row cause class among reached rows is a blindness class (LIMITATION_LEXICON_ABSENT, NORM_LEXICON_ABSENT, NORM_SURFACE_MISS, LIMITATION_SURFACE_MISS or BOTH_SURFACE_MISS).",
+    "H3_the_blindness_is_lexicon_level_not_surface_level": "For most reached known-counter rows the missing token class is ABSENT FROM THE WHOLE ROW (title+regeste+snippet+rule_statement+statutes), so widening the marker surface alone would NOT label them; the frozen limitation/norm lexicons do not express the vocabulary of those rows. Surface-only misses (present on the extended surface) are reported per row so the remedy split is visible.",
+    "H4_channel_gap_coexists_and_is_reported_not_smoothed": "Some frozen known-counter ids are NOT reached by any channel of the question's own cached retrieval (recon observed 6/9, 2/6, 3/4, 3/9). This channel-side gap is published per question beside the marker-side attribution and never folded into it; the two remedies are different.",
+    "H5_the_attribution_is_decidable_from_the_accepted_bytes": "Every quantity needed is a deterministic function of the committed cache, the committed frozen spec and the accepted instruments (bundle_producer, match_frozen_id, row_text, normalise_text). The run makes ZERO network calls and needs no live corpus."
+  },
+  "frozen_sample": {
+    "mount": "/tmp/lex_accepted/product",
+    "mount_head_at_freeze": "489698218200a8e37a0c527158b3c16664bb1173",
+    "cache": "results/evaluation/retrieval_benchmark/cache (24 committed raw HTTP-200 OpenCaseLaw envelopes of the accepted frozen retrieval gate)",
+    "pins": {
+      "evaluation/retrieval_gate/frozen_retrieval_benchmark.json": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+      "results/evaluation/query_map_cached_bundle_benchmark/39766474798.json": "5fd695aa243e9f47858e05fe2e1b3875cf9f6b7baa484802047539839c941708",
+      "evaluation/query_map/bundle_producer.py": "TO_BE_PINNED_IN_FREEZE_RECORD",
+      "evaluation/run_v3_multilingual_provenance_reuse.py": "TO_BE_PINNED_IN_FREEZE_RECORD",
+      "evaluation/remedy_a_landed_probe.py": "TO_BE_PINNED_IN_FREEZE_RECORD"
+    },
+    "product_pins_at_freeze": {
+      "product/query/adversarial_retrieval.py": "57b6a6f99793ef6663957ccdcd51a577feb9c8d7075efcc339f5c25bece065e1",
+      "results/product/gate_packet/39319405429/packet.json": "32ac812626e679c357822543d0b2e78e62c0e95a9a1b233d1ec89d7cb7b6ac70"
+    }
+  },
+  "frozen_method": {
+    "pool_assembly": "Replicate the accepted bundle_producer.build_bundle iteration order EXACTLY (langs sorted, CHANNELS order baseline then counter, first-wins dedup by alnum-core id, then sort by -relevance_score then decision_id ascending) over the accepted cache index (index_cache matches cache envelopes to frozen query texts EXACTLY). Control C4 asserts the instrument's marker-labelled set equals build_bundle's own labelled decisions for every question, so the replication is verified, not assumed.",
+    "marker_rule": "The FROZEN spec's own marker_rule as written: a row is counter-labelled iff its text (title + regeste + snippet, HTML marks stripped, NFKD/diacritic-stripped/casefolded via the ACCEPTED bundle_producer.normalise_text / row_text) contains >= 1 norm_token AND >= 1 limitation_token of that question's FROZEN lexicons (read from the spec, never re-tuned).",
+    "extended_surface": "REPORTED-ONLY diagnostic surface for attribution: title + regeste + snippet + rule_statement + statutes, same normalisation. It never labels a row; it only decides WHERE a missing token class lives. No gate, threshold or bar reads it.",
+    "known_counter_attribution": "For every frozen known_counter_id of the question (read from the spec), find the first pool row the ACCEPTED match_frozen_id matches (min_core_length from the spec). If none: class NOT_REACHED. Else compute norm_state and lim_state over the marker and extended surfaces and assign ONE class by the frozen priority below.",
+    "per_row_axis_states": {
+      "norm_state": "ON_MARKER (norm token on marker surface) > EXTENDED_ONLY (norm token on extended surface but not marker) > ABSENT_ROW (no norm token on either surface)",
+      "lim_state": "same three states for the limitation lexicon"
+    },
+    "frozen_class_priority": [
+      "LABELLED (norm ON_MARKER and lim ON_MARKER)",
+      "LIMITATION_LEXICON_ABSENT (lim ABSENT_ROW)",
+      "NORM_LEXICON_ABSENT (norm ABSENT_ROW and lim not ABSENT_ROW)",
+      "NORM_SURFACE_MISS (norm EXTENDED_ONLY and lim ON_MARKER)",
+      "LIMITATION_SURFACE_MISS (lim EXTENDED_ONLY and norm ON_MARKER)",
+      "BOTH_SURFACE_MISS (norm EXTENDED_ONLY and lim EXTENDED_ONLY)"
+    ],
+    "question_level_verdicts": {
+      "zero_yield_question_definition": "a question whose recomputed pool-wide marker-labelled count is 0 (recomputed, never copied from prose)",
+      "MARKER_RULE_BLINDSPOT_ATTRIBUTED": "zero-yield question with n_reached >= 1 AND every reached row unlabelled (dominant reached class is one of the five blindness classes)",
+      "CHANNEL_GAP_ATTRIBUTED": "zero-yield question with n_reached == 0 and a non-empty frozen known-counter set",
+      "NO_MARKER_DEFECT": "every reached known-counter row is labelled (would DIVERGE from the accepted zero-yield finding and is published as a divergence, never as a pass)",
+      "reported_only_decomposition": "non-zero-yield questions (recon: rent-default, petty-theft-dismissal) get the identical per-row decomposition, published REPORTED-ONLY, never part of the exit-1 trigger"
+    },
+    "multilingual_cut": "REPORTED-ONLY per (question x row-language) decomposition of the per-row classes, reusing the accepted multilingual discipline; no language is gated.",
+    "thresholds": "ZERO new thresholds. No token list, stoplist, similarity constant or uncertainty value is introduced, edited or re-derived.",
+    "controls": {
+      "C1_spec_pin": "frozen spec re-hashes to 187b0e54... before AND after execution; any drift is NOT_MEASURED_VACUOUS",
+      "C2_cache_parity": "24 envelopes indexed and 24/24 matched to frozen query texts via the accepted index_cache",
+      "C3_accepted_record_parity": "recomputed pool sizes {223,218,221,205} and marker counts {16,0,0,4} EQUAL the accepted record 39766474798.json counter_authority_yield.per_question and producer_meta, read from the pinned bytes",
+      "C4_bundle_agreement": "the instrument's own marker-labelled decision set equals build_bundle's labelled set for every question (replication verified against the accepted producer)",
+      "C5_planted_detection": "a planted synthetic row carrying a norm AND a limitation token on the marker surface is classified LABELLED, and a planted synthetic row carrying only the norm is classified LIMITATION_LEXICON_ABSENT; planted rows NEVER enter published counts",
+      "C6_known_counter_sets_nonempty": "every question's frozen known_counter_ids is non-empty (9/6/4/9); an empty set makes that question NOT_MEASURED_EMPTY_FROZEN_SET, never a pass",
+      "C7_zero_network": "the instrument opens no socket; the record states network_calls=0"
+    },
+    "exit_codes": {
+      "0": "ATTRIBUTION_COMPLETE_NO_BLINDSPOT (all controls hold and no zero-yield question is attributed to a marker blindness class)",
+      "1": "MARKER_BLINDSPOT_ATTRIBUTED (all controls hold and >= 1 zero-yield question is attributed to a marker blindness class on rows the counter channel retrieved)",
+      "2": "NOT_MEASURED_VACUOUS (any control fails; never a pass, never an attribution, never a bar-met)"
+    }
+  },
+  "metrics_and_success_rules": {
+    "success": "every frozen control holds AND every zero-yield question carries one question-level verdict AND every frozen known-counter id carries a per-row class AND the dominant class per question is published with its named remedy.",
+    "failure_mode_that_must_not_be_smoothed": "any control failure -> NOT_MEASURED_VACUOUS exit 2, published as such; NO_MARKER_DEFECT on a zero-yield question is a DIVERGENCE from the accepted record and must be published as the headline, never reconciled away.",
+    "discriminating_surprise": "the pre-freeze recon (disclosed below) observed LIMITATION_LEXICON_ABSENT dominance on reached rows; if the claim-bearing run instead finds the reached rows LABELLED or the classes dominated by surface misses, the remedy split flips from 'lexicon/classifier' to 'widen the surface' and that flip is the finding."
+  },
+  "pre_freeze_disclosure": "Before this freeze the following were executed and are disclosed as implementation validation, NEVER as claim-bearing measurement: (a) sha256 pin computation over the repo files named above and the product mount pins; (b) ONE scratch exploratory reconstruction (script in /tmp/opencode only, never committed) that replayed the accepted cache through the accepted bundle_producer helpers and printed, per question, the pool size, the marker-labelled count and the per-known-counter-row surface states. Observed values, disclosed verbatim so the claim-bearing run is not mistaken for blind: pool {223,218,221,205}; marker counts {16,0,0,4} (exact parity with the accepted record); reached known-counter rows 3/9, 4/6, 1/4, 6/9; labelled-among-reached {0,0,0,1}; dominant reached class LIMITATION_LEXICON_ABSENT for the zero-yield questions' reached rows (corporate: 3 rows with norm 'art. 102' present and limitation tokens absent from the whole row, 1 row with norm only on the extended surface; BJR: 1 reached row with NEITHER lexicon present on either surface); rent-default reached rows carry the norm '257d' and zero limitation tokens anywhere; petty-theft reached rows 1 labelled (ar_gerichte_KG_ARGVP_2005_3462) and 5 limitation-absent. The formal class vocabulary, priorities, controls, exit codes and success rules above were written AFTER this peek and are therefore hypothesis-after-exploratory-peek, NOT a blind pre-registration; this is disclosed as the strongest honest form available inside the quantum. The claim-bearing run is nonetheless strictly stronger than the peek: it implements the seven frozen controls, the build_bundle agreement check, the pin re-hash before/after and the planted-detection battery, any of which can fail and force exit 2 or a different verdict.",
+  "companion_duties_this_run": {
+    "remedy_a_probe": "reuse evaluation/remedy_a_landed_probe.py unchanged; verdict and record under results/evaluation/remedy_a_landed_probe/39771077625.json",
+    "stand_ready_status": "producer-side status observation (product head, planner pin, gate-packet inventory, serve-verdict inventory, cross-check duty due?) under results/evaluation/stand_ready_status/39771077625.json; no gate, no threshold",
+    "v3_multilingual_provenance_remeasure": "reuse evaluation/run_v3_multilingual_provenance_reuse.py.check_bundle and its FROZEN_BUNDLE_SHAS unchanged under run id 39771077625 (append-only new file); a re-measurement of unchanged product-mount bytes, published as a re-measurement",
+    "test_shim": "tests/evaluation/test_counter_marker_attribution.py plus the reused multilingual/provenance suites executed under evaluation/no_pytest_runner.py; shim verdicts are upper bounds, never pytest verdicts"
+  },
+  "claim_ceiling": "This hypothesis freezes the sample, the pool-assembly replication, the marker rule (restated from the frozen spec, never re-derived), the extended diagnostic surface, the per-row classes, the question-level verdicts, the seven controls and the exit-code vocabulary BEFORE the claim-bearing execution of run 39771077625. It measures the ACCEPTED EVALUATION FIXTURE's frozen marker rule on the accepted cached rows - it does NOT measure the product's shipped counter classifier, the emission repair, the anchor classifier or any Frontier build, and it claims nothing about them. It meets, moves and re-derives NO frozen absolute bar (LABEL_SOUND and GEOMETRY_SOUND stay REPORTED-ONLY and unmet); it lifts NO DO-NOT-SERVE order; it certifies NO packet admission; it claims NO jurist usefulness; it does NOT re-issue, weaken or re-score any accepted falsification, which stand unchanged; human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session stay false; owner_decision_required stays false; both DO-NOT-SERVE orders stand; admission stays fail-closed; no obsolete universal-174k benchmark is run. Every input is a committed file and the run makes zero network calls."
+}
