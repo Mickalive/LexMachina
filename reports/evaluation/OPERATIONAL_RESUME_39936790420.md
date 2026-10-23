@@ -3,7 +3,7 @@
 Run: `39936790420` · lane: evaluation · direction v63 · resume of `39929883261`
 Snapshot commit: `5cc6a326cdc77b821f73f7819acb6bd3b3303a1e`
 True accepted base: `3eeced9a25d486356870755e48422f8473a5f90c`
-Verdict: **RESUME_VERIFIED_AND_AUDIT_READY** (see `results/evaluation/operational_resume/39936790420.json`)
+Verdict: **RESUME_VERIFIED_AND_AUDIT_READY** (see `results/evaluation/operational_resume/39936790420.json`; result sha256 `8898f3981079d49adf6dcf8a65f3275590debe6c59b3eae41fac338c7dbd1579`)
 
 ## 1. Why this resume exists
 
@@ -79,7 +79,7 @@ historical record is changed.
 | R4 lineage byte identity | PASS | wrapper 583/583 leaves, engine 558/558, **0 non-identity diffs**; 4 failed gates, input drift empty, non-vacuity 4/4 |
 | R5 shim + inherited red | PASS | 88 passed / 2 failed / 6 unsupported; same per-file/per-case shape as the snapshot record; the same 1+7 failing cases are red at a detached `3eeced9a` worktree |
 | R6 product-advance re-open | PASS | unchanged packet bytes; frozen re-measurement on `d22f9b63` = `PRODUCT_FALSIFIED`, 11/18 passed, same four failed gates, no drift, non-vacuity 4/4 |
-| R7 state and refs | PASS | direction 63; `github_run`/`proposed_run_id` `39936790420`; accepted `39927760701`; all flags false; 125 refs resolve |
+| R7 state and refs | PASS | direction 63; `github_run`/`proposed_run_id` `39936790420`; accepted `39927760701`; all flags false; 128 refs resolve |
 
 Controls C1–C5 (planted frozen-pin drift, lineage drift, wrong run id, diagnosis
 violation, state-ref break) all detect their planted drift.
@@ -100,6 +100,10 @@ violation, state-ref break) all detect their planted drift.
   freeze-first provenance.
 * `benchmark_result` now carries a legacy-alias note pointing to the
   authoritative minimal-retrieval block; its historical fields are not rewritten.
+* an audit-shaped checkout simulation (main depth 1 + non-depth fetch of
+  `lab/evaluation` at `5cc6a326`) reproduced the five-file shim exactly at
+  88/2/6; the raw record and provenance sidecar are in
+  `results/evaluation/orchestration/39936790420_audit_env_*.json`.
 
 ## 6. Claim ceiling
 
