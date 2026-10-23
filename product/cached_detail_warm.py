@@ -18,8 +18,17 @@ Properties:
 * **Append-only** — existing cache envelopes are never rewritten (mode
   ``live`` reads a fresh entry and stops); the tool records a digest of the
   existing detail files before/after and fails closed if one changed.
-* **Bounded** — ``--limit`` caps requests per leg and the tool never fetches
-  a row that already has a cached body or rendered ``full_text``.
+* **Bounded** — ``--limit`` caps requests per leg.  A row is selected only
+  when its decision has **no hydration-capable cached body at all**: ids are
+  compared through :func:`normalize_decision_id`, so the equivalent spellings
+  ``bge_119 II 147`` (cached body id) and ``bge_BGE_119_II_147`` (rendered row
+  id) are one body and the second is never fetched again, and a cached
+  ``/decisions/`` envelope whose ``full_text_chars == 0`` is treated as
+  *missing* rather than as a body (it cannot hydrate anything).  A row that
+  already carries rendered ``full_text`` is never selected either.  Nothing
+  here can guarantee that an *upstream* response is not itself served from the
+  transport's own cache; "never fetches an already-cached body" is a statement
+  about this tool's selection, not about the transport underneath it.
 * **Fail-closed** — a transport/API error is recorded and the run continues;
   nothing is synthesised and the exit code is non-zero only for an invariant
   break or a wholly failed leg, not for individual upstream 404s.
@@ -37,10 +46,12 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Iterable
+from typing import Any, Callable, Iterable, Mapping
+from urllib.parse import unquote
 
 PRODUCT_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = PRODUCT_ROOT.parent
@@ -67,13 +78,77 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+#: Collection tokens an OpenCaseLaw decision id may carry as its leading
+#: namespace.  ``bger`` is listed before ``bge`` because ``"bger...".startswith(
+#: "bge")`` is true and folding the shorter token first would mangle it.
+_COLLECTION_PREFIXES = ("bger", "bge")
+
+
+def normalize_decision_id(value: Any) -> str:
+    """Canonical comparison key for one decision id.
+
+    Audit R2 of rejected cycle 39891382087: the same body was fetched twice
+    because the cached envelope's ``decision_id`` (``bge_119 II 147``) and the
+    rendered row's id (``bge_BGE_119_II_147``) differ — they are the *same*
+    decision (identical content_hash — the audit's name for
+    ``sha256(regeste + full_text)`` — of
+    ``f6e4b5814366f0fe642e42a992b3c8b0bc2f04b08e3056fe4f1a11e3183919fb``,
+    identical source URL, identical full text), so raw string equality is the
+    wrong predicate for "already cached".
+
+    Exactly these differences are folded, and nothing else:
+
+    * percent-encoding of a requested cache path (``%20`` → space);
+    * case, spaces, underscores and hyphens;
+    * **one** redundant leading collection token, and only when the remainder
+      still starts with a collection token — ``bge_BGE_119_II_147`` →
+      ``bge119ii147``, which is what ``bge_119 II 147`` folds to.  Because a
+      fold only happens when a second collection token follows, two genuinely
+      different decisions (``bge_119 II 147`` vs ``bger_119 II 147``) can
+      never collapse into one key.
+    """
+    text = unquote(str(value or "")).strip().lower()
+    text = re.sub(r"[\s_\-]+", "", text)
+    for _ in range(2):  # at most two collection tokens, never more
+        for prefix in _COLLECTION_PREFIXES:
+            if text.startswith(prefix):
+                rest = text[len(prefix):]
+                if any(rest.startswith(p) for p in _COLLECTION_PREFIXES):
+                    text = rest
+                    break
+        else:
+            break
+    return text
+
+
+def hydration_capable_ids(index: Mapping[str, dict]) -> set[str]:
+    """Normalized ids of the entries in ``index`` that can actually hydrate.
+
+    ``detail_cache_index`` deliberately indexes *every* parseable
+    ``/decisions/`` body, including empty ones, so a caller can see them; an
+    empty body is not evidence and must not be treated as "already cached" —
+    that is the second half of audit R2.  Only entries carrying at least one
+    ``full_text`` character are hydration-capable.
+    """
+    return {
+        normalize_decision_id(decision_id)
+        for decision_id, entry in index.items()
+        if int((entry or {}).get("full_text_chars") or 0) > 0
+    }
+
+
 def detail_cache_index(cache_dir: Path | str | None = None) -> dict[str, dict]:
     """Map cached detail bodies by ``decision_id``.
 
     Only ``/decisions/...`` envelopes with a parseable body count; search and
     citation envelopes are ignored so the index cannot claim a text it does
     not have.  Partial (empty) ``full_text`` bodies are indexed with
-    ``full_text_chars == 0`` and are not treated as hydration-capable.
+    ``full_text_chars == 0`` and are **not** hydration-capable — pass the index
+    itself to :func:`select_warm_targets` (or pre-filter it with
+    :func:`hydration_capable_ids`) so those entries are treated as missing.
+    Keys are the *body's* ``decision_id`` as returned upstream, which is not
+    always the spelling the rendered row uses; compare through
+    :func:`normalize_decision_id`, never with raw equality.
     """
     root = Path(cache_dir) if cache_dir is not None else product_cache_dir()
     index: dict[str, dict] = {}
@@ -109,29 +184,55 @@ def detail_cache_index(cache_dir: Path | str | None = None) -> dict[str, dict]:
 def select_warm_targets(
     rows: Iterable[dict],
     *,
-    existing_ids: set[str],
+    existing_ids: set[str] | Mapping[str, dict],
     limit: int,
 ) -> list[str]:
-    """Bounded, marker-first, rank-stable ids that still lack a cached body."""
+    """Bounded, marker-first, rank-stable ids that still lack a cached body.
+
+    ``existing_ids`` is either the index mapping returned by
+    :func:`detail_cache_index` (preferred: only hydration-capable entries
+    count, so an empty cached body is selected for warming rather than
+    mistaken for a body) or an explicit set of already-known ids.
+
+    Comparison is through :func:`normalize_decision_id` on BOTH sides, so a row
+    spelled ``bge_BGE_119_II_147`` is recognised as the body cached under
+    ``bge_119 II 147`` and is never selected again.  Returned ids are the
+    rendered row ids verbatim — they are what gets requested upstream.
+    """
     cap = max(0, int(limit))
     if cap == 0:
         return []
+    if isinstance(existing_ids, Mapping):
+        known = hydration_capable_ids(existing_ids)
+    else:
+        known = {normalize_decision_id(v) for v in existing_ids}
     missing = [
         row for row in rows
         if str(row.get("decision_id") or "")
         and not str(row.get("full_text") or "").strip()
-        and str(row.get("decision_id")) not in existing_ids
+        and normalize_decision_id(row.get("decision_id")) not in known
     ]
     marker_ids = [
         str(row.get("decision_id")) for row in missing
         if marker_bearing(probe_text(row))
     ]
-    taken = set(marker_ids)
+    taken = {normalize_decision_id(v) for v in marker_ids}
     ordered = marker_ids + [
         str(row.get("decision_id")) for row in missing
-        if str(row.get("decision_id")) not in taken
+        if normalize_decision_id(row.get("decision_id")) not in taken
     ]
-    return ordered[:cap]
+    # Two rows can be the same decision under different spellings; keep the
+    # first (rank-stable) spelling only, or the same body would be fetched twice
+    # inside one leg.
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for decision_id in ordered:
+        key = normalize_decision_id(decision_id)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(decision_id)
+    return deduped[:cap]
 
 
 def _digest_existing(cache_dir: Path, index: dict[str, dict]) -> dict[str, str]:
@@ -210,15 +311,20 @@ def warm_leg(
     bundle = run_query_initial(query, top_n=top_n, retrieval_mode="fixture")
     rows = list(bundle.get("decisions") or [])
     index_before = detail_cache_index(cache_dir)
-    # Any cached detail envelope is skipped: the warm pass only appends
-    # bodies the store cannot answer for at all, never rewrites one.
-    existing = set(index_before)
-    targets = select_warm_targets(rows, existing_ids=existing, limit=limit)
+    # Selection receives the index MAPPING, so only hydration-capable bodies
+    # count as "already cached" (an empty body is missing) and every id is
+    # compared through normalize_decision_id, so an equivalent spelling of a
+    # cached body (bge_BGE_119_II_147 vs bge_119 II 147) is never fetched
+    # again.  The warm pass only appends bodies the store cannot answer for;
+    # it never rewrites one.
+    targets = select_warm_targets(rows, existing_ids=index_before, limit=limit)
+    normalized_targets = {normalize_decision_id(v) for v in targets}
     marker_targets = sum(
         1 for row in rows
-        if str(row.get("decision_id")) in set(targets)
+        if normalize_decision_id(row.get("decision_id")) in normalized_targets
         and marker_bearing(probe_text(row))
     )
+    known = hydration_capable_ids(index_before)
     record: dict[str, Any] = {
         "slug": slug,
         "query": query,
@@ -229,7 +335,7 @@ def warm_leg(
             1 for row in rows
             if str(row.get("decision_id") or "")
             and not str(row.get("full_text") or "").strip()
-            and str(row.get("decision_id")) not in existing
+            and normalize_decision_id(row.get("decision_id")) not in known
         ),
         "n_selected": len(targets),
         "n_selected_marker_bearing": marker_targets,

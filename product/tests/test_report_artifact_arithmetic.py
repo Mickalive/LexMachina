@@ -34,6 +34,15 @@ MEASUREMENT and pinned by ``test_measured_scope_is_published_not_aspirational``:
 * covered by a separate module (the attribution is a MEASUREMENT, not a prose
   claim): which commit produced each part of a collected-test delta -
   ``product/test_delta_attribution.py`` + ``product/tests/test_delta_attribution.py``;
+* covered since the round-1 repair of rejected cycle 39891382087: the
+  DETAIL-CACHE POST-STATE claim (``the detail index moved from X to Y``) in
+  every report citing the warm-cache artifact, and the reconciled cache counts
+  ``state/product.json`` publishes beside it. That is audit R1 of that cycle:
+  the report and the state published ``147 -> 243 (+96)`` while the cited
+  artifact's per-leg cumulative ends at 241, and the state named one diagnostic
+  probe where two were fetched. The check derives both sides from the artifact
+  (``warm_accounting``) and accepts a superseded number only in the RF2 form -
+  marked in its own sentence with the true pair beside it;
 * NOT covered, and named here as non-claims rather than left implicit: bare
   test-count claims ("924 collected") in a report that cites SEVERAL regression
   artifacts, or single-module pytest runs in a results table. A report states
@@ -351,6 +360,89 @@ def decomposition_violations(text: str) -> list[dict]:
                 "claimed_total": total,
                 "claimed_parts": parts,
                 "parts_sum": sum(parts),
+                "excerpt": " ".join(para.split())[:240],
+            })
+    return out
+
+
+#: The warm-cache artifact of rejected cycle 39891382087, whose published
+#: accounting did not reproduce from it (audit required fix R1).  The artifact
+#: is frozen evidence; the report and the state are what may be corrected.
+WARM_ARTIFACT = (ROOT / "results" / "product" / "counter_surface"
+                 / "CYCLE_39891382087_warm.json")
+#: The canonical, workflow-validated lane state the audit read the same claim
+#: from (``cycle_39891382087_vertical_slice_delivery.measurements.detail_cache``).
+STATE_PATH = ROOT / "state" / "product.json"
+#: ``The detail index moved from **147 to 243** decision bodies`` — the exact
+#: claim shape audit R1 found disagreeing with its own artifact, so ``from`` and
+#: the emphasis markers are optional rather than required: a future report that
+#: drops one of them must not escape the sweep.
+_WARM_POST_STATE_CLAIM = re.compile(
+    r"(?:detail\s+)?index\s+(?:moved|moves)\s+(?:from\s+)?\*{0,2}(\d+)"
+    r"\s+to\s+\*{0,2}(\d+)", re.I)
+
+
+def warm_accounting() -> dict:
+    """Warm-cache counts DERIVED from the artifact, never typed into a guard.
+
+    Continuity is part of the derivation: each leg must start where the
+    previous leg ended, otherwise "before -> after" would be an average of
+    unrelated snapshots rather than one pass over one cache.
+    """
+    payload = json.loads(WARM_ARTIFACT.read_text(encoding="utf-8"))
+    legs = payload.get("legs") or []
+    if not legs:
+        raise AssertionError(
+            f"{WARM_ARTIFACT.name} carries no legs - the accounting sweep "
+            "would degrade to a no-op pass instead of failing")
+    cumulative = [int(leg["n_detail_cached_after"]) for leg in legs]
+    for previous, leg in zip(legs, legs[1:]):
+        if int(leg["n_detail_cached_before"]) != int(previous["n_detail_cached_after"]):
+            raise AssertionError(
+                f"{WARM_ARTIFACT.name}: leg {leg['slug']} starts at "
+                f"{leg['n_detail_cached_before']} but the previous leg ended at "
+                f"{previous['n_detail_cached_after']} - the cumulative is not one pass")
+    return {
+        "before": int(legs[0]["n_detail_cached_before"]),
+        "after": cumulative[-1],
+        "cumulative": cumulative,
+        "selected_and_returned": int(payload["aggregate"]["n_selected"]),
+        "append_only_ok": bool(payload["aggregate"]["append_only_ok"]),
+    }
+
+
+def _sentence_containing(paragraph: str, position: int) -> str:
+    """The sentence ``position`` sits in (the same split ``_marked`` uses)."""
+    for sentence in _SENTENCE.split(paragraph):
+        start = paragraph.find(sentence)
+        if start <= position < start + len(sentence):
+            return sentence
+    return paragraph
+
+
+def warm_post_state_violations(report_text: str, accounting: dict) -> list[dict]:
+    """Post-state claims that are neither the artifact's pair nor RF2-corrected."""
+    expected = (accounting["before"], accounting["after"])
+    out: list[dict] = []
+    for para in _paragraphs(report_text):
+        for m in _WARM_POST_STATE_CLAIM.finditer(para):
+            claimed = (int(m.group(1)), int(m.group(2)))
+            if claimed == expected:
+                continue
+            sentence = _sentence_containing(para, m.start())
+            corrected = (
+                _marked(para, m.start())
+                and str(expected[0]) in sentence
+                and str(expected[1]) in sentence
+            )
+            if corrected:
+                continue
+            out.append({
+                "claimed": list(claimed),
+                "expected": list(expected),
+                "correction_marker_present": _marked(para, m.start()),
+                "true_pair_in_sentence": (str(expected[0]) in sentence
+                                          and str(expected[1]) in sentence),
                 "excerpt": " ".join(para.split())[:240],
             })
     return out
@@ -773,3 +865,101 @@ def test_quotation_is_excluded_and_that_exclusion_is_bounded():
     assert violations(quote_plus_own_claim, 5), (
         "quoting the defect must not excuse the report's own unmarked claim of the "
         "same wrong number")
+
+
+# --- detail-cache accounting (audit R1 of rejected cycle 39891382087) ------
+
+
+def test_warm_cache_report_and_state_agree_with_the_artifact():
+    """Both claim-bearing files must publish the pair the artifact records.
+
+    The audit's required fix: round 0 published ``147 -> 243 (+96)`` and "one
+    diagnostic probe" against an artifact whose per-leg cumulative ends at
+    ``241`` with two probes fetched. Every number below is derived here from the
+    artifact or from the other published fields, so a future edit of one side
+    without the other fails instead of quietly disagreeing.
+    """
+    accounting = warm_accounting()
+    assert accounting["append_only_ok"] is True
+    assert accounting["cumulative"] == [169, 193, 217, 241], (
+        f"the artifact's per-leg cumulative moved: {accounting['cumulative']} - "
+        "re-derive, do not restate")
+    assert (accounting["before"], accounting["after"]) == (147, 241)
+    new_unique = accounting["after"] - accounting["before"]
+    assert new_unique == 94
+    assert accounting["selected_and_returned"] == 96
+
+    state = json.loads(STATE_PATH.read_text(encoding="utf-8"))
+    detail = state["cycle_39891382087_vertical_slice_delivery"]["measurements"][
+        "detail_cache"]
+    assert detail["before_detail_ids"] == accounting["before"]
+    assert detail["after_detail_ids"] == accounting["after"]
+    assert detail["new_unique_ids_by_warm_pass"] == new_unique
+    assert detail["appended_by_warm_pass"] == detail["envelope_files_added_by_warm_pass"]
+    assert detail["selected_and_returned_targets"] == accounting["selected_and_returned"]
+    # the published composition closes, internally and against the artifact
+    assert (detail["envelope_files_added_by_warm_pass"]
+            == detail["new_unique_ids_by_warm_pass"] + detail["duplicate_equivalent_id_files"])
+    assert (detail["selected_and_returned_targets"]
+            == detail["envelope_files_added_by_warm_pass"] + detail["cache_hit_targets"])
+    assert (detail["net_new_unique_ids_vs_accepted"]
+            == detail["new_unique_ids_by_warm_pass"] + detail["diagnostic_probe_files"])
+    assert (detail["net_new_detail_envelopes_vs_accepted"]
+            == detail["envelope_files_added_by_warm_pass"] + detail["diagnostic_probe_files"])
+    assert detail["net_new_detail_envelopes_vs_accepted"] == 97
+    assert detail["net_new_unique_ids_vs_accepted"] == 96
+    assert detail["diagnostic_probe_files"] == 2, (
+        "the audit required TWO diagnostic probes; the published count moved")
+    for probe in ("bger_4A_541_2015", "lu_gerichte_11_07_72"):
+        assert probe in detail["note"], f"{probe} is not named in the state note"
+        assert probe in detail["composition"]
+    assert "two diagnostic probe" in detail["note"]
+    assert "one diagnostic probe" not in detail["note"], (
+        "the state note still says 'one diagnostic probe'")
+
+    citing = _reports_citing(WARM_ARTIFACT.name)
+    assert citing, (
+        f"no report cites {WARM_ARTIFACT.name} - the accounting sweep would be vacuous")
+    claims = 0
+    for report in citing:
+        text = report.read_text(encoding="utf-8")
+        hits = warm_post_state_violations(text, accounting)
+        assert not hits, (
+            f"{report.name} states a detail-index post-state its cited artifact "
+            f"does not support: {hits}")
+        claims += len(_WARM_POST_STATE_CLAIM.findall(text))
+        assert str(accounting["after"]) in text, (
+            f"{report.name} never publishes the artifact's own post-state "
+            f"({accounting['after']}) beside its claims")
+        assert "two diagnostic probe" in text, (
+            f"{report.name} does not publish the two-probe count")
+        assert "one diagnostic probe" not in text
+    assert claims >= 1, "the sweep parsed no post-state claim - it is vacuous"
+
+
+def test_warm_post_state_sweep_fires_on_the_rejected_shape():
+    """Negative controls: the rejected claim, and the two ways to fake a fix."""
+    accounting = warm_accounting()
+    rejected = ("The detail index moved from **147 to 243** decision bodies "
+                "across the warm pass (+96), with 0 rewritten envelopes.")
+    assert warm_post_state_violations(rejected, accounting), (
+        "the audit's own defective sentence must fire")
+
+    # a marker alone is not enough: the true pair must be in the same sentence
+    marked_without_true_pair = (
+        "**Correction (audit-required fix):** the pre-repair text said the "
+        "detail index moved from 147 to 243 (+96).")
+    assert warm_post_state_violations(marked_without_true_pair, accounting), (
+        "a marked correction that never shows the artifact's pair must fire")
+
+    # the RF2 form - superseded number marked, true pair beside it - passes
+    rf2 = (
+        "**Correction (audit-required fix):** the pre-repair text said the "
+        "detail index moved from 147 to 243 (+96); the artifact's own "
+        "cumulative reconciles it to 147 to 241 (+94 unique; +95 files).")
+    assert warm_post_state_violations(rf2, accounting) == [], (
+        "the RF2 form must pass - it is how this lane corrects a number")
+
+    # the artifact's own pair passes with no marker at all
+    honest = "The detail index moved from **147 to 241** decision bodies (+94)."
+    assert warm_post_state_violations(honest, accounting) == []

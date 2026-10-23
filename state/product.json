@@ -964,7 +964,7 @@
       "snapshot": "origin/cycle/core/product/39888445036/team = 7a70953 = accepted commit; zero committed or working-tree delta"
     },
     "delivered": [
-      "direction v63 item 7(a) next step: product/cached_detail_warm.py appends the missing OpenCaseLaw detail envelopes for rendered, marker-first rows without rewriting an existing envelope; results/product/counter_surface/CYCLE_39891382087_warm.json records 96/96 selected bodies fetched, 0 empty, 0 failed, append_only_ok true",
+      "direction v63 item 7(a) next step: product/cached_detail_warm.py appends the missing OpenCaseLaw detail envelopes for rendered, marker-first rows without rewriting an existing envelope; results/product/counter_surface/CYCLE_39891382087_warm.json records 96 selected-and-returned targets (1 of them served from the cache), 0 empty, 0 failed, append_only_ok true, and 95 new envelope files covering 94 new unique decision ids - the reconciled accounting published by repair round 1 (audit R1)",
       "fixture-replay hydration budget repair in product/query/pipeline.py: replay_fixture_query no longer starves a requested hydration at the 40-request search budget. max_requests is not part of any cache key; search calls and candidate ids are unchanged (same 7-11 searches and the same candidate set with 40 vs 400 requests).",
       "counter-surface coverage re-measured offline with no network: results/product/counter_surface/CYCLE_39891382087_coverage.json has 42 signals, 32 selected, 32 hydrated, 101 hydrateable in pool, hydration budget utilisation 1.0, all invariants hold (previous accepted artifact CYCLE_39883642290: 22 signals, 2 selected, 2 hydrated, 2 in pool)",
       "the offline rent-default vertical slice still passes end to end: results/product/offline_slice/20261023T_warm_verify/summary.json, 100 decisions, 8 clusters, answer ready, 4 cited decisions, 1 counter row, 5 counter-status-bearing rows, geometry preserved by enrich, page contract PASS 67 assertions",
@@ -985,11 +985,21 @@
       },
       "detail_cache": {
         "before_detail_ids": 147,
-        "after_detail_ids": 243,
-        "appended_by_warm_pass": 96,
+        "after_detail_ids": 241,
+        "new_unique_ids_by_warm_pass": 94,
+        "envelope_files_added_by_warm_pass": 95,
+        "appended_by_warm_pass": 95,
+        "selected_and_returned_targets": 96,
+        "cache_hit_targets": 1,
+        "duplicate_equivalent_id_files": 1,
+        "diagnostic_probe_files": 2,
+        "net_new_unique_ids_vs_accepted": 96,
         "net_new_detail_envelopes_vs_accepted": 97,
         "rewritten_existing": 0,
-        "note": "one diagnostic probe envelope is included in the net figure; the warm artifact counts the warm pass only"
+        "artifact": "results/product/counter_surface/CYCLE_39891382087_warm.json (per-leg cumulative n_detail_cached_after: 169, 193, 217, 241)",
+        "composition": "net versus the accepted base (145 unique ids / 149 envelopes -> 241 unique ids / 246 envelopes): +96 unique ids = 94 unique warm targets + 2 diagnostic probes (bger_4A_541_2015, lu_gerichte_11_07_72) + 1 duplicate-equivalent-id file (bge_BGE_119_II_147, same content_hash f6e4b581... as the accepted-base bge_119 II 147); +97 envelope files = 95 warm files + 2 probes. Of the 96 selected-and-returned targets 1 was a cache hit (bge_BGE_117_II_415) and added no file; 95 files = 94 unique ids + 1 duplicate.",
+        "supersedes_rejected_round0_figures": "REJECTED CYCLE 39891382087, AUDIT REQUIRED FIX R1: round 0 published before_detail_ids 147 / after_detail_ids 243 / appended_by_warm_pass 96 and named a SINGLE diagnostic probe in its note. The cited artifact ends at 241, the warm pass added 94 unique ids / 95 files, and two probes were fetched. Reconciled figure: 147 -> 241 (+94 unique; +95 files); 243 = 241 + 2 counted the two probes on the after-side only. Both numbers are kept side by side so the correction is auditable.",
+        "note": "two diagnostic probe envelopes (bger_4A_541_2015, lu_gerichte_11_07_72) are included in the net figure; the warm artifact counts the warm pass only"
       },
       "offline_slice": {
         "artifact": "results/product/offline_slice/20261023T_warm_verify/summary.json",
