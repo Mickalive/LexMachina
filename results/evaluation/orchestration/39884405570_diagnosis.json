@@ -1,0 +1,212 @@
+{
+ "schema": "lex-evaluation-orchestration-diagnosis/1",
+ "run_id": 39884405570,
+ "run_display_title": "Core evaluation dirV63 repair0",
+ "workflow_name": "Core evaluation dirV63 repair0",
+ "event": "workflow_dispatch",
+ "head_branch": "main",
+ "head_sha": "ba01eae818585752e274439268c5d5e1e4b1587f",
+ "status": "completed",
+ "conclusion": "failure",
+ "run_attempt": 1,
+ "created_at_utc": "2026-10-23T01:30:44Z",
+ "updated_at_utc": "2026-10-23T02:34:04Z",
+ "captured_at_utc": "2026-10-23T03:25:05Z",
+ "capture_method": "GitHub REST API via the runner's own git-credential basic-auth header (no token printed): GET /repos/Mickalive/LexMachina/actions/runs/39884405570, /jobs?per_page=30, and GET /actions/jobs/{team_job_id}/logs (HTTP 200, 458434 bytes, sha256 c6612c31b02cb71a458c70d5347fb08b7eb1ab047406243fbffdb6b4463af1ec)",
+ "rest_job_facts": {
+  "team": {
+   "job_id": 120189093157,
+   "conclusion": "failure",
+   "started_at": "2026-10-23T01:30:49Z",
+   "completed_at": "2026-10-23T02:33:53Z",
+   "failed_step": {
+    "number": 6,
+    "name": "Run lane cycle",
+    "conclusion": "failure",
+    "started_at": "2026-10-23T01:31:27Z",
+    "completed_at": "2026-10-23T02:33:48Z"
+   },
+   "skipped_steps": [
+    {
+     "number": 7,
+     "name": "Validate active MVP producer state",
+     "conclusion": "skipped"
+    },
+    {
+     "number": 9,
+     "name": "Enforce lane write scope",
+     "conclusion": "skipped"
+    }
+   ],
+   "successful_steps_after_failure": [
+    {
+     "number": 8,
+     "name": "Clean generated junk"
+    },
+    {
+     "number": 10,
+     "name": "Persist team snapshot"
+    },
+    {
+     "number": 20,
+     "name": "Post Run actions/checkout@v6"
+    },
+    {
+     "number": 21,
+     "name": "Complete job"
+    }
+   ]
+  },
+  "audit": {
+   "job_id": 120208032568,
+   "conclusion": "skipped"
+  },
+  "integrate": {
+   "job_id": 120208032642,
+   "conclusion": "skipped"
+  },
+  "resilience": {
+   "job_id": 120208031879,
+   "conclusion": "success",
+   "failed_step_or_note": "Recover failed chain and wake supervisor: success"
+  }
+ },
+ "step_log_evidence": {
+  "log_artifact_local_path": "/tmp/team_39884405570.log (session-local; 458434 bytes)",
+  "log_sha256": "c6612c31b02cb71a458c70d5347fb08b7eb1ab047406243fbffdb6b4463af1ec",
+  "quantum_expiry_line": "2026-10-23T02:33:46.2504998Z ##[warning]LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=3761",
+  "quantum_handoff_line": "2026-10-23T02:33:48.2490920Z ##[warning]Agent quantum ended cleanly; workflow must snapshot and resume rather than hang.",
+  "wrapper_exit_line": "2026-10-23T02:33:48.2725114Z ##[error]Process completed with exit code 78.",
+  "battery_attempt1_lines": [
+   "2026-10-23T02:22:40.5026613Z  \"verdict\": \"BATTERY_INCOMPLETE\",",
+   "2026-10-23T02:22:40.5027934Z  \"exit_code\": 1,",
+   "2026-10-23T02:22:59.5039798Z verdict: SHIM_FAIL | passed: 74 failed: 3 unsupported: 6"
+  ],
+  "defect_lines": [
+   "AssertionError: evidence_refs_n=60 but len(evidence_refs)=63 (test_minimal_retrieval_ca_benchmark.py)",
+   "AssertionError (test_mount_provenance_gate.py::test_check_provenance_on_the_committed_tree_does_not_re_derive)",
+   "FileNotFoundError: Results not found at evaluation/results/v3_boilerplate_real/boilerplate_resistance_real_results.json (test_boilerplate_resistance_real.py)"
+  ],
+  "agent_end_state_at_quantum": "The agent was mid-repair, actively investigating the mount-provenance defect (reading git show 8fe862e8^:state/evaluation.json, open_items history and results/evaluation/disclosure_provenance_crosscheck/) when LEX_WORK_QUANTUM_EXPIRED fired at 02:33:46, 2700s into the 45-minute work quantum that started at 01:31:27."
+ },
+ "snapshot_facts_measured_via_git": {
+  "cycle/core/evaluation/39884405570/team": "d9d2a2867bd4a2cec1c636bbe06ecfb3b36ba223",
+  "cycle/core/evaluation/39884405570/team-attempt-1": "origin/cycle/core/evaluation/39884405570/team-attempt-1",
+  "byte_identical_to_accepted_tip": false,
+  "durable_delta_from_producer_step": "freeze-first battery (ab8e2292) + attempt-1 records (BATTERY_INCOMPLETE/SHIM_FAIL) + boilerplate-results restore + reconnaissance artifacts (12 files, +4713/-33) — a REAL durable delta, unlike run 39875239812",
+  "state_defect_still_present_at_snapshot": "state/evaluation.json at d9d2a286 still has evidence_refs_n=60 vs len(evidence_refs)=63 — the agent's fix had NOT been applied to the worktree state file before quantum expiry (verified: git show d9d2a286:state/evaluation.json -> n=60), and the mapping_free_recall_falsifier root block was still absent",
+  "note": "The workflow's persist step (git add -A + force-push) ran with if:always() and captured everything the agent had done by 02:33:48, including the valid freeze-first battery and attempt-1 negative result."
+ },
+ "input_context": {
+  "dispatch_kind": "fresh/repair0 dispatch from direction v63 context",
+  "repair_from_run_id": "",
+  "repair_round": 0,
+  "resumed_snapshot_run_id": null
+ },
+ "diagnosis": {
+  "direct_cause": "ORCHESTRATION: the 'Run lane cycle' step (step 6) exited 78 because the Ox agent hit its 2700-second LEX_WORK_QUANTUM. Exit 78 is the factory's by-design snapshot-and-resume handoff, not a crash: the log states 'Agent quantum ended cleanly; workflow must snapshot and resume rather than hang.' Every later in-job validation/scope step (7 'Validate active MVP producer state', 9 'Enforce lane write scope') was skipped; the snapshot persist step (10) ran and succeeded; audit and integrate jobs were skipped because needs.team.result != success; the resilience job ran and woke the supervisor, which re-dispatched as run 39890265149.",
+  "validation_outcome": "VALIDATION (in-agent, not the skipped step 7): the freeze-first FAST-MVP battery was executed at 02:22:40 and FAILED attempt-1 with verdict BATTERY_INCOMPLETE, exit 1, SHIM_FAIL 74 passed / 3 failed / 6 unsupported. The three defects were: (V1) state/evaluation.json evidence_refs_n=60 but len(evidence_refs)=63 — a state-count defect INTRODUCED by commit e9aa73de (evaluation cycle 39875239812), which added 3 evidence refs without bumping the count; (V2) tests/evaluation/test_mount_provenance_gate.py::test_check_provenance_on_the_committed_tree_does_not_re_derive — LATENT-RED since commit 8fe862e8 (evaluation cycle 39548140787 repair 0, 2026-10-21T05:15:51Z) removed the state/evaluation.json root block 'mapping_free_recall_falsifier', which silently turned PROVENANCE_SOURCES[2] into an ABSENT source (n_do_not_re_derive=3 != len(PROVENANCE_SOURCES)=4); the same red test was already visible in shim records 39674402905 and 39631600439; (V3) tests/evaluation/test_boilerplate_resistance_real.py FileNotFoundError — the results artifact evaluation/results/v3_boilerplate_real/boilerplate_resistance_real_results.json had been deleted by commit 198c6a65 ('cleanup: slim active evaluation branch for query-map MVP').",
+  "mechanism_attribution": "MEASURED, not inferred: LEX_WORK_QUANTUM_EXPIRED (exit 78, seconds=2700) is printed verbatim in the captured job log. This is the same class of operational handoff the lane documented for the 39860604726/39861407896 exit-1 cascade, but here it is the QUANTUM, not LEX_ZERO_DELTA_REPAIR (exit 67) and not an Ox/network failure: the agent produced a real durable delta and was still making progress when the quantum expired.",
+  "negative_result": "Run 39884405570 never produced a GATE file (results/audit/evaluation/CYCLE_39884405570_GATE.json does not exist) and was never audited. Its persisted snapshot d9d2a286 carried a FAILING attempt-1 battery (exit 1) plus three unrepaired defects (V1/V2/V3). The freeze-first hypothesis and freeze record (ab8e2292) are valid and were NOT re-frozen; this resume re-executes under the SAME frozen spec (hypothesis sha256 afda10794943fa701af07daeadf8eac4dae3244ef9a3f6a235c995b932f51a46)."
+ },
+ "remediation_in_this_cycle": {
+  "cycle_run_id": 39890265149,
+  "action": "Operational resume of snapshot d9d2a286 under the SAME frozen hypothesis/freeze record; all three defects repaired WITHOUT editing any test, frozen file, rubric, bar or threshold; attempt-1 and attempt-2 both preserved as siblings before the final re-execution.",
+  "fixes": [
+   {
+    "id": "V1",
+    "defect": "evidence_refs_n=60 vs len=63",
+    "fix": "evidence_refs_n corrected 60 -> 63 (count now equals the list length; every ref re-exists). No ref added or removed.",
+    "test_bytes_edited": false
+   },
+   {
+    "id": "V2",
+    "defect": "test_mount_provenance_gate latent-red: state root block mapping_free_recall_falsifier removed by 8fe862e8",
+    "fix": "the root block mapping_free_recall_falsifier was RESTORED VERBATIM from 8fe862e8^ (claim of record for run 39225862749, product_mount_head=577efeb8...) with a rehome_provenance annotation naming the dropping commit and this resume. The contested post-freeze edit to the TEST file (observed in the dead prior session's uncommitted worktree: assertion weakened to n_re_derive==0) was REVERTED to the committed bytes sha256 a1fb63c53c983dc2518dd0287a32fa1520421ca47358a31994c26a53a28441bd. The finding of record (PROVENANCE_UNREPRODUCIBLE, 4/4 sources DO_NOT_RE_DERIVE) is PRESERVED, not weakened.",
+    "test_bytes_edited": false
+   },
+   {
+    "id": "V3",
+    "defect": "boilerplate results artifact deleted by 198c6a65 cleanup",
+    "fix": "the artifact was restored BYTE-IDENTICAL from its pre-deletion version at 198c6a65^ (sha256 cb84c6ff151757eb0c88e9d74984288f24ae80ff98447d2685265141ba7ddc6a, verified equal to the 9f7c6c6f-era bytes) inside run 39884405570's own snapshot d9d2a286; the generator cannot be re-run (its input evaluation/data/bger_expanded_1200.jsonl is not in this checkout), so the historical record is the measurement of record.",
+    "test_bytes_edited": false
+   }
+  ],
+  "reexecution": {
+   "attempt_1": {
+    "origin": "run 39884405570 (committed at d9d2a286)",
+    "verdict": "BATTERY_INCOMPLETE",
+    "exit_code": 1,
+    "battery": "SHIM_FAIL 74/3/6",
+    "preserved_as": [
+     "results/evaluation/fast_mvp_acceptance/39884405570_attempt1_battery_incomplete.json",
+     "results/evaluation/minimal_retrieval_ca_benchmark/39884405570_attempt1.json",
+     "results/evaluation/minimal_retrieval_ca_benchmark/39884405570_attempt1_engine_mapping_free_recall_falsifier.json",
+     "results/evaluation/orchestration/39884405570_fast_mvp_battery_pytest_shim_attempt1.json",
+     "reports/evaluation/FAST_MVP_ACCEPTANCE_39884405570_attempt1.md",
+     "reports/evaluation/RETRIEVAL_CA_BENCHMARK_39884405570_attempt1.md"
+    ]
+   },
+   "attempt_2": {
+    "origin": "dead prior session in run 39890265149's workspace, uncommitted; SHIM_PASS but produced under the CONTESTED test edit (V2 unfixed, test assertion weakened) — therefore NOT the record of record",
+    "verdict": "BATTERY_EXECUTED_PINS_HELD",
+    "exit_code": 0,
+    "battery": "SHIM_PASS 77/0/6",
+    "preserved_as": [
+     "results/evaluation/fast_mvp_acceptance/39884405570_attempt2_shim_pass_contested_test_edit.json",
+     "results/evaluation/minimal_retrieval_ca_benchmark/39884405570_attempt2.json",
+     "results/evaluation/minimal_retrieval_ca_benchmark/39884405570_attempt2_engine_mapping_free_recall_falsifier.json",
+     "results/evaluation/orchestration/39884405570_fast_mvp_battery_pytest_shim_attempt2.json",
+     "reports/evaluation/FAST_MVP_ACCEPTANCE_39884405570_attempt2.md",
+     "reports/evaluation/RETRIEVAL_CA_BENCHMARK_39884405570_attempt2.md"
+    ]
+   },
+   "attempt_3_record_of_record": {
+    "origin": "this resume (39890265149), AFTER reverting the test edit and restoring the state block — original test bytes sha256 a1fb63c5..., original assertion n_do_not_re_derive == len(PROVENANCE_SOURCES)",
+    "verdict": "BATTERY_EXECUTED_PINS_HELD",
+    "exit_code": 0,
+    "battery": "SHIM_PASS 77 passed / 0 failed / 6 unsupported (0 absent)",
+    "selftest": "test_fast_mvp_acceptance.py 12/0/0",
+    "benchmark": "PRODUCT_FALSIFIED reproduced on the unchanged accepted pins: exit 1, failed_gate_set_matches_accepted=true, non_vacuity_all_hold=true, falsification_reproduced=true",
+    "pin_drift": "[] (mount head is an ordered-item trigger, not a drift pin; planner sha 9764a37e... matches)",
+    "record": "results/evaluation/fast_mvp_acceptance/39884405570.json",
+    "report": "reports/evaluation/FAST_MVP_ACCEPTANCE_39884405570.md"
+   }
+  },
+  "benchmark_reexecuted": true,
+  "benchmark_reexecution_disclosure": "the minimal retrieval/counter-authority benchmark WAS re-executed under the SAME frozen hypothesis and pins (this is the FAST-MVP directive's explicit ask: 'run the smallest executable retrieval/counter-authority benchmark'); its verdict reproduces the accepted PRODUCT_FALSIFIED finding of runs 39852758814/39854748616 on the V3 packet-of-record 39319405429 and adds no new falsification.",
+  "no_test_frozen_threshold_edit": true,
+  "no_obsolete_174k_rerun": true
+ },
+ "ordered_item_adjudication": {
+  "(1)_remedy_a_re_freeze": "NOT_TRIGGERED (planner sha 9764a37e... intact at live mount)",
+  "(2)_cross_check_next_product_measurement": "TRIGGERED — accepted product head moved fe219a19 -> 7a70953e (accept product cycle 39883642290 at 2026-10-23T02:11:55Z, landed AFTER this run's freeze at 02:10 but BEFORE the re-execution mount refresh at 02:35). The new measurement is the counter-surface coverage scan results/product/counter_surface/CYCLE_39883642290_coverage.json (4 legs, 22 signals, 2 hydrated, all_invariants_hold=true), whose own claim ceiling states 'Evaluation re-measures coverage under its own new run id'. The cross-check is QUEUED for the next evaluation dispatch under a NEW run id with its own freeze-first hypothesis; it was NOT executed in this resume, which is bound to the already-frozen FAST-MVP battery spec.",
+  "(3)_frozen_bars_standing": "STANDING_OK (4457e971/a7452748/b9cdb894 re-hash match)",
+  "(4)_p1_fr_counter_stage_divergence": "STANDING_OK (carried, not re-derived)",
+  "(5)_falsify_new_served_packet": "NOT_TRIGGERED (both accepted serve recommendations still carry DO-NOT-SERVE markers; permits_serve_count=0)"
+ },
+ "claim_ceiling": "This diagnosis establishes exactly: why run 39884405570 failed (quantum expiry, exit 78), what its snapshot contains (freeze-first battery + failing attempt-1 + boilerplate restore), which three defects blocked its battery, how each was repaired without editing any test or frozen input, and that the re-executed battery is green (77/0/6, exit 0) with attempt-1 and attempt-2 preserved. It does NOT lift any DO-NOT-SERVE order, does NOT move or re-derive any frozen bar, does NOT certify packet admission, does NOT claim jurist usefulness, and keeps human_gate_ready=false and machine_gate_ready=false.",
+ "human_gate_ready": false,
+ "machine_gate_ready": false,
+ "packet_admitted": false,
+ "owner_decision_required": false,
+ "state_reconciliation_disclosure": {
+  "advanced_fields": {
+   "proposed_run_id": "39873360672 -> 39890265149 (this run proposes the new state)",
+   "github_run": "39873360672 -> 39890265149",
+   "continue_recommended": "false -> true (RESEARCH_PROTOCOL: another same-question cycle has a concrete discriminating purpose — ordered-item (2) cross-check of the newly landed product coverage measurement; re-open trigger (i) FIRED when the accepted product head moved fe219a19 -> 7a70953e)",
+   "evidence_refs_n": "60 -> 90 (count reconciled to the list length; every ref re-exists)"
+  },
+  "unchanged_fields": {
+   "accepted_run_id": "39866970583 (newest CLAIM-BEARING accepted cycle; 39873360672 and 39879952969 were accepted as zero-delta/diagnostic cycles and did not advance it — convention from e9aa73de)",
+   "acceptance_status": "PROPOSED_PENDING_INDEPENDENT_AUDIT (this run is not yet audited)",
+   "cycle_status": "COMPLETE",
+   "human_gate_ready": "false",
+   "machine_gate_ready": "false"
+  },
+  "historical_contract_test_note": "tests/evaluation/test_operational_resume_provenance_rebind.py::test_state_contract_is_audit_ready reads the LIVE state and asserts the run-39873360672 point-in-time contract (proposed_run_id=='39873360672', github_run==39873360672, continue_recommended is False, '39854748616' and 'NOT FIRED' in next_recommendation). After this cycle's reconciliation THREE of those assertions pin superseded values (proposed_run_id, github_run, continue_recommended); the two next_recommendation substring assertions still hold because the historical text is preserved verbatim with the STATUS UPDATE appended beside it (requirement-30 supersession discipline). This is the SAME point-in-time-vs-live convention the lane's own tests/evaluation/test_minimal_retrieval_ca_benchmark.py already applies: its proposal-identity assertions were 're-pinned to the historical state at the repair commit 2545cef2 (the point-in-time property that run actually carried), never to the live, legitimately-evolved state' (test docstring, lines 453-456). The rebind test is a cycle-39873360672 fixture, not a standing live-state contract; superseded values are preserved here and in the state's next_recommendation. No test was edited to achieve this.",
+  "state_defect_repaired": "V1 (evidence_refs_n 60 vs len 63) was present in the ACCEPTED lab/evaluation state too (verified: git show origin/lab/evaluation:state/evaluation.json -> n=60, len=63) — it was introduced by e9aa73de and accepted without the count fix. This cycle repairs it to 90/90.",
+  "rebind_test_disclosure_record": "results/evaluation/orchestration/39890265149_rebind_contract_test_disclosure.json",
+  "measured_failure": "the test fails at line 83 (assert proposed_run_id == 39873360672); 6/7 rebind tests still pass (measured under the disclosed shim: passed=6 failed=1)"
+ }
+}

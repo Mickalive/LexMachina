@@ -1,0 +1,67 @@
+{
+ "schema": "lex-evaluation-no-pytest-runner/1",
+ "run_id": "39884405570",
+ "generated_at_utc": "2026-10-23T03:32:32Z",
+ "python": "3.12.3",
+ "pytest_available": false,
+ "supported_constructs": [
+  "plain test function with no parameters",
+  "pytest.mark.skipif(condition, reason=...)",
+  "pytest.raises",
+  "module-level `from evaluation import ... as ...`"
+ ],
+ "verdict": "SHIM_FAIL",
+ "n_files": 1,
+ "n_passed": 6,
+ "n_failed": 1,
+ "n_skipped": 0,
+ "n_unsupported": 0,
+ "n_absent": 0,
+ "results": [
+  {
+   "test_file": "tests/evaluation/test_operational_resume_provenance_rebind.py",
+   "test_file_sha256": "c3138d9eae06dc38d3b6efe57db7e0bbbd366669483a572daa8dbbbb89fa60e9",
+   "status": "FAIL",
+   "n_passed": 6,
+   "n_failed": 1,
+   "n_skipped": 0,
+   "n_unsupported": 0,
+   "cases": [
+    {
+     "test": "test_cycle_record_reports_no_benchmark_reexecution",
+     "status": "PASS"
+    },
+    {
+     "test": "test_duplicate_disclosure_diff_is_exact",
+     "status": "PASS"
+    },
+    {
+     "test": "test_freeze_first_artefacts_are_pinned",
+     "status": "PASS"
+    },
+    {
+     "test": "test_orchestration_diagnosis_is_structured_and_hedged",
+     "status": "PASS"
+    },
+    {
+     "test": "test_rebind_records_self_identify_and_copy_measurement",
+     "status": "PASS"
+    },
+    {
+     "test": "test_source_records_are_preserved_verbatim",
+     "status": "PASS"
+    },
+    {
+     "test": "test_state_contract_is_audit_ready",
+     "status": "FAIL",
+     "error": "AssertionError: ",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 142, in run_file\n    fn()\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_operational_resume_provenance_rebind.py\", line 83, in test_state_contract_is_audit_ready\n    assert state[\"proposed_run_id\"] == \"39873360672\"\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    }
+   ]
+  }
+ ],
+ "what_this_is_not": "NOT pytest. This runner does not discover, collect, fixture-inject, xfail or report the way pytest does. A case needing a fixture, a parametrisation or a construct outside supported_constructs is reported UNSUPPORTED and counted as NOT-RUN, never as passed, so the counts here are an UPPER BOUND on what pytest would execute. A SHIM_PASS does NOT withdraw the standing disclosure that the lane's pytest scope is unexecuted in the producer image and that the snapshot-audit READY verdict is conditional on that absence.",
+ "why_it_exists": "An unexecuted test file is an unverified claim. This converts the lane's pytest-style tests into a measurement in an image where pytest is absent, without pretending the absence is fixed.",
+ "disclosure": "Historical cycle-fixture test test_operational_resume_provenance_rebind.py::test_state_contract_is_audit_ready reads LIVE state and pins the run-39873360672 point-in-time contract. After this cycle legitimately advances proposed_run_id/github_run to 39890265149 and sets continue_recommended=true (protocol: trigger (i) fired, concrete same-question cross-check queued), the test fails at line 83 (proposed_run_id). The two next_recommendation substring assertions (39854748616, NOT FIRED) still hold: historical text preserved verbatim, STATUS UPDATE appended beside it. Same point-in-time-vs-live convention as test_minimal_retrieval_ca_benchmark.py (which re-pins proposal-identity to a historical commit, never to live state). No test was edited. This record preserves the negative result per the lane evidence standard.",
+ "related_diagnosis": "results/evaluation/orchestration/39884405570_diagnosis.json"
+}

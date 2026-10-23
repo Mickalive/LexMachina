@@ -2,8 +2,8 @@
 
 - Schema: `lex-evaluation-fast-mvp-acceptance/1`
 - Direction: v63 (cycle field; wrapper instrument field direction_version=61 is the accepted wrapper's own frozen value)
-- Battery verdict: **BATTERY_INCOMPLETE** (exit 1)
-- Generated: 2026-10-23T02:22:40Z
+- Battery verdict: **BATTERY_EXECUTED_PINS_HELD** (exit 0)
+- Generated: 2026-10-23T03:32:24Z
 
 ## Benchmark step (accepted instrument, invoked unchanged)
 
@@ -11,22 +11,22 @@
 - Gates: 11/18 passed, 4 failed, 3 reported
 - Failed gates: ['mf::concept_coverage::39319405429::de-kapitalverletzung', 'mf::counter_authority_surface::39319405429::de-kapitalverletzung', 'mf::counter_authority_surface::39319405429::fr-bail-entretien', 'mf::counter_authority_surface::39319405429::it-responsabilita-medica']
 - falsification_reproduced=True | failed_gate_set_matches_accepted=True | non_vacuity_all_hold=True
-- Product mount head measured: fe219a197e4bfb129984a732ab9adca917556eac
+- Product mount head measured: 7a70953e6efff535464fcdedc820dea02b4deb8d
 
 ## Battery step (7 suites under the disclosed no-pytest shim)
 
-- Verdict: **SHIM_FAIL** - passed=74 failed=3 skipped=0 unsupported(NOT-RUN, never passed)=6 absent=0 across 7 files
+- Verdict: **SHIM_PASS** - passed=77 failed=0 skipped=0 unsupported(NOT-RUN, never passed)=6 absent=0 across 7 files
 - Record: `results/evaluation/orchestration/39884405570_fast_mvp_battery_pytest_shim.json`
 - NOT pytest: a SHIM_PASS does not withdraw the standing disclosure that pytest is absent from the producer image.
 
 ### Per-file
 
-- `tests/evaluation/test_minimal_retrieval_ca_benchmark.py`: status=FAIL passed=20 failed=1 skipped=0 unsupported=0
+- `tests/evaluation/test_minimal_retrieval_ca_benchmark.py`: status=PASS passed=21 failed=0 skipped=0 unsupported=0
 - `tests/evaluation/test_mapping_free_recall_falsifier.py`: status=PASS passed=22 failed=0 skipped=0 unsupported=2
 - `tests/evaluation/test_stand_ready_multilingual_probe.py`: status=PASS passed=16 failed=0 skipped=0 unsupported=0
-- `tests/evaluation/test_mount_provenance_gate.py`: status=FAIL passed=8 failed=1 skipped=0 unsupported=4
+- `tests/evaluation/test_mount_provenance_gate.py`: status=PASS passed=9 failed=0 skipped=0 unsupported=4
 - `tests/evaluation/test_disclosure_provenance_crosscheck.py`: status=PASS passed=0 failed=0 skipped=0 unsupported=0
-- `tests/evaluation/test_boilerplate_resistance_real.py`: status=FAIL passed=0 failed=1 skipped=0 unsupported=0
+- `tests/evaluation/test_boilerplate_resistance_real.py`: status=PASS passed=1 failed=0 skipped=0 unsupported=0
 - `tests/evaluation/test_offline_emission_path_benchmark.py`: status=PASS passed=8 failed=0 skipped=0 unsupported=0
 
 ## Pin discipline (re-hashed before and after; identity only)
@@ -36,14 +36,14 @@
 ## Ordered-item adjudication (v63)
 
 - **(1)_remedy_a_re_freeze**: NOT_TRIGGERED - condition: mount planner sha256 != the pin already re-frozen by accepted run 39813664201 (SHIPPED_PLANNER_MATCHES_VERIFIED_REMEDY)
-- **(2)_cross_check_next_product_measurement**: NOT_TRIGGERED - condition: mount HEAD != accepted product anchor fe219a19 (no newer accepted product cycle)
+- **(2)_cross_check_next_product_measurement**: TRIGGERED - condition: mount HEAD != accepted product anchor fe219a19 (no newer accepted product cycle)
 - **(3)_frozen_bars_standing**: STANDING_OK - condition: RULES_LABEL/RULES_GEOMETRY/VERDICT_CONTRACT/frozen retrieval benchmark re-hash match (identity re-hash only, never re-derived)
 - **(4)_p1_fr_counter_stage_divergence**: STANDING_OK - condition: carry-forward reference to the accepted P1 FR divergence record in state/evaluation.json; NOT re-derived, NOT re-measured by this run
 - **(5)_falsify_new_served_packet**: NOT_TRIGGERED - condition: any accepted serve_recommendation in mount frontier_verdicts or the vendored serve verdict that does not carry a DO-NOT-SERVE marker (markers frozen in the hypothesis: do-not-serve, do_not_serve, do not serve, bounded-negative, withheld_pending_serve, built_not_served)
 
 ## Latency (REPORTED-ONLY, no threshold)
 
-- benchmark: 0.176s | battery: 1.134s | pin re-hash total: 0.006s
+- benchmark: 0.285s | battery: 1.838s | pin re-hash total: 0.008s
 
 ## Prior-session disclosure
 
