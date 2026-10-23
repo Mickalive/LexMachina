@@ -124,6 +124,18 @@ def test_wrong_run_id_is_exit_2_and_writes_nothing(tmp_path):
     assert not report.exists()
 
 
+def test_leg_records_do_not_collide_and_live_in_accepted_namespaces():
+    a = pac.leg_a_engine_path(RUN)
+    b = pac.leg_b_record_path(RUN)
+    c = pac.leg_c_record_path(RUN)
+    assert a != b != c != a
+    assert a.parent.name == "mapping_free_recall_falsifier"
+    assert b.parent.name == "shipped_planner_remedy_verification"
+    assert c.parent.name == "degradation_disclosure_crosscheck"
+    assert a.name == f"{RUN}_engine_mapping_free_recall_falsifier.json"
+    assert b.name == f"{RUN}.json" and c.name == f"{RUN}.json"
+
+
 def test_planted_product_pin_drift_is_detected():
     freeze = load(pac.FREEZE_RELPATH)
     ctrl = pac.control_pin_drift_detected(MOUNT, freeze["product_pins"])

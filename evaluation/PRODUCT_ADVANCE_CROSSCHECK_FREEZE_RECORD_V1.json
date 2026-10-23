@@ -40,6 +40,20 @@
     "exit_code": 2,
     "verdict": "ENVIRONMENT_OR_VACUOUS"
   },
+  "attempt2_preserved": {
+    "claimed_product_verdict": false,
+    "combined_record": "results/evaluation/product_advance_crosscheck/39916358347_attempt2_wrapper_control_path_bug.json",
+    "combined_record_sha256": "d36c13c7cdb381375c729966fdd907a7f3eadcbd9263b30336a64a847ce50a10",
+    "exit_code": 2,
+    "observed_legs": {
+      "A_mapping_free_falsification": "PRODUCT_FALSIFIED (exit 1)",
+      "B_shipped_planner_remedy": "SHIPPED_PLANNER_MATCHES_VERIFIED_REMEDY (exit 0)",
+      "C_degradation_disclosure": "DEGRADATION_DISCLOSURE_VISIBLE_AT_COMPLETE_BUNDLE_STAGE (exit 0)",
+      "D_coverage_remediation_pins": "COVERAGE_PINS_STILL_HOLD (exit 0)",
+      "E_answer_reliability_currency": "RELIABILITY_MEASUREMENT_STALE_ON_PRODUCT_ADVANCE (exit 1)"
+    },
+    "verdict": "ENVIRONMENT_OR_VACUOUS"
+  },
   "claim_ceiling": "This cross-check establishes only whether accepted evaluation findings and the product lane's four ordered deliverable claims remain current on accepted head ae854b6a. It is NOT a new counter-authority recall measurement, NOT a serve recommendation, NOT a re-score of any frozen absolute bar (LABEL_SOUND and GEOMETRY_SOUND stay REPORTED-ONLY and unmet), NOT a jurist-usefulness claim and NOT a human-gate readiness claim. Both DO-NOT-SERVE orders stand; admission stays fail-closed; human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session stay false. No threshold, bar, rubric or verdict contract is re-derived; no Frontier candidate is built or scored; no universal-174k benchmark is run.",
   "direction_version": 63,
   "exit_code_contract": {
@@ -87,7 +101,7 @@
     "evaluation/counter_probe_anchor_falsifier.py": "2830b9ec3ac434ba479eb12ee609dba96aa53c28b64facfa0ace2fc44445098b",
     "evaluation/degradation_disclosure_crosscheck.py": "a2a0e12dce3c9ed068c1a38ec26b82f9904fcb78a4742fd037c2380e9212422f",
     "evaluation/degradation_disclosure_crosscheck_v2.py": "ced1f11b5060bd903b13126c37fde0eeb5643335a0fbd22d054aa838efffb077",
-    "evaluation/product_advance_crosscheck.py": "7f66be4a61a82eaadaf83bf5b56a06059e6726306d3cf2aba9c59a1fc45d5a7d",
+    "evaluation/product_advance_crosscheck.py": "a26be656abff64c8742011646eedf320964020e14b769f7ec71366a5c9869df9",
     "evaluation/retrieval_gate/frozen_retrieval_benchmark.json": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
     "evaluation/shipped_planner_remedy_verification.py": "ee020e7cc74ad0d32c3d03eef9b49790f0a3180ae791216adeebf19950ca8552",
     "results/evaluation/answer_reliability_crosscheck/39827806011.json": "c638694bafcff09bbf4c3944c9f92f12b26cd1987a587b8c42869bc59937f5af",
@@ -99,6 +113,7 @@
     "results/evaluation/degradation_disclosure_crosscheck/39820650174_v2.json": "f4e14a77fd7563288c94191a745405f09b8afbc7a9a217390537df76f47e3f2d",
     "results/evaluation/product_advance_crosscheck/39916358347_attempt1_engine_mapping_free_recall_falsifier.json": "49f25a5bd49dbc4477d2d30c96bf6ad30f3b580f18ab5a441aebcf4d850e6dbd",
     "results/evaluation/product_advance_crosscheck/39916358347_attempt1_output_path_and_env_bug.json": "dd8a9413725c480f9f9508f22425b9dbb94556b25b8950a25b9f364b3c778780",
+    "results/evaluation/product_advance_crosscheck/39916358347_attempt2_wrapper_control_path_bug.json": "d36c13c7cdb381375c729966fdd907a7f3eadcbd9263b30336a64a847ce50a10",
     "results/evaluation/shipped_planner_remedy_verification/39813664201.json": "1f8a6675e61930cf35bae7a9610f4672354433b6234fc96e18b98da08691372f"
   },
   "product_mount": "/tmp/lex_accepted/product",
@@ -120,6 +135,13 @@
     "no_outcome_was_claimed_before_amendment": "Attempt 1 exit 2 is never a product verdict. Its leg A observed PRODUCT_FALSIFIED and its leg E observed STALE, but those observations were not claimed as the cycle result and are superseded by the Seq-2 execution under the same frozen run id.",
     "trigger": "Attempt 1 executed after the Seq-1 freeze commit and exited 2 ENVIRONMENT_OR_VACUOUS; it claimed no product verdict. Two plumbing defects were exposed, neither of which is a measurement-rule change: (i) the wrapper wrote leg B, leg C and the combined record to the same filename under results/evaluation/product_advance_crosscheck/, so the leg B and leg C records were overwritten (the combined leg summaries survive in the preserved attempt-1 record); (ii) the environment lacked numpy and scikit-learn, so leg C's product import failed closed as ENVIRONMENT_OR_VACUOUS rather than measuring a degradation gap.",
     "unchanged": "Every hypothesis, gate, control, pin, population, exit-code contract, success rule, falsification rule and claim ceiling is unchanged from the Seq-1 freeze. The instrument's measurement logic is unchanged; only the output path plumbing and the leg summary's disclosed reason field changed. The attempt-1 artifacts are preserved verbatim and are pinned as read-only evidence."
+  },
+  "seq3_amendment": {
+    "amended_at_utc": "2026-10-23T07:44:00Z",
+    "corrected": "C2 now reads the engine record through the same leg_a_engine_path() helper the leg writes through. The leg output namespaces are now expressed as three helpers and are covered by a unit test that asserts they do not collide. No gate, control predicate, pin, population, exit contract or claim ceiling changes.",
+    "no_outcome_was_claimed_before_amendment": "Seq-2 exit 2 is never a product verdict. Its leg observations were not claimed as the cycle result.",
+    "trigger": "Seq-2 executed after the Seq-2 freeze amendment and exited 2 ENVIRONMENT_OR_VACUOUS. The five measurement legs all returned their expected outcomes, but the wrapper's own C2 non-vacuity control reported holds=false because it still read the engine record from the old combined-output directory (the attempt-1 bug) instead of the new canonical mapping_free_recall_falsifier namespace. A failed non-vacuity control is correctly fatal: it is exit 2, never a product pass. No product claim is made from Seq-2.",
+    "unchanged": "All five measurement legs and every accepted predicate are unchanged from the Seq-1/Seq-2 freeze. The Seq-2 combined record is preserved verbatim and pinned as read-only evidence; its leg observations are reported as observed but are superseded by the Seq-3 execution under the same frozen run id."
   },
   "why_a_new_freeze": "Factory direction v63 orders the evaluation lane to re-freeze and re-run the accepted frozen checks against the NEW accepted product head and to cross-check each product deliverable claim under a NEW run id. The accepted head advanced to ae854b6a. This freeze is the single pre-execution contract for that cross-check; it pins every accepted input and every re-freeze it will consume, and it is committed before any claim-bearing leg executes."
 }
