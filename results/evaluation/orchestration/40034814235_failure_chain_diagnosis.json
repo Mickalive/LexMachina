@@ -1,0 +1,105 @@
+{
+  "schema": "lex-evaluation-orchestration-diagnosis/1",
+  "record_kind": "ORCHESTRATION FAILURE DIAGNOSIS (operational resume run 40034814235)",
+  "lane": "evaluation",
+  "direction_version": 65,
+  "run_id": "40034814235",
+  "generated_at_utc": "2026-10-23T22:55:00Z",
+  "evidence_sources": [
+    "GitHub REST API: /repos/Mickalive/LexMachina/actions/runs/<id> and /actions/runs/<id>/jobs for runs 40017649220, 40023576675, 40029231841, 40029524205, 40033424089, 40033628306, 40034534808",
+    "GitHub job-log downloads for team jobs of runs 40023576675, 40029231841, 40029524205, 40033424089, 40033628306, 40034534808",
+    "git branch tips of cycle/core/evaluation/<run>/team for all six failed runs (all fetched and compared)"
+  ],
+
+  "headline": "The repair round 1 discharge of audit REVISE CYCLE_40017649220 (commits b9870cb9 + b8d526bc, producer run 40023576675) is COMPLETE on the persisted snapshot, but its chain never reached an independent audit because the producer died ~2 seconds after its final commit (rc-78 work-quantum) and the six subsequent resume producers ALL died zero-delta (rc-67). Every failed run's team snapshot is byte-identical at b8d526bc, so NO producer work was lost. This run verifies the repair and makes the snapshot audit-ready.",
+
+  "failure_chain_of_record": [
+    {
+      "run": "40017649220",
+      "role": "repair0 producer (cycle of record for the v65 minimal-ret-ca benchmark)",
+      "dispatched": "2026-10-23T20:14:16Z",
+      "conclusion": "success (team+audit+integrate all green)",
+      "audit_gate": "results/audit/evaluation/CYCLE_40017649220_GATE.json on branch cycle/core/evaluation/40017649220/audit: gate=REVISE, safe_to_integrate=false, required_fixes F1/F2/F3",
+      "outcome": "integrate dispatched repair round 1 with repair_from_run_id=40017649220"
+    },
+    {
+      "run": "40023576675",
+      "role": "repair round 1 producer (repair_from_run_id=40017649220, repair_round=1)",
+      "dispatched": "2026-10-23T21:00:42Z",
+      "conclusion": "FAILURE rc=78 LEX_WORK_QUANTUM_EXPIRED at 2026-10-23T21:46:40Z (2700s quantum, agent session pid 2254 started 21:01:39Z)",
+      "work_produced": "SUBSTANTIVE AND PRESERVED: commit b9870cb9 at 21:43:52Z (full F1/F2/F3 discharge: measured shim records under run 40017649220, complete evidence index 154->173, cycle hypothesis/provenance record MINIMAL_RET_CA_40017649220_CYCLE_HYPOTHESIS_V1.json, repair scripts, repair test suite); commit b8d526bc at 21:46:42Z (state timestamp + e2e elapsed correction 10.868s->10.531s + local shim re-run, committed by the workflow Persist-team-snapshot step from leftover working tree after the agent died)",
+      "audit": "SKIPPED - team job failed, so needs.team.result != success and the audit job never ran; NO CYCLE_40023576675_GATE.json exists anywhere",
+      "team_head": "b8d526bc12cf3b5384524b31036d01d20e27bb21",
+      "log_evidence": "job log line 5459: '##[warning]LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2254'; line 5461: '##[error]Process completed with exit code 78.'"
+    },
+    {
+      "run": "40029231841",
+      "role": "operational resume of 40023576675 (RESUME_FROM=40023576675, repair_round=1)",
+      "dispatched": "2026-10-23T21:46:56Z",
+      "conclusion": "FAILURE rc=67 LEX_ZERO_DELTA_REPAIR at 2026-10-23T21:49:18Z (~75s session)",
+      "failure_class": "zero-delta; final tool call requested external_directory permission (/home/runner/work/_temp/_github_workflow/*) and was auto-rejected by the permission system; agent ended its turn with no files written",
+      "team_head": "b8d526bc (unchanged)"
+    },
+    {
+      "run": "40029524205",
+      "role": "operational resume of 40029231841 (RESUME_FROM=40029231841, repair_round=1)",
+      "dispatched": "2026-10-23T21:49:32Z",
+      "conclusion": "FAILURE rc=67 LEX_ZERO_DELTA_REPAIR at 2026-10-23T22:24:24Z (~28min session)",
+      "failure_class": "zero-delta despite extensive in-session reading (control plane, repo, benchmark instrument) and an in-transcript draft diagnosis of the earlier failures; the session ended without writing or committing anything",
+      "team_head": "b8d526bc (unchanged)",
+      "note": "the in-transcript diagnosis draft was never persisted; its content is superseded by this artifact"
+    },
+    {
+      "run": "40033424089",
+      "role": "operational resume of 40029524205 (RESUME_FROM=40029524205, repair_round=1)",
+      "dispatched": "2026-10-23T22:24:39Z",
+      "conclusion": "FAILURE rc=67 LEX_ZERO_DELTA_REPAIR at 2026-10-23T22:26:15Z (~45s session)",
+      "failure_class": "zero-delta; final tool call requested external_directory permission (/home/runner/*) and was auto-rejected; agent ended its turn",
+      "team_head": "b8d526bc (unchanged)"
+    },
+    {
+      "run": "40033628306",
+      "role": "operational resume of 40033424089 (RESUME_FROM=40033424089, repair_round=1)",
+      "dispatched": "2026-10-23T22:26:30Z",
+      "conclusion": "FAILURE rc=67 LEX_ZERO_DELTA_REPAIR at 2026-10-23T22:34:40Z (~7min session)",
+      "failure_class": "zero-delta; producer read the full control plane, /tmp/lex_accepted, repo tree, state and results, then ended its turn with nothing written",
+      "team_head": "b8d526bc (unchanged)"
+    },
+    {
+      "run": "40034534808",
+      "role": "operational resume of 40033628306 (RESUME_FROM=40033628306, repair_round=1)",
+      "dispatched": "2026-10-23T22:34:55Z",
+      "conclusion": "FAILURE rc=67 LEX_ZERO_DELTA_REPAIR at 2026-10-23T22:37:18Z (~80s session)",
+      "failure_class": "zero-delta; final tool call attempted to probe for a GitHub token under /home/runner/work/_temp/* (external_directory permission) and was auto-rejected ('permission requested: external_directory (/home/runner/work/_temp/*); auto-rejecting' at 22:37:06Z, 'The user rejected permission to use this specific tool call.' at 22:37:06Z); agent ended its turn; wrapper evaluated HEAD unchanged + empty porcelain and exited 67 at 22:37:18Z",
+      "team_head": "b8d526bc (unchanged)"
+    },
+    {
+      "run": "40034814235",
+      "role": "operational resume of 40034534808 (RESUME_FROM=40034534808, repair_round=1) - THIS RUN",
+      "conclusion": "in flight at diagnosis time"
+    }
+  ],
+
+  "mechanism_references": {
+    "rc_78": ".github/scripts/run-ox-with-retry.sh work-quantum monitor: LEX_WORK_QUANTUM_EXPIRED (seconds=2700). Factory-wide requirements 10 and 12 record that rc-78 is an orchestration guard, not a product, evidence or human-gate problem.",
+    "rc_67": ".github/scripts/run-ox-with-retry.sh: when LEX_REQUIRE_DELTA is set (the evaluation lane always sets it in the current core-lane.yml) and the producer session ends with HEAD unchanged and empty git status --porcelain, the wrapper exits 67 LEX_ZERO_DELTA_REPAIR, meaning 'THE PRODUCER FOUND NOTHING TO DO', never 'the lane is broken'.",
+    "dispatch_resilience": "core-lane.yml resilience job: when the team job fails and a snapshot branch exists, it dispatches core-lane.yml with resume_from_run_id=<failed run>. This is what produced the five-resume chain above.",
+    "no_gate_no_promotion": "core-lane.yml audit runs only if needs.team.result == success; a team job failure therefore means the committed repair work sits unaudited on the team snapshot until a healthy producer run carries it to audit."
+  },
+
+  "recurring_anti_pattern_observed": {
+    "pattern": "3 of the 6 failed producers (40029231841, 40033424089, 40034534808) ended their only session on a tool call that requested external_directory permission under /home/runner/work/_temp (the workflow git-credentials temp area) - almost certainly probing for a GitHub token - which the permission system auto-rejects. The agent then ended its turn instead of proceeding with lane work, and the zero-delta guard killed the run.",
+    "rule_for_future_producers": "lane producers never need a GitHub token; git push/gh workflow are handled by the workflow steps outside the agent. Probing /home/runner/work/_temp for tokens is out of scope, auto-rejected and wastes the entire session. Start with repo work directly (read state, verify artifacts, write records, commit).",
+    "scope_note": ".github/** is control-plane scope and is NOT edited by this lane; this entry is a recorded observation, not a patch."
+  },
+
+  "work_loss_assessment": {
+    "statement": "ZERO WORK LOST. All six failed runs' team snapshot branches (cycle/core/evaluation/{40023576675,40029231841,40029524205,40033424089,40033628306,40034534808}/team) were fetched and compared: every tip is byte-identical at b8d526bc12cf3b5384524b31036d01d20e27bb21. The five resume producers wrote no file at all (their sessions produced no uncommitted artifacts for the snapshot step to capture). The repair work of 40023576675 is fully preserved.",
+    "verified_by": "git fetch + git rev-parse of each origin/cycle/core/evaluation/<run>/team ref at 2026-10-23T22:53Z"
+  },
+
+  "disposition": {
+    "action": "This operational-resume run re-executes the committed instruments under run id 40034814235 (freeze-first per OPERATIONAL_RESUME_40034814235_HYPOTHESIS_V1.json), verifies the F1/F2/F3 discharge claim-by-claim, updates state/evaluation.json to this run id, and commits - producing the durable delta the five dead producers failed to produce, so the independent auditor of run 40034814235 audits a complete, evidence-backed snapshot.",
+    "no_remedy_needed_for": "the repair content itself (F1/F2/F3) - it is verified in this run's committed records; no frozen file, bar, rubric, threshold or historical result is touched."
+  }
+}
