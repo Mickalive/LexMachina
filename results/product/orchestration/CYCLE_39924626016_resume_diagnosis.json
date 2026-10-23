@@ -1,0 +1,52 @@
+{
+  "schema": "product-resume-diagnosis/1",
+  "run_id": "39924626016",
+  "lane": "product",
+  "direction_version": 63,
+  "mode": "operational resume from the persisted producer snapshot",
+  "observed_snapshot": {
+    "team_ref": "origin/cycle/core/product/39924626016/team",
+    "team_commit": "0818e8d0a51f19b1b7052b04a98289a6b9f56371",
+    "checked_out_head": "0818e8d0a51f19b1b7052b04a98289a6b9f56371",
+    "head_commit_message": "product cycle 39919183976 repair 0",
+    "accepted_base_commit": "ae854b6a9ff4df4429d36725e364e721cb73096b",
+    "accepted_base_message": "accept product cycle 39909013473",
+    "working_tree_before_this_cycle": "clean (git status --porcelain returned no lines)",
+    "producer_delta": "none for run 39924626016 itself: the team ref equals the previous cycle's commit 0818e8d (cycle 39919183976's language-normalisation repair plus live-slice evidence) and carries no commit, artifact, state record or report naming run 39924626016"
+  },
+  "failure_diagnosis": {
+    "classification": "zero-delta producer snapshot (third occurrence of this signature on the product lane after runs 39888445036 and 39916040751)",
+    "evidence": [
+      "origin/cycle/core/product/39924626016/team resolves to 0818e8d, the commit that delivered cycle 39919183976, not a new producer commit for 39924626016",
+      "git status --porcelain was empty on the inherited tree",
+      "grep over results/, reports/ and state/ finds no file naming run 39924626016"
+    ],
+    "inference": "The producer job ended without persisting any durable work, the same observable signature as the previously diagnosed LEX_ZERO_DELTA_REPAIR / provider-death failures (runs 39888445036 and 39916040751). The exact exit code/annotation for 39924626016 is not readable from inside the producer (GitHub's log endpoint needs a token this job does not carry), so it is recorded as unavailable rather than invented.",
+    "exact_exit_code_available": false,
+    "consequence": "The inherited tree already carries every runnable delta of cycle 39919183976 (the D1 language-normalisation repair, its 5 offline tests, the audit reproduction, and the two fresh-network live-slice records). The genuinely open direction-v63 deliverable on that tree is ordered item 4, the live-answer reliability measurement: the only prior measurement (run 39799042649, commit 3d048ce, ancestor of the accepted 39815102517 tree) recorded answer_ready_rate 0.857 with one DEGRADED_WRITER_ABORT leg and was never restated in any accepted state record as the ordered-item-4 deliverable; the accepted state and the v63 direction both still record the measurement as the next lane deliverable. This cycle supplies that measurement instead of re-running the empty producer."
+  },
+  "work_delivered_this_cycle": [
+    "results/product/answer_reliability/39924626016_protocol_freeze.json: the pre-registered protocol (unchanged module constant, protocol_sha256 verified equal to the 39799042649 freeze) frozen BEFORE any leg of this run executes",
+    "results/product/answer_reliability/39924626016_measurement.json: the live-answer reliability measurement on replayed live OpenCaseLaw decision sets with the current healthy free-model pool"
+  ],
+  "prior_measurement_preserved": {
+    "artifact": "results/product/answer_reliability/39799042649_measurement.json",
+    "status": "byte-identical on disk; the historical file named for run 39799042649 keeps that run's measurement and is never overwritten (append-only evidence convention)",
+    "prior_result": "7 legs, answer_ready_rate 0.857 (1 DEGRADED_WRITER_ABORT leg: rent-default|baseline|it|r1), citation_validity 1.0, source_validity 1.0, language_match_rate 1.0, degradation_visible_rate 1.0, stability_jaccard_min 0.667, product_claim_reliable_live_answer=false"
+  },
+  "verification_commands": [
+    "python3 product/answer_reliability.py --freeze --run-id 39924626016",
+    "python3 product/answer_reliability.py --run    --run-id 39924626016",
+    "python3 product/answer_reliability.py --check  --run-id 39924626016",
+    "python3 -m pytest -q product/tests/test_answer_reliability.py product/tests/test_language_normalization.py",
+    "python3 product/state_contract.py --check"
+  ],
+  "posture_unchanged": {
+    "human_gate_ready": false,
+    "machine_gate_ready": false,
+    "packet_admitted": false,
+    "ready_for_owner_session": false,
+    "continue_recommended": true
+  },
+  "claim_ceiling": "An orchestration diagnosis plus the ordered-item-4 reliability measurement it unblocked. The measurement is REPORTED-ONLY: it scores no frozen bar, changes no posture field, labels no decision and makes no legal-usefulness claim. No human-gate session is staged."
+}

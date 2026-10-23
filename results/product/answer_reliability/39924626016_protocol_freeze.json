@@ -1,0 +1,85 @@
+{
+  "answer_timeout_note": "the shipped default is 300 s per model; this measurement uses 180 s because the cycle's wall-clock budget is finite. A SHORTER budget can only turn a ready answer into a degraded one, so the measured reliability is a CONSERVATIVE (lower) estimate of the shipped path's.",
+  "answer_timeout_s": 180,
+  "claim_ceiling": "A measurement of the shipped generative answer leg on the recorded live OpenCaseLaw decision sets, at one date, with one free model pool. It says nothing about legal correctness, jurist usefulness, the frozen bars, the serve verdict or the human gate; it changes no posture field and it labels no decision.",
+  "concurrency": 2,
+  "concurrency_note": "legs run with bounded concurrency; the per-leg wall clock therefore includes provider contention and is reported as measured, not as a single-user latency figure",
+  "evidence_count": 12,
+  "frozen_before_execution": true,
+  "hypothesis": "On the replayed live OpenCaseLaw coverage cache, the product's live generative answer is reliable when every leg answers with status 'ready', every cited decision id is present in the rendered bundle, every cited decision carries a canonical source URL on an allowed public host, every authority the prose names inline resolves to a decision in the rendered bundle, the answer is written in the question's language, a writer abort is always visible as a degradation, and two repeats of the same question cite a substantially the same set of decisions.",
+  "leg_budget_s": 420,
+  "max_cites": 8,
+  "metrics": [
+    "answer_ready",
+    "citation_validity",
+    "prose_citation_validity",
+    "source_validity",
+    "language_match",
+    "degradation_visible",
+    "adversarial_rows",
+    "wall_seconds"
+  ],
+  "not_claimed": [
+    "no legal correctness claim: a cited authority can be real and still be the wrong authority for the question",
+    "no jurist-usefulness claim",
+    "no human-gate readiness: human_gate_ready stays false",
+    "no change to any frozen bar, rubric, benchmark or verdict contract",
+    "no re-run of the served packet: the serve question stays closed for the v3 bytes"
+  ],
+  "protocol_sha256": "418c516f537618655c920c2de321c100add372d7e09c4d74c9f3738d87dce3b1",
+  "purpose": "Factory direction v62 product ordered item 4: the live-answer reliability measurement that had never run. It measures whether the shipped generative answer leg produces a ready, source-linked, citation-valid answer on decisions that came back from the live OpenCaseLaw API and are replayed from the product cache.",
+  "query_set": [
+    {
+      "channel": "baseline",
+      "language": "fr",
+      "repeats": 2,
+      "slug": "rent-default"
+    },
+    {
+      "channel": "baseline",
+      "language": "de",
+      "repeats": 1,
+      "slug": "rent-default"
+    },
+    {
+      "channel": "baseline",
+      "language": "it",
+      "repeats": 1,
+      "slug": "rent-default"
+    },
+    {
+      "channel": "baseline",
+      "language": "fr",
+      "repeats": 1,
+      "slug": "petty-theft-dismissal"
+    },
+    {
+      "channel": "baseline",
+      "language": "fr",
+      "repeats": 1,
+      "slug": "corporate-criminal-liability"
+    },
+    {
+      "channel": "baseline",
+      "language": "fr",
+      "repeats": 1,
+      "slug": "business-judgment-rule"
+    }
+  ],
+  "query_text_manifest": {
+    "path": "product/data/frozen_retrieval_texts.json",
+    "sha256": "19f84b84599dd2ecf1e972e9edece5161d0fcc3b9b9692f18b81c6b081924622",
+    "source_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72"
+  },
+  "query_text_source": "product/data/frozen_retrieval_texts.json (the product-owned snapshot of the frozen retrieval benchmark's query texts); the texts are read, never retyped, and their source digest is pinned by the manifest",
+  "retrieval_mode": "offline",
+  "retrieval_mode_note": "cache-first replay of envelopes fetched LIVE from the public OpenCaseLaw API; the measurement performs no network retrieval",
+  "run_id": 39924626016,
+  "schema": "product-answer-reliability-protocol/1",
+  "stability_metric": "Jaccard of the cited decision-id sets of two repeats of the same question, plus the fraction of citations present in BOTH repeats (the stable core). Pre-registered, computed from the recorded legs, never adjusted after the result is seen.",
+  "success_rule": "The measurement is COMPLETE when every planned leg has a recorded outcome (ready or degraded), no leg is missing, and the degradation-visibility check holds for every leg. The PRODUCT CLAIM 'the live generative answer is reliable on replayed live queries' is made only when ALL of: answer_ready_rate == 1.0, citation_validity == 1.0, prose_citation_validity == 1.0, source_validity == 1.0, language_match_rate == 1.0, degradation_visible_rate == 1.0 and the stability Jaccard of the repeated question is >= 0.5. If any condition fails the claim is NOT made and the failure is published. This is a pre-registered, product-owned criterion for ONE product claim; it is not a factory-frozen bar, it scores no frozen rubric and it gates nothing.",
+  "title": "live generative answer reliability on replayed live OpenCaseLaw queries",
+  "tool": "product/answer_reliability.py",
+  "top_n": 120,
+  "top_n_note": "the coverage replay wrote the cache at top_n=120, so the replay hits the recorded envelopes; at the pipeline's default top_n=150 the request key does not match the recorded envelope and the cache-first path misses (measured, disclosed in the report of record)"
+}
