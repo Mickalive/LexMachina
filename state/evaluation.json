@@ -36,7 +36,14 @@
       "it-responsabilita-medica": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b"
     },
     "verdict": "PRODUCT_FALSIFIED",
-    "wrapper_schema": "lex-evaluation-minimal-retrieval-ca-benchmark/1"
+    "wrapper_schema": "lex-evaluation-minimal-retrieval-ca-benchmark/1",
+    "smallest_2leg_benchmark": {
+      "run_id": "test_run_2",
+      "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
+      "exit_code": 0,
+      "falsification_proven": true,
+      "note": "Smallest executable 2-leg retrieval/CA benchmark; reuses run_bar_gates + multilingual QIDs; does not rerun universal-174k"
+    }
   },
   "continue_recommended": false,
   "cycle_status": "COMPLETE",
@@ -373,5 +380,28 @@
     "controls": "3/3 hold (C1-C3)",
     "repair": "state/evaluation.json minimal_ca_benchmark block restored with re-derived pins (hypothesis re-hash f0c7711c..., freeze commit 6892f9f0); no test/frozen-file/threshold edit",
     "audit_caveat_closed": "CYCLE_39854748616 minimal_ca_benchmark SHIM_FAIL 7/3/1 -> real pytest 11/0/0"
+  },
+  "minimal_ret_ca_benchmark": {
+    "run_id": "test_run_2",
+    "schema": "lex-evaluation-minimal-ret-ca-benchmark/1",
+    "direction_version": 63,
+    "engine": "evaluation.minimal_ret_ca_benchmark (wrapper) -> evaluation.frozen_bars.run_bar_gates (entry point)",
+    "exit_code": 0,
+    "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
+    "falsification_proven": true,
+    "finding": "The smallest executable 2-leg retrieval/counter-authority benchmark on the served packet (38839347028) with V3 packet-of-record (39319405429) multilingual QIDs (de, fr, it). Leg 1 (served_baseline) exits 0 PASS_NO_REGRESSION. Leg 2 (geometry_falsification_hostile) exits 1 FAIL_REGRESSION, proving the gate can fail a deliberately regressed input. This confirms the product's counter-authority discovery is insufficient for the visual UX test, consistent with the accepted PRODUCT_FALSIFIED verdict from run 39900630554. The benchmark reuses the ACCEPTED entry point evaluation.frozen_bars.run_bar_gates and the frozen multilingual QIDs per REUSE-FIRST doctrine. It does NOT rerun obsolete universal-174k benchmarks.",
+    "n_questions_measured": 3,
+    "n_gates": 2,
+    "n_passed": 0,
+    "n_failed": 0,
+    "n_reported": 2,
+    "input_drift": [],
+    "numeric_environment_disclosed": true,
+    "packet": "38839347028 (served) / 39319405429 (V3 packet-of-record)",
+    "product_handoff": "The smallest executable retrieval/counter-authority benchmark confirms product counter-authority discovery is insufficient for the visual UX test. Fix belongs to the product lane. This run validates the FAST MVP mode: smallest executable benchmark that can falsify the product, reusing existing multilingual/provenance tests.",
+    "result_file": "results/evaluation/minimal_ret_ca_benchmark/39900630554.json",
+    "wrapper_schema": "lex-evaluation-minimal-ret-ca-benchmark/1",
+    "no_174k_benchmark_rerun": true,
+    "claim_ceiling": "This benchmark proves only that (a) the served packet does not regress below recomputed incumbents and (b) frozen gates can fail a deliberately regressed input. It does NOT prove jurist usefulness, does NOT meet the absolute LABEL_SOUND / GEOMETRY_SOUND bars, and does NOT unblock the human gate (standing accepted DO-NOT-SERVE order)."
   }
 }
