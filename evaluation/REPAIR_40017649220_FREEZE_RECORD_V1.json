@@ -1,0 +1,56 @@
+{
+  "schema": "lex-evaluation-repair-freeze/1",
+  "lane": "evaluation",
+  "direction_version": 65,
+  "run_id": "40023576675",
+  "repairs_run_id_of_record": "40017649220",
+  "repair_round": 1,
+  "frozen_at_utc": "2026-10-23T21:23:00Z",
+  "hypothesis_path": "evaluation/REPAIR_40017649220_HYPOTHESIS_V1.json",
+  "hypothesis_sha256": "6daea507c24007aafc34f81410b94545a741c228d0e2b02cbd259bc72743e9e7",
+  "cycle_provenance_record_path": "evaluation/MINIMAL_RET_CA_40017649220_CYCLE_HYPOTHESIS_V1.json",
+  "cycle_provenance_record_sha256_at_publish": "92cfb9380d1af0a77146fbe17f907fd6ff2e5260bdfa535f2bdd761b4e552c9e",
+
+  "rejected_team_head": "2456ec4282957a39bddb877f244bd55c4dd3d5ab",
+  "accepted_base": "b8265afbdd9380584da2bf6ee54dd353e79746cf",
+  "audit_gate_of_record": "results/audit/evaluation/CYCLE_40017649220_GATE.json (gate=REVISE, safe_to_integrate=false, required_fixes F1/F2/F3)",
+
+  "frozen_inputs_rehashed_at_freeze": {
+    "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+    "evaluation/frozen_bars/VERDICT_CONTRACT.json": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c",
+    "evaluation/minimal_ret_ca_benchmark.py": "70f8158c9049df2d03ebcc460b782178967ab9da7a11e48dd1b5b132d9f17167",
+    "tests/evaluation/test_minimal_ret_ca_benchmark.py": "49c94f7bfae80bfbad93da431d7a25ddb68e44bf9aab6daeef80cd37f42cfb6e",
+    "evaluation/no_pytest_runner.py": "c12097da9d910574380b32c5dafa371a3b24ec14ef2551d92bb9453b8ed57584",
+    "evaluation/run_v3_multilingual_provenance_reuse.py": "52076c974aae7199dfb990efad92aaa427487e6720402342b930cc851bda3c61"
+  },
+
+  "numeric_environment_disclosed": {
+    "python": "3.12.3",
+    "python_executable": "/usr/bin/python3",
+    "pytest": "ABSENT in this image (import pytest -> ModuleNotFoundError); therefore the lane's own runner evaluation/no_pytest_runner.py is the instrument of record for F1 and the record states this in measurement_env",
+    "runner": "evaluation/no_pytest_runner.py (pytest shim; UNSUPPORTED counted as NOT-RUN, never passed)",
+    "blas_note": "no numpy/scipy/sklearn is exercised by the frozen 2-leg benchmark (stdlib + json only), so no BLAS reduction-order sensitivity applies to this repair's measurements",
+    "network": "none used; all inputs are the local accepted-product mount at /tmp/lex_accepted/product, read-only",
+    "accepted_product_mount_at_freeze": "/tmp/lex_accepted/product"
+  },
+
+  "definitive_post_freeze_executions_planned": [
+    "F1a: evaluation/no_pytest_runner.py --run-id 40017649220 --test-file tests/evaluation/test_minimal_ret_ca_benchmark.py -> results/evaluation/orchestration/40017649220_R1_minimal_ret_ca_pytest_shim.json",
+    "F1b: evaluation/no_pytest_runner.py --run-id 40017649220 on the multilingual + provenance test files -> results/evaluation/orchestration/40017649220_R1_multiling_prov_pytest_shim.json",
+    "F1c: fixture-injected out-of-shim execution of the single UNSUPPORTED case -> results/evaluation/orchestration/40017649220_R1_e2e_fixture_injected.json",
+    "F1d: evaluation/run_v3_multilingual_provenance_reuse.py re-executed scratch-side, output re-homed under run 40017649220 (never overwriting results/evaluation/v3_multilingual_provenance_reuse/local_v3_multilingual_reuse.json) -> results/evaluation/multilingual_provenance_reuse/40017649220.json",
+    "C1-C6 controls executed by evaluation/repair_40017649220_r1.py -> results/evaluation/repair_40017649220_r1/40023576675.json"
+  ],
+
+  "statement": "This freeze record and its hypothesis are committed BEFORE the definitive claim-bearing executions of repair round 1. The three pre-freeze scoping executions are disclosed inside the hypothesis and preserved byte-for-byte under their original attempt-1 paths; they are not the definitive measurement. No threshold, bar, rubric, verdict contract, success rule, frozen instrument or historical record is changed by this repair.",
+  "scratch_run_obligation": "the frozen benchmark instrument writes only to committed claim-bearing paths when invoked with default --out-dir/--report-dir; this repair therefore never invokes it with defaults. Any benchmark re-execution in this round is redirected into a scratch tmpdir.",
+  "non_goals": [
+    "no bar/threshold/rubric change",
+    "no universal-174k rerun",
+    "no serve-verdict re-run",
+    "no rewrite of any historical record",
+    "no deletion of any prior negative result",
+    "no product code imported"
+  ]
+}

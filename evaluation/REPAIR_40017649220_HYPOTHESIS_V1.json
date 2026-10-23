@@ -1,0 +1,97 @@
+{
+  "schema": "lex-evaluation-repair-hypothesis/1",
+  "hypothesis_id": "V65_MINIMAL_RET_CA_REPAIR_R1_40017649220",
+  "lane": "evaluation",
+  "direction_version": 65,
+  "run_id": "40023576675",
+  "repairs_run_id_of_record": "40017649220",
+  "audit_gate": "results/audit/evaluation/CYCLE_40017649220_GATE.json (gate=REVISE, safe_to_integrate=false)",
+  "frozen_at_utc": "2026-10-23T21:23:00Z",
+  "frozen_before_definitive_claim_bearing_execution": true,
+  "pre_freeze_attempt_1_disclosure": {
+    "statement": "Three shim/scoping executions and one fixture-injected probe ran BEFORE this freeze record was written, while the repair scope was being read from the audit gate. They are preserved as ATTEMPT-1 and are NOT the definitive measurement of this repair round; the definitive records are re-executed after this freeze. The attempt-1 outputs are byte-kept at the paths listed so nothing is silently replaced.",
+    "attempt_1_artifacts": [
+      "results/evaluation/orchestration/40017649220_minimal_ret_ca_pytest_shim.json",
+      "results/evaluation/orchestration/40017649220_multiling_prov_pytest_shim.json",
+      "results/evaluation/orchestration/40017649220_e2e_fixture_injected.json"
+    ],
+    "why_it_is_disclosed_not_hidden": "the lane's freeze-first PASS criterion binds claim-bearing measurement; hiding an earlier execution would itself be the defect class this repair exists to fix"
+  },
+
+  "question": "Can the three concrete required_fixes of audit CYCLE_40017649220 (F1 material unbacked test-suite claims, F2 incomplete evidence index, F3 absent cycle hypothesis/provenance record) be discharged with real, committed, machine-verifiable deltas that neither weaken any frozen baseline, data, metric, success rule nor scope — and without re-running the benchmark's frozen legs in a way that could move their numbers?",
+
+  "baseline": "Rejected team head 2456ec4282957a39bddb877f244bd55c4dd3d5ab (single commit, parent = accepted base b8265afbdd9380584da2bf6ee54dd353e79746cf): 10 files, +993/-31, NO test record committed for run 40017649220, state.test_suite byte-identical to base, evidence_refs indexing 2 of the run's 9 claim-bearing artifacts, and no hypothesis/provenance record for the run. The frozen benchmark legs themselves are NOT the baseline under repair — the audit found them reproduced exactly.",
+
+  "ordered_fixes_frozen": {
+    "F1": {
+      "severity": "material",
+      "what": "Back or retract the test-suite claims in reports/evaluation/EVALUATION_V65_CYCLE_SUMMARY.md (five checkmarks with no environment, counts or record pointer; a footer claiming the FAST-MVP 'reuse existing multilingual/provenance tests' clause is satisfied; state.test_suite unchanged from base).",
+      "frozen_repair_rule": [
+        "Execute the suite in THIS image. pytest is absent here (verified: import pytest fails), so execute under the lane's own runner evaluation/no_pytest_runner.py. If a later image has real pytest, that takes precedence and the record must say so.",
+        "Commit the record under run 40017649220 and cite measurement_env, pass/fail/unsupported counts and the record path BOTH in the summary AND in state.test_suite.",
+        "The shim reports test_end_to_end_on_accepted_mount_if_present UNSUPPORTED (needs fixture tmp_path). It MUST be restated as NOT-RUN under the shim, never as passed. Additionally measure it out-of-shim by injecting the fixture manually into a scratch tmpdir, recorded separately and never re-counted into the shim verdict.",
+        "Discharge BOTH halves of the footer alternative: (i) actually run + record the multilingual/provenance reuse tests this cycle, AND (ii) narrow the footer sentence to precisely what this cycle executed. Doing only one is insufficient because the original sentence claimed both a benchmark and a reuse that no record backed."
+      ],
+      "success_rule": "After repair: state.test_suite contains a minimal_ret_ca_benchmark entry naming run 40017649220, measurement_env, n_passed/n_failed/n_skipped/n_unsupported and the record path; the summary's Test Suite section states the same numbers and marks the fixture-dependent case NOT-RUN under the shim plus its separate out-of-shim measurement; a multilingual/provenance reuse record exists carrying run 40017649220; the footer names exactly the records this cycle produced. No checkmark remains without a record behind it."
+    },
+    "F2": {
+      "severity": "non-blocking",
+      "what": "evidence_refs_n=154 is presented as the complete index while 7 of the run's 9 committed claim-bearing artifacts are unindexed.",
+      "frozen_repair_rule": [
+        "Add results/evaluation/minimal_ret_ca_benchmark/v65_eval_40017649220_leg1_served_baseline.json",
+        "Add results/evaluation/minimal_ret_ca_benchmark/v65_eval_40017649220_leg2_hostile_geometry.json",
+        "Add results/evaluation/minimal_ret_ca_benchmark/verify_v65.json",
+        "Add results/evaluation/minimal_ret_ca_benchmark/verify_v65_leg1_served_baseline.json",
+        "Add results/evaluation/minimal_ret_ca_benchmark/verify_v65_leg2_hostile_geometry.json",
+        "Add reports/evaluation/RETRIEVAL_CA_BENCHMARK_verify_v65.md",
+        "Add reports/evaluation/EVALUATION_V65_CYCLE_SUMMARY.md",
+        "Re-derive evidence_refs_n so it equals len(evidence_refs) after the additions, and additionally index every artifact this repair round itself commits.",
+        "Explicitly mark the verify_v65* files as NON-CLAIM-BEARING verification output (their run_id field is the literal string 'verify_v65', not the GitHub run id) and state their role. Do not delete them.",
+        "The two inherited defects the audit recorded as not-charged (duplicate ref 39875239812_diagnosis.json; unresolvable ref 40011795717/producer_work_state_and_next_move.txt which lives under 40006151200/) are preserved as disclosed inherited defects, not silently repaired, so the index diff of THIS run stays auditable."
+      ],
+      "success_rule": "evidence_refs_n == len(evidence_refs); all 9 claim-bearing artifacts of run 40017649220 indexed; verify_v65* role stated in state; no artifact deleted."
+    },
+    "F3": {
+      "severity": "non-blocking",
+      "what": "No cycle hypothesis/provenance record exists for run 40017649220; execution (20:16:19Z) preceded the only commit (20:37:19Z); neither new report cites a hypothesis.",
+      "frozen_repair_rule": [
+        "Publish evaluation/MINIMAL_RET_CA_40017649220_CYCLE_HYPOTHESIS_V1.json covering: (a) the inherited frozen spec — instrument commit 2e7d4fe5, frozen QIDs, frozen label/geometry incumbents, the instrument's combined-verdict rule, the state claim ceiling; (b) proof of no post-hoc tuning — instrument sha256 70f8158c... identical to base, committed output quantity-for-quantity identical to the base-committed test_run_1 and final_check runs, no frozen file edited; (c) the true ordering, stating plainly that this run is NOT freeze-first.",
+        "The record must NOT be presented as a freeze-first record, in its own fields, in either report or in state.",
+        "Both reports must cite the record path so the claim path is discoverable from the report of record."
+      ],
+      "success_rule": "The hypothesis/provenance record exists, contains all three of (a)/(b)/(c), declares NOT_FREEZE_FIRST, and is cited by both EVALUATION_V65_CYCLE_SUMMARY.md and the cycle's benchmark report and by state/evaluation.json."
+    }
+  },
+
+  "success_rules_frozen_whole": [
+    "NO frozen baseline, data, metric, success rule, bar, rubric, threshold or scope item is edited. evaluation/frozen_bars/* must re-hash to 4457e971.../a7452748.../b9cdb894... after the repair, byte-identical to before.",
+    "The benchmark instrument evaluation/minimal_ret_ca_benchmark.py and its test must keep sha256 70f8158c.../49c94f7b..., byte-identical to the accepted base.",
+    "The frozen benchmark legs are NOT re-executed into the committed claim-bearing record paths in this repair: the audit already established their determinism and the leg numbers are settled. Any benchmark re-execution must be scratch-only and must write only under a scratch tmpdir.",
+    "No historical claim-bearing result is overwritten; every new record is written under a NEW path. A file named for run X holds run X's measurement.",
+    "Both DO-NOT-SERVE orders stand; admission stays fail-closed; human_gate_ready, machine_gate_ready, packet_admitted, ready_for_owner_session stay false; owner_decision_required stays false.",
+    "The frozen absolute bars stay REPORTED-ONLY and unmet (LABEL 0.077 vs 1.0; GEOMETRY 0/3 bundles all-11). The comparative map-vs-ranked-list half stays VACUOUS with n_emitted=0. PRODUCT_FALSIFIED counter-authority blocker carried forward unchanged.",
+    "No obsolete universal-174k benchmark is run.",
+    "A zero-delta repair is invalid: this round must add committed files the audit can find."
+  ],
+
+  "controls_frozen": [
+    "C1_frozen_bars_rehash_unchanged: RULES_LABEL/RULES_GEOMETRY/VERDICT_CONTRACT re-hash to the accepted digests before and after the repair; drift = repair fails.",
+    "C2_instrument_and_test_untouched: evaluation/minimal_ret_ca_benchmark.py and tests/evaluation/test_minimal_ret_ca_benchmark.py re-hash to 70f8158c.../49c94f7b...; drift = repair fails.",
+    "C3_shim_counts_reproduce: re-running evaluation/no_pytest_runner.py on the unmodified suite reproduces 4 passed / 0 failed / 0 skipped / 1 UNSUPPORTED, so the summary restates a reproducible measurement rather than a new one.",
+    "C4_no_silent_replacement: the attempt-1 artifacts named above remain present with their original bytes after the definitive records land under distinct paths.",
+    "C5_evidence_index_resolves: every newly added evidence_ref resolves to a file on disk at the time state is written.",
+    "C6_posture_invariant: human_gate_ready/machine_gate_ready/packet_admitted/ready_for_owner_session all remain false and owner_decision_required remains false in state after the repair."
+  ],
+
+  "expected_product_decision_unlocked": "A green-or-REVISE-free evidence path for the already-measured FAST-MVP benchmark: product and the Factory Director can cite run 40017649220's BENCHMARK_VALID_NO_FALSIFICATION result with a complete index, an honest test record and a discoverable provenance record, while the binding counter-authority evidence gap (n_emitted=0 on all three V3 questions) stays exactly as falsified. No product claim is strengthened by this repair; only the auditability of the existing claim is restored.",
+
+  "non_goals": [
+    "no bar/threshold/rubric/verdict-contract/success-rule change",
+    "no serve-verdict re-run; both DO-NOT-SERVE orders stand",
+    "no universal-174k rerun",
+    "no rewrite of any historical record; no deletion of any prior negative result",
+    "no product code is read, imported or tested",
+    "the frozen benchmark legs are not re-scored into committed record paths",
+    "the inherited duplicate/unresolvable evidence refs are disclosed, not silently rewritten"
+  ]
+}

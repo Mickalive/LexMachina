@@ -1,0 +1,144 @@
+{
+  "schema": "lex-evaluation-cycle-hypothesis-provenance/1",
+  "record_kind": "CYCLE HYPOTHESIS / PROVENANCE RECORD (published in repair round 1 of audit CYCLE_40017649220)",
+  "lane": "evaluation",
+  "direction_version": 65,
+  "run_id_of_record": "40017649220",
+  "repair_round": 1,
+  "audit_gate_of_record": "results/audit/evaluation/CYCLE_40017649220_GATE.json (gate=REVISE, safe_to_integrate=false, required_fixes F1/F2/F3)",
+  "published_at_utc": "2026-10-23T21:22:00Z",
+
+  "ORDERING_DISCLOSURE__NOT_FREEZE_FIRST": {
+    "status": "NOT_FREEZE_FIRST",
+    "statement": "This record is published AFTER the claim-bearing execution it describes. Run 40017649220 executed first and committed second, so it is NOT a freeze-first cycle and MUST NOT be cited, quoted or promoted as one. This record exists because audit fix F3 required the ordering to be published; it does not retroactively make the cycle freeze-first.",
+    "true_ordering": [
+      "2026-10-23T20:13:42Z  accepted base b8265afbdd9380584da2bf6ee54dd353e79746cf (accept evaluation cycle 40012474431) — the inherited frozen spec, instrument, tests and base-committed runs all pre-date this cycle.",
+      "2026-10-23T20:16:19Z  claim-bearing execution: results/evaluation/minimal_ret_ca_benchmark/v65_eval_40017649220.json generated (the cycle's measurement of record).",
+      "2026-10-23T20:36:06Z  reproducibility execution: results/evaluation/minimal_ret_ca_benchmark/verify_v65.json generated.",
+      "2026-10-23T20:37:19Z  the cycle's ONLY commit 2456ec4282957a39bddb877f244bd55c4dd3d5ab lands the records, three reports and state.",
+      "2026-10-23T21:22:00Z  this hypothesis/provenance record is written in repair round 1."
+    ],
+    "consequence": "No pre-execution freeze artifact exists for 40017649220, and neither of the cycle's two new reports cited a hypothesis. That is the F3 defect; it is disclosed here rather than papered over.",
+    "freeze_claim_made": false
+  },
+
+  "A__INHERITED_FROZEN_SPEC": {
+    "statement": "The cycle executed an INHERITED frozen spec: it re-used the instrument, its test, the frozen rules and the frozen incumbents exactly as they stood at the accepted base, and re-derived nothing.",
+    "instrument": {
+      "path": "evaluation/minimal_ret_ca_benchmark.py",
+      "sha256": "70f8158c9049df2d03ebcc460b782178967ab9da7a11e48dd1b5b132d9f17167",
+      "last_modified_commit": "2e7d4fe566bf2ae7e80f0cfede09d0f0cb22cc83",
+      "last_modified_commit_subject": "evaluation cycle 39902263506 repair 0",
+      "last_modified_commit_date": "2026-10-23T04:57:30Z",
+      "touched_by_run_40017649220": false
+    },
+    "test": {
+      "path": "tests/evaluation/test_minimal_ret_ca_benchmark.py",
+      "sha256": "49c94f7bfae80bfbad93da431d7a25ddb68e44bf9aab6daeef80cd37f42cfb6e",
+      "touched_by_run_40017649220": false
+    },
+    "frozen_qids": [
+      "de-kapitalverletzung",
+      "fr-bail-entretien",
+      "it-responsabilita-medica"
+    ],
+    "frozen_qids_source": "evaluation/frozen_bars/run_bar_gates.py QIDS (accepted entry point, reused as subprocess by the instrument)",
+    "frozen_label_incumbent": {
+      "source_of_truth": "evaluation/frozen_bars/label_gate.INCUMBENT",
+      "restate_only": "evaluation/minimal_ret_ca_benchmark.LABEL_INCUMBENT",
+      "value": {"n_scored": 65, "n_supported": 5, "classes": {"OFF-DOMAIN": 38, "UNBACKED": 22, "SUPPORTED": 5, "INVERTED": 0}}
+    },
+    "frozen_geometry_incumbent": {
+      "source_of_truth": "evaluation/frozen_bars/geometry_gate.INCUMBENT_COUNTS",
+      "restate_only": "evaluation/minimal_ret_ca_benchmark.GEOMETRY_INCUMBENT",
+      "value": {"de-kapitalverletzung": 6, "fr-bail-entretien": 5, "it-responsabilita-medica": 5}
+    },
+    "combined_verdict_rule": {
+      "source": "evaluation/minimal_ret_ca_benchmark.py docstring + run_benchmark() combined-exit block (lines 23-36, 212-240)",
+      "exit_0_BENCHMARK_VALID_NO_FALSIFICATION": "leg 1 served_baseline exits 0/PASS_NO_REGRESSION AND leg 2 geometry_falsification_hostile exits 1/FAIL_REGRESSION",
+      "exit_1_PRODUCT_FALSIFIED": "leg 1 exited 1 (served lineage regression below the recomputed incumbent)",
+      "exit_2_ENVIRONMENT_OR_VACUOUS": "any leg exited 2 (rules sha drift, missing inputs, unproven negative control), OR a falsification leg did not exit 1 (vacuous gate path)",
+      "absolute_bars": "LABEL_SOUND / GEOMETRY_SOUND are REPORTED, never enforced by this instrument; exit 0 does not certify them"
+    },
+    "state_claim_ceiling": "This benchmark proves only that (a) the served packet does not regress below recomputed incumbents and (b) frozen gates can fail a deliberately regressed input. It does NOT prove jurist usefulness, does NOT meet the absolute LABEL_SOUND / GEOMETRY_SOUND bars, and does NOT unblock the human gate (standing accepted DO-NOT-SERVE order).",
+    "state_claim_ceiling_source": "state/evaluation.json .minimal_ret_ca_benchmark.claim_ceiling, inherited unchanged from the accepted base",
+    "frozen_rules_rehashed_this_repair": {
+      "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+      "evaluation/frozen_bars/VERDICT_CONTRACT.json": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c",
+      "all_match_accepted_freeze_records": true
+    }
+  },
+
+  "B__NO_POST_HOC_TUNING": {
+    "statement": "Nothing was tuned after results were seen. Every number the cycle published is the quantity the inherited instrument produces on the pinned inputs, byte-identical to runs committed at the accepted base before this cycle existed.",
+    "proof_1_instrument_unchanged": {
+      "working_tree_sha256": "70f8158c9049df2d03ebcc460b782178967ab9da7a11e48dd1b5b132d9f17167",
+      "base_b8265afb_sha256": "70f8158c9049df2d03ebcc460b782178967ab9da7a11e48dd1b5b132d9f17167",
+      "identical": true
+    },
+    "proof_2_test_unchanged": {
+      "working_tree_sha256": "49c94f7bfae80bfbad93da431d7a25ddb68e44bf9aab6daeef80cd37f42cfb6e",
+      "base_b8265afb_sha256": "49c94f7bfae80bfbad93da431d7a25ddb68e44bf9aab6daeef80cd37f42cfb6e",
+      "identical": true
+    },
+    "proof_3_output_quantity_for_quantity_identical_to_base_runs": {
+      "method": "Full structural diff of v65_eval_40017649220.json and both leg records against the base-committed test_run_1.json and final_check.json, after normalising only run_id, generated_at_utc, elapsed_s, served_packet_dir and ephemeral tempfile paths.",
+      "test_run_1_vs_final_check": "IDENTICAL (mod normalised fields) — two independent base-committed executions agree with each other",
+      "test_run_1_vs_v65_eval_40017649220_combined": "IDENTICAL (mod normalised fields) EXCEPT the two fields the instrument derives at run time from state/evaluation.json: direction_version 63 -> 65 and the absolute_status_note string that embeds that number. No label quantity, no geometry quantity, no exit code, no verdict, no control flipped.",
+      "test_run_1_vs_v65_eval_40017649220_leg1": "IDENTICAL (mod normalised fields)",
+      "test_run_1_vs_v65_eval_40017649220_leg2": "IDENTICAL (mod normalised fields)",
+      "quantities_unchanged": ["label n_scored 65", "label n_supported 5", "label support_rate 0.076923", "label classes OFF-DOMAIN 38 / UNBACKED 22 / SUPPORTED 5", "geometry leg1 de 6 fr 5 it 5", "geometry leg2 de 4 fr 4 it 5", "leg2 regressed_qids de+fr", "leg1 exit 0 PASS_NO_REGRESSION", "leg2 exit 1 FAIL_REGRESSION", "combined verdict BENCHMARK_VALID_NO_FALSIFICATION", "combined exit 0", "falsification_proven true", "negative_controls_all_proven true on both legs"]
+    },
+    "proof_4_no_frozen_file_edited_by_the_cycle": {
+      "git diff b8265afb..2456ec42 -- evaluation/frozen_bars/": "empty",
+      "git diff b8265afb..2456ec42 -- '*.py'": "empty",
+      "files_changed_by_2456ec42": [
+        "reports/evaluation/EVALUATION_V65_CYCLE_SUMMARY.md (new)",
+        "reports/evaluation/RETRIEVAL_CA_BENCHMARK_v65_eval_40017649220.md (new)",
+        "reports/evaluation/RETRIEVAL_CA_BENCHMARK_verify_v65.md (new)",
+        "results/evaluation/minimal_ret_ca_benchmark/v65_eval_40017649220.json (new)",
+        "results/evaluation/minimal_ret_ca_benchmark/v65_eval_40017649220_leg1_served_baseline.json (new)",
+        "results/evaluation/minimal_ret_ca_benchmark/v65_eval_40017649220_leg2_hostile_geometry.json (new)",
+        "results/evaluation/minimal_ret_ca_benchmark/verify_v65.json (new)",
+        "results/evaluation/minimal_ret_ca_benchmark/verify_v65_leg1_served_baseline.json (new)",
+        "results/evaluation/minimal_ret_ca_benchmark/verify_v65_leg2_hostile_geometry.json (new)",
+        "state/evaluation.json (updated)"
+      ],
+      "deletions": 0,
+      "historical_claim_bearing_result_overwritten": false,
+      "frozen_rules_or_thresholds_changed": false
+    },
+    "proof_5_reproducibility_independent_reexecution": {
+      "statement": "verify_v65 was executed 19m47s after v65_eval_40017649220 and reproduces the same records byte-for-byte except run_id, generated_at_utc, elapsed_s and an ephemeral tempfile packet_dir path (audit-confirmed determinism finding, CYCLE_40017649220_GATE.json evidence_summary.determinism).",
+      "verify_generated_at_utc": "2026-10-23T20:36:06Z",
+      "measurement_generated_at_utc": "2026-10-23T20:16:19Z"
+    }
+  },
+
+  "C__WHAT_THE_RUN_ESTABLISHES_AND_WHAT_IT_DOES_NOT": {
+    "establishes_only": "The frozen 2-leg minimal retrieval/counter-authority benchmark executes on the pinned served-packet 38839347028 inputs and returns BENCHMARK_VALID_NO_FALSIFICATION with its hostile-geometry negative control firing.",
+    "leg1_vacuity_bounded": "Leg 1 served_baseline PASS_NO_REGRESSION is TRUE BY CONSTRUCTION: run_bar_gates served_lineage sha-pins the input and exits 2 on any drift before scoring, so exit 1 is unreachable there. That leg's content is provenance/identity, not an independent non-regression result.",
+    "does_NOT": [
+      "measure known relevant-authority recall",
+      "measure known contrary/limiting-authority recall",
+      "measure source/URL/decision-ID validity",
+      "measure duplicate suppression",
+      "measure cluster stability or latency targets",
+      "meet the absolute LABEL_SOUND bar (support_rate 0.077 vs frozen 1.0) — REPORTED-ONLY and unmet",
+      "meet the all-11 geometry bar (0/3 bundles) — REPORTED-ONLY and unmet",
+      "make the comparative map-vs-ranked-list question non-vacuous (n_emitted=0 on all three V3 questions; PRODUCT_FALSIFIED counter-authority gap carried forward)",
+      "lift either DO-NOT-SERVE order, unblock packet admission, the machine gate or the human gate",
+      "rerun any obsolete universal-174k benchmark",
+      "certify the test-suite claims in EVALUATION_V65_CYCLE_SUMMARY.md — see required_fixes F1, repaired in repair round 1"
+    ]
+  },
+
+  "non_goals": [
+    "no frozen bar, rubric, threshold, verdict contract or success rule is edited",
+    "no DO-NOT-SERVE order is re-opened or re-scored",
+    "no universal-174k benchmark is rerun",
+    "no historical claim-bearing result is overwritten",
+    "the comparative map-versus-ranked-list half is not scored while zero counter rows are evidenced (factory-wide requirement 22)"
+  ]
+}
