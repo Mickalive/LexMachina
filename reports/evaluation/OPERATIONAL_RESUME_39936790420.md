@@ -3,7 +3,7 @@
 Run: `39936790420` · lane: evaluation · direction v63 · resume of `39929883261`
 Snapshot commit: `5cc6a326cdc77b821f73f7819acb6bd3b3303a1e`
 True accepted base: `3eeced9a25d486356870755e48422f8473a5f90c`
-Verdict: **RESUME_VERIFIED_AND_AUDIT_READY** (see `results/evaluation/operational_resume/39936790420.json`; result sha256 `8898f3981079d49adf6dcf8a65f3275590debe6c59b3eae41fac338c7dbd1579`)
+Verdict: **RESUME_VERIFIED_AND_AUDIT_READY** (see `results/evaluation/operational_resume/39936790420.json`; result sha256 `93ecdae9809e7fc3ee6820eb58a244c46ac9bd307a568c3e8366c1aebfb647fd`)
 
 ## 1. Why this resume exists
 
@@ -98,6 +98,10 @@ violation, state-ref break) all detect their planted drift.
   unchanged packet bytes and the unchanged planner pin.
 * `operational_resume_39936790420` records the diagnosis, the lab anomaly and the
   freeze-first provenance.
+* the re-open wrapper/engine records internally report `direction_version` 61/57
+  (historical fixture pins) while the lane direction is 63; this is disclosed, not
+  repaired, because editing the frozen instrument would alter the claim-bearing
+  bytes. The verdict and counts are unaffected.
 * `benchmark_result` now carries a legacy-alias note pointing to the
   authoritative minimal-retrieval block; its historical fields are not rewritten.
 * an audit-shaped checkout simulation (main depth 1 + non-depth fetch of
