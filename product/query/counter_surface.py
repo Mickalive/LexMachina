@@ -67,7 +67,18 @@ from .answer import split_sentences
 
 #: Bump whenever the aligned lexicon, the hydration selection rule or the
 #: written field shape changes.  Never reuse an old value for new behaviour.
-COUNTER_SURFACE_VERSION = "counter_surface/1"
+#:
+#: ``counter_surface/2`` (run 39879015785): the hydration SELECTION became
+#: availability-aware.  ``counter_surface/1`` picked marker-bearing and then
+#: by rank without asking the backing store which ids it could actually
+#: serve, so on the cached replay path it spent its whole budget on rows the
+#: cache could not answer: measured on the four shipped offline legs,
+#: ``CYCLE_39870325260_coverage.json`` records 32 ids selected for hydration
+#: and **1** text returned.  The scan now asks a ``hydrate_probe`` which ids
+#: the backing store can supply and selects inside that set, so every unit of
+#: the unchanged budget buys a text.  Field shape, lexicon, precision guards
+#: and the "never writes a scored counter field" contract are unchanged.
+COUNTER_SURFACE_VERSION = "counter_surface/2"
 
 #: Env kill-switch (default on).  ``off`` records a skipped provenance block
 #: and changes nothing, so an auditor can diff a scanned vs unscanned bundle.
@@ -188,7 +199,12 @@ def _disposal_narration(sentence: str) -> bool:
     return any(p.search(low) for p in DISPOSAL_SENTENCE_PATTERNS)
 
 
-def select_for_hydration(rows: Iterable[dict], *, hydrate_top: int) -> list[str]:
+def select_for_hydration(
+    rows: Iterable[dict],
+    *,
+    hydrate_top: int,
+    hydrateable: set[str] | None = None,
+) -> list[str]:
     """Bounded, marker-preferring hydration selection over unhydrated rows.
 
     Selection rule (deterministic): rows without ``full_text`` whose current
@@ -197,11 +213,24 @@ def select_for_hydration(rows: Iterable[dict], *, hydrate_top: int) -> list[str]
     remaining rows by rank fill any leftover budget.  Ordered by rank within
     each group.  ``hydrate_top`` is a hard cap — the scan never grows the
     hydration budget the product already spends.
+
+    ``hydrateable`` (optional, ``counter_surface/2``) is the set of ids the
+    backing store has a text for.  When the caller can answer that question
+    cheaply — a cached replay can, a live detail fetch cannot — a row outside
+    the set is NOT a hydration candidate: asking for it spends one unit of the
+    budget and returns nothing, which is exactly how ``counter_surface/1``
+    shipped 32 selections and 1 text on the four offline legs.  With
+    ``hydrateable`` given, the marker-then-rank ordering is applied to the
+    INTERSECTION, so the budget buys texts and the preference order is
+    untouched.  ``None`` keeps the historical behaviour byte-for-byte.
     """
     cap = max(0, int(hydrate_top))
     if cap == 0:
         return []
     unhydrated = [r for r in rows if not str(r.get("full_text") or "").strip()]
+    if hydrateable is not None:
+        unhydrated = [r for r in unhydrated
+                      if str(r.get("decision_id") or "") in hydrateable]
     marker_rows = [r for r in unhydrated if marker_bearing(probe_text(r))]
     marker_ids = {str(r.get("decision_id")) for r in marker_rows}
     plain_rows = [r for r in unhydrated
@@ -308,26 +337,53 @@ def scan_counter_surface(
     bundle: dict,
     *,
     hydrate: Callable[[list[str]], dict[str, str]] | None = None,
+    hydrate_probe: Callable[[], set[str]] | None = None,
     hydrate_top: int = 8,
     topic_terms: list[str] | None = None,
 ) -> dict:
     """Return a NEW bundle with ``counter_surface_signal`` + provenance.
 
-    Pure and deterministic given ``bundle`` bytes and the ``hydrate`` callback
-    (may be None: the scan then works from the text already on the rows).
-    Never mutates the input, never writes scored counter fields, never moves
-    geometry.
+    Pure and deterministic given ``bundle`` bytes, the ``hydrate_probe``
+    answer and the ``hydrate`` callback (either may be None: the scan then
+    works from the text already on the rows and selects without an
+    availability answer).  Never mutates the input, never writes scored
+    counter fields, never moves geometry.
+
+    ``hydrate_probe`` (``counter_surface/2``) is asked at most once and its
+    answer is used only to keep the hydration budget off ids the backing
+    store cannot serve.  It is a *capability* question, never a network
+    decision inside the scan: the caller decides whether it can be answered
+    (a cached replay can; a live id fetch needs no answer, so it passes None).
     """
     out = copy.deepcopy(bundle)
     decisions: list[dict] = out.get("decisions") or []
     terms = list(topic_terms) if topic_terms is not None else bundle_topic_terms(out)
+
+    hydrateable: set[str] | None = None
+    probe_error: str | None = None
+    if hydrate_probe is not None:
+        try:
+            hydrateable = set(str(x) for x in (hydrate_probe() or set()))
+        except Exception as exc:  # a probe failure must never cost the bundle
+            probe_error = f"{type(exc).__name__}: {exc}"
+            hydrateable = None
 
     n_unhydrated = sum(1 for d in decisions if not str(d.get("full_text") or "").strip())
     n_marker_bearing = sum(
         1 for d in decisions
         if not str(d.get("full_text") or "").strip() and marker_bearing(probe_text(d))
     )
-    selected = select_for_hydration(decisions, hydrate_top=hydrate_top)
+    # Captured BEFORE hydration writes full_text back onto the rows, so the
+    # provenance reports the pool as the selector actually saw it.
+    n_hydrateable_in_pool = (
+        None if hydrateable is None
+        else sum(1 for d in decisions
+                 if str(d.get("decision_id") or "") in hydrateable
+                 and not str(d.get("full_text") or "").strip())
+    )
+    selected = select_for_hydration(
+        decisions, hydrate_top=hydrate_top, hydrateable=hydrateable
+    )
     hydrated: dict[str, str] = {}
     hydrate_error: str | None = None
     if selected and hydrate is not None:
@@ -364,6 +420,13 @@ def scan_counter_surface(
         "n_unhydrated_before": n_unhydrated,
         "n_marker_bearing_unhydrated": n_marker_bearing,
         "hydrate_top": max(0, int(hydrate_top)),
+        "hydrate_probe_used": hydrateable is not None,
+        "hydrate_probe_error": probe_error,
+        "n_hydrateable_in_pool": n_hydrateable_in_pool,
+        "hydration_selection_rule": (
+            "availability_then_marker_then_rank"
+            if hydrateable is not None else "marker_then_rank"
+        ),
         "n_selected_for_hydration": len(selected),
         "selected_for_hydration": selected,
         "n_hydrated": len(hydrated),
@@ -426,6 +489,32 @@ def apply_counter_surface(
     query = str(bundle.get("query") or "")
     n_rows = len(bundle.get("decisions") or [])
 
+    # ``counter_surface/2``: on the CACHED replay path the backing store can
+    # only serve the ids it already holds a detail body for, so the probe is
+    # answerable for free (it is the same replay the hydrator would run) and
+    # the scan is given it.  On live/refresh/offline per-id fetch the store
+    # can serve whatever the id resolves to, so there is no availability
+    # question to answer and the probe stays None: behaviour there is
+    # byte-identical to counter_surface/1.  The replay is memoised so probe
+    # and hydrator cost one call, not two.
+    _replay_cache: dict[str, Any] = {}
+
+    def _replay() -> dict:
+        if "out" not in _replay_cache:
+            from .pipeline import replay_fixture_query  # lazy: no import cycle
+            _replay_cache["out"] = replay_fixture_query(
+                query, top_n=max(1, n_rows), hydrate_top=max(200, n_rows)
+            )
+        return _replay_cache["out"]
+
+    def _available() -> set[str]:
+        sub = _replay()
+        return {
+            str(c.get("decision_id") or "")
+            for c in sub.get("candidates") or []
+            if str(c.get("full_text") or "").strip()
+        }
+
     def _hydrate(ids: list[str]) -> dict[str, str]:
         from .pipeline import _retrieve, replay_fixture_query  # lazy: no import cycle
 
@@ -438,7 +527,12 @@ def apply_counter_surface(
             # are config-shaped, and a differently-sized config misses the
             # recorded envelopes (measured: top_n=200 -> 0 candidates where
             # top_n=100 -> 165).
-            sub = replay_fixture_query(query, top_n=max(1, n_rows), hydrate_top=200)
+            sub = _replay_cache.get("out")
+            if sub is None:
+                sub = replay_fixture_query(
+                    query, top_n=max(1, n_rows), hydrate_top=max(200, n_rows)
+                )
+                _replay_cache["out"] = sub
         else:
             sub = _retrieve(query, max(1, n_rows), mode=retrieval_mode,
                             hydrate_top=0, hydrate_ids=list(ids))
@@ -453,6 +547,7 @@ def apply_counter_surface(
     return scan_counter_surface(
         bundle,
         hydrate=_hydrate,
+        hydrate_probe=(_available if retrieval_mode == "fixture" else None),
         hydrate_top=hydrate_top,
     )
 

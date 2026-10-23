@@ -16,7 +16,13 @@ it on — and the two bundles are compared field by field:
   with and without the scan (the scan's before-state is 0 by construction:
   the field did not exist);
 * how many unhydrated rows were marker-bearing, how many were selected for
-  hydration, how many detail texts the cache actually supplied;
+  hydration, how many detail texts the cache actually supplied, and — since
+  ``counter_surface/2`` — how many unhydrated rows the cache could supply at
+  all (``n_hydrateable_in_pool``) together with the selection rule in force.
+  That last field is what distinguishes "the selector wasted the budget"
+  (``counter_surface/1``, measured 32 selected / 1 hydrated across the four
+  legs) from "the cache has nothing left to give", which no selector change
+  can fix;
 * the invariants that make the scan safe: NO ``counter_status`` /
   ``counter_evidence`` / ``counter_uncertainty`` / ``counter_evidence_verified``
   difference and NO rendered coordinate / rank / cluster difference between
@@ -46,7 +52,7 @@ REPO_ROOT = PRODUCT_ROOT.parent
 sys.path.insert(0, str(PRODUCT_ROOT))
 sys.path.insert(0, str(REPO_ROOT))
 
-from product.query.counter_surface import ENABLE_ENV  # noqa: E402
+from product.query.counter_surface import COUNTER_SURFACE_VERSION, ENABLE_ENV  # noqa: E402
 
 CLAIM_CEILING = (
     "product-owned cached measurement of the counter-surface scan on the four "
@@ -142,6 +148,19 @@ def measure(slug: str, query: str, top_n: int) -> dict:
             "n_marker_bearing_unhydrated": prov.get("n_marker_bearing_unhydrated"),
             "n_selected_for_hydration": prov.get("n_selected_for_hydration"),
             "n_hydrated": prov.get("n_hydrated"),
+            # counter_surface/2 (run 39879015785): WHY the selection is what it
+            # is.  n_hydrateable_in_pool is the number of unhydrated rendered
+            # rows the backing store can actually answer; when it is 0 the
+            # binding constraint on this leg is cached detail coverage, not the
+            # selection rule, and no selector change can raise n_hydrated.
+            "hydrate_probe_used": prov.get("hydrate_probe_used"),
+            "hydrate_probe_error": prov.get("hydrate_probe_error"),
+            "n_hydrateable_in_pool": prov.get("n_hydrateable_in_pool"),
+            "hydration_selection_rule": prov.get("hydration_selection_rule"),
+            "hydration_budget_utilisation": (
+                round(prov.get("n_hydrated", 0) / prov.get("n_selected_for_hydration"), 3)
+                if prov.get("n_selected_for_hydration") else None
+            ),
             "hydrate_error": prov.get("hydrate_error"),
             "n_signalled": prov.get("n_signalled"),
             "intent_histogram": prov.get("intent_histogram"),
@@ -182,10 +201,12 @@ def main() -> int:
     total_signalled = sum(l["scan_on"]["n_signalled"] or 0 for l in legs)
     total_selected = sum(l["scan_on"]["n_selected_for_hydration"] or 0 for l in legs)
     total_hydrated = sum(l["scan_on"]["n_hydrated"] or 0 for l in legs)
+    total_pool = sum(l["scan_on"]["n_hydrateable_in_pool"] or 0 for l in legs)
     all_invariants = all(l["invariants_hold"] for l in legs)
     artifact = {
-        "schema": "product-counter-surface-coverage/1",
+        "schema": "product-counter-surface-coverage/2",
         "record_type": "COUNTER_SURFACE_CACHED_COVERAGE",
+        "component": COUNTER_SURFACE_VERSION,
         "run_id": run_id,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "network": "none (socket.connect booby-trapped)",
@@ -196,6 +217,14 @@ def main() -> int:
             "n_signalled_total": total_signalled,
             "n_selected_for_hydration_total": total_selected,
             "n_hydrated_total": total_hydrated,
+            # counter_surface/2: how much of the rendered pool the backing
+            # store could still answer for at scan time.  When this totals 0
+            # the scan's budget is not the limit — cached detail coverage is,
+            # and only a refresh-mode re-recording can move it.
+            "n_hydrateable_in_pool_total": total_pool,
+            "hydration_budget_utilisation_total": (
+                round(total_hydrated / total_selected, 3) if total_selected else None
+            ),
             "all_invariants_hold": all_invariants,
         },
         "verdict": (
@@ -208,6 +237,9 @@ def main() -> int:
             "no frozen bar scored",
             "no legal label asserted for any decision",
             "no jurist-usefulness claim",
+            "no claim that the selection rule can raise hydration where the "
+            "cache holds no detail body for an unhydrated row (that requires "
+            "a refresh-mode re-recording of the envelopes, not a selector)",
         ],
     }
     out_path.parent.mkdir(parents=True, exist_ok=True)

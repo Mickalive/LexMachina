@@ -342,3 +342,170 @@ def test_offline_slice_signals_are_attested(offline_pair):
         assert sig["markers"], d["decision_id"]
         assert sig["evidence"], d["decision_id"]
         assert d["decision_id"] in prov["signalled_ids"]
+
+
+# ---------------------------------------------------------------------------
+# 6. counter_surface/2: availability-aware hydration selection
+# ---------------------------------------------------------------------------
+#
+# Why this section exists (run 39879015785)
+# -------------------------------------------
+# ``counter_surface/1`` spent its whole unchanged hydration budget on ids the
+# backing store could not serve.  Measured on the four shipped offline legs
+# of ``results/product/counter_surface/CYCLE_39870325260_coverage.json``:
+# **32 ids selected for hydration, 1 text returned** — 97% of the budget was
+# burned on an empty request.  ``counter_surface/2`` asks a ``hydrate_probe``
+# which ids the store actually holds and selects inside that set.  Nothing
+# else moves: the cap, the marker preference, the rank order, the field shape
+# and the "never writes a scored counter field" contract are all unchanged.
+
+
+def test_hydration_selection_intersects_with_the_hydratable_set():
+    """A row the store cannot serve is not a hydration candidate."""
+    rows = [
+        _row("marker_unavailable", rank=1, snippet="anderer auffassung zur Kündigung"),
+        _row("plain_available", rank=9, snippet="ganz ohne Marker hier"),
+    ]
+    # Unconstrained, the marker row wins (the historical rule).
+    assert cs.select_for_hydration(rows, hydrate_top=8) == [
+        "marker_unavailable", "plain_available"
+    ]
+    # Constrained to what the store can serve, the budget moves to the row
+    # that CAN be hydrated instead of being spent on an unfetchable one.
+    assert cs.select_for_hydration(
+        rows, hydrate_top=8, hydrateable={"plain_available"}
+    ) == ["plain_available"]
+    # An empty answer must return NOTHING, not fall back to unfetchable ids.
+    assert cs.select_for_hydration(rows, hydrate_top=8, hydrateable=set()) == []
+
+
+def test_hydration_probe_absent_keeps_the_historical_rule():
+    """hydrateable=None is byte-identical to counter_surface/1 behaviour."""
+    rows = [
+        _row("has_text", rank=1, full_text="volltext", snippet="anderer auffassung"),
+        _row("m1", rank=5, snippet="anderer auffassung zur Kündigung"),
+        _row("p1", rank=2, snippet="ohne Marker und trotzdem relevant"),
+    ]
+    assert cs.select_for_hydration(rows, hydrate_top=8, hydrateable=None) == \
+        cs.select_for_hydration(rows, hydrate_top=8) == ["m1", "p1"]
+
+
+def test_hydration_selection_still_prefers_markers_inside_the_available_set():
+    rows = [
+        _row("avail_plain", rank=1, snippet="ohne Marker"),
+        _row("avail_marker", rank=9, snippet="anderer auffassung zur Kündigung"),
+    ]
+    got = cs.select_for_hydration(
+        rows, hydrate_top=8, hydrateable={"avail_plain", "avail_marker"}
+    )
+    # marker-first survives the intersection; rank orders inside each group.
+    assert got == ["avail_marker", "avail_plain"]
+
+
+def test_scan_queries_the_probe_once_and_records_the_rule():
+    """The probe is an availability question, asked exactly once."""
+    rows = [
+        _row("marked", rank=1, snippet="anderer auffassung zur Kündigung"),
+        _row("plain", rank=2, snippet="ohne Marker"),
+    ]
+    calls = {"probe": 0, "hydrate": 0}
+
+    def probe():
+        calls["probe"] += 1
+        return {"marked"}
+
+    def hydrate(ids):
+        calls["hydrate"] += 1
+        return {i: "Wir sind anderer Auffassung zur Kündigung." for i in ids}
+
+    out = cs.scan_counter_surface(
+        _bundle(rows), hydrate=hydrate, hydrate_probe=probe,
+        hydrate_top=8, topic_terms=_TOPIC,
+    )
+    prov = out["provenance"]["counter_surface"]
+    assert calls["probe"] == 1, "the availability question must not be asked per-row"
+    assert calls["hydrate"] == 1
+    assert prov["hydrate_probe_used"] is True
+    assert prov["hydrate_probe_error"] is None
+    assert prov["hydration_selection_rule"] == "availability_then_marker_then_rank"
+    assert prov["n_hydrateable_in_pool"] == 1
+    assert prov["selected_for_hydration"] == ["marked"]
+    assert prov["n_hydrated"] == 1
+
+
+def test_a_broken_probe_degrades_to_the_historical_rule():
+    """Probe failure must never cost the bundle, the scan or the signal."""
+    rows = [_row("marked", rank=1, snippet="anderer auffassung zur Kündigung")]
+
+    def boom():
+        raise RuntimeError("cache unreadable")
+
+    def hydrate(ids):
+        return {i: ("Wir sind anderer Auffassung zur Kündigung des "
+                     "Mietvertrags wegen Zahlungsrückstand.") for i in ids}
+
+    out = cs.scan_counter_surface(
+        _bundle(rows), hydrate=hydrate, hydrate_probe=boom,
+        hydrate_top=8, topic_terms=_TOPIC,
+    )
+    prov = out["provenance"]["counter_surface"]
+    assert prov["hydrate_probe_error"] == "RuntimeError: cache unreadable"
+    assert prov["hydrate_probe_used"] is False
+    assert prov["hydration_selection_rule"] == "marker_then_rank"
+    assert prov["selected_for_hydration"] == ["marked"]
+    assert out["decisions"][0]["counter_surface_signal"]["text_source"] == "full_text"
+
+
+def test_offline_slice_spends_no_hydration_budget_on_unserviceable_ids(offline_pair):
+    """The measured defect, pinned as an executable regression guard.
+
+    ``counter_surface/1`` selected 32 ids across the four shipped legs and got
+    **1** text back (``CYCLE_39870325260_coverage.json``): it picked
+    marker-bearing then by rank without asking whether the backing store held
+    a body for the id, so 31 of 32 budget units were spent on an empty
+    request.  With ``counter_surface/2`` the probe bounds the selection to the
+    serviceable set, so every unit of the *unchanged* budget buys a text —
+    and when the store has nothing left to give, the honest answer is an
+    empty selection, not a wasted one.
+
+    The measurement that made this a real finding (run 39879015785): on this
+    cached surface the cache holds only 8/10/13/10 detail bodies per leg and
+    ALL of them were already merged as evidence rows before the scan runs, so
+    ``n_hydrateable_in_pool`` is 0 here.  Selection was never the binding
+    constraint — cached detail coverage is, and only a refresh-mode
+    re-recording of the envelopes can move it.
+    """
+    prov = offline_pair["on"]["provenance"]["counter_surface"]
+    assert prov["hydrate_probe_used"] is True, (
+        "the fixture/cached path must answer the availability question - "
+        "otherwise the regression is silently reintroduced"
+    )
+    assert prov["hydration_selection_rule"] == "availability_then_marker_then_rank"
+    pool = int(prov["n_hydrateable_in_pool"] or 0)
+    # Discipline 1: the selection can never exceed what the store can serve.
+    assert prov["n_selected_for_hydration"] <= pool, (
+        f"selected {prov['selected_for_hydration']} but only {pool} unhydrated "
+        "rows are serviceable - the v1 budget waste is back"
+    )
+    # Discipline 2: every unit of the budget bought a text.
+    assert prov["n_hydrated"] == prov["n_selected_for_hydration"], (
+        f"the scan spent budget on ids the store cannot serve: "
+        f"selected={prov['selected_for_hydration']} hydrated={prov['hydrated_ids']}"
+    )
+    assert set(prov["selected_for_hydration"]) <= set(prov["hydrated_ids"])
+    # The bundle's own hydration state is the honest witness: the cache was
+    # already drained by the evidence merge, so a non-zero selection here
+    # would mean the probe is answering from somewhere other than the store.
+    assert pool <= int(prov["n_unhydrated_before"])
+    assert prov.get("hydrate_error") is None
+
+
+def test_the_component_version_moved_with_the_selection_rule():
+    """An observable behaviour change must move the version (disclosed convention).
+
+    The written field shape is unchanged, but the SELECTOR's behaviour is now
+    observable in provenance (``hydration_selection_rule``), so the component
+    string advances rather than reusing ``counter_surface/1`` for different
+    behaviour — the documented rule at the constant's own comment.
+    """
+    assert cs.COUNTER_SURFACE_VERSION == "counter_surface/2"
