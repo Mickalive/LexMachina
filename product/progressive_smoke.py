@@ -51,6 +51,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+# The ONE counter-status predicate module (stdlib-only, direction v56 RF1).
+# This smoke used to re-state its broad inline test, which is exactly the
+# scattered-copy defect product/tests/test_counter_authority_definition.py
+# forbids; asking the owning module keeps the check's semantics identical.
+from product.query.counter_status import (  # noqa: E402
+    counter_status_bearing_count,
+    counter_status_histogram,
+)
 SERVER = ROOT / "product" / "server.py"
 FIXTURE_QUERY = "Kündigung Mietvertrag Mietrecht"
 STEP_BUDGET_S = {
@@ -242,12 +252,15 @@ def run(run_id: str) -> dict:
         # Per-decision counter channel: counter_status in
         # {none, cited, candidate-limiting, ...} with counter_uncertainty /
         # counter_evidence_verified beside it.  "none" is unclassified, so it
-        # does not count as a status-bearing row.
-        counter_rows = [d for d in rows
-                        if (d.get("counter_status") or "none") not in ("none", "")]
-        check("counter_status_rows_present", bool(counter_rows),
-              {"rows": len(counter_rows),
-               "statuses": sorted({d.get("counter_status") for d in counter_rows})})
+        # does not count as a status-bearing row.  The enumeration is owned by
+        # product/query/counter_status.py; this smoke ASKS it (the same
+        # predicate, verbatim semantics) instead of restating the broad inline
+        # test the RF1 scattering guard forbids.
+        bearing = counter_status_bearing_count(rows)
+        check("counter_status_rows_present", bearing > 0,
+              {"rows": bearing,
+               "statuses": sorted(k for k in counter_status_histogram(rows)
+                                  if k != "none")})
         clusters = enriched.get("clusters") or []
         labelled = [c for c in clusters if (c.get("label") or c.get("name"))]
         check("cluster_labels_present", bool(labelled), f"{len(labelled)}/{len(clusters)}")

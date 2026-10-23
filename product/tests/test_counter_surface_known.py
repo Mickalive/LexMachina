@@ -87,3 +87,93 @@ def test_the_mode_aware_budget_keeps_live_at_the_accepted_cap() -> None:
     assert cs.hydration_budget("live") == 8
     assert cs.hydration_budget("refresh") == 8
     assert cs.hydration_budget("something-else") == 8
+
+
+def test_d1_short_core_frozen_id_is_never_reached(monkeypatch) -> None:
+    """Required fix D1 (accepted audit of run 39949461593, non-blocking).
+
+    ``_scan_known_rows`` must gate the frozen-id lookup with the frozen
+    ``min_core_length`` exactly like ``ka.matches()`` gates its comparison.
+    ``bstger_BG.2016.5`` has core ``20165`` (5 < 6), so it may never be
+    counted "reached" even when a rendered row carries the same short core.
+    """
+    synthetic = {
+        "decisions": [
+            {
+                "decision_id": "bstger_BG.2016.5",
+                "docket_number": "BG.2016.5",
+                "counter_surface_signal": {"heuristic_status": "candidate-limiting"},
+            },
+            {"decision_id": "bger_4A_219_2015"},
+        ],
+        "provenance": {"counter_surface": {"hydrated_ids": ["bstger_BG.2016.5"]}},
+    }
+    monkeypatch.setattr(csk, "_scan", lambda bundle, cap: synthetic)
+    summary, rows = csk._scan_known_rows({}, ["bstger_BG.2016.5", "bger_4A_219_2015"], 24)
+    by_id = {r["frozen_id"]: r for r in rows}
+
+    assert by_id["bstger_BG.2016.5"]["frozen_id_core"] == "20165"
+    assert by_id["bstger_BG.2016.5"]["reached"] is False
+    assert by_id["bstger_BG.2016.5"]["signalled"] is False
+    assert summary["known_short_core_ids"] == ["bstger_BG.2016.5"]
+    assert summary["min_core_length"] == ka.MIN_CORE_LENGTH == 6
+    # The rule is the frozen equality rule, not a new one: a core that DOES
+    # clear the minimum still matches on the same lookup.
+    assert by_id["bger_4A_219_2015"]["reached"] is True
+    assert summary["known_reached_n"] == 1
+
+
+def _artifact(name: str) -> dict:
+    import json
+
+    path = REPO_ROOT / "results" / "product" / "counter_surface_known" / name
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def test_d1_regenerated_measurement_and_append_only_history() -> None:
+    """The D1 measurement is regenerated under a NEW run id; history is intact.
+
+    The accepted audit of run 39949461593 required the measurement to be
+    regenerated after the min-core-length gate, and claim-bearing artifacts are
+    append-only: the file named for run 39949461593 must still hold exactly
+    what that run measured (short core counted reached, 25/28), while the
+    regenerated file names this cycle's run and counts it unreached (24/28).
+    """
+    old = _artifact("CYCLE_39949461593.json")
+    new = _artifact("CYCLE_39956256289.json")
+
+    def row_for(doc: dict, frozen_id: str, cap: str) -> dict:
+        for leg in doc["legs"]:
+            if leg["slug"] == "corporate-criminal-liability":
+                for r in leg["scans"][cap]["known"]:
+                    if r["frozen_id"] == frozen_id:
+                        return r
+        raise AssertionError(f"{frozen_id} not found at cap {cap}")
+
+    for cap in ("8", "24"):
+        assert row_for(old, "bstger_BG.2016.5", cap)["reached"] is True
+        assert row_for(new, "bstger_BG.2016.5", cap)["reached"] is False
+
+    # Every short-core row in the regenerated artifact is unreached, and the
+    # denominator moves by exactly that one row (25 -> 24).
+    for cap in ("8", "24"):
+        assert new["aggregate"]["by_cap"][cap]["known_reached_n"] == 24
+        assert old["aggregate"]["by_cap"][cap]["known_reached_n"] == 25
+        for leg in new["legs"]:
+            for r in leg["scans"][cap]["known"]:
+                if len(r["frozen_id_core"]) < ka.MIN_CORE_LENGTH:
+                    assert r["reached"] is False
+
+    # Bookkeeping-only impact, as the audit predicted: signal and hydration
+    # totals are unchanged, so no budget conclusion moves.
+    for cap in ("8", "24"):
+        assert (new["aggregate"]["by_cap"][cap]["known_signalled_n"]
+                == old["aggregate"]["by_cap"][cap]["known_signalled_n"])
+        assert (new["aggregate"]["by_cap"][cap]["n_signalled_total"]
+                == old["aggregate"]["by_cap"][cap]["n_signalled_total"])
+        assert (new["aggregate"]["by_cap"][cap]["n_hydrated"]
+                == old["aggregate"]["by_cap"][cap]["n_hydrated"])
+
+    assert new["invariants"]["network_calls_blocked"] is True
+    assert new["invariants"]["known_signals_monotone_in_cap"] is True
+    assert old["invariants"]["network_calls_blocked"] is True

@@ -133,11 +133,26 @@ def _scan_known_rows(bundle: dict, known: list[str], cap: int) -> tuple[dict, li
     hydrated_ids = set(str(x) for x in prov.get("hydrated_ids") or [])
     lookup = _row_lookup(out.get("decisions") or [])
     rows: list[dict] = []
+    short_core_ids: list[str] = []
     for frozen_id in known:
-        row = lookup.get(ka.alnum_core(frozen_id))
+        core = ka.alnum_core(frozen_id)
+        # Required fix D1 of the accepted audit of run 39949461593: the frozen
+        # ``min_core_length`` must also gate the LOOKUP, exactly like
+        # ``ka.matches()`` gates its own comparison.  A frozen id whose core is
+        # shorter than ``ka.MIN_CORE_LENGTH`` (e.g. ``bstger_BG.2016.5`` ->
+        # ``20165``) may never be counted "reached", even though a rendered row
+        # happens to carry the same short core.  Bookkeeping only: the row and
+        # its signal are unchanged, so every signalled count and budget
+        # conclusion of the accepted measurement is unaffected.
+        if len(core) < ka.MIN_CORE_LENGTH:
+            short_core_ids.append(frozen_id)
+            row = None
+        else:
+            row = lookup.get(core)
         signal = (row or {}).get("counter_surface_signal") if row else None
         rows.append({
             "frozen_id": frozen_id,
+            "frozen_id_core": core,
             "reached": row is not None,
             "matched_decision_id": (row or {}).get("decision_id") if row else None,
             "hydrated_this_scan": bool(row and str(row.get("decision_id")) in hydrated_ids),
@@ -151,6 +166,8 @@ def _scan_known_rows(bundle: dict, known: list[str], cap: int) -> tuple[dict, li
         })
     summary = {
         "cap": int(cap),
+        "min_core_length": int(ka.MIN_CORE_LENGTH),
+        "known_short_core_ids": list(short_core_ids),
         "n_rows": prov.get("n_rows"),
         "n_hydrated": prov.get("n_hydrated"),
         "n_signalled_total": prov.get("n_signalled"),
