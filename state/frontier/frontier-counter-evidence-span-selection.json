@@ -26,8 +26,27 @@
     "diagnosis": "DANGLING_FREEZE_COMMIT_CITATION",
     "severity": "audit-blocking provenance defect; NOT a measurement defect",
     "detail": "REPORT.md sections 0 and 1 and run_history[0].note cited commit 'dad93c36' as the pre-measurement protocol freeze commit. That object does not exist in the published (squashed) history; the only commit is e9ee955e8f5e2679572257731130c70febcb4c68. An independent auditor verifying acceptance criterion (1) by resolving the cited commit would fail and could return AUDIT_BLOCKED.",
+    "root_cause": "The report was drafted against the producer's local pre-squash history; the branch was then published squashed, so the commit-addressed citation became unresolvable. The freeze witness was recorded in two places, one commit-addressed (broken) and one content-addressed (intact).",
     "repair": "Freeze re-witnessed content-addressed: sha256(PROTOCOL.json)=b5d14121e86ea0b39c181aacef1c30d4a2788a4751af4cfa00c33189c0afb7ea matches PROTOCOL.sha256, PROTOCOL.json.status=FROZEN_BEFORE_MEASUREMENT at 2026-10-23T16:29:36Z, and all seven result artifacts embed that digest. The historical citation is preserved and the correction is appended (REPORT.md Appendix R1, results/.../PROVENANCE_RESUME.json); no claim-bearing result artifact was edited.",
-    "record": "results/frontier/frontier-counter-evidence-span-selection/PROVENANCE_RESUME.json"
+    "record": "results/frontier/frontier-counter-evidence-span-selection/PROVENANCE_RESUME.json",
+    "audit_correction": {
+      "audit_run_id": "39994019404",
+      "finding": "D2 - FALSE FREEZE-PROVENANCE CLAIM",
+      "retracted_assertions": [
+        "`git cat-file -t dad93c36` returns 'fatal: Not a valid object name dad93c36'",
+        "The branch was published as a single squashed commit",
+        "audit-blocking provenance defect severity"
+      ],
+      "independent_verification": {
+        "method": "fresh clone of origin/cycle/frontier/frontier-counter-evidence-span-selection/39986101767/team",
+        "head": "e9ee955e8f5e2679572257731130c70febcb4c68",
+        "git_cat_file_dad93c36": "commit",
+        "dad93c364e996fb430696a510e8de9d55f369bb9_is_parent_of_e9ee955": true,
+        "merge_base_is_ancestor": true,
+        "history_squashed": false
+      },
+      "note": "The original operational_failure block is preserved verbatim as historical record. This audit_correction is additive. The freeze itself is intact: PROTOCOL.json status=FROZEN_BEFORE_MEASUREMENT, sha256 matches PROTOCOL.sha256, all artifacts embed the digest. Criterion (1) FREEZE FIRST passes via both commit-addressed and content-addressed witnesses."
+    }
   },
 
   "resume_verification": {
@@ -165,7 +184,7 @@
       "product_recommendation": "DO_NOT_ADOPT_AS_IS",
       "tests": "19 passed",
       "note": "Protocol frozen at dad93c36 before measurement. Baseline 20/20/0 reproduced with published reasons; candidate 20/13/7, support 1.0, yield 0.35; controls green; deterministic. Post-hoc semantic audit: 4 string coincidences, 1 morphological prefix, 2 exact, 0 clear legal counter-authorities. Charter stops; successor exact-token/semantic gate recommended.",
-      "resume_annotation": "VERBATIM AS RECORDED BY THE PRODUCER. The commit citation 'dad93c36' in this note is dangling in the published (squashed) history; see operational_failure above. The freeze itself is intact and content-addressed."
+      "resume_annotation": "VERBATIM AS RECORDED BY THE PRODUCER. The commit citation 'dad93c36' in this note was originally claimed to be dangling in the published (squashed) history; see operational_failure above. AUDIT CORRECTION (CYCLE_39994019404): independent fresh clone of the named branch RESOLVES dad93c36 as a valid commit (direct parent of e9ee955), history was NEVER squashed. The original 'dangling/squashed' diagnosis is FALSE and retracted in operational_failure.audit_correction and REPORT.md Appendix R1.9. The freeze itself is intact and content-addressed."
     },
     {
       "run_id": "39990225759",

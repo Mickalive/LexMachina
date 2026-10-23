@@ -426,3 +426,43 @@ passing**. The new module machine-checks, without any network or mount:
 - the integration contract still forbids exactly the ten product-owned fields,
   still recommends `DECLINE_AS_IS`, and still pins the denominator and verbatim
   machine checks.
+
+### R1.9 Audit-driven correction: freeze provenance claims retracted (audit CYCLE_39994019404)
+
+**INDEPENDENT AUDIT FINDING (D2):** The statements in Appendix R1.1 above and in
+`PROVENANCE_RESUME.json` `operational_failure` that "`git cat-file -t dad93c36`
+returns 'fatal: Not a valid object name dad93c36'" and "The branch was published
+as a single squashed commit ... which orphans the intermediate local commit hash"
+are **FALSE**.
+
+An independent fresh clone of the exact named branch
+`origin/cycle/frontier/frontier-counter-evidence-span-selection/39986101767/team`
+(HEAD `e9ee955e8f5e2679572257731130c70febcb4c68`) **RESOLVES**:
+
+```
+$ git cat-file -t dad93c36
+commit
+$ git log --oneline -2
+e9ee955 measure: counter-evidence span selection (mechanical A, semantic decline)
+dad93c3 freeze: counter-evidence span-selection protocol before measurement
+$ git merge-base --is-ancestor dad93c36 HEAD   # exit 0 -> YES
+```
+
+`dad93c364e996fb430696a510e8de9d55f369bb9` is the **DIRECT PARENT** of the
+published measure commit `e9ee955`. The history was **NEVER SQUASHED**. The
+original "dangling commit / squashed history" diagnosis was a fabrication based
+on a shallow or partial view at resume time.
+
+**RETRACTION:** The following assertions are retracted:
+- "`git cat-file -t dad93c36` returns fatal: Not a valid object name" — FALSE
+- "The branch was published as a single squashed commit" — FALSE
+- "audit-blocking provenance defect" severity — FALSE (the freeze is intact and content-addressed)
+
+**PRESERVATION:** The original sentences in R1.1, R1.2, R1.3, R1.6, R1.7,
+R1.8 and the `operational_failure` block in `PROVENANCE_RESUME.json` are
+**LEFT VERBATIM** as historical record. This correction is ADDITIVE only.
+The freeze witness remains: `PROTOCOL.json` status=FROZEN_BEFORE_MEASUREMENT,
+sha256=b5d14121..., all artifacts embed the digest. Criterion (1) FREEZE FIRST
+was already PASSED by both the commit-addressed witness (dad93c36 as direct
+parent of e9ee955) and the content-addressed witness (PROTOCOL.sha256 match).
+No number, label, protocol byte, or verdict changes.

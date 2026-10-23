@@ -21,7 +21,7 @@
   "placement": {
     "after": "product.query.counter_emission_repair.apply_counter_emission_repair",
     "before": "product.query.counter_anchor.apply_anchor_labels",
-    "population": "rows with counter_proposal_source == 'heuristic_proposal_promotion_v1' and counter_status in ['candidate-supporting', 'candidate-contrary', 'candidate-limiting']",
+    "population": "rows with counter_proposal_source == 'heuristic_proposal_promotion_v1' and counter_status in ['candidate-limiting', 'candidate-contrary', 'contrary_or_exception', 'limiting']",
     "does_not_apply_to": "rows without the repair promotion marker; the served packet 38839347028 has n_promoted=0 and is therefore unchanged"
   },
   "required_bundle_fields": [
@@ -112,7 +112,7 @@
     "product_changes": "none",
     "required_action": "record this contract as the decline decision and keep the component in the Frontier namespace as lab evidence",
     "what_is_lost_by_declining": "nothing that is currently product-valuable; the component emits no semantically verified counter-authority, and the frozen scorer's 7 'supported' rows are string artifacts",
-    "what_is_retained": "the deterministic extract-verify-abstain loop, 19 tests, the protocol, the baseline reproduction, and the semantic-audit finding for a successor charter"
+    "what_is_retained": "the deterministic extract-verify-abstain loop, 35 tests (19 producer + 16 resume-verification), the protocol, the baseline reproduction, and the semantic-audit finding for a successor charter"
   },
   "machine_checks": [
     "assert sha256(PROTOCOL.json) == 'b5d14121e86ea0b39c181aacef1c30d4a2788a4751af4cfa00c33189c0afb7ea'",
@@ -140,8 +140,8 @@
     "run_id": "39990225759",
     "resumed_run_id": "39986101767",
     "record": "results/frontier/frontier-counter-evidence-span-selection/PROVENANCE_RESUME.json",
-    "note": "Operational resume of producer snapshot 39986101767. The producer cited a pre-measurement freeze commit 'dad93c36' that does not exist in the published (squashed) history; the freeze is re-witnessed content-addressed instead, and every result artifact was re-executed byte-identically with --out-dir outside the repository. This block changes no adoption condition, forbidden constant, machine check, field name or recommendation in this contract.",
-    "outstanding_defect_for_auditor": "REPORT.md sections 0 and 1 retain the unresolvable commit citation 'dad93c36' by design, so the original claim-bearing text is preserved; the corrected citation is in REPORT.md Appendix R1 and in PROVENANCE_RESUME.json."
+    "note": "Operational resume of producer snapshot 39986101767. The producer cited a pre-measurement freeze commit 'dad93c36' that was claimed not to exist in the published (squashed) history. AUDIT CORRECTION: independent re-test in a fresh clone of the exact named branch origin/cycle/frontier/frontier-counter-evidence-span-selection/39986101767/team (HEAD e9ee955e8f5e2679572257731130c70febcb4c68) RESOLVES `git cat-file -t dad93c36` -> commit; dad93c364e996fb430696a510e8de9d55f369bb9 is the DIRECT PARENT of e9ee955 (ancestry confirmed with git merge-base --is-ancestor); the history was NEVER squashed. The original 'does not exist / published squashed' diagnosis was FALSE. The freeze witness is intact and content-addressed (PROTOCOL.sha256 matches, PROTOCOL.json.status=FROZEN_BEFORE_MEASUREMENT, all artifacts embed the digest).",
+    "outstanding_defect_for_auditor": "REPORT.md sections 0 and 1 retain the original unresolvable commit citation 'dad93c36' by design, so the original claim-bearing text is preserved; the corrected citation is in REPORT.md Appendix R1 and in PROVENANCE_RESUME.json. AUDIT CORRECTION: the original defect diagnosis is retracted - the freeze commit DOES exist and the history is not squashed."
   },
   "claim_ceiling": "This component measures whether a deterministic extract-verify-abstain step over already-retrieved full text raises the number of rows the frozen scorer mechanically supports. It never asserts that any decision is supporting, contrary or limiting. It does not claim jurist usefulness, serve readiness, reliability, reproduction of the external 0/14 result, or that the comparative map-versus-ranked-list question is non-vacuous. It changes no threshold, rubric, verdict class, absolute bar or packet; it adds no retrieval and no model call. packet_admitted, machine_gate_ready and human_gate_ready remain product-owned and false unless independently earned."
 }
