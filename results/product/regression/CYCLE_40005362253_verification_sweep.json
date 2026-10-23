@@ -1,0 +1,47 @@
+{
+  "schema": "product-verification-sweep/1",
+  "run_id": 40005362253,
+  "generated_at": "2026-10-23T19:09:05.314268+00:00",
+  "command": "python3 -m pytest -q product/tests/test_counter_precision.py product/tests/test_probe_absent_id_spans.py product/tests/test_cycle_40005362253.py product/tests/test_state_cycle_39965089504.py product/tests/test_counter_evidence_span.py product/tests/test_counter_surface_known.py product/tests/test_offline_slice.py product/tests/test_query_map_mvp.py product/tests/test_adversarial_retrieval.py product/tests/test_answer_contract.py",
+  "result": {
+    "passed": 135,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 30
+  },
+  "environment_disclosure": {
+    "python": "3.12.3",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "scikit_learn": "1.9.1",
+    "pytest": "9.1.1",
+    "note": "D3-class disclosure (accepted audit CYCLE_39965089504 required fix D3): one mount/data-dependent skip-to-pass variance was recorded on both trees of that audit and is the known class; FAILED sets, not skip counts, carry any regression conclusion. This sweep reports its own counts in the numeric environment above."
+  },
+  "previously_red_now_green": [
+    {
+      "test": "product/tests/test_state_cycle_39965089504.py::test_the_state_record_of_this_cycle_is_written_and_fail_closed",
+      "defect": "Pinned the LIVE state direction_version at == 64 and current_run at == 39965089504; both go stale as soon as a later cycle lands. RED on the accepted tip beb227a (live direction 65, current_run 39986094168) BEFORE this cycle's edits - verified by running the test on the unmodified tree.",
+      "repair": "direction_version >= 64 with a comment; current_run verified as a digits-only string while the cycle's own record and posture flags are still asserted. Historical diagnosis artifact stays pinned at direction 64; no claim of cycle 39965089504 is weakened."
+    }
+  ],
+  "vertical_slice_reverification": {
+    "command": "python3 product/offline_slice.py --slug rent-default --verify",
+    "verdict": "PASS",
+    "page_contract": "67 assertions",
+    "n_decisions": 100,
+    "n_clusters": 8,
+    "rows_with_source_url": 100,
+    "rows_with_xy": 100,
+    "counter_status_bearing_rows": 5,
+    "answer_status": "ready",
+    "cited_decision_ids": 4,
+    "wall_seconds": 1.135,
+    "network": "none",
+    "bundle": "results/product/offline_slice/20261023T190402Z/rent-default.bundle.json"
+  },
+  "state_contract": {
+    "command": "python3 product/state_contract.py --check --direction-version 65",
+    "exit": 0
+  },
+  "claim_ceiling": "Executed suite and slice verification of THIS tree in the disclosed numeric environment. No legal-correctness, jurist-usefulness, serve or human-gate claim; no frozen bar scored."
+}
