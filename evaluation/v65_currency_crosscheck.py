@@ -20,9 +20,25 @@ Item (4) coverage-v2 re-freeze is CONDITIONAL and NOT executed here.
 
 REUSE-FIRST: no measurement is re-implemented. The falsification leg is a thin
 subprocess invocation of the accepted wrapper. Currency quantities are re-read
-from the committed product artifacts and compared at 1e-6 float tolerance to the
-values published by the product lane. No frozen bar, rubric, threshold or
-verdict contract is edited. No universal-174k benchmark is rerun.
+from the committed product artifacts and compared against the values published
+by the product lane.
+
+FLOAT-COMPARISON DISCLOSURE (audit defect D-A, repair round 1 of run
+39986080045): the frozen success rule in
+V65_CURRENCY_CROSSCHECK_HYPOTHESIS_V1.json states literally
+"(float tolerance 1e-6)", but the product lane PUBLISHES these floats at
+3-decimal precision (its accepted CYCLE_39965089504.md writes "6/7 = 0.857",
+"0.667", "4/7 = 0.571", "0.286"). The comparison actually applied is therefore
+the half-ulp of that publication precision, 5e-4 (APPLIED_FLOAT_TOL). This is a
+disclosed deviation from the literal frozen parenthetical, never a silent one:
+every float quantity publishes BOTH verdicts side by side -
+`strict_verdict_1e_6` (the literal frozen 1e-6 rule) and
+`applied_verdict_precision_matched` (5e-4 / round-to-3) - together with its raw
+absolute delta, under `currency_crosscheck.float_comparison_disclosure`. The
+literal-1e-6 headline is published beside the applied headline. No frozen rule,
+bar, rubric, threshold or verdict contract is edited; the hypothesis file itself
+is re-hashed against its frozen pin and never modified. No universal-174k
+benchmark is rerun.
 
 Exit codes (aligned with VERDICT_CONTRACT.json conventions):
   0  PASS_NO_FALSIFICATION   - all currency quantities CONFIRMED, falsification
@@ -59,7 +75,18 @@ FREEZE = REPO_ROOT / "evaluation/V65_CURRENCY_CROSSCHECK_FREEZE_RECORD_V1.json"
 OUT_DIR = REPO_ROOT / "results/evaluation/v65_currency_crosscheck"
 REPORT_DIR = REPO_ROOT / "reports/evaluation"
 
-FLOAT_TOL = 1e-6
+# --- Float comparison tolerances (audit defect D-A; disclosed, never silent) ---
+# FROZEN_LITERAL_FLOAT_TOL is the tolerance AS WRITTEN in the frozen hypothesis
+# success rule ("float tolerance 1e-6"); it is used to publish the strict
+# per-quantity verdict. APPLIED_FLOAT_TOL is the comparison this instrument
+# actually applies: the product publishes these quantities at 3-decimal
+# precision, so the half-ulp of that publication precision (5e-4) is the
+# precision-matched tolerance. Both are published; neither replaces the other
+# and neither is derived after seeing results (the frozen text and the product's
+# 3-decimal publication format both predate this run).
+FROZEN_LITERAL_FLOAT_TOL = 1e-6
+PUBLICATION_DECIMALS = 3
+APPLIED_FLOAT_TOL = 0.5 * (10 ** -PUBLICATION_DECIMALS)  # 5e-4, half-ulp of 3dp
 
 # Frozen expected digests (from the freeze record; re-hashed at runtime).
 EXPECTED = {
@@ -343,6 +370,101 @@ def rehash_pins(mount: Path) -> dict:
     return out
 
 
+def build_float_disclosure(rows: list) -> dict:
+    """Dual float-tolerance disclosure (audit defect D-A, repair round 1).
+
+    Pure function of the committed row records: recomputes every delta from
+    `raw_found`/`raw_published` (falling back to `found`/`published`), annotates
+    each float row with BOTH verdicts, and returns the disclosure block. Used by
+    `currency_crosscheck()` on a fresh run and by the repair instrument
+    `evaluation/v65_repair_round1_da_db.py` on the already-committed run record,
+    so a fresh execution and the repair always agree byte-for-byte.
+
+    Strict leg = the frozen hypothesis's LITERAL "(float tolerance 1e-6)".
+    Applied leg = precision-matched half-ulp of the product's 3-decimal
+    publication precision (APPLIED_FLOAT_TOL = 5e-4).
+    Neither the frozen hypothesis nor any bar/rubric/threshold is edited.
+    """
+    n_conf = sum(1 for r in rows if r.get("verdict") == "CONFIRMED")
+    n_div = sum(1 for r in rows if r.get("verdict") == "DIVERGENT")
+    n_missing = sum(1 for r in rows if r.get("verdict") == "NOT_FOUND")
+    strict_conf = strict_div = strict_missing = 0
+    float_rows = []
+    for row in rows:
+        if row.get("verdict") == "NOT_FOUND":
+            strict_verdict = "NOT_FOUND"
+            strict_missing += 1
+        elif row.get("kind") == "float":
+            raw_found = row.get("raw_found", row.get("found"))
+            published = row.get("raw_published", row.get("published"))
+            delta = abs(float(raw_found) - float(published))
+            strict_ok = delta <= FROZEN_LITERAL_FLOAT_TOL
+            applied_ok = delta <= APPLIED_FLOAT_TOL
+            strict_verdict = "CONFIRMED" if strict_ok else "DIVERGENT"
+            # annotate the row itself so every float quantity dual-reports
+            row["raw_found"] = raw_found
+            row["raw_published"] = published
+            row["abs_delta"] = delta
+            row["applied_tolerance"] = APPLIED_FLOAT_TOL
+            row["frozen_literal_tolerance"] = FROZEN_LITERAL_FLOAT_TOL
+            row["strict_verdict_1e_6"] = strict_verdict
+            row["applied_verdict_precision_matched"] = (
+                "CONFIRMED" if applied_ok else "DIVERGENT")
+            float_rows.append({
+                "id": row["id"],
+                "published_3dp": published,
+                "raw_found": raw_found,
+                "abs_delta": delta,
+                "strict_verdict_1e_6": strict_verdict,
+                "applied_verdict_precision_matched":
+                    row["applied_verdict_precision_matched"],
+                "round_found_to_3dp_equals_published":
+                    round(float(raw_found), PUBLICATION_DECIMALS)
+                    == float(published),
+            })
+        else:
+            strict_verdict = row["verdict"]
+        if strict_verdict == "CONFIRMED":
+            strict_conf += 1
+        elif strict_verdict == "DIVERGENT":
+            strict_div += 1
+
+    return {
+        "defect_repaired": "audit CYCLE_39986080045 required_fixes D-A "
+                           "(undisclosed frozen float-tolerance deviation)",
+        "frozen_literal_tolerance": FROZEN_LITERAL_FLOAT_TOL,
+        "frozen_literal_tolerance_source":
+            "V65_CURRENCY_CROSSCHECK_HYPOTHESIS_V1.json success rule as written: "
+            "'... to the precision published by the product (float tolerance 1e-6)'",
+        "applied_tolerance": APPLIED_FLOAT_TOL,
+        "applied_tolerance_rationale":
+            "half-ulp of the product lane's 3-decimal publication precision "
+            "(the product's accepted CYCLE_39965089504.md publishes these as "
+            "'6/7 = 0.857', '0.667', '4/7 = 0.571', '0.286'); raw_found is "
+            "always carried in full so the delta is auditable",
+        "deviation_from_literal_frozen_rule": True,
+        "deviation_disclosed_not_absorbed": True,
+        "both_verdicts_published_per_float_quantity": True,
+        "headline_applied_precision_matched": (
+            "ALL_CONFIRMED" if n_div == 0 and n_missing == 0
+            else "DIVERGENCE_PRESENT" if n_div > 0 else "ARTIFACT_MISSING"),
+        "headline_frozen_literal_1e_6": (
+            "ALL_CONFIRMED" if strict_div == 0 and strict_missing == 0
+            else "DIVERGENCE_PRESENT" if strict_div > 0 else "ARTIFACT_MISSING"),
+        "counts_applied_precision_matched": {
+            "n_confirmed": n_conf, "n_divergent": n_div, "n_not_found": n_missing},
+        "counts_frozen_literal_1e_6": {
+            "n_confirmed": strict_conf, "n_divergent": strict_div,
+            "n_not_found": strict_missing},
+        "n_float_quantities": len(float_rows),
+        "float_quantities": float_rows,
+        "reproduction": (
+            "recompute abs(delta)=abs(raw_found-published) per float row; "
+            "strict = delta <= 1e-6, applied = delta <= 5e-4"),
+        "frozen_rule_edited": False,
+    }
+
+
 def currency_crosscheck(mount: Path) -> dict:
     """Re-read each committed artifact and compare to the published quantity."""
     rows = []
@@ -373,11 +495,21 @@ def currency_crosscheck(mount: Path) -> dict:
                 if q["kind"] == "float":
                     # published values are rounded to 3 decimals by the product
                     # lane; accept if the artifact value rounds to the published
-                    # value at the same precision OR is within 5e-4 (half-ulp of
-                    # 3-decimal rounding). Also record the raw comparison.
-                    ok = abs(float(found) - float(q["published"])) <= 5e-4
+                    # value at the same precision OR is within the applied
+                    # precision-matched tolerance (half-ulp of 3-decimal
+                    # rounding, 5e-4). DISCLOSURE (audit D-A): the frozen
+                    # hypothesis's literal parenthetical says 1e-6, so BOTH
+                    # verdicts and the raw delta are published per quantity.
+                    delta = abs(float(found) - float(q["published"]))
+                    ok = delta <= APPLIED_FLOAT_TOL
+                    strict_ok = delta <= FROZEN_LITERAL_FLOAT_TOL
                     row["raw_found"] = found
                     row["raw_published"] = q["published"]
+                    row["abs_delta"] = delta
+                    row["applied_tolerance"] = APPLIED_FLOAT_TOL
+                    row["frozen_literal_tolerance"] = FROZEN_LITERAL_FLOAT_TOL
+                    row["strict_verdict_1e_6"] = "CONFIRMED" if strict_ok else "DIVERGENT"
+                    row["applied_verdict_precision_matched"] = "CONFIRMED" if ok else "DIVERGENT"
                 else:
                     ok = found == q["published"]
             row["verdict"] = "CONFIRMED" if ok else "DIVERGENT"
@@ -434,15 +566,21 @@ def currency_crosscheck(mount: Path) -> dict:
     else:
         n_div += 1
 
+    # --- D-A disclosure: dual verdicts under the two float tolerances ---
+    # Shared pure function so a fresh run and the repair instrument agree.
+    float_disclosure = build_float_disclosure(rows)
+
     return {
         "n_quantities": len(rows),
         "n_confirmed": n_conf,
         "n_divergent": n_div,
         "n_not_found": n_missing,
         "rows": rows,
-        "headline": ("ALL_CONFIRMED" if n_div == 0 and n_missing == 0
-                     else "DIVERGENCE_PRESENT" if n_div > 0
-                     else "ARTIFACT_MISSING"),
+        "float_comparison_disclosure": float_disclosure,
+        "headline": float_disclosure["headline_applied_precision_matched"],
+        "headline_basis": "applied precision-matched comparison (5e-4); see "
+                          "float_comparison_disclosure for the frozen-literal-1e-6 "
+                          "headline published side by side",
     }
 
 
@@ -652,14 +790,19 @@ def control_planted_divergence_is_detected(mount: Path) -> dict:
         doc = json.loads((mount / art_rel).read_text())
         doc["metrics"]["answer_ready_rate"] = 0.5  # plant
         target.write_text(json.dumps(doc))
-        # run the same comparison logic on the scratch
+        # run the same comparison logic on the scratch (both tolerances)
         found = _json_path_get(doc, ["metrics", "answer_ready_rate"])
-        ok = abs(float(found) - 0.0) <= 5e-4
+        delta = abs(float(found) - 0.0)
+        ok = delta <= APPLIED_FLOAT_TOL and delta <= FROZEN_LITERAL_FLOAT_TOL
         detected = not ok
+        planted_delta = delta
     return {
         "control": "C1_planted_currency_divergence_is_detected",
         "planted_value": 0.5,
         "expected_published": 0.0,
+        "abs_delta": planted_delta,
+        "tolerances_applied": {"frozen_literal_1e_6": FROZEN_LITERAL_FLOAT_TOL,
+                               "applied_precision_matched": APPLIED_FLOAT_TOL},
         "detected_as_divergent": detected,
         "passed": detected,
     }
@@ -721,9 +864,43 @@ def _render_report(record: dict) -> str:
         "",
         f"- Quantities: {cur['n_quantities']} — CONFIRMED {cur['n_confirmed']}, "
         f"DIVERGENT {cur['n_divergent']}, NOT_FOUND {cur['n_not_found']}",
-        f"- Headline: **{cur['headline']}**",
+        f"- Headline (applied precision-matched, 5e-4): **{cur['headline']}**",
         "",
     ]
+    fd = cur.get("float_comparison_disclosure") or {}
+    if fd:
+        counts_lit = fd["counts_frozen_literal_1e_6"]
+        lines += [
+            "### Float-comparison disclosure (audit defect D-A, repair round 1)",
+            "",
+            "- The frozen success rule states literally **\"(float tolerance 1e-6)\"**; "
+            "the product publishes these floats at **3-decimal precision**, so the "
+            "comparison APPLIED here is the half-ulp of that precision, "
+            f"**{fd['applied_tolerance']}**. This deviation from the literal frozen "
+            "text is DISCLOSED, not absorbed; the frozen hypothesis file is "
+            "re-hashed against its pin and never edited "
+            f"(`frozen_rule_edited={fd['frozen_rule_edited']}`).",
+            f"- Headline under the **frozen literal 1e-6** rule: "
+            f"**{fd['headline_frozen_literal_1e_6']}** "
+            f"(CONFIRMED {counts_lit['n_confirmed']}, "
+            f"DIVERGENT {counts_lit['n_divergent']}, "
+            f"NOT_FOUND {counts_lit['n_not_found']}).",
+            f"- Headline under the **applied precision-matched** rule: "
+            f"**{fd['headline_applied_precision_matched']}** "
+            f"(CONFIRMED {fd['counts_applied_precision_matched']['n_confirmed']}, "
+            f"DIVERGENT {fd['counts_applied_precision_matched']['n_divergent']}, "
+            f"NOT_FOUND {fd['counts_applied_precision_matched']['n_not_found']}).",
+            "",
+            "| quantity | published (3dp) | raw found | abs delta | strict 1e-6 | applied 5e-4 | round(raw,3)==pub |",
+            "|---|---|---|---|---|---|---|",
+        ]
+        for fq in fd["float_quantities"]:
+            lines.append(
+                f"| `{fq['id']}` | {fq['published_3dp']} | {fq['raw_found']} | "
+                f"{fq['abs_delta']:.3e} | {fq['strict_verdict_1e_6']} | "
+                f"{fq['applied_verdict_precision_matched']} | "
+                f"{fq['round_found_to_3dp_equals_published']} |")
+        lines.append("")
     for row in cur["rows"]:
         mark = {"CONFIRMED": "✅", "DIVERGENT": "❌", "NOT_FOUND": "⚠️"}.get(row["verdict"], "?")
         lines.append(f"- {mark} `{row['id']}`: published `{row['published']}` "

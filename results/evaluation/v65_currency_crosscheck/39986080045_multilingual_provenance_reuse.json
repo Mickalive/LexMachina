@@ -1,7 +1,70 @@
 {
+ "byte_recomputation_at_repair": {
+  "audit_defect": "D-B (multilingual reuse characterization wrong against packet bytes)",
+  "facts": {
+   "de-kapitalverletzung": {
+    "bundle_sha256": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
+    "engine_record_unlabelled": 50,
+    "first_null_language_decision_id": "bge_126 V 75",
+    "n_decisions": 182,
+    "n_engine_unlabelled_predicate": 50,
+    "n_language_key_absent": 0,
+    "n_language_null": 50,
+    "null_equals_engine_predicate": true,
+    "null_equals_engine_record_unlabelled": true,
+    "provenance_query_key_present": false,
+    "qid": "de-kapitalverletzung",
+    "top_level_query_field_present": true,
+    "top_level_query_prefix": "Aktive F\u00fcrsorgepflicht des Arbeitgebers bei einer Kapitalver",
+    "top_level_query_type": "str"
+   },
+   "fr-bail-entretien": {
+    "bundle_sha256": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
+    "engine_record_unlabelled": 37,
+    "first_null_language_decision_id": "bger_4A_173_2017",
+    "n_decisions": 185,
+    "n_engine_unlabelled_predicate": 37,
+    "n_language_key_absent": 0,
+    "n_language_null": 37,
+    "null_equals_engine_predicate": true,
+    "null_equals_engine_record_unlabelled": true,
+    "provenance_query_key_present": false,
+    "qid": "fr-bail-entretien",
+    "top_level_query_field_present": true,
+    "top_level_query_prefix": "R\u00e9siliation du bail pour d\u00e9faut d'entretien du bailleur : ju",
+    "top_level_query_type": "str"
+   },
+   "it-responsabilita-medica": {
+    "bundle_sha256": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b",
+    "engine_record_unlabelled": 47,
+    "first_null_language_decision_id": "bge_130 V 229",
+    "n_decisions": 179,
+    "n_engine_unlabelled_predicate": 47,
+    "n_language_key_absent": 0,
+    "n_language_null": 47,
+    "null_equals_engine_predicate": true,
+    "null_equals_engine_record_unlabelled": true,
+    "provenance_query_key_present": false,
+    "qid": "it-responsabilita-medica",
+    "top_level_query_field_present": true,
+    "top_level_query_prefix": "Responsabilit\u00e0 del medico per errore terapeutico: quale obbl",
+    "top_level_query_type": "str"
+   }
+  },
+  "packet_sha256": "32ac812626e679c357822543d0b2e78e62c0e95a9a1b233d1ec89d7cb7b6ac70",
+  "performed_by": "evaluation/v65_repair_round1_da_db.py",
+  "performed_on": "exact packet-of-record bundle bytes (39319405429/questions/*.bundle.json)",
+  "script_unchanged": "evaluation/run_v3_multilingual_provenance_reuse.py"
+ },
  "direction_version": 65,
+ "field_semantics": {
+  "repaired_by": "evaluation/v65_repair_round1_da_db.py under audit CYCLE_39986080045 required_fixes D-B; the accepted script evaluation/run_v3_multilingual_provenance_reuse.py is unchanged",
+  "row.missing_fields_sample": "V61-era script sample of the FIRST decision whose d.get(field) is None; the language key is present on every decision with an explicit null value on the counts recorded in byte_recomputation_at_repair",
+  "row.query_field_present": "V61-era SCRIPT OUTPUT: tests 'query' in bundle['provenance'] \u2014 i.e. a query key INSIDE the provenance block. False on all three bundles. It does NOT test the top-level bundle query field.",
+  "row.top_level_query_field_present": "byte-recomputed: 'query' exists as a non-empty top-level string on all three bundles"
+ },
  "frozen_bundle_sha_match": true,
- "interpretation": "The three frozen bundle SHAs match their V61 pins byte-for-byte and the expected language is present in every bundle (language robustness holds). Two schema-completeness checks fail ON THE PACKET-OF-RECORD BYTES THEMSELVES: (i) one decision per bundle lacks the 'language' field (bge_126 V 75 / bger_4A_173_2017 / bge_130 V 229), and (ii) the bundle has no top-level 'query' field. These are PRE-EXISTING structural properties of the served packet 39319405429, not a regression introduced by product head f4cd7d7: the packet bytes are unchanged (sha256 32ac8126... re-hashed before and after) and the accepted mapping-free engine already scores language_robustness as REPORTED-only. Disclosed, never repaired by this lane.",
+ "interpretation": "The three frozen bundle SHAs match their V61 pins byte-for-byte and the expected language is present in every bundle (language robustness holds). Two schema-completeness checks fail ON THE PACKET-OF-RECORD BYTES THEMSELVES \u2014 CORRECTED AGAINST THE BYTES by repair round 1 of run 39986080045 (audit D-B): (i) the provenance block has NO 'query' key, which is what the V61-era script actually tests at run_v3_multilingual_provenance_reuse.py:88 ('query' in bundle['provenance']) \u2014 the top-level 'query' field DOES exist on all three bundles as a non-empty string (e.g. de: 'Aktive F\u00fcrsorgepflicht des Arbeitgebers bei einer Kapitalverletzung...'); (ii) every decision carries a 'language' key, but its value is explicitly null on de-kapitalverletzung 50, fr-bail-entretien 37, it-responsabilita-medica 47 decisions (the field is present with a null value, not absent; the V61-era check d.get('language') is None counts null as missing and samples only the first such decision per bundle \u2014 de bge_126 V 75 / fr bger_4A_173_2017 / it bge_130 V 229). Those null counts are exactly the UNLABELLED counts the accepted engine reports for the same bundles. The original claim 'one decision per bundle lacks the language field' UNDERSTATES the count and 'the bundle has no top-level query field' was factually WRONG; both wordings are retracted. These remain PRE-EXISTING structural properties of served packet 39319405429, not a regression introduced by product head f4cd7d7: the packet bytes are unchanged (sha256 32ac8126... re-hashed before and after) and the accepted mapping-free engine already scores language_robustness as REPORTED-only. Disclosed, never repaired by this lane; the accepted reuse script stays unchanged (REUSE-FIRST).",
  "language_robustness_holds": true,
  "packet": "39319405429",
  "posture_unchanged": {
@@ -10,7 +73,22 @@
   "packet_admitted": false,
   "ready_for_owner_session": false
  },
+ "provenance_query_key_present": false,
  "query_field_present": false,
+ "repair_round1": {
+  "audit_gate": "REVISE",
+  "fix_D_B": "interpretation corrected against the exact packet bytes: the top-level query field EXISTS on all three bundles (absent is only the provenance-block query key the V61 script tests at line 88); every decision carries a language key, null-valued on de-kapitalverletzung 50, fr-bail-entretien 37, it-responsabilita-medica 47 decisions, equal to the engine's UNLABELLED counts; original 'one decision per bundle lacks the language field' and 'the bundle has no top-level query field' wordings retracted; accepted script unchanged",
+  "frozen_bundle_shas_unchanged": true,
+  "language_null_counts": {
+   "de-kapitalverletzung": 50,
+   "fr-bail-entretien": 37,
+   "it-responsabilita-medica": 47
+  },
+  "repairs_audit_gate": "results/audit/evaluation/CYCLE_39986080045_GATE.json",
+  "required_fixes_applied": [
+   "D-B"
+  ]
+ },
  "required_fields_complete": false,
  "reuse_of": "evaluation/run_v3_multilingual_provenance_reuse.py (accepted V61-era multilingual/provenance checks)",
  "rows": [
@@ -19,6 +97,7 @@
    "bundle_sha256": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
    "clusters_present": true,
    "expected_language": "de",
+   "first_null_language_decision_id": "bge_126 V 75",
    "language_ok": true,
    "languages_found": [
     "",
@@ -34,6 +113,10 @@
    ],
    "n_clusters": 5,
    "n_decisions": 182,
+   "n_language_key_absent": 0,
+   "n_language_null": 50,
+   "n_language_present_non_null": 132,
+   "null_count_equals_engine_unlabelled": true,
    "provenance_missing_fields": [
     "lane",
     "instrument",
@@ -41,18 +124,22 @@
     "layout"
    ],
    "provenance_present": true,
+   "provenance_query_key_present": false,
    "qid": "de-kapitalverletzung",
    "query_field_present": false,
    "required_fields_present": false,
    "row_ok": false,
+   "script_query_field_present_semantics": "provenance-block query key (V61 script), not the top-level query field",
    "sha_matches_frozen": true,
-   "source_urls_valid": true
+   "source_urls_valid": true,
+   "top_level_query_field_present": true
   },
   {
    "bad_urls": [],
    "bundle_sha256": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
    "clusters_present": true,
    "expected_language": "fr",
+   "first_null_language_decision_id": "bger_4A_173_2017",
    "language_ok": true,
    "languages_found": [
     "",
@@ -68,6 +155,10 @@
    ],
    "n_clusters": 3,
    "n_decisions": 185,
+   "n_language_key_absent": 0,
+   "n_language_null": 37,
+   "n_language_present_non_null": 148,
+   "null_count_equals_engine_unlabelled": true,
    "provenance_missing_fields": [
     "lane",
     "instrument",
@@ -75,18 +166,22 @@
     "layout"
    ],
    "provenance_present": true,
+   "provenance_query_key_present": false,
    "qid": "fr-bail-entretien",
    "query_field_present": false,
    "required_fields_present": false,
    "row_ok": false,
+   "script_query_field_present_semantics": "provenance-block query key (V61 script), not the top-level query field",
    "sha_matches_frozen": true,
-   "source_urls_valid": true
+   "source_urls_valid": true,
+   "top_level_query_field_present": true
   },
   {
    "bad_urls": [],
    "bundle_sha256": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b",
    "clusters_present": true,
    "expected_language": "it",
+   "first_null_language_decision_id": "bge_130 V 229",
    "language_ok": true,
    "languages_found": [
     "",
@@ -102,6 +197,10 @@
    ],
    "n_clusters": 5,
    "n_decisions": 179,
+   "n_language_key_absent": 0,
+   "n_language_null": 47,
+   "n_language_present_non_null": 132,
+   "null_count_equals_engine_unlabelled": true,
    "provenance_missing_fields": [
     "lane",
     "instrument",
@@ -109,15 +208,19 @@
     "layout"
    ],
    "provenance_present": true,
+   "provenance_query_key_present": false,
    "qid": "it-responsabilita-medica",
    "query_field_present": false,
    "required_fields_present": false,
    "row_ok": false,
+   "script_query_field_present_semantics": "provenance-block query key (V61 script), not the top-level query field",
    "sha_matches_frozen": true,
-   "source_urls_valid": true
+   "source_urls_valid": true,
+   "top_level_query_field_present": true
   }
  ],
  "run_id": "39986080045",
  "schema": "lex-evaluation-v65-multilingual-provenance-reuse/1",
+ "top_level_query_field_present": true,
  "verdict": "PARTIAL_MISS_PREEXISTING_SCHEMA_PROPERTY"
 }

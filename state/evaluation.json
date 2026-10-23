@@ -175,9 +175,12 @@
   "reports/evaluation/V65_CURRENCY_CROSSCHECK_39986080045.md",
   "evaluation/V65_CURRENCY_CROSSCHECK_HYPOTHESIS_V1.json",
   "evaluation/V65_CURRENCY_CROSSCHECK_FREEZE_RECORD_V1.json",
-  "evaluation/v65_currency_crosscheck.py"
+  "evaluation/v65_currency_crosscheck.py",
+  "evaluation/v65_repair_round1_da_db.py",
+  "results/evaluation/v65_currency_crosscheck/39986080045_repair_round1.json",
+  "tests/evaluation/test_v65_repair_round1_da_db.py"
  ],
- "evidence_refs_n": 134,
+ "evidence_refs_n": 137,
  "evidence_tier": "ACCEPTED",
  "github_run": "39986080045",
  "human_gate_ready": false,
@@ -561,6 +564,61 @@
  },
  "proposed_run_id": "39986080045",
  "ready_for_owner_session": false,
+ "repair_round1_39986080045": {
+  "audit_gate": "REVISE",
+  "audit_gate_path": "results/audit/evaluation/CYCLE_39986080045_GATE.json",
+  "cycle": 39986080045,
+  "direction_version": 65,
+  "falsification_reexecuted": false,
+  "fixes": {
+   "D-A": {
+    "evidence": [
+     "evaluation/v65_currency_crosscheck.py",
+     "results/evaluation/v65_currency_crosscheck/39986080045.json",
+     "reports/evaluation/V65_CURRENCY_CROSSCHECK_39986080045.md"
+    ],
+    "repair": "both tolerances and the precision-matching rationale disclosed in result JSON and report; docstring rewritten; FROZEN_LITERAL_FLOAT_TOL=1e-6 and APPLIED_FLOAT_TOL=5e-4 both actually used; strict and applied verdicts dual-reported (strict 24/4, applied 28/0)",
+    "severity": "material",
+    "what": "frozen success rule states literal float tolerance 1e-6 while the instrument compared at 5e-4; docstring and FLOAT_TOL constant misstated the implementation"
+   },
+   "D-B": {
+    "evidence": [
+     "results/evaluation/v65_currency_crosscheck/39986080045_multilingual_provenance_reuse.json",
+     "reports/evaluation/V65_CURRENCY_CROSSCHECK_39986080045.md"
+    ],
+    "repair": "byte recomputation on exact packet bytes: provenance block has no query key but top-level query exists on all three bundles; language key present with explicit null on de 50 / fr 37 / it 47 decisions (equal to engine UNABELLED counts); original wording retracted; accepted V61 script unchanged (REUSE-FIRST)",
+    "severity": "material",
+    "what": "multilingual reuse record claimed one decision per bundle lacks the language field and the bundle has no top-level query field \u2014 both factually wrong against the packet bytes"
+   },
+   "D-C": {
+    "evidence": [
+     "reports/evaluation/V65_CURRENCY_CROSSCHECK_39986080045.md"
+    ],
+    "repair": "merged into one section in ordered position",
+    "severity": "cosmetic",
+    "what": "two identical 'Ordered item 4 \u2014 coverage v2 re-freeze' sections in the report"
+   }
+  },
+  "frozen_rules_edited": false,
+  "idempotent_rerun_verified": true,
+  "no_bar_moved": true,
+  "packet_admission_still_fail_closed": true,
+  "posture_unchanged": {
+   "human_gate_ready": false,
+   "machine_gate_ready": false,
+   "packet_admitted": false,
+   "ready_for_owner_session": false
+  },
+  "repair_instrument": "evaluation/v65_repair_round1_da_db.py",
+  "repair_log": "results/evaluation/v65_currency_crosscheck/39986080045_repair_round1.json",
+  "required_fixes_applied": [
+   "D-A",
+   "D-B",
+   "D-C"
+  ],
+  "test": "tests/evaluation/test_v65_repair_round1_da_db.py",
+  "timestamp": "2026-10-23T17:40:00Z"
+ },
  "state_minimal_ca_provenance_repair_39866970583": {
   "audit_caveat_closed": "CYCLE_39854748616 minimal_ca_benchmark SHIM_FAIL 7/3/1 -> real pytest 11/0/0",
   "controls": "3/3 hold (C1-C3)",
@@ -570,7 +628,7 @@
   "repair": "state/evaluation.json minimal_ca_benchmark block restored with re-derived pins (hypothesis re-hash f0c7711c..., freeze commit 6892f9f0); no test/frozen-file/threshold edit",
   "verdict": "REPAIR_VERIFIED_SUITE_GREEN"
  },
- "state_updated_at": "2026-10-23T16:50:46Z",
+ "state_updated_at": "2026-10-23T17:40:00Z",
  "test_suite": {
   "answer_reliability_crosscheck": {
    "failed": 0,
