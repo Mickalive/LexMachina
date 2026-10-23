@@ -1,0 +1,65 @@
+{
+  "schema": "product-orchestration-resume-diagnosis/1",
+  "run_id": "39965089504",
+  "resumed_run_id": "39956256289",
+  "direction_version": 64,
+  "mode": "operational resume from the durable producer snapshot of run 39956256289 (commit fc8b187 'product cycle 39956256289 repair 0' on cycle/core/product/39956256289/team, based on accepted b48d6f3 'accept product cycle 39949461593')",
+  "observed_snapshot": {
+    "head_commit": "fc8b187",
+    "head_subject": "product cycle 39956256289 repair 0",
+    "head_committed_at": "2026-10-23T13:54:07Z",
+    "accepted_base_commit": "b48d6f3",
+    "accepted_base_subject": "accept product cycle 39949461593",
+    "durable_delta": [
+      "product/query/counter_surface_known.py: D1 min-core-length gate on the frozen-id lookup (required fix, NON-BLOCKING, of the accepted audit of run 39949461593); short-core ids are now excluded from 'reached' and recorded in known_short_core_ids",
+      "product/progressive_smoke.py: RF1 consolidation - the counter-status-bearing check now ASKS product/query/counter_status.py (counter_status_bearing_count / counter_status_histogram) instead of restating the broad inline predicate the scattering guard forbids",
+      "product/tests/test_counter_surface_known.py (new, 90 lines): fixture, matcher, mode-aware budget, network-free monotone measurement contracts",
+      "product/tests/test_cycle_39956256289.py (new, 136 lines): executable re-derivation of the cycle's reliability-measurement, D1 and RF1 claims from committed artifacts",
+      "results/product/counter_surface_known/CYCLE_39956256289.json: regenerated known-authority coverage measurement under the D1-gated lookup",
+      "results/product/answer_reliability/39956256289_protocol_freeze.json + 39956256289_measurement.json: the pre-registered live-answer reliability measurement (ordered item 4), 7/7 legs executed, network-free cache replay",
+      "results/product/answer_reliability/39949461593_protocol_freeze.json: an earlier freeze of the IDENTICAL protocol (same protocol_sha256 418c516f...) carrying run_id 39949461593; no measurement was ever written under that id (disclosed sibling, not a second measurement)",
+      "results/product/offline_slice/20261023T125701Z/ and 20261023T132709Z/: two fresh rent-default offline slice runs (100 decisions, 8 clusters, PASS)"
+    ],
+    "missing_for_the_run": [
+      "no report of record under reports/product/ naming run 39956256289 or its resume",
+      "no cycle record in state/product.json for run 39956256289 (state still carried current_run 39949461593)",
+      "no results/audit gate (expected: the run never reached a completed producer state for audit)"
+    ],
+    "exact_exit_code": "unavailable: the GitHub log endpoint requires a token this producer job does not carry; recorded as unavailable rather than invented"
+  },
+  "diagnosis": [
+    {
+      "id": "D1",
+      "signature": "MISSING_TERMINAL_ARTIFACTS_AFTER_DURABLE_COMMIT",
+      "evidence": "The snapshot contains every substantive artifact of the cycle (D1 fix, RF1 fix, regenerated coverage measurement, the pre-registered reliability freeze+measurement, two test suites, two slice runs) committed at 13:54:07Z, and nothing else after it. The reliability measurement alone consumed 957.7 s wall (concurrency 2, seven legs at ~240 s each under the 180 s answer timeout) and completed at 13:46:48Z; the counter-surface measurement completed at 13:25:37Z. The absence of exactly the report/state pair - and nothing else - is consistent with the producer being terminated (most plausibly rc-78 LEX_WORK_QUANTUM_EXPIRED, the recorded 2700 s quantum class) between the commit and the report/state stage.",
+      "claim_ceiling": "Inferred from the durable snapshot and artifact timestamps only. The remote exit code is not observable from inside this job; the rc-78 attribution is hedged as most-plausible, not established."
+    },
+    {
+      "id": "D2",
+      "signature": "STATE_NOT_ADVANCED_FOR_THE_RUN",
+      "evidence": "state/product.json on the snapshot carried current_run 39949461593 and no cycle_39956256289_* record, while direction_version was already 64 and product/state_contract.py --check --direction-version 64 passes on the inherited tree (verified this cycle, exit 0).",
+      "consequence": "No state-contract failure exists (unlike the v63-vs-v64 defect of the previous resume); the gap is only the missing cycle record, which this resume writes under its own run id per the run-39949461593 precedent."
+    }
+  ],
+  "verification_performed_this_cycle": {
+    "counter_surface_known_repro": "python3 -m product.query.counter_surface_known re-run is byte-identical to results/product/counter_surface_known/CYCLE_39956256289.json modulo generated_at (compared as parsed JSON).",
+    "d1_effect_measured": "known_reached_n 25 -> 24 of 28 exactly as the accepted audit of 39949461593 predicted (corporate-criminal-liability 6 -> 5; bstger_BG.2016.5 recorded in known_short_core_ids with core '20165' len 5 < min 6); known_signalled_n unchanged at 8 (cap 8) and 11 (cap 24); total signals unchanged 42 / 70; 0 network.",
+    "offline_slice_verify": "python3 product/offline_slice.py --slug rent-default --verify: PASS, 67/67 page-contract assertions, network none, 100 decisions, 8 clusters, 5 counter-status-bearing rows, 1 scored counter row, answer ready (fixture provider). Fresh bundle decision order + x/y/cluster_id row-for-row identical to the committed 20261023T132709Z bundle.",
+    "new_tests": "python3 -m pytest product/tests/test_counter_surface_known.py product/tests/test_cycle_39956256289.py: 12 passed (environment: numpy 2.5.4, scipy 1.18.1, scikit-learn 1.9.1, pytest 9.1.1).",
+    "reliability_repro": "test_cycle_39956256289.py re-derives the measurement aggregate from its own recorded legs (metrics, pre-registered conditions and the NOT-MADE claim reproduce exactly); the freeze's protocol_sha256 equals the module's current protocol payload, proving the protocol did not move after execution.",
+    "state_contract": "python3 product/state_contract.py --check --direction-version 64: PASS on the inherited tree and after this cycle's state write."
+  },
+  "repairs_or_finishes_this_cycle": [
+    "reports/product/CYCLE_39965089504.md: the report of record covering the inherited deliverable and this resume's verification (the artifact run 39956256289 never got to write).",
+    "state/product.json: cycle_39965089504_operational_resume record, current_run 39965089504; all posture flags unchanged (false); continue_recommended stays true.",
+    "product/tests/test_state_cycle_39965089504.py: executable re-derivation of this cycle's published numbers from the committed artifacts."
+  ],
+  "posture_unchanged": {
+    "human_gate_ready": false,
+    "machine_gate_ready": false,
+    "packet_admitted": false,
+    "ready_for_owner_session": false,
+    "continue_recommended": true,
+    "serve_verdict_of_record": "BOUNDED-NEGATIVE (frontier-packet-serve-audit run 39371834165); both DO-NOT-SERVE orders stand"
+  }
+}

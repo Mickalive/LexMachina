@@ -99,9 +99,18 @@
     "results/product/live_slice/CYCLE_39916040751_full.json (live full chain: PASS 11/11, 128 decisions, 8 clusters, 8 network calls, 0 cache hits, answer ready 6 citations, 8 counter-authority findings, 0 evidenced)",
     "results/product/live_slice_stages/STAGE_DISCLOSURE_AMENDMENT.json (regenerated over 19 committed records; both new records STAGED and self-consistent)",
     "results/product/regression/CYCLE_39916040751_test_delta_attribution.json (working-tree collected delta +5, all in product/tests/test_language_normalization.py)",
-    "product/tests/test_language_normalization.py (5 executable regressions for null/absent/invalid language -> und, ISO preservation and the langFilter und option)"
+    "product/tests/test_language_normalization.py (5 executable regressions for null/absent/invalid language -> und, ISO preservation and the langFilter und option)",
+    "reports/product/CYCLE_39965089504.md (report of record: operational resume of run 39956256289, verification of the D1 repair and the live-answer reliability measurement, regression posture, fail-closed handoff)",
+    "results/product/orchestration/CYCLE_39965089504_resume_diagnosis.json (inherited-snapshot diagnosis: durable commit but missing report/state; exact exit unavailable without a GitHub token)",
+    "results/product/counter_surface_known/CYCLE_39956256289.json (D1-gated coverage measurement: reached 24/28, signalled 8/11, byte-identical re-run verified this cycle)",
+    "results/product/answer_reliability/39956256289_protocol_freeze.json (pre-registered protocol, frozen before execution, sha 418c516f...)",
+    "results/product/answer_reliability/39956256289_measurement.json (7/7 legs complete, claim NOT MADE, answer_ready_rate 0.0 under free-model outage, degradation_visible_rate 1.0)",
+    "product/tests/test_counter_surface_known.py (new in run 39956256289: fixture/matcher/budget/monotone-measurement contracts, 90 lines)",
+    "product/tests/test_cycle_39956256289.py (new in run 39956256289: executable re-derivation of the reliability, D1 and RF1 claims)",
+    "product/tests/test_state_cycle_39965089504.py (new in this cycle: re-derivation of this cycle's published numbers from the committed artifacts)",
+    "product/progressive_smoke.py + product/query/counter_surface_known.py (the RF1 predicate consolidation and the D1 lookup gate landed by run 39956256289)"
   ],
-  "next_recommendation": "CONTINUE (continue_recommended=true). Direction v64 repaired the inherited-state mismatch (state/product.json now carries direction_version 64) and delivered a runnable cached counter-surface coverage delta: mode-aware hydration (24 cached / 8 live), a product-owned known-authority fixture + measurement, and 11/25 reached known authorities signalled at the broader cached budget versus 8/25 at the accepted budget, network-free. The offline query->bundle->answer->counter-surface->clickable-map slice still passes. NO human-gate session may be staged: all gate flags stay false and the serve verdict of record remains BOUNDED-NEGATIVE. Next: latency/precision review of the broader cached surface, live-answer reliability on replayed live queries, and a live budget check before any live broadening.",
+  "next_recommendation": "CONTINUE (continue_recommended=true). Operational resume of run 39956256289 completed its terminal artifacts: the D1 min-core-length repair of the accepted audit of 39949461593 is landed and re-measured byte-identically (reached 24/28, signalled 8/11 unchanged), and the pre-registered live-answer reliability measurement (ordered item 4) is COMPLETE with the product claim honestly NOT MADE across all three committed same-protocol dates (ready rates 0.857 / 0.571 / 0.0-outage; stability jaccard once 0.286). Ordered item 3 (writer-abort degradation surfacing) is verified on the live path under a real free-model outage: 7/7 legs DEGRADED_WRITER_ABORT, degradation_visible_rate 1.0, zero scored counter rows. RF1 predicate consolidation landed and the scattering guard passes (failed on the accepted base). Full suite: 0 new failures vs accepted base, 1 fixed. The offline query->bundle->answer->counter-surface->clickable-map slice still passes (67/67 assertions, geometry stable). NO human-gate session may be staged: all gate flags stay false and the serve verdict of record remains BOUNDED-NEGATIVE. Next: re-measure live-answer reliability when the free pool is healthy, precision review of the broader cached surface, and retrieval-pool coverage for the three unreached known ids.",
   "verification": {
     "at": "2026-10-23T05:51:45.512773Z",
     "attribution_artifact": "results/product/cache_attribution/CYCLE_39674781875_manifest_rewrite_attribution.json",
@@ -467,8 +476,8 @@
     "live_state_precedence": "for every key the live state already carries, the live value wins; this tool only ADDS the preserved keys and the disclosure records, so the register can grow and never shrinks silently.",
     "claim_ceiling": "This is a restoration of deleted lane state, not a new measurement and not a legal claim. It scores no frozen bar, changes no threshold and changes no product behaviour."
   },
-  "current_run": "39949461593",
-  "state_updated_at": "2026-10-23T12:14:39Z",
+  "current_run": "39965089504",
+  "state_updated_at": "2026-10-23T14:13:11Z",
   "cycle_39674781875_vertical_slice_delivery": {
     "run_id": 39674781875,
     "repair_round": 1,
@@ -1179,6 +1188,45 @@
       "Broader cached hydration raises total heuristic signals from 42 to 70; precision on the additional non-known rows was not adjudicated. The cached delta is not a live budget decision: live/refresh stays at 8 until a live latency/precision measurement exists.",
       "The product denominator is 28 known ids (25 reached), while the external evaluation measured 14 reached ids on a different pool and surface. The external 0/14 result is context only and is not claimed to be reproduced or reversed.",
       "No human-gate session is staged; all gate flags remain false and the serve verdict of record remains BOUNDED-NEGATIVE."
+    ]
+  },
+  "cycle_39965089504_operational_resume": {
+    "run_id": "39965089504",
+    "resumed_run_id": "39956256289",
+    "mode": "operational resume from the durable producer snapshot of run 39956256289 (commit fc8b187, based on accepted b48d6f3 \"accept product cycle 39949461593\"); the snapshot carried the full substantive deliverable (D1 fix, RF1 fix, regenerated coverage measurement, the pre-registered live-answer reliability freeze+measurement, two new test suites, two slice runs) but no report of record and no state cycle record",
+    "direction_version": 64,
+    "human_gate_ready": false,
+    "machine_gate_ready": false,
+    "packet_admitted": false,
+    "ready_for_owner_session": false,
+    "continue_recommended": true,
+    "diagnosis_artifact": "results/product/orchestration/CYCLE_39965089504_resume_diagnosis.json",
+    "failure_chain_diagnosed": [
+      "Run 39956256289 committed its deliverable at 13:54:07Z (reliability measurement completed 13:46:48Z after 957.7s wall; coverage measurement 13:25:37Z) and stopped before the report/state stage: exactly the report-of-record and the state cycle record are absent. The remote exit code is not observable from inside this job (the GitHub log endpoint requires a token this job does not carry) and is recorded as unavailable; the signature is consistent with the recorded rc-78 LEX_WORK_QUANTUM_EXPIRED class - an inference from artifact timestamps, hedged as such.",
+      "No state-contract defect was inherited: state/product.json already carried direction_version 64 and product/state_contract.py --check --direction-version 64 passes on both the inherited and the final tree (exit 0)."
+    ],
+    "repairs_or_finishes": [
+      "Verified the inherited D1 min-core-length repair executable-by-executable: re-running python3 -m product.query.counter_surface_known is byte-identical to the committed CYCLE_39956256289.json modulo generated_at; known_reached 25 -> 24 of 28 exactly as the accepted audit of 39949461593 predicted, signalled counts unchanged (8 at cap 8, 11 at cap 24), historical artifact untouched.",
+      "Verified the pre-registered live-answer reliability measurement (ordered item 4) is COMPLETE and honest: 7/7 legs, claim NOT MADE (answer_ready_rate 0.0 under a real free-model outage, degradation_visible_rate 1.0), aggregate re-derives from the recorded legs, protocol sha 418c516f... identical across the three committed freeze+measurement pairs (39799042649 ready 0.857 / 39924626016 ready 0.571 jaccard 0.286 / 39956256289 ready 0.0).",
+      "Verified ordered item 3 on the live path: all seven legs carry e_EMISSION_WRITER_ABORT with DEGRADED_WRITER_ABORT adversarial status and visible disclosure; zero scored counter rows written under the outage.",
+      "Verified the RF1 predicate consolidation: progressive_smoke asks product/query/counter_status.py; the scattering guard test failed on accepted base b48d6f3 and now passes.",
+      "Verified the offline vertical slice: product/offline_slice.py --slug rent-default --verify PASS 67/67 assertions, network none, 100 decisions / 8 clusters, geometry row-for-row identical to the committed 20261023T132709Z bundle.",
+      "Full product suite, identical environment on both trees: base 172 failed / 1309 passed / 20 skipped; this tree 171 failed / 1324 passed / 20 skipped (final, including this cycle's 6-test re-derivation suite); FAILED-set diff 0 new failures, 1 fixed (the RF1 guard). New suites test_counter_surface_known.py + test_cycle_39956256289.py pass 12/12; test_state_cycle_39965089504.py (6 tests) passes after the state write.",
+      "Wrote the missing terminal artifacts: reports/product/CYCLE_39965089504.md (report of record) and this state record; all posture flags unchanged (false); continue_recommended stays true."
+    ],
+    "artifacts": [
+      "reports/product/CYCLE_39965089504.md",
+      "results/product/orchestration/CYCLE_39965089504_resume_diagnosis.json",
+      "results/product/counter_surface_known/CYCLE_39956256289.json (inherited, verified byte-identical re-run)",
+      "results/product/answer_reliability/39956256289_protocol_freeze.json (inherited)",
+      "results/product/answer_reliability/39956256289_measurement.json (inherited, verified re-derivation)",
+      "product/tests/test_state_cycle_39965089504.py (new in this cycle)"
+    ],
+    "deferred": [
+      "Live-answer reliability re-measure on a date when the free model pool is healthy; until the pre-registered conditions pass, the product claim stays unmade and both the outage lower bound (0.0) and the healthy-pool bracket (0.57-0.86, stability jaccard once 0.286) are the published figures.",
+      "Precision adjudication of the 42 -> 70 heuristic-signal reach-for-noise trade (cached budget 24; live budget unchanged at 8).",
+      "The three known ids absent from the 100-row cached pools (gr_gerichte_PZ_2006_125, zh_mietgericht_MB170006-L, ch_vb_JAAC_68.7__) - a retrieval-pool question, not a scan miss.",
+      "Human-gate staging still requires an accepted serve recommendation replacing the DO-NOT-SERVE orders; none exists today, so no session is staged."
     ]
   }
 }
