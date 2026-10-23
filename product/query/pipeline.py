@@ -546,6 +546,18 @@ def _candidate_to_product(candidate_bundle: dict) -> dict:
     by_id = {c.get("decision_id"): c for c in candidate_bundle.get("candidates", [])}
     for d in out.get("decisions", []):
         c = by_id.get(d.get("decision_id")) or {}
+        # D1 of the accepted audit (CYCLE_39909013473_GATE.json): the adapter
+        # passes the upstream ``language`` through verbatim, and some OpenCaseLaw
+        # fixture rows carry ``null``.  A null is not a language: the shipped
+        # UI filter compares ``d.language`` against de/fr/it, so a null row is
+        # silently unfilterable.  Normalise to the honest ISO-639 "und"
+        # (undetermined) instead of inventing de/fr/it, and keep non-string
+        # junk out of the field the UI reads.
+        raw_language = d.get("language")
+        language = raw_language.strip().lower() if isinstance(raw_language, str) else ""
+        # Accept a plausible ISO-639 code (de/fr/it/en/rm/...) and map the
+        # missing/junk values to "und"; never invent a specific language.
+        d["language"] = language if re.fullmatch(r"[a-z]{2,3}", language) else "und"
         # Preserve rich evidence as extra fields; required product fields remain unchanged.
         for key in (
             "title", "regeste", "full_text", "structure", "source_url", "pdf_url",

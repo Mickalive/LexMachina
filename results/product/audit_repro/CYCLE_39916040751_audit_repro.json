@@ -1,0 +1,33 @@
+{
+  "schema": "product-audit-repro/1",
+  "run_id": "39916040751",
+  "purpose": "Re-run the exact fixture reproduction of the accepted audit (CYCLE_39909013473) after the D1 repair, so the next audit sees the same input produce null-free language rows.",
+  "accepted_audit": {
+    "gate": "results/audit/product/CYCLE_39909013473_GATE.json",
+    "required_fix": "Default decision.language to 'und' when null (5 decisions in fixture bundle have null language; breaks langFilter UI)"
+  },
+  "query": "Kündigung Mietvertrag Mietrecht",
+  "retrieval_mode": "fixture",
+  "network": "none",
+  "n_decisions": 100,
+  "n_clusters": 8,
+  "language_histogram": {
+    "de": 55,
+    "und": 5,
+    "it": 20,
+    "fr": 20
+  },
+  "null_language_count": 0,
+  "null_language_ids": [],
+  "validate_bundle_errors": [],
+  "answer_status": "ready",
+  "answer_method": "generative_audit_llm_v2",
+  "n_cited": 2,
+  "ui_lang_filter": "<select id=\"langFilter\"><option value=\"all\">Toutes langues</option><option value=\"de\">DE</option><option value=\"fr\">FR</option><option value=\"it\">IT</option><option value=\"und\">Langue non déterminée</option></select>",
+  "ui_has_und_option": true,
+  "reproduce": [
+    "python3 -c \"...run_query_initial(query, top_n=100, retrieval_mode='fixture'); enrich_query_bundle(...)\"",
+    "python3 -m pytest -q product/tests/test_language_normalization.py"
+  ],
+  "claim_ceiling": "Offline wiring reproduction only: it shows the fixture-mode rows now carry an honest ISO-639 'und' instead of null and that the UI exposes that bucket. It makes no legal, answer-quality or gate-readiness claim."
+}
