@@ -80,3 +80,37 @@
 ## Claim ceiling
 
 - This instrument cross-checks published product quantities against their own committed artifacts and re-executes the accepted falsification benchmark on the newest accepted head. It scores no frozen bar, re-derives no threshold, classifies no decision, and asserts no serve or human-gate readiness. The comparative map-versus-ranked-list half is NOT scored while zero counter rows are evidenced (factory-wide requirement 22).
+
+## Ordered item 4 — coverage v2 re-freeze (conditional)
+
+NOT EXECUTED. The condition is "only if the cross-check coverage family is resumed". It is NOT resumed this cycle: item 1(d) is a pin-level cross-check of the committed coverage artifacts (LOCAL_LIVE_COVERAGE2_live.json, LOCAL_OFFLINE_VERIFY_offline.json), not a re-freeze. The underlying parity record 39631600439 stays EXPLORATORY with pending_independent_audit=true — disclosed, never laundered into REPRODUCED or ACCEPTED.
+
+## Reused multilingual/provenance test (FAST-MVP REUSE-FIRST)
+
+Re-executed `evaluation/run_v3_multilingual_provenance_reuse.py` (accepted V61-era checks) on the unchanged V3 packet bytes. Verdict: PARTIAL_MISS_PREEXISTING_SCHEMA_PROPERTY.
+
+- All three frozen bundle SHAs match their V61 pins byte-for-byte (de 9b856e2b…, fr 054bec47…, it 345e20d1…).
+- Language robustness holds: the expected language is present in every bundle.
+- Two schema-completeness checks fail ON THE PACKET-OF-RECORD BYTES THEMSELVES: (i) one decision per bundle lacks the `language` field (bge_126 V 75 / bger_4A_173_2017 / bge_130 V 229); (ii) the bundle has no top-level `query` field.
+- These are PRE-EXISTING structural properties of served packet 39319405429, not a regression introduced by product head f4cd7d7. The packet bytes are unchanged (sha256 32ac8126… re-hashed before and after) and the accepted mapping-free engine already scores language_robustness as REPORTED-only. Disclosed, never repaired by this lane.
+
+Record: `results/evaluation/v65_currency_crosscheck/39986080045_multilingual_provenance_reuse.json`.
+
+## Attempt history (requirement 30: a file named for run X holds run X's measurement; failed attempts preserved, never deleted)
+
+| Attempt | Outcome | Cause | Preserved at |
+|---|---|---|---|
+| 1 | instrument crash (JSON set not serializable) after falsification subprocess ran | Python `set` in the protocol-sha comparison row | `attempt1_preserved/falsification/` |
+| 2 | MATERIAL_DIVERGENCE with ARTIFACT_MISSING + empty failed_gates + planner DIVERGENT | (a) wrong field name `n_cache_miss` vs `n_texts_cache_miss`; (b) `failed_gates` read from `measurement` sub-dict instead of the wrapper's top level; (c) strip/tokenize order check inverted — `strip_redaction_placeholders` is nested *inside* `tokenize(...)`, so it evaluates first despite appearing later in source text; (d) `product/query/pipeline.py` pin drift correctly detected but wrongly treated as a must-hold pin failure | `attempt2_preserved/` |
+| 3 | TypeError: unhashable type 'dict' | `failed_gates` entries are dicts with a `gate` key, not bare strings | `attempt3_preserved/falsification/` |
+| 4 | PASS_NO_FALSIFICATION (exit 0) — the instrument's own checks all pass | repaired instrument | `results/evaluation/v65_currency_crosscheck/39986080045.json` |
+
+Every attempt was an instrument defect, never a product finding. No threshold, bar, rubric or verdict contract was changed between attempts. The V65 hypothesis and freeze record were committed once, before attempt 1, and never edited.
+
+## Product-advance pin drift (disclosed, not a must-hold failure)
+
+`product/query/pipeline.py` re-hashes to `92505743…` on head f4cd7d7 against the DEGRADATION_DISCLOSURE_CROSSCHECK_FREEZE_RECORD_V3 pin `e105bfed…` (frozen at head ae854b6a). This is expected product advance: the freeze was pinned at an older head and product has since moved through d22f9b6 → b48d6f3 → 31f57ee → f4cd7d7. The three MUST-HOLD pins — planner sha 9764a37e…, remedy-(a) nesting, and the e_EMISSION_WRITER_ABORT degradation marker — all CONFIRMED. Per the frozen hypothesis, "any drift is reported as a pin finding, never silently absorbed".
+
+## Bottom line
+
+The product's newly landed measurements all still hold against their own committed artifacts on the newest accepted head, and the frozen mapping-free falsification benchmark still falsifies the product on the unchanged packet-of-record bytes with the identical four failed gates. The counter-authority evidence gap (n_emitted=0 on all three V3 questions) remains the binding blocker; the comparative map-versus-ranked-list half of the Master Prompt's central product question stays VACUOUS. Both DO-NOT-SERVE orders stand; admission stays fail-closed; frozen absolute bars stay REPORTED-ONLY and unmet on the v3 bytes; human_gate_ready=false; owner_decision_required=false.
