@@ -74,6 +74,13 @@ CACHE_TTL = 300  # 5 minutes default
 _cache_hits = 0
 _cache_misses = 0
 
+# In-memory run store for query progressive pipeline
+_RUNS: dict[str, dict] = {}
+_RUNS_LOCK = threading.Lock()
+
+def _job(name: str) -> dict:
+    return {"status": "idle", "started_at": None, "ended_at": None, "error": None, "detail": {}}
+
 
 class RateLimiter:
     """Simple in-memory rate limiter."""
@@ -833,6 +840,32 @@ class ProductHandler(SimpleHTTPRequestHandler):
                 "query": q,
                 "bundle": self._run_query_bundle(q, n, retrieval_mode),
             })
+        elif path == "/api/query/start":
+            q = params.get("q", [""])[0].strip()
+            n = int(params.get("n", ["120"])[0])
+            if not q:
+                return self._json({"error": "empty query"}, 400)
+            retrieval_mode = params.get("mode", ["live"])[0]
+            bundle = self._run_query_bundle(q, n, retrieval_mode)
+            run_id = uuid.uuid4().hex[:12]
+            # Remember the run in our in-memory store
+            with _RUNS_LOCK:
+                _RUNS[run_id] = {
+                    "run_id": run_id,
+                    "query": q,
+                    "top_n": n,
+                    "mode": retrieval_mode,
+                    "bundle": bundle,
+                    "created_at": time.time(),
+                    "jobs": {"expand": _job("expand"), "enrich": _job("enrich")},
+                }
+            self._json({
+                "run_id": run_id,
+                "bundle": bundle,
+                "jobs": {"expand": _RUNS[run_id]["jobs"]["expand"]},
+                "expand_started": False,
+            })
+            return
         elif path == "/query" or path == "/query.html":
             self._serve_file("static/query.html", "text/html")
 
