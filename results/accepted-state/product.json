@@ -1,10 +1,10 @@
 {
   "lane": "product",
-  "direction_version": 64,
+  "direction_version": 65,
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETE",
   "continue_recommended": true,
-  "accepted_run_id": "39695438314",
+  "accepted_run_id": "40000001926",
   "human_gate_ready": false,
   "machine_gate_ready": false,
   "packet_admitted": false,
@@ -13,7 +13,7 @@
   "vertical_slice_status": {
     "query": "Kündigung Mietvertrag Mietrecht",
     "mode": "fixture (deterministic, no network)",
-    "served_artifact": "results/product/server_slice/20261021T214006Z",
+    "served_artifact": "results/product/offline_slice/20261023T120954Z/rent-default.bundle.json",
     "served_verdict": "PASS",
     "served_checks_passed": "10/10",
     "page_contract_assertions": 67,
@@ -38,7 +38,19 @@
     "counter_surface_hydrated": 23,
     "offline_slice_bundle": "results/product/offline_slice/20261023T120954Z/rent-default.bundle.json",
     "offline_slice_seconds": 1.16,
-    "offline_slice_legs_passed": 4
+    "offline_slice_legs_passed": 4,
+    "rows_with_source_url": 100,
+    "progressive_api_verified": true,
+    "server_query_api_verified": true,
+    "fixture_replay_verified": true,
+    "live_slice_map_only_verified": true,
+    "human_gate_questions": [
+      "Did the map expose a relevant branch, exception or decision that was less visible in the list/answer?",
+      "Did the map make the jurisprudential structure easier to understand?",
+      "Did the map increase confidence that contrary authority had not been hidden?",
+      "Was the combined answer + map preferable to the conventional interface?"
+    ],
+    "claim_ceiling": "The query-specific vertical slice is complete and locally runnable in fixture mode (deterministic, no network). The product implements: question -> OpenCaseLaw retrieval -> query_result_bundle -> sourced generative answer -> independent counter-authority pass -> clickable map. All 188 MVP tests pass. The serve verdict remains BOUNDED-NEGATIVE (both frozen bars unmet) so admission stays fail-closed. Milestones beyond the clickable vertical slice (answer quality, legal correctness, jurist usefulness, human-gate session) remain incomplete and continue_recommended=true; NO human-gate session may be staged while both frozen bars are unmet and the serve verdict stands BOUNDED-NEGATIVE."
   },
   "cycle_39660515863_vertical_slice_delivery": {
     "human_gate_ready": true,
@@ -109,9 +121,25 @@
     "product/tests/test_cycle_39956256289.py (new in run 39956256289: executable re-derivation of the reliability, D1 and RF1 claims)",
     "product/tests/test_state_cycle_39965089504.py (new in this cycle: re-derivation of this cycle's published numbers from the committed artifacts)",
     "product/progressive_smoke.py + product/query/counter_surface_known.py (the RF1 predicate consolidation and the D1 lookup gate landed by run 39956256289)",
-    "results/product/regression/CYCLE_39965089504_suite_diff.json (full product-suite FAILED-set diff, base b48d6f3 vs this tree, identical numeric environment: 0 new failures, 1 fixed)"
+    "results/product/regression/CYCLE_39965089504_suite_diff.json (full product-suite FAILED-set diff, base b48d6f3 vs this tree, identical numeric environment: 0 new failures, 1 fixed)",
+    "product/query/counter_evidence_span.py",
+    "product/tests/test_counter_evidence_span.py",
+    "results/product/counter_span/CYCLE_39986094168_span_selection.json",
+    "reports/product/CYCLE_39986094168.md",
+    "product/diagnose_absent_ids.py",
+    "results/product/counter_span/CYCLE_39986094168_absent_ids.json",
+    "product/query/counter_precision.py",
+    "product/probe_absent_id_spans.py",
+    "product/tests/test_counter_precision.py (6 tests, new in this cycle)",
+    "product/tests/test_probe_absent_id_spans.py (5 tests, new in this cycle)",
+    "results/product/counter_precision/CYCLE_40005362253.json",
+    "results/product/counter_span/CYCLE_40005362253_absent_id_span_probe.json",
+    "results/product/frontier_verdicts/DECLINE_frontier-counter-evidence-span-selection_40005362253.json",
+    "reports/product/CYCLE_40005362253.md",
+    "results/product/regression/CYCLE_40005362253_verification_sweep.json",
+    "product/tests/test_cycle_40005362253.py (7 tests, new in this cycle: executable re-derivation of every published number)"
   ],
-  "next_recommendation": "CONTINUE (continue_recommended=true). Operational resume of run 39956256289 completed its terminal artifacts: the D1 min-core-length repair of the accepted audit of 39949461593 is landed and re-measured byte-identically (reached 24/28, signalled 8/11 unchanged), and the pre-registered live-answer reliability measurement (ordered item 4) is COMPLETE with the product claim honestly NOT MADE across all three committed same-protocol dates (ready rates 0.857 / 0.571 / 0.0-outage; stability jaccard once 0.286). Ordered item 3 (writer-abort degradation surfacing) is verified on the live path under a real free-model outage: 7/7 legs DEGRADED_WRITER_ABORT, degradation_visible_rate 1.0, zero scored counter rows. RF1 predicate consolidation landed and the scattering guard passes (failed on the accepted base). Full suite: 0 new failures vs accepted base, 1 fixed. The offline query->bundle->answer->counter-surface->clickable-map slice still passes (67/67 assertions, geometry stable). NO human-gate session may be staged: all gate flags stay false and the serve verdict of record remains BOUNDED-NEGATIVE. Next: re-measure live-answer reliability when the free pool is healthy, precision review of the broader cached surface, and retrieval-pool coverage for the three unreached known ids.",
+  "next_recommendation": "CONTINUE (continue_recommended=true). Direction v65 ordered items 1-7 are now all discharged or adjudicated with committed artifacts: frontier component declined (INITIALIZED/UNTESTED; product seam already shipped 1/20 guarded on packet v3, 6/20 unguarded diagnostic); live-answer reliability re-measured on the accepted free-pool run 40000001926 (ready 0.857, claim honestly unmade); the 42->70 heuristic-signal trade adjudicated as BROADER_BUDGET_ADDS_PROPORTIONAL_EVIDENCE with the live budget staying 8; the three absent IDs probed and confirmed span-unevidenced (0/3). Next discriminating work under a future direction: (a) if the cached-budget evidence yield matters to the product, measure a LIVE latency/precision point before any budget change (the direction keeps live at 8 until then); (b) the frozen-rules profile coverage gap (business-judgment-rule resolving to fr-bail-entretien, petty-theft to None) is disclosed and would need an evaluation-lane freeze change to fix - never a product-side re-derivation; (c) re-inspect frontier-counter-evidence-span-selection at the next cycle start and re-decide only if it becomes independently accepted. NO human-gate session may be staged: all gate flags stay false and the serve verdict of record remains BOUNDED-NEGATIVE.",
   "verification": {
     "at": "2026-10-23T05:51:45.512773Z",
     "attribution_artifact": "results/product/cache_attribution/CYCLE_39674781875_manifest_rewrite_attribution.json",
@@ -477,8 +505,22 @@
     "live_state_precedence": "for every key the live state already carries, the live value wins; this tool only ADDS the preserved keys and the disclosure records, so the register can grow and never shrinks silently.",
     "claim_ceiling": "This is a restoration of deleted lane state, not a new measurement and not a legal claim. It scores no frozen bar, changes no threshold and changes no product behaviour."
   },
-  "current_run": "39965089504",
-  "state_updated_at": "2026-10-23T14:13:11Z",
+  "current_run": "40005362253",
+  "state_updated_at": "2026-10-23T21:30:00Z",
+  "cycle_40018153655_repair": {
+    "run_id": "40018153655",
+    "repair_round": 1,
+    "audit_of_record": "results/audit/product/CYCLE_40018153655_GATE.json gate=REVISE safe_to_integrate=false",
+    "required_fixes_addressed": {
+      "R1_human_gate_ready": "state/product.json human_gate_ready true -> false (both frozen bars unmet, serve verdict BOUNDED-NEGATIVE, factory-wide requirement forbids readiness claim)",
+      "R2_continue_recommended": "state/product.json continue_recommended false -> true (contradicted own next_recommendation; four committed tests assert true)",
+      "R3_accepted_run_id": "state/product.json accepted_run_id 39973933272 -> 40000001926 (moved backwards across two newer accepts; pointer must name last accepted run with PASS gate + accept commit)",
+      "R4_evidence_tier": "state/product.json evidence_tier ACCEPTED -> REPRODUCED (no acceptance event for this run; only ACCEPTED findings may raise default claims)",
+      "R5_report_and_state_record": "wrote reports/product/CYCLE_40018153655.md (report of record), added cycle_40018153655_repair to state/product.json, refreshed state_updated_at, reconciled claim_ceiling with next_recommendation (both now agree: vertical slice complete, human-gate session NOT staged)",
+      "R6_dangling_artifacts": "generated missing bundles for results/product/offline_slice/20261023T202433Z/rent-default.bundle.json (map-only) and 20261023T202440Z/rent-default.bundle.json (full-loop); both summaries now verified=true with page_contract=true and bundles present"
+    },
+    "claim_ceiling": "Repair round 1 for rejected cycle 40018153655: fixed state representation defects (R1-R5) and generated missing bundles (R6). The underlying engineering capability (real/cached OpenCaseLaw -> source-linked bundle -> clickable map) was already sound per the audit's independent reproduction. No frozen bar, rubric, threshold or accepted artifact was touched. All posture flags remain fail-closed (human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false)."
+  },
   "cycle_39674781875_vertical_slice_delivery": {
     "run_id": 39674781875,
     "repair_round": 1,
@@ -1212,7 +1254,7 @@
       "Verified ordered item 3 on the live path: all seven legs carry e_EMISSION_WRITER_ABORT with DEGRADED_WRITER_ABORT adversarial status and visible disclosure; the adversarial pass contributed zero new rows on every leg (n_counter_rows 0, n_new_rows 0; n_counter_rows_emitted 7-9 counts status-bearing rows including the extractive answer's own \"cited\" statuses, not adversarial findings).",
       "Verified the RF1 predicate consolidation: progressive_smoke asks product/query/counter_status.py; the scattering guard test failed on accepted base b48d6f3 and now passes.",
       "Verified the offline vertical slice: product/offline_slice.py --slug rent-default --verify PASS 67/67 assertions, network none, 100 decisions / 8 clusters, geometry row-for-row identical to the committed 20261023T132709Z bundle.",
-      "Full product suite, identical environment on both trees: base 172 failed / 1309 passed / 20 skipped; this tree 171 failed / 1325 passed / 20 skipped (final tip e0c9e32, including this cycle's 7-test re-derivation suite; machine artifact results/product/regression/CYCLE_39965089504_suite_diff.json); FAILED-set diff 0 new failures, 1 fixed (the RF1 guard). New suites test_counter_surface_known.py + test_cycle_39956256289.py pass 12/12; test_state_cycle_39965089504.py (6 tests) passes after the state write.",
+      "Full product suite, identical environment on both trees: base 172 failed / 1309 passed / 20 skipped; this tree 171 failed / 1325 passed / 20 skipped (final tip e0c9e32, including this cycle's 7-test re-derivation suite; machine artifact results/product/regression/CYCLE_39965089504_suite_diff.json); FAILED-set diff 0 new failures, 1 fixed (the RF1 guard). New suites test_counter_surface_known.py + test_cycle_39956256289.py pass 12/12; test_state_cycle_39965089504.py (7 tests; the '(6 tests)' wording of the earlier draft is corrected per accepted audit D1 of CYCLE_39965089504 - all 7 pass) passes after the state write.",
       "Wrote the missing terminal artifacts: reports/product/CYCLE_39965089504.md (report of record) and this state record; all posture flags unchanged (false); continue_recommended stays true."
     ],
     "artifacts": [
@@ -1230,5 +1272,153 @@
       "The three known ids absent from the 100-row cached pools (gr_gerichte_PZ_2006_125, zh_mietgericht_MB170006-L, ch_vb_JAAC_68.7__) - a retrieval-pool question, not a scan miss.",
       "Human-gate staging still requires an accepted serve recommendation replacing the DO-NOT-SERVE orders; none exists today, so no session is staged."
     ]
+  },
+  "cycle_39986094168_counter_span_selection": {
+    "run_id": "39986094168",
+    "direction_version": 65,
+    "human_gate_ready": false,
+    "machine_gate_ready": false,
+    "packet_admitted": false,
+    "ready_for_owner_session": false,
+    "continue_recommended": true,
+    "what_changed": "New product-owned seam product/query/counter_evidence_span.py runs between the accepted adversarial pass and the accepted emission repair: it selects a byte-verbatim span from the row's own named text field and lets the accepted frozen decide_label gate confirm-or-abstain. The accepted anchor seam now writes counter_evidence_verified=True only when that span metadata is verified, and clears it on abstention. Pipeline wiring is before apply_counter_emission_repair and apply_anchor_labels; kill-switch LEXMACHINA_COUNTER_SPAN=off.",
+    "packet_of_record": "39319405429",
+    "measurement_artifact": "results/product/counter_span/CYCLE_39986094168_span_selection.json",
+    "measurement": {
+      "baseline": {
+        "n_scored": 20,
+        "n_emitted": 0,
+        "n_abstained": 20,
+        "support_rate_among_emitted": 0.0,
+        "yield": 0.0
+      },
+      "candidate": {
+        "n_scored": 20,
+        "n_emitted": 6,
+        "n_abstained": 14,
+        "support_rate_among_emitted": 1.0,
+        "yield": 0.3
+      },
+      "per_bundle_emitted": {
+        "de-kapitalverletzung": 2,
+        "fr-bail-entretien": 4,
+        "it-responsabilita-medica": 0
+      },
+      "emitted_verified": 6,
+      "emitted_verbatim": 6,
+      "span_sentences_evaluated": 2560,
+      "span_selected": 6,
+      "span_abstained": 18,
+      "abstention_reasons_de": {
+        "no_intent_marker": 2,
+        "pivot_absent": 4
+      },
+      "abstention_reasons_fr": {
+        "pivot_absent": 5
+      },
+      "abstention_reasons_it": {
+        "pivot_absent": 4
+      },
+      "claim_ceiling": "Verbatim span selection + the accepted frozen confirm-or-abstain gate. The six emitted rows carry verified verbatim quotes; the other fourteen rows stay visible as abstained_unevidenced. This is NOT a serve/admission claim: the evaluation scorer was not run, no threshold was changed, and the packet verdict of record remains BOUNDED-NEGATIVE. Support rate, abstention count and yield are published together; no decision is asserted to BE supporting/contrary/limiting."
+    },
+    "tests": {
+      "new_suite": "product/tests/test_counter_evidence_span.py (12 passed)",
+      "targeted_regression": "test_counter_emission_repair.py + test_v52_endgame_delivery.py + test_counter_authority_definition.py + test_adversarial_retrieval.py (112 passed)",
+      "full_suite": {
+        "failed": 172,
+        "passed": 1336,
+        "skipped": 20,
+        "note": "Same failed count as the accepted base total (172), with the pre-existing legacy/environment reds (missing 174k artifacts, stale historical state/report pins, mount-dependent skips). The 12 new span tests pass; targeted label/adversarial/span suites are 146 passed."
+      }
+    },
+    "audit_fixes_applied": {
+      "D1": "reports/product/CYCLE_39965089504.md now says the re-derivation suite is 7/7 and discloses the earlier 6/6 draft",
+      "D2": "results/product/orchestration/CYCLE_39965089504_resume_diagnosis.json now records test_counter_surface_known.py as EXTENDED from the base file, not new",
+      "D3": "report now discloses the mount-dependent suite totals (172/1308/21 and 171/1324/21 in the auditor environment) and names the FAILED-set identity as the invariant"
+    },
+    "frontier": {
+      "frontier-counter-evidence-span-selection": "bootstrap-only at /tmp/lex_accepted/frontier/... (state INITIALIZED/RUN, accepted_run_id null) -> NOT consumed; product implemented the same seam locally and can adopt the accepted artifact when it lands."
+    },
+    "not_touched": [
+      "frozen RULES_LABEL.json / decide_label gate",
+      "frozen bars and evaluation scorer",
+      "geometry, ranks, clusters, relations",
+      "packet-of-record bundles (read-only measurement)",
+      "human_gate_ready / machine_gate_ready / packet_admitted / ready_for_owner_session"
+    ],
+    "absent_id_diagnosis": {
+      "artifact": "results/product/counter_span/CYCLE_39986094168_absent_ids.json",
+      "finding": "the three named IDs are pool-present and head-excluded by the query-conditioned rerank (ranks 104/118/119, anchor 0, similarity <0.04), not retrieval misses",
+      "action": "no rank/pool/threshold change this cycle"
+    }
+  },
+  "cycle_40005362253_direction_v65_ordered_work": {
+    "run_id": 40005362253,
+    "direction_version": 65,
+    "posture": {
+      "human_gate_ready": false,
+      "machine_gate_ready": false,
+      "packet_admitted": false,
+      "ready_for_owner_session": false,
+      "serve_verdict_of_record": "BOUNDED-NEGATIVE (run 39371834165); both DO-NOT-SERVE orders standing",
+      "requirement_13_supersession_conditions_met": false,
+      "continue_recommended": true
+    },
+    "accepted_lineage_disclosure": "The live state's accepted_run_id lagged at 39695438314 (disclosed, not laundered). Cycles satisfying BOTH halves of factory-wide requirement 4 since then: 39973933272 (accept f4cd7d7) and 40000001926 (accept beb227a, gate PASS, live-answer reliability re-measurement on the free pool: answer_ready_rate 0.857, citation/source validity 1.0, prose 0.982, stability jaccard 1.0, product_claim_reliable_live_answer false - preconditions answer_ready_rate==1.0 and prose_citation_validity==1.0 failed). The counter-span seam (39986094168) and the cache prewarm (39992687176) landed on lab/product without their own accept commits but are IN the accepted tree of beb227a; their artifacts are consumed as tree contents, not as separately accepted cycles.",
+    "ordered_item_1_frontier_consumption": {
+      "team": "frontier-counter-evidence-span-selection",
+      "decision": "DECLINE_NOT_INDEPENDENTLY_ACCEPTED_PRODUCT_SEAM_ALREADY_SHIPPED",
+      "artifact": "results/product/frontier_verdicts/DECLINE_frontier-counter-evidence-span-selection_40005362253.json",
+      "measured_state": "INITIALIZED/UNTESTED, accepted_run_id null, 0 deliverables beyond the control-plane mirror",
+      "numbers_side_by_side": "product counter_span_selection/1 on packet v3: n_scored 20; shipped guarded arm n_emitted 1 (yield 0.05, FR bge_136 III 196), unguarded diagnostic arm n_emitted 6 (yield 0.3, de 2 / fr 4 / it 0); baseline 0/20. The frontier component delivered no numbers to compare."
+    },
+    "ordered_item_2_live_answer_reliability": {
+      "status": "DISCHARGED_BY_ACCEPTED_CYCLE_40000001926",
+      "protocol_sha256": "418c516f537618655c920c2de321c100add372d7e09c4d74c9f3738d87dce3b1",
+      "result": "7/7 legs, ready 0.857, stability jaccard 1.0, claim NOT MADE (pre-registered success rule unmet)",
+      "artifact": "results/product/answer_reliability/40000001926_measurement.json"
+    },
+    "ordered_item_3_precision_adjudication": {
+      "status": "ADJUDICATED_THIS_CYCLE",
+      "artifact": "results/product/counter_precision/CYCLE_40005362253.json",
+      "module": "product/query/counter_precision.py",
+      "reference_counts": "signals 42 at cap 8 -> 70 at cap 24; known signalled 8 -> 11 (matches CYCLE_39956256289.json)",
+      "pooled_baseline_arm": "n_signals 42, evidenced guarded 6, yield 0.142857 (unguarded 11, 0.261905)",
+      "pooled_delta_arm": "n_signals 28, evidenced guarded 2, yield 0.071429 (unguarded 4, 0.142857)",
+      "verdict": "BROADER_BUDGET_ADDS_PROPORTIONAL_EVIDENCE under the pre-registered rule (delta 0.071429 >= 0.5 * baseline 0.142857, exactly at the ratio boundary); profile-resolved-legs-only yields 0.181818 baseline vs 0.117647 delta (ratio 0.647)",
+      "budget_effect": "live/refresh budget stays 8; cached budget unchanged this cycle; any budget change is a separate measured decision",
+      "disclosures": "Frozen-profile resolution published per leg: rent-default -> fr-bail-entretien, corporate-criminal-liability -> responsabilite-penale-entreprise-102cp, business-judgment-rule -> fr-bail-entretien (DOMAIN MISMATCH, frozen-rules coverage gap, disclosed not hidden), petty-theft-dismissal -> None. Dominant abstention reason in both arms is pivot_absent (22 baseline / 13 delta)."
+    },
+    "ordered_item_4_absent_ids": {
+      "status": "FOLLOW_UP_PROBE_COMPLETE",
+      "upstream_diagnosis": "results/product/counter_span/CYCLE_39986094168_absent_ids.json (pool-present, head-excluded at ranks 104/118/119)",
+      "artifact": "results/product/counter_span/CYCLE_40005362253_absent_id_span_probe.json",
+      "module": "product/probe_absent_id_spans.py",
+      "result": "0/3 head-excluded rows carry any span the frozen confirm-or-abstain gate would confirm under the shipped precision guard: gr_gerichte_PZ_2006_125 pivot_absent, zh_mietgericht_MB170006-L pivot_absent (both under the resolved fr-bail-entretien profile), ch_vb_JAAC_68.7__ no_frozen_anchor_profile_for_query. Consistent with the off-domain diagnosis; no rank/pool change made or warranted."
+    },
+    "ordered_item_5_audit_fixes": {
+      "D1_residual": "The live state's \"(6 tests)\" wording for test_state_cycle_39965089504.py is corrected to 7 tests with the accepted-audit attribution; the historical report/resume-diagnosis corrections from cycle 39986094168 remain as landed.",
+      "D2": "ALREADY DISCHARGED by cycle 39986094168 (resume diagnosis durable_delta now reads \"extended this cycle from the file that already existed\"; re-verified this cycle).",
+      "D3": "Environment disclosure applied to this cycle's published suite counts: numpy 2.5.4 / scipy 1.18.1 / scikit-learn 1.9.1 / pytest 9.1.1 on python 3.12.3; one mount/data-dependent skip variance of the accepted audits is the known class - FAILED sets, not skip counts, carry the regression conclusion.",
+      "direction_pin_repair": "test_state_cycle_39965089504.py pinned the LIVE state direction_version at == 64 and was RED on the accepted tip beb227a (live state 65) before this cycle's edits. Repaired to >= 64 with a comment; the historical diagnosis artifact stays pinned at 64. No claim of cycle 39965089504 is weakened."
+    },
+    "ordered_items_6_7": "P1 disclosure block and the honest fail-closed posture kept unchanged: amber dashed ring / explicit unevidenced-counter count / size-based mega-cluster disclosure all standing; packet_admitted, machine_gate_ready, human_gate_ready and ready_for_owner_session all false; frozen bars byte-unchanged.",
+    "new_modules": [
+      "product/query/counter_precision.py",
+      "product/probe_absent_id_spans.py"
+    ],
+    "new_tests": [
+      "product/tests/test_counter_precision.py (6 tests)",
+      "product/tests/test_probe_absent_id_spans.py (5 tests)",
+      "product/tests/test_cycle_40005362253.py (7 tests)"
+    ],
+    "claim_ceiling": "A measurement-and-decline cycle on the direction v65 ordered work: one pre-registered adjudication of a cached-budget heuristic-signal trade, one diagnostic span probe on three head-excluded rows, one frontier consumption decline, and audit-fix residuals. Evidence yield is not legal correctness; no frozen bar, rubric, threshold or verdict was scored, edited or superseded; no serve/admission/human-gate claim is made.",
+    "verification_sweep": {
+      "command": "python3 -m pytest -q product/tests/test_counter_precision.py product/tests/test_probe_absent_id_spans.py product/tests/test_cycle_40005362253.py product/tests/test_state_cycle_39965089504.py product/tests/test_counter_evidence_span.py product/tests/test_counter_surface_known.py product/tests/test_offline_slice.py product/tests/test_query_map_mvp.py product/tests/test_adversarial_retrieval.py product/tests/test_answer_contract.py",
+      "passed": 135,
+      "failed": 0,
+      "skipped": 0,
+      "artifact": "results/product/regression/CYCLE_40005362253_verification_sweep.json"
+    }
   }
 }
