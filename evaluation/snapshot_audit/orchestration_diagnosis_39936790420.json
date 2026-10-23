@@ -1,0 +1,169 @@
+{
+ "schema": "lex-evaluation-orchestration-diagnosis/1",
+ "lane": "evaluation",
+ "direction_version": 63,
+ "run_id": "39936790420",
+ "resumed_run_id": "39929883261",
+ "generated_at_utc": "2026-10-23T10:20:42Z",
+ "query_method": "REST API run/job/step capture under run 39936790420; job log for the supervisor cancel attribution was read at diagnosis time; local git object/ref inspection; no lane run logs are stored in-repo",
+ "summary": "The producer run 39929883261 was stopped by the factory supervisor stale-job cancel at 10:06:51Z after the team job had run 3402s (threshold 3300s). The lane cycle step and both validation/write-scope steps were cancelled/skipped, so the snapshot commit 5cc6a326 was persisted without the validation and write-scope checks and without an audit/integrate chain. A second, independent defect was found on resume: the accepted product advanced to d22f9b63 at 09:46:52Z, before the snapshot commit at 10:01:27Z, so the snapshot state claim that no newer accepted product measurement existed is false at commit time; the measured V3 packet bytes are unchanged, so the falsification evidence is not invalidated, but the re-open trigger fired and is resolved here by a frozen re-measurement on the new accepted product mount.",
+ "prior_run_facts_measured_via_rest_api": {
+  "run_id": "39929883261",
+  "name": "Core evaluation dirV63 repair0",
+  "event": "workflow_dispatch",
+  "status": "completed",
+  "conclusion": "cancelled",
+  "created_at": "2026-10-23T09:10:05Z",
+  "updated_at": "2026-10-23T10:07:05Z",
+  "run_started_at": "2026-10-23T09:10:05Z",
+  "head_branch": "main",
+  "head_sha": "1ed46838a8b30eb587dcc0f290d4f3d7373496bf",
+  "html_url": "https://github.com/Mickalive/LexMachina/actions/runs/39929883261",
+  "team_job": {
+   "id": 120335249550,
+   "status": "completed",
+   "conclusion": "cancelled",
+   "started_at": "2026-10-23T09:10:09Z",
+   "completed_at": "2026-10-23T10:06:51Z",
+   "duration_seconds": 3402
+  },
+  "audit_job": {
+   "id": 120358109946,
+   "status": "completed",
+   "conclusion": "cancelled",
+   "started_at": "2026-10-23T10:06:51Z",
+   "completed_at": "2026-10-23T10:06:51Z",
+   "steps": 0
+  },
+  "integrate_job": {
+   "id": 120358110707,
+   "status": "completed",
+   "conclusion": "cancelled",
+   "started_at": "2026-10-23T10:06:51Z",
+   "completed_at": "2026-10-23T10:06:51Z",
+   "steps": 0
+  },
+  "resilience_job": {
+   "id": 120358109470,
+   "status": "completed",
+   "conclusion": "success",
+   "started_at": "2026-10-23T10:06:54Z",
+   "completed_at": "2026-10-23T10:07:04Z"
+  },
+  "resilience_dispatched_run_id": "39936790420"
+ },
+ "team_job_steps_measured_via_rest_api": [
+  {
+   "number": 1,
+   "name": "Set up job",
+   "conclusion": "success"
+  },
+  {
+   "number": 2,
+   "name": "Run actions/checkout@v6",
+   "conclusion": "success"
+  },
+  {
+   "number": 3,
+   "name": "Validate lane and initialize working base",
+   "conclusion": "success"
+  },
+  {
+   "number": 4,
+   "name": "Mount accepted peer evidence",
+   "conclusion": "success"
+  },
+  {
+   "number": 5,
+   "name": "Install Ox/OpenCode",
+   "conclusion": "success"
+  },
+  {
+   "number": 6,
+   "name": "Run lane cycle",
+   "conclusion": "cancelled"
+  },
+  {
+   "number": 7,
+   "name": "Validate active MVP producer state",
+   "conclusion": "skipped"
+  },
+  {
+   "number": 8,
+   "name": "Clean generated junk",
+   "conclusion": "success"
+  },
+  {
+   "number": 9,
+   "name": "Enforce lane write scope",
+   "conclusion": "skipped"
+  },
+  {
+   "number": 10,
+   "name": "Persist team snapshot",
+   "conclusion": "success"
+  },
+  {
+   "number": 20,
+   "name": "Post Run actions/checkout@v6",
+   "conclusion": "success"
+  },
+  {
+   "number": 21,
+   "name": "Complete job",
+   "conclusion": "success"
+  }
+ ],
+ "cancel_attribution": {
+  "attributed_to": "factory-supervisor.yml job cancel_stale_agent_jobs",
+  "stale_threshold_seconds": 3300,
+  "measured_age_seconds": 3402,
+  "log_excerpt": "cancel_stale_agent_jobs: cutoff 2026-10-23T09:11:50Z, numRecent=0, numStale=1; cancelled run 39929883261 (in_progress)",
+  "log_source": "job log fetched through the GitHub REST actions log endpoint at diagnosis time; token-scoped logs are not re-fetched at artifact-write time",
+  "note": "the lane cycle step was cancelled by the orchestrator, not by a lane verdict; step 7 state validation, step 9 write-scope enforcement, and audit/integrate never ran"
+ },
+ "persisted_tree_facts_measured_via_git": {
+  "snapshot_commit": "5cc6a326cdc77b821f73f7819acb6bd3b3303a1e",
+  "snapshot_parent_and_true_accepted_base": "3eeced9a25d486356870755e48422f8473a5f90c",
+  "snapshot_commit_time": "2026-10-23T10:01:27Z",
+  "remote_lab_evaluation_head": "5cc6a326cdc77b821f73f7819acb6bd3b3303a1e",
+  "remote_audit_branch_for_prior_run": null,
+  "remote_team_branch_for_prior_run": "5cc6a326cdc77b821f73f7819acb6bd3b3303a1e",
+  "remote_attempt1_branch_for_prior_run": "5cc6a326cdc77b821f73f7819acb6bd3b3303a1e",
+  "anomaly": "refs/heads/lab/evaluation was advanced to the unaudited producer snapshot 5cc6a326; no cycle/core/evaluation/39929883261/audit ref exists and no audit gate exists. The mechanism that advanced lab/evaluation is not observable from the lane or the REST data and is recorded as a control-plane defect, not attributed to this lane."
+ },
+ "product_advance_during_producer_run": {
+  "accepted_product_commit": "d22f9b633c9bce70258915579f5da5195f6b2f53",
+  "accepted_product_cycle": "39925932945",
+  "accepted_at": "2026-10-23T09:46:52Z",
+  "audit_gate": "results/audit/product/CYCLE_39925932945_GATE.json",
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "previous_measured_product_head": "ae854b6a9ff4df4429d36725e364e721cb73096b",
+  "packet_of_record": "39319405429",
+  "packet_bytes_unchanged": true,
+  "packet_diff_command": "git diff --stat ae854b6a d22f9b63 -- results/product/gate_packet/39319405429/ -> empty",
+  "bundle_sha256_at_both_heads": {
+   "de-kapitalverletzung": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
+   "fr-bail-entretien": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
+   "it-responsabilita-medica": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b"
+  },
+  "product_code_diff": [
+   "product/query/pipeline.py (+12)",
+   "product/static/query.html (1 line)",
+   "product/tests/test_language_normalization.py (+74 new)"
+  ],
+  "planner_pin_at_both_heads": "9764a37e8bc7c8c31a329ba15db89657e8ee47dde8ada924fa55d5e755fd06a9",
+  "consequence": "the snapshot state claim \"no newer accepted product measurement / product head unchanged\" is false at the 10:01:27Z commit. The frozen V3 packet bytes are unchanged, so the accepted falsification is not invalidated, but the accepted product head moved and the standing re-open/cross-check duty fired. This resume discharges the re-open by a frozen re-measurement of the same V3 bytes on the new accepted mount (gate R6)."
+ },
+ "root_cause": {
+  "orchestration": "stale-job cancellation at 3300s by the factory supervisor; long producer run had no checkpoint before the threshold",
+  "validation": "the producer committed state and tests but the active-state validation and write-scope steps were cancelled, so stale state claims (product head; benchmark_result engine/schema) were not caught",
+  "promotion": "lab/evaluation was advanced to the producer snapshot without an audit gate; the true audit base remains 3eeced9a",
+  "product_staleness": "the accepted product advanced during the producer run; the producer measured the pre-advance mount and did not re-check the accepted product head before writing continue_recommended=false"
+ },
+ "missing_artifacts_at_prior_cancel": [
+  "results/audit/evaluation/CYCLE_39929883261_GATE.json",
+  "cycle/core/evaluation/39929883261/audit branch"
+ ]
+}
