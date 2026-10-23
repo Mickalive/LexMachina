@@ -128,6 +128,23 @@ def test_the_report_of_record_cites_only_artifacts_that_exist() -> None:
         f"results/product/answer_reliability/{RESUMED}_measurement.json",
         f"results/product/answer_reliability/{RESUMED}_protocol_freeze.json",
         f"results/product/orchestration/CYCLE_{RUN_ID}_resume_diagnosis.json",
+        f"results/product/regression/CYCLE_{RUN_ID}_suite_diff.json",
     ):
         assert rel in report, f"report must cite {rel}"
         assert (REPO_ROOT / rel).is_file(), f"cited artifact missing: {rel}"
+
+
+def test_the_suite_diff_artifact_records_zero_new_failures() -> None:
+    art = json.loads(
+        (REPO_ROOT / "results" / "product" / "regression"
+         / f"CYCLE_{RUN_ID}_suite_diff.json").read_text(encoding="utf-8"))
+    assert art["run_id"] == RUN_ID
+    assert art["failed_set_diff"]["n_new"] == 0
+    assert art["failed_set_diff"]["n_fixed"] == 1
+    assert art["failed_set_diff"]["fixed_base_only"] == [
+        "product/tests/test_counter_authority_definition.py::"
+        "test_no_product_module_reintroduces_the_broad_counter_predicate"
+    ]
+    assert art["base"]["commit"].startswith("b48d6f3")
+    assert art["base"]["failed"] == 172
+    assert art["head"]["failed"] == 171
