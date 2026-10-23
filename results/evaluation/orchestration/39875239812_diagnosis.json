@@ -1,0 +1,64 @@
+{
+ "schema": "lex-evaluation-orchestration-diagnosis/1",
+ "run_id": 39875239812,
+ "run_display_title": "Core evaluation dirV63 repair0",
+ "workflow_name": "Core evaluation dirV63 repair0",
+ "event": "workflow_dispatch",
+ "head_branch": "main",
+ "head_sha": "d3de84c3e3f5a51a27a49b803048e56698549af9",
+ "status": "completed",
+ "conclusion": "failure",
+ "run_attempt": 1,
+ "created_at_utc": "2026-10-22T23:58:47Z",
+ "updated_at_utc": "2026-10-23T00:45:02Z",
+ "captured_at_utc": "2026-10-23T00:46:00Z",
+ "capture_method": "GitHub REST API, unauthenticated GET /repos/Mickalive/LexMachina/actions/runs/39875239812 and /jobs?per_page=100",
+ "rest_job_facts": {
+  "team": {
+   "job_id": 120154073203,
+   "conclusion": "failure",
+   "failed_step": {"number": 6, "name": "Run lane cycle", "conclusion": "failure"},
+   "skipped_steps": [
+    {"number": 7, "name": "Validate active MVP producer state", "conclusion": "skipped"},
+    {"number": 9, "name": "Enforce lane write scope", "conclusion": "skipped"}
+   ],
+   "successful_steps_after_failure": [
+    {"number": 8, "name": "Clean generated junk", "conclusion": "success"},
+    {"number": 10, "name": "Persist team snapshot", "conclusion": "success"}
+   ]
+  },
+  "audit": {"job_id": 120155828183, "conclusion": "skipped"},
+  "integrate": {"job_id": 120155828201, "conclusion": "skipped"},
+  "resilience": {"job_id": 120155827739, "conclusion": "success"}
+ },
+ "snapshot_facts_measured_via_git": {
+  "cycle/core/evaluation/39875239812/team": "3e1e01085e1b5fc14e9f75e5662bb2b17567fc20",
+  "cycle/core/evaluation/39875239812/team-attempt-1": "3e1e01085e1b5fc14e9f75e5662bb2b17567fc20",
+  "lab/evaluation": "3e1e01085e1b5fc14e9f75e5662bb2b17567fc20",
+  "byte_identical_to_accepted_tip": true,
+  "durable_delta_from_producer_step": "none observed in persisted team branches - both team and team-attempt-1 point to accepted commit 3e1e0108",
+  "note": "Dispatch was repair0 from main head d3de84c3 (different from previous). The workflow likely attempted to run lane cycle on the initialized working base derived from main or accepted state but produced no durable delta."
+ },
+ "input_context": {
+  "dispatch_kind": "fresh/repair0 dispatch from direction v63 context",
+  "repair_from_run_id": "",
+  "repair_round": 0
+ },
+ "diagnosis": {
+  "direct_cause": "The producer step 'Run lane cycle' (step 6) exited nonzero. Every later validation/scope step was skipped; the snapshot persist step ran with if:always() and succeeded. The audit and integrate jobs were skipped because needs.team.result != success.",
+  "validation_outcome": "No validation step executed.",
+  "mechanism_attribution": "Consistent with LEX_ZERO_DELTA_REPAIR (exit 67) if agent produced no git changes, or other agent/runtime failure. Exact runtime logs unavailable (HTTP 403).",
+  "why_snapshot_points_to_accepted": "Persist committed git add -A and if no changes relative to base context or if the working tree ended up identical to already-accepted state, it force-pushed existing commit. Both team branches reference commit 3e1e0108 (the accepted evaluation cycle 39873360672) which is the current tip of lab/evaluation.",
+  "negative_result": "The dispatch produced no new durable work; audit/integrate never ran. The lane deliverable appears already accepted/complete."
+ },
+ "remediation_in_this_cycle": {
+  "action": "diagnose and make snapshot audit-ready without restarting from scratch",
+  "preserve_valid_completed_work": true,
+  "benchmark_reexecuted": false
+ },
+ "claim_ceiling": "Diagnosis evidence only based on REST job facts and git refs; exact agent logs unavailable.",
+ "provenance": {
+  "rest_capture_source": "GitHub REST API for run 39875239812 and jobs",
+  "log_access": "HTTP 403, admin rights required - unavailable and not fabricated"
+ }
+}
