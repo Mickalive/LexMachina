@@ -1,0 +1,546 @@
+{
+ "schema": "lex-evaluation-audit-log-recovery/1",
+ "lane": "evaluation",
+ "recovered_run_id": "39909449668",
+ "recovering_run_id": "39910387854",
+ "generated_at_utc": "2026-10-23T06:53:58Z",
+ "purpose": "Preserve, verbatim, the job-log evidence of the audit artifacts of run 39909449668 that the workflow destroyed when it failed before persisting the audit snapshot. This capture exists because a claim-bearing artifact (the auditor's gate file and audit report) existed in the runner workspace and was never pushed to any branch.",
+ "retrieval": {
+  "method": "gh api repos/Mickalive/LexMachina/actions/runs/39909449668/logs (zip of per-job logs)",
+  "endpoint": "GET /repos/Mickalive/LexMachina/actions/runs/39909449668/logs",
+  "zip_sha256": "c45fae4f158235a96de100b3d444f363b73aa0b80e87e376e40edd119894e243",
+  "audit_job_log_sha256": "fe9b67486d8fb2e7dc27368b4c4aef42a38b90781d74c827cc7e259f13dde4ef",
+  "team_job_log_sha256": "d940191802576243bb07f11142e1fb917e5f0805c51ad824323c03a52d670b76",
+  "resilience_job_log_sha256": "ad142475ee334707e04364b8672cc2424237b3f736295d0cf735ddc45413ad58",
+  "note": "Log downloads are ephemeral runner-side files; their shas are recorded here so any later re-download can be proven to be the same bytes."
+ },
+ "rest_job_records": {
+  "run": {
+   "id": 39909449668,
+   "display_title": "Core evaluation dirV63 repair0",
+   "event": "workflow_dispatch",
+   "actor": "github-actions[bot]",
+   "created_at": "2026-10-23T06:05:46Z",
+   "updated_at": "2026-10-23T06:15:28Z",
+   "conclusion": "failure"
+  },
+  "jobs": {
+   "team": {
+    "id": 120268783203,
+    "conclusion": "success"
+   },
+   "audit": {
+    "id": 120270869688,
+    "conclusion": "failure",
+    "failed_step": "Enforce audit scope and read gate",
+    "failed_step_conclusion": "failure"
+   },
+   "integrate": {
+    "id": null,
+    "conclusion": "skipped"
+   },
+   "resilience": {
+    "id": 120271724487,
+    "conclusion": "success"
+   }
+  },
+  "team_job_steps_all_success": true
+ },
+ "out_of_scope_files_verbatim": [
+  "reports/evaluation/QUERY_MAP_CACHED_BUNDLE_39909449668.md",
+  "results/evaluation/query_map_cached_bundle_benchmark/39909449668.json",
+  "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_business-judgment-rule.final.json",
+  "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_business-judgment-rule.initial.json",
+  "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_corporate-criminal-liability.final.json",
+  "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_corporate-criminal-liability.initial.json",
+  "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_petty-theft-dismissal.final.json",
+  "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_petty-theft-dismissal.initial.json",
+  "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_rent-default.final.json",
+  "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_rent-default.initial.json"
+ ],
+ "scope_violation_log_block_verbatim": [
+  {
+   "timestamp": "2026-10-23T06:15:12.9584689Z",
+   "line": "[[ -z \"$BAD\" ]] || { echo -e \"::error::auditor crossed scope:\\n$BAD\"; exit 3; }"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9584935Z",
+   "line": "F=\"results/audit/$LANE/CYCLE_${GITHUB_RUN_ID}_GATE.json\""
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9585180Z",
+   "line": "jq -e '.gate==\"PASS\" or .gate==\"REVISE\" or .gate==\"BLOCKED\"' \"$F\" >/dev/null"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9585419Z",
+   "line": "echo \"gate=$(jq -r .gate \"$F\")\" >> \"$GITHUB_OUTPUT\""
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9637654Z",
+   "line": "shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9637830Z",
+   "line": "env:"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9637949Z",
+   "line": "  LEX_MODEL: opencode/x-preview-f-free"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9638111Z",
+   "line": "  LANE: evaluation"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9638231Z",
+   "line": "##[endgroup]"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9777017Z",
+   "line": "##[error]auditor crossed scope:"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9781907Z",
+   "line": "reports/evaluation/QUERY_MAP_CACHED_BUNDLE_39909449668.md"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9782262Z",
+   "line": "results/evaluation/query_map_cached_bundle_benchmark/39909449668.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9782681Z",
+   "line": "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_business-judgment-rule.final.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9783061Z",
+   "line": "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_business-judgment-rule.initial.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9783447Z",
+   "line": "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_corporate-criminal-liability.final.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9783845Z",
+   "line": "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_corporate-criminal-liability.initial.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9784226Z",
+   "line": "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_petty-theft-dismissal.final.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9784605Z",
+   "line": "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_petty-theft-dismissal.initial.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9784953Z",
+   "line": "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_rent-default.final.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9785282Z",
+   "line": "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_rent-default.initial.json"
+  },
+  {
+   "timestamp": "",
+   "line": ""
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9786606Z",
+   "line": "##[error]Process completed with exit code 3."
+  }
+ ],
+ "filesystem_observations_after_that_command": [
+  {
+   "timestamp": "2026-10-23T06:13:56.2563929Z",
+   "line": "-rw-r--r--  1 runner runner 3283102 Oct 23 06:13 39909449668.json"
+  }
+ ],
+ "gate_file_write_and_readback_log_lines": [
+  {
+   "timestamp": "2026-10-23T06:13:43.8477309Z",
+   "line": "[ ] Write results/audit/evaluation/CYCLE_39909449668_GATE.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:14:30.9024872Z",
+   "line": "[ ] Write results/audit/evaluation/CYCLE_39909449668_GATE.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:14:50.8753228Z",
+   "line": "[•] Write results/audit/evaluation/CYCLE_39909449668_GATE.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:14:57.5764849Z",
+   "line": "← Write results/audit/evaluation/CYCLE_39909449668_GATE.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:00.1725473Z",
+   "line": "gate: PASS"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:00.1725588Z",
+   "line": "safe_to_integrate: True"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:00.1725711Z",
+   "line": "required_fixes: []"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:00.1725930Z",
+   "line": "claim_ceiling: Audit of cycle 39909449668 (repair round 0): producer step validated on real cac..."
+  },
+  {
+   "timestamp": "2026-10-23T06:15:00.1726275Z",
+   "line": "evidence_summary: Cache: 24 raw OpenCaseLaw HTTP 200 envelopes, all 24 matched to frozen query tex..."
+  },
+  {
+   "timestamp": "2026-10-23T06:15:00.1726603Z",
+   "line": "keys: ['claim_ceiling', 'evidence_summary', 'gate', 'required_fixes', 'safe_to_integrate']"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:04.4575404Z",
+   "line": "[✓] Write results/audit/evaluation/CYCLE_39909449668_GATE.json"
+  }
+ ],
+ "gate_readback_preview": {
+  "timestamp": "2026-10-23T06:15:00.1725473Z",
+  "observed_fields": {
+   "gate": "PASS",
+   "safe_to_integrate": "True",
+   "required_fixes": "[]",
+   "claim_ceiling": "Audit of cycle 39909449668 (repair round 0): producer step validated on real cac...",
+   "evidence_summary": "Cache: 24 raw OpenCaseLaw HTTP 200 envelopes, all 24 matched to frozen query tex...",
+   "keys": "['claim_ceiling', 'evidence_summary', 'gate', 'required_fixes', 'safe_to_integrate']"
+  },
+  "observed_claim_ceiling_from_log": "Audit of cycle 39909449668 (repair round 0): producer step validated on real cac...",
+  "observed_evidence_summary_from_log": "Cache: 24 raw OpenCaseLaw HTTP 200 envelopes, all 24 matched to frozen query tex...",
+  "log_truncation_note": "The auditor's own cat|python3 one-liner printed these two fields truncated to 80 characters; the log contains no further characters of them. Anything after the ellipsis is unrecoverable."
+ },
+ "auditor_final_summary_verbatim": [
+  {
+   "timestamp": "2026-10-23T06:15:08.6648475Z",
+   "line": "**Audit run: 39909449668, lane: evaluation, repair round: 0**"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:08.6648608Z",
+   "line": ""
+  },
+  {
+   "timestamp": "2026-10-23T06:15:08.6649941Z",
+   "line": "**Key finding:** The shortest user-visible capability is **validated** — real/cached OpenCaseLaw input produces a source-linked result bundle and clickable map for all 4 frozen questions. The accepted harness checks all pass (non-empty, duplicate-free, valid source URLs, constrained citations, counter classifications supported, geometry preserved, progressive phases, no fixture in live claim)."
+  },
+  {
+   "timestamp": "2026-10-23T06:15:08.6651039Z",
+   "line": ""
+  },
+  {
+   "timestamp": "2026-10-23T06:15:08.6651727Z",
+   "line": "**Benchmark verdict:** `BENCHMARK_VALID_NO_FALSIFICATION` (exit 0) — both falsification legs correctly reject regressed inputs (blanked counter_evidence, broken source URLs)."
+  },
+  {
+   "timestamp": "2026-10-23T06:15:08.6652195Z",
+   "line": ""
+  },
+  {
+   "timestamp": "2026-10-23T06:15:08.6652298Z",
+   "line": "**Negative/null results honestly reported:**"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:08.6653114Z",
+   "line": "- Counter-authority yield is empty for 2/4 frozen questions (`corporate-criminal-liability`, `business-judgment-rule`): the frozen marker_rule (norm_token AND limitation_token) selects zero retrieved rows. This is documented as a negative result, not concealed."
+  },
+  {
+   "timestamp": "2026-10-23T06:15:08.6653835Z",
+   "line": "- Known-reachable and known-counter reach are measured but explicitly not thresholded."
+  },
+  {
+   "timestamp": "2026-10-23T06:15:08.6654169Z",
+   "line": "- The `universal-174k` benchmark is excluded per the control plane's explicit removal from the critical path."
+  },
+  {
+   "timestamp": "2026-10-23T06:15:08.6654377Z",
+   "line": ""
+  },
+  {
+   "timestamp": "2026-10-23T06:15:08.6654423Z",
+   "line": "**Files written:**"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:08.6654630Z",
+   "line": "- `reports/audit/evaluation/CYCLE_39909449668.md` — 25-line audit report"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:08.6655092Z",
+   "line": "- `results/audit/evaluation/CYCLE_39909449668_GATE.json` — gate with `gate=PASS`, `safe_to_integrate=true`, `required_fixes=[]`, accurate `claim_ceiling`, and `evidence_summary`"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:08.6655392Z",
+   "line": ""
+  },
+  {
+   "timestamp": "2026-10-23T06:15:08.6655882Z",
+   "line": "**Gate: PASS** — the vertical slice passes honestly; the producer state accurately marks capabilities incomplete where needed and recommends continuation on the validated base."
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9583508Z",
+   "line": "##[group]Run set -euo pipefail"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9583698Z",
+   "line": "set -euo pipefail"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9583823Z",
+   "line": "BAD=\"\""
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9584147Z",
+   "line": "while IFS= read -r line; do p=\"${line:3}\"; case \"$p\" in \"results/audit/$LANE\"/*|\"reports/audit/$LANE\"/*|\"\") ;; *) BAD+=\"$p\\n\";; esac; done < <(git status --porcelain -uall)"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9584689Z",
+   "line": "[[ -z \"$BAD\" ]] || { echo -e \"::error::auditor crossed scope:\\n$BAD\"; exit 3; }"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9584935Z",
+   "line": "F=\"results/audit/$LANE/CYCLE_${GITHUB_RUN_ID}_GATE.json\""
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9585180Z",
+   "line": "jq -e '.gate==\"PASS\" or .gate==\"REVISE\" or .gate==\"BLOCKED\"' \"$F\" >/dev/null"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9585419Z",
+   "line": "echo \"gate=$(jq -r .gate \"$F\")\" >> \"$GITHUB_OUTPUT\""
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9637654Z",
+   "line": "shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9637830Z",
+   "line": "env:"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9637949Z",
+   "line": "  LEX_MODEL: opencode/x-preview-f-free"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9638111Z",
+   "line": "  LANE: evaluation"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9638231Z",
+   "line": "##[endgroup]"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9777017Z",
+   "line": "##[error]auditor crossed scope:"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9781907Z",
+   "line": "reports/evaluation/QUERY_MAP_CACHED_BUNDLE_39909449668.md"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9782262Z",
+   "line": "results/evaluation/query_map_cached_bundle_benchmark/39909449668.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9782681Z",
+   "line": "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_business-judgment-rule.final.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9783061Z",
+   "line": "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_business-judgment-rule.initial.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9783447Z",
+   "line": "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_corporate-criminal-liability.final.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9783845Z",
+   "line": "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_corporate-criminal-liability.initial.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9784226Z",
+   "line": "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_petty-theft-dismissal.final.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9784605Z",
+   "line": "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_petty-theft-dismissal.initial.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9784953Z",
+   "line": "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_rent-default.final.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9785282Z",
+   "line": "results/evaluation/query_map_cached_bundle_benchmark/bundles/39909449668_rent-default.initial.json"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9785479Z",
+   "line": ""
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9786606Z",
+   "line": "##[error]Process completed with exit code 3."
+  },
+  {
+   "timestamp": "2026-10-23T06:15:12.9876267Z",
+   "line": "Post job cleanup."
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0377547Z",
+   "line": "[command]/usr/bin/git version"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0410997Z",
+   "line": "git version 2.55.0"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0437229Z",
+   "line": "Temporarily overriding HOME='/home/runner/work/_temp/2403e1a8-0776-4132-9aae-03f92d2f6ffb' before making global git config changes"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0437710Z",
+   "line": "Adding repository directory to the temporary git global config as a safe directory"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0440605Z",
+   "line": "[command]/usr/bin/git config --global --add safe.directory /home/runner/work/LexMachina/LexMachina"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0465679Z",
+   "line": "Removing SSH command configuration"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0469986Z",
+   "line": "[command]/usr/bin/git config --local --name-only --get-regexp core\\.sshCommand"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0496321Z",
+   "line": "[command]/usr/bin/git submodule foreach --recursive sh -c \"git config --local --name-only --get-regexp 'core\\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0687148Z",
+   "line": "Removing HTTP extra header"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0697310Z",
+   "line": "[command]/usr/bin/git config --local --name-only --get-regexp http\\.https\\:\\/\\/github\\.com\\/\\.extraheader"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0733333Z",
+   "line": "[command]/usr/bin/git submodule foreach --recursive sh -c \"git config --local --name-only --get-regexp 'http\\.https\\:\\/\\/github\\.com\\/\\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0920164Z",
+   "line": "Removing includeIf entries pointing to credentials config files"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0926325Z",
+   "line": "[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\\.gitdir:"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0951047Z",
+   "line": "includeif.gitdir:/home/runner/work/LexMachina/LexMachina/.git.path"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0952187Z",
+   "line": "includeif.gitdir:/home/runner/work/LexMachina/LexMachina/.git/worktrees/*.path"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0952552Z",
+   "line": "includeif.gitdir:/github/workspace/.git.path"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0953264Z",
+   "line": "includeif.gitdir:/github/workspace/.git/worktrees/*.path"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0957937Z",
+   "line": "[command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/LexMachina/LexMachina/.git.path"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0979118Z",
+   "line": "/home/runner/work/_temp/git-credentials-57e32bf1-1349-43a1-a455-6580f90fcf86.config"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.0988019Z",
+   "line": "[command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/LexMachina/LexMachina/.git.path /home/runner/work/_temp/git-credentials-57e32bf1-1349-43a1-a455-6580f90fcf86.config"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.1018387Z",
+   "line": "[command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/LexMachina/LexMachina/.git/worktrees/*.path"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.1039564Z",
+   "line": "/home/runner/work/_temp/git-credentials-57e32bf1-1349-43a1-a455-6580f90fcf86.config"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.1046406Z",
+   "line": "[command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/LexMachina/LexMachina/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-57e32bf1-1349-43a1-a455-6580f90fcf86.config"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.1075903Z",
+   "line": "[command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.1095718Z",
+   "line": "/github/runner_temp/git-credentials-57e32bf1-1349-43a1-a455-6580f90fcf86.config"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.1102419Z",
+   "line": "[command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-57e32bf1-1349-43a1-a455-6580f90fcf86.config"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.1130798Z",
+   "line": "[command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.1150314Z",
+   "line": "/github/runner_temp/git-credentials-57e32bf1-1349-43a1-a455-6580f90fcf86.config"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.1156553Z",
+   "line": "[command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-57e32bf1-1349-43a1-a455-6580f90fcf86.config"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.1185311Z",
+   "line": "[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.1354439Z",
+   "line": "Removing credentials config '/home/runner/work/_temp/git-credentials-57e32bf1-1349-43a1-a455-6580f90fcf86.config'"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.1483467Z",
+   "line": "Evaluate and set job outputs"
+  },
+  {
+   "timestamp": "2026-10-23T06:15:13.1488536Z",
+   "line": "Cleaning up orphan processes"
+  }
+ ],
+ "authority_statement": "NON-AUTHORITATIVE. The gate file whose content is previewed above was NEVER read by the workflow (the scope check exits 3 before the jq gate read), its audit snapshot branch was never pushed (cycle/core/evaluation/39909449668/audit does not exist on origin), integrate was skipped and origin/lab/evaluation did not move. Under the factory's promotion contract this gate did not happen: it is not a PASS, not an audit of record and must never be cited as one. It is preserved solely so the destroyed artifact is not silently lost, exactly as a provenance-tagged BLOCKED gate is preserved elsewhere.",
+ "recovery_limits": [
+  "The full byte content of CYCLE_39909449668_GATe.json and of reports/audit/evaluation/CYCLE_39909449668.md is NOT recoverable: the runner workspace was destroyed with the job.",
+  "Only the fields the auditor printed itself are preserved: gate, safe_to_integrate, required_fixes, and the first 80 characters of claim_ceiling and evidence_summary, plus the key list.",
+  "No inference about the unrecoverable remainder is made anywhere in this capture."
+ ],
+ "auditor_commands_run_in_the_audit_checkout_before_the_scope_failure": [
+  {
+   "timestamp": "2026-10-23T06:13:30.2824261Z",
+   "command": "$ cat /home/runner/work/LexMachina/LexMachina/evaluation/query_map/bundle_producer.py"
+  },
+  {
+   "timestamp": "2026-10-23T06:13:47.8604446Z",
+   "command": "$ cd /home/runner/work/LexMachina/LexMachina && python evaluation/query_map/run_cached_bundle_benchmark.py --run-id 39909449668 2>&1"
+  }
+ ],
+ "single_command_that_created_the_out_of_scope_files": {
+  "command": "cd /home/runner/work/LexMachina/LexMachina && python evaluation/query_map/run_cached_bundle_benchmark.py --run-id 39909449668",
+  "timestamp": "2026-10-23T06:13:47.8604446Z",
+  "working_directory": "/home/runner/work/LexMachina/LexMachina (the audit-base checkout; the auditor step does not chdir)",
+  "why_this_is_the_writing_command": "It is the only command in the audit log whose run id (39909449668) matches the out-of-scope file names, and the file listing captured 35 seconds later shows both artifacts with that run id and non-zero sizes."
+ },
+ "scope_violation_log_block_verbatim_note": "Entries 0-8 are the step's own shell snippet (echoed by the runner at group close, immediately before the failure); entries 9-21 are the failure group itself."
+}
