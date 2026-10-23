@@ -183,3 +183,71 @@ def test_freezes_carry_no_serve_or_admission_claim():
     assert "admission stays fail-closed" in ceiling
     assert "reported-only and unmet" in ceiling
     assert freeze["no_universal_174k_benchmark"] is True
+
+
+def test_seq3_claim_bearing_record_is_complete_and_conservative():
+    path = REPO / "results/evaluation/product_advance_crosscheck/39916358347.json"
+    rec = json.loads(path.read_text(encoding="utf-8"))
+    assert rec["verdict"] == "PRODUCT_STILL_FALSIFIED_WITH_DELIVERABLE_DRIFT"
+    assert rec["exit_code"] == 1
+    assert rec["product_mount_head_before"] == rec["product_mount_head_after"] == HEAD
+    assert rec["product_head_matches_expected"] is True
+    a = rec["legs"]["A_mapping_free_falsification"]
+    assert a["exit_code"] == 1 and a["verdict"] == "PRODUCT_FALSIFIED"
+    assert a["failed_gates_equal_accepted_set"] is True
+    assert set(a["failed_gates"]) == pac.ACCEPTED_A_FAILED_GATES
+    assert a["non_vacuity_all_hold"] is True
+    assert a["input_drift"] == []
+    assert a["bundle_byte_identity"]["identical"] is True
+    accepted = pac.bundle_hashes(load(pac.ACCEPTED_A_RELPATH))
+    for row in a["bundle_byte_identity"]["questions"]:
+        assert row["new"] == accepted[row["qid"]]
+    assert rec["legs"]["B_shipped_planner_remedy"]["exit_code"] == 0
+    assert rec["legs"]["C_degradation_disclosure"]["exit_code"] == 0
+    assert rec["legs"]["D_coverage_remediation_pins"]["exit_code"] == 0
+    e = rec["legs"]["E_answer_reliability_currency"]
+    assert e["exit_code"] == 1
+    assert e["verdict"] == "RELIABILITY_MEASUREMENT_STALE_ON_PRODUCT_ADVANCE"
+    assert e["measurement_artifact_pins_ok"] is True
+    assert set(e["drifting_product_sources"]) == {
+        "product/query/answer.py", "product/query/pipeline.py"}
+    assert all(c["holds"] for c in rec["controls"].values())
+    assert rec["control_failures"] == []
+    assert rec["pins_before"]["all_hold"] and rec["pins_after"]["all_hold"]
+    assert rec["human_gate_ready"] is False
+    assert rec["machine_gate_ready"] is False
+    assert rec["packet_admitted"] is False
+    assert rec["ready_for_owner_session"] is False
+    assert rec["no_174k_benchmark_rerun"] is True
+
+
+def test_seq3_record_pins_the_freeze_that_was_committed_before_execution():
+    rec = load("results/evaluation/product_advance_crosscheck/39916358347.json")
+    assert rec["freeze_record"]["sha256"] == sha256(pac.FREEZE_RELPATH)
+    assert rec["hypothesis"]["sha256"] == sha256(pac.HYPOTHESIS_RELPATH)
+    assert rec["instrument"]["sha256"] == sha256("evaluation/product_advance_crosscheck.py")
+
+
+def test_attempt_records_are_preserved_and_disclaim_a_product_verdict():
+    for rel, verdict in (
+        ("results/evaluation/product_advance_crosscheck/39916358347_attempt1_output_path_and_env_bug.json",
+         "ENVIRONMENT_OR_VACUOUS"),
+        ("results/evaluation/product_advance_crosscheck/39916358347_attempt2_wrapper_control_path_bug.json",
+         "ENVIRONMENT_OR_VACUOUS"),
+    ):
+        rec = load(rel)
+        assert rec["verdict"] == verdict
+        assert rec["exit_code"] == 2
+        freeze = load(pac.FREEZE_RELPATH)
+        assert rel in freeze["pins"]
+        assert freeze["pins"][rel] == sha256(rel)
+
+
+def test_standalone_orchestration_diagnosis_matches_the_record():
+    rec = load("results/evaluation/product_advance_crosscheck/39916358347.json")
+    diag = load("results/evaluation/orchestration/39915124469_diagnosis.json")
+    assert diag["conclusion"] == rec["orchestration_diagnosis"]["conclusion"]
+    assert diag["facts"] == rec["orchestration_diagnosis"]["facts"]
+    assert diag["diagnosed_run"] == "39915124469"
+    assert diag["facts"]["snapshot_equals_prior_run_snapshot"] is True
+    assert diag["facts"]["audit_ref_present"] is False

@@ -90,6 +90,21 @@ ACCEPTED_A_FAILED_GATES = {
     "mf::counter_authority_surface::39319405429::it-responsabilita-medica",
 }
 
+
+def leg_a_engine_path(run_id: str) -> Path:
+    return (REPO_ROOT / "results/evaluation/mapping_free_recall_falsifier" /
+            f"{run_id}_engine_mapping_free_recall_falsifier.json")
+
+
+def leg_b_record_path(run_id: str) -> Path:
+    return (REPO_ROOT / "results/evaluation/shipped_planner_remedy_verification" /
+            f"{run_id}.json")
+
+
+def leg_c_record_path(run_id: str) -> Path:
+    return (REPO_ROOT / "results/evaluation/degradation_disclosure_crosscheck" /
+            f"{run_id}.json")
+
 EXIT_OK = 0
 EXIT_FALSIFIED = 1
 EXIT_ENV = 2
@@ -192,10 +207,10 @@ def _write_leg_record(path: Path, record: dict) -> None:
 # --------------------------------------------------------------------------- #
 # leg A — mapping-free retrieval / counter-authority falsification
 # --------------------------------------------------------------------------- #
-def run_leg_a(run_id: str, mount: Path, out_dir: Path) -> dict:
+def run_leg_a(run_id: str, mount: Path) -> dict:
     from evaluation import mapping_free_recall_falsifier as ENGINE
 
-    out_path = out_dir / f"{run_id}_engine_mapping_free_recall_falsifier.json"
+    out_path = leg_a_engine_path(run_id)
     code, rec = ENGINE.run(run_id, out_path, str(mount), REPO_ROOT, ("39319405429",))
 
     accepted = load_json(REPO_ROOT / ACCEPTED_A_RELPATH)
@@ -205,6 +220,7 @@ def run_leg_a(run_id: str, mount: Path, out_dir: Path) -> dict:
     return _leg(
         "A_mapping_free_falsification", code, str(rec.get("verdict")),
         record_path=str(out_path.relative_to(REPO_ROOT)),
+        reason=rec.get("reason"),
         accepted_record=ACCEPTED_A_RELPATH,
         product_mount_head=rec.get("product_mount_head"),
         n_gates=rec.get("n_gates"), n_failed=rec.get("n_failed"),
@@ -220,10 +236,10 @@ def run_leg_a(run_id: str, mount: Path, out_dir: Path) -> dict:
 # --------------------------------------------------------------------------- #
 # leg B — shipped planner remedy (a)
 # --------------------------------------------------------------------------- #
-def run_leg_b(run_id: str, mount: Path, out_dir: Path) -> dict:
+def run_leg_b(run_id: str, mount: Path) -> dict:
     from evaluation import shipped_planner_remedy_verification as SPA
 
-    out_path = out_dir / f"{run_id}.json"
+    out_path = leg_b_record_path(run_id)
     saved_h, saved_f = SPA.HYPOTHESIS_PATH, SPA.FREEZE_PATH
     try:
         SPA.HYPOTHESIS_PATH = REPO_ROOT / PLANNER_V2_HYP_RELPATH
@@ -235,6 +251,7 @@ def run_leg_b(run_id: str, mount: Path, out_dir: Path) -> dict:
     return _leg(
         "B_shipped_planner_remedy", code, str(rec.get("verdict")),
         record_path=str(out_path.relative_to(REPO_ROOT)),
+        reason=rec.get("reason"),
         freeze_record=PLANNER_V2_FREEZE_RELPATH,
         product_mount_head=rec.get("product_mount_head"),
         planner_sha256=(rec.get("product_mount_head") and
@@ -257,10 +274,10 @@ def _degradation_product_pins() -> dict[str, str]:
     return dict(freeze.get("product_pins") or v1.PRODUCT_PINS)
 
 
-def run_leg_c(run_id: str, mount: Path, out_dir: Path) -> dict:
+def run_leg_c(run_id: str, mount: Path) -> dict:
     from evaluation import degradation_disclosure_crosscheck_v2 as DDC2
 
-    out_path = out_dir / f"{run_id}.json"
+    out_path = leg_c_record_path(run_id)
     saved = (DDC2.RUN_ID, DDC2.FREEZE_PATH, DDC2.HYPOTHESIS_PATH, DDC2.PRODUCT_PINS)
     try:
         DDC2.RUN_ID = run_id
@@ -275,6 +292,7 @@ def run_leg_c(run_id: str, mount: Path, out_dir: Path) -> dict:
     return _leg(
         "C_degradation_disclosure", code, str(rec.get("verdict")),
         record_path=str(out_path.relative_to(REPO_ROOT)),
+        reason=rec.get("reason"),
         freeze_record=DDC_V3_FREEZE_RELPATH,
         product_mount_head=rec.get("product_mount_head"),
         gate_failures=rec.get("gate_failures"),
@@ -485,9 +503,9 @@ def run(run_id: str, mount: Path, out_dir: Path, report_dir: Path) -> tuple[int,
             falsified = True
 
     for name, fn in (
-        ("A_mapping_free_falsification", lambda: run_leg_a(run_id, mount, out_dir)),
-        ("B_shipped_planner_remedy", lambda: run_leg_b(run_id, mount, out_dir)),
-        ("C_degradation_disclosure", lambda: run_leg_c(run_id, mount, out_dir)),
+        ("A_mapping_free_falsification", lambda: run_leg_a(run_id, mount)),
+        ("B_shipped_planner_remedy", lambda: run_leg_b(run_id, mount)),
+        ("C_degradation_disclosure", lambda: run_leg_c(run_id, mount)),
         ("D_coverage_remediation_pins", lambda: run_leg_d(mount)),
         ("E_answer_reliability_currency", lambda: run_leg_e(mount)),
     ):
@@ -504,7 +522,7 @@ def run(run_id: str, mount: Path, out_dir: Path, report_dir: Path) -> tuple[int,
     c1 = control_pin_drift_detected(mount, product_pins)
     leg_a_new = {}
     try:
-        eng = load_json(out_dir / f"{run_id}_engine_mapping_free_recall_falsifier.json")
+        eng = load_json(leg_a_engine_path(run_id))
         leg_a_new = bundle_hashes(eng)
     except Exception:
         pass

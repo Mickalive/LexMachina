@@ -80,8 +80,8 @@ def test_state_contract_is_audit_ready():
     state = load("state/evaluation.json")
     assert state["direction_version"] == 63
     assert state["cycle_status"] == "COMPLETE"
-    assert state["proposed_run_id"] == "39873360672"
-    assert state["github_run"] == 39873360672
+    assert state["proposed_run_id"] == "39916358347"
+    assert state["github_run"] == 39916358347
     assert state["accepted_run_id"] == "39866970583"
     assert state["acceptance_status"] == "PROPOSED_PENDING_INDEPENDENT_AUDIT"
     assert state["continue_recommended"] is False

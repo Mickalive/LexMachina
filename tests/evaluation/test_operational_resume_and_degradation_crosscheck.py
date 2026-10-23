@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -39,6 +40,7 @@ DDC_FREEZE = ROOT / "evaluation/DEGRADATION_DISCLOSURE_CROSSCHECK_FREEZE_RECORD_
 DDC_RESULT = ROOT / "results/evaluation/degradation_disclosure_crosscheck/39820650174.json"
 DDC2_HYP = ROOT / "evaluation/DEGRADATION_DISCLOSURE_CROSSCHECK_HYPOTHESIS_V2.json"
 DDC2_FREEZE = ROOT / "evaluation/DEGRADATION_DISCLOSURE_CROSSCHECK_FREEZE_RECORD_V2.json"
+DDC3_FREEZE = ROOT / "evaluation/DEGRADATION_DISCLOSURE_CROSSCHECK_FREEZE_RECORD_V3.json"
 DDC2_RESULT = ROOT / "results/evaluation/degradation_disclosure_crosscheck/39820650174_v2.json"
 
 CODE = "e_EMISSION_WRITER_ABORT"
@@ -82,12 +84,32 @@ def test_freeze_records_name_this_run_and_its_hypotheses():
 
 @pytest.mark.skipif(not MOUNT_PRESENT, reason="accepted product mount absent")
 def test_product_pins_in_freezes_match_mount():
-    for freeze_path in (RESUME_FREEZE, RESUME2_FREEZE, DDC_FREEZE, DDC2_FREEZE):
+    """Only a freeze that names the current mount head is checked against it.
+
+    Product pins drift BY DESIGN when the product advances; the historical
+    freezes are preserved evidence of the head they measured. The v63
+    product-advance cross-check is the instrument that reports that drift
+    (see tests/evaluation/test_product_advance_crosscheck.py). The V3 freeze is
+    the current-head re-freeze and is checked here.
+    """
+    current_head = subprocess.run(
+        ["git", "-C", str(MOUNT), "rev-parse", "HEAD"],
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()
+    checked = 0
+    for freeze_path in (RESUME_FREEZE, RESUME2_FREEZE, DDC_FREEZE, DDC2_FREEZE,
+                        DDC3_FREEZE):
         freeze = json.loads(freeze_path.read_text(encoding="utf-8"))
+        expected_head = freeze.get("product_mount_head_expected")
+        if expected_head and expected_head != current_head:
+            # historical freeze: it measured a prior accepted head
+            continue
         for rel, expected in freeze.get("product_pins", {}).items():
             path = MOUNT / rel
             assert path.is_file(), f"product pin absent: {rel}"
             assert _sha(path) == expected, f"product pin drift: {rel}"
+            checked += 1
+    assert checked > 0, "no freeze names the current accepted product head"
 
 
 # --------------------------------------------------------------------------- #
