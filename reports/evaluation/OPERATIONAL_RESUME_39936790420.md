@@ -111,19 +111,24 @@ flags stay false. No universal-174k benchmark was run.
 
 ## 7. Reproduction prerequisites (important for the independent audit)
 
-The checkpoint is at `5cc6a326`; the audit job checks out `main` at `fetch-depth: 1`
-and then fetches `lab/evaluation` and the team branch. That produces a shallow
-repository. The two history tests in
+The checkpoint is at `5cc6a326`. We simulated the audit job's exact checkout —
+`git clone --depth 1 --branch main https://github.com/Mickalive/LexMachina`,
+then `git fetch origin lab/evaluation:refs/remotes/origin/lab/evaluation`,
+then `git switch -C audit-base origin/lab/evaluation` — and ran the five-file
+shim. It reproduced the snapshot exactly: **88 passed / 2 failed / 0 skipped /
+6 unsupported**, per-file `21/0/0`, `22/0/2`, `16/0/0`, `8/1/4`, `21/7/0`.
+The raw record and a provenance sidecar are committed at
+`results/evaluation/orchestration/39936790420_audit_env_shim_simulation.json`
+and `..._audit_env_reproduction.json`.
+
+The audit's non-depth branch fetch brought enough history for the two
+history-sensitive tests in
 `tests/evaluation/test_minimal_retrieval_ca_benchmark.py`
 (`test_freeze_first_ordering_on_the_historical_claim_bearing_record` and
-`test_state_freeze_commit_is_where_the_hypothesis_landed`) need the commits that
-first added the historical claim-bearing record and the frozen hypothesis.
-Without history they fail spuriously with messages of the form
-`historical record was added by '5cc6a326', expected b1015e7b`.
-
-This resume hit that exact environment failure on its first shim attempt
-(86 passed / 3 failed / 6 unsupported). After deepening, the shim reproduced the
-snapshot's exact 88 / 2 / 6. The audit should run, before the shim:
+`test_state_freeze_commit_is_where_the_hypothesis_landed`). The **team** job's
+setup had fetched the accepted refs with `--depth=1`; that checkout needed
+`git fetch --deepen=600 origin lab/evaluation` before the same tests passed.
+If an auditor uses a depth-limited checkout, deepen first:
 
 ```bash
 git fetch --deepen=600 origin lab/evaluation
@@ -137,8 +142,14 @@ python3 evaluation/no_pytest_runner.py --run-id <audit-run> --repo-root . \
   --out <scratch>/shim.json
 ```
 
-The remaining 2 failed files (1 + 7 cases) are red at the true accepted base
-`3eeced9a` and are documented case-by-case in
+One non-lane caveat: a single-branch clone with a small object database may
+abbreviate `git log --format=%h` to 7 characters, so the two history tests fail
+with `c9d97b5` vs the pinned `c9d97b50` (86/3/6). Set
+`git config core.abbrev 12` or use a multi-ref checkout. This is an environment
+artifact, not lane evidence; the audit-shaped simulation above had 8-character
+abbreviations and reproduced 88/2/6.
+
+The 2 failed files (1 + 7 cases) are red at the true accepted base `3eeced9a`
+and are documented case-by-case in
 `results/evaluation/orchestration/39936790420_inherited_red_3eeced9a.json`.
-They are not caused by the snapshot. The audit must not attribute them to this
-resume, and must not treat the shallow-checkout failures as new evidence.
+They are not caused by the snapshot and must not be attributed to this resume.

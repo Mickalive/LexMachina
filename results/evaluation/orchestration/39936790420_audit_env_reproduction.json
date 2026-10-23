@@ -1,0 +1,57 @@
+{
+  "schema": "lexmachina.evaluation.audit_env_shim_simulation.v1",
+  "run_id": "39936790420",
+  "purpose": "prove the audit job's checkout (main depth 1 + non-depth fetch of lab/evaluation) reproduces the snapshot shim counts at 5cc6a326",
+  "simulated_checkout": {
+    "clone": "git clone --depth 1 --branch main https://github.com/Mickalive/LexMachina /tmp/lex_audit_sim",
+    "fetch": "git fetch origin lab/evaluation:refs/remotes/origin/lab/evaluation",
+    "switch": "git switch -C audit-base origin/lab/evaluation",
+    "head": "5cc6a326cdc77b821f73f7819acb6bd3b3303a1e",
+    "git_abbrev": "5cc6a326",
+    "shallow_file_lines": 1
+  },
+  "raw_record": "results/evaluation/orchestration/39936790420_audit_env_shim_simulation.json",
+  "raw_record_sha256": "9429b6e373087f84d7d16d6f9de11107bdc69a163d76bbb9cdb92ab0bcbfd31f",
+  "counts": {
+    "passed": 88,
+    "failed": 2,
+    "skipped": 0,
+    "unsupported": 6
+  },
+  "per_file": {
+    "tests/evaluation/test_minimal_retrieval_ca_benchmark.py": {
+      "passed": 21,
+      "failed": 0,
+      "skipped": 0,
+      "unsupported": 0
+    },
+    "tests/evaluation/test_mapping_free_recall_falsifier.py": {
+      "passed": 22,
+      "failed": 0,
+      "skipped": 0,
+      "unsupported": 2
+    },
+    "tests/evaluation/test_stand_ready_multilingual_probe.py": {
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "unsupported": 0
+    },
+    "tests/evaluation/test_mount_provenance_gate.py": {
+      "passed": 8,
+      "failed": 1,
+      "skipped": 0,
+      "unsupported": 4
+    },
+    "tests/evaluation/test_repair_39338699604_provenance.py": {
+      "passed": 21,
+      "failed": 7,
+      "skipped": 0,
+      "unsupported": 0
+    }
+  },
+  "matches_snapshot_counts": true,
+  "inherited_red_attribution": "the 1+7 failing cases are the same accepted-base-red provenance cases documented in 39936790420_inherited_red_3eeced9a.json",
+  "clean_single_branch_clone_caveat": "a clone whose object database is small enough that git abbreviates %h to 7 chars fails two history tests (c9d97b5 vs c9d97b50); set git config core.abbrev 12 or use a multi-ref checkout. This is an environment artifact, not lane evidence.",
+  "network_used": true
+}
