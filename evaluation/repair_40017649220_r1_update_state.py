@@ -160,6 +160,30 @@ def _resolve(ref: str) -> bool:
     return (_REPO / ref).exists()
 
 
+def _definitive_e2e() -> dict:
+    """Read the DEFINITIVE post-freeze out-of-shim e2e record.
+
+    The rejected team's pre-freeze attempt-1 artifacts are preserved under
+    their original paths and must never be cited as the measurement of record;
+    only the ``_R1_`` records written after freeze commit ad1f0ed1 count.
+    Hardcoding the elapsed time here once let the attempt-1 value (10.868s)
+    leak into state, so it is read from the record and asserted to differ from
+    the discarded attempt-1 run where it actually does.
+    """
+    rec = _read_json(_REPO / f"results/evaluation/orchestration/{RUN_ID}_R1_e2e_fixture_injected.json")
+    try:
+        attempt1 = _read_json(_REPO / f"results/evaluation/orchestration/{RUN_ID}_e2e_fixture_injected.json")
+    except (OSError, ValueError):
+        attempt1 = {}
+    assert rec.get("status") == "PASS", rec.get("status")
+    assert rec.get("no_committed_record_rewritten") is True, rec
+    if "elapsed_s" in attempt1:
+        assert rec.get("elapsed_s") != attempt1.get("elapsed_s"), (
+            "definitive e2e record is byte-identical to the discarded attempt-1 "
+            "run; it was not re-executed post-freeze")
+    return rec
+
+
 def update(dry_run: bool = False) -> dict:
     st = _read_json(STATE_PATH)
     before = copy.deepcopy(st)
@@ -179,6 +203,8 @@ def update(dry_run: bool = False) -> dict:
     report["guards"]["posture_false_before"] = posture_before
 
     # ---------------- F1: test_suite publication ----------------
+    e2e = _definitive_e2e()
+    e2e_rec_rel = f"results/evaluation/orchestration/{RUN_ID}_R1_e2e_fixture_injected.json"
     st.setdefault("test_suite", {})
     st["test_suite"]["minimal_ret_ca_benchmark"] = {
         "run_id": RUN_ID,
@@ -200,8 +226,8 @@ def update(dry_run: bool = False) -> dict:
             "shim (reported UNSUPPORTED: needs the tmp_path fixture the shim "
             "cannot inject). It was separately MEASURED out-of-shim by "
             "injecting tmp_path into a scratch tmpdir only, at PASS "
-            "in 10.868s with all outputs confined to that tmpdir: "
-            f"results/evaluation/orchestration/{RUN_ID}_R1_e2e_fixture_injected.json. "
+            f"in {e2e['elapsed_s']}s with all outputs confined to that tmpdir: "
+            f"{e2e_rec_rel}. "
             "The out-of-shim measurement is ADDITIONAL and never re-counts "
             "into the shim verdict above."),
         "repair_round": REPAIR_ROUND,

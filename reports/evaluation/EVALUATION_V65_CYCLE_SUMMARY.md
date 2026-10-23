@@ -99,7 +99,7 @@ accepted product mount (`/tmp/lex_accepted/product`) was present.
 `UNSUPPORTED`, because it requires the `tmp_path` fixture the shim cannot inject;
 it is restated as **NOT-RUN** and is **not** counted as passed above. It was
 additionally executed out-of-shim by injecting `tmp_path` into a scratch tmpdir
-only, at **PASS in 10.868s**, with all outputs confined to that tmpdir
+only, at **PASS in 10.531s**, with all outputs confined to that tmpdir
 (`no_committed_record_rewritten=true`). Record:
 `results/evaluation/orchestration/40017649220_R1_e2e_fixture_injected.json`. This
 out-of-shim measurement is additional evidence and never re-counts into the

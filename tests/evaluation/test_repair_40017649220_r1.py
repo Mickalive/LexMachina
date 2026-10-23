@@ -146,6 +146,32 @@ def test_f1_unsupported_case_measured_out_of_shim():
     assert rec["no_committed_record_rewritten"] is True
 
 
+def test_f1_e2e_cited_elapsed_matches_definitive_record():
+    """Nothing may cite the discarded attempt-1 elapsed time as the measurement.
+
+    The rejected team's pre-freeze attempt-1 e2e record (10.868s) is preserved
+    under its original path, but the DEFINITIVE post-freeze `_R1_` record is the
+    only measurement of record. Both the summary and the state restatement must
+    quote the `_R1_` value, not the attempt-1 one.
+    """
+    defi = json.loads((ORCH / f"{RUN_ID}_R1_e2e_fixture_injected.json").read_text(encoding="utf-8"))
+    attempt1 = ORCH / f"{RUN_ID}_e2e_fixture_injected.json"
+    elapsed = defi["elapsed_s"]
+    assert defi["status"] == "PASS"
+    if attempt1.exists():
+        a1 = json.loads(attempt1.read_text(encoding="utf-8"))
+        assert elapsed != a1["elapsed_s"], (
+            "definitive e2e record duplicates the attempt-1 run; it was not "
+            "re-executed post-freeze")
+        assert f"{a1['elapsed_s']}s" not in SUMMARY.read_text(encoding="utf-8"), (
+            "summary cites the discarded attempt-1 elapsed time")
+    # the summary quotes the definitive value
+    assert f"{elapsed}s" in SUMMARY.read_text(encoding="utf-8")
+    # and state quotes it too, sourced from the record rather than hardcoded
+    entry = _state()["test_suite"]["minimal_ret_ca_benchmark"]
+    assert f"{elapsed}s" in entry["unsupported_case_restated_as"]
+
+
 def test_f1_reuse_instrument_rerun_reproduces_historical():
     """The accepted multilingual/provenance reuse instrument is re-run under
     run 40017649220 and reproduces the accepted record byte-for-byte."""
