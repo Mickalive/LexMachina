@@ -65,8 +65,8 @@ PRODUCT_HEAD_CURRENT = "d22f9b633c9bce70258915579f5da5195f6b2f53"
 PLANNER_SHA = "9764a37e8bc7c8c31a329ba15db89657e8ee47dde8ada924fa55d5e755fd06a9"
 PACKET = "39319405429"
 
-HYPOTHESIS = "evaluation/OPERATIONAL_RESUME_39936790420_HYPOTHESIS_V1.json"
-FREEZE = "evaluation/OPERATIONAL_RESUME_39936790420_FREEZE.json"
+HYPOTHESIS = "evaluation/OPERATIONAL_RESUME_39936790420_HYPOTHESIS_V2.json"
+FREEZE = "evaluation/OPERATIONAL_RESUME_39936790420_FREEZE_V2.json"
 DIAGNOSIS = "evaluation/snapshot_audit/orchestration_diagnosis_39936790420.json"
 REST_CAPTURE = "results/evaluation/orchestration/39936790420_rest_job_capture.json"
 INHERITED_RED = ("results/evaluation/orchestration/"
@@ -387,10 +387,11 @@ def r4_lineage(repo_root: str, wrapper_override: tuple | None = None) -> dict:
     for key, expected in (("verdict", "PRODUCT_FALSIFIED"), ("exit_code", 1),
                           ("n_questions_measured", 3), ("n_gates", 18),
                           ("n_passed", 11), ("n_failed", 4), ("n_reported", 3),
-                          ("packet", PACKET),
                           ("product_mount_head", PRODUCT_HEAD_AT_MEASUREMENT)):
         if sw.get(key) != expected:
             v.append(f"wrapper {key} {sw.get(key)!r} != {expected!r}")
+    if sw.get("packets_measured") != [PACKET]:
+        v.append(f"wrapper packets_measured {sw.get('packets_measured')!r} != [{PACKET!r}]")
     if sw.get("input_drift") != []:
         v.append("wrapper input_drift is not empty")
     vac = sw.get("non_vacuity") or {}

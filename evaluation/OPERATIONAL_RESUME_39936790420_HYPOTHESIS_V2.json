@@ -1,0 +1,109 @@
+{
+ "schema": "lex-evaluation-operational-resume-hypothesis/2",
+ "lane": "evaluation",
+ "run_id": "39936790420",
+ "resumed_run_id": "39929883261",
+ "direction_version": 63,
+ "frozen_at_utc": "2026-10-23T10:26:20Z",
+ "status": "FROZEN_BEFORE_V2_EXECUTION",
+ "question": "The producer snapshot 5cc6a326 for run 39929883261 was persisted after the factory supervisor cancelled the team job at the 3300s stale threshold; the lane-cycle step, the active-MVP-state validation, the write-scope enforcement, and the audit/integrate chain never ran, and lab/evaluation was advanced to the unaudited snapshot. On resume, can this lane prove the snapshot is byte-preserved and in scope, reproduce its claim-bearing measurement and test counts, isolate the inherited test failures to the true accepted base 3eeced9a, re-hash every frozen pin, resolve the product advance that occurred during the producer run (d22f9b63), and reconcile the lane state and evidence refs without weakening any bar or rerunning an obsolete 174k benchmark?",
+ "true_accepted_base": "3eeced9a25d486356870755e48422f8473a5f90c",
+ "prior_snapshot_commit": "5cc6a326cdc77b821f73f7819acb6bd3b3303a1e",
+ "prior_snapshot_parent_verified": "3eeced9a25d486356870755e48422f8473a5f90c",
+ "standing_anomaly_to_disclose": "refs/heads/lab/evaluation == 5cc6a326 (unaudited snapshot); no audit branch or gate exists for 39929883261. The audit must use 3eeced9a as the true base and must not infer acceptance from lab/evaluation.",
+ "gates": [
+  {
+   "id": "R1",
+   "name": "producer_snapshot_preserved_and_in_scope",
+   "predicate": "5cc6a326 exists, its parent is 3eeced9a, the diff 3eeced9a..5cc6a326 contains exactly the six declared paths (five claim-bearing artifacts plus state/evaluation.json), no deletions, and the five snapshot artifacts re-hash to their frozen pins."
+  },
+  {
+   "id": "R2",
+   "name": "orchestration_diagnosis_and_rest_capture_structured",
+   "predicate": "the committed diagnosis and REST capture parse; prior team job is cancelled with step 6 cancelled, step 7 skipped, step 9 skipped, step 10 success; audit/integrate cancelled; resilience success dispatched 39936790420; lab anomaly and product-advance facts are present."
+  },
+  {
+   "id": "R3",
+   "name": "frozen_and_accepted_pins_hold",
+   "predicate": "the four frozen bars, the accepted falsification record and gate, the accepted fixtures, the current accepted product head d22f9b63, the unchanged planner pin, and the three V3 bundle hashes all re-hash exactly."
+  },
+  {
+   "id": "R4",
+   "name": "lineage_byte_identity_and_claim_integrity",
+   "predicate": "recursive leaf comparison of wrapper 39929883261 vs accepted 39927760701 yields 583/583 leaves and 0 non-identity diffs; engine 558/558 and 0 non-identity diffs; verdict PRODUCT_FALSIFIED, 4 failed gates, input_drift empty, non-vacuity 4/4, product_mount_head ae854b6a, packets_measured [39319405429]."
+  },
+  {
+   "id": "R5",
+   "name": "shim_reproduction_and_inherited_red_isolated",
+   "predicate": "the five-file shim under this run yields 88 passed / 2 failed / 6 unsupported with the same per-file and per-case results as the snapshot record; the same two files and the same failing cases are red at a detached worktree of 3eeced9a, proving they are inherited, not caused by the snapshot."
+  },
+  {
+   "id": "R6",
+   "name": "product_advance_resolved_by_frozen_reopen_measurement",
+   "predicate": "the accepted product advanced to d22f9b63 at 09:46:52Z; the V3 packet bytes are identical at ae854b6a and d22f9b63; a frozen re-measurement of the same V3 packet on the new accepted mount under this run produces a valid record with product_mount_head d22f9b63, input_drift empty, non-vacuity all_hold true, verdict PRODUCT_FALSIFIED, and the same four failed gate ids; the planner pin is unchanged."
+  },
+  {
+   "id": "R7",
+   "name": "state_and_evidence_refs_reconciled",
+   "predicate": "direction_version 63, github_run/proposed_run_id 39936790420, accepted_run_id 39927760701, cycle_status COMPLETE, all admission/human flags false; the product-advance disclosure and the new measurement are present; evidence_refs_n equals len(evidence_refs); every ref resolves except this run's own result/report outputs; no historical accepted record was overwritten."
+  }
+ ],
+ "controls": [
+  {
+   "id": "C1",
+   "name": "planted_frozen_pin_drift_is_detected",
+   "method": "replace RULES_LABEL expected digest with 64 zeros in-memory; R3 must fail."
+  },
+  {
+   "id": "C2",
+   "name": "planted_lineage_drift_is_detected",
+   "method": "inject one non-identity leaf diff into a deep copy of the wrapper record; R4 must fail."
+  },
+  {
+   "id": "C3",
+   "name": "wrong_run_id_is_exit_2",
+   "method": "invoke run() with run id 00000000000; exit 2 and ENVIRONMENT_OR_VACUOUS."
+  },
+  {
+   "id": "C4",
+   "name": "planted_diagnosis_violation_is_detected",
+   "method": "remove the step-6 cancelled fact from a copy of the diagnosis; R2 must fail."
+  },
+  {
+   "id": "C5",
+   "name": "planted_state_ref_break_is_detected",
+   "method": "add a nonexistent evidence_ref to a state copy; R7 must fail."
+  }
+ ],
+ "success_rule": "all R1-R7 pass and all C1-C5 hold -> RESUME_VERIFIED_AND_AUDIT_READY exit 0; the snapshot is audit-ready only with the product-advance disclosure and the new measurement record.",
+ "failure_rule": "any gate fails or any control fails -> RESUME_DIVERGENCE exit 1; environment/freeze failure -> ENVIRONMENT_OR_VACUOUS exit 2.",
+ "non_goals": [
+  "no re-derivation, movement or regeneration of any frozen bar, rubric, threshold or verdict contract",
+  "no rerun of the obsolete universal-174k benchmark",
+  "no rewriting or deletion of the accepted 39927760701 record or the producer 39929883261 record/report",
+  "no promotion of this run to accepted; acceptance_status stays PROPOSED_PENDING_INDEPENDENT_AUDIT and all admission/human flags stay false",
+  "no claim that the operational resume itself is a new falsification beyond the frozen re-measurement on the new accepted mount"
+ ],
+ "claim_ceiling": "This resume establishes the preservation, reproducibility, pin integrity, inherited-red isolation, product-advance disposition and state reconciliation of the snapshot. It does not move any bar, does not certify admission, does not lift either DO-NOT-SERVE order, and does not claim the map is useful to a jurist.",
+ "exit_codes": {
+  "0": "RESUME_VERIFIED_AND_AUDIT_READY",
+  "1": "RESUME_DIVERGENCE",
+  "2": "ENVIRONMENT_OR_VACUOUS"
+ },
+ "repair_of_v1": {
+  "v1_hypothesis_sha256": "fb45bc58ba9b361557d0dc03ffe7dddaff290b1663471ad57ddc69dc5f0d1a94",
+  "v1_attempt1_result": "results/evaluation/operational_resume/39936790420_attempt1_R4_packet_field_bug.json",
+  "v1_outcome": "RESUME_DIVERGENCE preserved, not deleted",
+  "defects_found_by_v1": [
+   "R4 asserted a top-level wrapper field \"packet\" that the wrapper record does not publish; the published field is packets_measured=[39319405429]. R4 was a gate-implementation bug, not a data divergence.",
+   "R5 read 87/3/6 because the state already referenced this run's own test file tests/evaluation/test_operational_resume_39936790420.py before it was written; the missing file made the pre-existing test_state_evidence_refs_resolve_and_count_matches red. The test file is now committed before V2 execution.",
+   "R7 therefore also reported the same missing self-test ref."
+  ],
+  "corrections": [
+   "R4 checks packets_measured == [39319405429] (the field the wrapper actually publishes).",
+   "the self-test file is written before V2 execution; no state ref is fabricated or removed.",
+   "V2 preserves every V1 output under an _attempt1 name and reruns the same frozen gates; no threshold, bar, rubric or verdict contract changed."
+  ]
+ },
+ "note_on_products": "V2 is a gate-implementation repair only; the R6 re-open measurement is rerun because the frozen instrument is the unit of execution, and the attempt1 valid measurement is preserved."
+}
