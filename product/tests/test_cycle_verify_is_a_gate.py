@@ -123,7 +123,11 @@ def test_relation_ledger_rejects_a_state_that_contradicts_the_edge_count(monkeyp
     def tampered(slug, top_n, **kw):
         bundle = original(slug, top_n, **kw)
         prov = bundle["provenance"]["relations_provenance"]
-        prov["channel_state"] = "POPULATED"
+        # Contradict whatever the current tree actually found: hydrated bodies
+        # can legitimately produce relations (measured >0 after the cached
+        # detail warm pass), so a hard-coded POPULATED no longer guarantees a
+        # contradiction and would make this gate test vacuous.
+        prov["channel_state"] = "EMPTY" if bundle.get("relations") else "POPULATED"
         prov["relations_added_by_hydration"] = 3
         return bundle
 

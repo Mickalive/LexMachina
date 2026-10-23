@@ -1,0 +1,50 @@
+{
+  "schema": "product-orchestration-resume-diagnosis/1",
+  "run_id": "39891382087",
+  "resumed_run_id": "39888445036",
+  "generated_at": "2026-10-23T03:20:00Z",
+  "mode": "operational resume of a persisted producer snapshot",
+  "producer_failure": {
+    "team_job_id": 120202105879,
+    "team_job_name": "team",
+    "started_at": "2026-10-23T02:14:06Z",
+    "completed_at": "2026-10-23T02:46:04Z",
+    "duration_seconds": 1758,
+    "failed_step": {
+      "number": 6,
+      "name": "Run lane cycle",
+      "exit_code": 67
+    },
+    "annotation": "LEX_ZERO_DELTA_REPAIR",
+    "annotation_source": "https://api.github.com/repos/Mickalive/LexMachina/check-runs/120202105879/annotations",
+    "meaning": "the product workflow sets LEX_REQUIRE_DELTA=1 unconditionally for the product lane; the producer cycle produced no admissible code/test/artifact delta, so the wrapper exited 67 after its repair attempt",
+    "not_the_cause": [
+      "not an orchestration crash: the job ran to completion of step 6 and the snapshot persist step still ran",
+      "not a corrupt snapshot: the persisted ref points at the accepted commit 7a70953 and the tree is clean",
+      "not a missing control plane: direction v63 was mounted for the run"
+    ],
+    "downstream_jobs": {
+      "audit": "skipped",
+      "integrate": "skipped",
+      "resilience": "success (120211650420)"
+    }
+  },
+  "snapshot_identity": {
+    "branch": "origin/cycle/core/product/39888445036/team",
+    "commit": "7a70953",
+    "commit_subject": "accept product cycle 39883642290",
+    "team_attempt_1_commit": "7a70953",
+    "delta_vs_accepted_commit": "none (same commit; no working-tree change in the snapshot)",
+    "run_specific_artifacts": "none found for 39888445036"
+  },
+  "reproduction": {
+    "logs": "curl to the job logs endpoint is 403 without admin rights; the step annotation and exit code are public",
+    "command": "curl -s https://api.github.com/repos/Mickalive/LexMachina/check-runs/120202105879/annotations",
+    "observed": "two failure annotations: LEX_ZERO_DELTA_REPAIR and Process completed with exit code 67."
+  },
+  "disposition": {
+    "action": "did not rerun the zero-delta producer; this operational resume produced a real product delta under run 39891382087",
+    "delta": "cached detail warm pass + fixture-replay hydration budget fix, measured on the four offline reality legs",
+    "claim_ceiling": "orchestration diagnosis only; it re-scores no frozen bar and changes no gate position"
+  }
+}

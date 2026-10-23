@@ -213,6 +213,15 @@ def replay_fixture_query(
     source = "canonical_frontier_fixture_scenario"
     if not out.get("candidates"):
         cfg = (config_factory or (lambda n: _retrieval_config(n, "offline")))(top_n)
+        # ``max_requests`` is not part of any request key, but it IS a shared
+        # search+hydration budget.  The accepted 40-request cap was tuned for
+        # search-only replay; asking to hydrate N rows then silently truncated
+        # at ~14 bodies (measured on the four reality legs).  Raise the cap by
+        # the hydration work the caller explicitly requested.  Search calls and
+        # candidate ids are unchanged (verified: same 7-11 searches, same
+        # candidate set with 40 vs 400 requests).
+        hydration_budget = max(0, int(hydrate_top)) * 2 + 16
+        cfg = cfg.replace(max_requests=max(cfg.max_requests, hydration_budget))
         out = replay_fixtures(query, config=cfg, hydrate_top=hydrate_top)
         source = "product_query_cache_live_config_replay"
     prov = out.setdefault("provenance", {})

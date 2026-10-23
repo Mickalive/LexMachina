@@ -237,9 +237,10 @@ def main() -> int:
             "no frozen bar scored",
             "no legal label asserted for any decision",
             "no jurist-usefulness claim",
-            "no claim that the selection rule can raise hydration where the "
-            "cache holds no detail body for an unhydrated row (that requires "
-            "a refresh-mode re-recording of the envelopes, not a selector)",
+            "no claim that the selection rule ALONE can raise hydration "
+            "where the cache holds no detail body: this run is paired with "
+            "product/cached_detail_warm.py, which appended the missing "
+            "envelopes (see the sibling CYCLE_<run>_warm.json)",
         ],
     }
     out_path.parent.mkdir(parents=True, exist_ok=True)
