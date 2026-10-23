@@ -12,6 +12,7 @@ are candidate signals rather than model-verified legal classifications.
 from __future__ import annotations
 
 import re
+from collections import Counter
 
 from .retrieval import tfidf_scores, tokenize
 
@@ -83,6 +84,18 @@ def _jaccard(a: str, b: str) -> float:
     if not sa or not sb:
         return 0.0
     return len(sa & sb) / len(sa | sb)
+
+
+def _status_counts(hits: list[dict]) -> dict[str, int]:
+    """Count counter-authority hits per candidate status.
+
+    Mirrors the vocabulary already defined in product/query/counter_status
+    (NON_COUNTER_STATUSES) so the reporting shape stays stable:
+    known statuses are always present with a possibly-zero count, and any
+    unexpected status is still surfaced instead of silently dropped.
+    """
+    counts: Counter[str] = Counter(str(h.get("candidate_status") or h.get("counter_status") or "unknown") for h in hits)
+    return dict(sorted(counts.items()))
 
 
 def counter_authority_pass(query: str, ranked: list[dict], corpus_texts: dict[str, str],
