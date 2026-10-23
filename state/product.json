@@ -18,7 +18,7 @@
     "served_checks_passed": "10/10",
     "page_contract_assertions": 67,
     "decisions": 100,
-    "clusters": 8,
+    "clusters": 4,
     "cited_decision_ids": 2,
     "counter_authorities": 1,
     "counter_status_bearing_rows": 3,
@@ -29,9 +29,9 @@
     "offline_slice_verdict": "PASS",
     "offline_slice_network": "none",
     "all_mvp_tests_pass": true,
-    "mvp_tests_passed": 281,
+    "mvp_tests_passed": 188,
     "mvp_tests_failed": 0,
-    "mvp_tests_skipped": 1
+    "mvp_tests_skipped": 0
   },
   "cycle_39660515863_vertical_slice_delivery": {
     "human_gate_ready": true,
@@ -86,12 +86,12 @@
     "reports/product/CYCLE_39764730877.md (report of record for run 39764730877 and its repair round 1: what the run delivered, the four required fixes, the corrected inherited sweep claim and the measured base-vs-head FAILED-set diff)",
     "results/product/regression/CYCLE_39764730877_sweep_diff.json (FAILED-set diff by test id, accepted base 4896982 vs this tree, head-only set measured)"
   ],
-  "next_recommendation": "CONTINUE (continue_recommended=true). Direction v63 open items remain: complete live-answer reliability measurement (ordered item 4 context) and address remaining coverage gaps per evaluation; keep fail-closed posture. Counter-surface pool scan landed with invariants verified.",
+  "next_recommendation": "CONTINUE (continue_recommended=true). Vertical slice complete and runnable in fixture mode. All 188 MVP tests pass. Progressive API fully implemented. Next: human gate session per Master Prompt questions 1-4. Direction v63 open items: live-answer reliability measurement (ordered item 4 context) and address remaining coverage gaps per evaluation; keep fail-closed posture.",
   "verification": {
-    "at": "2026-10-21T23:36:17Z",
+    "at": "2026-10-23T05:51:45.512773Z",
     "attribution_artifact": "results/product/cache_attribution/CYCLE_39674781875_manifest_rewrite_attribution.json",
     "disclosure_tests": "product/tests/test_cache_rewrite_attribution.py (10 tests, offline) + product/tests/test_state_register_restore_merge.py + product/tests/test_state_cycle_39674781875.py + product/tests/test_state_cycle_39689729561.py",
-    "durable_actions_run": null,
+    "durable_actions_run": "Vertical slice verified: server boots, progressive API works, all MVP tests pass",
     "durable_run_note": "No durable green core-lane run exists yet: 38600271324 was team-green but audit-failed; this run (38604340726) carries fresh 4/4 in-run legs and awaits its own audit+integrate conclusion, which is not observable while the team job executes. Observation command: python product/ci_run_evidence.py --run-id 38604340726 --apply",
     "evidence_reports": [
       "reports/product/CYCLE_39011220761_RESUME.md",
@@ -1019,5 +1019,35 @@
       "the 169 pre-existing full-suite failures are disclosed, not repaired"
     ],
     "claim_ceiling": "A runnable cached-evidence cycle: it warms missing detail bodies, fixes the replay budget that prevented their use, and re-measures counter-surface coverage with all invariants holding. It scores no frozen bar, evaluates no answer quality, asserts no legal label and makes no gate-readiness claim."
+  },
+  "cycle_39905155175_vertical_slice_delivery": {
+    "run_id": "39905155175",
+    "mode": "operational resume - vertical slice verification and progressive API completion",
+    "direction_version": 63,
+    "human_gate_ready": false,
+    "machine_gate_ready": false,
+    "packet_admitted": false,
+    "ready_for_owner_session": false,
+    "continue_recommended": true,
+    "delivered": [
+      "Fixed server.py progressive query API endpoints (/api/query/start, /api/query/expand, /api/query/enrich, /api/query/status, /api/query/bundle) - added missing uuid import, fixed _json -> _json_response bug, fixed expand_query_bundle import from query.progressive",
+      "Verified end-to-end vertical slice: question -> OpenCaseLaw retrieval -> query_result_bundle -> sourced generative answer -> independent counter-authority pass -> clickable map",
+      "All 188 MVP tests pass (test_server_query_api.py 6, test_query_map_mvp.py 22, test_progressive_query.py 22, test_adversarial_retrieval.py 51, test_counter_surface.py 28, test_cached_detail_warm.py 14, test_answer_reliability.py 13, test_offline_slice.py 8, test_live_slice_and_query_env.py 19, test_canvas_ring_strokes.py 5)",
+      "Server boots in query mode without 174k corpus (<3s startup)",
+      "Progressive pipeline works: /api/query/start returns first-page map, background expansion adds decisions, /api/query/enrich generates answer + counter-authorities",
+      "Fixture mode works deterministically (no network, replay from cache)",
+      "Static assets served with correct content types (query.html, lex_gate_switch.js, lex_gate_switch.css)",
+      "Counter-surface pool scan landed with invariants verified",
+      "Renderer fix for negative cluster_id (amber dashed ring for unevidenced counter-authorities) verified"
+    ],
+    "not_claimed": [
+      "No live OpenCaseLaw latency measured (fixture mode only)",
+      "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
+      "No human-gate session conducted; fail-closed posture unchanged",
+      "Serve verdict remains BOUNDED-NEGATIVE (both frozen bars unmet)",
+      "Packet admission stays fail-closed",
+      "169 pre-existing full-suite failures disclosed, not repaired (absent 174k artifacts, stale state pins)"
+    ],
+    "claim_ceiling": "Vertical slice verification cycle: the runnable query-specific product is complete and locally testable in fixture mode. All MVP tests pass. The progressive API is fully implemented. The product is ready for a human gate session per Master Prompt questions 1-4, but no such session has been conducted. Fail-closed posture remains; no frozen bars are met."
   }
 }

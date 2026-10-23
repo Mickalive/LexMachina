@@ -11,6 +11,7 @@ import threading
 import resource
 import base64
 import hmac
+import uuid
 from pathlib import Path
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from socketserver import ThreadingMixIn
@@ -77,9 +78,137 @@ _cache_misses = 0
 # In-memory run store for query progressive pipeline
 _RUNS: dict[str, dict] = {}
 _RUNS_LOCK = threading.Lock()
+_MAX_STORED_RUNS = 20
+
+# Background job pool (2 workers: one for retrieval/expansion, one for generation)
+_JOB_POOL = None
+_JOB_POOL_LOCK = threading.Lock()
+
+def _get_job_pool():
+    """Get or create the thread pool for background jobs."""
+    global _JOB_POOL
+    with _JOB_POOL_LOCK:
+        if _JOB_POOL is None:
+            from concurrent.futures import ThreadPoolExecutor
+            _JOB_POOL = ThreadPoolExecutor(max_workers=2, thread_name_prefix="lex-job")
+        return _JOB_POOL
 
 def _job(name: str) -> dict:
     return {"status": "idle", "started_at": None, "ended_at": None, "error": None, "detail": {}}
+
+def _remember_run(query: str, top_n: int, bundle: dict, mode: str) -> str:
+    run_id = uuid.uuid4().hex[:12]
+    with _RUNS_LOCK:
+        while len(_RUNS) >= _MAX_STORED_RUNS:
+            _RUNS.pop(next(iter(_RUNS)))
+        _RUNS[run_id] = {
+            "run_id": run_id,
+            "query": query,
+            "top_n": top_n,
+            "mode": mode,
+            "bundle": bundle,
+            "created_at": time.time(),
+            "jobs": {"expand": _job("expand"), "enrich": _job("enrich")},
+        }
+    return run_id
+
+def _get_run(run_id: str) -> dict | None:
+    with _RUNS_LOCK:
+        return _RUNS.get(run_id)
+
+def _set_bundle(run_id: str, bundle: dict) -> None:
+    with _RUNS_LOCK:
+        record = _RUNS.get(run_id)
+        if record is not None:
+            record["bundle"] = bundle
+
+def _set_job(run_id: str, name: str, **fields) -> None:
+    with _RUNS_LOCK:
+        record = _RUNS.get(run_id)
+        if record is not None:
+            record["jobs"].setdefault(name, _job(name)).update(fields)
+
+def _start_job(run_id: str, name: str, fn, detail: dict | None = None) -> tuple[dict, bool]:
+    """Start fn unless that job is already running. Returns (job, started)."""
+    with _RUNS_LOCK:
+        record = _RUNS.get(run_id)
+        if record is None:
+            raise KeyError(run_id)
+        job = record["jobs"].setdefault(name, _job(name))
+        if job["status"] == "running":
+            return dict(job), False
+        job.update({
+            "status": "running",
+            "started_at": time.time(),
+            "ended_at": None,
+            "error": None,
+            "detail": detail or {},
+        })
+        snapshot = dict(job)
+
+    def _run() -> None:
+        try:
+            fn()
+        except Exception as exc:
+            _set_job(run_id, name, status="error", ended_at=time.time(),
+                     error=f"{type(exc).__name__}: {exc}")
+        else:
+            _set_job(run_id, name, status="done", ended_at=time.time())
+
+    _get_job_pool().submit(_run)
+    return snapshot, True
+
+def _expand_task(run_id: str) -> None:
+    from query.progressive import expand_query_bundle
+    from query.bundle import validate_bundle
+    record = _get_run(run_id)
+    if record is None:
+        return
+    bundle = expand_query_bundle(
+        record["bundle"],
+        retrieval_mode=record["mode"],
+        top_n=record["top_n"],
+    )
+    errors = validate_bundle(bundle)
+    if errors:
+        raise RuntimeError(f"expanded bundle invalid: {errors}")
+    _set_bundle(run_id, bundle)
+    prog = bundle.get("provenance", {}).get("progressive", {})
+    _set_job(run_id, "expand", detail={
+        "n_before": prog.get("n_before"),
+        "n_after": prog.get("n_after"),
+        "n_added": prog.get("n_added"),
+        "points_moved": prog.get("points_moved"),
+        "expand_upstream_s": prog.get("expand_upstream_s"),
+    })
+
+def _await_expand(run_id: str, limit_s: float = 900.0) -> None:
+    """Block an enrich job until the background expansion of its run is done."""
+    deadline = time.time() + limit_s
+    while time.time() < deadline:
+        record = _get_run(run_id)
+        if record is None:
+            return
+        if record["jobs"]["expand"]["status"] != "running":
+            return
+        time.sleep(0.25)
+
+def _enrich_task(run_id: str) -> None:
+    from query.pipeline import enrich_query_bundle
+    from query.bundle import validate_bundle
+    _await_expand(run_id)
+    record = _get_run(run_id)
+    if record is None:
+        return
+    final = enrich_query_bundle(
+        record["bundle"],
+        retrieval_mode=record["mode"],
+        fixture_generation=record["mode"] == "fixture",
+    )
+    errors = validate_bundle(final)
+    if errors:
+        raise RuntimeError(f"invalid enriched bundle: {errors}")
+    _set_bundle(run_id, final)
 
 
 class RateLimiter:
@@ -844,26 +973,139 @@ class ProductHandler(SimpleHTTPRequestHandler):
             q = params.get("q", [""])[0].strip()
             n = int(params.get("n", ["120"])[0])
             if not q:
-                return self._json({"error": "empty query"}, 400)
+                return self._json_response({"error": "empty query"}, 400)
             retrieval_mode = params.get("mode", ["live"])[0]
             bundle = self._run_query_bundle(q, n, retrieval_mode)
-            run_id = uuid.uuid4().hex[:12]
-            # Remember the run in our in-memory store
-            with _RUNS_LOCK:
-                _RUNS[run_id] = {
-                    "run_id": run_id,
-                    "query": q,
-                    "top_n": n,
-                    "mode": retrieval_mode,
-                    "bundle": bundle,
-                    "created_at": time.time(),
-                    "jobs": {"expand": _job("expand"), "enrich": _job("enrich")},
-                }
-            self._json({
+            run_id = _remember_run(q, n, bundle, retrieval_mode)
+            # Start background expansion
+            _start_job(run_id, "expand", lambda: _expand_task(run_id))
+            self._json_response({
                 "run_id": run_id,
                 "bundle": bundle,
                 "jobs": {"expand": _RUNS[run_id]["jobs"]["expand"]},
-                "expand_started": False,
+                "expand_started": True,
+            })
+            return
+        
+        # Progressive query API: expand
+        elif path == "/api/query/expand":
+            run_id = (params.get("run_id") or [""])[0]
+            if not _get_run(run_id):
+                return self._json_response({"error": "unknown or expired run_id"}, 404)
+            job, started = _start_job(run_id, "expand", lambda: _expand_task(run_id))
+            wait_s = 0.0
+            try:
+                wait_s = float((params.get("wait_s") or [0.0])[0])
+            except (TypeError, ValueError):
+                pass
+            if wait_s > 0:
+                deadline = time.time() + wait_s
+                while time.time() < deadline:
+                    record = _get_run(run_id)
+                    if record is None:
+                        break
+                    if record["jobs"]["expand"]["status"] != "running":
+                        break
+                    time.sleep(0.25)
+                record = _get_run(run_id)
+                if record and record["jobs"]["expand"]["status"] == "error":
+                    return self._json_response({
+                        "run_id": run_id, "error": record["jobs"]["expand"].get("error"),
+                        "job": record["jobs"]["expand"]
+                    }, 500)
+                if record:
+                    return self._json_response({"run_id": run_id, "bundle": record["bundle"], "job": record["jobs"]["expand"]})
+            return self._json_response({
+                "run_id": run_id,
+                "status": "running" if job["status"] == "running" else job["status"],
+                "expand_started": started,
+                "deduplicated": not started,
+                "job": job,
+                "poll": "/api/query/status?run_id=" + run_id,
+            }, 202)
+        
+        # Progressive query API: enrich
+        elif path == "/api/query/enrich":
+            run_id = (params.get("run_id") or [""])[0]
+            if not _get_run(run_id):
+                return self._json_response({"error": "unknown or expired run_id"}, 404)
+            job, started = _start_job(run_id, "enrich", lambda: _enrich_task(run_id))
+            wait_s = 0.0
+            try:
+                wait_s = float((params.get("wait_s") or [0.0])[0])
+            except (TypeError, ValueError):
+                pass
+            if wait_s > 0:
+                deadline = time.time() + wait_s
+                while time.time() < deadline:
+                    record = _get_run(run_id)
+                    if record is None:
+                        break
+                    if record["jobs"]["enrich"]["status"] != "running":
+                        break
+                    time.sleep(0.25)
+                record = _get_run(run_id)
+                if record and record["jobs"]["enrich"]["status"] == "error":
+                    return self._json_response({
+                        "run_id": run_id, "error": record["jobs"]["enrich"].get("error"),
+                        "job": record["jobs"]["enrich"]
+                    }, 500)
+                if record:
+                    return self._json_response({"run_id": run_id, "bundle": record["bundle"], "job": record["jobs"]["enrich"]})
+            return self._json_response({
+                "run_id": run_id,
+                "status": "running" if job["status"] == "running" else job["status"],
+                "enrich_started": started,
+                "deduplicated": not started,
+                "job": job,
+                "poll": "/api/query/status?run_id=" + run_id,
+            }, 202)
+        
+        # Progressive query API: status
+        elif path == "/api/query/status":
+            run_id = (params.get("run_id") or [""])[0]
+            record = _get_run(run_id)
+            if record is None:
+                return self._json_response({"error": "unknown or expired run_id"}, 404)
+            status = {
+                "run_id": run_id,
+                "query": record["query"],
+                "top_n": record["top_n"],
+                "mode": record["mode"],
+                "created_at": record["created_at"],
+                "jobs": record["jobs"],
+                "counts": {
+                    "decisions": len(record["bundle"].get("decisions", [])),
+                    "clusters": len(record["bundle"].get("clusters", [])),
+                }
+            }
+            if (params.get("bundle") or ["0"])[0] in {"1", "true"} and \
+                    record["jobs"].get("enrich", {}).get("status") == "done":
+                status["bundle"] = record["bundle"]
+            self._json_response(status)
+            return
+        
+        # Progressive query API: bundle
+        elif path == "/api/query/bundle":
+            run_id = (params.get("run_id") or [""])[0]
+            record = _get_run(run_id)
+            if record is None:
+                return self._json_response({"error": "unknown or expired run_id"}, 404)
+            self._json_response({
+                "run_id": run_id,
+                "status": {
+                    "run_id": run_id,
+                    "query": record["query"],
+                    "top_n": record["top_n"],
+                    "mode": record["mode"],
+                    "created_at": record["created_at"],
+                    "jobs": record["jobs"],
+                    "counts": {
+                        "decisions": len(record["bundle"].get("decisions", [])),
+                        "clusters": len(record["bundle"].get("clusters", [])),
+                    }
+                },
+                "bundle": record["bundle"]
             })
             return
         elif path == "/query" or path == "/query.html":
