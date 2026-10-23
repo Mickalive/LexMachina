@@ -30,9 +30,9 @@ def _sha(rel: str) -> str:
 
 
 def test_freeze_first_digests_still_match():
-    freeze = _load("evaluation/OPERATIONAL_RESUME_39936790420_FREEZE.json")
+    freeze = _load("evaluation/OPERATIONAL_RESUME_39936790420_FREEZE_V2.json")
     assert freeze["hypothesis_sha256"] == _sha(
-        "evaluation/OPERATIONAL_RESUME_39936790420_HYPOTHESIS_V1.json")
+        "evaluation/OPERATIONAL_RESUME_39936790420_HYPOTHESIS_V2.json")
     assert freeze["diagnosis_sha256"] == _sha(
         "evaluation/snapshot_audit/orchestration_diagnosis_39936790420.json")
     assert freeze["rest_capture_sha256"] == _sha(
