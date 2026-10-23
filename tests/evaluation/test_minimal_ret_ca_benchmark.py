@@ -59,7 +59,9 @@ def test_frozen_record_of_record_has_frozen_verdict():
     assert RECORD_38989947869.exists(), (
         "results/evaluation/retrieval_counter_authority_benchmark/38989947869.json missing")
     rec = json.loads(RECORD_38989947869.read_text(encoding="utf-8"))
-    assert rec["schema"] == SCHEMA
+    # The committed record uses the historical schema name; preserve it verbatim.
+    # SCHEMA is the current wrapper's schema; the historical record's schema is pinned.
+    assert rec["schema"] == "lex-evaluation-retrieval-ca-benchmark/1"
     assert rec["verdict"] == "BENCHMARK_VALID_NO_FALSIFICATION"
     assert rec["exit_code"] == 0
     legs = {lg["leg"]: lg for lg in rec["legs"]}

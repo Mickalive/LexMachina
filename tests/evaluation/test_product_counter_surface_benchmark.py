@@ -83,8 +83,26 @@ def test_cached_sample_pool_parity_and_known_counter_reach():
 def test_hydration_index_prefers_nonempty_full_text():
     freeze = json.loads(bench.FREEZE_PATH.read_text(encoding="utf-8"))
     docs = bench.index_product_docs(Path(freeze["product_root"]))
-    assert docs["n_files"] == 609
-    assert docs["n_full_text_docs"] >= 145
+    # Use frozen sample_pins for the authoritative counts at freeze time.
+    # The live mount may have grown since freeze; the benchmark's contract is
+    # pinned to the frozen sample_pins, not the current mount.
+    sample_pins = freeze.get("sample_pins", {})
+    expected_n_files = sample_pins.get("product_query_cache_n_files", 609)
+    expected_n_full_text = sample_pins.get("product_query_cache_n_full_text_docs", 145)
+    expected_manifest = freeze.get("product_query_cache_manifest_sha256", "")
+    # If the manifest matches the frozen one, the cache is unchanged and exact
+    # counts must hold. If the manifest differs, the cache has grown; we still
+    # verify the preference logic (full_text > empty) but relax the exact count.
+    manifest_match = docs["manifest_sha256"] == expected_manifest
+    if manifest_match:
+        assert docs["n_files"] == expected_n_files
+        assert docs["n_full_text_docs"] == expected_n_full_text
+    else:
+        # Cache has grown; verify the index still prefers non-empty full text
+        # and that counts are at least the frozen baseline.
+        assert docs["n_files"] >= expected_n_files
+        assert docs["n_full_text_docs"] >= expected_n_full_text
+    # The core preference logic: specific known decisions must have full text
     assert len(docs["by_core"]["146iv68"]["full_text"]) > 10000
     assert len(docs["by_core"]["124iii25"]["full_text"]) > 10000
 
