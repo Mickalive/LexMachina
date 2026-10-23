@@ -1,0 +1,88 @@
+{
+  "schema": "lex-evaluation-byte-duplicate-lineage-disclosure/1",
+  "lane": "evaluation",
+  "run_id": "39929883261",
+  "direction_version": 63,
+  "disclosure_type": "BYTE_DUPLICATE_LINEAGE",
+  "disclosure_rule_source": "Factory-wide requirement on set-identity and reproducibility claims (accepted-cycle 39873360672 D3 precedent): a cycle whose measurement-bearing fields are identical to an accepted run must disclose the duplication and must NOT present itself as new evidence.",
+  "accepted_run_of_record": {
+    "run_id": "39927760701",
+    "accept_commit": "3eeced9a25d486356870755e48422f8473a5f90c",
+    "audit_gate": "results/audit/evaluation/CYCLE_39927760701_GATE.json",
+    "gate": "PASS",
+    "safe_to_integrate": true,
+    "committed_record": "results/evaluation/minimal_retrieval_ca_benchmark/39927760701.json",
+    "committed_engine_record": "results/evaluation/mapping_free_recall_falsifier/39927760701_engine_mapping_free_recall_falsifier.json"
+  },
+  "comparison_method": {
+    "method": "recursive leaf-level flatten of both JSON records; every leaf compared; identity-only fields (run_id, generated_at_utc, engine_record_path, product_mount) excluded from the equality requirement and reported separately",
+    "wrapper_record": {
+      "this_run": "results/evaluation/minimal_retrieval_ca_benchmark/39929883261.json",
+      "prior_accepted": "git show 567c7b88:results/evaluation/minimal_retrieval_ca_benchmark/39927760701.json",
+      "n_leaf_keys_this_run": 583,
+      "n_leaf_keys_prior": 583,
+      "n_non_identity_diffs": 0
+    },
+    "engine_record": {
+      "this_run": "results/evaluation/minimal_retrieval_ca_benchmark/39929883261_engine_mapping_free_recall_falsifier.json",
+      "prior_accepted": "git show 567c7b88:results/evaluation/mapping_free_recall_falsifier/39927760701_engine_mapping_free_recall_falsifier.json",
+      "n_leaf_keys_this_run": 558,
+      "n_leaf_keys_prior": 558,
+      "n_non_identity_diffs": 0,
+      "note": "the prior cycle's engine record was committed under results/evaluation/mapping_free_recall_falsifier/ (producer scratch re-homing noted in audit CYCLE_39927760701 minor observations); this cycle's engine record sits beside the wrapper record under results/evaluation/minimal_retrieval_ca_benchmark/; content is identical modulo run_id/generated_at"
+    }
+  },
+  "product_head_unchanged": {
+    "head": "ae854b6a9ff4df4429d36725e364e721cb73096b",
+    "head_description": "accept product cycle 39909013473",
+    "verified_against": "git rev-parse origin/lab/product and /tmp/lex_accepted/product HEAD at run time",
+    "consequence": "no product-side change fired any re-open trigger; this re-execution is a stand-ready reproducibility confirmation, not a new measurement against a new product state"
+  },
+  "what_this_cycle_adds": [
+    "byte-level reproducibility confirmation of the accepted falsification across a third independent execution (39916358347 product-advance crosscheck leg A -> 39927760701 accepted run -> 39929883261 this run), all on the same product head ae854b6a and the same V3 packet-of-record bytes",
+    "test-suite shim execution (multilingual + provenance + benchmark families) under this run id: 88 passed / 2 failed / 6 unsupported; both failures are INHERITED historical-state-pin tests red at the accepted tip 3eeced9a before any change of this run (verified: working tree clean at HEAD when the failures were first observed)",
+    "frozen-bar re-hash under this run id: RULES_LABEL 4457e971..., RULES_GEOMETRY a7452748..., VERDICT_CONTRACT b9cdb894..., frozen retrieval benchmark 187b0e54... all re-hash OK",
+    "state reconciliation: accepted_run_id advanced 39866970583 -> 39927760701 (newest in-tree PASS audit gate with accept commit)"
+  ],
+  "what_this_cycle_does_not_add": [
+    "NO new counter-authority recall measurement (the served bundles are the same frozen V3 bytes; no probe is executed against OpenCaseLaw)",
+    "NO movement of any frozen bar, rubric, threshold or verdict contract (re-hashed byte-identical; zero new thresholds)",
+    "NO evidence beyond the accepted 39927760701 falsification on the measurement axis (n_non_identity_diffs=0)",
+    "NO obsolete universal-174k benchmark run",
+    "NO candidate building for any Frontier team"
+  ],
+  "inherited_test_failures_disclosed": {
+    "files": [
+      {
+        "test_file": "tests/evaluation/test_mount_provenance_gate.py",
+        "failed_case": "test_check_provenance_on_the_committed_tree_does_not_re_derive",
+        "cause": "asserts the finding-of-record PROVENANCE_UNREPRODUCIBLE for run 39231573047 against the LIVE mount; the accepted product head has since advanced (ae854b6a), so the historical expectation is red at every post-39231573047 tip. This is a population-pinned historical assertion, not a regression of this run."
+      },
+      {
+        "test_file": "tests/evaluation/test_repair_39338699604_provenance.py",
+        "failed_cases": [
+          "test_r4_accepted_run_id_advanced_to_39334865522",
+          "test_r4_github_run_is_current_producer_run",
+          "test_r4_promotion_status_appended_not_deleted",
+          "test_r4_current_run_stays_proposed_and_pending",
+          "test_r4_durable_delta_pins_re_pinned_with_pre_repair_preserved",
+          "test_repair_block_records_all_four_fixes",
+          "test_no_frozen_bar_or_do_not_serve_touched"
+        ],
+        "cause": "pins the run-39338699604-era state values (accepted_run_id==39334865522 etc.) as of that historical repair; live state has legitimately advanced through many accepted cycles since. Same inherited-red class as the re-homed historical block in test_minimal_retrieval_ca_benchmark.py (run 39732040165 precedent). Not a regression of this run."
+      }
+    ],
+    "verification_of_inheritance": "both files fail identically on the untouched working tree at accepted tip 3eeced9a (git status clean except this run's untracked artifacts, which no test reads); the failures pre-date this run's commits",
+    "disposition": "RECORDED, not repaired here: re-homing historical state pins is a separate provenance-repair deliverable and is NOT required by the v63 evaluation question; these tests still pass 8+21 cases respectively and their passing cases (freeze re-hash, packet pins, do-not-serve posture) remain green"
+  },
+  "wrapper_direction_version_disclosure": {
+    "observation": "evaluation/minimal_retrieval_ca_benchmark.py hardcodes direction_version=61 in the wrapper record and prints 'factory direction v61' in the report header; the engine records 57 (its frozen hypothesis era). The control-plane direction is v63.",
+    "why_not_repaired_in_the_wrapper_file": "the wrapper instrument digest 7631c1a3... is pinned by the accepted historical fixture HISTORICAL_STATE_BLOCK_39491098975.json and asserted by test_wrapper_instrument_pin_matches_state (run 39732040165 repair); editing the wrapper would break that accepted pin. The direction-version field is framing, not a measurement: no gate, predicate, threshold or verdict depends on it.",
+    "correct_reading": "the authoritative direction version for this run is the state block field direction_version=63 (control-plane v63); the wrapper's 61 and the engine's 57 are instrument-era constants, disclosed, never control-plane claims. This mirrors the audit CYCLE_39927760701 minor-observation disposition (declared and explained, non-blocking)."
+  },
+  "human_gate_ready": false,
+  "machine_gate_ready": false,
+  "packet_admitted": false,
+  "ready_for_owner_session": false,
+  "both_do_not_serve_orders_stand": true
+}
