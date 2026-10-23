@@ -1,0 +1,140 @@
+{
+  "schema": "frontier-counter-evidence-span-selection/integration-contract/1",
+  "team_id": "frontier-counter-evidence-span-selection",
+  "charter_version": 1,
+  "run_id": "39986101767",
+  "protocol_sha256": "b5d14121e86ea0b39c181aacef1c30d4a2788a4751af4cfa00c33189c0afb7ea",
+  "frozen_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+  "component": {
+    "module": "frontier/frontier-counter-evidence-span-selection/span_select.py",
+    "entry_point": "apply_span_selection",
+    "signature": "apply_span_selection(bundle, rules, profile, qid=None, min_chars=40, max_chars=700, max_units=4) -> (bundle, list[SpanDecision])",
+    "deterministic": true,
+    "network": false,
+    "model_calls": false,
+    "cache_writes": false,
+    "reads_only": [
+      "the row's own decisions[].full_text",
+      "the frozen RULES_LABEL.json via the accepted rules loader"
+    ]
+  },
+  "placement": {
+    "after": "product.query.counter_emission_repair.apply_counter_emission_repair",
+    "before": "product.query.counter_anchor.apply_anchor_labels",
+    "population": "rows with counter_proposal_source == 'heuristic_proposal_promotion_v1' and counter_status in ['candidate-supporting', 'candidate-contrary', 'candidate-limiting']",
+    "does_not_apply_to": "rows without the repair promotion marker; the served packet 38839347028 has n_promoted=0 and is therefore unchanged"
+  },
+  "required_bundle_fields": [
+    "decisions[].decision_id",
+    "decisions[].language",
+    "decisions[].legal_area",
+    "decisions[].rank",
+    "decisions[].title",
+    "decisions[].regeste",
+    "decisions[].full_text",
+    "decisions[].full_text_status",
+    "decisions[].counter_status",
+    "decisions[].counter_evidence",
+    "decisions[].counter_evidence_verified"
+  ],
+  "emission_contract": {
+    "counter_evidence": "text[char_start:char_end], verified byte-for-byte against the row's own full_text",
+    "counter_evidence_verified": true,
+    "counter_evidence_source": "retrieved_full_text",
+    "counter_evidence_span": {
+      "decision_id": "string",
+      "quote": "string",
+      "char_start": "integer",
+      "char_end": "integer",
+      "intent_marker": "string",
+      "domain_anchor": "string",
+      "pivot_anchor": "string",
+      "window_passage_count": "integer",
+      "full_text_sha256": "string"
+    },
+    "counter_status": "UNCHANGED",
+    "counter_anchor_label": "set only by the downstream accepted classifier"
+  },
+  "abstention_contract": {
+    "counter_evidence": "",
+    "counter_evidence_verified": false,
+    "counter_evidence_span": null,
+    "counter_status": "UNCHANGED",
+    "counter_span_selection": {
+      "abstained": true,
+      "reason_code": "one of no_retrieved_text | language_not_expected | foreign_legal_area | no_intent_marker_in_retrieved_text | no_domain_anchor_in_retrieved_text | no_pivot_anchor_in_retrieved_text | polarity_inverted_in_retrieved_text | no_qualifying_span",
+      "diagnostics": "deterministic counts and matched anchors; never model output"
+    }
+  },
+  "product_owned_fields_never_written": [
+    "counter_status",
+    "n_scored",
+    "n_abstained",
+    "n_emitted",
+    "packet_admitted",
+    "machine_gate_ready",
+    "human_gate_ready",
+    "serve_recommendation",
+    "the visible counter ring",
+    "frozen rubric / thresholds / verdict classes / absolute bars"
+  ],
+  "numbers_to_publish_side_by_side": [
+    "baseline_n_scored",
+    "baseline_n_abstained",
+    "baseline_n_emitted",
+    "baseline_support_rate_among_emitted",
+    "baseline_yield",
+    "candidate_n_scored",
+    "candidate_n_abstained",
+    "candidate_n_emitted",
+    "candidate_n_evidenced",
+    "candidate_support_rate_among_emitted",
+    "candidate_yield",
+    "candidate_abstention_reasons",
+    "candidate_verbatim_verification_failures",
+    "control_n_emitted_swapped",
+    "control_n_emitted_inverted",
+    "seeded_positive_emitted",
+    "seeded_negative_emitted"
+  ],
+  "adoption_recommendation": {
+    "decision": "DECLINE_AS_IS",
+    "reason": "The extraction and verbatim verification loop is sound, but 4 of 7 emitted spans are prefix-match artifacts ('unter' -> 'untergang', 'kapital' -> 'kapitalverletzung') and the remaining 3 are topically off-point. The frozen scorer's 'supported' label is mechanical, not legal. Publishing these spans would present irrelevant text as counter-authority.",
+    "allowed_shadow_use": "A product lane may vendor the selector only as a shadow diagnostic behind a flag that does not publish spans, does not change counter_status, and does not affect packet_admitted/machine_gate_ready/human_gate_ready. The output must be labeled 'mechanical extraction audit, not legal counter-authority'.",
+    "conditions_for_reconsideration": [
+      "a successor charter measures an exact-token (no >=5-character prefix tolerance on short generic tokens) semantic gate on the same frozen population",
+      "the successor includes an off-topic/entailment check and reports a human semantic audit, not only the frozen scorer's reason_code",
+      "the successor reproduces the baseline and keeps the denominator unchanged",
+      "Core Product records an explicit adopt-or-decline decision under factory-wide requirement 21"
+    ]
+  },
+  "decline_path": {
+    "product_changes": "none",
+    "required_action": "record this contract as the decline decision and keep the component in the Frontier namespace as lab evidence",
+    "what_is_lost_by_declining": "nothing that is currently product-valuable; the component emits no semantically verified counter-authority, and the frozen scorer's 7 'supported' rows are string artifacts",
+    "what_is_retained": "the deterministic extract-verify-abstain loop, 16 tests, the protocol, the baseline reproduction, and the semantic-audit finding for a successor charter"
+  },
+  "machine_checks": [
+    "assert sha256(PROTOCOL.json) == 'b5d14121e86ea0b39c181aacef1c30d4a2788a4751af4cfa00c33189c0afb7ea'",
+    "assert sha256(product/frozen/RULES_LABEL.json) == '4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608'",
+    "assert every emitted quote satisfies full_text[char_start:char_end] == quote",
+    "assert every emitted quote occurs in the row's own full_text",
+    "assert candidate_n_scored == baseline_n_scored == 20",
+    "assert counter_status is unchanged on every row",
+    "assert control_n_emitted_swapped == 0 and control_n_emitted_inverted == 0 when candidate_n_emitted > 0",
+    "assert seeded_positive_emitted == 1 and seeded_negative_emitted == 0",
+    "assert no field named packet_admitted, machine_gate_ready or human_gate_ready is set to true by this component",
+    "assert no threshold, rubric byte, verdict class or absolute bar is written by this component"
+  ],
+  "forbidden_constants": [
+    "RULES_LABEL.json is never edited",
+    "no new threshold, verdict class, absolute bar or rubric byte",
+    "packet_admitted is not set true",
+    "machine_gate_ready is not set true",
+    "human_gate_ready is not set true",
+    "no serve recommendation",
+    "no claim that a specific decision is supporting, contrary or limiting",
+    "no claim of jurist usefulness, reliability, or reproduction of the external 0/14 result"
+  ],
+  "claim_ceiling": "This component measures whether a deterministic extract-verify-abstain step over already-retrieved full text raises the number of rows the frozen scorer mechanically supports. It never asserts that any decision is supporting, contrary or limiting. It does not claim jurist usefulness, serve readiness, reliability, reproduction of the external 0/14 result, or that the comparative map-versus-ranked-list question is non-vacuous. It changes no threshold, rubric, verdict class, absolute bar or packet; it adds no retrieval and no model call. packet_admitted, machine_gate_ready and human_gate_ready remain product-owned and false unless independently earned."
+}

@@ -1,9 +1,130 @@
 {
   "team_id": "frontier-counter-evidence-span-selection",
   "charter_version": 1,
-  "evidence_tier": "UNTESTED",
-  "cycle_status": "INITIALIZED",
-  "continue_recommended": true,
+  "direction_version": 65,
+  "github_run_id": "39986101767",
+  "evidence_tier": "REPRODUCED",
+  "evidence_tier_note": "Baseline counts and abstention reasons reproduced exactly; candidate measured once and rerun byte-identically; not yet independently audited.",
+  "cycle_status": "COMPLETE_OUTCOME_A_MECHANICAL_ONLY",
+  "continue_recommended": false,
+  "continue_recommended_reason": "The frozen protocol's mechanical OUTCOME_A conditions all hold, so this charter version stops here. No same-charter cycle is justified: the protocol is frozen, post-hoc tuning would invalidate it, and the post-hoc semantic audit shows the emitted spans are not legal counter-authority. A successor exact-token/semantic-gate charter is the correct next question.",
   "accepted_run_id": null,
-  "accepted_commit": null
+  "accepted_commit": null,
+  "promotion_status": "PENDING_INDEPENDENT_AUDIT",
+  "outcome": "A_COMPONENT_EVIDENCE_RECOVERED_MECHANICAL_ONLY",
+  "outcome_note": "The deterministic extract-verify-abstain step raises packet-of-record-v3 emitted rows from 0/20 to 7/20, all seven mechanically supported by the frozen scorer (support among emitted 1.0, denominator 20 unchanged). Baseline reproduced 20/20/0. Controls: swapped 0, inverted 0, seeded positive 1, seeded negative 0, verbatim mutation/cross-decision all rejected, injected rows 7/7, deterministic rerun identical. However, the post-hoc semantic audit classifies 4/7 spans as string-coincidence prefix artifacts ('unter' -> 'untergang', 'kapital' -> 'kapitalverletzung'), 1/7 as a morphological prefix, and 2/7 as exact but off-point; 0/7 are clear legal counter-authorities. Mechanical A, semantic decline.",
+  "product_recommendation": "DO_NOT_ADOPT_AS_IS",
+  "product_recommendation_reason": "The emitted spans are mechanically supported by the frozen rubric but are not semantically valid counter-evidence: four are prefix artifacts on short generic tokens and the other three are topically off-point. Publishing them would repeat the label integrity defect at the evidence layer. The extraction/verification loop is reusable, but the frozen anchor profile and prefix tolerance must be replaced by a successor semantic gate before product use.",
+  "protocol_sha256": "b5d14121e86ea0b39c181aacef1c30d4a2788a4751af4cfa00c33189c0afb7ea",
+  "frozen_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+  "product_mount_head": "f4cd7d7c7d2dea09b2f4f4388072fdc517d5cf3e",
+  "head_to_head": {
+    "baseline": {
+      "n_scored": 20,
+      "n_abstained": 20,
+      "n_emitted": 0,
+      "support_rate_among_emitted": 0.0,
+      "yield": 0.0,
+      "abstention_reasons": {
+        "de-kapitalverletzung": {"no_domain_anchor": 1, "no_intent_marker": 2, "pivot_absent": 5},
+        "fr-bail-entretien": {"no_intent_marker": 2, "pivot_absent": 6},
+        "it-responsabilita-medica": {"pivot_absent": 4}
+      }
+    },
+    "candidate": {
+      "n_scored": 20,
+      "n_abstained": 13,
+      "n_emitted": 7,
+      "n_evidenced": 7,
+      "support_rate_among_emitted": 1.0,
+      "yield": 0.35,
+      "abstention_reasons": {
+        "de-kapitalverletzung": {"evidence_absent": 4},
+        "fr-bail-entretien": {"evidence_absent": 5},
+        "it-responsabilita-medica": {"evidence_absent": 4}
+      },
+      "emitted_ids": {
+        "de-kapitalverletzung": [
+          "bge_105 II 114",
+          "zg_verwaltungsgericht_V 2012 _ 151",
+          "bge_146 II 304",
+          "bge_117 IV 259"
+        ],
+        "fr-bail-entretien": ["bge_136 III 196", "bge_140 III 583", "bge_136 III 583"],
+        "it-responsabilita-medica": []
+      }
+    },
+    "controls": {
+      "swapped_evidence_emitted": 0,
+      "inverted_evidence_emitted": 0,
+      "seeded_positive_emitted": 1,
+      "seeded_negative_emitted": 0,
+      "verbatim_mutated_all_rejected": true,
+      "verbatim_cross_decision_all_rejected": true,
+      "frozen_injection_rows_pass": true,
+      "denominator_unchanged": true,
+      "determinism_identical": true,
+      "determinism_sha256": "03a004ccc9a5c0f7da067956d934438155bf3208197933c26ee257e4fe26ff73"
+    },
+    "semantic_audit": {
+      "role": "post-hoc diagnostic only; does not move the frozen verdict or any count",
+      "n_emitted_rows": 7,
+      "n_exact": 2,
+      "n_morphological_prefix": 1,
+      "n_string_coincidence_prefix": 4,
+      "n_clear_legal_counter_authorities": 0,
+      "string_coincidence_rows": [
+        "bge_105 II 114 (kapital -> kapitalverletzung)",
+        "zg_verwaltungsgericht_V 2012 _ 151 (unter -> untergang)",
+        "bge_146 II 304 (unter -> untergang)",
+        "bge_117 IV 259 (unter -> untergang)"
+      ],
+      "artifact": "results/frontier/frontier-counter-evidence-span-selection/SEMANTIC_AUDIT.json"
+    },
+    "secondary_served_packet": {
+      "role": "secondary replication only; never decides",
+      "baseline": {"n_scored": 65, "n_abstained": 60, "n_emitted": 5, "support_rate_among_emitted": 1.0, "yield": 0.07692307692307693},
+      "candidate": {"n_scored": 65, "n_abstained": 60, "n_emitted": 5, "support_rate_among_emitted": 1.0, "yield": 0.07692307692307693},
+      "note": "Unchanged: the served packet has n_promoted=0, so the selector has no repair-promoted row to act on."
+    }
+  },
+  "tests": {
+    "command": "python3 -m unittest discover -s tests/frontier/frontier-counter-evidence-span-selection -v",
+    "passed": 19,
+    "failed": 0
+  },
+  "artifacts": [
+    "frontier/frontier-counter-evidence-span-selection/span_select.py",
+    "frontier/frontier-counter-evidence-span-selection/scorer_bridge.py",
+    "frontier/frontier-counter-evidence-span-selection/run_measurement.py",
+    "frontier/frontier-counter-evidence-span-selection/semantic_audit.py",
+    "tests/frontier/frontier-counter-evidence-span-selection/test_span_select.py",
+    "results/frontier/frontier-counter-evidence-span-selection/PROTOCOL.json",
+    "results/frontier/frontier-counter-evidence-span-selection/PROTOCOL.sha256",
+    "results/frontier/frontier-counter-evidence-span-selection/BASELINE.json",
+    "results/frontier/frontier-counter-evidence-span-selection/CANDIDATE.json",
+    "results/frontier/frontier-counter-evidence-span-selection/CONTROLS.json",
+    "results/frontier/frontier-counter-evidence-span-selection/DETERMINISM.json",
+    "results/frontier/frontier-counter-evidence-span-selection/MEASUREMENT.json",
+    "results/frontier/frontier-counter-evidence-span-selection/SERVED_PACKET_SECONDARY.json",
+    "results/frontier/frontier-counter-evidence-span-selection/SEMANTIC_AUDIT.json",
+    "reports/frontier/frontier-counter-evidence-span-selection/REPORT.md",
+    "reports/frontier/frontier-counter-evidence-span-selection/INTEGRATION_CONTRACT.json"
+  ],
+  "claim_ceiling": "No claim that any decision is supporting, contrary or limiting; no claim of jurist usefulness, serve readiness, reliability, reproduction of the external 0/14 result, or non-vacuity of the map-versus-ranked-list question; no threshold/rubric/verdict/bar/packet change; no retrieval; no model call; packet_admitted, machine_gate_ready and human_gate_ready remain product-owned and false unless independently earned.",
+  "next_recommendation": "Successor question for the director: measure an exact-token semantic gate (no >=5-character prefix tolerance on short generic tokens, plus an off-topic/entailment check) on the same frozen 20-row population. If it still cannot produce spans a human reviewer accepts, fund retrieval/candidate-quality work instead of another span-selection cycle.",
+  "owner_decision_required": false,
+  "run_history": [
+    {
+      "run_id": "39986101767",
+      "charter_version": 1,
+      "cycle_status": "COMPLETE_OUTCOME_A_MECHANICAL_ONLY",
+      "evidence_tier": "REPRODUCED",
+      "continue_recommended": false,
+      "outcome": "A_COMPONENT_EVIDENCE_RECOVERED_MECHANICAL_ONLY",
+      "product_recommendation": "DO_NOT_ADOPT_AS_IS",
+      "tests": "19 passed",
+      "note": "Protocol frozen at dad93c36 before measurement. Baseline 20/20/0 reproduced with published reasons; candidate 20/13/7, support 1.0, yield 0.35; controls green; deterministic. Post-hoc semantic audit: 4 string coincidences, 1 morphological prefix, 2 exact, 0 clear legal counter-authorities. Charter stops; successor exact-token/semantic gate recommended."
+    }
+  ]
 }
