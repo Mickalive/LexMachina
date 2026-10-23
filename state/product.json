@@ -1,6 +1,6 @@
 {
   "lane": "product",
-  "direction_version": 64,
+  "direction_version": 65,
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETE",
   "continue_recommended": true,
@@ -109,9 +109,15 @@
     "product/tests/test_cycle_39956256289.py (new in run 39956256289: executable re-derivation of the reliability, D1 and RF1 claims)",
     "product/tests/test_state_cycle_39965089504.py (new in this cycle: re-derivation of this cycle's published numbers from the committed artifacts)",
     "product/progressive_smoke.py + product/query/counter_surface_known.py (the RF1 predicate consolidation and the D1 lookup gate landed by run 39956256289)",
-    "results/product/regression/CYCLE_39965089504_suite_diff.json (full product-suite FAILED-set diff, base b48d6f3 vs this tree, identical numeric environment: 0 new failures, 1 fixed)"
+    "results/product/regression/CYCLE_39965089504_suite_diff.json (full product-suite FAILED-set diff, base b48d6f3 vs this tree, identical numeric environment: 0 new failures, 1 fixed)",
+    "product/query/counter_evidence_span.py",
+    "product/tests/test_counter_evidence_span.py",
+    "results/product/counter_span/CYCLE_39986094168_span_selection.json",
+    "reports/product/CYCLE_39986094168.md",
+    "product/diagnose_absent_ids.py",
+    "results/product/counter_span/CYCLE_39986094168_absent_ids.json"
   ],
-  "next_recommendation": "CONTINUE (continue_recommended=true). Operational resume of run 39956256289 completed its terminal artifacts: the D1 min-core-length repair of the accepted audit of 39949461593 is landed and re-measured byte-identically (reached 24/28, signalled 8/11 unchanged), and the pre-registered live-answer reliability measurement (ordered item 4) is COMPLETE with the product claim honestly NOT MADE across all three committed same-protocol dates (ready rates 0.857 / 0.571 / 0.0-outage; stability jaccard once 0.286). Ordered item 3 (writer-abort degradation surfacing) is verified on the live path under a real free-model outage: 7/7 legs DEGRADED_WRITER_ABORT, degradation_visible_rate 1.0, zero scored counter rows. RF1 predicate consolidation landed and the scattering guard passes (failed on the accepted base). Full suite: 0 new failures vs accepted base, 1 fixed. The offline query->bundle->answer->counter-surface->clickable-map slice still passes (67/67 assertions, geometry stable). NO human-gate session may be staged: all gate flags stay false and the serve verdict of record remains BOUNDED-NEGATIVE. Next: re-measure live-answer reliability when the free pool is healthy, precision review of the broader cached surface, and retrieval-pool coverage for the three unreached known ids.",
+  "next_recommendation": "CONTINUE (continue_recommended=true). The verbatim-span seam lifts packet-of-record v3 counter emissions from 0/20 to 6/20 (DE 2, FR 4, IT 0), every emitted quote byte-verbatim and verified, with the frozen confirm-or-abstain gate untouched; 14 rows remain visible as abstained_unevidenced. Next: (1) apply the same span probe to the three known absent IDs only after the accepted retrieval-pool diagnosis is published (do not force off-domain rows into the head), (2) re-measure live-answer reliability when the free pool is healthy, (3) consume frontier-counter-evidence-span-selection immediately if it is independently accepted. NO human-gate session may be staged: all gate flags stay false and the serve verdict of record remains BOUNDED-NEGATIVE.",
   "verification": {
     "at": "2026-10-23T05:51:45.512773Z",
     "attribution_artifact": "results/product/cache_attribution/CYCLE_39674781875_manifest_rewrite_attribution.json",
@@ -477,8 +483,8 @@
     "live_state_precedence": "for every key the live state already carries, the live value wins; this tool only ADDS the preserved keys and the disclosure records, so the register can grow and never shrinks silently.",
     "claim_ceiling": "This is a restoration of deleted lane state, not a new measurement and not a legal claim. It scores no frozen bar, changes no threshold and changes no product behaviour."
   },
-  "current_run": "39965089504",
-  "state_updated_at": "2026-10-23T14:13:11Z",
+  "current_run": "39986094168",
+  "state_updated_at": "2026-10-23T16:49:22Z",
   "cycle_39674781875_vertical_slice_delivery": {
     "run_id": 39674781875,
     "repair_round": 1,
@@ -1230,5 +1236,84 @@
       "The three known ids absent from the 100-row cached pools (gr_gerichte_PZ_2006_125, zh_mietgericht_MB170006-L, ch_vb_JAAC_68.7__) - a retrieval-pool question, not a scan miss.",
       "Human-gate staging still requires an accepted serve recommendation replacing the DO-NOT-SERVE orders; none exists today, so no session is staged."
     ]
+  },
+  "cycle_39986094168_counter_span_selection": {
+    "run_id": "39986094168",
+    "direction_version": 65,
+    "human_gate_ready": false,
+    "machine_gate_ready": false,
+    "packet_admitted": false,
+    "ready_for_owner_session": false,
+    "continue_recommended": true,
+    "what_changed": "New product-owned seam product/query/counter_evidence_span.py runs between the accepted adversarial pass and the accepted emission repair: it selects a byte-verbatim span from the row's own named text field and lets the accepted frozen decide_label gate confirm-or-abstain. The accepted anchor seam now writes counter_evidence_verified=True only when that span metadata is verified, and clears it on abstention. Pipeline wiring is before apply_counter_emission_repair and apply_anchor_labels; kill-switch LEXMACHINA_COUNTER_SPAN=off.",
+    "packet_of_record": "39319405429",
+    "measurement_artifact": "results/product/counter_span/CYCLE_39986094168_span_selection.json",
+    "measurement": {
+      "baseline": {
+        "n_scored": 20,
+        "n_emitted": 0,
+        "n_abstained": 20,
+        "support_rate_among_emitted": 0.0,
+        "yield": 0.0
+      },
+      "candidate": {
+        "n_scored": 20,
+        "n_emitted": 6,
+        "n_abstained": 14,
+        "support_rate_among_emitted": 1.0,
+        "yield": 0.3
+      },
+      "per_bundle_emitted": {
+        "de-kapitalverletzung": 2,
+        "fr-bail-entretien": 4,
+        "it-responsabilita-medica": 0
+      },
+      "emitted_verified": 6,
+      "emitted_verbatim": 6,
+      "span_sentences_evaluated": 2560,
+      "span_selected": 6,
+      "span_abstained": 18,
+      "abstention_reasons_de": {
+        "no_intent_marker": 2,
+        "pivot_absent": 4
+      },
+      "abstention_reasons_fr": {
+        "pivot_absent": 5
+      },
+      "abstention_reasons_it": {
+        "pivot_absent": 4
+      },
+      "claim_ceiling": "Verbatim span selection + the accepted frozen confirm-or-abstain gate. The six emitted rows carry verified verbatim quotes; the other fourteen rows stay visible as abstained_unevidenced. This is NOT a serve/admission claim: the evaluation scorer was not run, no threshold was changed, and the packet verdict of record remains BOUNDED-NEGATIVE. Support rate, abstention count and yield are published together; no decision is asserted to BE supporting/contrary/limiting."
+    },
+    "tests": {
+      "new_suite": "product/tests/test_counter_evidence_span.py (12 passed)",
+      "targeted_regression": "test_counter_emission_repair.py + test_v52_endgame_delivery.py + test_counter_authority_definition.py + test_adversarial_retrieval.py (112 passed)",
+      "full_suite": {
+        "failed": 172,
+        "passed": 1336,
+        "skipped": 20,
+        "note": "Same failed count as the accepted base total (172), with the pre-existing legacy/environment reds (missing 174k artifacts, stale historical state/report pins, mount-dependent skips). The 12 new span tests pass; targeted label/adversarial/span suites are 146 passed."
+      }
+    },
+    "audit_fixes_applied": {
+      "D1": "reports/product/CYCLE_39965089504.md now says the re-derivation suite is 7/7 and discloses the earlier 6/6 draft",
+      "D2": "results/product/orchestration/CYCLE_39965089504_resume_diagnosis.json now records test_counter_surface_known.py as EXTENDED from the base file, not new",
+      "D3": "report now discloses the mount-dependent suite totals (172/1308/21 and 171/1324/21 in the auditor environment) and names the FAILED-set identity as the invariant"
+    },
+    "frontier": {
+      "frontier-counter-evidence-span-selection": "bootstrap-only at /tmp/lex_accepted/frontier/... (state INITIALIZED/RUN, accepted_run_id null) -> NOT consumed; product implemented the same seam locally and can adopt the accepted artifact when it lands."
+    },
+    "not_touched": [
+      "frozen RULES_LABEL.json / decide_label gate",
+      "frozen bars and evaluation scorer",
+      "geometry, ranks, clusters, relations",
+      "packet-of-record bundles (read-only measurement)",
+      "human_gate_ready / machine_gate_ready / packet_admitted / ready_for_owner_session"
+    ],
+    "absent_id_diagnosis": {
+      "artifact": "results/product/counter_span/CYCLE_39986094168_absent_ids.json",
+      "finding": "the three named IDs are pool-present and head-excluded by the query-conditioned rerank (ranks 104/118/119, anchor 0, similarity <0.04), not retrieval misses",
+      "action": "no rank/pool/threshold change this cycle"
+    }
   }
 }

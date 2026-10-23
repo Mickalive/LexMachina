@@ -310,6 +310,10 @@ def apply_anchor_labels(
             d["counter_uncertainty"] = dec.uncertainty
             d["counter_reason_code"] = dec.reason_code
             d["counter_anchor_label"] = "ABSTAIN"
+            # An abstained row is NOT evidenced as a counter label, even if a
+            # quote was proposed.  The quote stays visible for the amber ring,
+            # but the verified flag must not claim verbatim support.
+            d["counter_evidence_verified"] = False
         else:
             emitted += 1
             emitted_ids.append(str(d.get("decision_id") or ""))
@@ -318,6 +322,12 @@ def apply_anchor_labels(
             d["counter_anchor_label"] = dec.label
             d["counter_reason_code"] = "supported"
             d["counter_uncertainty"] = dec.uncertainty
+            # Only a span this product verified byte-exactly against a named
+            # text field may claim evidenced support.  The incumbent short
+            # evidence strings are often not substrings of the raw body.
+            d["counter_evidence_verified"] = bool(
+                (d.get("counter_evidence_span") or {}).get("verified") is True
+            )
 
     n_scored = emitted + abstained
     prov.update({
