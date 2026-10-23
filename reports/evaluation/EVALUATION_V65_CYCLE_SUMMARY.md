@@ -68,14 +68,69 @@ New evidence refs added:
 
 ---
 
-## Test Suite Verification
+## Test Suite Verification (repair round 1 — measured, not asserted)
 
-All unit tests for `minimal_ret_ca_benchmark` pass:
-- `test_schema_and_engine_pin` ✅
-- `test_incumbent_restatement_matches_accepted_pins` ✅
-- `test_frozen_record_of_record_has_frozen_verdict` ✅
-- `test_end_to_end_on_accepted_mount_if_present` ✅
-- `test_committed_tree_is_not_a_benchmark_output_directory` ✅
+The earlier revision of this section listed five checkmarks with no measurement
+environment, no counts and no record path, and its footer claimed a
+"reuse [of] existing multilingual/provenance tests" that had never been
+executed for run 40017649220. Both defects were audit findings (F1) and are
+corrected here with measured evidence.
+
+**Measurement environment.** Python 3.12.3; `pytest` is ABSENT in this image
+(`find_spec("pytest")` → `None`); the runner is the committed pytest-free shim
+`evaluation/no_pytest_runner.py`
+(sha256 `c12097da9d910574380b32c5dafa371a3b24ec14ef2551d92bb9453b8ed57584`).
+Under that shim `UNSUPPORTED` is counted **NOT-RUN** and is never passed. The
+accepted product mount (`/tmp/lex_accepted/product`) was present.
+
+**Counts — `minimal_ret_ca_benchmark` suite** (`SHIM_PASS`): 4 passed, 0 failed,
+0 skipped, 1 `UNSUPPORTED`. Record:
+`results/evaluation/orchestration/40017649220_R1_minimal_ret_ca_pytest_shim.json`.
+
+**Counts — multilingual / provenance reuse suites** (`SHIM_PASS`): 73 passed,
+0 failed, 0 skipped, 0 `UNSUPPORTED`, across
+`test_stand_ready_multilingual_probe.py`, `test_f3b_restore_disposition.py`,
+`test_v59_stand_ready_verification.py` and
+`test_packet_of_record_stand_ready.py`. Record:
+`results/evaluation/orchestration/40017649220_R1_multiling_prov_pytest_shim.json`.
+
+**The fifth test is NOT-RUN under the shim, and separately measured.**
+`test_end_to_end_on_accepted_mount_if_present` is the one case the shim reports
+`UNSUPPORTED`, because it requires the `tmp_path` fixture the shim cannot inject;
+it is restated as **NOT-RUN** and is **not** counted as passed above. It was
+additionally executed out-of-shim by injecting `tmp_path` into a scratch tmpdir
+only, at **PASS in 10.868s**, with all outputs confined to that tmpdir
+(`no_committed_record_rewritten=true`). Record:
+`results/evaluation/orchestration/40017649220_R1_e2e_fixture_injected.json`. This
+out-of-shim measurement is additional evidence and never re-counts into the
+shim verdict.
+
+**Reuse instrument.** The accepted multilingual/provenance reuse instrument
+`evaluation/run_v3_multilingual_provenance_reuse.py` was re-executed with a
+scratch cwd and byte-compared to the accepted historical record: identical,
+reproducing `PARTIAL_MISS` (0/3 qids row_ok) as accepted. The historical record
+was not written. Record:
+`results/evaluation/multilingual_provenance_reuse/40017649220.json`; report:
+`reports/evaluation/MULTILINGUAL_PROVENANCE_REUSE_40017649220.md`.
+
+Counts are published in lane state under `test_suite.minimal_ret_ca_benchmark`
+and `test_suite.multilingual_provenance_reuse` in `state/evaluation.json`.
+
+---
+
+## Ordering / Provenance Disclosure (repair round 1 — F3)
+
+Run 40017649220 is **NOT a freeze-first cycle** and must not be cited as one:
+the claim-bearing execution ran at `2026-10-23T20:16:19Z` and the cycle's only
+commit landed at `2026-10-23T20:37:19Z`. The cycle hypothesis/provenance record
+`evaluation/MINIMAL_RET_CA_40017649220_CYCLE_HYPOTHESIS_V1.json` discloses the
+true ordering; it was written in repair round 1 and does **not** retroactively
+freeze anything. It also records (a) the inherited frozen spec — instrument
+commit `2e7d4fe566bf2ae7e80f0cfede09d0f0cb22cc83`, the frozen QIDs, the frozen
+label and geometry incumbents and the combined-verdict rule — and (b) the
+no-post-hoc-tuning proofs (instrument and test byte-identical to accepted base
+`b8265afb`; output quantity-for-quantity identical to the base-committed
+`test_run_1`/`final_check`; no frozen file edited by the cycle).
 
 ---
 
@@ -109,4 +164,15 @@ The counter-authority evidence gap remains the binding blocker:
 
 ---
 
-*This cycle satisfies the FAST MVP MODE directive: "build the smallest executable retrieval/counter-authority benchmark that can falsify the product. Reuse existing multilingual/provenance tests. Do not rerun obsolete universal-174k benchmarks."*
+*FAST MVP MODE (measured scope). This cycle built the smallest executable
+retrieval/counter-authority benchmark that can falsify the product
+(`minimal_ret_ca_benchmark`) and did **not** rerun obsolete universal-174k
+benchmarks (`no_174k_benchmark_rerun=true`). The multilingual/provenance suites
+that this cycle's footer previously claimed as reused were, as of repair round 1,
+actually executed and recorded for run 40017649220 (73/0/0/0 under the shim) and
+the accepted reuse instrument was re-run (`PARTIAL_MISS`, byte-identical to the
+accepted record) — see "Test Suite Verification" above. The FAST-MVP reuse
+claim now refers only to work that was executed and committed.*
+
+*Ordering provenance: run 40017649220 is NOT freeze-first; see
+`evaluation/MINIMAL_RET_CA_40017649220_CYCLE_HYPOTHESIS_V1.json`.*
