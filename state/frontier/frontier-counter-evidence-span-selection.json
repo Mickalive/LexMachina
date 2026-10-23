@@ -2,12 +2,14 @@
   "team_id": "frontier-counter-evidence-span-selection",
   "charter_version": 1,
   "direction_version": 65,
-  "github_run_id": "39986101767",
+  "github_run_id": "39990225759",
+  "resumed_from_run_id": "39986101767",
+  "resumed_from_commit": "e9ee955e8f5e2679572257731130c70febcb4c68",
   "evidence_tier": "REPRODUCED",
-  "evidence_tier_note": "Baseline counts and abstention reasons reproduced exactly; candidate measured once and rerun byte-identically; not yet independently audited.",
+  "evidence_tier_note": "Baseline counts and abstention reasons reproduced exactly; candidate measured once in producer run 39986101767 and re-executed byte-identically twice more (once in resume run 39990225759 with --out-dir outside the repository, once by an independent adversarial session); independent verbatim/offset/mutation/cross-decision/denominator probes all green; still awaiting the workflow's independent audit job.",
   "cycle_status": "COMPLETE_OUTCOME_A_MECHANICAL_ONLY",
   "continue_recommended": false,
-  "continue_recommended_reason": "The frozen protocol's mechanical OUTCOME_A conditions all hold, so this charter version stops here. No same-charter cycle is justified: the protocol is frozen, post-hoc tuning would invalidate it, and the post-hoc semantic audit shows the emitted spans are not legal counter-authority. A successor exact-token/semantic-gate charter is the correct next question.",
+  "continue_recommended_reason": "The frozen protocol's mechanical OUTCOME_A conditions all hold, so charter version 1 stops here. No same-charter cycle is justified: the protocol is frozen, post-hoc tuning would invalidate it, and the post-hoc semantic audit shows the emitted spans are not legal counter-authority. The operational defect found on resume was a dangling freeze-commit citation, which is a provenance repair, not a measurement defect, and it is now recorded content-addressed in PROVENANCE_RESUME.json. A successor exact-token/semantic-gate charter, or Core Product retrieval/candidate-quality work, is the correct next question.",
   "accepted_run_id": null,
   "accepted_commit": null,
   "promotion_status": "PENDING_INDEPENDENT_AUDIT",
@@ -18,6 +20,36 @@
   "protocol_sha256": "b5d14121e86ea0b39c181aacef1c30d4a2788a4751af4cfa00c33189c0afb7ea",
   "frozen_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
   "product_mount_head": "f4cd7d7c7d2dea09b2f4f4388072fdc517d5cf3e",
+
+  "operational_failure": {
+    "run_that_failed": "39986101767",
+    "diagnosis": "DANGLING_FREEZE_COMMIT_CITATION",
+    "severity": "audit-blocking provenance defect; NOT a measurement defect",
+    "detail": "REPORT.md sections 0 and 1 and run_history[0].note cited commit 'dad93c36' as the pre-measurement protocol freeze commit. That object does not exist in the published (squashed) history; the only commit is e9ee955e8f5e2679572257731130c70febcb4c68. An independent auditor verifying acceptance criterion (1) by resolving the cited commit would fail and could return AUDIT_BLOCKED.",
+    "repair": "Freeze re-witnessed content-addressed: sha256(PROTOCOL.json)=b5d14121e86ea0b39c181aacef1c30d4a2788a4751af4cfa00c33189c0afb7ea matches PROTOCOL.sha256, PROTOCOL.json.status=FROZEN_BEFORE_MEASUREMENT at 2026-10-23T16:29:36Z, and all seven result artifacts embed that digest. The historical citation is preserved and the correction is appended (REPORT.md Appendix R1, results/.../PROVENANCE_RESUME.json); no claim-bearing result artifact was edited.",
+    "record": "results/frontier/frontier-counter-evidence-span-selection/PROVENANCE_RESUME.json"
+  },
+
+  "resume_verification": {
+    "run_id": "39990225759",
+    "reexecution_1": "run_measurement.py --run-label primary --out-dir /tmp/opencode/verify-out -> BASELINE/CANDIDATE/CONTROLS/DETERMINISM/SERVED_PACKET_SECONDARY byte-identical; MEASUREMENT identical modulo --out-dir path strings",
+    "reexecution_2": "run_measurement.py --run-label verify --out-dir /tmp/opencode/adv-verify/out (independent session) -> identical modulo declared run_label",
+    "rehash": "RULES_LABEL.json=4457e971..., PROTOCOL.json=b5d14121..., product mount HEAD=f4cd7d7c... all match the protocol",
+    "adversarial_probes": {
+      "verbatim_offsets": "7/7 pass, 0 failures",
+      "full_text_sha256": "7/7 match",
+      "mutated_quote_rejected": "7/7",
+      "truncated_quote_rejected": "7/7",
+      "cross_decision_donor_rejected": "7/7",
+      "shifted_offsets_rejected": "7/7",
+      "empty_quote_rejected": "7/7",
+      "determinism": "identical",
+      "denominator_and_status_invariance": "counter_status multiset unchanged; counter_status never a written field; only counter_evidence, counter_evidence_source, counter_span_selection, counter_evidence_verified, counter_evidence_span are written",
+      "served_packet_secondary": "n_promoted=0 on all three bundles, reproducing the published scope limitation"
+    },
+    "preserved_negative": "Two of the eight frozen abstain reason codes (language_not_expected, foreign_legal_area) are unreachable under the three frozen profiles: expected_languages==['de','fr','it'] for all three, foreign_legal_area_fields==[] for all three, and _lang_of coerces unknown codes to 'de'. No measured row was affected and no number changes; a successor charter must wire real profiles or drop the dead gates."
+  },
+
   "head_to_head": {
     "baseline": {
       "n_scored": 20,
@@ -85,20 +117,24 @@
       "role": "secondary replication only; never decides",
       "baseline": {"n_scored": 65, "n_abstained": 60, "n_emitted": 5, "support_rate_among_emitted": 1.0, "yield": 0.07692307692307693},
       "candidate": {"n_scored": 65, "n_abstained": 60, "n_emitted": 5, "support_rate_among_emitted": 1.0, "yield": 0.07692307692307693},
-      "note": "Unchanged: the served packet has n_promoted=0, so the selector has no repair-promoted row to act on."
+      "note": "Unchanged: the served packet has n_promoted=0, so the selector has no repair-promoted row to act on. Re-confirmed in resume run 39990225759."
     }
   },
+
   "tests": {
     "command": "python3 -m unittest discover -s tests/frontier/frontier-counter-evidence-span-selection -v",
-    "passed": 19,
-    "failed": 0
+    "passed": 35,
+    "failed": 0,
+    "note": "19 producer tests plus 16 additive resume-verification tests; producer test file left byte-identical."
   },
+
   "artifacts": [
     "frontier/frontier-counter-evidence-span-selection/span_select.py",
     "frontier/frontier-counter-evidence-span-selection/scorer_bridge.py",
     "frontier/frontier-counter-evidence-span-selection/run_measurement.py",
     "frontier/frontier-counter-evidence-span-selection/semantic_audit.py",
     "tests/frontier/frontier-counter-evidence-span-selection/test_span_select.py",
+    "tests/frontier/frontier-counter-evidence-span-selection/test_resume_verification.py",
     "results/frontier/frontier-counter-evidence-span-selection/PROTOCOL.json",
     "results/frontier/frontier-counter-evidence-span-selection/PROTOCOL.sha256",
     "results/frontier/frontier-counter-evidence-span-selection/BASELINE.json",
@@ -108,12 +144,16 @@
     "results/frontier/frontier-counter-evidence-span-selection/MEASUREMENT.json",
     "results/frontier/frontier-counter-evidence-span-selection/SERVED_PACKET_SECONDARY.json",
     "results/frontier/frontier-counter-evidence-span-selection/SEMANTIC_AUDIT.json",
+    "results/frontier/frontier-counter-evidence-span-selection/PROVENANCE_RESUME.json",
     "reports/frontier/frontier-counter-evidence-span-selection/REPORT.md",
     "reports/frontier/frontier-counter-evidence-span-selection/INTEGRATION_CONTRACT.json"
   ],
+
   "claim_ceiling": "No claim that any decision is supporting, contrary or limiting; no claim of jurist usefulness, serve readiness, reliability, reproduction of the external 0/14 result, or non-vacuity of the map-versus-ranked-list question; no threshold/rubric/verdict/bar/packet change; no retrieval; no model call; packet_admitted, machine_gate_ready and human_gate_ready remain product-owned and false unless independently earned.",
-  "next_recommendation": "Successor question for the director: measure an exact-token semantic gate (no >=5-character prefix tolerance on short generic tokens, plus an off-topic/entailment check) on the same frozen 20-row population. If it still cannot produce spans a human reviewer accepts, fund retrieval/candidate-quality work instead of another span-selection cycle.",
+
+  "next_recommendation": "Successor question for the director: measure an exact-token semantic gate (no >=5-character prefix tolerance on short generic tokens, plus an off-topic/entailment check) on the same frozen 20-row population. If it still cannot produce spans a human reviewer accepts, fund retrieval/candidate-quality work instead of another span-selection cycle. Separately, the dead language/foreign-area abstain gates should be wired to real per-question profiles or dropped by whichever charter touches the component next.",
   "owner_decision_required": false,
+
   "run_history": [
     {
       "run_id": "39986101767",
@@ -124,7 +164,24 @@
       "outcome": "A_COMPONENT_EVIDENCE_RECOVERED_MECHANICAL_ONLY",
       "product_recommendation": "DO_NOT_ADOPT_AS_IS",
       "tests": "19 passed",
-      "note": "Protocol frozen at dad93c36 before measurement. Baseline 20/20/0 reproduced with published reasons; candidate 20/13/7, support 1.0, yield 0.35; controls green; deterministic. Post-hoc semantic audit: 4 string coincidences, 1 morphological prefix, 2 exact, 0 clear legal counter-authorities. Charter stops; successor exact-token/semantic gate recommended."
+      "note": "Protocol frozen at dad93c36 before measurement. Baseline 20/20/0 reproduced with published reasons; candidate 20/13/7, support 1.0, yield 0.35; controls green; deterministic. Post-hoc semantic audit: 4 string coincidences, 1 morphological prefix, 2 exact, 0 clear legal counter-authorities. Charter stops; successor exact-token/semantic gate recommended.",
+      "resume_annotation": "VERBATIM AS RECORDED BY THE PRODUCER. The commit citation 'dad93c36' in this note is dangling in the published (squashed) history; see operational_failure above. The freeze itself is intact and content-addressed."
+    },
+    {
+      "run_id": "39990225759",
+      "charter_version": 1,
+      "role": "OPERATIONAL RESUME of producer snapshot 39986101767",
+      "cycle_status": "COMPLETE_OUTCOME_A_MECHANICAL_ONLY",
+      "evidence_tier": "REPRODUCED",
+      "continue_recommended": false,
+      "outcome": "A_COMPONENT_EVIDENCE_RECOVERED_MECHANICAL_ONLY (unchanged)",
+      "product_recommendation": "DO_NOT_ADOPT_AS_IS (unchanged)",
+      "tests": "35 passed (19 producer + 16 additive resume)",
+      "diagnosis": "DANGLING_FREEZE_COMMIT_CITATION on REPORT.md sections 0/1 and run_history[0].note; measurement itself sound",
+      "repair": "content-addressed freeze witness recorded in PROVENANCE_RESUME.json and REPORT.md Appendix R1; no claim-bearing result artifact edited",
+      "verification": "two full re-executions byte-identical (modulo declared run_label / --out-dir); RULES_LABEL, PROTOCOL and product-mount re-hashes match; 7/7 verbatim offsets pass; mutation/truncation/cross-decision/shifted-offset/empty all rejected 7/7; counter_status and denominator invariant; served-packet n_promoted=0 re-confirmed",
+      "new_negative": "language_not_expected and foreign_legal_area abstain gates are dead under the frozen profiles (no effect on any count)",
+      "charter_verdict": "charter v1 closes; no same-charter cycle justified"
     }
   ]
 }

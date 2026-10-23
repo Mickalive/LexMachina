@@ -1,0 +1,170 @@
+{
+  "schema": "frontier-counter-evidence-span-selection/provenance-resume/1",
+  "team_id": "frontier-counter-evidence-span-selection",
+  "charter_version": 1,
+  "resume_run_id": "39990225759",
+  "resumed_producer_run_id": "39986101767",
+  "resumed_publish_commit": "e9ee955e8f5e2679572257731130c70febcb4c68",
+  "resumed_publish_branch": "origin/cycle/frontier/frontier-counter-evidence-span-selection/39986101767/team",
+  "role": "OPERATIONAL-RESUME RECORD. This file diagnoses why the producer snapshot of run 39986101767 could not be independently audited as written, records the content-addressed replacement freeze witness, and records the re-execution verification performed by resume run 39990225759. It does NOT change PROTOCOL.json, BASELINE.json, CANDIDATE.json, CONTROLS.json, DETERMINISM.json, MEASUREMENT.json, SERVED_PACKET_SECONDARY.json or SEMANTIC_AUDIT.json, and it moves no frozen number, label or verdict.",
+
+  "operational_failure": {
+    "diagnosis": "DANGLING_FREEZE_COMMIT_CITATION",
+    "severity": "audit-blocking provenance defect; NOT a measurement defect",
+    "detail": "REPORT.md sections 0 and 1 and state/frontier/frontier-counter-evidence-span-selection.json run_history[0].note both cite commit 'dad93c36' as the pre-measurement protocol freeze commit. That object does not exist in the repository: `git cat-file -t dad93c36` returns 'fatal: Not a valid object name dad93c36'. The producer branch was published as a single squashed commit e9ee955e8f5e2679572257731130c70febcb4c68, which orphans the intermediate local commit hash the report cites. An independent auditor verifying acceptance criterion (1) - FREEZE FIRST, commit a machine-readable protocol record before any measurement - by resolving the cited commit would fail to locate the freeze and could return AUDIT_BLOCKED on a broken provenance chain even though the freeze itself is intact.",
+    "root_cause": "The report was drafted against the producer's local pre-squash history; the branch was then published squashed, so the commit-addressed citation became unresolvable. The freeze witness was recorded in two places, one commit-addressed (broken) and one content-addressed (intact).",
+    "what_is_intact": [
+      "results/frontier/frontier-counter-evidence-span-selection/PROTOCOL.json is unchanged since the producer run and carries status=FROZEN_BEFORE_MEASUREMENT and frozen_at=2026-10-23T16:29:36Z.",
+      "PROTOCOL.json contains the success rule, the abstain condition, the span rule and the claim ceiling INSIDE the frozen payload (acceptance criterion 1).",
+      "PROTOCOL.sha256 (b5d14121e86ea0b39c181aacef1c30d4a2788a4751af4cfa00c33189c0afb7ea) matches a fresh sha256 of PROTOCOL.json.",
+      "Every result artifact embeds protocol_sha256=b5d14121e86ea0b39c181aacef1c30d4a2788a4751af4cfa00c33189c0afb7ea, so the measurement chain is content-addressed to the frozen payload.",
+      "PROTOCOL.json.frozen_at (2026-10-23T16:29:36Z) precedes every result artifact written by the producer run."
+    ],
+    "repair": "The freeze witness is re-stated content-addressed in this file and in the REPORT.md appendix 'Appendix R1'. No claim-bearing result artifact is edited, deleted or re-written. The unresolvable commit citation is recorded as a defect rather than silently removed."
+  },
+
+  "freeze_witness_content_addressed": {
+    "protocol_path": "results/frontier/frontier-counter-evidence-span-selection/PROTOCOL.json",
+    "protocol_sha256": "b5d14121e86ea0b39c181aacef1c30d4a2788a4751af4cfa00c33189c0afb7ea",
+    "protocol_status": "FROZEN_BEFORE_MEASUREMENT",
+    "protocol_frozen_at": "2026-10-23T16:29:36Z",
+    "protocol_github_run_field": "39986101767",
+    "success_rule_inside_frozen_payload": true,
+    "success_rule_path": "PROTOCOL.json -> success_rule (contains OUTCOME_A_COMPONENT, OUTCOME_B_BOUNDED_NEGATIVE, VOID and claim_ceiling)",
+    "claim_ceiling_inside_frozen_payload": true,
+    "claim_ceiling_path": "PROTOCOL.json -> success_rule.claim_ceiling",
+    "rehash_check": "sha256sum PROTOCOL.json == PROTOCOL.sha256 -> MATCH",
+    "chain_of_custody": [
+      {"artifact": "BASELINE.json", "sha256": "8d8664dc6d1e58af1abcf43deda6f69542cec2685e45628a9d2ea193bd03c965", "embeds_protocol_sha256": true},
+      {"artifact": "CANDIDATE.json", "sha256": "05d270af97ddf5fafb3cab1ac4d25a0e9ba881182390a3bbbb643485b39d76d3", "embeds_protocol_sha256": true},
+      {"artifact": "CONTROLS.json", "sha256": "811c2fb8d9459d62e361f32e68aeae593a07eac9e92ceb4b0529b93464e9f84b", "embeds_protocol_sha256": true},
+      {"artifact": "DETERMINISM.json", "sha256": "65aa0b17c9e92d956c447cfd57c4589bc1919988fed58abb55e684db209dc780", "embeds_protocol_sha256": true},
+      {"artifact": "MEASUREMENT.json", "sha256": "e60a5af60a513b9ee613b6ec611cbefd696b26aa36617e5655979f4907bc9194", "embeds_protocol_sha256": true},
+      {"artifact": "SERVED_PACKET_SECONDARY.json", "sha256": "fa1cf1258f4b8bc4d66f43ddd4ce21f69b91c41967650be0b12d88b30a80e922", "embeds_protocol_sha256": true},
+      {"artifact": "SEMANTIC_AUDIT.json", "sha256": "9b543b91629aa86146f85cb7b147ce7a92830bf037143c60b7a2025941402601", "embeds_protocol_sha256": true}
+    ]
+  },
+
+  "resume_verification": {
+    "performed_by_run": "39990225759",
+    "git_status_before": "clean on branch operational-resume == e9ee955",
+    "reexecution_1": {
+      "command": "python3 frontier/frontier-counter-evidence-span-selection/run_measurement.py --run-label primary --out-dir /tmp/opencode/verify-out",
+      "note": "out-dir redirected outside the repository so no committed result artifact was overwritten",
+      "results": {
+        "BASELINE.json": "BYTE_IDENTICAL",
+        "CANDIDATE.json": "BYTE_IDENTICAL",
+        "CONTROLS.json": "BYTE_IDENTICAL",
+        "DETERMINISM.json": "BYTE_IDENTICAL",
+        "SERVED_PACKET_SECONDARY.json": "BYTE_IDENTICAL",
+        "MEASUREMENT.json": "IDENTICAL modulo the declared --out-dir absolute path strings"
+      }
+    },
+    "reexecution_2": {
+      "command": "python3 frontier/frontier-counter-evidence-span-selection/run_measurement.py --run-label verify --out-dir /tmp/opencode/adv-verify/out",
+      "performed_by": "independent adversarial subagent session ses_e964c2b47ffepUZeVgDvxQrrKP",
+      "results": {
+        "BASELINE.json": "IDENTICAL modulo declared run_label",
+        "CANDIDATE.json": "IDENTICAL modulo declared run_label",
+        "CONTROLS.json": "IDENTICAL modulo declared run_label",
+        "DETERMINISM.json": "IDENTICAL modulo declared run_label",
+        "SERVED_PACKET_SECONDARY.json": "IDENTICAL modulo declared run_label"
+      }
+    },
+    "rehash_checks": {
+      "RULES_LABEL.json": {
+        "path": "/tmp/lex_accepted/core/product/product/frozen/RULES_LABEL.json",
+        "observed": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+        "expected": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+        "match": true
+      },
+      "protocol_json": {
+        "observed": "b5d14121e86ea0b39c181aacef1c30d4a2788a4751af4cfa00c33189c0afb7ea",
+        "match": true
+      },
+      "product_mount_head": {
+        "expected": "f4cd7d7c7d2dea09b2f4f4388072fdc517d5cf3e",
+        "match": true
+      }
+    },
+    "independent_adversarial_probes": {
+      "c1_verbatim_offsets": "7/7 evidenced quotes satisfy full_text[char_start:char_end] == quote AND quote in the cited decision's own full_text AND full_text_sha256 matches; 0 failures",
+      "c2_mutation": "7/7 one-character mutations rejected by span_select.verify_span",
+      "c2_truncation": "7/7 end-truncated quotes rejected",
+      "c2_cross_decision": "7/7 donor quotes taken from a different decision in the same bundle rejected",
+      "c2_shifted_offsets": "7/7 quotes re-submitted with offsets shifted by +1 rejected",
+      "c2_empty": "7/7 empty quotes rejected",
+      "c3_determinism": "apply_span_selection run twice on the same repaired bundle -> identical output bundle and identical decision list",
+      "c4_abstention": "empty full_text -> abstain reason no_retrieved_text; the language_not_expected and foreign_legal_area gates are unreachable under the three frozen profiles (see preserved_negative_observations)",
+      "f_denominator_invariance": "promoted-row counter_status multiset identical before and after span selection (contrary_or_exception:3, candidate-limiting:3, candidate-contrary:2); counter_status is never among the changed fields; only counter_evidence, counter_evidence_source, counter_span_selection, counter_evidence_verified and counter_evidence_span are written",
+      "secondary_packet": "served packet 38839347028 confirmed n_promoted=0 across all three bundles, so the selector has no row to act on - the published scope limitation is reproduced"
+    },
+    "git_status_after": "empty before commit; only files under the team allowlist are written by this resume"
+  },
+
+  "preserved_negative_observations": [
+    {
+      "id": "dead_abstain_gates",
+      "severity": "WARN, non-blocking, does not move any count",
+      "finding": "Two of the eight frozen abstain reason codes are unreachable on this population. rules.anchor_profile(qid).expected_languages == ['de','fr','it'] for all three questions and foreign_legal_area_fields == [] for all three, and span_select._lang_of coerces any language code outside {de,fr,it} to 'de', which is itself in expected_languages. Therefore language_not_expected and foreign_legal_area can never fire under the frozen profiles. No row in the measured population was affected, so no number changes; recorded because a successor charter reusing this component should either wire real per-question profiles or drop the dead gates."
+    },
+    {
+      "id": "prefix_tolerance_defect",
+      "severity": "product-decline driver (already in the producer run)",
+      "finding": "4/7 mechanically emitted spans are string coincidences licensed by the frozen >=5-character prefix tolerance ('unter'->'untergang' x3, 'kapital'->'kapitalverletzung' x1) and 0/7 are clear legal counter-authorities. Unchanged by this resume."
+    }
+  ],
+
+  "corrections_applied_by_resume": [
+    {
+      "target": "reports/frontier/frontier-counter-evidence-span-selection/REPORT.md",
+      "change": "APPENDED 'Appendix R1 - Operational-resume provenance correction (run 39990225759)'. Sections 0 and 1 of the historical report are left byte-for-byte intact; the dangling 'dad93c36' citation is corrected in the appendix rather than rewritten in place, so the original claim-bearing text is preserved."
+    },
+    {
+      "target": "reports/frontier/frontier-counter-evidence-span-selection/INTEGRATION_CONTRACT.json",
+      "change": "decline_path.what_is_retained said '16 tests'; the suite that produced the recorded result is 19 tests. Corrected to 19 and a resume_verification block added. No adoption condition, forbidden constant, machine check, field name or recommendation is changed."
+    },
+    {
+      "target": "state/frontier/frontier-counter-evidence-span-selection.json",
+      "change": "github_run_id re-stamped to 39990225759, prior run appended to run_history verbatim, resume entry added, charter_version retained, continue_recommended kept false."
+    },
+    {
+      "target": "tests/frontier/frontier-counter-evidence-span-selection/test_resume_verification.py",
+      "change": "ADDITIVE new test module (17 tests) that machine-checks the content-addressed freeze, the immutability of the eight producer result artifacts, the recorded provenance defect and the unchanged integration-contract scope. The producer test file test_span_select.py is left byte-identical at ebdd646d31ae354f195dfb02cbe71de13286b83067f7a5f73dc837ab883f1b83. Suite total is now 35 tests, all passing."
+    }
+  ],
+
+  "scope_guard": {
+    "allowlist": [
+      "frontier/frontier-counter-evidence-span-selection",
+      "tests/frontier/frontier-counter-evidence-span-selection",
+      "results/frontier/frontier-counter-evidence-span-selection",
+      "reports/frontier/frontier-counter-evidence-span-selection",
+      "state/frontier/frontier-counter-evidence-span-selection.json",
+      "data/frontier/frontier-counter-evidence-span-selection"
+    ],
+    "zero_diff_on": [
+      ".github/**",
+      "product/frozen/**",
+      "evaluation/frozen/**",
+      "product/**",
+      "state/accepted_registry.json",
+      "results/accepted-state/**"
+    ],
+    "scratch_written_outside_repository": [
+      "/tmp/opencode/verify-out",
+      "/tmp/opencode/adv-verify"
+    ]
+  },
+
+  "outcome_unchanged": {
+    "mechanical": "A_COMPONENT_EVIDENCE_RECOVERED (candidate 7 emitted vs baseline 0, controls 0/0, denominator 20 unchanged)",
+    "semantic": "0/7 clear legal counter-authorities; 4/7 string coincidences",
+    "team_verdict": "COMPLETE_OUTCOME_A_MECHANICAL_ONLY",
+    "product_recommendation": "DO_NOT_ADOPT_AS_IS",
+    "continue_recommended": false,
+    "continue_recommended_reason": "The frozen protocol's mechanical OUTCOME_A conditions all hold, so charter v1 stops here. A further cycle under the SAME charter would require post-hoc tuning of a frozen protocol, which the charter forbids. The binding defect is semantic (prefix tolerance and off-point candidates), which is a successor charter's question or Core Product's retrieval/candidate-quality work - not a defect this charter may repair in place."
+  },
+
+  "claim_ceiling": "Same ceiling as the frozen protocol and REPORT.md section 8. Nothing here claims any decision is supporting, contrary or limiting; nothing claims jurist usefulness, serve readiness, reliability, reproduction of the external 0/14 result, or non-vacuity of the map-versus-ranked-list question. No threshold, rubric byte, verdict class, absolute bar or packet is created or changed. packet_admitted, machine_gate_ready and human_gate_ready remain product-owned and false unless independently earned."
+}

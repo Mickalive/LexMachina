@@ -289,3 +289,140 @@ target.
 | `run_measurement.py` | `82eca3c826a861969f65f65e970a65911733a409c077b8f532358c1f6b3ef01c` |
 | `semantic_audit.py` | `d40403142b60f89a23da07e7e1649a8d54e69b05d4a06f67aa10af0fd1c24694` |
 | `test_span_select.py` | `ebdd646d31ae354f195dfb02cbe71de13286b83067f7a5f73dc837ab883f1b83` |
+
+---
+
+## Appendix R1 - Operational-resume provenance correction (run `39990225759`)
+
+*This appendix is additive. Sections 0-12 above are left byte-for-byte as the
+producer run `39986101767` wrote them. Machine-readable record:
+`results/frontier/frontier-counter-evidence-span-selection/PROVENANCE_RESUME.json`.*
+
+### R1.1 What failed operationally
+
+The producer run `39986101767` completed its measurement and published commit
+`e9ee955e8f5e2679572257731130c70febcb4c68` on
+`origin/cycle/frontier/frontier-counter-evidence-span-selection/39986101767/team`.
+The measurement itself is sound; the **provenance citation is not**.
+
+Sections 0 and 1 above, and
+`state/frontier/frontier-counter-evidence-span-selection.json` `run_history[0].note`,
+cite commit **`dad93c36`** as the pre-measurement protocol freeze commit. That
+object does not exist in the repository:
+
+```
+$ git cat-file -t dad93c36
+fatal: Not a valid object name dad93c36
+```
+
+The branch was published as a single squashed commit, which orphans the
+producer's intermediate local commit hash. An independent auditor verifying
+acceptance criterion (1) ("FREEZE FIRST ... commit a machine-readable protocol
+record ... no field of it may be edited after execution") by resolving the cited
+commit would fail to locate the freeze and could return `AUDIT_BLOCKED` on a
+broken provenance chain - even though the freeze itself is intact. That is the
+defect this appendix repairs.
+
+### R1.2 The freeze witness, restated content-addressed
+
+The freeze was real and is provable without any commit hash:
+
+| witness | value |
+|---|---|
+| protocol path | `results/frontier/frontier-counter-evidence-span-selection/PROTOCOL.json` |
+| `sha256(PROTOCOL.json)` | `b5d14121e86ea0b39c181aacef1c30d4a2788a4751af4cfa00c33189c0afb7ea` |
+| `PROTOCOL.sha256` | matches a fresh `sha256sum` of `PROTOCOL.json` |
+| `PROTOCOL.json.status` | `FROZEN_BEFORE_MEASUREMENT` |
+| `PROTOCOL.json.frozen_at` | `2026-10-23T16:29:36Z`, before every result artifact |
+| success rule | lives **inside** the frozen payload (`success_rule` block) |
+| claim ceiling | lives **inside** the frozen payload (`success_rule.claim_ceiling`) |
+| chain of custody | all seven result artifacts embed `protocol_sha256 = b5d14121...` |
+
+No field of `PROTOCOL.json` and no claim-bearing result artifact was edited by
+this resume. The unresolvable citation is recorded as a defect, not deleted.
+
+### R1.3 Independent re-execution (resume run `39990225759`)
+
+Two full re-executions were run with `--out-dir` redirected **outside** the
+repository, so no committed artifact was overwritten:
+
+| artifact | re-exec 1 (`--run-label primary`) | re-exec 2 (`--run-label verify`, independent session) |
+|---|---|---|
+| `BASELINE.json` | byte-identical | identical modulo declared `run_label` |
+| `CANDIDATE.json` | byte-identical | identical modulo declared `run_label` |
+| `CONTROLS.json` | byte-identical | identical modulo declared `run_label` |
+| `DETERMINISM.json` | byte-identical | identical modulo declared `run_label` |
+| `SERVED_PACKET_SECONDARY.json` | byte-identical | identical modulo declared `run_label` |
+| `MEASUREMENT.json` | identical modulo the `--out-dir` path strings | identical modulo `run_label` and `--out-dir` |
+
+Re-hash checks: `RULES_LABEL.json` = `4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608`
+(matches the charter), `PROTOCOL.json` = `b5d14121...` (matches
+`PROTOCOL.sha256`), product mount HEAD = `f4cd7d7c...` (matches the protocol).
+
+### R1.4 Additional adversarial probes (this resume)
+
+| probe | observed |
+|---|---|
+| all 7 emitted quotes satisfy `full_text[char_start:char_end] == quote` in the cited decision's own `full_text` | 7/7 pass, 0 failures |
+| recorded `full_text_sha256` matches a fresh hash of that `full_text` | 7/7 pass |
+| 1-character mutation of each emitted quote | 7/7 rejected |
+| end-truncated quote with original offsets | 7/7 rejected |
+| donor quote taken from a **different** decision in the same bundle | 7/7 rejected |
+| quote re-submitted with offsets shifted by +1 | 7/7 rejected |
+| empty quote | 7/7 rejected |
+| `apply_span_selection` run twice on the same repaired bundle | identical |
+| empty `full_text` | abstains with `no_retrieved_text` |
+| `counter_status` multiset before vs after span selection | identical (`contrary_or_exception:3`, `candidate-limiting:3`, `candidate-contrary:2`); `counter_status` is never a changed field |
+| only fields written by the component | `counter_evidence`, `counter_evidence_source`, `counter_span_selection`, `counter_evidence_verified`, `counter_evidence_span` |
+| served packet `38839347028` `n_promoted` | 0 across all three bundles, reproducing the published scope limitation |
+
+### R1.5 Preserved negative observation: two frozen abstain gates are dead
+
+`rules.anchor_profile(qid).expected_languages == ['de','fr','it']` for all three
+questions and `foreign_legal_area_fields == []` for all three, and
+`span_select._lang_of` coerces any language code outside `{de,fr,it}` to `'de'`,
+which is itself in `expected_languages`. The `language_not_expected` and
+`foreign_legal_area` abstain reason codes therefore **cannot fire** under the
+frozen profiles. No row in the measured population was affected and **no number
+changes**; this is recorded because a successor charter reusing the component
+must either wire real per-question profiles or drop the dead gates rather than
+report them as safety properties.
+
+### R1.6 Outcome unchanged
+
+The resume changes **no** verdict, count, label or recommendation:
+
+- mechanical: `A_COMPONENT_EVIDENCE_RECOVERED` (candidate 7 emitted vs baseline 0, controls 0/0, denominator 20 unchanged, support among emitted 1.0);
+- semantic: 0/7 clear legal counter-authorities, 4/7 string coincidences;
+- team verdict: `COMPLETE_OUTCOME_A_MECHANICAL_ONLY`;
+- product recommendation: `DO_NOT_ADOPT_AS_IS`;
+- `continue_recommended = false` - a further cycle under the **same** charter would require post-hoc tuning of a frozen protocol, which the charter forbids.
+
+### R1.7 One factual correction in the integration contract
+
+`INTEGRATION_CONTRACT.json` `decline_path.what_is_retained` said "16 tests"; the
+suite that produced the recorded result is **19** tests. Corrected to 19 in the
+same resume commit. No adoption condition, forbidden constant, machine check,
+field name or recommendation was changed.
+
+### R1.8 Additive resume test suite
+
+`tests/frontier/frontier-counter-evidence-span-selection/test_resume_verification.py`
+is a **new** module; the producer's `test_span_select.py` is left byte-identical
+at `ebdd646d31ae354f195dfb02cbe71de13286b83067f7a5f73dc837ab883f1b83` (still
+the `19 passed` recorded in section 0). The suite total is now **35 tests, all
+passing**. The new module machine-checks, without any network or mount:
+
+- `sha256(PROTOCOL.json) == PROTOCOL.sha256` and `status == FROZEN_BEFORE_MEASUREMENT`;
+- `success_rule` (including `claim_ceiling`) and `abstain_condition` and
+  `span_rule` are inside the frozen payload;
+- every result artifact still embeds `protocol_sha256 = b5d14121...`;
+- all eight producer result artifacts are still **byte-identical** to the hashes
+  recorded in section 12 - the resume may append records but may never rewrite
+  results;
+- the dangling `dad93c36` citation is still present in this report (preserved,
+  not erased) and the corrected content-addressed witness is in
+  `PROVENANCE_RESUME.json`;
+- the integration contract still forbids exactly the ten product-owned fields,
+  still recommends `DECLINE_AS_IS`, and still pins the denominator and verbatim
+  machine checks.
