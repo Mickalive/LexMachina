@@ -47,6 +47,14 @@ What this module never does
 The field it writes is deliberately named ``counter_surface_signal`` — NOT
 ``adversarial_retrieval_signal`` — so the accepted emission-repair population
 (adversarial-survivor proposals) is untouched by construction.
+
+Direction v64 (run 39949461593) adds the mode-aware PIPELINE budget: a cached
+fixture/offline replay spends :data:`CACHED_HYDRATION_TOP` (24) local units,
+while live/refresh keeps :data:`LIVE_HYDRATION_TOP` (8) network-fetch units.
+The scan's own default stays 8 and every caller still passes an explicit cap;
+only the pipeline's cached path changed.  The measured known-authority delta
+is published in ``results/product/counter_surface_known/`` and is a surface
+reach delta, not a precision or legal-correctness claim.
 """
 from __future__ import annotations
 
@@ -83,6 +91,31 @@ COUNTER_SURFACE_VERSION = "counter_surface/2"
 #: Env kill-switch (default on).  ``off`` records a skipped provenance block
 #: and changes nothing, so an auditor can diff a scanned vs unscanned bundle.
 ENABLE_ENV = "LEXMACHINA_COUNTER_SURFACE"
+
+#: Direction v64: the four-leg cached known-authority measurement
+#: (``results/product/counter_surface_known/CYCLE_39949461593.json``) shows
+#: that the shipped cached budget of 8 reaches 8/25 known authorities while
+#: 24 reaches 11/25 on the same pools.  The budget is therefore mode-aware:
+#: a cached replay can spend 24 local hydration units; a live/refresh path
+#: keeps the accepted 8-unit budget because every unit is a network detail
+#: fetch and broad hydration there has NOT been latency-measured.  The scan
+#: itself is unchanged — it still takes an explicit ``hydrate_top`` cap.
+CACHED_HYDRATION_TOP = 24
+LIVE_HYDRATION_TOP = 8
+CACHED_RETRIEVAL_MODES = frozenset({"fixture", "offline"})
+
+
+def hydration_budget(retrieval_mode: str) -> int:
+    """The hydration cap the pipeline spends for a retrieval mode.
+
+    ``fixture``/``offline`` replay the frozen cache only; they cannot start a
+    network request, so the broader budget is free to the owner-facing latency
+    contract.  Every other mode keeps the accepted 8-unit live budget.  An
+    unknown mode is treated as live (fail-safe, never broader than accepted).
+    """
+    return (CACHED_HYDRATION_TOP
+            if str(retrieval_mode or "").strip().lower() in CACHED_RETRIEVAL_MODES
+            else LIVE_HYDRATION_TOP)
 
 #: Lexicon alignment (direction v63 item 7(a)).  Additive ONLY: every entry is
 #: checked disjoint from the frozen planner markers of the same intent by
@@ -554,11 +587,15 @@ def apply_counter_surface(
 
 __all__ = [
     "ALIGNED_MARKERS",
+    "CACHED_HYDRATION_TOP",
+    "CACHED_RETRIEVAL_MODES",
     "COUNTER_SURFACE_VERSION",
     "ENABLE_ENV",
+    "LIVE_HYDRATION_TOP",
     "apply_counter_surface",
     "attested_markers",
     "combined_markers",
+    "hydration_budget",
     "marker_bearing",
     "probe_text",
     "scan_classify",

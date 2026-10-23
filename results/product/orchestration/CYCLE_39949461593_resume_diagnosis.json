@@ -1,0 +1,74 @@
+{
+  "schema": "product-orchestration-resume-diagnosis/1",
+  "run_id": "39949461593",
+  "resumed_run_id": "39943133221",
+  "direction_version": 64,
+  "mode": "operational resume from the durable snapshot of run 39943133221",
+  "observed_snapshot": {
+    "head_commit": "571c4868",
+    "head_subject": "product cycle 39943133221 repair 0",
+    "accepted_base_commit": "d22f9b63",
+    "accepted_base_subject": "accept product cycle 39925932945",
+    "durable_delta": [
+      "results/product/query_cache/ (5 live OpenCaseLaw cache files: bge_142 III 91, zh_mietgericht_BGer 4A_82_2024, bge_115 II 484; full_text + structure)"
+    ],
+    "missing_for_the_run": [
+      "no report under reports/product/",
+      "no cycle record in state/product.json",
+      "no query_result_bundle / slice artifact naming run 39943133221"
+    ],
+    "exact_exit_code": "unavailable: the GitHub log endpoint requires a token this producer job does not carry"
+  },
+  "diagnosis": [
+    {
+      "id": "D1",
+      "signature": "LEX_ZERO_DURABLE_DELTA",
+      "evidence": "The inherited snapshot carries five live cache envelopes but no report, state record or runnable slice naming run 39943133221. The cache writes show live retrieval started; the absence of a terminal artifact is consistent with the run ending before the report/state/slice stage, but the exact termination point and exit code are not observable inside this job.",
+      "claim_ceiling": "Inferred from the durable snapshot only. Not a claim about the remote job's exit status."
+    },
+    {
+      "id": "D2",
+      "signature": "STATE_DIRECTION_MISMATCH",
+      "evidence": "state/product.json carried direction_version 63 while run 39949461593 was dispatched with 64. Python product/state_contract.py --check --direction-version 64 reproduced the workflow assertion failure exactly: 'direction_version 63 != run input 64 (workflow exits 69)'.",
+      "consequence": "Any rerun of the inherited tree would fail Validate active MVP producer state with exit 69 before evaluating the product work.",
+      "repair": "state/product.json updated to direction_version 64 with a cycle record; product/state_contract.py --check --direction-version 64 now passes."
+    }
+  ],
+  "repairs_applied": [
+    "state/product.json: direction_version 64, current_run 39949461593, cycle_status COMPLETE, cycle record cycle_39949461593_operational_resume",
+    "product/query/counter_surface.py: CACHED_HYDRATION_TOP=24 / LIVE_HYDRATION_TOP=8 and hydration_budget(retrieval_mode), fail-safe to 8 for unknown modes",
+    "product/query/pipeline.py: counter-surface seam passes hydration_budget(counter_mode)",
+    "product/data/known_counter_authorities_v1.json: product-owned 28-id sample adopted by reference from the frozen evaluation spec (source sha256 recorded)",
+    "product/query/known_authorities.py: frozen alnum-core matcher (min core length 6) and fixture loader",
+    "product/query/counter_surface_known.py: network-blocked per-leg cap 8 vs cap 24 measurement",
+    "product/tests/test_counter_surface_known.py and product/tests/test_counter_surface.py: fixture, matcher, budget, pipeline and measurement contracts"
+  ],
+  "verified_this_cycle": {
+    "known_authority_artifact": "results/product/counter_surface_known/CYCLE_39949461593.json",
+    "known_reached_n": 25,
+    "known_n": 28,
+    "cap_8_known_signalled_n": 8,
+    "cap_24_known_signalled_n": 11,
+    "cap_8_total_signals": 42,
+    "cap_24_total_signals": 70,
+    "network_attempts": 0,
+    "known_signals_monotone_in_cap": true,
+    "offline_slice": {
+      "command": "python3 product/offline_slice.py --slug rent-default --verify",
+      "verdict": "PASS",
+      "network": "none",
+      "decisions": 100,
+      "clusters": 8,
+      "page_contract": "PASS 67 assertions",
+      "counter_surface_hydrate_top": 24,
+      "counter_surface_hydrated": 23,
+      "counter_surface_signals": 14
+    }
+  },
+  "not_claimed": [
+    "The external evaluation result 0/14 is not reproduced or reversed: it used adversarial_retrieval/3 on a different pool with a 14-id denominator, while this measurement uses counter_surface/2 on the four product cached pools with a 28-id denominator.",
+    "No precision or legal-correctness claim is made for the additional cached heuristic signals; total signals rise from 42 to 70.",
+    "No live/refresh budget change is shipped; the live path keeps the accepted 8-unit budget until a live measurement exists.",
+    "No human-gate session is staged; all gate flags remain false."
+  ]
+}

@@ -270,6 +270,14 @@ def test_apply_default_is_on(monkeypatch):
     assert out["provenance"]["counter_surface"].get("skipped") is not True
 
 
+def test_hydration_budget_is_mode_aware_and_fail_safe():
+    """Direction v64: cached replay spends 24, every network mode keeps 8."""
+    assert cs.hydration_budget("fixture") == cs.CACHED_HYDRATION_TOP == 24
+    assert cs.hydration_budget("offline") == cs.CACHED_HYDRATION_TOP == 24
+    for mode in ("live", "refresh", "unknown", ""):
+        assert cs.hydration_budget(mode) == cs.LIVE_HYDRATION_TOP == 8
+
+
 # ---------------------------------------------------------------------------
 # 5. end-to-end offline slice: scan on vs off changes no scored field
 # ---------------------------------------------------------------------------
@@ -311,6 +319,9 @@ def test_offline_enrich_has_counter_surface_provenance(offline_pair):
     assert prov["component"] == cs.COUNTER_SURFACE_VERSION
     assert prov["n_rows"] == len(offline_pair["on"]["decisions"])
     assert prov.get("skipped") is not True
+    # Direction v64: the cached pipeline seam passes the broader budget.
+    assert prov["hydrate_top"] == cs.CACHED_HYDRATION_TOP == 24
+    assert prov["hydration_selection_rule"] == "availability_then_marker_then_rank"
 
 
 def test_scan_changes_no_scored_counter_field_on_the_offline_slice(offline_pair):

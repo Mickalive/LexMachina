@@ -38,7 +38,7 @@ from .adversarial_retrieval import (
 )
 from .counter_anchor import apply_anchor_labels
 from .counter_emission_repair import apply_counter_emission_repair
-from .counter_surface import apply_counter_surface
+from .counter_surface import apply_counter_surface, hydration_budget
 from . import concept_seed
 from .query_texts import (
     merge_coverage_candidates,
@@ -1361,9 +1361,13 @@ def enrich_query_bundle(
     # It runs AFTER the accepted emission/anchor stages and writes NO scored
     # counter field, so the frozen label path and its population are untouched
     # by construction.  Kill-switch: LEXMACHINA_COUNTER_SURFACE=off.
+    counter_mode = (retrieval_mode
+                    if retrieval_mode in {"live", "fixture", "offline", "refresh"}
+                    else "live")
     audited = apply_counter_surface(
         audited,
-        retrieval_mode=retrieval_mode if retrieval_mode in {"live", "fixture", "offline", "refresh"} else "live",
+        retrieval_mode=counter_mode,
+        hydrate_top=hydration_budget(counter_mode),
     )
 
     # The adversarial/generative stage must never move the already visible map.
