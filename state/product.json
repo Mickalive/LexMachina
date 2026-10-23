@@ -1,11 +1,11 @@
 {
   "lane": "product",
   "direction_version": 65,
-  "evidence_tier": "ACCEPTED",
+  "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETE",
-  "continue_recommended": false,
-  "accepted_run_id": "39973933272",
-  "human_gate_ready": true,
+  "continue_recommended": true,
+  "accepted_run_id": "40000001926",
+  "human_gate_ready": false,
   "machine_gate_ready": false,
   "packet_admitted": false,
   "ready_for_owner_session": false,
@@ -50,7 +50,7 @@
       "Did the map increase confidence that contrary authority had not been hidden?",
       "Was the combined answer + map preferable to the conventional interface?"
     ],
-    "claim_ceiling": "The query-specific vertical slice is complete and locally runnable in fixture mode (deterministic, no network). The product implements: question -> OpenCaseLaw retrieval -> query_result_bundle -> sourced generative answer -> independent counter-authority pass -> clickable map. All 188 MVP tests pass. The serve verdict remains BOUNDED-NEGATIVE (both frozen bars unmet) so admission stays fail-closed. This cycle delivers the runnable artifact for a human gate session per Master Prompt questions 1-4."
+    "claim_ceiling": "The query-specific vertical slice is complete and locally runnable in fixture mode (deterministic, no network). The product implements: question -> OpenCaseLaw retrieval -> query_result_bundle -> sourced generative answer -> independent counter-authority pass -> clickable map. All 188 MVP tests pass. The serve verdict remains BOUNDED-NEGATIVE (both frozen bars unmet) so admission stays fail-closed. Milestones beyond the clickable vertical slice (answer quality, legal correctness, jurist usefulness, human-gate session) remain incomplete and continue_recommended=true; NO human-gate session may be staged while both frozen bars are unmet and the serve verdict stands BOUNDED-NEGATIVE."
   },
   "cycle_39660515863_vertical_slice_delivery": {
     "human_gate_ready": true,
@@ -506,7 +506,21 @@
     "claim_ceiling": "This is a restoration of deleted lane state, not a new measurement and not a legal claim. It scores no frozen bar, changes no threshold and changes no product behaviour."
   },
   "current_run": "40005362253",
-  "state_updated_at": "2026-10-23T19:01:44Z",
+  "state_updated_at": "2026-10-23T21:30:00Z",
+  "cycle_40018153655_repair": {
+    "run_id": "40018153655",
+    "repair_round": 1,
+    "audit_of_record": "results/audit/product/CYCLE_40018153655_GATE.json gate=REVISE safe_to_integrate=false",
+    "required_fixes_addressed": {
+      "R1_human_gate_ready": "state/product.json human_gate_ready true -> false (both frozen bars unmet, serve verdict BOUNDED-NEGATIVE, factory-wide requirement forbids readiness claim)",
+      "R2_continue_recommended": "state/product.json continue_recommended false -> true (contradicted own next_recommendation; four committed tests assert true)",
+      "R3_accepted_run_id": "state/product.json accepted_run_id 39973933272 -> 40000001926 (moved backwards across two newer accepts; pointer must name last accepted run with PASS gate + accept commit)",
+      "R4_evidence_tier": "state/product.json evidence_tier ACCEPTED -> REPRODUCED (no acceptance event for this run; only ACCEPTED findings may raise default claims)",
+      "R5_report_and_state_record": "wrote reports/product/CYCLE_40018153655.md (report of record), added cycle_40018153655_repair to state/product.json, refreshed state_updated_at, reconciled claim_ceiling with next_recommendation (both now agree: vertical slice complete, human-gate session NOT staged)",
+      "R6_dangling_artifacts": "generated missing bundles for results/product/offline_slice/20261023T202433Z/rent-default.bundle.json (map-only) and 20261023T202440Z/rent-default.bundle.json (full-loop); both summaries now verified=true with page_contract=true and bundles present"
+    },
+    "claim_ceiling": "Repair round 1 for rejected cycle 40018153655: fixed state representation defects (R1-R5) and generated missing bundles (R6). The underlying engineering capability (real/cached OpenCaseLaw -> source-linked bundle -> clickable map) was already sound per the audit's independent reproduction. No frozen bar, rubric, threshold or accepted artifact was touched. All posture flags remain fail-closed (human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false)."
+  },
   "cycle_39674781875_vertical_slice_delivery": {
     "run_id": 39674781875,
     "repair_round": 1,
