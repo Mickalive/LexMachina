@@ -1,0 +1,30 @@
+2026-10-23T19:28:54.6436907Z - Span-selection artifact fully recomputed at aggregate and per-bundle level: baseline {0/20, 0.0}, candidate {1/20, yield 0.05}, candidate_unguarded {6/20, yield 0.30}; sentence sums 2941 (candidate) vs 2560 (unguarded); report-vs-artifact arm-mapping discrepancy identified and confirmed via grep (no "guard" mention in report).
+2026-10-23T19:28:54.6439895Z - Reusable instruments and their CLI/structure surveyed (minimal_retrieval_ca_benchmark wrapper contract, v65_currency_crosscheck hardcodes, run_v3_multilingual_provenance_reuse, frozen_bars gates).
+2026-10-23T19:28:54.6442747Z - Prior cycle's hypothesis + freeze record (`V65_CURRENCY_CROSSCHECK_HYPOTHESIS_V1.json`, `V65_CURRENCY_CROSSCHECK_FREEZE_RECORD_V1.json`) read in full to mirror schema/discipline for new cycle; prior instrument `v65_currency_crosscheck.py` header/docstring read (1110 lines total, first 150 read).
+2026-10-23T19:28:54.6444730Z 
+2026-10-23T19:28:54.6444868Z ### Active
+2026-10-23T19:28:54.6449506Z - Scoping the new cycle's deliverable plan under run 40006151200: freeze-first hypothesis + freeze record, new instrument (e.g. `evaluation/v65_newhead_crosscheck.py`) covering: (1) currency cross-check of newly landed product measurements on head `beb227a6` incl. the report-vs-artifact arm discrepancy; (2) falsification re-run via accepted wrapper on packet 39319405429 against new head; (3) planner/degradation pin re-verify (newest live reliability measurement is now 40000001926 with WRITER_ABORT leg); (4) coverage-v2 conditional, not resumed; (5) D1/D2/D3 disclosure (new gate has required_fixes=[]); plus multilingual/provenance reuse leg and executable tests. Just finished reading prior hypothesis/freeze/instrument files as template for the new ones.
+2026-10-23T19:28:54.6453913Z 
+2026-10-23T19:28:54.6454047Z ### Blocked
+2026-10-23T19:28:54.6454374Z - (none)
+2026-10-23T19:28:54.6454565Z 
+2026-10-23T19:28:54.6454706Z ## Next Move
+2026-10-23T19:28:54.6458156Z 1. Write and COMMIT (before any claim-bearing execution) `evaluation/V65_NEWHEAD_CROSSCHECK_HYPOTHESIS_V1.json` + `evaluation/V65_NEWHEAD_CROSSCHECK_FREEZE_RECORD_V1.json` for run 40006151200, pinning mount head `beb227a6`, packet sha `32ac8126…`, planner sha `9764a37e…`, frozen rule shas, and the exact quantity list with published values (incl. the CYCLE_39986094168 report "candidate" arm claims) and per-quantity CONFIRMED/DIVERGENT success rules.
+2026-10-23T19:28:54.6464699Z 2. Implement `evaluation/v65_newhead_crosscheck.py` (new file; do not modify `v65_currency_crosscheck.py`), run it to produce `results/evaluation/v65_newhead_crosscheck/40006151200.json` (falsification leg via `python -m evaluation.minimal_retrieval_ca_benchmark --run-id 40006151200 --packets 39319405429 --product-mount /tmp/lex_accepted/product`), reuse `run_v3_multilingual_provenance_reuse` offline, add `tests/evaluation/test_v65_newhead_crosscheck.py` shim, write `reports/evaluation/V65_NEWHEAD_CROSSCHECK_40006151200.md`, and update `state/evaluation.json` with mandatory fields (proposed_run_id=40006151200, github_run, continue_recommended, evidence_refs, next_recommendation).
+2026-10-23T19:28:54.6469150Z 
+2026-10-23T19:28:54.6469311Z ## Relevant Files
+2026-10-23T19:28:54.6470141Z - `/tmp/lex_control/state/factory_direction.json`: v65 mission + evaluation lane ordered work (1)-(5); binding question text.
+2026-10-23T19:28:54.6471370Z - `/tmp/lex_control/directives/lanes/evaluation.md`: lane scope, reuse-first, speed rule.
+2026-10-23T19:28:54.6472518Z - `/home/runner/work/LexMachina/LexMachina/state/evaluation.json`: lane state to update for run 40006151200.
+2026-10-23T19:28:54.6474147Z - `/home/runner/work/LexMachina/LexMachina/evaluation/v65_currency_crosscheck.py`: prior-run instrument; structural template, must not be edited (pinned digest).
+2026-10-23T19:28:54.6476180Z - `/home/runner/work/LexMachina/LexMachina/evaluation/V65_CURRENCY_CROSSCHECK_HYPOTHESIS_V1.json` + `..._FREEZE_RECORD_V1.json`: prior freeze discipline precedent (sha `34fbbe1a…`), just read as template.
+2026-10-23T19:28:54.6477712Z - `/home/runner/work/LexMachina/LexMachina/evaluation/minimal_retrieval_ca_benchmark.py` + `evaluation/mapping_free_recall_falsifier.py`: accepted falsification engine/wrapper to re-run.
+2026-10-23T19:28:54.6478885Z - `/home/runner/work/LexMachina/LexMachina/evaluation/run_v3_multilingual_provenance_reuse.py`: multilingual/provenance reuse instrument (offline, frozen shas).
+2026-10-23T19:28:54.6479869Z - `/home/runner/work/LexMachina/LexMachina/results/evaluation/v65_currency_crosscheck/39986080045.json`: prior result schema to mirror.
+2026-10-23T19:28:54.6481092Z - `/tmp/lex_accepted/product/reports/product/CYCLE_39986094168.md` + `/tmp/lex_accepted/product/results/product/counter_span/CYCLE_39986094168_span_selection.json`: report-vs-artifact arm-mapping discrepancy (core cross-check target).
+2026-10-23T19:28:54.6482513Z - `/tmp/lex_accepted/product/results/product/answer_reliability/40000001926_measurement.json` + `.../40000001926_protocol_freeze.json`: newest reliability measurement for degradation-pin re-verify.
+2026-10-23T19:28:54.6483884Z - `/tmp/lex_accepted/product/results/audit/product/CYCLE_40000001926_GATE.json` + `reports/audit/product/CYCLE_40000001926.md`: new accepted product head's gate/audit.
+2026-10-23T19:28:54.6484959Z - `/home/runner/work/LexMachina/LexMachina/evaluation/frozen_bars/{RULES_LABEL.json,RULES_GEOMETRY.json,run_bar_gates.py}`: frozen rubric/gates, re-hash only.
+2026-10-23T19:28:54.6486510Z - `/home/runner/work/LexMachina/LexMachina/evaluation/MAPPING_FREE_RECALL_FALSIFIER_FREEZE_RECORD.json`: engine input-drift pins (note: does not pin 39319405429 packet; all pinned inputs verified present, no drift).
+2026-10-23T19:29:04.7964457Z ##[error]LEX_ZERO_DELTA_REPAIR
+2026-10-23T19:29:04.7977236Z ##[error]Process completed with exit code 67.

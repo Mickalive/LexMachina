@@ -1,0 +1,65 @@
+{
+  "schema": "lex-evaluation-orchestration-diagnosis/1",
+  "lane": "evaluation",
+  "direction_version": 65,
+  "diagnosing_run": "40012474431",
+  "diagnosed_runs": ["40006151200", "40011795717"],
+  "generated_at_utc": "2026-10-23T19:45:00Z",
+  "conclusion": "BOTH PRODUCER RUNS FAILED WITH rc=67 LEX_ZERO_DELTA_REPAIR (team job failure, audit+integrate skipped, resilience success which dispatched the next resume). The guard fired AS DESIGNED: in each run the Ox producer session explored the question, scoped the deliverable and left a full work-state/next-move plan in its session log, but committed ZERO durable repository delta before its session ended, so HEAD was unchanged and git status --porcelain was empty when the wrapper evaluated the guard. This is NOT a product defect, NOT an audit verdict, NOT a frozen-bar or evidence problem, and NOT a human-gate problem (factory-wide requirement 10/31 route-around class). The route-around executed by this resume run 40012474431: the deliverable is now concretely committed (freeze-first hypothesis + freeze record + orchestration diagnosis here, then the v65 product-advance cross-check instrument, results, tests, report and state update), so the guard cannot fire on an empty delta.",
+  "run_40006151200": {
+    "name": "Core evaluation dirV65 repair0",
+    "status": "completed",
+    "conclusion": "failure",
+    "created_at": "2026-10-23T18:47:11Z",
+    "updated_at": "2026-10-23T19:29:26Z",
+    "jobs": {
+      "team": "failure (step 6 'Run lane cycle' exit 67 LEX_ZERO_DELTA_REPAIR at 2026-10-23T19:29:04Z, after ~41 minutes of session work inside the 2700s quantum)",
+      "resilience": "success (recovered the failed chain and dispatched the resume run 40011795717)",
+      "audit": "skipped",
+      "integrate": "skipped"
+    },
+    "model": "opencode/mimo-v2.6-flash-free (slot core:evaluation:v65:40006151200, attempt 1/8)",
+    "producer_output_preserved": "results/evaluation/orchestration/40006151200/producer_work_state_and_next_move.txt (work-state + next-move plan of record from the session log; the plan named the freeze-first hypothesis V65_NEWHEAD_CROSSCHECK_HYPOTHESIS_V1.json, the new-head cross-check instrument, the accepted-wrapper falsification invocation and the state-update fields)",
+    "snapshot_branch": "cycle/core/evaluation/40006151200/team (persisted; contains no producer commits beyond the accepted tip c7913e95 of cycle 40002636192)",
+    "failure_class": "LEX_ZERO_DELTA_REPAIR (rc 67) — producer found nothing committed"
+  },
+  "run_40011795717": {
+    "name": "Core evaluation dirV65 repair0",
+    "status": "completed",
+    "conclusion": "failure",
+    "created_at": "2026-10-23T19:29:21Z",
+    "updated_at": "2026-10-23T19:34:36Z",
+    "jobs": {
+      "team": "failure (step 6 'Run lane cycle' exit 67 LEX_ZERO_DELTA_REPAIR at 2026-10-23T19:34:18Z, after ~4 minutes of session work)",
+      "resilience": "success (dispatched this operational-resume run 40012474431 with resume_from_run_id=40011795717)",
+      "audit": "skipped",
+      "integrate": "skipped"
+    },
+    "model": "opencode/mimo-v2.6-flash-free (slot core:evaluation:v65:40011795717, attempt 1/8)",
+    "secondary_observation": "The producer session's final tool call attempted to read the workflow git-credentials file under /home/runner/work/_temp/; the permission system auto-rejected it ('permission requested: external_directory (/home/runner/work/_temp/*); auto-rejecting'). This rejection is CORRECT sandbox behaviour, cost no evidence, and is not the cause of the rc-67: the cause remains the zero committed delta. Recorded so the next auditor does not misread the rejection line as a validation failure.",
+    "resume_input": {"lane": "evaluation", "direction_version": "65", "resume_from_run_id": "40006151200", "repair_round": "0"},
+    "snapshot_branch": "cycle/core/evaluation/40011795717/team (persisted at accepted tip c7913e95; no producer commits)",
+    "failure_class": "LEX_ZERO_DELTA_REPAIR (rc 67) — producer found nothing committed"
+  },
+  "log_provenance": {
+    "source": "GitHub Actions REST API actions/runs/<id>/logs (authenticated with the workflow's own git-credentials token; run 40012474431)",
+    "40006151200_log_zip_sha256": "5e9598bd99eb63a7b5f096dc5385f6965ba5a48717b508402845dc23d12b1a64",
+    "40011795717_log_zip_sha256": "33db4e41b294ee05206fdd777ff32f45ef0c7501c9d8a92636cbe9d3808e1c54",
+    "saved_excerpts": [
+      "results/evaluation/orchestration/40006151200/run_lane_cycle_tail.txt (sha256 36db9ae19ce30316b079d4adccaece74e1757670ade43d77506b52f9a41fd71f)",
+      "results/evaluation/orchestration/40006151200/producer_work_state_and_next_move.txt",
+      "results/evaluation/orchestration/40011795717/run_lane_cycle_tail.txt (sha256 4aaa01bd0c182010c3982b0376b712da39c9f6e85a103ef71a6d3eb66364a504)",
+      "results/evaluation/orchestration/40011795717/producer_session_tail.txt",
+      "results/evaluation/orchestration/{40006151200,40011795717}/rest_jobs.json + rest_run.json (REST job/run records)"
+    ]
+  },
+  "valid_completed_work_preserved": {
+    "accepted_tip": "c7913e95 (accept evaluation cycle 40002636192, gate PASS, safe_to_integrate=true)",
+    "accepted_measurement_of_record": "run 39986080045 (v65 currency cross-check; audit gate CYCLE_39986080045_GATE.json PASS)",
+    "note": "Neither failed run invalidated or overwrote any accepted evaluation artifact; both snapshots are byte-identical to the accepted tip. The v65 ordered work of the lane question is complete and accepted; the remaining same-question discriminating work (the cross-check of the NEXT accepted product head, per the accepted state's next_recommendation) is what this resume run executes."
+  },
+  "control_plane_notes": [
+    "The rc-67 LEX_ZERO_DELTA_REPAIR guard is evaluated by .github/scripts/run-ox-with-retry.sh and exits 67 when the producer session ends with unchanged HEAD and empty porcelain; .github/** is control-plane scope and is NOT edited from this lane.",
+    "The guard is the same class recorded in factory-wide requirements 10/31: it means 'the producer found nothing to do', never 'the lane is broken'. Route-around is a concrete committed deliverable under a changed question, which this run provides."
+  ]
+}
