@@ -1,0 +1,78 @@
+{
+ "schema": "lex-evaluation-product-advance-crosscheck-hypothesis/1",
+ "hypothesis_id": "PRODUCT_ADVANCE_CROSSCHECK_V1",
+ "lane": "evaluation",
+ "direction_version": 63,
+ "frozen_at_utc": "2026-10-23T07:35:00Z",
+ "frozen_before_claim_bearing_execution": true,
+ "run_id_of_record": "39916358347",
+ "dispatch_mode": "OPERATIONAL RESUME from the persisted producer snapshot of run 39915124469 (team branch cycle/core/evaluation/39915124469/team = 81b4f131), itself the snapshot of run 39910387854",
+ "why_this_is_the_ordered_item": "Factory direction v63 orders the evaluation lane to stand ready for product remedy (a) to land, to re-freeze the frozen verification against the NEW shipped planner under a NEW run id when the product bytes change, and to cross-check each of the product lane's four discharge/land status items under a NEW run id as they land (ordered items 1 and 2). The accepted product head advanced from 7a70953e / fe219a19 to ae854b6a (accept product cycle 39909013473). This cycle therefore re-executes the frozen checks against the new head instead of restating the prior head's numbers.",
+ "question": "On the accepted product mount at head ae854b6a (accept product cycle 39909013473), (A) do the frozen mapping-free retrieval/counter-authority gates on the V3 packet-of-record (39319405429) exact bytes still falsify the product, with every non-vacuity control holding; (B) does the shipped planner still reproduce the accepted remedy (a) on the pinned 14-bundle recorded population; (C) does the shipped writer-abort degradation disclosure still satisfy the accepted V2 gates now that product/query/pipeline.py and product/query/answer.py changed; (D) do the accepted query-coverage remediation pins still hold; and (E) is the accepted live-answer reliability measurement still current for this head? Any divergence from the accepted record is the headline finding; no prior accepted result is overwritten or re-litigated.",
+ "background": {
+  "accepted_product_head_at_prior_crosschecks": ["443302120a5b7221d8bb5c605848b29eb68bca19", "fe219a197e4bfb129984a732ab9adca917556eac", "7a70953e6efff535464fcdedc820dea02b4deb8d"],
+  "new_accepted_product_head": "ae854b6a9ff4df4429d36725e364e721cb73096b",
+  "accepted_evidence_reused": {
+   "mapping_free_falsification": "results/evaluation/counter_authority_surface_falsifier/39909449668.json (PRODUCT_FALSIFIED, 4/18 gates failed, 4/4 non-vacuity controls hold)",
+   "shipped_planner_remedy": "results/evaluation/shipped_planner_remedy_verification/39813664201.json (SHIPPED_PLANNER_MATCHES_VERIFIED_REMEDY, G1s-G4s pass, C1s-C5s hold)",
+   "degradation_disclosure": "results/evaluation/degradation_disclosure_crosscheck/39820650174_v2.json (DEGRADATION_DISCLOSURE_VISIBLE_AT_COMPLETE_BUNDLE_STAGE, G1-G4 pass, C1-C6 hold)",
+   "coverage_remediation": "results/evaluation/coverage_remediation_crosscheck/39813664201.json (exit 0, 24/24 texts executed live, 23 frozen ids reached)",
+   "answer_reliability": "results/evaluation/answer_reliability_crosscheck/39827806011.json (ZERO_DIVERGENCE cross-check of product measurement 39799042649)"
+  }
+ },
+ "legs": {
+  "A_mapping_free_falsification": {
+   "instrument": "evaluation/mapping_free_recall_falsifier.py::run (accepted engine, invoked unchanged)",
+   "packets": ["39319405429"],
+   "gates": "the frozen engine gates: mf::concept_coverage, mf::admission_disclosure, mf::source_validity, mf::duplicate_suppression, mf::counter_authority_surface, plus mf::language_robustness REPORTED only",
+   "expected_baseline_verdict": "PRODUCT_FALSIFIED with exactly the four accepted failed gates: concept_coverage de-kapitalverletzung and counter_authority_surface de/fr/it",
+   "advance_check": "the three V3 bundle sha256 values published by the new run must equal the accepted 39909449668 per_question bundle sha256 values; a mismatch is a material product-advance change and is reported as the headline"
+  },
+  "B_shipped_planner_remedy": {
+   "instrument": "evaluation/shipped_planner_remedy_verification.py::run (accepted gates G1s-G4s and controls C1s-C5s, invoked unchanged through a V2 freeze with the new run id and the new shipped-planner pins)",
+   "population": "the accepted 14-bundle recorded population pinned by results/evaluation/counter_probe_repair_verification/39687372110.json",
+   "expected_verdict": "SHIPPED_PLANNER_MATCHES_VERIFIED_REMEDY (exit 0)"
+  },
+  "C_degradation_disclosure": {
+   "instrument": "evaluation/degradation_disclosure_crosscheck_v2.py::run (accepted gates G1-G4 and controls C1-C6, invoked unchanged through a V3 freeze with the new run id and the new product pins)",
+   "population": "the recorded pre-fix degraded bundle CYCLE_39667945530_bundle.json and healthy bundle CYCLE_39667945530_FIX1_bundle.json",
+   "expected_verdict": "DEGRADATION_DISCLOSURE_VISIBLE_AT_COMPLETE_BUNDLE_STAGE (exit 0)"
+  },
+  "D_coverage_remediation_pin_rehash": {
+   "instrument": "this file's pin re-hash of evaluation/COVERAGE_REMEDIATION_CROSSCHECK_FREEZE_RECORD_V1.json",
+   "rule": "every product pin and every repo pin in that freeze must hold on the new head; because the pinned product code and evidence files are unchanged, a re-execution of the offline replay is not required and is not claimed",
+   "expected_verdict": "COVERAGE_PINS_STILL_HOLD"
+  },
+  "E_answer_reliability_currency": {
+   "instrument": "this file's pin re-hash of evaluation/ANSWER_RELIABILITY_CROSSCHECK_FREEZE_RECORD_V1.json plus a read of the product state at the new head",
+   "rule": "the measurement artifact must still re-hash to its pin; the product source files the measurement depended on (pipeline.py, answer.py, adversarial_retrieval.py, answer_reliability.py) must all still re-hash to their pins for the measurement to be CURRENT; any source drift makes it STALE for this head and the 0.857 figure is not restated",
+   "expected_verdict": "CURRENT or STALE, reported exactly as measured"
+  }
+ },
+ "controls": {
+  "C1_planted_product_pin_drift_is_detected": "mutating one expected hash in an in-memory copy of the pin map must make the re-hash report all_hold=false",
+  "C2_planted_bundle_hash_mismatch_is_detected": "mutating one accepted bundle hash in an in-memory copy must make the advance comparison report identical=false",
+  "C3_frozen_leg_inputs_exist_and_rehash": "every accepted leg result, freeze record and hypothesis named by this freeze exists and re-hashes to its committed pin; a missing or drifted input is exit 2, never a pass",
+  "C4_wrong_run_id_is_exit_2": "the instrument refuses any run id other than the frozen run_id_of_record"
+ },
+ "exit_code_contract": {
+  "0": "PASS_NO_FALSIFICATION — leg A found no failing frozen gate, leg B matched, leg C was visible, leg D held and leg E was current",
+  "1": "PRODUCT_STILL_FALSIFIED or MATERIAL_DELIVERABLE_DRIFT — leg A falsified the product, or leg B/C failed, or leg D/E reported drift",
+  "2": "ENVIRONMENT_OR_VACUOUS — a frozen input drifted or was absent, a local control failed, or a leg could not be measured; never a pass"
+ },
+ "success_rule": "Exit 0 only if all of the following hold: leg A exits 1 with the same four accepted failed gates and all four non-vacuity controls holding; leg B exits 0 SHIPPED_PLANNER_MATCHES_VERIFIED_REMEDY; leg C exits 0 DEGRADATION_DISCLOSURE_VISIBLE_AT_COMPLETE_BUNDLE_STAGE; leg D reports COVERAGE_PINS_STILL_HOLD; leg E reports RELIABILITY_MEASUREMENT_CURRENT; and every local control holds.",
+ "falsification_rule": "Any of the following yields exit 1: leg A exits 0 (the product is no longer falsified on the frozen gates), leg B exits 1, leg C exits 1, leg D reports pin drift, or leg E reports the accepted measurement is stale/missing. The combined verdict names every divergent leg as the headline and never averages them into a pass.",
+ "claim_ceiling": "This instrument establishes only whether the accepted evaluation findings still hold on the new accepted product head and whether the product's four ordered deliverable claims remain current. It is NOT a new counter-authority recall measurement (no probe is executed against OpenCaseLaw), NOT a serve recommendation, NOT a re-score of any frozen absolute bar (LABEL_SOUND and GEOMETRY_SOUND stay REPORTED-ONLY and unmet), NOT a jurist-usefulness claim, and NOT a human-gate readiness claim. Both DO-NOT-SERVE orders stand; admission stays fail-closed; human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session stay false. It re-derives no threshold, bar, rubric or verdict contract, builds or re-scores no Frontier candidate, and runs no obsolete universal-174k benchmark.",
+ "what_will_NOT_be_concluded": [
+  "no frozen absolute bar is met or moved",
+  "no DO-NOT-SERVE order is lifted",
+  "no packet is admitted",
+  "no live-answer reliability figure is restated for the new head unless leg E reports CURRENT",
+  "no claim that the map helps a jurist",
+  "no claim that the coverage remediation fixes counter-authority recall",
+  "no 174k geometry benchmark"
+ ],
+ "freeze_first_disclosure": "Before this freeze the producer inspected the already-committed accepted records, the product mount head, and the pin hashes of the accepted freezes. That reconnaissance is disclosed here: it is known before execution that the accepted product head is ae854b6a, that the V3 packet bytes and the shipped planner are unchanged from the accepted measurement, and that product/query/pipeline.py and product/query/answer.py differ from the pins of the degradation-disclosure and answer-reliability freezes. The measurement rules, gates, controls and exit contract above are nevertheless frozen before this cycle executes the legs, and no accepted predicate is re-derived, tuned or weakened.",
+ "no_174k_benchmark_rerun": true,
+ "zero_new_thresholds": true
+}

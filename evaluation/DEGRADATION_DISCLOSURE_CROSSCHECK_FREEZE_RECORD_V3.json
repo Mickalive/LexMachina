@@ -1,0 +1,66 @@
+{
+  "append_only_convention": "V3 result written under results/evaluation/degradation_disclosure_crosscheck/39916358347.json; the V1 result, the V2 result and both earlier freeze artifact sets are read-only inputs and are re-hashed by C6 and C5",
+  "controls_frozen_in_hypothesis": [
+    "C1_deleting_the_answer_field_fails_G1",
+    "C2_relabelling_the_pass_as_measured_fails_G2",
+    "C3_injecting_an_abort_into_the_healthy_leg_fails_G4",
+    "C4_network_guard_is_armed_and_unused",
+    "C5_product_and_input_pins_hold_before_and_after",
+    "C6_v1_result_is_preserved_verbatim"
+  ],
+  "direction_version": 63,
+  "exit_code_contract": {
+    "0": "DEGRADATION_DISCLOSURE_VISIBLE_AT_COMPLETE_BUNDLE_STAGE",
+    "1": "DEGRADATION_DISCLOSURE_GAP",
+    "2": "ENVIRONMENT_OR_VACUOUS"
+  },
+  "freeze_id": "DEGRADATION_DISCLOSURE_CROSSCHECK_FREEZE_V3",
+  "freeze_lineage_note": "V1 measured the standalone stage and failed; V2 split the stage predicate and passed at fe219a19; V3 re-runs the V2 predicates at ae854b6a. No predicate changed. This freeze is committed BEFORE any V3 claim-bearing execution.",
+  "frozen_at_utc": "2026-10-23T07:36:00Z",
+  "frozen_before_claim_bearing_execution": true,
+  "gates_frozen_in_hypothesis": [
+    "G1_abort_is_a_first_class_answer_field",
+    "G2_adversarial_pass_inherits_the_abort",
+    "G3_empty_prose_is_vacuous_not_measured",
+    "G4_healthy_bundle_stays_non_degraded"
+  ],
+  "instrument_version": "V3 (reuses the accepted V2 code unchanged)",
+  "lane": "evaluation",
+  "network_policy": "zero network; offline adversarial pass with max_new=0 under an armed socket guard",
+  "no_thresholds_or_bars_touched": true,
+  "no_universal_174k_benchmark": true,
+  "pins": {
+    "evaluation/DEGRADATION_DISCLOSURE_CROSSCHECK_FREEZE_RECORD_V1.json": "2b86fb80977c94d935e43028fea55b2995f3409912ee0855a05c796aa3454786",
+    "evaluation/DEGRADATION_DISCLOSURE_CROSSCHECK_HYPOTHESIS_V1.json": "23397408168d076930cce76bfb328c72fca00fc8f1fb32c1be78f804ce6ba2d2",
+    "evaluation/DEGRADATION_DISCLOSURE_CROSSCHECK_HYPOTHESIS_V3.json": "f4267657b544d7a57dccf9378efd2d3b916da74d57107386d09b951dd5f0a27d",
+    "evaluation/degradation_disclosure_crosscheck.py": "a2a0e12dce3c9ed068c1a38ec26b82f9904fcb78a4742fd037c2380e9212422f",
+    "evaluation/degradation_disclosure_crosscheck_v2.py": "ced1f11b5060bd903b13126c37fde0eeb5643335a0fbd22d054aa838efffb077",
+    "evaluation/retrieval_gate/frozen_retrieval_benchmark.json": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "results/evaluation/degradation_disclosure_crosscheck/39820650174.json": "4b9bc4324d1e0134207077b5a7ec3d5ecea7550d6bcc6dab11d7c7f7ab075817"
+  },
+  "product_mount": "/tmp/lex_accepted/product",
+  "product_mount_head_expected": "ae854b6a9ff4df4429d36725e364e721cb73096b",
+  "product_pins": {
+    "product/answer_reliability.py": "46e195dea1c034a6d736fcddf7bcec71a5c2210aa2ada76e234d19085c1ffffb",
+    "product/query/adversarial_retrieval.py": "9764a37e8bc7c8c31a329ba15db89657e8ee47dde8ada924fa55d5e755fd06a9",
+    "product/query/answer.py": "474448ed77a5934a71a71754b55000119c59845f2906c0fa6f08e84e6b3f2316",
+    "product/query/pipeline.py": "e105bfedc9bf54cb9835369f380e963ccf151d9a75533c734d8419cd94ec631f",
+    "results/product/live_slice/CYCLE_39667945530_FIX1_bundle.json": "f8123012f1b9d61314cd06bb1563260ca9393aee4f06fdadc717566a81edd1b0",
+    "results/product/live_slice/CYCLE_39667945530_bundle.json": "d58eea71818ec8515e47a3e115fca4c9446f311baa740b3f267097b841bdbf2d"
+  },
+  "run_id_of_record": "39916358347",
+  "schema": "lex-evaluation-freeze-record/1",
+  "v1_result_preserved": {
+    "exit_code": 1,
+    "path": "results/evaluation/degradation_disclosure_crosscheck/39820650174.json",
+    "sha256": "4b9bc4324d1e0134207077b5a7ec3d5ecea7550d6bcc6dab11d7c7f7ab075817",
+    "verdict": "DEGRADATION_DISCLOSURE_GAP"
+  },
+  "v2_result_preserved": {
+    "exit_code": 0,
+    "path": "results/evaluation/degradation_disclosure_crosscheck/39820650174_v2.json",
+    "sha256": "f4e14a77fd7563288c94191a745405f09b8afbc7a9a217390537df76f47e3f2d",
+    "verdict": "DEGRADATION_DISCLOSURE_VISIBLE_AT_COMPLETE_BUNDLE_STAGE"
+  },
+  "why_a_new_freeze": "The accepted V2 freeze pins product head fe219a19 and product/query/pipeline.py f59bba1f / product/query/answer.py acbc1614. The accepted product head advanced to ae854b6a and those two bytes changed (now e105bfed / 474448ed), so the accepted V2 result is stale for the new head by design. Factory direction v63 ordered item (2) requires a NEW run id cross-check. V3 re-pins the SAME four gates, SAME six controls, SAME exit contract and SAME claim ceiling at the new head; the V1 gap and V2 pass are preserved and are not re-scored."
+}

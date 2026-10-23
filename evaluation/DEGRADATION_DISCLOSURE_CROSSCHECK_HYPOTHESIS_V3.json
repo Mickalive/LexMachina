@@ -1,0 +1,39 @@
+{
+ "schema": "lex-evaluation-degradation-disclosure-hypothesis/1",
+ "hypothesis_id": "DEGRADATION_DISCLOSURE_CROSSCHECK_V3",
+ "lane": "evaluation",
+ "direction_version": 63,
+ "run_id_of_record": "39916358347",
+ "supersedes_product_mount_of": "DEGRADATION_DISCLOSURE_CROSSCHECK_V2",
+ "v1_result_preserved": "results/evaluation/degradation_disclosure_crosscheck/39820650174.json (verdict DEGRADATION_DISCLOSURE_GAP, exit 1; not overwritten)",
+ "v2_result_preserved": "results/evaluation/degradation_disclosure_crosscheck/39820650174_v2.json (verdict DEGRADATION_DISCLOSURE_VISIBLE_AT_COMPLETE_BUNDLE_STAGE, exit 0; not overwritten)",
+ "question": "On the NEW accepted product mount head ae854b6a, does the shipped code still make a writer abort visible on the bundle a reader actually receives: answer.degradation carries the code and disclosure, the adversarial pass inherits it and marks itself DEGRADED (or VACUOUS when the answer has no legal vocabulary), the product's own degradation_visibility() reports visible=true at the complete-bundle stage, and a healthy leg stays non-degraded?",
+ "why_this_is_the_ordered_item": "Factory direction v63 evaluation ordered item (2): each of the product lane's four discharge/land status items must be cross-checked under a NEW run id as they land. The accepted product head advanced from fe219a19 to ae854b6a, and product/query/pipeline.py and product/query/answer.py changed. The accepted V2 degradation-disclosure result was measured at fe219a19 and its freeze pins those old bytes, so it drifts by design. This V3 freeze re-pins the SAME gates, controls, exit contract and claim ceiling at the new head and run id. It is a currency cross-check, not a new gate design.",
+ "why_this_is_not_gate_shopping": "No gate, control, exit code, success rule or claim ceiling is changed from V2. Only the product mount head, the product byte pins and the run id move. The V1 gap and the V2 pass are preserved as immutable evidence and are not re-scored. If any gate or control fails at the new head, it is reported as DEGRADATION_DISCLOSURE_GAP or ENVIRONMENT_OR_VACUOUS and is the headline; it is not re-frozen or tuned in this cycle.",
+ "hypothesis": "On the recorded pre-fix degraded bundle (CYCLE_39667945530_bundle.json) and the recorded healthy bundle (CYCLE_39667945530_FIX1_bundle.json), the shipped code at accepted product mount head ae854b6a still satisfies: (G1) the extractive fallback stamps answer.degradation with code e_EMISSION_WRITER_ABORT, stage generative_writer, a disclosure containing both 'not measured' and 'contrary authority', mirrors it under provenance.generative_audit.degradation with emission_status WRITER_ABORT and degraded=true, preserves the recorded provider_error verbatim, preserves all 151 decisions, does not mutate its input, and the product's own degradation_visibility() reports degraded=true and the abort code, with the standalone-stage visible flag recorded but not gated; (G2) the subsequent offline adversarial pass (max_new=0, hydrate_top=0) publishes degraded=true, degradation_code e_EMISSION_WRITER_ABORT, an adversarial_status containing WRITER_ABORT, a measurement-gap disclosure, preserves every decision and the answer's degradation, and degradation_visibility() now reports visible=true; (G3) a derived empty-prose bundle takes the vacuous branch with skipped=true, adversarial_status VACUOUS_WRITER_ABORT and the inherited code; (G4) the healthy bundle stays MEASURED with no writer-abort code, answer.status ready, and degradation_visibility() visible=true and degraded=false.",
+ "baseline": "the same two recorded bundles and the accepted V2 result measured at head fe219a19. V1's gap result is a pinned input, not a baseline to beat: V3 re-runs the complete-bundle predicates at the new head with the stage split disclosed.",
+ "gates": {
+  "G1_abort_is_a_first_class_answer_field": "same checks as V2: answer.degradation present with code, stage, disclosure, mirror, provider_error preservation, 151 decisions preserved, input not mutated, product_visibility degraded=true and code=e_EMISSION_WRITER_ABORT; standalone-stage visible recorded only",
+  "G2_adversarial_pass_inherits_the_abort": "same as V2, including product_visibility_visible=true on the complete bundle",
+  "G3_empty_prose_is_vacuous_not_measured": "same as V2",
+  "G4_healthy_bundle_stays_non_degraded": "same as V2, including product_visibility_visible=true"
+ },
+ "controls": {
+  "C1_deleting_the_answer_field_fails_G1": "removing answer.degradation from an in-memory copy of the G1 output must fail the G1 gate",
+  "C2_relabelling_the_pass_as_measured_fails_G2": "setting degraded=false, code=null and status=MEASURED on the G2 output must fail the G2 gate",
+  "C3_injecting_an_abort_into_the_healthy_leg_fails_G4": "injecting the abort fields into the healthy pass output must fail the G4 gate",
+  "C4_network_guard_is_armed_and_unused": "the socket guard must raise when exercised and record zero attempts during the product calls",
+  "C5_product_and_input_pins_hold_before_and_after": "the six product/bundle pins hold before and after; inputs are unchanged",
+  "C6_v1_result_is_preserved_verbatim": "the V1 result file still hashes to 4b9bc432... and still carries verdict DEGRADATION_DISCLOSURE_GAP with exit_code 1"
+ },
+ "exit_code_contract": {
+  "0": "DEGRADATION_DISCLOSURE_VISIBLE_AT_COMPLETE_BUNDLE_STAGE",
+  "1": "DEGRADATION_DISCLOSURE_GAP",
+  "2": "ENVIRONMENT_OR_VACUOUS"
+ },
+ "population": "the two recorded bundle files only. No new retrieval, bundle, packet, label or geometry.",
+ "claim_ceiling": "This instrument establishes exactly one thing: on the recorded degraded and healthy bundles at accepted head ae854b6a, the shipped code's writer-abort disclosure is visible and machine-readable at the complete-bundle stage, is inherited by the adversarial pass, is correctly vacuous without legal vocabulary, and is not raised on the healthy leg; the standalone fallback stage reports degraded=true and the code but degradation_visibility().visible remains false there because the pass has not yet run, and that stage-specific limitation is disclosed. It is NOT a retrieval-quality, counter-authority recall, live-answer reliability, served-packet, label or geometry measurement; it does not meet or move any frozen bar (both stay REPORTED-ONLY and unmet), lifts no DO-NOT-SERVE order, and changes no admission or human gate. All five admission/human flags stay false. No frontier candidate is built or scored and no universal-174k benchmark is run. NOT_APPLICABLE/NOT_MEASURED are never a pass.",
+ "freeze_first_disclosure": "V1 was frozen and executed first; its failure is preserved. V2 corrected the stage split and is preserved. V3's product head, pins, run id, gates, controls and exit contract are fixed BEFORE V3 executes. No substantive gate is relaxed. If V3 fails, it is reported, not re-frozen in this cycle.",
+ "network_policy": "zero network; offline adversarial pass with max_new=0 under an armed socket guard",
+ "determinism": "fixed bytes, deterministic code paths, no RNG/model/retrieval/threshold"
+}
