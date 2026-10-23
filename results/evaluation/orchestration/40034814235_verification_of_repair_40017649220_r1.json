@@ -1,0 +1,120 @@
+{
+  "schema": "lex-evaluation-operational-resume-verification/1",
+  "record_kind": "OPERATIONAL-RESUME VERIFICATION OF THE UN-AUDITED REPAIR ROUND 1 DISCHARGE (CYCLE_40017649220 fixes F1/F2/F3)",
+  "lane": "evaluation",
+  "direction_version": 65,
+  "run_id": "40034814235",
+  "generated_at_utc": "2026-10-23T23:00:00Z",
+  "resumed_from_run": "40034534808",
+  "resume_chain": ["40017649220 (REVISE gate)", "40023576675 (repair r1 producer, rc-78)", "40029231841 (rc-67)", "40029524205 (rc-67)", "40033424089 (rc-67)", "40033628306 (rc-67)", "40034534808 (rc-67)", "40034814235 (this run)"],
+  "hypothesis_record": "evaluation/OPERATIONAL_RESUME_40034814235_HYPOTHESIS_V1.json (freeze commit da2fadea2, committed 2026-10-23T22:53Z BEFORE the claim-bearing executions below)",
+  "diagnosis_record": "results/evaluation/orchestration/40034814235_failure_chain_diagnosis.json",
+
+  "F1_verification": {
+    "verdict": "DISCHARGED, RE-EXECUTED AND CONFIRMED at this run id",
+    "measurements": [
+      {"suite": "tests/evaluation/test_minimal_ret_ca_benchmark.py", "runner": "evaluation/no_pytest_runner.py sha256 c12097da9d910574380b32c5dafa371a3b24ec14ef2551d92bb9453b8ed57584 (pytest absent in image)", "result": "SHIM_PASS 4 passed / 0 failed / 0 skipped / 1 UNSUPPORTED (NOT-RUN, never passed)", "record": "results/evaluation/orchestration/40034814235_minimal_ret_ca_pytest_shim.json", "matches_committed_record": "results/evaluation/orchestration/40017649220_R1_minimal_ret_ca_pytest_shim.json (identical counts)"},
+      {"suite": "test_stand_ready_multilingual_probe + test_f3b_restore_disposition + test_v59_stand_ready_verification + test_packet_of_record_stand_ready", "result": "SHIM_PASS 73 passed / 0 failed / 0 skipped / 0 UNSUPPORTED (16+10+23+24)", "record": "results/evaluation/orchestration/40034814235_multiling_prov_pytest_shim.json", "matches_committed_record": "results/evaluation/orchestration/40017649220_R1_multiling_prov_pytest_shim.json (identical counts)"},
+      {"suite": "tests/evaluation/test_repair_40017649220_r1.py (the repair's own 32-check suite)", "result": "SHIM_PASS 32 passed / 0 failed / 0 skipped / 0 UNSUPPORTED", "record": "results/evaluation/orchestration/40034814235_repair_r1_suite_shim.json", "matches_committed_record": "results/evaluation/orchestration/local_pytest_shim.json (32 passed at repair head)"}
+    ],
+    "summary_section_backed": "reports/evaluation/EVALUATION_V65_CYCLE_SUMMARY.md Test Suite Verification section cites measurement environment, per-suite counts, record paths, restates the fifth case NOT-RUN and narrows the FAST-MVP footer to executed work - all now independently re-executed at this run",
+    "e2e_fixture_injected_case": "NOT re-executed by this run; its committed record results/evaluation/orchestration/40017649220_R1_e2e_fixture_injected.json (PASS in 10.531s, outputs confined to scratch tmpdir) is cross-checked by the repair suite's test_f1_e2e_cited_elapsed_matches_definitive_record (the summary's cited elapsed must equal the definitive record), which re-executed green above"
+  },
+
+  "F2_verification": {
+    "verdict": "DISCHARGED, RE-DERIVED AND CONFIRMED",
+    "evidence_refs_n": 173,
+    "len_evidence_refs": 173,
+    "all_nine_claim_bearing_artifacts_of_40017649220_indexed": [
+      "results/evaluation/minimal_ret_ca_benchmark/v65_eval_40017649220.json",
+      "results/evaluation/minimal_ret_ca_benchmark/v65_eval_40017649220_leg1_served_baseline.json",
+      "results/evaluation/minimal_ret_ca_benchmark/v65_eval_40017649220_leg2_hostile_geometry.json",
+      "results/evaluation/minimal_ret_ca_benchmark/verify_v65.json",
+      "results/evaluation/minimal_ret_ca_benchmark/verify_v65_leg1_served_baseline.json",
+      "results/evaluation/minimal_ret_ca_benchmark/verify_v65_leg2_hostile_geometry.json",
+      "reports/evaluation/RETRIEVAL_CA_BENCHMARK_v65_eval_40017649220.md",
+      "reports/evaluation/RETRIEVAL_CA_BENCHMARK_verify_v65.md",
+      "reports/evaluation/EVALUATION_V65_CYCLE_SUMMARY.md"
+    ],
+    "resolution_check": "172 of 173 refs resolve on disk at this head; the ONE unresolvable ref (results/evaluation/orchestration/40011795717/producer_work_state_and_next_move.txt) and the ONE duplicated ref (results/evaluation/orchestration/39875239812_diagnosis.json) are both inherited from BEFORE run 40017649220 and disclosed under state.evidence_index_defects_inherited_not_charged; neither was added, edited or removed by the repair or by this run",
+    "correction_applied_by_this_run": "state.evidence_index_defects_inherited_not_charged.defects[0].detail wrongly said the duplicated ref 'does not resolve to a committed file at this head'; the ref DOES resolve (it is DUPLICATE_ONLY, as its own kinds field and the block statement say). This run corrects that detail text to match the measured fact; the ref list itself is unchanged and the correction is disclosed here and in the cycle report."
+  },
+
+  "F3_verification": {
+    "verdict": "DISCHARGED, INTEGRITY RE-CHECKED",
+    "record": "evaluation/MINIMAL_RET_CA_40017649220_CYCLE_HYPOTHESIS_V1.json",
+    "checks": [
+      "declares ORDERING status NOT_FREEZE_FIRST with the true ordering timeline (execution 20:16:19Z, verify 20:36:06Z, only commit 2456ec42 at 20:37:19Z) and freeze_claim_made=false - it does not present itself as freeze-first",
+      "cites the inherited frozen spec: instrument commit 2e7d4fe5, instrument sha256 70f8158c9049df2d03ebcc460b782178967ab9da7a11e48dd1b5b132d9f17167 (re-hash CONFIRMED identical at this head and identical to accepted base b8265afb), test sha256 49c94f7b... (re-hash CONFIRMED), frozen QIDs, frozen label/geometry incumbents, combined-verdict rule, state claim ceiling",
+      "no-post-hoc-tuning proof re-verified by this run: v65_eval_40017649220.json vs verify_v65.json are equal modulo run_id/generated_at/elapsed_s/served_packet_dir; vs test_run_1.json differ only in direction_version 63->65 and the absolute_status_note string that embeds it",
+      "cited by reports/evaluation/EVALUATION_V65_CYCLE_SUMMARY.md and reports/evaluation/RETRIEVAL_CA_BENCHMARK_v65_eval_40017649220.md"
+    ]
+  },
+
+  "E1_benchmark_reexecution_freeze_first": {
+    "executed_at_utc": "2026-10-23T22:54:34Z..22:54:46Z (AFTER freeze commit da2fadea2 at ~22:53Z)",
+    "command": "python3 evaluation/minimal_ret_ca_benchmark.py --run-id 40034814235",
+    "exit_code": 0,
+    "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
+    "falsification_proven": true,
+    "leg1": "served_baseline exit 0 PASS_NO_REGRESSION; label n_scored=65 n_supported=5 rate=0.076923 LABEL_UNSOUND; geometry de 6 / fr 5 / it 5 PASS_NO_REGRESSION, 0/3 bundles pass all 11",
+    "leg2": "geometry_falsification_hostile exit 1 FAIL_REGRESSION (regressed qids de+fr), negative controls proven both legs",
+    "served_bundle_sha256_all_match_frozen_pins": true,
+    "normalized_identical_to_measurement_of_record": "results/evaluation/minimal_ret_ca_benchmark/v65_eval_40017649220.json equal modulo run_id/generated_at/elapsed_s",
+    "records": [
+      "results/evaluation/minimal_ret_ca_benchmark/40034814235.json",
+      "results/evaluation/minimal_ret_ca_benchmark/40034814235_leg1_served_baseline.json",
+      "results/evaluation/minimal_ret_ca_benchmark/40034814235_leg2_hostile_geometry.json",
+      "reports/evaluation/RETRIEVAL_CA_BENCHMARK_40034814235.md"
+    ],
+    "claim_ceiling_unchanged": "Re-establishes only that the frozen 2-leg minimal retrieval/counter-authority benchmark executes at the operational-resume head on the pinned served packet 38839347028 inputs with the same verdict as the measurement of record. Absolute LABEL/GEOMETRY bars stay REPORTED-ONLY and unmet; comparative map-vs-ranked-list stays VACUOUS (n_emitted=0); both DO-NOT-SERVE orders stand; admission fail-closed; machine/human gates stay false."
+  },
+
+  "E3_multilingual_provenance_reuse": {
+    "executed": "evaluation/run_v3_multilingual_provenance_reuse.py in scratch cwd /tmp/opencode/mlp_40034814235 (repo tree untouched; historical record not written)",
+    "result": "PARTIAL_MISS 0/3 qids row_ok, instrument exit 1",
+    "byte_identity": "fresh raw output sha256 82ae91b536623e77dbd39888db3b0df4dce45c9a3c21879549b6b755b07da428 IDENTICAL to the committed historical record results/evaluation/v3_multilingual_provenance_reuse/local_v3_multilingual_reuse.json and to raw_output_sha256 pinned by results/evaluation/multilingual_provenance_reuse/40017649220.json",
+    "disposition": "PARTIAL_MISS stays carried as accepted negative (engine UNABELLED language rows per the accepted D-B characterization); never repaired, never re-labelled"
+  },
+
+  "E4_frozen_input_integrity_after": {
+    "verdict": "ALL IDENTICAL",
+    "rehashes": {
+      "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+      "evaluation/frozen_bars/VERDICT_CONTRACT.json": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c",
+      "evaluation/frozen_bars/run_bar_gates.py": "41b838420ed170d4a043630d75513f2166a109dd1cd8c4775fae96705444b53a",
+      "evaluation/frozen_bars/label_gate.py": "640abd8beeb7b8c86c835a9e485fb5c0be56f723ebda93a40b2b3b902baa4432",
+      "evaluation/frozen_bars/geometry_gate.py": "934d5cca9f362a3e4d1cf518f88085e4359da8242b9971e33ca632bb0d613baa",
+      "evaluation/minimal_ret_ca_benchmark.py": "70f8158c9049df2d03ebcc460b782178967ab9da7a11e48dd1b5b132d9f17167",
+      "tests/evaluation/test_minimal_ret_ca_benchmark.py": "49c94f7bfae80bfbad93da431d7a25ddb68e44bf9aab6daeef80cd37f42cfb6e",
+      "evaluation/no_pytest_runner.py": "c12097da9d910574380b32c5dafa371a3b24ec14ef2551d92bb9453b8ed57584",
+      "tests/evaluation/test_repair_40017649220_r1.py": "01024e9dca31460f3ede5683c0ba47eca3401e347ebb65ddcdd2158f2c073b59"
+    },
+    "frozen_files_edited_by_this_run": 0,
+    "historical_records_overwritten_by_this_run": 0
+  },
+  "guard_test": {
+    "file": "tests/evaluation/test_operational_resume_40034814235.py",
+    "record": "results/evaluation/orchestration/40034814235_self_suite_shim.json",
+    "verdict": "SHIM_PASS",
+    "passed": 15,
+    "failed": 0,
+    "skipped": 0,
+    "unsupported": 0,
+    "executed_after_final_state_update": true,
+    "note": "Committed guard tying this run's verification claims to its committed artifacts (freeze ordering + pins, diagnosis chain, benchmark identity, shim counts, multilingual byte-identity, state run identity/posture/evidence coverage/repair pointers)."
+  },
+
+  "overall_verdict": "REPAIR DISCHARGE VERIFIED; SNAPSHOT AUDIT-READY. The F1/F2/F3 discharge committed by producer 40023576675 holds at the resume head under independent re-execution; the orchestration failure chain is diagnosed with zero work lost; this run commits the durable delta the six dead producers failed to produce.",
+  "posture_unchanged": {
+    "human_gate_ready": false,
+    "machine_gate_ready": false,
+    "packet_admitted": false,
+    "ready_for_owner_session": false,
+    "owner_decision_required": false,
+    "both_do_not_serve_orders_stand": true,
+    "comparative_map_vs_ranked_list": "VACUOUS (n_emitted=0 on all three V3 questions)",
+    "product_falsified_counter_authority_gap_carried_forward": true
+  }
+}
