@@ -1,0 +1,84 @@
+{
+ "schema": "lex-evaluation-orchestration-failure-chain-diagnosis/1",
+ "run_id": "40099481633",
+ "github_run": "40099481633",
+ "diagnosing_run": "40101127061",
+ "repair_round": 1,
+ "direction_version": 67,
+ "diagnosed_from": {
+  "artifact": "results/evaluation/orchestration/40099481633_rest_jobs.json",
+  "artifact_sha256": "14912f7a96c88251768a1e02dbbcc783b2acec192a3d8294475abce5fcdda112",
+  "source": "unauthenticated public GitHub REST API (actions runs/40099481633/jobs); job logs are 403 so any return-code attribution stays HEDGED"
+ },
+ "chain_record": {
+  "workflow": "Core evaluation dirV67 repair0",
+  "event": "workflow_dispatch",
+  "conclusion": "success",
+  "created_at": "2026-10-24T13:45:05Z",
+  "updated_at": "2026-10-24T14:08:08Z",
+  "run_attempt": 1,
+  "head_sha": "e281fc6ffbd3fbb91b3d309cfeacf0c65ee7a221",
+  "team_job": {
+   "conclusion": "success",
+   "started_at": "2026-10-24T13:45:11Z",
+   "completed_at": "2026-10-24T13:52:27Z",
+   "duration_s": 436,
+   "all_steps": [
+    "1:Set up job=success",
+    "2:Run actions/checkout@v6=success",
+    "3:Validate lane and initialize working base=success",
+    "4:Mount accepted peer evidence=success",
+    "5:Install Ox/OpenCode=success",
+    "6:Run lane cycle=success",
+    "7:Validate active MVP producer state=success",
+    "8:Clean generated junk=success",
+    "9:Enforce lane write scope=success",
+    "10:Persist team snapshot=success",
+    "20:Post Run actions/checkout@v6=success",
+    "21:Complete job=success"
+   ]
+  },
+  "audit_job": {
+   "conclusion": "success",
+   "started_at": "2026-10-24T13:52:30Z",
+   "completed_at": "2026-10-24T14:07:44Z",
+   "produced_gate": "results/audit/evaluation/CYCLE_40099481633_GATE.json (audit branch cycle/core/evaluation/40099481633/audit, commit ab50ea74): gate=REVISE, safe_to_integrate=false, required_fixes F1-F4"
+  },
+  "integrate_job": "success",
+  "resilience_job": "success"
+ },
+ "zero_durable_delta_diagnosis": {
+  "verdict": "ZERO_DURABLE_DELTA_UNDER_SUCCESS",
+  "explanation": "The team job of run 40099481633 concluded SUCCESS in 436s with every step green, yet produced no run-scoped content: the persisted team snapshot cycle/core/evaluation/40099481633/team is at commit 0b4963a0, which IS the previous cycle's audit commit (audit of 40096174340), its tree is byte-identical to that head, no committed artifact references run 40099481633, and state/evaluation.json still carried github_run=40096174340. The LEX_REQUIRE_DELTA / LEX_ZERO_DELTA_REPAIR guard (.github/scripts/run-ox-with-retry.sh:161,213-216, recorded NOT edited - .github/** is control-plane scope) compares HEAD against START_HEAD plus git status porcelain; it was satisfied ONLY by HEAD movement f2734734 (lab/evaluation tip) -> 0b4963a0 (adopted inherited audit head) with a CLEAN worktree, i.e. a delta-guard bypass by head adoption. The 'Validate active MVP producer state' step then passed on the INHERITED state (direction_version 67, cycle_status COMPLETE). This is an unreported null, not an honest negative result.",
+  "delta_guard_mechanism": "LEX_REQUIRE_DELTA=1 sets REPAIR_INTENT; after a successful agent run the guard exits 67 only when HEAD==START_HEAD AND porcelain is empty; HEAD moved while no file changed",
+  "state_before_this_repair": {
+   "github_run": "40096174340",
+   "accepted_run_id": "40084716045",
+   "source": "state/evaluation.json at inherited head 0b4963a0"
+  },
+  "artifacts_referencing_run_before_repair": 0,
+  "escalation_contract": "audit required_fixes F1: a zero-delta round-1 repair is INVALID and must escalate to BLOCKED; this repair therefore produces the run-referenced diagnosis set + freeze-first re-verification + state advance instead of adopting a head"
+ },
+ "v67_work_posture_this_run": {
+  "item_1_d2_letterhead_pattern_profile": "DISCHARGED-AND-INHERITED: deliverable of record results/evaluation/d2_letterhead_pattern_profile/40089391202.json (sha256 f5fade6d11ebf14e3004d5beebf2f959444720fc3152e4e5b0b479a644d3cab7); re-verified under run 40099481633 this repair by freeze-first re-execution (see results/evaluation/d2_letterhead_pattern_profile/40099481633_reproduction_check_vs_40089391202.json); no re-derivation",
+  "item_2_conditional_remeasure": "NOT_YET_DISCRIMINATING (re-verified this run, report-only): origin/lab/product head e2270c373a8f26c6b826053e8527a216a3304e8b still fixture-bypasses the content filter - product/offline_slice.py:79 enrich_query_bundle(..., retrieval_mode='fixture', fixture_generation=True) and product/query/pipeline.py:1339 'if not fixture_generation and adversarial_retrieval'. No synthetic stand-in; standing falsification record not re-run.",
+  "item_3_standing_falsification_record": "KEPT OF RECORD, not re-run (PRODUCT_FALSIFIED with the identical 4-gate set on the minimal retrieval/ca benchmark; superseded only by a NEW pre-registered falsification on NEW bytes with its own freeze-first record)",
+  "item_4_report_only": "the three non-blocking required fixes of CYCLE_39965089504_GATE.json are reported only where this lane quotes those counts, never silently",
+  "accepted_head_surfaces_read": "both halves of factory-wide requirement 4: origin/lab/evaluation tip f2734734 ('accept evaluation cycle 40084716045') read via git; results/accepted-state/evaluation.json on origin/main read via git and pinned at github_run 40082514143 (publication-lag artifact per requirement 43, not an acceptance claim); /tmp/lex_accepted mounts NOT used as acceptance authority"
+ },
+ "posture_unchanged": {
+  "human_gate_ready": false,
+  "machine_gate_ready": false,
+  "packet_admitted": false,
+  "ready_for_owner_session": false,
+  "owner_decision_required": false,
+  "both_do_not_serve_orders_stand": true,
+  "comparative_map_vs_ranked_list": "VACUOUS",
+  "no_frozen_bar_rubric_threshold_verdict_contract_edit": true,
+  "baseline_40062917685_unmoved": true,
+  "no_obsolete_universal_174k_benchmark_rerun": true,
+  "no_product_code_modified": true
+ },
+ "claim_ceiling": "Operational-resume/diagnosis artifact for F1 of the round-1 repair of rejected cycle 40099481633 (gate REVISE, required_fixes F1-F4). It records why a SUCCESS team job shipped zero durable delta and what the current v67 posture is. It scores no frozen bar, edits nothing frozen, re-runs no serve verdict, and makes no product, admission or legal-usefulness claim; comparative map-versus-ranked-list stays VACUOUS; owner_decision_required=false.",
+ "generated_at_utc": "2026-10-24T14:26:09Z"
+}
