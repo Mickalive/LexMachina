@@ -346,6 +346,7 @@ def select_span(
     max_candidates: int | None = None,
     guard: dict[str, Any] | None = None,
     precision_guard: bool = False,
+    content_filter: bool = True,
 ) -> SpanSelection:
     """Pick the first verbatim span the frozen gate confirms, else abstain.
 
@@ -377,6 +378,12 @@ def select_span(
                     if precision_guard and not span_passes_precision_guard(existing, guard or {}):
                         baseline_reason = "off_topic_span"
                         break
+                    # Content quality filter (D2/D3/D4)
+                    if content_filter:
+                        cf_ok, cf_reason = passes_content_filter(existing, row, start=c.start)
+                        if not cf_ok:
+                            baseline_reason = cf_reason
+                            break  # reject this existing quote
                     return SpanSelection(
                         selected=True,
                         reason_code="supported_existing_span",
@@ -395,7 +402,7 @@ def select_span(
                     )
             # Existing quote passes the gate but is not a literal substring of
             # any named field -> do not claim verbatim; fall through to scan.
-            baseline_reason = "existing_not_verbatim"
+            baseline_reason = baseline_reason or "existing_not_verbatim"
 
     scanned: list[str] = []
     n_eval = 0
@@ -416,6 +423,12 @@ def select_span(
         if precision_guard and not span_passes_precision_guard(cand.quote, guard or {}):
             n_guard_rejected += 1
             continue
+        # Content quality filter (D2/D3/D4)
+        if content_filter:
+            cf_ok, cf_reason = passes_content_filter(cand.quote, row, start=cand.start)
+            if not cf_ok:
+                n_guard_rejected += 1  # count as filtered by quality
+                continue
         return SpanSelection(
             selected=True,
             reason_code="supported_verbatim_span",
@@ -436,8 +449,10 @@ def select_span(
     return SpanSelection(
         selected=False,
         reason_code=(
-            "off_topic_span" if n_guard_rejected
-            else (baseline_reason or "no_emitting_span")
+            "d2_letterhead_zone" if any(True for _ in []) else  # placeholder
+            ("d2_letterhead_zone" if n_guard_rejected and baseline_reason and baseline_reason in ('d2_letterhead_zone','d3_markup_residue','d4_language_marker_mismatch') else
+             ("off_topic_span" if n_guard_rejected
+              else (baseline_reason or "no_emitting_span")))
         ),
         n_candidates=len(candidates),
         n_evaluated=n_eval,
@@ -602,3 +617,139 @@ __all__ = [
     "sentence_spans",
     "verify_span",
 ]
+
+# ---- Content quality filter (direction v66 P0) ----
+# Deterministic, model-free filter to catch D2/D3/D4 defects.
+# Filter only narrows which spans are offered; never touches decide_label.
+
+import unicodedata
+
+COURT_HEADER_MARKERS = (
+    "bundesgericht",
+    "tribunal fédéral",
+    "tribunale federale",
+    "obergericht",
+    "kantonsgericht",
+    "verwaltungsgericht",
+    "handelsgericht",
+    "sozialversicherungsgericht",
+    "cour de justice",
+    "tribunal cantonal",
+)
+
+COURT_HEADER_PATTERNS = [
+    re.compile(r'(?i)^\s*(bundesgericht|tribunal\s+f[ée]d[ée]ral|tribunale\s+federale)\s*$', re.M),
+    re.compile(r'(?i)^(bundesverwaltungsgericht|tribunal\s+administratif\s+f[ée]d[ée]ral|tribunale\s+amministrativo\s+federale)\s*$', re.M),
+    re.compile(r'(?i)^.*(Geschäfts-?\s*Nr\.|Numéro\s+de\s+dossier|N\.\s*rif\.|Règlement|arrêt\s+du|Urteil\s+vom|sentenza\s+del).*(\d{4}|[A-Z])', re.M),
+]
+
+MARKUP_RESIDUE_PATTERNS = [
+    re.compile(r'<[^>]+>'),  # HTML tags
+    re.compile(r'\[\[.*?\]\]'),  # wiki markup
+    re.compile(r'\{\{.*?\}\}'),  # template markup
+    re.compile(r'&[a-zA-Z]+;'),  # HTML entities
+    re.compile(r'\\[a-zA-Z]+\{'),  # LaTeX-ish
+]
+
+def _normalize_text(s: str) -> str:
+    if not s:
+        return ""
+    # strip diacritics for comparison
+    s2 = unicodedata.normalize("NFKD", str(s))
+    s2 = "".join(c for c in s2 if not unicodedata.combining(c))
+    return s2.lower()
+
+
+def detect_letterhead_zone(text: str, start: int = 0, max_check_chars: int = 500) -> bool:
+    """Detect D2: evidence_head starting at full_text offset 0 with court-header text."""
+    if not text:
+        return False
+    # Check if start is near beginning (evidence head at offset ~0)
+    if start > 50:  # allow small offset
+        return False
+    check = text[:max_check_chars]
+    norm = _normalize_text(check)
+    # Look for court header patterns
+    header_lines = check.split('\n')[:10]  # first few lines
+    for i, line in enumerate(header_lines[:6]):  # check first 6 lines
+        line_norm = _normalize_text(line)
+        if not line_norm.strip():
+            continue
+        # Court name markers
+        for marker in COURT_HEADER_MARKERS:
+            if marker in line_norm:
+                # Likely letterhead if it's in early lines
+                if i <= 4:
+                    return True
+        # Date/case number patterns typical of headers
+        if re.search(r'(?i)^(urteil|arrêt|sentenza|beschluss)\s+(vom|du|del)', line_norm):
+            if i <= 3:
+                return True
+        # Lots of caps and short header-like content
+        if re.match(r'^[A-ZÄÖÜÉÈÊÀÂÆÇÎÏÔŒÙÛË\s\.\-0-9]+$', line.strip()) and len(line.strip()) < 80 and i <= 2:
+            if any(c.isdigit() for c in line) or any(m in line_norm for m in COURT_HEADER_MARKERS):
+                return True
+    return False
+
+
+def detect_markup_residue(text: str) -> bool:
+    """Detect D3: markup residue."""
+    if not text:
+        return False
+    for pat in MARKUP_RESIDUE_PATTERNS:
+        if pat.search(text):
+            return True
+    # Also check for leftover tags like <p>, </div> etc
+    if re.search(r'</?[a-z][^>]{0,20}>', text):
+        return True
+    return False
+
+
+def detect_language_marker_mismatch(quote: str, row_lang: str) -> bool:
+    """Detect D4: language marker mismatch between row language and span text."""
+    if not quote or not row_lang:
+        return False
+    row_lang = str(row_lang).lower()[:2]
+    norm = _normalize_text(quote)
+    # Simple heuristics: check for obvious wrong language markers
+    de_markers = set(['der', 'die', 'das', 'und', 'ist', 'sind', 'wird', 'werden', 'nicht', 'oder'])
+    fr_markers = set(['le', 'la', 'les', 'et', 'est', 'sont', 'ne', 'pas', 'ou', 'dans'])
+    it_markers = set(['il', 'lo', 'la', 'gli', 'le', 'e', 'sono', 'non', 'o', 'nel'])
+    
+    words = set(norm.split())
+    de_score = len(words & de_markers)
+    fr_score = len(words & fr_markers)
+    it_score = len(words & it_markers)
+    
+    scores = {'de': de_score, 'fr': fr_score, 'it': it_score}
+    best = max(scores.items(), key=lambda x: x[1])[0]
+    if best and best != row_lang and max(scores.values()) >= 3 and scores[best] > scores.get(row_lang, 0) * 2:
+        return True
+    return False
+
+
+def passes_content_filter(quote: str, row: dict, start: int = 0) -> tuple[bool, str]:
+    """Returns (passes, reason_if_failed)."""
+    # D2: letterhead zone
+    full_text = str(row.get('full_text') or '')
+    if detect_letterhead_zone(full_text, start=start):
+        return False, 'd2_letterhead_zone'
+    # Check if quote comes from early in full_text
+    if full_text and quote and quote in full_text:
+        idx = full_text.find(quote)
+        if idx >= 0 and detect_letterhead_zone(full_text, start=idx):
+            return False, 'd2_letterhead_zone'
+    
+    # D3: markup residue
+    if detect_markup_residue(quote):
+        return False, 'd3_markup_residue'
+    if detect_markup_residue(full_text[:start+len(quote)+100] if start >=0 else quote):
+        # be more specific
+        pass
+    
+    # D4: language marker mismatch
+    row_lang = row.get('language') or row.get('lang')
+    if detect_language_marker_mismatch(quote, row_lang):
+        return False, 'd4_language_marker_mismatch'
+    
+    return True, ''
