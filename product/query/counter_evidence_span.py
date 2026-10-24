@@ -294,6 +294,11 @@ class SpanSelection:
     scanned_fields: list[str] = dc_field(default_factory=list)
     guard_available: bool = True
     n_guard_rejected: int = 0
+    #: True iff the row's *incumbent* counter_evidence was rejected by the
+    #: deterministic D2/D3/D4 content filter, independent of the frozen gate.
+    #: ``baseline_defect`` names the defect class (empty when clean).
+    baseline_defect: str = ""
+    n_content_rejected: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -312,6 +317,8 @@ class SpanSelection:
             "scanned_fields": list(self.scanned_fields),
             "guard_available": self.guard_available,
             "n_guard_rejected": self.n_guard_rejected,
+            "baseline_defect": self.baseline_defect,
+            "n_content_rejected": self.n_content_rejected,
         }
 
 
@@ -335,6 +342,18 @@ def _minimal_row(row: dict, status: str, quote: str) -> dict:
     probe.pop("counter_anchor_decision", None)
     probe.pop("counter_anchor_label", None)
     return probe
+
+
+def _locate_quote(quote: str, row: dict) -> tuple[str | None, int | None]:
+    """Return (field, offset) where ``quote`` occurs verbatim, or (None, None)."""
+    if not quote:
+        return None, None
+    for field_name in TEXT_FIELDS:
+        text = str(row.get(field_name) or "")
+        idx = text.find(quote)
+        if idx >= 0:
+            return field_name, idx
+    return None, None
 
 
 def select_span(
@@ -362,69 +381,81 @@ def select_span(
     existing = str(row.get("counter_evidence") or "").strip()
     baseline_label = None
     baseline_reason = None
+    baseline_defect = ""
     if existing:
-        base_row = _minimal_row(row, status, existing)
-        base_dec = decide_label(base_row, rules, profile)
-        baseline_label = "ABSTAIN" if base_dec.abstained else base_dec.label
-        baseline_reason = base_dec.reason_code
-        if not base_dec.abstained:
-            # Verify against whichever field actually carries it; scanning is
-            # unnecessary if the incumbent quote is already verbatim AND (when
-            # the guard is on) anchored to this query.
-            for c in candidates:
-                if c.quote == existing or (
-                    c.field and verify_span(str(row.get(c.field) or ""), existing, c.start, c.end)
-                ):
-                    if precision_guard and not span_passes_precision_guard(existing, guard or {}):
-                        baseline_reason = "off_topic_span"
-                        break
-                    # Content quality filter (D2/D3/D4)
-                    if content_filter:
-                        cf_ok, cf_reason = passes_content_filter(existing, row, start=c.start)
-                        if not cf_ok:
-                            return SpanSelection(
-                                selected=False,
-                                reason_code=cf_reason,
-                                quote="",
-                                field="",
-                                start=-1,
-                                end=-1,
-                                n_candidates=len(candidates),
-                                n_evaluated=0,
-                                decision=base_dec,
-                                baseline_label=baseline_label,
-                                baseline_reason=cf_reason,
-                                scanned_fields=[],
-                                guard_available=bool((guard or {}).get("available", True)),
-                                n_guard_rejected=0,
-                            )
-                    return SpanSelection(
-                        selected=True,
-                        reason_code="supported_existing_span",
-                        quote=existing,
-                        field=c.field,
-                        start=c.start,
-                        end=c.end,
-                        n_candidates=len(candidates),
-                        n_evaluated=0,
-                        decision=base_dec,
-                        baseline_label=baseline_label,
-                        baseline_reason=baseline_reason,
-                        scanned_fields=[],
-                        guard_available=bool((guard or {}).get("available", True)),
-                        n_guard_rejected=0,
-                    )
-            # Existing quote passes the gate but is not a literal substring of
-            # any named field -> do not claim verbatim; fall through to scan.
-            baseline_reason = baseline_reason or "existing_not_verbatim"
+        existing_field, existing_start = _locate_quote(existing, row)
+        # Direction v67 P0: the deterministic content-quality filter runs on the
+        # INCUMBENT quote BEFORE the frozen gate, so a letterhead that the gate
+        # merely abstains on (accepted PATH_SCOPE_RESIDUAL pivot_absent) can no
+        # longer keep the row's verified flag.  The filter only removes the span;
+        # it never edits the gate, the rubric or a threshold.
+        if content_filter:
+            cf_ok, cf_reason = passes_content_filter(
+                existing,
+                row,
+                start=existing_start if existing_start is not None else -1,
+            )
+            if not cf_ok:
+                baseline_defect = cf_reason
+                baseline_label = "ABSTAIN"
+                baseline_reason = cf_reason
+        if not baseline_defect:
+            base_row = _minimal_row(row, status, existing)
+            base_dec = decide_label(base_row, rules, profile)
+            baseline_label = "ABSTAIN" if base_dec.abstained else base_dec.label
+            baseline_reason = base_dec.reason_code
+            if not base_dec.abstained:
+                # Verify against whichever field actually carries it; scanning is
+                # unnecessary if the incumbent quote is already verbatim AND (when
+                # the guard is on) anchored to this query.
+                for c in candidates:
+                    if c.quote == existing or (
+                        existing_field == c.field
+                        and verify_span(str(row.get(c.field) or ""), existing, c.start, c.end)
+                    ):
+                        if precision_guard and not span_passes_precision_guard(existing, guard or {}):
+                            baseline_reason = "off_topic_span"
+                            break
+                        return SpanSelection(
+                            selected=True,
+                            reason_code="supported_existing_span",
+                            quote=existing,
+                            field=c.field,
+                            start=c.start,
+                            end=c.end,
+                            n_candidates=len(candidates),
+                            n_evaluated=0,
+                            decision=base_dec,
+                            baseline_label=baseline_label,
+                            baseline_reason=baseline_reason,
+                            scanned_fields=[],
+                            guard_available=bool((guard or {}).get("available", True)),
+                            n_guard_rejected=0,
+                        )
+                # Existing quote passes the gate but is not a literal substring of
+                # any named field -> do not claim verbatim; fall through to scan.
+                baseline_reason = baseline_reason or "existing_not_verbatim"
 
     scanned: list[str] = []
     n_eval = 0
     n_guard_rejected = 0
+    n_content_rejected = 0
+    defect_reason = ""
     for cand in candidates:
         n_eval += 1
         if cand.field not in scanned:
             scanned.append(cand.field)
+        # Deterministic content-quality filter (D2/D3/D4) runs BEFORE the gate;
+        # a defective candidate is never offered to the frozen classifier.
+        if content_filter:
+            cf_ok, cf_reason = passes_content_filter(cand.quote, row, start=cand.start)
+            if not cf_ok:
+                n_content_rejected += 1
+                if not defect_reason:
+                    defect_reason = cf_reason
+                if baseline_reason is None:
+                    baseline_reason = cf_reason
+                continue
         probe = _minimal_row(row, status, cand.quote)
         dec = decide_label(probe, rules, profile)
         if dec.abstained:
@@ -437,12 +468,6 @@ def select_span(
         if precision_guard and not span_passes_precision_guard(cand.quote, guard or {}):
             n_guard_rejected += 1
             continue
-        # Content quality filter (D2/D3/D4)
-        if content_filter:
-            cf_ok, cf_reason = passes_content_filter(cand.quote, row, start=cand.start)
-            if not cf_ok:
-                n_guard_rejected += 1  # count as filtered by quality
-                continue
         return SpanSelection(
             selected=True,
             reason_code="supported_verbatim_span",
@@ -458,15 +483,21 @@ def select_span(
             scanned_fields=scanned,
             guard_available=bool((guard or {}).get("available", True)),
             n_guard_rejected=n_guard_rejected,
+            baseline_defect=baseline_defect,
+            n_content_rejected=n_content_rejected,
         )
 
+    if baseline_defect:
+        reason_code = baseline_defect
+    elif defect_reason:
+        reason_code = defect_reason
+    elif n_guard_rejected:
+        reason_code = "off_topic_span"
+    else:
+        reason_code = baseline_reason or "no_emitting_span"
     return SpanSelection(
         selected=False,
-        reason_code=(
-            "d2_letterhead_zone" if n_guard_rejected and baseline_reason and baseline_reason in ('d2_letterhead_zone','d3_markup_residue','d4_language_marker_mismatch') else
-            ("off_topic_span" if n_guard_rejected
-             else (baseline_reason or "no_emitting_span"))
-        ),
+        reason_code=reason_code,
         n_candidates=len(candidates),
         n_evaluated=n_eval,
         baseline_label=baseline_label,
@@ -474,6 +505,8 @@ def select_span(
         scanned_fields=scanned,
         guard_available=bool((guard or {}).get("available", True)),
         n_guard_rejected=n_guard_rejected,
+        baseline_defect=baseline_defect,
+        n_content_rejected=n_content_rejected,
     )
 
 
@@ -557,6 +590,9 @@ def apply_verified_span_selection(
     n_abstained = 0
     n_evaluated = 0
     n_guard_rejected = 0
+    n_content_rejected = 0
+    n_baseline_cleared = 0
+    baseline_cleared_ids: list[str] = []
     selected_ids: list[str] = []
     abstained_ids: list[str] = []
     reasons: dict[str, int] = {}
@@ -572,6 +608,7 @@ def apply_verified_span_selection(
         )
         n_evaluated += sel.n_evaluated
         n_guard_rejected += sel.n_guard_rejected
+        n_content_rejected += sel.n_content_rejected
         record = sel.to_dict()
         if sel.field:
             record["field_sha256"] = _text_sha256(d, sel.field)
@@ -580,6 +617,22 @@ def apply_verified_span_selection(
             n_abstained += 1
             abstained_ids.append(str(d.get("decision_id") or ""))
             reasons[sel.reason_code] = reasons.get(sel.reason_code, 0) + 1
+            # Direction v67 P0: if the incumbent evidence was content-defective
+            # (letterhead / markup / language mismatch), revoke the verified
+            # claim even when the frozen gate abstains.  Otherwise a
+            # "pivot_absent" row would keep serving its letterhead as sourced
+            # counter-authority.
+            if sel.baseline_defect:
+                d["counter_evidence"] = ""
+                d["counter_evidence_verified"] = False
+                d["counter_evidence_quality_filter"] = {
+                    "version": "counter_content_quality/1",
+                    "rejected": True,
+                    "reason_code": sel.baseline_defect,
+                    "span_reason_code": sel.reason_code,
+                }
+                n_baseline_cleared += 1
+                baseline_cleared_ids.append(str(d.get("decision_id") or ""))
             continue
         n_selected += 1
         selected_ids.append(str(d.get("decision_id") or ""))
@@ -609,6 +662,9 @@ def apply_verified_span_selection(
         "guard_statutes": list(guard.get("statutes") or []),
         "guard_phrase_count": len(guard.get("phrases") or []),
         "n_guard_rejected": n_guard_rejected,
+        "n_content_rejected": n_content_rejected,
+        "n_baseline_cleared": n_baseline_cleared,
+        "baseline_cleared_ids": baseline_cleared_ids,
         "selected_ids": selected_ids,
         "abstained_ids": abstained_ids,
         "abstention_reasons": dict(sorted(reasons.items())),
@@ -646,15 +702,30 @@ COURT_HEADER_MARKERS = (
     "verwaltungsgericht",
     "handelsgericht",
     "sozialversicherungsgericht",
+    "bezirksgericht",
+    "kreisgericht",
+    "landgericht",
+    "appellationsgericht",
     "cour de justice",
     "tribunal cantonal",
+    "tribunale cantonale",
+    "dretgira",
+    "gericht",
 )
 
-COURT_HEADER_PATTERNS = [
-    re.compile(r'(?i)^\s*(bundesgericht|tribunal\s+f[ée]d[ée]ral|tribunale\s+federale)\s*$', re.M),
-    re.compile(r'(?i)^(bundesverwaltungsgericht|tribunal\s+administratif\s+f[ée]d[ée]ral|tribunale\s+amministrativo\s+federale)\s*$', re.M),
-    re.compile(r'(?i)^.*(Geschäfts-?\s*Nr\.|Numéro\s+de\s+dossier|N\.\s*rif\.|Règlement|arrêt\s+du|Urteil\s+vom|sentenza\s+del).*(\d{4}|[A-Z])', re.M),
+#: Frozen D2 offset ceiling (mirrors evaluation/counter_evidence_quality_benchmark.py).
+LETTERHEAD_ZONE_OFFSET_MAX = 400
+
+#: Lines whose *start* marks a judgment head / letterhead rather than prose.
+HEADER_LINE_PATTERNS = [
+    re.compile(r'(?i)^\s*(bundesgericht|tribunal\s+f[ée]d[ée]ral|tribunale\s+federale|kantonsgericht|obergericht|appellationsgericht|bezirksgericht|kreisgericht|landgericht|verwaltungsgericht|handelsgericht|sozialversicherungsgericht|cour\s+de\s+justice|tribunal\s+cantonal|tribunale\s+cantonale|dretgira)\b'),
+    re.compile(r'(?i)^\s*(urteilskopf|auszug\s+aus\s+dem\s+urteil|extrait\s+de\s+l.?arr[êe]t|estratto\s+della\s+sentenza)\b'),
+    re.compile(r'(?i)^\s*(urteil|arr[êe]t|sentenza|beschluss|verf[üu]gung|entscheid)\s+(vom|du|del|della)\b'),
+    re.compile(r'(?i)^\s*(gesch[äa]fts-?\s*nr\.?|gesch[äa]ftsnummer|num[ée]ro\s+de\s+dossier|n\.\s*rif\.?|ref\.?:|schriftlich\s+mitgeteilt|mitgeteilt\s+am)\b'),
 ]
+
+#: A bare case-number line ("110 II 391", "5A_123/2020", "B 1/2021").
+CASE_NUMBER_RE = re.compile(r'^\s*([A-Z]?\s?\d{1,4}\s*(?:[IVX]{1,4}\s*)?\d{1,5}(?:/\d{2,4})?|\d{1,4}\s+[IVX]{1,4}\s+\d{1,5})\s*$')
 
 MARKUP_RESIDUE_PATTERNS = [
     re.compile(r'<[^>]+>'),  # HTML tags
@@ -663,6 +734,14 @@ MARKUP_RESIDUE_PATTERNS = [
     re.compile(r'&[a-zA-Z]+;'),  # HTML entities
     re.compile(r'\\[a-zA-Z]+\{'),  # LaTeX-ish
 ]
+
+# Frozen D4 marker sets (mirrors evaluation/counter_evidence_quality_benchmark.py).
+LANGUAGE_MARKER_SETS = {
+    "de": ("Regeste", "Erwägung", "Kündigung", "Mietvertrag", "Bundesgericht", "Verfügung"),
+    "fr": ("considérant", "bail", "résiliation", "recours", "Tribunal fédéral", "arrêt"),
+    "it": ("considerando", "locazione", "disdetta", "ricorso", "Tribunale federale", "sentenza"),
+}
+
 
 def _normalize_text(s: str) -> str:
     if not s:
@@ -673,36 +752,67 @@ def _normalize_text(s: str) -> str:
     return s2.lower()
 
 
+def _header_line_score(line: str) -> int:
+    stripped = line.strip()
+    if not stripped:
+        return 0
+    for pat in HEADER_LINE_PATTERNS:
+        if pat.search(stripped):
+            return 2
+    norm = _normalize_text(stripped)
+    if any(marker in norm for marker in COURT_HEADER_MARKERS) and len(stripped) <= 90:
+        return 1
+    if CASE_NUMBER_RE.match(stripped):
+        return 1
+    if re.match(r'^[_\-\s]{4,}$', stripped):
+        return 1
+    return 0
+
+
+def looks_like_header_span(quote: str, full_text: str, start: int = -1) -> bool:
+    """True iff ``quote`` is a judgment letterhead / head block (D2).
+
+    Constrained to the frozen D2 zone (offset < 400) and to *header-shaped*
+    lines, so a substantive sentence that merely sits near the document start is
+    not rejected.
+    """
+    if not quote:
+        return False
+    offset = start
+    if offset is None or offset < 0:
+        offset = (full_text or "").find(quote)
+    if offset is None or offset < 0 or offset >= LETTERHEAD_ZONE_OFFSET_MAX:
+        return False
+    lines = [ln.strip() for ln in str(quote).splitlines() if ln.strip()]
+    if not lines:
+        return False
+    head = lines[:6]
+    first_two = head[:2]
+    # A strong header line among the first two lines is sufficient.
+    if any(_header_line_score(ln) == 2 for ln in first_two):
+        return True
+    # Two or more header-ish fields in the head block (court name + case number,
+    # `Urteilskopf` + docket, etc.).
+    score = sum(1 for ln in head if _header_line_score(ln))
+    if score >= 2:
+        return True
+    # Case number followed by a judgment-head phrase.
+    if len(head) >= 2 and CASE_NUMBER_RE.match(head[0]):
+        if re.search(r'(?i)(urteil|arr[êe]t|sentenza|auszug|extrait|estratto)', head[1]):
+            return True
+    return False
+
+
 def detect_letterhead_zone(text: str, start: int = 0, max_check_chars: int = 500) -> bool:
-    """Detect D2: evidence_head starting at full_text offset 0 with court-header text."""
+    """Backwards-compatible D2 helper: inspect the head run of ``text``."""
     if not text:
         return False
-    # Check if start is near beginning (evidence head at offset ~0)
-    if start > 50:  # allow small offset
+    if start is None:
+        start = 0
+    if start > LETTERHEAD_ZONE_OFFSET_MAX:
         return False
-    check = text[:max_check_chars]
-    norm = _normalize_text(check)
-    # Look for court header patterns
-    header_lines = check.split('\n')[:10]  # first few lines
-    for i, line in enumerate(header_lines[:6]):  # check first 6 lines
-        line_norm = _normalize_text(line)
-        if not line_norm.strip():
-            continue
-        # Court name markers
-        for marker in COURT_HEADER_MARKERS:
-            if marker in line_norm:
-                # Likely letterhead if it's in early lines
-                if i <= 4:
-                    return True
-        # Date/case number patterns typical of headers
-        if re.search(r'(?i)^(urteil|arrêt|sentenza|beschluss)\s+(vom|du|del)', line_norm):
-            if i <= 3:
-                return True
-        # Lots of caps and short header-like content
-        if re.match(r'^[A-ZÄÖÜÉÈÊÀÂÆÇÎÏÔŒÙÛË\s\.\-0-9]+$', line.strip()) and len(line.strip()) < 80 and i <= 2:
-            if any(c.isdigit() for c in line) or any(m in line_norm for m in COURT_HEADER_MARKERS):
-                return True
-    return False
+    head = str(text)[:max_check_chars]
+    return looks_like_header_span(head, str(text), 0)
 
 
 def detect_markup_residue(text: str) -> bool:
@@ -719,50 +829,36 @@ def detect_markup_residue(text: str) -> bool:
 
 
 def detect_language_marker_mismatch(quote: str, row_lang: str) -> bool:
-    """Detect D4: language marker mismatch between row language and span text."""
+    """Detect D4: row language has no marker while another language has >=3."""
     if not quote or not row_lang:
         return False
     row_lang = str(row_lang).lower()[:2]
-    norm = _normalize_text(quote)
-    # Simple heuristics: check for obvious wrong language markers
-    de_markers = set(['der', 'die', 'das', 'und', 'ist', 'sind', 'wird', 'werden', 'nicht', 'oder'])
-    fr_markers = set(['le', 'la', 'les', 'et', 'est', 'sont', 'ne', 'pas', 'ou', 'dans'])
-    it_markers = set(['il', 'lo', 'la', 'gli', 'le', 'e', 'sono', 'non', 'o', 'nel'])
-    
-    words = set(norm.split())
-    de_score = len(words & de_markers)
-    fr_score = len(words & fr_markers)
-    it_score = len(words & it_markers)
-    
-    scores = {'de': de_score, 'fr': fr_score, 'it': it_score}
-    best = max(scores.items(), key=lambda x: x[1])[0]
-    if best and best != row_lang and max(scores.values()) >= 3 and scores[best] > scores.get(row_lang, 0) * 2:
-        return True
-    return False
+    if row_lang not in LANGUAGE_MARKER_SETS:
+        return False
+
+    def hits(lang: str) -> int:
+        return sum(1 for marker in LANGUAGE_MARKER_SETS[lang] if marker in quote)
+
+    own = hits(row_lang)
+    best_other = max((hits(lang), lang) for lang in LANGUAGE_MARKER_SETS if lang != row_lang)
+    return own == 0 and best_other[0] >= 3
 
 
-def passes_content_filter(quote: str, row: dict, start: int = 0) -> tuple[bool, str]:
-    """Returns (passes, reason_if_failed)."""
-    # D2: letterhead zone
+def passes_content_filter(quote: str, row: dict, start: int = -1) -> tuple[bool, str]:
+    """Returns (passes, reason_if_failed). Deterministic; model-free."""
+    # D2: letterhead / judgment-head zone
     full_text = str(row.get('full_text') or '')
-    if detect_letterhead_zone(full_text, start=start):
+    if looks_like_header_span(quote, full_text, start=start):
         return False, 'd2_letterhead_zone'
-    # Check if quote comes from early in full_text
-    if full_text and quote and quote in full_text:
-        idx = full_text.find(quote)
-        if idx >= 0 and detect_letterhead_zone(full_text, start=idx):
-            return False, 'd2_letterhead_zone'
-    
+
     # D3: markup residue
     if detect_markup_residue(quote):
         return False, 'd3_markup_residue'
-    if detect_markup_residue(full_text[:start+len(quote)+100] if start >=0 else quote):
-        # be more specific
-        pass
-    
+
     # D4: language marker mismatch
     row_lang = row.get('language') or row.get('lang')
     if detect_language_marker_mismatch(quote, row_lang):
         return False, 'd4_language_marker_mismatch'
-    
+
     return True, ''
+

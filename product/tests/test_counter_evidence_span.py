@@ -263,3 +263,117 @@ def test_absent_id_diagnosis_pins_head_exclusion_not_a_retrieval_miss():
         assert r["legal_anchor_score"] == 0.0
         assert r["query_similarity"] < 0.04
         assert r["inside_top_n_cut"] is False
+
+
+# --------------------------------------------------------------------------- #
+# 5. direction v67 P0: deterministic D2/D3/D4 content rejection is independent
+#    of the frozen gate's abstention (accepted PATH_SCOPE_RESIDUAL defect)
+# --------------------------------------------------------------------------- #
+
+GR_LETTERHEAD = (
+    "Kantonsgericht von Graubünden\n"
+    "Dretgira chantunala dal Grischun\n"
+    "Tribunale cantonale dei Grigioni\n"
+    "________________________________________________"
+)
+
+URTEILSKOPF = (
+    "Urteilskopf\n"
+    "110 II 391\n"
+    "75. Auszug aus dem Urteil der I. Zivilabteilung vom 10. April 1984 "
+    "i.S. X. gegen Y. (Beschwerde)"
+)
+
+
+class _AbstainDecision:
+    abstained = True
+    label = "ABSTAIN"
+    reason_code = "pivot_absent"
+    uncertainty = 1.0
+
+
+class _AbstainGate:
+    """Frozen-gate stand-in that abstains on every span (pivot_absent)."""
+
+    def __call__(self, row, rules, profile):
+        return _AbstainDecision()
+
+
+def _letterhead_row(evidence: str, *, language: str = "de") -> dict:
+    return {
+        "decision_id": "gr_gerichte_ERZ 2010 25",
+        "language": language,
+        "counter_status": "candidate-limiting",
+        "counter_evidence": evidence,
+        "counter_evidence_verified": True,
+        "full_text": evidence + "\n\nErwägungen: Die Beschwerde ist unbegründet.\n",
+        "snippet": "",
+        "regeste": "",
+    }
+
+
+def test_letterhead_incumbent_is_rejected_even_when_frozen_gate_abstains():
+    row = _letterhead_row(GR_LETTERHEAD)
+    sel = ces.select_span(
+        row, rules=None, profile={}, decide_label=_AbstainGate(),
+        guard={"available": True}, precision_guard=False,
+    )
+    assert sel.selected is False
+    assert sel.reason_code == "d2_letterhead_zone"
+    assert sel.baseline_defect == "d2_letterhead_zone"
+    # The gate is never consulted on a defective incumbent: it reports its own
+    # abstention, not the frozen gate's pivot_absent.
+    assert sel.baseline_label == "ABSTAIN"
+
+
+def test_urteilskopf_head_run_is_rejected_as_d2():
+    assert ces.passes_content_filter(URTEILSKOPF, _letterhead_row(URTEILSKOPF), 0) == (
+        False, "d2_letterhead_zone",
+    )
+
+
+def test_substantive_body_span_near_document_start_is_not_falsely_rejected():
+    body = (
+        "Die Kündigung eines Mietverhältnisses setzt nach Art. 257d CO eine "
+        "Mahnung voraus. Das Bundesgericht hat diese Voraussetzung mehrfach "
+        "bestätigt."
+    )
+    row = _letterhead_row(body)
+    ok, reason = ces.passes_content_filter(body, row, 0)
+    assert ok is True, reason
+
+
+def test_markup_residue_is_d3():
+    row = _letterhead_row("Der <mark>Kündigung</mark> ging eine Mahnung voraus.")
+    assert ces.passes_content_filter(row["counter_evidence"], row, 0) == (
+        False, "d3_markup_residue",
+    )
+
+
+def test_language_marker_mismatch_is_d4():
+    fr = (
+        "Le bailleur peut résilier le bail pour retard de paiement; "
+        "le recours et l'arrêt du Tribunal fédéral le confirment."
+    )
+    row = _letterhead_row(fr, language="de")
+    assert ces.passes_content_filter(fr, row, 0) == (
+        False, "d4_language_marker_mismatch",
+    )
+
+
+def test_shipped_offline_slice_clears_the_letterhead_row_end_to_end():
+    import glob
+    paths = sorted(glob.glob(str(
+        ROOT / "results" / "product" / "offline_slice" / "*" / "rent-default.bundle.json"
+    )))
+    if not paths:
+        pytest.skip("no offline slice bundle")
+    bundle = json.loads(Path(paths[-1]).read_text(encoding="utf-8"))
+    out = ces.apply_verified_span_selection(bundle, qid="rent-default", mode="select")
+    prov = out["provenance"]["counter_evidence_span"]
+    assert prov["applied"] is True
+    assert "gr_gerichte_ERZ 2010 25" in prov["baseline_cleared_ids"]
+    row = next(d for d in out["decisions"] if d["decision_id"] == "gr_gerichte_ERZ 2010 25")
+    assert row["counter_evidence_verified"] is False
+    assert row["counter_evidence"] == ""
+    assert row["counter_evidence_quality_filter"]["reason_code"] == "d2_letterhead_zone"

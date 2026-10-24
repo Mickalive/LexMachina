@@ -1,5 +1,7 @@
 {
-  "accepted_run_id": "CYCLE_1792824384",
+  "accepted_run_id": "40100397058",
+  "resume_from_run_id": "40107607161",
+  "producer_run_id": "40108566132",
   "continue_recommended": true,
   "cycle_status": "COMPLETE",
   "direction_version": 67,
@@ -18,7 +20,7 @@
     "product/tests/test_live_slice_and_query_env.py (19 tests)",
     "product/tests/test_canvas_ring_strokes.py (5 tests)",
     "product/tests/test_language_normalization.py (5 tests)",
-    "product/tests/test_counter_evidence_span.py (12 tests)",
+    "product/tests/test_counter_evidence_span.py (23 tests)",
     "product/tests/test_counter_emission_repair.py (14 tests)",
     "product/tests/test_counter_precision.py (6 tests)",
     "product/tests/test_probe_absent_id_spans.py (5 tests)",
@@ -28,17 +30,54 @@
   "human_gate_ready": false,
   "lane": "product",
   "machine_gate_ready": false,
-  "next_recommendation": "The runnable query-specific product is complete and locally testable in fixture mode. All MVP tests pass. The progressive API is fully implemented. The product is ready for a human gate session per Master Prompt questions 1-4, but no such session has been conducted. Fail-closed posture remains; no frozen bars are met. Next cycle should either conduct the human gate or advance toward live-mode verification with free model pool.",
+  "next_recommendation": "Direction v67 P0 letterhead rejection is landed and reproduced locally: the shipped offline slice now clears the verified letterhead row (frozen D2 histogram 1 -> 0, D3/D4 already 0) while the guarded v3 emitted row is unchanged. Next cycle should (a) run the frozen evaluation family re-probe over the product slice family and (b) conduct owner testing of the query -> answer -> counter-authority -> clickable-map loop in fixture mode. No human gate session has been conducted; fail-closed posture unchanged.",
   "not_claimed": [
     "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
     "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
     "No human-gate session conducted; fail-closed posture unchanged",
     "Serve verdict remains BOUNDED-NEGATIVE (both frozen bars unmet)",
     "Packet admission stays fail-closed",
+    "Frozen 15-bundle family re-probe not run by the product lane; product published its own before/after on the current offline slice only",
     "169 pre-existing full-suite failures disclosed, not repaired (absent 174k artifacts, stale state pins)"
   ],
   "packet_admitted": false,
   "ready_for_owner_session": false,
+  "direction_v67_p0": {
+    "status": "LANDED_LOCAL",
+    "defect": "gr_gerichte_ERZ 2010 25 carried counter_evidence_verified=true with a Graubünden letterhead baseline because the frozen gate abstained (pivot_absent) on all candidates and the D2 filter only ran after a gate confirmation.",
+    "fix": "Deterministic D2/D3/D4 content filter now runs on the incumbent evidence BEFORE the frozen gate and on every candidate before decide_label; a defective incumbent is revoked (counter_evidence='', verified=false) with counter_evidence_quality_filter provenance, and scanning continues for a clean replacement.",
+    "code": [
+      "product/query/counter_evidence_span.py",
+      "product/d2_content_reprobe.py",
+      "product/tests/test_counter_evidence_span.py",
+      "product/offline_slice.py (unchanged entrypoint, now routes fixture path through the filter)"
+    ],
+    "before_bundle": "results/product/offline_slice/20261024T142517Z/rent-default.bundle.json",
+    "after_bundle": "results/product/offline_slice/20261024T160129Z/rent-default.bundle.json",
+    "reprobe": "results/product/d2_content_reprobe/CYCLE_40108566132.json",
+    "before_histogram": {
+      "D2_letterhead_zone": 1,
+      "D3_markup_residue": 0,
+      "D4_language_marker_mismatch": 0
+    },
+    "after_histogram": {
+      "D2_letterhead_zone": 0,
+      "D3_markup_residue": 0,
+      "D4_language_marker_mismatch": 0
+    },
+    "cleared_decision_ids": [
+      "gr_gerichte_ERZ 2010 25"
+    ],
+    "false_rejects_on_confirmed_set": 0,
+    "guarded_v3_yield": "unchanged (1/20; emitted FR bge_136 III 196 carries a substantive art. 257d CO quote, not a letterhead)",
+    "frozen_instrument_sha256": "aac86527e5e54f0f9c527daac7ff1016d5124731b8ce673797520ff3dd53067d",
+    "claim_tier": "REPORTED_ONLY",
+    "caveats": [
+      "Product re-probed its own before/after slice bundles; the frozen 15-bundle family re-probe remains an evaluation-lane action.",
+      "No threshold, rubric, frozen gate or historical claim-bearing result was edited.",
+      "v3 guarded yield is asserted from the pinned CYCLE_39986094168 selection record; not re-measured live in this cycle."
+    ]
+  },
   "vertical_slice_verification": {
     "delivered": [
       "Server boots in query mode without 174k corpus (<3s startup) - verified",
