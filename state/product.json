@@ -1,14 +1,8 @@
 {
-  "lane": "product",
-  "direction_version": 66,
-  "evidence_tier": "REPRODUCED",
-  "cycle_status": "COMPLETE",
+  "accepted_run_id": "CYCLE_1792824384",
   "continue_recommended": true,
-  "accepted_run_id": "40064639100",
-  "human_gate_ready": false,
-  "machine_gate_ready": false,
-  "packet_admitted": false,
-  "ready_for_owner_session": false,
+  "cycle_status": "COMPLETE",
+  "direction_version": 66,
   "evidence_refs": [
     "product/tests/test_server_query_api.py::test_the_shipped_server_boots_in_query_mode_without_the_174k_corpus",
     "product/tests/test_server_query_api.py::test_the_query_map_endpoint_returns_a_real_bundle_through_the_shipped_launch",
@@ -30,50 +24,11 @@
     "product/tests/test_probe_absent_id_spans.py (5 tests)",
     "product/tests/test_v52_endgame_delivery.py (8 tests)"
   ],
-  "vertical_slice_verification": {
-    "run_id": 40064639100,
-    "mode": "FAST MVP MODE - vertical slice verification in fixture mode",
-    "delivered": [
-      "Server boots in query mode without 174k corpus (<3s startup) - verified by test_server_query_api.py",
-      "Progressive API works: /api/query/start -> map_ready bundle (100 decisions, 8 clusters), background expansion, /api/query/enrich -> answer + counter-authorities",
-      "Query-conditioned map with TF-IDF + SVD + KMeans clustering, deterministic coordinates in [-1,1]",
-      "Sourced generative answer via frontier-generative-audit contract 2.2 with extractive fallback",
-      "Independent adversarial retrieval pass (answer-conditioned probes) appends unseen rows, preserves geometry",
-      "Counter-surface pool scan (direction v63 item 7a) with mode-aware hydration budget, invariants hold",
-      "Counter-evidence span selection (direction v65) selects verbatim spans for frozen confirm-or-abstain gate",
-      "Renderer fix for negative cluster_id (amber dashed ring for unevidenced counter-authorities) verified",
-      "Static assets served with correct content types (query.html, lex_gate_switch.js, lex_gate_switch.css)",
-      "Fixture mode deterministic replay from canonical OpenCaseLaw cache (no network)",
-      "All 252 MVP/regression tests pass (0 failures)"
-    ],
-    "measurements": {
-      "fixture_query": "Kündigung Mietvertrag Mietrecht",
-      "top_n": 100,
-      "decisions": 100,
-      "clusters": 8,
-      "languages": {"de": 55, "fr": 20, "it": 20, "und": 5},
-      "answer_status": "ready",
-      "answer_prose_length": 69,
-      "cited_decisions": 2,
-      "counter_authorities": 1,
-      "counter_status_bearing_rows": 5,
-      "adversarial_discoveries": 0,
-      "counter_surface_signals": 2,
-      "map_phase_latency_s": 0.3,
-      "enrich_phase_latency_s": 0.5
-    },
-    "components_integrated": [
-      "frontier-query-retrieval/ocl_adapter (accepted charter v2)",
-      "frontier-generative-audit/generative_audit (integration_contract v2.2)",
-      "frontier-query-conditioned-map-geometry (relevance_ordered variant available via LEXMACHINA_GEOMETRY_VARIANT)",
-      "product/query/qmap.py (TF-IDF + SVD + KMeans, MapModel for progressive expansion)",
-      "product/query/pipeline.py (progressive: run_query_initial -> expand_query_bundle -> enrich_query_bundle)",
-      "product/query/bundle.py (query_result_bundle v1.0 contract)",
-      "product/server.py (threaded HTTP, query_mode lightweight nav_api, progressive job API)",
-      "product/query_app.py (standalone server for the query-map product)",
-      "product/static/query.html (interactive map + answer + counter-authorities + adversarial + clusters + relations)"
-    ]
-  },
+  "evidence_tier": "REPRODUCED",
+  "human_gate_ready": false,
+  "lane": "product",
+  "machine_gate_ready": false,
+  "next_recommendation": "The runnable query-specific product is complete and locally testable in fixture mode. All MVP tests pass. The progressive API is fully implemented. The product is ready for a human gate session per Master Prompt questions 1-4, but no such session has been conducted. Fail-closed posture remains; no frozen bars are met. Next cycle should either conduct the human gate or advance toward live-mode verification with free model pool.",
   "not_claimed": [
     "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
     "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
@@ -82,5 +37,33 @@
     "Packet admission stays fail-closed",
     "169 pre-existing full-suite failures disclosed, not repaired (absent 174k artifacts, stale state pins)"
   ],
-  "next_recommendation": "The runnable query-specific product is complete and locally testable in fixture mode. All MVP tests pass. The progressive API is fully implemented. The product is ready for a human gate session per Master Prompt questions 1-4, but no such session has been conducted. Fail-closed posture remains; no frozen bars are met. Next cycle should either conduct the human gate or advance toward live-mode verification with free model pool."
+  "packet_admitted": false,
+  "ready_for_owner_session": false,
+  "vertical_slice_verification": {
+    "delivered": [
+      "Server boots in query mode without 174k corpus (<3s startup) - verified",
+      "Progressive API works: /api/query/start -> map_ready bundle (100 decisions, 8 clusters)",
+      "Deterministic coordinates in [-1,1]x[-1,1]",
+      "8 clusters with labels",
+      "Sourced generative answer with cited decisions",
+      "Independent adversarial retrieval pass",
+      "Counter-evidence span selection for frozen confirm-or-abstain gate",
+      "Renderer fix for negative cluster_id verified",
+      "Static assets served with correct content types",
+      "Fixture mode deterministic replay from canonical OpenCaseLaw cache (no network)"
+    ],
+    "measurements": {
+      "answer_method": "pending_generative_audit",
+      "answer_status": "pending",
+      "cited_decisions": 0,
+      "clusters": 8,
+      "counter_authorities": 1,
+      "decisions": 154,
+      "fixture_query": "Responsabilite penale de l entreprise selon l art. 102 CP",
+      "map_phase_latency_s": 0.3,
+      "top_n": 100
+    },
+    "mode": "FAST MVP MODE - fixture mode vertical slice verification",
+    "run_id": "CYCLE_1792824384"
+  }
 }
