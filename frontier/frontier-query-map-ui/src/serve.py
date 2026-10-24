@@ -1,7 +1,7 @@
 """Local prototype server for the query-specific jurisprudence map.
 
 Stdlib-only for static/file serving (owner-time invariant: no paid API, no extra service to provision).
-The live query endpoint requires numpy/scikit-learn (documented in requirements).
+The fixture query endpoint requires numpy/scikit-learn (documented in requirements).
 
 Routes
 -----
@@ -15,12 +15,14 @@ Routes
     /data/bundle.json        -> raw query_result_bundle (answer + provenance)
     /data/manifest.json      -> fixture manifest (checksums, provenance)
     /api/health              -> liveness + payload sizes
-    /api/query/run?q=&n=     -> live pipeline (shimmed product pipeline, requires numpy)
+    /api/query/run?q=&n=     -> fixture-mode query pipeline (retrieval_mode='fixture',
+                                 fixture_generation=True, adversarial_retrieval=False;
+                                 read-only, no product compatibility shim)
 
 Run (static/file serving only - no numpy required):
     python3 frontier/frontier-query-map-ui/src/serve.py --port 8787
 
-Run (with live query - requires numpy + scikit-learn):
+Run (with fixture query - requires numpy + scikit-learn):
     pip install numpy scikit-learn
     python3 frontier/frontier-query-map-ui/src/serve.py --port 8787
 """
@@ -41,9 +43,9 @@ for p in (str(_HERE), str(REPO_ROOT)):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-# product_compat is imported lazily in _route() to avoid numpy import at startup
-# for static/file serving. This keeps the "stdlib-only" claim true for the
-# prototype UI serving path.
+# product_compat shim is not installed; /api/query/run uses product.query.pipeline
+# directly in fixture mode. Imports stay lazy where possible to avoid numpy import
+# at startup for static/file serving.
 
 UI_DIR = TEAM_ROOT / "ui"
 FIXTURE_DIR = TEAM_ROOT / "fixtures"
@@ -65,10 +67,8 @@ CONTENT_TYPES = {
 
 
 def _get_product_compat():
-    """Lazily import and install product_compat shim."""
-    import product_compat
-    product_compat.install()
-    return product_compat
+    """Legacy shim removed; not used by the fixture-mode endpoint."""
+    raise RuntimeError("product_compat shim is disabled; /api/query/run uses fixture mode")
 
 
 class QueryMapHandler(BaseHTTPRequestHandler):
@@ -193,7 +193,6 @@ class QueryMapHandler(BaseHTTPRequestHandler):
 
 
 def make_server(host: str = "127.0.0.1", port: int = 8787, verbose: bool = False) -> ThreadingHTTPServer:
-    # No product_compat.install() here - lazy loaded on /api/query/run
     srv = ThreadingHTTPServer((host, port), QueryMapHandler)
     srv.verbose = verbose  # type: ignore[attr-defined]
     return srv
