@@ -637,10 +637,12 @@ def write_report(rec: dict, report_dir: Path) -> Path:
         "",
         f"- Frozen probe family members: {rel['frozen_probe_family_n']}",
         f"- Post-repair bundles found: {rel['post_repair_n']}",
-        f"- Intersection by path: {rel['intersection_by_path_n']} "
+        f"- Intersection by path: {rel['path_identity']['intersection_by_path_n']} "
         f"(path identity is expected to be 0 while the baseline is preserved)",
-        f"- Frozen-family-only (missing post-repair counterpart): {rel['frozen_family_only_n']}",
-        f"- Post-repair-only (roles absent from the frozen family): {rel['post_repair_only_n']}",
+        f"- Frozen-family-only (missing post-repair counterpart): "
+        f"{rel['path_identity']['frozen_family_only_n']}",
+        f"- Post-repair-only (roles absent from the frozen family): "
+        f"{rel['path_identity']['post_repair_only_n']}",
         f"- Member-for-member regeneration: "
         f"{rel['member_for_member_matching']['matched_members']}/"
         f"{rel['member_for_member_matching']['of']} "
