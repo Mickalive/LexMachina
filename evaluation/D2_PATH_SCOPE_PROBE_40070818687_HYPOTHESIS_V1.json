@@ -1,0 +1,55 @@
+{
+  "schema": "lex-evaluation-hypothesis/1",
+  "run_id": "40070818687",
+  "lane": "evaluation",
+  "direction_version": 66,
+  "github_run": "40070818687",
+  "frozen_at_utc": "2026-10-24T06:45:04Z",
+  "commit_discipline": "This hypothesis and its companion freeze record are committed BEFORE any claim-bearing execution of the three probe arms (established freeze-first convention, accepted cycles 40062917685 / 40068038783).",
+  "lane_question_position": "v66 evaluation ordered work items (1)-(4) are DISCHARGED by accepted cycle 40068038783 (accept commit d6752eda, PASS gate). Its accepted finding REPAIR_NOT_CONFIRMED left one open, product-decision-relevant discrimination: WHY the D2_letterhead_zone residual (gr_gerichte_ERZ 2010 25) persists on the accepted head's own shipped offline slice when the v66 P0 content filter landed in that very product cycle. The state file named both candidate causes without discriminating between them ('routing the offline/server slice generation through the filtered span selector, or regenerating slices after the filter rejects letterhead spans'). This cycle runs that discrimination.",
+  "hypotheses": {
+    "H0_stale_artifact": "The residual D2 row is a stale pre-filter artifact: the shipped offline slice 20261024T024341Z was generated BEFORE the content filter existed in the cycle worktree, so regenerating the slice with the accepted head's code removes the defect (zero D2 on the regenerated bundle).",
+    "H1_path_scope": "The residual D2 row is structural path scope, not staleness: product/offline_slice.py enriches with fixture_generation=True, and product/query/pipeline.py gates apply_verified_span_selection (the seam that hosts the D2/D3/D4 content filter) behind 'not fixture_generation and adversarial_retrieval', so the shipped slice's counter evidence is emitted on a path where the filter never runs. Regeneration therefore reproduces the identical D2 row and the span-seam provenance stays absent from the bundle."
+  },
+  "discriminating_question": "Is the accepted v66 content-quality filter present on the shipped slice's counter-evidence emission path at all, or was the shipped slice simply generated before the filter landed?",
+  "product_decision_unlocked": "If H1, the cheapest product repair is to route the offline/server slice generation through the filtered span seam (or emit slice bundles through the non-fixture audit path) rather than to regenerate artifacts; regeneration alone cannot clear D2. If H0, regeneration alone clears D2. Either answer converts REPAIR_NOT_CONFIRMED into an actionable, minimal product fix.",
+  "plan": {
+    "ARM0_static_provenance": "On the shipped slice bundle (sha256 pinned in the freeze record) record (a) bundle-level and row-level presence of provenance.counter_evidence_span, (b) the exact pipeline gate line(s) that admit apply_verified_span_selection with file:line provenance, (c) the row's counter_evidence_verified / counter_evidence / full_text_status fields. No code is executed for this arm beyond JSON and text reads.",
+    "ARM1_regeneration": "Copy the accepted product worktree (head 3495c1336) to scratch, run python product/offline_slice.py --slug rent-default --out <scratch> UNMODIFIED (the script booby-traps socket.connect so any network attempt fails loudly), then score the regenerated bundle with the FROZEN D2/D3/D4 predicates (evaluation/counter_evidence_quality_benchmark.py, digest pinned in the freeze record).",
+    "ARM2_routed_filter_counterfactual_DIAGNOSTIC": "Apply the accepted head's own apply_verified_span_selection (imported unmodified from the accepted tree, never re-tuned) to the regenerated bundle and score the targeted row with the same frozen predicates. Labelled DIAGNOSTIC: it measures what the accepted filter WOULD do if routed onto this path; it is NOT a claim about shipped product behaviour and NOT a product repair.",
+    "CONTROLS": {
+      "C3_frozen_rubric_rehash": "Re-hash RULES_LABEL.json and RULES_GEOMETRY.json and compare with the accepted digests; REPORTED-ONLY, never applied or edited.",
+      "C4_frozen_instrument_digest": "evaluation/counter_evidence_quality_benchmark.py sha256 must equal aac86527e5e54f0f9c527daac7ff1016d5124731b8ce673797520ff3dd53067d.",
+      "C5_non_vacuity": "A planted synthetic letterhead-zone row must be flagged D2_letterhead_zone and a planted mid-document substantive row must NOT be flagged, by the frozen predicates.",
+      "C6_network_trap": "The regeneration must complete with the socket.connect trap armed (the slice script installs it); zero network is a recorded precondition, not an assumption."
+    }
+  },
+  "decision_rule_frozen_before_execution": {
+    "STALE_ARTIFACT_RESIDUAL": "ARM1 regenerated bundle carries ZERO D2 defects on the regenerated verified rows AND the span-seam provenance is present on the bundle (filter ran and cleared the span).",
+    "PATH_SCOPE_RESIDUAL": "ARM1 regenerated bundle still carries the identical D2 row (same decision_id, same counter_evidence text grounded at full_text offset < 400) AND bundle-level provenance.counter_evidence_span is still absent (filter never ran).",
+    "MIXED_OR_INCONCLUSIVE": "Any other combination, reported as-is with the exact evidence; no outcome is forced.",
+    "void_condition": "If any of C3/C4/C5/C6 fails, this cycle makes NO claim about H0/H1 and reports CONTROLS_FAILED."
+  },
+  "arm2_outcome_reading": {
+    "filter_rejects_row": "The routed seam drops or abstains the letterhead evidence for gr_gerichte_ERZ 2010 25 (row no longer verified with that evidence).",
+    "filter_requotes_row": "The seam replaces the evidence with a non-letterhead span that the frozen predicates pass.",
+    "filter_leaves_row": "The row keeps the identical letterhead evidence after the seam ran.",
+    "note": "Arm-2 outcomes are DIAGNOSTIC and feed the product repair choice only; no frozen bar, rubric or verdict is computed from them."
+  },
+  "pins": {
+    "product_head_at_freeze": "3495c13361ddf40f88d31c1fbb47b00bc06eee63 (accept 40064639100)",
+    "shipped_slice_bundle": "results/product/offline_slice/20261024T024341Z/rent-default.bundle.json",
+    "latest_accepted_evaluation_cycle": "40068038783 (accept commit d6752eda, PASS gate)",
+    "accepted_item4_remeasure_of_record": "results/evaluation/counter_evidence_quality_remeasure/40068038783.json",
+    "packet_of_record": "39319405429 (NOT re-scored this cycle; item-(3) reconciliation is accepted and unchanged)"
+  },
+  "out_of_scope": [
+    "no frozen bar, rubric, threshold or verdict contract is edited, re-derived or re-tuned",
+    "no serve verdict re-run; both DO-NOT-SERVE orders stand",
+    "no obsolete universal-174k benchmark rerun",
+    "no product code is modified; the seam is imported unmodified for the ARM2 diagnostic",
+    "comparative map-vs-ranked-list half is NOT scored; posture flags stay FALSE; owner_decision_required stays false",
+    "the content-quality FILTER IMPLEMENTATION and any slice-regeneration decision stay Core Product's",
+    ".github/** is control-plane scope and is recorded, never edited"
+  ]
+}
