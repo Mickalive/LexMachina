@@ -1,0 +1,105 @@
+{
+  "rules_version": "frontier-counter-evidence-content-filter/v1",
+  "frozen_at_commit_iso": "2026-10-24T02:03:21Z",
+  "frozen_at_wall_iso": "2026-10-24T02:12:25.749805+00:00",
+  "freeze_order_proof": {
+    "method": "git_log_-1_format_cI_at_repo_root",
+    "repo_root": "/home/runner/work/LexMachina/LexMachina"
+  },
+  "bundle_inputs": [
+    {
+      "path": "results/evaluation/v65_head_advance_crosscheck/40044626742.json",
+      "role": "H2_evidence_source"
+    },
+    {
+      "path": "/tmp/lex_accepted/core/evaluation/results/evaluation/v65_head_advance_crosscheck/40044626742.json",
+      "note": "accepted_mount_copy"
+    }
+  ],
+  "definitions": {
+    "D2_LETTERHEAD_ZONE": {
+      "description": "span is letterhead/header-zone text at offset-0 court-header patterns or pre-substantive header runs",
+      "LETTERHEAD_ZONE_OFFSET_MAX": 400,
+      "patterns": [
+        "Kantonsgericht",
+        "Dretgira chantunala",
+        "Tribunale cantonale dei Grigioni",
+        "Bundesgericht",
+        "Tribunal federal/f\u00e9d\u00e9ral",
+        "________________________"
+      ],
+      "offset_semantics": "first_offset <= 400 or first_offset == 0 with court header patterns; header block markers at document start"
+    },
+    "D3_MARKUP_RESIDUE": {
+      "description": "markup/tag/escape residue in span",
+      "patterns": [
+        "<mark>",
+        "</mark>",
+        "<[^>]+>",
+        "&[a-zA-Z]+;",
+        "&#\\d+;"
+      ]
+    },
+    "D4_LANGUAGE_MARKER_MISMATCH": {
+      "description": "row language vs span script/markers inconsistent",
+      "marker_sets": {
+        "de": [
+          "Regeste",
+          "Erw\u00e4gung",
+          "K\u00fcndigung",
+          "Mietvertrag",
+          "Bundesgericht",
+          "Verf\u00fcgung"
+        ],
+        "fr": [
+          "Consid\u00e9rant",
+          "r\u00e9siliation",
+          "bail",
+          "Tribunal f\u00e9d\u00e9ral",
+          "recours",
+          "art."
+        ],
+        "it": [
+          "Dispositivo",
+          "risoluzione",
+          "affitto",
+          "Tribunale federale",
+          "ricorso",
+          "regola"
+        ]
+      },
+      "rule": "if own language markers absent and other-language markers present (>=1) -> mismatch"
+    }
+  },
+  "algorithm": {
+    "name": "deterministic_content_quality_filter",
+    "steps": [
+      "extract counter_evidence span from row (or list first element)",
+      "D3: if has_markup_residue(span) -> reject D3_MARKUP_RESIDUE",
+      "D2: if is_letterhead_zone(span, first_offset, full_text) -> reject D2_LETTERHEAD_ZONE (check patterns and offset<=400 or offset==0 with headers)",
+      "D4: if language_marker_mismatch(span, row.language, marker_sets) -> reject D4_LANGUAGE_MARKER_MISMATCH",
+      "accept only if no defect caught; filter only narrows candidates offered to frozen gate (gate untouched)"
+    ],
+    "deterministic": true,
+    "uses_model": false
+  },
+  "thresholds": {
+    "defect_handling": {
+      "all_14_known_defects_must_be_rejected": true
+    },
+    "no_false_reject": {
+      "false_reject_count_on_confirmed_set_must_be": 0
+    },
+    "non_vacuity": {
+      "planted_letterhead_rejected": true,
+      "planted_substantive_accepted": true,
+      "mode_off_reproduces_baseline_10_4_4": true
+    },
+    "performance": {
+      "network_calls": 0,
+      "writes_outside_scope_forbidden": true
+    }
+  },
+  "rules_sha256": "3f3ab91bd11d789f3024705060f9f3cc09e020e60af11c8751693658b0cd135d",
+  "rules_path": "/home/runner/work/LexMachina/LexMachina/results/frontier/frontier-counter-evidence-content-filter/RUN_40052544562/RULES.json"
+}

@@ -1,0 +1,36 @@
+{
+  "contract_name": "frontier-counter-evidence-content-filter-integration-contract",
+  "version": "1.0.0",
+  "call_seam": {
+    "module": "frontier_counter_evidence_content_filter.filter",
+    "class": "CounterEvidenceContentFilter",
+    "function_signature": "filter_span(self, row: dict) -> FilterResult",
+    "description": "Filter sits in front of the frozen confirm-or-abstain gate; only narrows which candidate spans are offered to the gate. The gate (decide_label) is never modified."
+  },
+  "input_schema": {
+    "type": "object",
+    "required": [],
+    "properties": {
+      "counter_evidence": {"type": ["string", "array"], "description": "Span text to evaluate"},
+      "language": {"type": "string", "enum": ["de", "fr", "it"], "description": "Row language"},
+      "full_text": {"type": "string"},
+      "first_offset": {"type": "integer", "description": "Offset of span start in source text"},
+      "detail": {"type": "object"}
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "accepted": {"type": "boolean"},
+      "reject_reasons": {"type": "array", "items": {"enum": ["D2_LETTERHEAD_ZONE", "D3_MARKUP_RESIDUE", "D4_LANGUAGE_MARKER_MISMATCH"]}},
+      "defects_caught": {"type": "array"},
+      "details": {"type": "object"}
+    }
+  },
+  "env_kill_switch": {
+    "name": "LEXMACHINA_COUNTER_EVIDENCE_CONTENT_FILTER",
+    "default": "on",
+    "values": {"on": "filter enabled", "off": "filter disabled (pass-through)"}
+  },
+  "integration_notes": "In product/query/counter_evidence_span.py, before calling decide_label on candidate spans, apply this filter to reject content-quality artifacts. Do not fork the frozen gate."
+}

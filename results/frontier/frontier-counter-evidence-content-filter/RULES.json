@@ -1,91 +1,110 @@
 {
-  "version": "1.0.0",
-  "filter": "frontier-counter-evidence-content-filter",
-  "description": "Deterministic, model-free content-quality filter for counter-evidence spans",
-  "defect_classes": {
-    "D2": {
-      "name": "letterhead zone",
-      "description": "Counter-evidence at full_text offset 0 with court-identifying prefix (court name at start)",
-      "detection": "counter_evidence prefix of full_text + court prefix check on first word of counter_evidence",
-      "court_prefixes": [
-        "Bundesgericht",
-        "Court",
-        "CtApp",
-        "EG",
-        "Grgericht",
+  "rules_version": "frontier-counter-evidence-content-filter/v1",
+  "frozen_at_commit": "d7b88587985a8a4e90835198de02f9574f7d3a87",
+  "frozen_at_commit_iso": "2026-10-24 03:12:22 +0000",
+  "frozen_at_wall_iso": "2026-10-24T02:12:25.749805+00:00",
+  "freeze_order_proof": {
+    "method": "git_log_-1_format_cI_at_repo_root",
+    "repo_root": "/home/runner/work/LexMachina/LexMachina",
+    "commit": "d7b88587985a8a4e90835198de02f9574f7d3a87",
+    "commit_iso": "2026-10-24 03:12:22 +0000"
+  },
+  "bundle_inputs": [
+    {
+      "path": "results/evaluation/v65_head_advance_crosscheck/40044626742.json",
+      "role": "H2_evidence_source",
+      "sha256": "59f6b1fc5b0658ea40e0cdb03d84f7d3ff641ec6a56ec91ba151f064c162249a"
+    },
+    {
+      "path": "/tmp/lex_accepted/core/evaluation/results/evaluation/v65_head_advance_crosscheck/40044626742.json",
+      "role": "accepted_mount_copy",
+      "sha256": "59f6b1fc5b0658ea40e0cdb03d84f7d3ff641ec6a56ec91ba151f064c162249a"
+    }
+  ],
+  "definitions": {
+    "D2_LETTERHEAD_ZONE": {
+      "description": "letterhead/header zone",
+      "LETTERHEAD_ZONE_OFFSET_MAX": 400,
+      "patterns": [
         "Kantonsgericht",
-        "Tribunal"
+        "Dretgira",
+        "Tribunale cantonale",
+        "Bundesgericht",
+        "Tribunal",
+        "________________________"
+      ],
+      "offset_semantics": "first_offset <= 400 or first_offset == 0 with court header patterns"
+    },
+    "D3_MARKUP_RESIDUE": {
+      "description": "markup residue",
+      "patterns": [
+        "<mark>",
+        "</mark>",
+        "<[^>]+>",
+        "&[a-zA-Z]+;",
+        "&#\\d+;"
       ]
     },
-    "D3": {
-      "name": "markup residue",
-      "description": "HTML-like tags in counter_evidence field",
-      "detection": "regex <[^>]+> search on counter_evidence",
-      "pattern": "<[^>]+>"
-    },
-    "D4": {
-      "name": "language marker mismatch",
-      "description": "Row language (Italian) inconsistent with legal markers in counter_evidence (German/French)",
-      "detection": "marker count comparison: German/French markers present vs Italian markers absent",
-      "german_markers": [
-        "Anfechtung",
-        "Erstreckung",
-        "K\u00fcndigung",
-        "Mietvertrag",
-        "abweicht",
-        "allein",
-        "ausgeschlossen",
-        "ausschillesst",
-        "bedingt",
-        "begrenzt",
-        "einschr\u00e4nken",
-        "folgt nicht",
-        "im gegensatz",
-        "lediglich",
-        "nicht",
-        "schrankt",
-        "soweit",
-        "zu"
-      ],
-      "french_markers": [
-        "doit \u00eatre",
-        "exclut",
-        "limitant",
-        "limit\u00e9",
-        "ne peut",
-        "ne suffit pas",
-        "ne va pas",
-        "que si",
-        "restriction",
-        "sauf",
-        "se limite",
-        "sous r\u00e9serve"
-      ],
-      "italian_markers": [
-        "deve essere dimostrato",
-        "esclude",
-        "esclusa",
-        "escluso",
-        "in quanto",
-        "limita",
-        "limitante",
-        "non",
-        "non e sufficiente",
-        "non risulta",
-        "non si evince",
-        "non \u00e8 sufficiente",
-        "puo",
-        "pu\u00f2",
-        "salvo"
-      ]
+    "D4_LANGUAGE_MARKER_MISMATCH": {
+      "description": "language mismatch",
+      "marker_sets": {
+        "de": [
+          "Regeste",
+          "Erwägung",
+          "Kündigung",
+          "Mietvertrag",
+          "Bundesgericht",
+          "Verfügung"
+        ],
+        "fr": [
+          "Considérant",
+          "résiliation",
+          "bail",
+          "Tribunal fédéral",
+          "recours",
+          "art."
+        ],
+        "it": [
+          "Dispositivo",
+          "risoluzione",
+          "affitto",
+          "Tribunale federale",
+          "ricorso",
+          "regola"
+        ]
+      },
+      "rule": "if own language markers absent and other-language markers present (>=1) -> mismatch"
     }
   },
-  "verification": {
-    "deterministic_double_run": "PASS - two invocations produce byte-identical verdict files",
-    "false_rejection_rate": "0/1300 decisions falsely rejected (0.0%)",
-    "offline_execution": "True - network_calls==0, no model, no paid API",
-    "runtime_per_100_rows": "< 1 second"
+  "algorithm": {
+    "name": "deterministic_content_quality_filter",
+    "steps": [
+      "D3 check",
+      "D2 check",
+      "D4 check"
+    ],
+    "deterministic": true,
+    "uses_model": false
+  },
+  "thresholds": {
+    "defect_handling": {
+      "all_14_known_defects_must_be_rejected": true
+    },
+    "no_false_reject": {
+      "false_reject_count_on_confirmed_set_must_be": 0
+    },
+    "non_vacuity": {
+      "planted_letterhead_rejected": true,
+      "planted_substantive_accepted": true,
+      "mode_off_reproduces_baseline_10_4_4": true
+    },
+    "performance": {
+      "network_calls": 0,
+      "writes_outside_scope_forbidden": true
+    }
   },
   "status": "ACTIVE",
-  " charter": "frontier-counter-evidence-content-filter/v1"
+  "charter": "frontier-counter-evidence-content-filter/v1",
+  "rules_sha256": "ba365272a640030ca326d530580ab9136d9ee3a5cea96abc5d55262e6ebbcf2b",
+  "rules_path": "/home/runner/work/LexMachina/LexMachina/results/frontier/frontier-counter-evidence-content-filter/RULES.json"
 }
