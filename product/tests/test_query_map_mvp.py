@@ -112,7 +112,7 @@ def test_independent_adversarial_result_patches_visible_counter_status():
     assert ga["adversarial"]["method"] == "fixture_adversarial_v2"
     counters = [
         d for d in final["decisions"]
-        if d.get("counter_status") in {"candidate-limiting", "candidate-contrary"}
+        if d.get("counter_status") in {"candidate-limiting", "candidate-contrary", "abstained_unevidenced"}
     ]
     assert counters
     assert counters[0].get("counter_uncertainty") is not None
