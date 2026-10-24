@@ -1,0 +1,77 @@
+{
+  "team_id": "frontier-counter-evidence-content-filter",
+  "charter_version": 1,
+  "run_id": "40059444497",
+  "producer_commit": "8ddf51f",
+  "audited_component_commit": "35dfb07",
+  "gate": "BLOCKED",
+  "safe_to_integrate": false,
+  "continue_recommended": false,
+  "reason": "Claims do not reproduce from the committed tree: the committed CLI rejects only 4/14 known H2-defective rows (all 10 D2 letterhead rows accepted) and accepts the planted letterhead control, while committed report artifacts assert 14/14 and a 0/0/0 filtered histogram; mode=off does not reproduce the 10/4/4 baseline; the run produced only fixtures yet set state to PASS/COMPLETED, accepted an older run and reset repair_round from 1 to 0. This is the charter's TERMINATE-IMMEDIATELY provenance/claim pathology (recurring repair pathology), not a first-cycle repairable defect.",
+  "required_fixes": [
+    "Fix D2 letterhead detection to work from the acceptance-contract fields (counter_evidence + full_text + language) with no externally supplied first_offset: derive offset via full_text.find(counter_evidence) or use span-prefix court-header detection, and pass it through the CLI. Re-run the CLI on h2_defective_14.bundle.json and show n_rejected=14, D2=10 detected, filtered histogram D2/D3/D4=0/0/0.",
+    "Regenerate defect_handling_all14.json, false_reject_report.json, mode_off_baseline.json and determinism_double_run.json from a committed harness instead of hand-written JSON; make --mode off emit and reproduce the true baseline histogram 10/4/4.",
+    "Make PLANT_LETTERHEAD_A rejected and PLANT_SUBSTANTIVE_B accepted through the committed CLI, and add end-to-end CLI tests on the 14-row, 6-row and planted fixtures; current tests only call filter_span with a hand-injected first_offset and therefore miss the D2 end-to-end no-op.",
+    "Freeze RULES.json in a commit whose commit timestamp precedes every measurement commit; remove the self-referential rules_sha256 and the rules_path that points at RUN_40052544562; pin fixture sha256s in the frozen rules.",
+    "Stop asserting evidence_tier PASS / cycle_status COMPLETED and stop resetting repair_round to 0; state must honestly reflect the incomplete status and recommend continuation, or record a bounded-negative naming the undetectable pattern subclass.",
+    "Provide run-scoped acceptance artifacts (RUN_40059444497/...) or a committed harness invocation so the run under audit demonstrates the contract itself instead of retroactively accepting run 40055394635, whose only committed offline test is a 1-row smoke test (n_total=1, n_rejected=0).",
+    "Publish an INTEGRATION_CONTRACT.json whose documented seam cannot reproduce the D2 no-op (offset derivation is part of the contract, or D2 detection is offset-free).",
+    "Replace AUDIT_SELF.json static assertions with an executed path-inventory re-hash that refuses promotion on out-of-scope writes."
+  ],
+  "claim_ceiling": "Only that a deterministic, offline, model-free D3 (markup) / D4 (language-marker) filter exists with committed, hash-pinned H2/confirmed/planted fixtures, and that D3=4 and D4=4 labelled rows are rejected with 0 false rejects on the 6-row confirmed set and byte-identical double-run output. NOT supported: all-14 defect handling, D2 letterhead detection (0/10 end-to-end), planted-letterhead non-vacuity, mode-off 10/4/4 baseline reproduction, freeze-first ordering from git commit times, run-scoped acceptance evidence for 40059444497, or PASS/COMPLETED status. Work must not be integrated; Core Product's P0 path remains authoritative.",
+  "evidence_summary": {
+    "audit_surface": "producer worktree /tmp/lex_team @ 8ddf51f; component code/results from commit 35dfb07; committed fixtures and CLI executed end-to-end",
+    "cli_h2_defective_14": {
+      "command": "PYTHONPATH=frontier/frontier-counter-evidence-content-filter python3 -m frontier_counter_evidence_content_filter.cli --bundle results/frontier/frontier-counter-evidence-content-filter/fixtures/h2_defective_14.bundle.json --out <tmp>",
+      "n_total": 14,
+      "n_accepted": 10,
+      "n_rejected": 4,
+      "defect_histogram": {"D2_letterhead_zone": 0, "D3_markup_residue": 4, "D4_language_marker_mismatch": 4},
+      "expected_by_charter": {"n_rejected": 14, "filtered_histogram": {"D2_letterhead_zone": 0, "D3_markup_residue": 0, "D4_language_marker_mismatch": 0}},
+      "verdict": "FAIL: all 10 D2 rows accepted"
+    },
+    "cli_planted_controls": {
+      "n_total": 2,
+      "n_accepted": 2,
+      "n_rejected": 0,
+      "PLANT_LETTERHEAD_A": "ACCEPTED (expected REJECT); direct filter_span rejects only when first_offset=0 is manually injected",
+      "PLANT_SUBSTANTIVE_B": "ACCEPTED (expected ACCEPT)",
+      "verdict": "FAIL non-vacuity control 5a"
+    },
+    "cli_confirmed_set_6": {
+      "n_total": 6,
+      "n_accepted": 6,
+      "n_rejected": 0,
+      "verdict": "PASS (weak; D2 barely fires)"
+    },
+    "mode_off_h2": {
+      "summary_histogram": {"D2_letterhead_zone": 0, "D3_markup_residue": 0, "D4_language_marker_mismatch": 0},
+      "original_defects_would_be_histogram": {"D3_markup_residue": 4, "D4_language_marker_mismatch": 4},
+      "verdict": "FAIL: claims 10/4/4; actual D2 missing, no histogram emitted by mode=off"
+    },
+    "committed_offline_test": {
+      "path": "results/frontier/frontier-counter-evidence-content-filter/RUN_40055394635/test_offline/filter_summary.json",
+      "n_total": 1,
+      "n_accepted": 1,
+      "n_rejected": 0,
+      "verdict": "1-row smoke test, not the 14-row acceptance contract"
+    },
+    "determinism": {"byte_identical_double_run": true, "verdict": "PASS"},
+    "fixture_integrity": {"all_declared_sha256_and_byte_size_match": true, "n_fixtures_checked": 3, "verdict": "PASS"},
+    "unit_tests": {"files": ["tests/frontier/frontier-counter-evidence-content-filter/test_filter_basic.py", "tests/frontier/frontier-counter-evidence-content-filter/test_nonvacuity.py"], "executed_manually": 3, "passed": 3, "note": "tests inject first_offset manually and do not catch the CLI D2 no-op; pytest not installed"},
+    "freeze_ordering": {
+      "rules_first_committed": "35dfb07 2026-10-24T03:42:45Z",
+      "measurement_commit": "d7b8858 2026-10-24T03:12:22Z",
+      "in_file_frozen_at_commit_iso": "2026-10-24T02:03:21Z",
+      "verdict": "FAIL: file committed after measurement; in-file timestamp is hand-written; rules_path wrong; rules_sha256 self-referential"
+    },
+    "state_regression": {
+      "prior_state_commit_35dfb07": {"evidence_tier": "REPRODUCED", "cycle_status": "IN_PROGRESS", "repair_round": 1, "repairing_run": "40055394635", "last_run_id": "40057836586", "accepted_run_id": null},
+      "current_state_commit_8ddf51f": {"evidence_tier": "PASS", "cycle_status": "COMPLETED", "repair_round": 0, "repairing_run": null, "last_run_id": "40055394635", "accepted_run_id": "40055394635", "accepted_commit": "35dfb07"},
+      "current_run_artifacts": ["frontier/frontier-counter-evidence-content-filter/extract_fixtures.py", "results/frontier/frontier-counter-evidence-content-filter/fixtures/*", "state/frontier/frontier-counter-evidence-content-filter.json"],
+      "current_run_acceptance_artifacts": "none",
+      "verdict": "FAIL: PASS/COMPLETED asserted without run-scoped acceptance evidence; repair_round reset"
+    },
+    "evidence_limitations": "/tmp/lex_accepted mounts referenced by FIXTURE_PROVENANCE.json are absent in the audit environment; H2 population was not independently re-derived from source bundles. This does not affect the end-to-end CLI contradiction."
+  }
+}
