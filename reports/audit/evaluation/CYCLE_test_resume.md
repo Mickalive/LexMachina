@@ -1,0 +1,118 @@
+# Audit Report — Evaluation Lane, Run test_resume
+
+## Executive Summary
+
+**Gate: PASS** — This run is an honest, correctly executed vertical slice that falsifies the product's retrieval and counter-authority surface on the exact accepted V3 packet-of-record bytes (39319405429). All freeze disciplines hold, no input drift detected, all non-vacuity controls pass, and the claim ceiling is explicitly respected. The producer state accurately marks `human_gate_ready=false`, `machine_gate_ready=false`, `packet_admitted=false`, `ready_for_owner_session=false`.
+
+## Scope
+
+Audited artifacts (producer workspace `/home/runner/work/LexMachina/LexMachina`):
+- `results/evaluation/minimal_retrieval_ca_benchmark/test_resume.json` (wrapper record)
+- `results/evaluation/minimal_retrieval_ca_benchmark/test_resume_engine_mapping_free_recall_falsifier.json` (engine record)
+- `reports/evaluation/RETRIEVAL_CA_BENCHMARK_test_resume.md` (human-readable report)
+
+Control plane references (mounted at `/tmp/lex_accepted/product`):
+- `evaluation/MAPPING_FREE_RECALL_FALSIFIER_HYPOTHESIS_V1.json` (frozen hypothesis, SHA256 `d1135f9f919140a30dd31250cdb2e782fc3b32a74e39472a24d31560d7de009d`)
+- `evaluation/MAPPING_FREE_RECALL_FALSIFIER_FREEZE_RECORD.json` (freeze record, SHA256 `431aa87b8abeaec3b849d66bce7c0d6b1bcb1ea0fdd5f31bef4b3da122d229f5`)
+- `evaluation/frozen_bars/RULES_LABEL.json` (frozen label rubric, SHA256 `4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608`)
+- `evaluation/retrieval_gate/frozen_retrieval_benchmark.json` (frozen spec, SHA256 `187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72`)
+- `mount:product/query/counter_evidence_span.py` (SHA256 `b749e43556874d5dfe7966a40205a81dd3c1345c6f352bca6f3e0e72e97873a1`)
+
+## Freeze Discipline Verification
+
+| Artifact | Freeze Record Digest | Run `rehash_before` | Match |
+|----------|---------------------|---------------------|-------|
+| Hypothesis (V1) | `d1135f9f919140a30dd31250cdb2e782fc3b32a74e39472a24d31560d7de009d` | same | ✅ |
+| Freeze Record | `431aa87b8abeaec3b849d66bce7c0d6b1bcb1ea0fdd5f31bef4b3da122d229f5` | same | ✅ |
+| RULES_LABEL.json | `4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608` | same | ✅ |
+| frozen_retrieval_benchmark.json | `187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72` | same | ✅ |
+| product/query/counter_evidence_span.py | `b749e43556874d5dfe7966a40205a81dd3c1345c6f352bca6f3e0e72e97873a1` | mount head | ✅ |
+| All repo inputs | per freeze record | per run record | ✅ |
+| All 7 mount inputs | per freeze record | per run record | ✅ |
+
+**No input drift** — `rehash_before_execution` == `rehash_after_execution` for every repo and mount input. `input_drift: []`, `input_drift_invalidates_run: false`, `run_valid: true`.
+
+## Measurement Integrity
+
+### Engine → Wrapper Consistency
+All lifted fields match verbatim:
+- `verdict`: PRODUCT_FALSIFIED
+- `exit_code`: 1
+- `n_questions_measured`: 3 (de-kapitalverletzung, fr-bail-entretien, it-responsabilita-medica)
+- `n_gates`: 18 total (11 passed, 4 failed, 3 reported)
+- `failed_gates`: identical set of 4 gates
+- `product_mount_head`: `8e58724bcd3382c5cf533e81cb8b6a8cbced4199` (matches accepted product head)
+- `numeric_environment`: disclosed (no numpy/scipy/sklearn; factory requirement 30 satisfied)
+
+### Gate Results (Packet 39319405429)
+
+| Gate | de-kapitalverletzung | fr-bail-entretien | it-responsabilita-medica |
+|------|---------------------|-------------------|-------------------------|
+| `mf::concept_coverage` | **FAIL** (2/8 zero: kapitalverletzung, uberwachungspflicht) | PASS (0/9 zero) | PASS (0/13 zero) |
+| `mf::admission_disclosure` | PASS (0 undisclosed) | PASS (0 undisclosed) | PASS (0 undisclosed) |
+| `mf::source_validity` | PASS (182/182 rows valid) | PASS (185/185 rows valid) | PASS (179/179 rows valid) |
+| `mf::duplicate_suppression` | PASS (0 duplicates) | PASS (0 duplicates) | PASS (0 duplicates) |
+| `mf::counter_authority_surface` | **FAIL** (0 issued) | **FAIL** (0 issued) | **FAIL** (0 issued) |
+| `mf::language_robustness` | REPORTED (4 langs) | REPORTED (4 langs) | REPORTED (4 langs) |
+
+**Falsification proven**: 4 failed gates on the exact accepted bytes. The counter-authority surface is empty on all three served questions; de-kapitalverletzung also has two core concepts with zero retrieval.
+
+### Admissibility Predicate (Mapping-Free)
+- 12 pairs enumerated (4 frozen slugs × 3 served questions)
+- 1 admitted: `fr-bail-entretien` × `rent-default` (SAME_NORM + SAME_SUBJECT_TERMS)
+- 11 rejected (DIFFERENT_NORM, NO_SHARED_SUBJECT_TERMS, or UNANCHORED_ON_ONE_SIDE)
+- Admitted pair counter_recall: 0/9 (no frozen known counter IDs found in served bundle)
+- Analyst mapping (`analyst_mapping_FROZEN_BEFORE_EXECUTION` in `PRODUCT_COUNTER_RECALL_HYPOTHESIS.json`) **not consumed** — runtime guard enforced, digest-pinned only.
+
+### Non-Vacuity Battery (All Hold)
+| Control | Holds | Evidence |
+|---------|-------|----------|
+| A_blanked_pool_must_fail_concept_coverage | ✅ | Blank pool: 8/8 concepts zero |
+| A2_blanked_row_must_fail_source_validity | ✅ | Row with empty id/url fails |
+| C_oracle_pool_must_pass_concept_coverage | ✅ | Oracle pool from question concepts covers 8/8 |
+| B_admissibility_predicate_must_reject_swapped | ✅ | 6 swaps tested, 0 admitted |
+
+## Claim Ceiling Adherence
+
+The run **does not claim**:
+- Meeting/moving LABEL_SOUND or GEOMETRY_SOUND bars (stay REPORTED-ONLY)
+- Lifting DO-NOT-SERVE on 38839347028 or DO-NOT-SERVE-UNCHANGED on rebuilt-39027045675
+- Certifying packet admission (fail-closed)
+- Jurist usefulness of the map (human product gate question)
+- Re-issuing retracted 39111232991 parity claim
+- Building/scoring Frontier candidates
+- Running universal-174k geometry benchmark
+
+The claim ceiling is **verbatim identical** in hypothesis, freeze record, engine code, engine record, wrapper code, wrapper record, and report.
+
+## Source Validity / Zero-Cost Claims
+
+The audit instruction asks: *"does real/cached OpenCaseLaw input produce a source-linked result bundle and clickable map, and are zero-cost/source-validity claims true?"*
+
+This run measures the **served bundles** (the product's output for the three V3 questions) on the exact accepted packet bytes. The `mf::source_validity` gate is a zero-cost check: every decision row must carry a non-empty `decision_id` AND `canonical_url`.
+
+**Result**: All three questions PASS — 182, 185, and 179 rows respectively, zero missing identifiers. The source-linked bundle claim is **verified true** for the served output on this packet.
+
+The "clickable map" capability belongs to the query-map MVP (separate lane/instrument); this run does not exercise it and does not claim it.
+
+## Minor Observations (Non-Blocking)
+
+1. **Direction version mismatch**: Engine records `direction_version: 57` (its frozen hypothesis version); wrapper records `direction_version: 61` (wrapper schema version). Both are explicitly declared and the wrapper's `reuse_declaration` explains the relationship. The factory direction is v68; the engine's frozen hypothesis is v57, and the wrapper correctly reports this mismatch as a known, non-tunable artifact identity check.
+
+2. **Product mount head**: `8e58724bcd3382c5cf533e81cb8b6a8cbced4199` matches the accepted product branch head at `/tmp/lex_accepted/product`, confirmed by `git rev-parse HEAD`.
+
+3. **Wrapper schema**: `lex-evaluation-minimal-retrieval-ca-benchmark/1` — the wrapper is a thin adapter around the accepted engine; it does not re-implement any measurement-bearing logic.
+
+## Conclusion
+
+Run test_resume is a **valid, reproducible, honestly reported falsification** of the product's retrieval and counter-authority surface on the accepted V3 packet-of-record. The vertical slice is small but complete: it measures what it says it measures, respects its claim ceiling, and leaves all higher bars (LABEL_SOUND, GEOMETRY_SOUND, human gate) explicitly unmet. No repair is needed.
+
+The benchmark demonstrates that the smallest executable retrieval/counter-authority benchmark can indeed falsify the product on the accepted bytes — directly addressing the FAST MVP mode mandate.
+
+---
+
+**Auditor**: LEXMACHINA INDEPENDENT AUDITOR (nemotron-3-5-lightning-free)
+**Date**: 2026-10-24
+**Gate Output**: `results/audit/evaluation/CYCLE_test_resume_GATE.json`
+**Run ID**: test_resume
+**Direction Version**: 68 (control plane), 57 (frozen hypothesis), 61 (wrapper schema)
