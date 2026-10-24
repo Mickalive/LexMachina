@@ -1,14 +1,14 @@
-# Minimal Retrieval / Counter-authority Falsification Benchmark — run 40073123887
+# Minimal Retrieval / Counter-authority Falsification Benchmark — run 40073123887 (REPAIRED)
 
 - Wrapper schema: `lex-evaluation-minimal-retrieval-ca-benchmark/1`
-- Direction: v61 (factory direction v61)
-- Engine: `evaluation.mapping_free_recall_falsifier.run()` invoked as the accepted entry point (full provenance layer restored, audit F5)
+- Direction: v66 (factory direction v66; prior report erroneously stated v61)
+- Engine: `evaluation.mapping_free_recall_falsifier.run()` invoked as the accepted entry point (full provenance layer restored)
 - Packet: 39319405429 (V3 packet-of-record exact bytes)
 - Combined verdict: **PRODUCT_FALSIFIED** (exit 1)
 - Engine verdict before drift guard: **PRODUCT_FALSIFIED** (exit 1)
 - Falsification proven: **True**
 - Input drift: none (run_valid=True)
-- Product mount head: 3495c13361ddf40f88d31c1fbb47b00bc06eee63
+- Product mount head: 6b5827a10881d4b05a518b58551a090ee5884999 (mount currency; last re-measured head was 3495c1336)
 - Questions measured: 3
 - Gates: 18 total, 11 passed, 4 failed, 3 reported
 - Failed gates: mf::concept_coverage::39319405429::de-kapitalverletzung, mf::counter_authority_surface::39319405429::de-kapitalverletzung, mf::counter_authority_surface::39319405429::fr-bail-entretien, mf::counter_authority_surface::39319405429::it-responsabilita-medica
@@ -22,9 +22,10 @@
 
 ## Claim ceiling
 
-This instrument establishes exactly one thing: on the exact accepted packet bytes, whether the served bundles satisfy the frozen mapping-free gates. It does NOT meet, move or re-derive the frozen absolute LABEL_SOUND or GEOMETRY_SOUND bars, which stay REPORTED-ONLY. It does NOT lift the accepted DO-NOT-SERVE order on packet 38839347028 nor DO-NOT-SERVE-UNCHANGED on rebuilt-39027045675. It does NOT certify admission of any packet; admission stays fail-closed. It does NOT claim the map helps a jurist; that remains the human product gate's question. It does NOT re-issue the retracted 39111232991 parity claim. It builds and re-scores no candidate for Frontier team frontier-query-concept-recall. human_gate_ready stays false. It runs no obsolete universal-174k geometry benchmark.
+This instrument establishes exactly one thing: on the exact accepted packet bytes, whether the served bundles satisfy the frozen mapping-free gates. It does NOT meet, move or re-derive the frozen absolute LABEL_SOUND or GEOMETRY_SOUND bars, which stay REPORTED-ONLY (identity re-hash only). The frozen RULES_LABEL.json scored_statuses vocabulary IS consumed by the engine as the accepted scoring contract for the counter_authority_surface gate; the absolute bars are never used as thresholds. It does NOT lift the accepted DO-NOT-SERVE order on packet 38839347028 nor DO-NOT-SERVE-UNCHANGED on rebuilt-39027045675. It does NOT certify admission of any packet; admission stays fail-closed. It does NOT claim the map helps a jurist; that remains the human product gate's question. It does NOT re-issue the retracted 39111232991 parity claim. It builds and re-scores no candidate for Frontier team frontier-query-concept-recall. human_gate_ready stays false. It runs no obsolete universal-174k geometry benchmark.
 
 ## Provenance (restored layer)
+
 - Frozen hypothesis SHA256: d1135f9f919140a30dd31250cdb2e782fc3b32a74e39472a24d31560d7de009d
 - Freeze record SHA256: 431aa87b8abeaec3b849d66bce7c0d6b1bcb1ea0fdd5f31bef4b3da122d229f5
 - Engine record: `results/evaluation/minimal_retrieval_ca_benchmark/40073123887_engine_mapping_free_recall_falsifier.json`

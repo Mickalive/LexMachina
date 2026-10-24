@@ -39,6 +39,7 @@ import json
 import sys
 import traceback
 import types
+import unittest
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -124,37 +125,62 @@ def run_file(path: Path, repo_root: Path) -> dict:
 
         cases = []
         for name in sorted(vars(mod)):
-            fn = getattr(mod, name)
-            if not (name.startswith("test_") and callable(fn)):
-                continue
-            case = {"test": name}
-            if getattr(fn, "__skip__", False):
-                case.update(status="SKIPPED", reason=getattr(fn, "__skip_reason__", ""))
-            elif getattr(fn, "__parametrized__", False):
-                case.update(status="UNSUPPORTED",
-                            reason="parametrised test: the shim does not expand parametrisation")
-            elif len(inspect.signature(fn).parameters):
-                case.update(status="UNSUPPORTED",
-                            reason=f"test needs fixture(s): "
-                                   f"{list(inspect.signature(fn).parameters)}")
-            else:
-                try:
-                    fn()
-                    case.update(status="PASS")
-                except sys.modules["pytest"].Skipped as exc:
-                    case.update(status="SKIPPED", reason=str(exc))
-                except Exception as exc:
-                    case.update(status="FAIL", error=f"{type(exc).__name__}: {exc}",
-                                traceback=traceback.format_exc()[-2000:])
-            cases.append(case)
+            obj = getattr(mod, name)
+            # Support both plain test functions and unittest.TestCase methods
+            if inspect.isclass(obj) and issubclass(obj, unittest.TestCase):
+                # Discover test methods on TestCase classes
+                for method_name in sorted(dir(obj)):
+                    if method_name.startswith("test_") and callable(getattr(obj, method_name)):
+                        method = getattr(obj, method_name)
+                        case = {"test": f"{name}.{method_name}"}
+                        # unittest methods don't use our pytest markers
+                        try:
+                            # Create instance and run
+                            instance = obj()
+                            method(instance)
+                            case.update(status="PASS")
+                        except Exception as exc:
+                            case.update(status="FAIL", error=f"{type(exc).__name__}: {exc}",
+                                        traceback=traceback.format_exc()[-2000:])
+                        cases.append(case)
+            elif name.startswith("test_") and callable(obj):
+                fn = obj
+                case = {"test": name}
+                if getattr(fn, "__skip__", False):
+                    case.update(status="SKIPPED", reason=getattr(fn, "__skip_reason__", ""))
+                elif getattr(fn, "__parametrized__", False):
+                    case.update(status="UNSUPPORTED",
+                                reason="parametrised test: the shim does not expand parametrisation")
+                elif len(inspect.signature(fn).parameters):
+                    case.update(status="UNSUPPORTED",
+                                reason=f"test needs fixture(s): "
+                                       f"{list(inspect.signature(fn).parameters)}")
+                else:
+                    try:
+                        fn()
+                        case.update(status="PASS")
+                    except sys.modules["pytest"].Skipped as exc:
+                        case.update(status="SKIPPED", reason=str(exc))
+                    except Exception as exc:
+                        case.update(status="FAIL", error=f"{type(exc).__name__}: {exc}",
+                                    traceback=traceback.format_exc()[-2000:])
+                cases.append(case)
 
         n_passed = sum(c["status"] == "PASS" for c in cases)
         n_failed = sum(c["status"] == "FAIL" for c in cases)
         n_skipped = sum(c["status"] == "SKIPPED" for c in cases)
         n_unsupported = sum(c["status"] == "UNSUPPORTED" for c in cases)
-        out.update(status="FAIL" if n_failed else "PASS",
-                   n_passed=n_passed, n_failed=n_failed, n_skipped=n_skipped,
-                   n_unsupported=n_unsupported, cases=cases)
+        n_cases = len(cases)
+        
+        # Per the shim's doctrine: "an unexecuted test file is an unverified claim"
+        # If zero cases were discovered, mark as NOT_RAN, never PASS
+        if n_cases == 0:
+            out.update(status="NOT_RAN",
+                       n_passed=0, n_failed=0, n_skipped=0, n_unsupported=0, cases=[])
+        else:
+            out.update(status="FAIL" if n_failed else "PASS",
+                       n_passed=n_passed, n_failed=n_failed, n_skipped=n_skipped,
+                       n_unsupported=n_unsupported, cases=cases)
         return out
     finally:
         sys.path[:] = saved

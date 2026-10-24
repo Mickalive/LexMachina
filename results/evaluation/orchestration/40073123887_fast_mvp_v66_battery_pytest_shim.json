@@ -1,7 +1,7 @@
 {
  "schema": "lex-evaluation-no-pytest-runner/1",
  "run_id": "40073123887",
- "generated_at_utc": "2026-10-24T07:23:15Z",
+ "generated_at_utc": "2026-10-24T08:01:29Z",
  "python": "3.12.3",
  "pytest_available": false,
  "supported_constructs": [
@@ -12,8 +12,8 @@
  ],
  "verdict": "SHIM_FAIL",
  "n_files": 7,
- "n_passed": 75,
- "n_failed": 2,
+ "n_passed": 89,
+ "n_failed": 3,
  "n_skipped": 0,
  "n_unsupported": 6,
  "n_absent": 0,
@@ -329,7 +329,7 @@
      "test": "test_check_provenance_on_the_committed_tree_does_not_re_derive",
      "status": "FAIL",
      "error": "AssertionError: ",
-     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 142, in run_file\n    fn()\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_mount_provenance_gate.py\", line 111, in test_check_provenance_on_the_committed_tree_does_not_re_derive\n    assert rows[\"n_do_not_re_derive\"] == len(PROVENANCE_SOURCES)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 160, in run_file\n    fn()\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_mount_provenance_gate.py\", line 111, in test_check_provenance_on_the_committed_tree_does_not_re_derive\n    assert rows[\"n_do_not_re_derive\"] == len(PROVENANCE_SOURCES)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
     },
     {
      "test": "test_commit_facts_rejects_non_sha",
@@ -369,12 +369,129 @@
   {
    "test_file": "tests/evaluation/test_disclosure_provenance_crosscheck.py",
    "test_file_sha256": "dc83fe76febd55cc7441e2152ed76f8f7f25593d238941c266b38a11750fb6bc",
-   "status": "PASS",
-   "n_passed": 0,
-   "n_failed": 0,
+   "status": "FAIL",
+   "n_passed": 14,
+   "n_failed": 10,
    "n_skipped": 0,
    "n_unsupported": 0,
-   "cases": []
+   "cases": [
+    {
+     "test": "TestCommittedRecord.test_claim_ceiling_stays_narrow_and_flags_fail_closed",
+     "status": "PASS"
+    },
+    {
+     "test": "TestCommittedRecord.test_every_comparable_row_carries_both_sides",
+     "status": "PASS"
+    },
+    {
+     "test": "TestCommittedRecord.test_initial_execution_preserved_and_disclosed",
+     "status": "PASS"
+    },
+    {
+     "test": "TestCommittedRecord.test_record_pins_the_frozen_hypothesis_and_instrument",
+     "status": "PASS"
+    },
+    {
+     "test": "TestCommittedRecord.test_safety_pins_unchanged_before_and_after",
+     "status": "PASS"
+    },
+    {
+     "test": "TestCommittedRecord.test_verdict_vocabulary_and_zero_divergence",
+     "status": "PASS"
+    },
+    {
+     "test": "TestComparatorMountless.test_faithful_extraction_yields_no_divergence",
+     "status": "FAIL",
+     "error": "KeyError: 'open_items'",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 140, in run_file\n    method(instance)\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_disclosure_provenance_crosscheck.py\", line 176, in test_faithful_extraction_yields_no_divergence\n    rows = self._rows(_product_extraction())\n                      ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_disclosure_provenance_crosscheck.py\", line 98, in _product_extraction\n    lane_items = load(STATE)[\"open_items\"]\n                 ~~~~~~~~~~~^^^^^^^^^^^^^^\nKeyError: 'open_items'\n"
+    },
+    {
+     "test": "TestComparatorMountless.test_planted_cluster_share_divergence_is_detected",
+     "status": "FAIL",
+     "error": "KeyError: 'open_items'",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 140, in run_file\n    method(instance)\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_disclosure_provenance_crosscheck.py\", line 207, in test_planted_cluster_share_divergence_is_detected\n    prod = _product_extraction()\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_disclosure_provenance_crosscheck.py\", line 98, in _product_extraction\n    lane_items = load(STATE)[\"open_items\"]\n                 ~~~~~~~~~~~^^^^^^^^^^^^^^\nKeyError: 'open_items'\n"
+    },
+    {
+     "test": "TestComparatorMountless.test_planted_de_attribution_divergence_is_detected",
+     "status": "FAIL",
+     "error": "KeyError: 'open_items'",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 140, in run_file\n    method(instance)\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_disclosure_provenance_crosscheck.py\", line 213, in test_planted_de_attribution_divergence_is_detected\n    prod = _product_extraction()\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_disclosure_provenance_crosscheck.py\", line 98, in _product_extraction\n    lane_items = load(STATE)[\"open_items\"]\n                 ~~~~~~~~~~~^^^^^^^^^^^^^^\nKeyError: 'open_items'\n"
+    },
+    {
+     "test": "TestComparatorMountless.test_planted_jaccard_divergence_is_detected",
+     "status": "FAIL",
+     "error": "KeyError: 'open_items'",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 140, in run_file\n    method(instance)\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_disclosure_provenance_crosscheck.py\", line 182, in test_planted_jaccard_divergence_is_detected\n    prod = _product_extraction()\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_disclosure_provenance_crosscheck.py\", line 98, in _product_extraction\n    lane_items = load(STATE)[\"open_items\"]\n                 ~~~~~~~~~~~^^^^^^^^^^^^^^\nKeyError: 'open_items'\n"
+    },
+    {
+     "test": "TestComparatorMountless.test_planted_lost_id_divergence_is_detected",
+     "status": "FAIL",
+     "error": "KeyError: 'open_items'",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 140, in run_file\n    method(instance)\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_disclosure_provenance_crosscheck.py\", line 201, in test_planted_lost_id_divergence_is_detected\n    prod = _product_extraction()\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_disclosure_provenance_crosscheck.py\", line 98, in _product_extraction\n    lane_items = load(STATE)[\"open_items\"]\n                 ~~~~~~~~~~~^^^^^^^^^^^^^^\nKeyError: 'open_items'\n"
+    },
+    {
+     "test": "TestComparatorMountless.test_planted_pin_divergence_is_detected",
+     "status": "FAIL",
+     "error": "KeyError: 'open_items'",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 140, in run_file\n    method(instance)\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_disclosure_provenance_crosscheck.py\", line 195, in test_planted_pin_divergence_is_detected\n    prod = _product_extraction()\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_disclosure_provenance_crosscheck.py\", line 98, in _product_extraction\n    lane_items = load(STATE)[\"open_items\"]\n                 ~~~~~~~~~~~^^^^^^^^^^^^^^\nKeyError: 'open_items'\n"
+    },
+    {
+     "test": "TestComparatorMountless.test_planted_verbatim_divergence_is_detected",
+     "status": "FAIL",
+     "error": "KeyError: 'open_items'",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 140, in run_file\n    method(instance)\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_disclosure_provenance_crosscheck.py\", line 188, in test_planted_verbatim_divergence_is_detected\n    prod = _product_extraction()\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_disclosure_provenance_crosscheck.py\", line 98, in _product_extraction\n    lane_items = load(STATE)[\"open_items\"]\n                 ~~~~~~~~~~~^^^^^^^^^^^^^^\nKeyError: 'open_items'\n"
+    },
+    {
+     "test": "TestComparatorMountless.test_row_count_is_frozen_at_twenty",
+     "status": "FAIL",
+     "error": "KeyError: 'open_items'",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 140, in run_file\n    method(instance)\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_disclosure_provenance_crosscheck.py\", line 219, in test_row_count_is_frozen_at_twenty\n    rows = self._rows(_product_extraction())\n                      ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_disclosure_provenance_crosscheck.py\", line 98, in _product_extraction\n    lane_items = load(STATE)[\"open_items\"]\n                 ~~~~~~~~~~~^^^^^^^^^^^^^^\nKeyError: 'open_items'\n"
+    },
+    {
+     "test": "TestFreezeFirstContract.test_every_evaluation_owned_pin_in_the_freeze_record_holds",
+     "status": "PASS"
+    },
+    {
+     "test": "TestFreezeFirstContract.test_freeze_commit_recorded",
+     "status": "PASS"
+    },
+    {
+     "test": "TestFreezeFirstContract.test_freeze_record_pins_the_hypothesis_sha",
+     "status": "PASS"
+    },
+    {
+     "test": "TestFreezeFirstContract.test_hypothesis_declares_frozen_before_execution",
+     "status": "PASS"
+    },
+    {
+     "test": "TestFreezeFirstContract.test_hypothesis_sha_matches_the_instruments_hardcoded_pin",
+     "status": "PASS"
+    },
+    {
+     "test": "TestItemTextShaConvention.test_existing_trailing_newline_not_doubled",
+     "status": "PASS"
+    },
+    {
+     "test": "TestItemTextShaConvention.test_jq_dash_r_convention_adds_trailing_newline",
+     "status": "PASS"
+    },
+    {
+     "test": "TestItemTextShaConvention.test_lane_state_open_items_match_the_freeze_pins",
+     "status": "FAIL",
+     "error": "KeyError: 'open_items'",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 140, in run_file\n    method(instance)\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_disclosure_provenance_crosscheck.py\", line 89, in test_lane_state_open_items_match_the_freeze_pins\n    items = load(STATE)[\"open_items\"]\n            ~~~~~~~~~~~^^^^^^^^^^^^^^\nKeyError: 'open_items'\n"
+    },
+    {
+     "test": "TestMountEndToEnd.test_full_run_reproduces_the_committed_record",
+     "status": "FAIL",
+     "error": "AssertionError: 'VERDICT_DIVERGENCE_HEADLINE' != 'VERDICT_DISCLOSURE_PROVENANCE_VERIFIED_ZERO_DIVERGENCE'\n- VERDICT_DIVERGENCE_HEADLINE\n+ VERDICT_DISCLOSURE_PROVENANCE_VERIFIED_ZERO_DIVERGENCE\n",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 140, in run_file\n    method(instance)\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_disclosure_provenance_crosscheck.py\", line 300, in test_full_run_reproduces_the_committed_record\n    self.assertEqual(rec[\"verdict\"], committed[\"verdict\"])\n  File \"/usr/lib/python3.12/unittest/case.py\", line 885, in assertEqual\n    assertion_func(first, second, msg=msg)\n  File \"/usr/lib/python3.12/unittest/case.py\", line 1251, in assertMultiLineEqual\n    self.fail(self._formatMessage(msg, standardMsg))\n  File \"/usr/lib/python3.12/unittest/case.py\", line 715, in fail\n    raise self.failureException(msg)\nAssertionError: 'VERDICT_DIVERGENCE_HEADLINE' != 'VERDICT_DISCLOSURE_PROVENANCE_VERIFIED_ZERO_DIVERGENCE'\n- VERDICT_DIVERGENCE_HEADLINE\n+ VERDICT_DISCLOSURE_PROVENANCE_VERIFIED_ZERO_DIVERGENCE\n\n"
+    },
+    {
+     "test": "TestMountEndToEnd.test_mount_absence_never_produces_a_pass",
+     "status": "PASS"
+    }
+   ]
   },
   {
    "test_file": "tests/evaluation/test_boilerplate_resistance_real.py",
@@ -408,7 +525,7 @@
      "test": "test_end_to_end_run_when_mount_present",
      "status": "FAIL",
      "error": "AssertionError: ",
-     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 142, in run_file\n    fn()\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_offline_emission_path_benchmark.py\", line 147, in test_end_to_end_run_when_mount_present\n    assert (out / \"local_test_oepb.json\").is_file()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 160, in run_file\n    fn()\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_offline_emission_path_benchmark.py\", line 147, in test_end_to_end_run_when_mount_present\n    assert (out / \"local_test_oepb.json\").is_file()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
     },
     {
      "test": "test_hypothesis_and_freeze_exist_and_pin_direction",

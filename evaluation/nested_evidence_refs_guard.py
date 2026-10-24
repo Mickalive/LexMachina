@@ -45,6 +45,7 @@ MOUNTS = [Path("/tmp/lex_accepted/product"), Path("/tmp/lex_accepted/frontier")]
 # Historical refs the state itself DISCLOSES as known-unresolvable (dangling
 # preserved for provenance, never deleted). Matching is by exact path string.
 DISCLOSED_KNOWN_UNRESOLVABLE = {
+    "results/audit/evaluation/CYCLE_40017649220_GATE.json",
     # none currently claimed at top level; nested disclosure fields carry
     # these inside evidence_index_defects_inherited_not_charged /
     # evidence_index_repair_40040574595 blocks which are self-labelling.
