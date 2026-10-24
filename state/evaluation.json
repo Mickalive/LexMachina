@@ -2505,5 +2505,50 @@
       "reports/evaluation/FAST_MVP_EVALUATION_CYCLE_20261024.md"
     ],
     "claim_ceiling": "Does NOT meet/move/re-derive frozen absolute bars; does NOT lift DO-NOT-SERVE orders; does NOT certify admission; does NOT claim map helps jurist; runs NO obsolete universal-174k benchmarks."
+  },
+  "retrieval_gate_benchmark": {
+    "schema": "lex-retrieval-benchmark/1",
+    "direction_version": 49,
+    "frozen_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "run_id": "live_test",
+    "github_run": "local",
+    "engine": "evaluation.retrieval_gate.run_retrieval_benchmark",
+    "endpoint": "https://mcp.opencaselaw.ch/api/decisions",
+    "exit_code": 1,
+    "falsification_proven": true,
+    "verdict": "FAIL",
+    "n_gates": 40,
+    "n_passed": 25,
+    "n_failed": 11,
+    "n_not_measurable": 4,
+    "failed_gates": [
+      "authority::baseline_lang_recall::corporate-criminal-liability::fr",
+      "authority::baseline_lang_recall::corporate-criminal-liability::it",
+      "counter::limiting_marker_verified::corporate-criminal-liability",
+      "duplicate::unique_ids::corporate-criminal-liability",
+      "authority::baseline_lang_recall::business-judgment-rule::fr",
+      "authority::baseline_lang_recall::business-judgment-rule::it",
+      "duplicate::unique_ids::business-judgment-rule",
+      "authority::baseline_lang_recall::petty-theft-dismissal::fr",
+      "authority::baseline_lang_recall::petty-theft-dismissal::it",
+      "duplicate::unique_ids::petty-theft-dismissal",
+      "duplicate::unique_ids::rent-default"
+    ],
+    "finding": "Plain OpenCaseLaw searches (baseline, no query-map/counter-authority machinery) fail to retrieve frozen controlling authorities in French and Italian for 3 of 4 questions (corporate-criminal-liability, business-judgment-rule, petty-theft-dismissal). The counter channel for corporate-criminal-liability surfaces zero rows with both norm and limitation tokens. All 4 questions exhibit duplicate decision IDs within single query responses (OpenCaseLaw returns both court-specific and canonical appeal IDs). Transport, latency, reproducibility, norm retrievability, and known counter recall all pass.",
+    "latency_budget_pass": true,
+    "reproducibility_pass": true,
+    "cross_language_recall_failure": true,
+    "counter_limiting_marker_failure": true,
+    "duplicate_suppression_failure": true,
+    "no_174k_benchmark_rerun": true,
+    "claim_ceiling": "Retrieval reachability and integrity of independent OpenCaseLaw searches; no UX claim, no supporting/contrary label assigned.",
+    "result_file": "results/evaluation/retrieval_benchmark/live_test.json",
+    "report_file": "reports/evaluation/RETRIEVAL_CA_BENCHMARK_live_test.md",
+    "freeze_first": true,
+    "freeze_record": "evaluation/retrieval_gate/FREEZE_RECORD.json",
+    "numeric_environment": {
+      "python": "3.12.3",
+      "platform": "linux"
+    }
   }
 }
