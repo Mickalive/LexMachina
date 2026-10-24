@@ -580,6 +580,9 @@ def apply_verified_span_selection(
             n_abstained += 1
             abstained_ids.append(str(d.get("decision_id") or ""))
             reasons[sel.reason_code] = reasons.get(sel.reason_code, 0) + 1
+            # When the seam abstains or a candidate is filter-rejected,
+            # the defective incumbent counter_evidence must not remain verified.
+            d["counter_evidence_verified"] = False
             continue
         n_selected += 1
         selected_ids.append(str(d.get("decision_id") or ""))
