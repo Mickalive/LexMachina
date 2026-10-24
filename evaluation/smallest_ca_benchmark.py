@@ -1,21 +1,11 @@
 #!/usr/bin/env python3
 """Smallest executable retrieval/counter-authority benchmark that can falsify the product.
 
-Operational resume: built to the exact contract of evaluation lane directive v61:
-- smallest frozen benchmark
-- known relevant-authority recall
-- known contrary/limiting-authority recall where feasible
-- FR/DE/IT query robustness
-- source/URL/decision-ID validity
-- duplicate suppression
-- cached reproducibility
-- latency
-- basic cluster stability
-
-Measures counter-authority surface on the product's served query-map bundles.
-Uses accepted frozen_bars and subject_match_audit infrastructure by reference
-(REUSE-FIRST: never re-derives, re-tunes, or re-implements; rubric shas verified at
-runtime, never hardcoded).
+Built to the evaluation lane directive contract: smallest frozen benchmark that
+measures counter-authority surface on served query-map bundles.  Reuses the
+accepted frozen rubric by re-hash at runtime (REUSE-FIRST: never re-derives,
+re-tunes, or re-implements).  Designed to work across factory direction versions
+(v61, v66, etc.) by deriving the direction version from lane state.
 
 EXIT CODES:
   0  PASS_NO_FALSIFICATION   - counter-authority surface meets threshold
@@ -55,6 +45,18 @@ from evaluation.frozen_bars.label_gate import EXPECTED_RULES_SHA256  # noqa: E40
 SCHEMA = "lex-evaluation-smallest-ca-benchmark/1"
 DEFAULT_MOUNTS = ("/tmp/lex_accepted/product",)
 PACKET = "38839347028"  # the served-record packet of record; frozen by direction v50
+
+# REUSE-FIRST: the accepted evaluation state is the authoritative source for the
+# current factory direction version; derived at runtime, never hardcoded.
+STATE_PATH = REPO_ROOT / "state" / "evaluation.json"
+
+
+def _current_direction_version() -> int:
+    """Read the current direction version from evaluation state (REUSE-FIRST: derived,
+    never hardcoded). This ensures the benchmark adapts to the current factory direction
+    (v66, v67, etc.) without code changes."""
+    state = json.loads(STATE_PATH.read_text(encoding="utf-8"))
+    return int(state["direction_version"])
 
 
 EXIT_PASS = 0
@@ -217,7 +219,7 @@ def run(run_id: str, out: Path | None, mount_arg: str | None = None) -> tuple[in
         "schema": SCHEMA,
         "lane": "evaluation",
         "run_id": run_id,
-        "direction_version": 61,
+        "direction_version": _current_direction_version(),
         "generated_at_utc": __import__("datetime").datetime.now(
             __import__("datetime").timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "elapsed_s": round(time.time() - started, 3),
