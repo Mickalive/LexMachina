@@ -78,5 +78,50 @@
     "status": "LANDED",
     "description": "When the span seam abstains (pivot_absent/no_intent_marker), the frozen D1-D4 content filter downgrades defective incumbent counter_evidence rather than leaving it verified. Verified on all 5 fixture bundles: rent-default (D2), petty-theft-dismissal (D3), corporate-criminal-liability (0 downgrades, sound row retained), business-judgment-rule (D2), server_slice (D3+D4).",
     "evidence_run": "40100397058"
+  },
+  "v55_delivery": {
+    "frontier": "frontier-served-packet-falsification (RUN, charter 1) has no verdict yet; product adopts nothing and waits for nothing. No accepted peer artifact needed integration this cycle.",
+    "frontier_update_38892001925": "SUPERSEDES v55_delivery.frontier above, which was true at run 38877693206 and is kept unedited as that cycle's record: frontier-served-packet-falsification DID report and WAS accepted while cycle 38892001925 was in flight (team run 38880639079, accept commit 464c45f on origin/lab/frontier/frontier-served-packet-falsification, audit CYCLE_38880639079_GATE.json gate=PASS safe_to_integrate=true required_fixes=[]), so the v55 SECOND ITEM fired and product adopted the verdict as input the same cycle: product-owned snapshot results/product/frontier_verdicts/ACCEPTED_frontier-served-packet-falsification_38880639079.json, disclosure()['frontier_served_packet_falsification'] with covers_this_packet=true, and a third owner-card block. The product still re-measured nothing, changed no threshold, and did not regenerate the frozen packet.",
+    "human_gate": {
+      "requested": false,
+      "why": "render fix must first land through the audit gate; the owner session (v55 item 5) still requires a real jurist and is never simulated"
+    },
+    "not_touched": [
+      "machine_gate_ready",
+      "human_gate_ready",
+      "frozen thresholds (MEGA_CLUSTER_SHARE 0.5)",
+      "served packet results/product/gate_packet/38839347028 questions/bundles",
+      "citation identity (closed at 49d65936)",
+      "machine gate re-verification"
+    ],
+    "question_answered": "factory direction v55 NEW TOP ITEM: the unevidenced counter-authority ring is still rendered on the served packet (16 of 65 counter labels carry empty counter_evidence at uncertainty 0.95-1.0 with counter_evidence_verified absent, while query.html gated the ring on counter_status alone)",
+    "render_fix": {
+      "canvas_lock": {
+        "added_by_run": 38892001925,
+        "measured": "amber 1/4/11, red 24/11/14, gold 1/6/4 on the three served bundles",
+        "negative_control": "the same probe against the rejected predicate scores amber 0/0/0",
+        "test": "product/tests/test_canvas_ring_strokes.py (5 tests) + product/canvas_probe.js",
+        "why": "run 38885055655 narrowed the amber branch and silently removed the contour from 16 of 16 served rows while the frozen suite stayed green, because no test executed draw()"
+      },
+      "file": "product/static/query.html",
+      "owner_card": "counterHead() states '<N> contre-autorites, dont <M> non etayees (conservees pour visibilite)' plus the same count in the status line; legend updated to distinguish etayee vs non-etayee rings",
+      "predicate": "counterEvidenced(d) = isCounter(d) && counter_evidence non-blank && counter_evidence_verified===true; confident red ring/pill only when true",
+      "unevidenced_state": "amber dashed ring + 'non etayee conservee pour visibilite' pill + explicit missing-evidence warning with uncertainty in the detail panel; rows stay on the map and in the counter filter (visibility intent of DOWNGRADED_MIN_UNCERTAINTY preserved)"
+    },
+    "repair_1_of_38885055655": {
+      "audit_of_record": "results/audit/product/CYCLE_38885055655_GATE.json (gate=REVISE, required_fixes F1/F4/F3)",
+      "state": "all three required fixes closed this run; see run_38892001925"
+    },
+    "run_id": 38877693206,
+    "server_fix": {
+      "adversarial_retrieval.py:758,794": "counter_evidence_verified written as bool(status and evidence) at label time",
+      "adversarial_retrieval.py:787": "every row leaving apply_adversarial_pass carries the flag as a real boolean (absent normalised to False)",
+      "pipeline.py:555,558,561": "extractive degraded fallback writes the flag on counter/cited/unlabelled rows, never omitted"
+    },
+    "verification_this_cycle": {
+      "claim_ceiling": "packet disclosures still record both Frontier verdicts as measured on PRE-FIX artifacts; nothing in the served artifacts claims label soundness or geometry coherence",
+      "suite": "product/tests/test_counter_evidence_render.py (3 served-packet integration tests incl. 16-row cross-check de1/fr4/it11 against real bundles via node) + test_adversarial_retrieval.py 2 new verified-flag tests + verify_query_page.js section 8 synthetic predicate/ring/pill/filter checks; all pass",
+      "sweep": "frontier_verdict_sweep live-mount test now accepts the v55 TERMINATED portfolio shape (no verification file on mount -> snapshot-stands); covers_this_packet=false and counter_label_re_measured=false preserved, never claimed"
+    }
   }
 }
