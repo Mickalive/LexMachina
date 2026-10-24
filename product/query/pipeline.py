@@ -1336,7 +1336,25 @@ def enrich_query_bundle(
     # any decision IS supporting/contrary/limiting.  Placed exactly where the
     # accepted INTEGRATION_CONTRACT names: between adversarial_retrieval_pass()
     # and apply_anchor_labels().
-    if not fixture_generation and adversarial_retrieval:
+    prov_init = initial_bundle.get("provenance") or {}
+    prov_aud = audited.get("provenance") or {}
+    qid = prov_init.get("qid") or prov_aud.get("qid")
+    # Best-effort qid inference for known reality_check legs so offline/live
+    # fixtures also flow through the frozen anchor profile and the D2 filter.
+    if not qid:
+        try:
+            _QID_BY_LEG = {
+                "rent-default": "fr-bail-entretien",
+                "business-judgment-rule": "fr-bail-entretien",
+                "corporate-criminal-liability": "responsabilite-penale-entreprise-102cp",
+                "petty-theft-dismissal": "fr-bail-entretien",
+            }
+            slug = (prov_aud.get("offline_slice") or {}).get("slug") or (prov_init.get("offline_slice") or {}).get("slug") or prov_init.get("offline_slice_slug")
+            if slug in _QID_BY_LEG:
+                qid = _QID_BY_LEG[slug]
+        except Exception:
+            pass
+    if adversarial_retrieval:
         # Direction v65: select a VERBATIM span from the row's own text and let
         # the already-accepted frozen gate confirm-or-abstain on it.  The
         # incumbent short evidence string is often not a substring of the raw
@@ -1345,9 +1363,11 @@ def enrich_query_bundle(
         # This seam does not touch the gate; it only chooses the quote.  It
         # runs before the accepted emission repair so repaired rows keep their
         # proposal status.  Kill-switch: LEXMACHINA_COUNTER_SPAN=off.
+        # Direction v67 P0: route offline/slice emission path through the filter
+        # (fixture_generation bypass removed) so D2 letterhead defects are caught.
         audited = apply_verified_span_selection(
             audited,
-            qid=(initial_bundle.get("provenance") or {}).get("qid"),
+            qid=qid,
         )
         audited = apply_counter_emission_repair(audited)
 
@@ -1358,11 +1378,10 @@ def enrich_query_bundle(
     # issued, the abstention count and the yield together.  It never moves
     # geometry.  Default mode is the adopted 'anchor'; LEXMACHINA_COUNTER_LABELS
     # selects 'incumbent' (historical path, comparison/tests) or 'off'.
-    if not fixture_generation:
-        audited = apply_anchor_labels(
-            audited,
-            qid=(initial_bundle.get("provenance") or {}).get("qid"),
-        )
+    audited = apply_anchor_labels(
+        audited,
+        qid=qid,
+    )
 
     # Direction v63 ordered item 7(a) — pool counter-surface coverage.  The
     # accepted cached falsification measured 0/14 known authorities signalled

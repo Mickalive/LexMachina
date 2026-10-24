@@ -362,42 +362,39 @@ def select_span(
     existing = str(row.get("counter_evidence") or "").strip()
     baseline_label = None
     baseline_reason = None
+    # Content-quality rejections (D2/D3/D4) are tracked separately from gate
+    # abstentions.  The accepted defect class is a letterhead evidence head at
+    # full_text offset 0 that the gate abstains on *before* the content filter
+    # ever runs; the row then keeps its baseline label and the defect survives.
+    # The filter is therefore evaluated first for every candidate and its
+    # reason is published even when the gate would also have abstained.
+    content_reject_reasons: dict[str, int] = {}
     if existing:
         base_row = _minimal_row(row, status, existing)
-        base_dec = decide_label(base_row, rules, profile)
-        baseline_label = "ABSTAIN" if base_dec.abstained else base_dec.label
-        baseline_reason = base_dec.reason_code
-        if not base_dec.abstained:
-            # Verify against whichever field actually carries it; scanning is
-            # unnecessary if the incumbent quote is already verbatim AND (when
-            # the guard is on) anchored to this query.
-            for c in candidates:
-                if c.quote == existing or (
-                    c.field and verify_span(str(row.get(c.field) or ""), existing, c.start, c.end)
-                ):
-                    if precision_guard and not span_passes_precision_guard(existing, guard or {}):
-                        baseline_reason = "off_topic_span"
-                        break
-                    # Content quality filter (D2/D3/D4)
-                    if content_filter:
-                        cf_ok, cf_reason = passes_content_filter(existing, row, start=c.start)
-                        if not cf_ok:
-                            return SpanSelection(
-                                selected=False,
-                                reason_code=cf_reason,
-                                quote="",
-                                field="",
-                                start=-1,
-                                end=-1,
-                                n_candidates=len(candidates),
-                                n_evaluated=0,
-                                decision=base_dec,
-                                baseline_label=baseline_label,
-                                baseline_reason=cf_reason,
-                                scanned_fields=[],
-                                guard_available=bool((guard or {}).get("available", True)),
-                                n_guard_rejected=0,
-                            )
+        existing_span = next(
+            (
+                c for c in candidates
+                if c.quote == existing
+                or (c.field and verify_span(str(row.get(c.field) or ""), existing, c.start, c.end))
+            ),
+            None,
+        )
+        existing_start = existing_span.start if existing_span is not None else 0
+        if content_filter:
+            cf_ok, cf_reason = passes_content_filter(existing, row, start=existing_start)
+            if not cf_ok:
+                content_reject_reasons[cf_reason] = content_reject_reasons.get(cf_reason, 0) + 1
+                baseline_reason = cf_reason
+                existing = ""  # never reuse a content-defective incumbent
+        if existing:
+            base_dec = decide_label(base_row, rules, profile)
+            baseline_label = "ABSTAIN" if base_dec.abstained else base_dec.label
+            baseline_reason = base_dec.reason_code
+            if not base_dec.abstained and existing_span is not None:
+                c = existing_span
+                if precision_guard and not span_passes_precision_guard(existing, guard or {}):
+                    baseline_reason = "off_topic_span"
+                else:
                     return SpanSelection(
                         selected=True,
                         reason_code="supported_existing_span",
@@ -412,19 +409,32 @@ def select_span(
                         baseline_reason=baseline_reason,
                         scanned_fields=[],
                         guard_available=bool((guard or {}).get("available", True)),
-                        n_guard_rejected=0,
+                        n_guard_rejected=sum(content_reject_reasons.values()),
                     )
             # Existing quote passes the gate but is not a literal substring of
             # any named field -> do not claim verbatim; fall through to scan.
-            baseline_reason = baseline_reason or "existing_not_verbatim"
+            if baseline_reason != "off_topic_span":
+                baseline_reason = baseline_reason or "existing_not_verbatim"
 
     scanned: list[str] = []
     n_eval = 0
-    n_guard_rejected = 0
+    n_guard_rejected = sum(content_reject_reasons.values())
     for cand in candidates:
         n_eval += 1
         if cand.field not in scanned:
             scanned.append(cand.field)
+        # Content quality filter (D2/D3/D4) runs BEFORE the frozen gate.  It
+        # only narrows which spans are offered; it never re-scores or re-tunes
+        # the gate, and it leaves the gate's own decision untouched whenever a
+        # candidate reaches it.
+        if content_filter:
+            cf_ok, cf_reason = passes_content_filter(cand.quote, row, start=cand.start)
+            if not cf_ok:
+                n_guard_rejected += 1
+                content_reject_reasons[cf_reason] = content_reject_reasons.get(cf_reason, 0) + 1
+                if baseline_reason is None:
+                    baseline_reason = cf_reason
+                continue
         probe = _minimal_row(row, status, cand.quote)
         dec = decide_label(probe, rules, profile)
         if dec.abstained:
@@ -437,12 +447,6 @@ def select_span(
         if precision_guard and not span_passes_precision_guard(cand.quote, guard or {}):
             n_guard_rejected += 1
             continue
-        # Content quality filter (D2/D3/D4)
-        if content_filter:
-            cf_ok, cf_reason = passes_content_filter(cand.quote, row, start=cand.start)
-            if not cf_ok:
-                n_guard_rejected += 1  # count as filtered by quality
-                continue
         return SpanSelection(
             selected=True,
             reason_code="supported_verbatim_span",
@@ -460,13 +464,19 @@ def select_span(
             n_guard_rejected=n_guard_rejected,
         )
 
+    # A content-filter rejection is the honest terminal reason when one
+    # occurred: "the row was filtered for a letterhead/markup/language defect"
+    # is a different, stronger statement than "the gate abstained".
+    content_reason = next(iter(content_reject_reasons), None)
+    if content_reason:
+        terminal_reason = content_reason
+    elif n_guard_rejected:
+        terminal_reason = "off_topic_span"
+    else:
+        terminal_reason = baseline_reason or "no_emitting_span"
     return SpanSelection(
         selected=False,
-        reason_code=(
-            "d2_letterhead_zone" if n_guard_rejected and baseline_reason and baseline_reason in ('d2_letterhead_zone','d3_markup_residue','d4_language_marker_mismatch') else
-            ("off_topic_span" if n_guard_rejected
-             else (baseline_reason or "no_emitting_span"))
-        ),
+        reason_code=terminal_reason,
         n_candidates=len(candidates),
         n_evaluated=n_eval,
         baseline_label=baseline_label,

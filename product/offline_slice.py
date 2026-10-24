@@ -75,6 +75,7 @@ def build_bundle(slug: str, top_n: int, *, enrich: bool = True) -> dict:
         # Full offline loop: sourced answer + counter-authority pass from the
         # fixture provider. Hydration/generation/adversarial retrieval are all
         # fixture-configured, so the network trap above stays armed throughout.
+        initial.setdefault("provenance", {})["offline_slice_slug"] = slug
         final = enrich_query_bundle(
             initial, retrieval_mode="fixture", fixture_generation=True)
         before, after = _geometry(initial), _geometry(final)
@@ -84,6 +85,7 @@ def build_bundle(slug: str, top_n: int, *, enrich: bool = True) -> dict:
         )
         final.setdefault("provenance", {})["offline_slice"] = {
             "enriched": True,
+            "slug": slug,
             "geometry_preserved": preserved,
             "n_first_map": len(before),
             "n_final": len(after),

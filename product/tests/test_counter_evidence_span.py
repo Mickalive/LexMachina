@@ -263,3 +263,95 @@ def test_absent_id_diagnosis_pins_head_exclusion_not_a_retrieval_miss():
         assert r["legal_anchor_score"] == 0.0
         assert r["query_similarity"] < 0.04
         assert r["inside_top_n_cut"] is False
+
+
+# --------------------------------------------------------------------------- #
+# 3. D2 letterhead content filter runs before the gate (direction v67 P0a)
+# --------------------------------------------------------------------------- #
+
+LETTERHEAD = (
+    "Kantonsgericht von Graubünden\n"
+    "Dretgira chantunala dal Grischun\n"
+    "Tribunale cantonale dei Grigioni\n"
+    "Chur, 15. März 2010\n"
+    "ERZ 10 25\n"
+    "Verfügung.\n"
+)
+SUBSTANTIVE = (
+    "Nach Art. 257d Abs. 2 OR kann der Vermieter bei Wohn- und Geschäftsräumen "
+    "mit einer Frist von mindestens 30 Tagen auf Ende eines Monats kündigen, "
+    "wenn der Mieter innert der gesetzten Frist nicht bezahlt."
+)
+
+
+def _confirming_gate(row, rules, profile):
+    class _Decision:
+        abstained = False
+        label = "candidate-limiting"
+        reason_code = None
+        uncertainty = 0.2
+    return _Decision()
+
+
+def test_letterhead_only_row_is_rejected_by_content_filter_not_left_abstained():
+    row = {
+        "decision_id": "gr_gerichte_ERZ 2010 25",
+        "language": "de",
+        "full_text": LETTERHEAD,
+        "counter_status": "candidate-limiting",
+    }
+    sel = ces.select_span(
+        row, rules={}, profile={}, decide_label=_confirming_gate, content_filter=True,
+    )
+    assert sel.selected is False
+    assert sel.reason_code == "d2_letterhead_zone"
+    assert sel.n_guard_rejected >= 1
+    assert "Dretgira" not in sel.quote
+
+
+def test_letterhead_is_skipped_and_a_substantive_span_is_selected():
+    row = {
+        "decision_id": "gr_gerichte_ERZ 2010 25",
+        "language": "de",
+        "full_text": LETTERHEAD + SUBSTANTIVE,
+        "counter_status": "candidate-limiting",
+    }
+    sel = ces.select_span(
+        row, rules={}, profile={}, decide_label=_confirming_gate, content_filter=True,
+    )
+    assert sel.selected is True
+    assert sel.quote == SUBSTANTIVE
+    assert sel.start > 0, "the header candidate must not be selected at offset 0"
+    assert sel.n_guard_rejected >= 1
+
+
+def test_content_defective_incumbent_quote_is_not_reused():
+    row = {
+        "decision_id": "gr_gerichte_ERZ 2010 25",
+        "language": "de",
+        "full_text": LETTERHEAD + SUBSTANTIVE,
+        "counter_status": "candidate-limiting",
+        "counter_evidence": "Kantonsgericht von Graubünden",
+    }
+    sel = ces.select_span(
+        row, rules={}, profile={}, decide_label=_confirming_gate, content_filter=True,
+    )
+    assert sel.selected is True
+    assert sel.reason_code == "supported_verbatim_span"
+    assert sel.quote == SUBSTANTIVE
+
+
+def test_markup_residue_candidate_is_filtered_before_the_gate():
+    markup = "<p>Art. 257d OR ist hier nicht einschlägig</p>."
+    row = {
+        "decision_id": "markup-row",
+        "language": "de",
+        "full_text": markup + " " + SUBSTANTIVE,
+        "counter_status": "candidate-limiting",
+    }
+    sel = ces.select_span(
+        row, rules={}, profile={}, decide_label=_confirming_gate, content_filter=True,
+    )
+    assert sel.selected is True
+    assert sel.quote == SUBSTANTIVE
+    assert sel.n_guard_rejected >= 1
