@@ -294,6 +294,7 @@ class SpanSelection:
     scanned_fields: list[str] = dc_field(default_factory=list)
     guard_available: bool = True
     n_guard_rejected: int = 0
+    content_filter_rejections: dict[str, int] = dc_field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -312,6 +313,7 @@ class SpanSelection:
             "scanned_fields": list(self.scanned_fields),
             "guard_available": self.guard_available,
             "n_guard_rejected": self.n_guard_rejected,
+            "content_filter_rejections": dict(self.content_filter_rejections),
         }
 
 
@@ -421,28 +423,29 @@ def select_span(
     scanned: list[str] = []
     n_eval = 0
     n_guard_rejected = 0
+    content_filter_rejections: dict[str, int] = {}
     for cand in candidates:
         n_eval += 1
         if cand.field not in scanned:
             scanned.append(cand.field)
+        # Byte-exact proof against the field the span came from.
+        if not verify_span(str(row.get(cand.field) or ""), cand.quote, cand.start, cand.end):
+            continue
+        # Content quality filter (D2/D3/D4) - runs before frozen gate to narrow spans offered
+        if content_filter:
+            cf_ok, cf_reason = passes_content_filter(cand.quote, row, start=cand.start)
+            if not cf_ok:
+                content_filter_rejections[cf_reason] = content_filter_rejections.get(cf_reason, 0) + 1
+                continue
+        if precision_guard and not span_passes_precision_guard(cand.quote, guard or {}):
+            n_guard_rejected += 1
+            continue
         probe = _minimal_row(row, status, cand.quote)
         dec = decide_label(probe, rules, profile)
         if dec.abstained:
             if baseline_reason is None:
                 baseline_reason = dec.reason_code
             continue
-        # Byte-exact proof against the field the span came from.
-        if not verify_span(str(row.get(cand.field) or ""), cand.quote, cand.start, cand.end):
-            continue
-        if precision_guard and not span_passes_precision_guard(cand.quote, guard or {}):
-            n_guard_rejected += 1
-            continue
-        # Content quality filter (D2/D3/D4)
-        if content_filter:
-            cf_ok, cf_reason = passes_content_filter(cand.quote, row, start=cand.start)
-            if not cf_ok:
-                n_guard_rejected += 1  # count as filtered by quality
-                continue
         return SpanSelection(
             selected=True,
             reason_code="supported_verbatim_span",
@@ -458,14 +461,20 @@ def select_span(
             scanned_fields=scanned,
             guard_available=bool((guard or {}).get("available", True)),
             n_guard_rejected=n_guard_rejected,
+            content_filter_rejections=content_filter_rejections,
         )
+
+    # Determine the primary content filter rejection reason (most frequent)
+    cf_primary = ""
+    if content_filter_rejections:
+        cf_primary = max(content_filter_rejections.items(), key=lambda x: x[1])[0]
 
     return SpanSelection(
         selected=False,
         reason_code=(
-            "d2_letterhead_zone" if n_guard_rejected and baseline_reason and baseline_reason in ('d2_letterhead_zone','d3_markup_residue','d4_language_marker_mismatch') else
-            ("off_topic_span" if n_guard_rejected
-             else (baseline_reason or "no_emitting_span"))
+            cf_primary if cf_primary
+            else ("off_topic_span" if n_guard_rejected
+                 else (baseline_reason or "no_emitting_span"))
         ),
         n_candidates=len(candidates),
         n_evaluated=n_eval,
@@ -474,6 +483,7 @@ def select_span(
         scanned_fields=scanned,
         guard_available=bool((guard or {}).get("available", True)),
         n_guard_rejected=n_guard_rejected,
+        content_filter_rejections=content_filter_rejections,
     )
 
 
@@ -591,6 +601,13 @@ def apply_verified_span_selection(
             d["counter_uncertainty"] = sel.decision.uncertainty
         d["counter_proposal_source"] = SPAN_VERSION
 
+    # Aggregate content filter rejections across all rows
+    cf_histogram: dict[str, int] = {}
+    for d in out.get("decisions") or []:
+        span_rec = d.get("counter_evidence_span") or {}
+        for k, v in (span_rec.get("content_filter_rejections") or {}).items():
+            cf_histogram[k] = cf_histogram.get(k, 0) + v
+
     out.setdefault("provenance", {})["counter_evidence_span"] = {
         **prov_base,
         "applied": True,
@@ -609,6 +626,7 @@ def apply_verified_span_selection(
         "guard_statutes": list(guard.get("statutes") or []),
         "guard_phrase_count": len(guard.get("phrases") or []),
         "n_guard_rejected": n_guard_rejected,
+        "content_filter_rejections": dict(sorted(cf_histogram.items())),
         "selected_ids": selected_ids,
         "abstained_ids": abstained_ids,
         "abstention_reasons": dict(sorted(reasons.items())),
