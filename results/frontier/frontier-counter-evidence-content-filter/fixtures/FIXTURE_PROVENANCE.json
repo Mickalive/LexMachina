@@ -1,0 +1,134 @@
+{
+  "bundle_version": "frontier-counter-evidence-content-filter/fixture/1",
+  "extraction_rule_plants": {
+    "PLANT_LETTERHEAD_A": "source row = first row in document order of that bundle with decision_id != \"gr_gerichte_ERZ 2010 25\" AND re.match(court_header_alternation, full_text.lstrip()) is not None AND len(full_text) >= 400. decision_id = \"PLANT_LETTERHEAD_A\"; counter_evidence = source full_text[0:120]; full_text = source full_text; language = source language; snippet/regeste/full_text_status copied; fixture_rule recorded. abort if no such row.",
+    "PLANT_SUBSTANTIVE_B": "source row = the row with decision_id == \"gr_gerichte_ERZ 2010 25\" in that bundle (abort if absent). text = source full_text; find the paragraph window deterministically: pos = text.find(\"\\n\\n\", 2000); if pos >= 0: start = pos + 2 else: nl = text.find(\"\\n\", 2000); start = (nl + 1) if nl >= 0 else 2000; end_pos = text.find(\"\\n\\n\", start + 300); if end_pos >= 0: end = end_pos + 2 else: nl2 = text.find(\"\\n\", start + 300); end = (nl2 + 1) if nl2 >= 0 else min(len(text), start + 300); span = text[start:end]; abort if len(span) < 200; decision_id = \"PLANT_SUBSTANTIVE_B\"; counter_evidence = span; full_text = source full_text; language = source language; record fixture_rule with start/end/len/offset (offset=start) as plain integers.",
+    "court_header_alternation": "Kantonsgericht|Dretgira\\s+chantunala|Tribunale\\s+cantonale|Bundesgericht|Tribunal\\s+f[ée]d[ée]ral|Tribunale\\s+federale|Obergericht|Bezirksgericht|cour\\s+d'appel|tribunal\\s+cantonal",
+    "court_header_alternation_flags": "python re, IGNORECASE",
+    "plant_source_bundle": "results/product/offline_slice/20261023T212530Z/rent-default.bundle.json",
+    "plant_source_bundle_sha256": "f3511534fcdc0bebfb061bc91ea1792bc19e41fdff6cd445db315ff12e3598d5"
+  },
+  "fixtures": [
+    {
+      "byte_size": 535270,
+      "n_decisions": 14,
+      "path": "results/frontier/frontier-counter-evidence-content-filter/fixtures/h2_defective_14.bundle.json",
+      "sha256": "e0f2ec1f8943dd06e1e86716b25d2b1f6c76dd8efc4fd47dc917746dae049f8f",
+      "source_inputs": [
+        {
+          "path": "/tmp/lex_accepted/core/evaluation/results/evaluation/v65_head_advance_crosscheck/40044626742.json",
+          "sha256": "59f6b1fc5b0658ea40e0cdb03d84f7d3ff641ec6a56ec91ba151f064c162249a"
+        },
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/offline_slice/20261023T202433Z/rent-default.bundle.json",
+          "sha256": "a38c757ec40d69837db83841d2e75f8ef3118ef69b0785a9ae506d36b0ca5414"
+        },
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/offline_slice/20261023T202440Z/rent-default.bundle.json",
+          "sha256": "d142eb07401d608481dc603889b4c3d352d034641226a52ea8d63cc6885fb64e"
+        },
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/offline_slice/20261023T203316Z/rent-default.bundle.json",
+          "sha256": "ed00e48752ea516b0324e5fb1522caa00526e177f8e78083fb5da25bb4e668fd"
+        },
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/offline_slice/20261023T212530Z/rent-default.bundle.json",
+          "sha256": "f3511534fcdc0bebfb061bc91ea1792bc19e41fdff6cd445db315ff12e3598d5"
+        },
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/offline_slice/20261023T214943Z/rent-default.bundle.json",
+          "sha256": "3f5cd568a70db1b452caeb390df698b5e63112060c74177785cf676561174312"
+        },
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/offline_slice/20261023T220629Z/rent-default.bundle.json",
+          "sha256": "5702498a77c0f7c390dcd8a71e1e12319f49564f4ffa0840f7a21c91d7cf5227"
+        },
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/offline_slice/20261023T222223Z/rent-default.bundle.json",
+          "sha256": "ffd615fa0042a7841796f1c11d21e3e4b620ad08050fb3ac2f20644299c1e213"
+        },
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/offline_slice/20261023T223903Z/rent-default.bundle.json",
+          "sha256": "9da66d2a87406e846c62a158ca047aa60f448cbc6050b14ef1aaa48a0965bdac"
+        },
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/offline_slice/20261023T224023Z/rent-default.bundle.json",
+          "sha256": "60f3c22323a9f216fd2e8ced52edbbdf2f0bc037f382c9ffd2323a832541901d"
+        },
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/offline_slice/20261023T224250Z/rent-default.bundle.json",
+          "sha256": "75d90d418cf04cc590a2ef9a3a4d42e40a2a3e7e8b2fce21c81ee0e106407334"
+        },
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/server_slice/20261023T223109Z/served.bundle.json",
+          "sha256": "3f259288a1818bd43bae15e8c2d43936090c8b038d152984b9aed877742ff35d"
+        },
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/server_slice/20261023T223909Z/served.bundle.json",
+          "sha256": "f6094589f1a775f1f0848a3aa359824fddb271e714fecdbcc953b98de3c74ff1"
+        },
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/server_slice/20261023T224031Z/served.bundle.json",
+          "sha256": "0173afaa0d3528a8fcb4cd3532463192a5dcc3a1934e2adaac11be2a472ac981"
+        },
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/server_slice/20261023T224255Z/served.bundle.json",
+          "sha256": "f362b196beb6283077be3bbc004b21d9fe6aa382b56b0827a9d6b029ab9e38da"
+        },
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/offline_slice/20261023T190402Z/rent-default.bundle.json",
+          "sha256": "af332f5c68b7eaa0c2648082773ef2712bb969c63fcf64c9e13cd5c3f2420470"
+        }
+      ]
+    },
+    {
+      "byte_size": 133424,
+      "n_decisions": 6,
+      "path": "results/frontier/frontier-counter-evidence-content-filter/fixtures/confirmed_set_6.bundle.json",
+      "sha256": "459f2e61d989300796dede697c5c15af6429e8b27ad5b75b05f1f321e344476b",
+      "source_inputs": [
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/counter_span/CYCLE_39986094168_span_selection.json",
+          "sha256": "086ca37d728a0d99a8a47aad488c8b5cd5cb216fc1ad89b9524fecd0ca805baa"
+        },
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/gate_packet/39319405429/questions/de-kapitalverletzung.bundle.json",
+          "sha256": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b"
+        },
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/gate_packet/39319405429/questions/fr-bail-entretien.bundle.json",
+          "sha256": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b"
+        },
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/gate_packet/39319405429/questions/it-responsabilita-medica.bundle.json",
+          "sha256": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b"
+        }
+      ]
+    },
+    {
+      "byte_size": 68794,
+      "n_decisions": 2,
+      "path": "results/frontier/frontier-counter-evidence-content-filter/fixtures/planted_controls.bundle.json",
+      "sha256": "3eab2cdbcca8d541c9c42ddd6ef6aa3f91e038b8387a52e68f37c673e1f5f3d8",
+      "source_inputs": [
+        {
+          "path": "/tmp/lex_accepted/core/product/results/product/offline_slice/20261023T212530Z/rent-default.bundle.json",
+          "sha256": "f3511534fcdc0bebfb061bc91ea1792bc19e41fdff6cd445db315ff12e3598d5"
+        }
+      ]
+    }
+  ],
+  "generator": "frontier/frontier-counter-evidence-content-filter/extract_fixtures.py",
+  "no_filter_involved": "fixtures are assembled only from accepted committed evidence; no filter, CLI or acceptance harness was invoked by this extraction",
+  "published_histogram": {
+    "D2_letterhead_zone": 10,
+    "D3_markup_residue": 4,
+    "D4_language_marker_mismatch": 4
+  },
+  "published_histogram_asserted_equal": true,
+  "recomputed_histogram": {
+    "D2_letterhead_zone": 10,
+    "D3_markup_residue": 4,
+    "D4_language_marker_mismatch": 4
+  }
+}
