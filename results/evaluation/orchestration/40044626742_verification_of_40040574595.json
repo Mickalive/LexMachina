@@ -1,0 +1,89 @@
+{
+  "schema": "lex-evaluation-verification-of-producer/1",
+  "run_id": "40044626742",
+  "verified_run": "40040574595",
+  "generated_at_utc": "2026-10-24T00:47:00Z",
+  "lane": "evaluation",
+  "direction_version": 65,
+  "verified_snapshot_head": "e9f3f37924d9f7aad90a902bcc8c0f0b73effd01",
+  "freeze_commit_of_verified_run": "d264936094987d99f222a85159ad08a5a0306cbd",
+  "freeze_first_reverified": {
+    "freeze_commit_committed_at_utc": "2026-10-24T00:12:45Z",
+    "result_generated_at_utc": "2026-10-24T00:12:55Z",
+    "results_commit_persisted_at_utc": "2026-10-24T00:21:52Z",
+    "ordering_holds": true,
+    "statement": "hypothesis+freeze+instrument+guard tests (d2649360) strictly precede the claim-bearing result bytes (generated_at 00:12:55Z) and the results commit (e9f3f379, workflow-persisted). The producer's freeze-first claim in its report of record is CONFIRMED by git evidence."
+  },
+  "V1_full_instrument_reexecution": {
+    "instrument": "evaluation/v65_head_advance_crosscheck_v2.py",
+    "instrument_sha256_before_and_after": "8a7e19c9f1c31bbc38ebc4c921bf7bb9e0a436aae8738268cc21b1bbd6671eeb",
+    "instrument_modified": false,
+    "resume_run_output": "results/evaluation/v65_head_advance_crosscheck/40044626742.json",
+    "resume_run_report": "reports/evaluation/V65_HEAD_ADVANCE_CROSSCHECK_40044626742.md",
+    "normalized_comparison_vs_40040574595": {
+      "method": "strip run_id, generated_at*, elapsed*, output/report path fields and run-id-bearing path strings; compare quantity-for-quantity, key-for-key",
+      "total_diffs": 0,
+      "verdict": "NORMALIZED_IDENTICAL"
+    },
+    "reproduced_headlines": {
+      "verdict": "PASS_NO_FALSIFICATION",
+      "exit_code": 0,
+      "currency": {"headline": "ALL_CONFIRMED", "confirmed": 36, "divergent": 0, "confirmed_lag_disclosed": 2, "not_reexecuted_disclosed": 1},
+      "H2": {"verdict": "H2_FALSIFIED", "n_verified_rows": "14/14 defective", "histogram": {"D2_letterhead_zone": 10, "D3_markup_residue": 4, "D4_language_marker_mismatch": 4}, "distinct_decisions": 2},
+      "falsification_rerun": {"verdict": "PRODUCT_FALSIFIED", "failed_gates_identical_to_accepted_set": true, "input_drift": [], "requirement_4_all_accepted": true},
+      "planner_pin": "CONFIRMED",
+      "controls": "5/5 PASS"
+    },
+    "attempt1_disclosure": {
+      "preserved_at": [
+        "results/evaluation/v65_head_advance_crosscheck/40044626742_attempt1_shallow_mount_lineage_vacuous.json",
+        "results/evaluation/v65_head_advance_crosscheck/falsification/40044626742_attempt1.json",
+        "results/evaluation/v65_head_advance_crosscheck/falsification/40044626742_attempt1_engine_mapping_free_recall_falsifier.json",
+        "reports/evaluation/V65_HEAD_ADVANCE_CROSSCHECK_40044626742_attempt1.md"
+      ],
+      "what": "The first execution of this run reproduced every measurement leg identically (currency 36/0/2, H2 14/14, falsification 4-gate set, controls 5/5) but returned verdict NOT_MEASURED_VACUOUS / exit 2 because requirement_4_lineage came back all_accepted=false.",
+      "root_cause": "ENVIRONMENT DEFECT OF THIS RESUME'S CHECKOUT, NOT OF THE PRODUCER: core-lane.yml on main now fetches with --depth=1, so /tmp/lex_accepted/product had exactly one commit and the instrument's `git log --grep 'accept product cycle <id>'` in the mount could see only the head accept (40032389983), not 40025340938's.",
+      "repair": "git fetch --depth=150 origin lab/product (deepened the shared remote-tracking history; NO file in the mount worktree was written; mount HEAD stayed e4f72a8e). Re-execution then returned requirement_4_all_accepted=true and PASS_NO_FALSIFICATION.",
+      "why_this_is_disclosed_not_silently_replaced": "requirement 30 - both attempts are preserved under this run's own name; the first attempt is an environment-attempt record, the second is the measurement of record for 40044626742."
+    }
+  },
+  "V2_shim_suites": {
+    "runner": "evaluation/no_pytest_runner.py sha256 c12097da9d910574380b32c5dafa371a3b24ec14ef2551d92bb9453b8ed57584 (re-hash identical before use)",
+    "self_suite": {"record": "results/evaluation/orchestration/40044626742_self_suite_pytest_shim.json", "file": "tests/evaluation/test_v65_head_advance_crosscheck_v2.py", "passed": 12, "failed": 0, "unsupported": 0, "verdict": "SHIM_PASS", "matches_pre_registered_target": true},
+    "multilingual_provenance": {"record": "results/evaluation/orchestration/40044626742_multiling_prov_pytest_shim.json", "files": 4, "passed": 73, "failed": 0, "unsupported": 0, "verdict": "SHIM_PASS", "matches_pre_registered_target": true},
+    "falsification_family": {"record": "results/evaluation/orchestration/40044626742_falsification_family_pytest_shim.json", "files": 4, "passed": 51, "failed": 0, "unsupported": 21, "verdict": "SHIM_PASS", "matches_pre_registered_target": true, "delta_vs_producer_record": "producer 40040574595's shim recorded 50 passed / 1 failed: the evidence-index resolution test failed on the dangling ref results/evaluation/orchestration/40011795717/producer_work_state_and_next_move.txt BEFORE the producer's state update removed it. This re-run CLEARS that failure (51/0), confirming the producer's state-hygiene repair actually landed in the snapshot. UNSUPPORTED 21 are the shim's documented upper bound, counted not-run, never passed."},
+    "pytest_absent_disclosure": "pytest is ABSENT in this image (find_spec -> None); all suite results are shim measurements with the standing upper-bound disclosure."
+  },
+  "V3_frozen_pin_rehash": {
+    "freeze_record": "evaluation/V65_HEAD_ADVANCE_CROSSCHECK_FREEZE_RECORD_V2.json sha256 c954f62cfab2b5c31b228c59268ad63f5f3536b00c9cf8be9f5551c28155b586",
+    "file_pins_rehashed_independently": {"ok": 23, "bad": 0, "total": 23, "note": "the freeze record's frozen_pins map carries 23 file pins; the instrument's own pins_before/pins_after carry those 23 plus mount_head and the hypothesis pin = 25"},
+    "instrument_pins_producer_vs_resume": {"producer_before_eq_after": true, "resume_before_eq_after": true, "producer_eq_resume": true, "n": 25},
+    "conclusion": "zero frozen or historical edits by either the producer run or this resume; every pin re-identical."
+  },
+  "V4_evidence_index": {
+    "at_resume_freeze": {"n_refs": 199, "declared": 199, "missing": 0},
+    "note": "re-verified after this run's state update in the guard suite; the one ref the producer removed (40011795717/producer_work_state_and_next_move.txt, never committed anywhere in history) stays removed and is disclosed, never silently re-added."
+  },
+  "V5_freeze_first_ordering": {
+    "see": "freeze_first_reverified above",
+    "holds": true
+  },
+  "V6_state_hygiene_correction": {
+    "defect_found": "state/evaluation.json.accepted_run_id was '39986080045' at resume time",
+    "evidence": [
+      "git log --all --format='%h %s' | grep -c 'accept evaluation cycle 39986080045' == 0 - no accept commit naming 39986080045 exists anywhere",
+      "accept evaluation cycle commits on lab/evaluation: 39927760701 -> 39936790420 -> 40002636192 -> 40012474431 -> 40034814235 (tip 5c21f6bd)",
+      "CYCLE_40002636192_GATE.json gate=PASS safe_to_integrate=true; CYCLE_40012474431_GATE.json PASS true; CYCLE_40034814235_GATE.json PASS true - the three post-39936790420 accepted runs each carry BOTH halves of factory-wide requirement 4",
+      "39986080045 carries a PASS gate file but no accept-commit half, so under requirement 4 it is NOT an accepted run of record; the v65 producer inherited the stale pointer from an earlier state update and did not correct it"
+    ],
+    "correction": "accepted_run_id advanced to '40034814235' by evaluation/operational_resume_40044626742_update_state.py; the prior advance block is preserved verbatim under accepted_run_id_advance.superseded_advance; disclosed in this record and in reports/evaluation/OPERATIONAL_RESUME_40044626742.md",
+    "updater_idempotency_defect_and_fix": "the updater's first version re-wrapped the advance block on a second invocation (nesting the correction inside itself); DISCLOSED, repaired in the same run (unwrap-one-level logic + a strengthened guard assertion that superseded_advance is the ORIGINAL 39927760701 -> 39986080045 block with no deeper nesting); double-invocation then verified byte-stable on every data field (only state_updated_at advances)",
+    "applied": true
+  },
+  "posture_unchanged": {"human_gate_ready": false, "machine_gate_ready": false, "packet_admitted": false, "ready_for_owner_session": false, "owner_decision_required": false},
+  "frozen_rules_or_bars_edited": false,
+  "no_174k_benchmark_rerun": true,
+  "historical_records_overwritten": false,
+  "VERDICT": "PRODUCER_SNAPSHOT_VERIFIED_AND_AUDIT_READY",
+  "claim_ceiling": "This record establishes only that the claim-bearing work committed on the persisted snapshot of run 40040574595 reproduces under independent re-execution of its own committed instrument and guard suites under run 40044626742 (normalized-identical, 0 diffs), that its freeze-first ordering holds by git evidence, that all frozen pins re-identical, and that one state-pointer hygiene defect (accepted_run_id) is corrected with disclosure. It scores no frozen bar, classifies no decision under the frozen rubric, lifts no DO-NOT-SERVE order, and asserts no human-gate or serve readiness."
+}
