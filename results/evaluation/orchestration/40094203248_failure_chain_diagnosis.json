@@ -1,0 +1,46 @@
+{
+  "schema": "lex-evaluation-orchestration-diagnosis/1",
+  "run_id": "40094203248",
+  "diagnosing_run": "40094203248",
+  "diagnosed_runs": ["40089391202"],
+  "generated_at_utc": "2026-10-24T12:45:00Z",
+  "evidence_sources": [
+    "GitHub REST /repos/Mickalive/LexMachina/actions/runs/40089391202 (public, unauthenticated, HTTP 200)",
+    "GitHub REST /repos/Mickalive/LexMachina/actions/runs/40089391202/jobs (public, unauthenticated, HTTP 200)",
+    "git ls-remote origin refs/heads/cycle/core/evaluation/40089391202/team (9ae71fcf) and refs/heads/cycle/core/evaluation/40089391202/team-attempt-1 (9ae71fcf); NO /audit ref exists",
+    "local checkout operational-resume tracking origin/cycle/core/evaluation/40089391202/team at 9ae71fcf (this resume's working base)"
+  ],
+  "logs_accessible": false,
+  "logs_note": "The run-log download endpoint requires authentication; the audit job's precise failure rc (78 LEX_WORK_QUANTUM_EXPIRED vs 75 LEX_NETWORK_STALL vs 76 auth-pool exhaustion per run-ox-with-retry.sh) is NOT directly readable and every rc attribution below is a TIMING-BASED INFERENCE, HEDGED accordingly. Per factory-wide requirement 20: a producer/audit job can die on provider rotation or overload, and that is not a verdict, not a product defect and not a human-gate problem.",
+  "runs": [
+    {
+      "run_id": "40089391202",
+      "name": "Core evaluation dirV67 repair0",
+      "event": "workflow_dispatch",
+      "dispatched_by": "github-actions[bot] (the resilience job of the previous failed chain, run 40085602229, per main's core-lane.yml resilience step which dispatches resume_from_run_id when a producer snapshot branch exists)",
+      "created_at": "2026-10-24T11:18:44Z",
+      "updated_at": "2026-10-24T12:30:26Z",
+      "conclusion": "failure",
+      "run_attempt": 1,
+      "team_job": "completed SUCCESS 11:18:51Z-11:44:25Z (all 12 steps green, including 'Validate active MVP producer state', 'Enforce lane write scope' and 'Persist team snapshot'); producer commit 9ae71fcff13d45f44df76a6a4c436dade701e699 pushed to cycle/core/evaluation/40089391202/team and /team-attempt-1",
+      "audit_job": "completed FAILURE 11:44:28Z-12:30:12Z at step 5 'Independent audit' (2744s wall duration); steps 6 'Enforce audit scope and read gate' and 7 'Persist audit snapshot' SKIPPED — no gate file written, no audit branch pushed (git ls-remote shows no cycle/core/evaluation/40089391202/audit ref)",
+      "integrate_job": "skipped (needs audit success; no gate)",
+      "resilience_job": "success 12:30:15Z-12:30:25Z ('Recover failed chain and wake supervisor'); dispatched THIS operational-resume run 40094203248 with resume_from_run_id=40089391202 because the producer snapshot branch existed",
+      "acceptance_status": "NOT ACCEPTED — factory-wide requirement 4 unmet (no CYCLE_40089391202_GATE.json anywhere; lab/evaluation never received an 'accept evaluation cycle 40089391202' commit; origin/lab/evaluation remained at f2734734 'accept evaluation cycle 40084716045' when this diagnosis ran)"
+    }
+  ],
+  "rc_inference": {
+    "hypothesis": "LEX_WORK_QUANTUM_EXPIRED (rc 78)",
+    "basis": "The 'Independent audit' step ran 2744s (11:44:28Z -> 12:30:12Z). run-ox-with-retry.sh hard-kills the agent session at LEX_AGENT_QUANTUM_SECONDS=2700 and returns rc 78; 2744s = 2700s quantum + ~44s kill/wait/cleanup overhead. This is the same rc-78 signature recorded in factory-wide requirements for prior chain deaths (e.g. product run 39034350468's audit death).",
+    "hedging": "The duration is also compatible with one or more network-stall (rc 75) retry attempts plus delays (8 attempts x 90s delay = up to 720s of pure sleep) ending in exit 75; the unauthenticated REST record cannot distinguish these. Both are ORCHESTRATION-class deaths (requirement 20), not verdicts. The diagnosis therefore asserts only what the REST record establishes: the audit agent step failed after ~one full work quantum, no gate file was produced, and the producer snapshot is unaffected.",
+    "not_claimed": "This diagnosis does NOT claim the auditor would have returned PASS/REVISE/BLOCKED; no gate exists, so no audit verdict exists for run 40089391202."
+  },
+  "producer_snapshot_integrity": {
+    "team_branch": "cycle/core/evaluation/40089391202/team",
+    "commit": "9ae71fcff13d45f44df76a6a4c436dade701e699",
+    "verified_at_resume_start": true,
+    "content_summary": "state repairs R1-R6 via evaluation/operational_resume_40089391202_state_repair.py + v67 ordered work item (1) executed: freeze-first D2 letterhead pattern heterogeneity profile (hypothesis 11:30:00Z, freeze 11:32:00Z, execution 11:34:28Z — freeze-first ordering verified from artifact timestamps), instrument sha aac86527... byte-identical (C4), controls C3-C6 all pass, 93 sha256-pinned bundles incl. packet-of-record 39319405429, 41 D2 rows -> 2 distinct P1 offset-0 multi-line court-header patterns, verdict LETTERHEAD_PATTERNS_MECHANICALLY_DETECTED, baseline 40062917685 unmoved, no bar movement",
+    "residual_defect_found_by_this_resume": "The 40089391202 state repair R1 corrected the 8 phantom local_eval_20261024T102833Z strings inside the top-level evidence_refs list but left the SAME 8 phantom strings as dict KEYS inside evidence_ref_role_notes (values are role labels). Those 8 keys name files that exist nowhere in the tree (the real artifacts are local_eval_20261024T102500Z / local_eval_1792837481). This is a finishable state-hygiene defect of the requirement-33 phantom-path class; this resume repairs it by renaming the keys to the real committed artifact paths (values/roles unchanged, nothing deleted).",
+    "claim_ceiling": "Orchestration diagnosis only: names the failed jobs/steps from the public REST record and the timing-based rc inference. Makes no product, bar or serve claim; hedges every rc attribution per requirement 20; asserts no audit verdict for 40089391202 because no gate file exists."
+  }
+}
