@@ -91,6 +91,26 @@ regenerations of the offline slice, same scratch copy of product head
 - freeze-first records: `evaluation/D2_PATH_SCOPE_PROBE_40070818687_{HYPOTHESIS,FREEZE}_V1.json`,
   committed BEFORE the first claim-bearing execution.
 
+## State hygiene and integrity
+
+- canonical `state/evaluation.json` advanced: `accepted_run_id`
+  40063688435 → 40068038783 (both halves of factory-wide requirement 4
+  verified at update time: PASS gate `CYCLE_40068038783_GATE.json` +
+  accept commit on `lab/evaluation`), `github_run` 40070818687,
+  `evidence_tier` REPRODUCED, posture flags all FALSE, `continue_recommended`
+  true with the concrete post-repair re-measure trigger;
+- nested evidence_refs guard: `NESTED_REFS_RESOLVED`, 0 unresolved
+  (`results/evaluation/orchestration/40070818687_nested_evidence_refs.json`);
+- `evaluation/state_integrity_gate.py`: 10/11 checks pass; the single failure
+  `root_lane_parity@both` is **INHERITED, not introduced by this run** — it was
+  already false at the committed accepted tip before this run, because
+  `evaluation/state/evaluation.json` is a frozen historical producer copy under
+  the dual-file convention accepted with cycle 40068038783. Attribution and
+  the field-level parity table (committed tip vs after) are committed at
+  `results/evaluation/state_integrity_gate/40070818687.json`. No historical
+  record was overwritten and no check was weakened; resolution is a disclosed
+  control-plane / next-cycle item.
+
 ## Non-movements
 
 - no frozen bar, rubric, threshold or verdict contract edited or applied;

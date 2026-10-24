@@ -1,0 +1,53 @@
+{
+  "attribution": {
+    "class": "INHERITED_DUAL_FILE_CONVENTION",
+    "explanation": "state_integrity_gate.py's root_lane_parity check requires accepted_run_id/direction_version/github_run to be identical between the canonical state/evaluation.json and evaluation/state/evaluation.json. Accepted cycle 40068038783 established (and its accepted state discloses) that evaluation/state/evaluation.json is a per-cycle PRODUCER COPY frozen as the historical record of cycle 40063688435 and that future cycles write the canonical file only. Under that accepted convention the github_run parity leg was ALREADY false at the committed tip (root 40068038783 vs lane copy 40063688435) BEFORE this run; this cycle's canonical advance widens the divergence to accepted_run_id and github_run by design. The lane copy is left untouched per the accepted convention; no historical record is overwritten and no check is weakened. Resolution belongs to the control plane / next cycle: either formally re-derive the parity check to compare the canonical file against the lane copy's OWN recorded run identity with a disclosed dual-file clause, or retire the lane copy under an append-only disposition. Not charged to this run's claims.",
+    "introduced_by_this_run": false,
+    "verification": {
+      "after_this_run_state_update": {
+        "accepted_run_id": {
+          "lane": "40063688435",
+          "parity": false,
+          "root": "40068038783"
+        },
+        "direction_version": {
+          "lane": 66,
+          "parity": true,
+          "root": 66
+        },
+        "github_run": {
+          "lane": 40063688435,
+          "parity": false,
+          "root": "40070818687"
+        }
+      },
+      "committed_tip_before_this_run": {
+        "accepted_run_id": {
+          "lane": "40063688435",
+          "parity": true,
+          "root": "40063688435"
+        },
+        "direction_version": {
+          "lane": 66,
+          "parity": true,
+          "root": 66
+        },
+        "github_run": {
+          "lane": 40063688435,
+          "parity": false,
+          "root": "40068038783"
+        }
+      }
+    }
+  },
+  "checks_passed_except_parity": 10,
+  "checks_total": 11,
+  "failed_check": "root_lane_parity@both",
+  "gate": "evaluation/state_integrity_gate.py",
+  "gate_exit_code": 1,
+  "gate_stderr_tail": "",
+  "gate_stdout_tail": "{\n \"verdict\": \"AT_LEAST_ONE_CHECK_FAILED\",\n \"exit_code\": 1,\n \"n_checks\": 11,\n \"n_failed\": 1,\n \"failed_checks\": [\n  \"root_lane_parity@both\"\n ],\n \"record\": null\n}\n",
+  "generated_at_utc": "2026-10-24T07:02:53Z",
+  "run_id": "40070818687",
+  "schema": "lex-evaluation-state-integrity-run/1"
+}
