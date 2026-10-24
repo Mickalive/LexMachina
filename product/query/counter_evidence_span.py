@@ -58,6 +58,10 @@ from .counter_anchor import (
 
 SPAN_ENV = "LEXMACHINA_COUNTER_SPAN"
 SPAN_GUARD_ENV = "LEXMACHINA_COUNTER_SPAN_GUARD"
+#: D2/D3/D4 content-quality filter (direction v66 P0).  Default ON.  The
+#: switch exists so a measurement harness can publish filter-on vs filter-off
+#: side by side on the same bytes; it NEVER reaches ``decide_label``.
+SPAN_CONTENT_FILTER_ENV = "LEXMACHINA_COUNTER_SPAN_CONTENT_FILTER"
 MODE_SELECT = "select"
 MODE_OFF = "off"
 
@@ -129,6 +133,13 @@ def _mode(env: dict[str, str] | None = None) -> str:
     if raw in (MODE_OFF, "none", "incumbent"):
         return MODE_OFF
     raise ValueError(f"unknown {SPAN_ENV}={raw!r}; known: select, off")
+
+
+def _content_filter_enabled(env: dict[str, str] | None = None) -> bool:
+    """D2/D3/D4 content filter switch (default ON).  Measurement use only."""
+    env = os.environ if env is None else env
+    raw = str(env.get(SPAN_CONTENT_FILTER_ENV, "on")).strip().lower()
+    return raw not in ("off", "0", "false", "no")
 
 
 def _normalize_guard(text: str) -> str:
@@ -380,7 +391,7 @@ def select_span(
                         break
                     # Content quality filter (D2/D3/D4)
                     if content_filter:
-                        cf_ok, cf_reason = passes_content_filter(existing, row, start=c.start)
+                        cf_ok, cf_reason = passes_content_filter(existing, row, start=c.start, field=c.field)
                         if not cf_ok:
                             return SpanSelection(
                                 selected=False,
@@ -439,7 +450,7 @@ def select_span(
             continue
         # Content quality filter (D2/D3/D4)
         if content_filter:
-            cf_ok, cf_reason = passes_content_filter(cand.quote, row, start=cand.start)
+            cf_ok, cf_reason = passes_content_filter(cand.quote, row, start=cand.start, field=cand.field)
             if not cf_ok:
                 n_guard_rejected += 1  # count as filtered by quality
                 continue
@@ -550,6 +561,7 @@ def apply_verified_span_selection(
     precision_guard = str(env_map.get(SPAN_GUARD_ENV, "on")).strip().lower() not in (
         "off", "0", "false", "no",
     )
+    content_filter = _content_filter_enabled(env_map)
     guard = guard_terms(profile, query)
 
     n_candidates = 0
@@ -619,13 +631,23 @@ def apply_verified_span_selection(
 __all__ = [
     "SPAN_ENV",
     "SPAN_GUARD_ENV",
+    "SPAN_CONTENT_FILTER_ENV",
     "SPAN_VERSION",
+    "CONTENT_FILTER_VERSION",
+    "LANGUAGE_MARKER_SETS",
+    "MIN_MARKER_HITS",
     "guard_terms",
     "span_passes_precision_guard",
     "SpanCandidate",
     "SpanSelection",
     "apply_verified_span_selection",
+    "content_defects_for_row",
+    "detect_language_marker_mismatch",
+    "detect_letterhead_zone",
+    "detect_markup_residue",
+    "downgrade_content_defects",
     "field_candidates",
+    "passes_content_filter",
     "select_span",
     "sentence_spans",
     "verify_span",
@@ -663,6 +685,21 @@ MARKUP_RESIDUE_PATTERNS = [
     re.compile(r'&[a-zA-Z]+;'),  # HTML entities
     re.compile(r'\\[a-zA-Z]+\{'),  # LaTeX-ish
 ]
+
+#: D4 legal-language marker sets, taken VERBATIM from the accepted H2 probe's
+#: own ``definitions`` block (evaluation run 40044626742,
+#: results/evaluation/v65_head_advance_crosscheck/40044626742.json,
+#: vendored at results/product/counter_span/accepted_h2_probe_40044626742.json).
+#: Reused, never re-derived; the measurement harness asserts byte-equality
+#: against the accepted artifact so drift is a test failure, not a silent
+#: re-tuning.  These are FILTER inputs only - they never reach decide_label.
+LANGUAGE_MARKER_SETS = {
+    "de": ["Regeste", "Erwägung", "Kündigung", "Mietvertrag", "Bundesgericht", "Verfügung"],
+    "fr": ["Considérant", "résiliation", "bail", "Tribunal fédéral", "recours", "art."],
+    "it": ["Dispositivo", "risoluzione", "affitto", "Tribunale federale", "ricorso", "regola"],
+}
+MIN_MARKER_HITS = 3
+CONTENT_FILTER_VERSION = "counter_content_filter/1"
 
 def _normalize_text(s: str) -> str:
     if not s:
@@ -719,50 +756,189 @@ def detect_markup_residue(text: str) -> bool:
 
 
 def detect_language_marker_mismatch(quote: str, row_lang: str) -> bool:
-    """Detect D4: language marker mismatch between row language and span text."""
+    """Detect D4: language marker mismatch between row language and span text.
+
+    Two deterministic, model-free signals, both bounded by the same rule: a row
+    whose language is unknown or unlabelled can NEVER be a mismatch.  A filter
+    may only narrow which spans are offered; guessing a language the row did
+    not declare would be a false rejection, which the v66 P0 success rule
+    forbids.
+
+    Signal 1 is the accepted H2 probe's own legal-marker sets
+    (:data:`LANGUAGE_MARKER_SETS`, :data:`MIN_MARKER_HITS`), reused verbatim
+    from the accepted artifact rather than re-derived.  Signal 2 is the
+    common-function-word heuristic this filter shipped with.
+    """
     if not quote or not row_lang:
         return False
-    row_lang = str(row_lang).lower()[:2]
+    lang = str(row_lang).lower()[:2]
+    if lang not in LANGUAGE_MARKER_SETS:
+        # UNLABELLED / unknown / any other tag: never a mismatch.
+        return False
+
+    # --- signal 1: accepted legal-marker sets -----------------------------
+    own_hits = sum(
+        1 for m in LANGUAGE_MARKER_SETS[lang] if m.lower() in str(quote).lower()
+    )
+    other_hits = {
+        other: sum(
+            1 for m in markers if m.lower() in str(quote).lower()
+        )
+        for other, markers in LANGUAGE_MARKER_SETS.items()
+        if other != lang
+    }
+    best_other = max(other_hits.values(), default=0)
+    if own_hits < MIN_MARKER_HITS and best_other >= MIN_MARKER_HITS and best_other > own_hits:
+        return True
+
+    # --- signal 2: common function words ---------------------------------
     norm = _normalize_text(quote)
-    # Simple heuristics: check for obvious wrong language markers
     de_markers = set(['der', 'die', 'das', 'und', 'ist', 'sind', 'wird', 'werden', 'nicht', 'oder'])
     fr_markers = set(['le', 'la', 'les', 'et', 'est', 'sont', 'ne', 'pas', 'ou', 'dans'])
     it_markers = set(['il', 'lo', 'la', 'gli', 'le', 'e', 'sono', 'non', 'o', 'nel'])
-    
+
     words = set(norm.split())
-    de_score = len(words & de_markers)
-    fr_score = len(words & fr_markers)
-    it_score = len(words & it_markers)
-    
-    scores = {'de': de_score, 'fr': fr_score, 'it': it_score}
+    scores = {
+        'de': len(words & de_markers),
+        'fr': len(words & fr_markers),
+        'it': len(words & it_markers),
+    }
     best = max(scores.items(), key=lambda x: x[1])[0]
-    if best and best != row_lang and max(scores.values()) >= 3 and scores[best] > scores.get(row_lang, 0) * 2:
+    if best and best != lang and max(scores.values()) >= 3 and scores[best] > scores.get(lang, 0) * 2:
         return True
     return False
 
 
-def passes_content_filter(quote: str, row: dict, start: int = 0) -> tuple[bool, str]:
-    """Returns (passes, reason_if_failed)."""
-    # D2: letterhead zone
+def passes_content_filter(
+    quote: str, row: dict, start: int = 0, field: str | None = None
+) -> tuple[bool, str]:
+    """Returns (passes, reason_if_failed).
+
+    ``start`` is the offset of the span inside ``field`` (defaults to the
+    behaviour the first version shipped with: ``full_text``).  D2 is defined
+    by the accepted H2 probe as an evidence head at a near-zero FULL_TEXT
+    offset, so the offset check only applies when the span is actually
+    grounded in ``full_text``; a span taken from ``regeste`` / ``snippet`` /
+    ``title`` is never a letterhead-zone rejection, and treating one as such
+    would be the false rejection the v66 P0 success rule forbids.
+    """
+    quote = str(quote or "")
     full_text = str(row.get('full_text') or '')
-    if detect_letterhead_zone(full_text, start=start):
-        return False, 'd2_letterhead_zone'
-    # Check if quote comes from early in full_text
-    if full_text and quote and quote in full_text:
+
+    # D2: letterhead zone.
+    if quote and full_text:
         idx = full_text.find(quote)
-        if idx >= 0 and detect_letterhead_zone(full_text, start=idx):
+        if idx >= 0:
+            if detect_letterhead_zone(full_text, start=idx):
+                return False, 'd2_letterhead_zone'
+        elif field in (None, 'full_text'):
+            if detect_letterhead_zone(full_text, start=start):
+                return False, 'd2_letterhead_zone'
+    elif quote and field in (None, 'full_text') and not full_text:
+        # No body to anchor to: only the span itself can show a header zone.
+        if detect_letterhead_zone(quote, start=0):
             return False, 'd2_letterhead_zone'
-    
-    # D3: markup residue
+
+    # D3: markup residue.
     if detect_markup_residue(quote):
         return False, 'd3_markup_residue'
-    if detect_markup_residue(full_text[:start+len(quote)+100] if start >=0 else quote):
-        # be more specific
-        pass
-    
-    # D4: language marker mismatch
+
+    # D4: language marker mismatch.
     row_lang = row.get('language') or row.get('lang')
     if detect_language_marker_mismatch(quote, row_lang):
         return False, 'd4_language_marker_mismatch'
-    
+
     return True, ''
+
+
+def content_defects_for_row(row: dict) -> list[str]:
+    """Every D2/D3/D4 code this row's verified span fires (may be several).
+
+    Used by the measurement harness to publish a defect histogram; returns the
+    codes in D2, D3, D4 order.  An empty list means the row's span is clean
+    under the accepted H2 definitions.
+    """
+    quote = str(row.get('counter_evidence') or "")
+    if not quote:
+        return []
+    out: list[str] = []
+    full_text = str(row.get('full_text') or '')
+    start = full_text.find(quote) if full_text and quote in full_text else 0
+    if full_text and detect_letterhead_zone(full_text, start=start):
+        out.append('d2_letterhead_zone')
+    if detect_markup_residue(quote):
+        out.append('d3_markup_residue')
+    if detect_language_marker_mismatch(quote, row.get('language') or row.get('lang')):
+        out.append('d4_language_marker_mismatch')
+    return out
+
+
+def downgrade_content_defects(bundle: dict) -> dict:
+    """D2/D3 downgrade pass for rows that ALREADY carry verified evidence.
+
+    Direction v66 P0.  Deterministic and model-free.  It only NARROWS: a row
+    whose verified span fails the content filter loses its verified flag and,
+    when it is a counter row, becomes ``abstained_unevidenced`` - the accepted
+    abstention semantics - so the map keeps it visible as an explicitly
+    unevidenced counter row instead of rendering a letterhead / markup /
+    wrong-language quote as evidence.
+
+    Nothing is deleted (append-only evidence): the original quote stays on the
+    row and its sha256 is recorded in the audit record.  Geometry, ranks,
+    clusters, relations and the frozen ``decide_label`` gate are untouched.
+    """
+    out = copy.deepcopy(bundle)
+    n_checked = 0
+    n_downgraded = 0
+    reasons: dict[str, int] = {}
+    for row in _iter_candidates(out.get("decisions") or []):
+        if row.get("counter_evidence_verified") is not True:
+            continue
+        n_checked += 1
+        quote = str(row.get("counter_evidence") or "")
+        full_text = str(row.get("full_text") or "")
+        start = full_text.find(quote) if full_text and quote in full_text else 0
+        ok, reason = passes_content_filter(quote, row, start=start, field="full_text")
+        if ok:
+            continue
+        n_downgraded += 1
+        reasons[reason] = reasons.get(reason, 0) + 1
+        row["counter_evidence_verified"] = False
+        if str(row.get("counter_status") or "") not in ("", "none", "cited",
+                                                        "unclassified",
+                                                        "supporting-candidate",
+                                                        "context"):
+            row["counter_status"] = "abstained_unevidenced"
+        row["counter_evidence_downgraded"] = reason
+        row.setdefault("counter_evidence_span", {}).update(
+            {
+                "content_filter": CONTENT_FILTER_VERSION,
+                "downgraded": True,
+                "reason_code": reason,
+                "original_quote_sha256": hashlib.sha256(
+                    quote.encode("utf-8")
+                ).hexdigest(),
+                "claim_ceiling": (
+                    "The span failed the D2/D3/D4 content filter and is no longer "
+                    "claimed as verified. This seam never asserts that a decision "
+                    "IS supporting, contrary or limiting."
+                ),
+            }
+        )
+    out.setdefault("provenance", {})["counter_evidence_content_filter"] = {
+        "version": CONTENT_FILTER_VERSION,
+        "applied": n_downgraded > 0,
+        "n_checked": n_checked,
+        "n_downgraded": n_downgraded,
+        "reasons": dict(sorted(reasons.items())),
+        "deterministic": True,
+        "model_free": True,
+        "touches_frozen_gate": False,
+        "claim_ceiling": (
+            "Narrowing only: defective verified spans are downgraded to "
+            "explicitly-unevidenced. No label is issued, re-scored or "
+            "re-derived here and no frozen rule is read as an input."
+        ),
+    }
+    return out
+

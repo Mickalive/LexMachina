@@ -110,12 +110,37 @@ def test_independent_adversarial_result_patches_visible_counter_status():
     )
     ga = final["provenance"]["generative_audit"]
     assert ga["adversarial"]["method"] == "fixture_adversarial_v2"
+    # Direction v66 P0: the adversarial fixture patch's own evidence string for
+    # bger_4A_747_2012 is "<mark>Mietrecht</mark>; Kündigung," - markup
+    # residue - so the D2/D3/D4 content filter downgrades that row to the
+    # accepted ``abstained_unevidenced`` status instead of rendering markup as
+    # verified evidence.  "Visible counter status" therefore means any status
+    # the shared is_counter_status predicate counts (the same definition
+    # offline_slice.py already uses for its counter-authority count), NOT only
+    # the candidate-* pair, which the product ledger corrected as too narrow.
+    from query.counter_status import is_counter_status
+
     counters = [
         d for d in final["decisions"]
-        if d.get("counter_status") in {"candidate-limiting", "candidate-contrary"}
+        if is_counter_status(d.get("counter_status"))
     ]
-    assert counters
+    assert counters, "the adversarial fixture patch must leave a visible counter row"
     assert counters[0].get("counter_uncertainty") is not None
+
+    # P0 assertion, added beside the original one (never instead of it): the
+    # defective fixture span is downgraded and is no longer claimed verified,
+    # while the row stays visible on the map as explicitly unevidenced.
+    downgraded = [
+        d for d in final["decisions"] if d.get("counter_evidence_downgraded")
+    ]
+    assert downgraded, "the D2/D3/D4 filter must fire on the fixture's markup span"
+    for d in downgraded:
+        assert d["counter_evidence_verified"] is False
+        assert d["counter_status"] == "abstained_unevidenced"
+    prov = final["provenance"]["counter_evidence_content_filter"]
+    assert prov["model_free"] is True
+    assert prov["touches_frozen_gate"] is False
+    assert prov["n_downgraded"] == len(downgraded)
 
 
 def test_fixture_mode_is_explicit_not_a_live_padding_source():

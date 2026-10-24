@@ -38,7 +38,10 @@ from .adversarial_retrieval import (
 )
 from .counter_anchor import apply_anchor_labels
 from .counter_emission_repair import apply_counter_emission_repair
-from .counter_evidence_span import apply_verified_span_selection
+from .counter_evidence_span import (
+    apply_verified_span_selection,
+    downgrade_content_defects,
+)
 from .counter_surface import apply_counter_surface, hydration_budget
 from . import concept_seed
 from .query_texts import (
@@ -1363,6 +1366,16 @@ def enrich_query_bundle(
             audited,
             qid=(initial_bundle.get("provenance") or {}).get("qid"),
         )
+
+    # Direction v66 P0 - D2/D3/D4 content-quality repair on the span seam.
+    # Deterministic, model-free, runs in EVERY mode (fixture included): a row
+    # that already carries verified evidence whose span is a court letterhead,
+    # markup residue or a wrong-language text is downgraded to
+    # ``abstained_unevidenced`` instead of being rendered as evidence.  This
+    # only NARROWS which spans stay offered as verified; it never reads,
+    # writes, re-tunes or re-derives the frozen confirm-or-abstain gate, and it
+    # moves no geometry.  It is a no-op on every clean row.
+    audited = downgrade_content_defects(audited)
 
     # Direction v63 ordered item 7(a) — pool counter-surface coverage.  The
     # accepted cached falsification measured 0/14 known authorities signalled
