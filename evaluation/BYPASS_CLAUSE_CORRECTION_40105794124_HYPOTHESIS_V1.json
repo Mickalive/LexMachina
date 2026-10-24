@@ -1,0 +1,82 @@
+{
+  "schema": "lex-evaluation-bypass-clause-correction-hypothesis/1",
+  "lane": "evaluation",
+  "direction_version": 68,
+  "run_id": "40113448025",
+  "corrects_run": "40105794124",
+  "corrects_artifact": "reports/evaluation/FAST_MVP_CURRENT_HEAD_CA_FALSIFIER_40105794124_READING.md",
+  "ordered_work_item": "v68 lanes.evaluation ordered work item (1) REPORT-ONLY CORRECTION OF RECORD",
+  "frozen_before_execution": true,
+  "frozen_at_utc": "2026-10-24T17:16:00Z",
+  "research_protocol_step": "Steps 3-4 (hypothesis, claim inventory, metric and success rule frozen) executed before step 5 (smallest rigorous discriminating check).",
+  "question": "The accepted FAST-MVP counter-authority falsifier of run 40105794124 (accept bcb4520a) published a one-line MECHANISM explanation - 'the product path still sets fixture_generation=True and bypasses the landed filter' - alongside a MEASUREMENT (4 of 5 enriched bundles emit a verified scored counter row carrying a frozen D2/D3/D4 content defect) that the accepted product head 8b5b08dd no longer supports as an explanation. Does the committed accepted evidence at 8b5b08dd supersede the bypass explanation while leaving the measurement itself untouched, and what is the precise remaining mechanism?",
+  "hypotheses": {
+    "H1_bypass_clause_superseded_as_explanation": "The bypass clause is SUPERSEDED AS EXPLANATION by accepted product commit 51d306c (product cycle 40093776552), which removed the `not fixture_generation` gate around apply_verified_span_selection in product/query/pipeline.py, and by the committed accepted bundle results/product/offline_slice/20261024T142517Z/rent-default.bundle.json at head 8b5b08dd, which carries provenance.counter_evidence_span.applied=true. On those bytes the landed span seam DID execute on the shipped offline/slice path.",
+    "H2_measurement_unchanged": "The measurement published by 40105794124 is UNCHANGED by this correction: verdict SOUND_COUNTER_ROW_PRESENT, 5 verified scored rows over 5 enriched bundles, 4 defective, defect histogram D2_letterhead_zone 2 / D3_markup_residue 2 / D4_language_marker_mismatch 1 over 4 distinct decisions, exactly 1 sound row (bstger_SK.2023.49). This correction re-scores nothing and re-runs no predicate.",
+    "H3_remaining_mechanism_is_rejection_incumbent_handling": "The remaining mechanism is REJECTION/INCUMBENT HANDLING: where the seam ran and ABSTAINED (n_selected=0, abstention_reasons pivot_absent on gr_gerichte_ERZ 2010 25), the defective trilingual Graubünden letterhead stays the row's counter_evidence with counter_evidence_verified=true; where the seam's provenance block is absent on the other four scored bundles (bytes generated before 51d306c), the incumbent is left in place by construction. In both cases no step REJECTS or DOWNGRADES a defective incumbent, so the four defective rows remain verified.",
+    "H4_item2_still_not_discriminating": "Conditional re-measure item (2) stays NOT_YET_DISCRIMINATING: the accepted product head is still the head the falsifier scored (8b5b08dd), the flagship offline family was not regenerated after it (newest family directory is still 20261024T142517Z), and the abstained row on the post-routing bundle is still counter_evidence_verified=true."
+  },
+  "claim_inventory_frozen_before_execution": {
+    "CC1_stale_clause_located_only_in_reading_report": {
+      "expected": "the clause 'because the product path still sets `fixture_generation=True` and bypasses the landed filter.' is present in reports/evaluation/FAST_MVP_CURRENT_HEAD_CA_FALSIFIER_40105794124_READING.md with a recorded line span, and NO bypass clause appears in the machine report reports/evaluation/FAST_MVP_CURRENT_HEAD_CA_FALSIFIER_40105794124.md or in results/evaluation/fast_mvp_current_head_ca_falsifier/40105794124.json"
+    },
+    "CC2_measurement_unchanged_vs_freeze_pin": {
+      "expected": "the committed falsifier record reproduces the aggregate values pinned in evaluation/BYPASS_CLAUSE_CORRECTION_40105794124_FREEZE_V1.json exactly (verdict, exit_code, n_verified 5, n_defective 4, histogram 2/2/1, sound 1, 4 distinct defective decision ids, 1 sound row id)"
+    },
+    "CC3_bundle_sha256_of_record": {
+      "expected": "sha256(accepted mount results/product/offline_slice/20261024T142517Z/rent-default.bundle.json) == 6eee1149b3c0ec23124746af482e15d9298c2120ee25de4bc4dd7e1cf7d93fa9 AND equals the sha256 recorded for that bundle inside the committed falsifier record"
+    },
+    "CC4_span_seam_provenance_of_record": {
+      "expected": "that bundle's provenance.counter_evidence_span records applied=true, mode=select, n_candidates=1, n_selected=0, n_abstained=1, abstained_ids=['gr_gerichte_ERZ 2010 25'], abstention_reasons={'pivot_absent': 1}, guard_available=true, frozen_rules_sha256=4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608"
+    },
+    "CC5_incumbent_left_in_place": {
+      "expected": "each of the 4 defective decision rows named in the committed falsifier record, read from its named bundle at the accepted mount, carries counter_evidence_verified=true; the sound row bstger_SK.2023.49 also carries counter_evidence_verified=true (reading a flag is not re-scoring)"
+    },
+    "CC6_accepted_code_path_file_line": {
+      "expected": "at accepted mount head 8b5b08dd, product/query/pipeline.py line 1339 is '    if adversarial_retrieval:' (the fixture_generation exclusion is gone), apply_verified_span_selection is called at line 1343, apply_counter_emission_repair remains fixture-gated at lines 1347-1348, apply_anchor_labels remains fixture-gated at line 1357, product/offline_slice.py line 79 still passes fixture_generation=True, and the string 'if not fixture_generation and adversarial_retrieval' appears NOWHERE in pipeline.py; the working files' git blobs equal their HEAD blobs and pipeline.py's blob equals its blob at 51d306c"
+    },
+    "CC7_51d306c_diff_provenance": {
+      "expected": "git show 51d306c -- product/query/pipeline.py in the accepted mount shows the parent e2270c37, commit time 2026-10-24T13:10:55Z, the removal of 'if not fixture_generation and adversarial_retrieval:' and the addition of 'if adversarial_retrieval:'"
+    },
+    "CC8_span_seam_run_inventory_on_scored_population": {
+      "expected": "among the 6 bundles the falsifier scored, exactly 1 (rent-default 20261024T142517Z) carries a provenance.counter_evidence_span block and the other 5 do not carry that key at all; the 5 without it were generated before 51d306c (4 of them are the other enriched bundles)"
+    },
+    "CC9_frozen_inputs_untouched": {
+      "expected": "re-hash of evaluation/frozen_bars/RULES_LABEL.json, RULES_GEOMETRY.json, VERDICT_CONTRACT.json, evaluation/counter_evidence_quality_benchmark.py and evaluation/mapping_free_recall_falsifier.py equals the freeze-record pins; the bundle's own embedded frozen_rules_sha256 equals the on-disk RULES_LABEL.json digest"
+    },
+    "CC10_d1_d2_d3_disclosure_source": {
+      "expected": "the committed product audit gate results/audit/product/CYCLE_39965089504_GATE.json on the accepted product mount has gate=PASS and exactly 3 required_fixes, each string beginning 'NON-BLOCKING', so this lane may quote 'three non-blocking required fixes' with provenance"
+    },
+    "CC11_item2_gate_status": {
+      "expected": "accepted mount head == 8b5b08dddeda482961ecfd432a5b5b40675b92ab (the head the falsifier scored), the newest offline_slice family directory is still 20261024T142517Z, and the abstained row gr_gerichte_ERZ 2010 25 on that bundle is still counter_evidence_verified=true; therefore item (2) = NOT_YET_DISCRIMINATING"
+    }
+  },
+  "controls_frozen_before_execution": {
+    "C1_planted_span_provenance_divergence_must_be_detected": "a copy of the bundle provenance with n_selected flipped 0->1 must make the CC4 checker report ok=false",
+    "C2_clause_detector_must_not_fire_on_absent_text": "the clause detector run on the machine report (which contains no bypass clause) must return no match",
+    "C3_planted_measurement_mutation_must_be_detected": "a copy of the falsifier aggregate with n_defective_verified_scored_rows_total flipped 4->3 must make the CC2 checker report ok=false",
+    "C4_no_falsifier_reexecution": "the correction instrument source must not import or invoke evaluation.fast_mvp_current_head_ca_falsifier (the falsifier is read as a committed record only); verified by a source scan",
+    "C5_bundle_embedded_frozen_rules_digest_matches_disk": "the bundle's provenance.counter_evidence_span.frozen_rules_sha256 must equal the sha256 of the on-disk frozen RULES_LABEL.json (cross-artifact integrity)"
+  },
+  "success_rule_frozen_before_execution": {
+    "CORRECTION_CONFIRMED": "every claim CC1..CC11 ok=true AND every control C1..C5 holds -> exit 0",
+    "CORRECTION_NOT_CONFIRMED": "any claim check fails or any control fails -> exit 1, published as a negative result without editing the frozen spec",
+    "no_claim_dropping": "no claim may be removed, weakened or re-worded after execution begins; a failing claim is a finding, not a defect of the instrument"
+  },
+  "item_2_conditional_rule_frozen_before_execution": {
+    "EXECUTABLE": "Core Product must BOTH land the rejection/incumbent leg AND regenerate the full flagship family; mechanically: (a) accepted product head differs from 8b5b08dd, (b) a post-repair flagship family exists (newest offline_slice family directory newer than 20261024T142517Z), and (c) on that family the seam no longer leaves a defective incumbent verified",
+    "NOT_YET_DISCRIMINATING": "otherwise record NOT_YET_DISCRIMINATING and stop, with NO synthetic stand-in and NO re-run of the standing falsification"
+  },
+  "explicit_non_claims": [
+    "This is a REPORT-ONLY correction of a mechanism explanation; it is NOT a re-measure and NOT a new falsification run.",
+    "evaluation/fast_mvp_current_head_ca_falsifier.py is NOT re-executed; its committed record 40105794124.json is read as evidence only (control C4).",
+    "No frozen bar, rubric, threshold, predicate, verdict contract, baseline or historical artifact is edited, re-tuned or re-derived; frozen inputs are re-hashed REPORTED-ONLY.",
+    "No serve verdict is issued or changed; both DO-NOT-SERVE orders stand; admission stays fail-closed.",
+    "The standing falsification record of record (PRODUCT_FALSIFIED on packet-of-record 39319405429) is untouched and is not re-run.",
+    "The counter-authority yield NEGATIVE result of run 40111496300 stays a measurement of the frozen marker rule's lexical yield on THIS LANE'S OWN PRODUCER and is explicitly NOT a measurement of Core Product's counter channel.",
+    "The comparative map-versus-ranked-list half is NOT scored.",
+    "No obsolete universal-174k benchmark is run.",
+    "posture flags stay FALSE; owner_decision_required stays false."
+  ],
+  "claim_ceiling": "Provenance and mechanism correction over committed accepted artifacts only. It restates what the accepted bytes and the accepted product code path establish about WHY the 40105794124 measurement looks the way it does; it adds no quality measurement, moves no bar, and makes no admission, serve, legal-usefulness or human-gate claim."
+}
