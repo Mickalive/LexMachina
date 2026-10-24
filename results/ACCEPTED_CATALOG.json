@@ -121,16 +121,26 @@
       "path": "results/accepted-state/evaluation.json",
       "state": {
         "acceptance_status": "PROPOSED_PENDING_INDEPENDENT_AUDIT",
-        "accepted_run_id": "40034814235",
+        "accepted_run_id": "40068038783",
         "accepted_run_id_advance": {
-          "from": "39986080045",
-          "to": "40034814235",
-          "reason": "state-hygiene correction by operational resume 40044626742: the previous accepted_run_id 39986080045 carries a PASS gate file but NO 'accept evaluation cycle 39986080045' commit anywhere in the repository (verified by git log --all), so under factory-wide requirement 4 it is not an accepted run of record. The verified accept-commit lineage after 39936790420 is 40002636192 -> 40012474431 -> 40034814235, each carrying both halves (PASS gate + accept commit). Disclosed, never laundered.",
-          "superseded_advance": {
-            "from": "39927760701",
-            "reason": "v65 re-open: product head changed ae854b6 -> 31f57ee -> f4cd7d7 with newer accepted measurements; this cycle cross-checked the new head's committed artifacts, re-ran the falsification on unchanged packet bytes, and re-verified planner/degradation pins under the new run id",
-            "to": "39986080045"
-          }
+          "from": "40063688435",
+          "prior_advance": {
+            "from": "40034814235",
+            "prior_advance": {
+              "from": "39986080045",
+              "reason": "state-hygiene correction by operational resume 40044626742: the previous accepted_run_id 39986080045 carries a PASS gate file but NO 'accept evaluation cycle 39986080045' commit anywhere in the repository (verified by git log --all), so under factory-wide requirement 4 it is not an accepted run of record. The verified accept-commit lineage after 39936790420 is 40002636192 -> 40012474431 -> 40034814235, each carrying both halves (PASS gate + accept commit). Disclosed, never laundered.",
+              "superseded_advance": {
+                "from": "39927760701",
+                "reason": "v65 re-open: product head changed ae854b6 -> 31f57ee -> f4cd7d7 with newer accepted measurements; this cycle cross-checked the new head's committed artifacts, re-ran the falsification on unchanged packet bytes, and re-verified planner/degradation pins under the new run id",
+                "to": "39986080045"
+              },
+              "to": "40034814235"
+            },
+            "reason": "operational resume 40068038783: cycles 40058937015, 40061456297, 40062099418, 40062917685 and 40063688435 each carry BOTH halves of factory-wide requirement 4 (results/audit/evaluation/CYCLE_<id>_GATE.json with gate=PASS, safe_to_integrate=true AND an 'accept evaluation cycle <id>' commit on lab/evaluation, verified by git log). The canonical state's accepted_run_id had lagged at 40034814235; advanced with disclosure, no historical record overwritten.",
+            "to": "40063688435"
+          },
+          "reason": "cycle 40068038783 carries BOTH halves of factory-wide requirement 4: results/audit/evaluation/CYCLE_40068038783_GATE.json gate=PASS safe_to_integrate=True AND an 'accept evaluation cycle 40068038783' commit on lab/evaluation (verified by git log at update time). No historical record overwritten.",
+          "to": "40068038783"
         },
         "benchmark_result": {
           "accepted_run_of_record": "39927760701",
@@ -164,9 +174,264 @@
           "wrapper_schema": "lex-evaluation-counter-authority-surface-falsifier/1"
         },
         "continue_recommended": true,
-        "continue_recommended_reason": "v65 same-question cycle continues: the accepted product head advanced f9618377 -> e4f72a8e (accept 40032389983) with requirement-4 lineage 40025340938/40032389983 verified and non-lineage cycles 40018153655/40028750240 verified excluded; currency ALL_CONFIRMED (36/0, 2 disclosed CONFIRMED_LAG, 1 NOT_REEXECUTED_THIS_CYCLE), the accepted falsification reproduces PRODUCT_FALSIFIED with the identical four-gate set and empty input_drift on unchanged packet bytes, planner/remedy/degradation pins CONFIRMED under the new run id, and 5/5 controls pass. The binding counter-authority evidence gap is now measured ON THE PRODUCT'S OWN SHIPPED SLICES: H2_FALSIFIED, 14/14 counter_evidence_verified rows across 15 bundles carry a frozen defect (D2 letterhead-zone 10, D3 markup-residue 4, D4 language-marker-mismatch 4) over only 2 distinct decisions. Both DO-NOT-SERVE orders stand; admission stays fail-closed; human_gate_ready=false; owner_decision_required=false. RESUME 40044626742 (2026-10-24): the 40040574595 producer snapshot is now VERIFIED under independent re-execution (normalized-identical, 0 diffs; shims 12/0/0/0, 73/0/0/0, 51/0/21; pins 25/25) and audit-ready; the orchestration failure was the producer dying after its state update but before committing results (workflow snapshot step preserved everything; audit skipped); accepted_run_id corrected 39986080045 -> 40034814235 with disclosure. The binding blocker remains unchanged: the counter-evidence extractor itself (14/14 verified rows on the flagship slice are letterhead/markup/language-mismatch).",
+        "continue_recommended_reason": "CONTINUE under the same v66/v67 question with discriminating measurement COMPLETED: the frozen item-(2) protocol (current_head_slice_quality benchmark) has been executed on the new product head 6b5827a1 (cycle 40071621940) and returned H2_FALSIFIED. Offline slice carries D2_letterhead_zone (gr_gerichte_ERZ 2010 25, offset 0, full_text lazy); server slice carries D3_markup_residue + D4_language_marker_mismatch (bge_BGE_121_III_260). The D2 path-scope residual diagnosed by evaluation 40070818687 is CONFIRMED on the current head: the fixture path (offline_slice.py fixture_generation=True) bypasses the span seam and content filter. Product has NOT landed a change to route the fixture path through the content filter or regenerate slices through the non-fixture audit path. Next evaluation cycle should NOT re-confirm this stable finding; it should either measure a NEW product head that has landed such a change, or declare NOT_YET_DISCRIMINATING. Both DO-NOT-SERVE orders stand; admission stays fail-closed; comparative map-vs-ranked-list stays VACUOUS; owner_decision_required=false.",
+        "counter_evidence_quality_benchmark": {
+          "claim_ceiling": "Descriptive evidence audit of the product's own shipped slice artifacts under frozen mechanical defect predicates; scores no frozen bar, classifies no decision as supporting/contrary under the frozen rubric, and changes no verdict. Both DO-NOT-SERVE orders stand; admission stays fail-closed; the comparative map-versus-ranked-list half is NOT scored while counter-evidence content defects persist (factory-wide requirement 22/37).",
+          "controls_all_pass": true,
+          "defect_histogram": {
+            "D2_letterhead_zone": 10,
+            "D3_markup_residue": 4,
+            "D4_language_marker_mismatch": 4
+          },
+          "defective_decision_ids": [
+            "bge_BGE_121_III_260",
+            "gr_gerichte_ERZ 2010 25"
+          ],
+          "direction_version": 66,
+          "exit_code": 1,
+          "finding": "14 of 14 counter_evidence_verified rows across 15 shipped/control bundles carry a frozen defect ({'D2_letterhead_zone': 10, 'D3_markup_residue': 4, 'D4_language_marker_mismatch': 4}) over 2 distinct decisions (gr_gerichte_ERZ 2010 25, bge_BGE_121_III_260). The counter-evidence extractor emits letterhead/markup/language-mismatch content on the product's own flagship slice artifacts. This is the binding counter-authority evidence gap measured on the product's own artifacts.",
+          "freeze_first": false,
+          "freeze_first_note": "This benchmark extracts the H2 probe from the accepted v65_head_advance_crosscheck_v2 (which WAS freeze-first); the extracted benchmark itself is a new instrument and its freeze-first status will be established on the next cycle if needed. The frozen predicates are imported BY VALUE from the accepted hypothesis.",
+          "github_run": "40062917685",
+          "h2_falsified": true,
+          "n_bundles": 15,
+          "n_bundles_present": 15,
+          "n_verified_rows_total": 14,
+          "n_verified_rows_with_defects": 14,
+          "no_obsolete_174k_benchmark_rerun": true,
+          "numeric_environment": {
+            "numpy": "absent",
+            "platform": "linux",
+            "python": "3.12.3",
+            "scipy": "absent",
+            "sklearn": "absent",
+            "thread_env": {
+              "MKL_NUM_THREADS": null,
+              "OMP_NUM_THREADS": null,
+              "OPENBLAS_NUM_THREADS": null
+            }
+          },
+          "packet_of_record": "39319405429",
+          "posture_unchanged": {
+            "human_gate_ready": false,
+            "machine_gate_ready": false,
+            "owner_decision_required": false,
+            "packet_admitted": false,
+            "ready_for_owner_session": false
+          },
+          "probe_definitions_frozen_from": "evaluation/V65_HEAD_ADVANCE_CROSSCHECK_HYPOTHESIS_V2.json (sha256 734a447dffd86a360a46ce9a804e3bb9f7eb224f9067777d78b62216e13e0881)",
+          "probe_is_not_a_frozen_bar": true,
+          "product_mount_head_actual": "6cd7984518b488d90102eaab5b3cfcafeb818dc5",
+          "product_mount_head_expected": "e4f72a8e6c0460bc52dc625ff3e2da86161e2564",
+          "report_file": "reports/evaluation/COUNTER_EVIDENCE_QUALITY_BENCHMARK_40062917685.md",
+          "result_file": "results/evaluation/counter_evidence_quality_benchmark/40062917685.json",
+          "run_id": "40062917685",
+          "schema": "lex-evaluation-counter-evidence-quality-benchmark/1",
+          "verdict": "H2_FALSIFIED"
+        },
+        "counter_evidence_quality_remeasure_40068038783": {
+          "baseline_stability": "re-probe NORMALIZED-IDENTICAL to accepted baseline of record 40062917685 (14/14, D2=10 D3=4 D4=4)",
+          "controls": "C1-C4 PASS (C4 pins frozen instrument sha aac86527... byte-identical)",
+          "freeze_record": "evaluation/OPERATIONAL_RESUME_40068038783_HYPOTHESIS.json",
+          "instrument": "evaluation/counter_evidence_quality_remeasure.py",
+          "ordered_work_item": "v66 item (4) CONDITIONAL RE-MEASURE",
+          "per_class": {
+            "D2_letterhead_zone": "STILL-DEFECTIVE (1 on new-head shipped slice: gr_gerichte_ERZ 2010 25, offset 0)",
+            "D3_markup_residue": "CONFIRMED-REPAIRED (0 new, class-eligible row present)",
+            "D4_language_marker_mismatch": "CONFIRMED-REPAIRED (0 new, class-eligible row present)"
+          },
+          "report_file": "reports/evaluation/COUNTER_EVIDENCE_QUALITY_REMEASURE_40068038783.md",
+          "result_file": "results/evaluation/counter_evidence_quality_remeasure/40068038783.json",
+          "schema": "lex-evaluation-counter-evidence-quality-remeasure/1",
+          "trigger": "product accept 3495c1336 (cycle 40064639100) landed the P0 content-quality filter",
+          "verdict": "REPAIR_NOT_CONFIRMED"
+        },
         "cycle_status": "COMPLETE",
-        "direction_version": 66,
+        "d2_path_scope_probe_40070818687": {
+          "arm0_static": {
+            "bundle_span_provenance_present": false,
+            "offline_slice_gate_lines": [
+              {
+                "file": "offline_slice.py",
+                "line": 14,
+                "snippet": "fixture_generation=True",
+                "text": "generative-audit fixture provider (``fixture_generation=True``), so the"
+              },
+              {
+                "file": "offline_slice.py",
+                "line": 79,
+                "snippet": "fixture_generation=True",
+                "text": "initial, retrieval_mode=\"fixture\", fixture_generation=True)"
+              }
+            ],
+            "pipeline_gate_lines": [
+              {
+                "file": "pipeline.py",
+                "line": 1339,
+                "snippet": "if not fixture_generation and adversarial_retrieval:",
+                "text": "if not fixture_generation and adversarial_retrieval:"
+              },
+              {
+                "file": "pipeline.py",
+                "line": 1348,
+                "snippet": "audited = apply_verified_span_selection(",
+                "text": "audited = apply_verified_span_selection("
+              }
+            ],
+            "shipped_bundle_sha256": "9de09a28784289dea7333d5afcbfc2bb7652914857d4ac6936d13c49ce69cf29",
+            "target_row_frozen_class": "D2_letterhead_zone"
+          },
+          "arm1_regeneration": {
+            "defect_histogram": {
+              "D2_letterhead_zone": 1
+            },
+            "elapsed_s": 1.347,
+            "n_verified": 1,
+            "regenerated_bundle_sha256": "b1152432275814490c5ac52a23e384e2ae842e18c54500b179d2c52e0f61641f",
+            "returncode": 0,
+            "scratch_key_files_identical_to_mount": true,
+            "span_provenance_present": false
+          },
+          "arm2_routed_filter_diagnostic": {
+            "abstention_preserves_incumbent_evidence": true,
+            "anchor_profile": "fr-bail-entretien",
+            "label": "DIAGNOSTIC - what the accepted filter WOULD do if routed; not shipped product behaviour",
+            "outcome": "FILTER_LEAVES_ROW",
+            "qid": null,
+            "span_reason_code": "pivot_absent",
+            "span_selected": false
+          },
+          "controls": {
+            "C3": {
+              "passed": true
+            },
+            "C4": {
+              "passed": true
+            },
+            "C5": {
+              "passed": true
+            }
+          },
+          "direction_version": 66,
+          "evidence_refs_guard": {
+            "artifact": "results/evaluation/orchestration/40070818687_nested_evidence_refs.json",
+            "n_unresolved": 0,
+            "verdict": "NESTED_REFS_RESOLVED"
+          },
+          "freeze_first": {
+            "committed_before_first_claim_bearing_execution": true,
+            "freeze": "evaluation/D2_PATH_SCOPE_PROBE_40070818687_FREEZE_V1.json",
+            "hypothesis": "evaluation/D2_PATH_SCOPE_PROBE_40070818687_HYPOTHESIS_V1.json"
+          },
+          "instrument": "evaluation/d2_path_scope_probe.py",
+          "non_movements": [
+            "no frozen bar, rubric, threshold or verdict contract edited or applied",
+            "no serve verdict re-run; both DO-NOT-SERVE orders stand; admission stays fail-closed",
+            "no obsolete universal-174k benchmark rerun",
+            "no product code modified",
+            "comparative map-vs-ranked-list half NOT scored; posture flags stay FALSE"
+          ],
+          "product_facing_finding": "The shipped offline/server slice's counter-evidence emission path never reaches the accepted content filter: `product/offline_slice.py` enriches with fixture_generation=True and `product/query/pipeline.py` gates apply_verified_span_selection behind `not fixture_generation and adversarial_retrieval`, so the fixture path emits letterhead evidence with counter_evidence_verified=True and no span record. ARM2 refinement: merely routing the seam onto this path would NOT by itself clear this row — the frozen gate abstained on it (reason `pivot_absent`, anchor profile `fr-bail-entretien`, qid=None) and the seam's accepted abstention semantics leave the incumbent verified evidence untouched counter_evidence_span.py writes counter fields only on selected=True). The residual is therefore emitted by the fixture path's own pre-verified marking. Minimal product repair candidates, in order of cost: (a) run the content filter over the fixture path's incumbent evidence (never the frozen gate) so letterhead spans are never marked verified on that path, or (b) regenerate slice bundles through the non-fixture audit path where the seam confirms-or-abstains before a row is marked verified. Regenerating slice artifacts WITHOUT changing the path cannot clear D2. Core Product owns the implementation; this lane only measures.",
+          "product_mount_head": "3495c13361ddf40f88d31c1fbb47b00bc06eee63",
+          "pytest_suite": {
+            "files": [
+              "tests/evaluation/test_counter_evidence_quality_benchmark.py",
+              "tests/evaluation/test_counter_evidence_quality_remeasure.py",
+              "tests/evaluation/test_scorer_path_reconciliation.py",
+              "tests/evaluation/test_nested_evidence_refs_guard.py",
+              "tests/evaluation/test_d2_path_scope_probe.py"
+            ],
+            "record": "results/evaluation/orchestration/40070818687_pytest_shim.json",
+            "verdict": "PASS_REAL_PYTEST"
+          },
+          "reading": "H1 supported: the regenerated bundle reproduces the letterhead evidence and the span seam (which hosts the accepted content filter) still never ran on this path. The residual D2 is structural path scope, not staleness; regenerating the artifact alone cannot clear it. ARM2 shows what the filter would do if routed: FILTER_LEAVES_ROW.",
+          "run_id": "40070818687",
+          "schema": "lex-evaluation-d2-path-scope-probe/1",
+          "stability": {
+            "artifact": "results/evaluation/d2_path_scope_probe/40070818687_stability.json",
+            "bundle_byte_identity_claimed": false,
+            "discrimination_fields_identical_across_two_executions": true,
+            "note": "regenerated bundle bytes embed generation timestamps and differ across executions; per factory-wide requirement 30 only the discrimination fields are pinned"
+          },
+          "trigger": "v66 ordered-work item (4) was discharged by accepted cycle 40068038783 with REPAIR_NOT_CONFIRMED; this cycle discriminates the two causes that cycle named but did not separate (stale artifact vs slice path not routed through the accepted content filter).",
+          "verdict": "PATH_SCOPE_RESIDUAL"
+        },
+        "direction_version": 67,
+        "evidence_index_defects_inherited_not_charged": {
+          "defects": [
+            {
+              "charged_to_40017649220": false,
+              "charged_to_repair_round_1": false,
+              "detail": "Appears twice in evidence_refs; DOES resolve to a committed file at this head (results/evaluation/orchestration/39875239812_diagnosis.json exists). Kind is DUPLICATE_ONLY. Corrected by run 40034814235, which found the earlier detail text wrongly claiming non-resolution; the ref list itself is unchanged. Introduced before run 40017649220.",
+              "detail_corrected_by_run": "40034814235",
+              "introduced_by_run": "39875239812 (pre-dates 40017649220)",
+              "kinds": [
+                "DUPLICATE_ONLY"
+              ],
+              "ref": "results/evaluation/orchestration/39875239812_diagnosis.json"
+            },
+            {
+              "charged_to_40017649220": false,
+              "charged_to_repair_round_1": false,
+              "detail": "Does not resolve to a committed file at this head. Introduced before run 40017649220; unchanged by this repair.",
+              "introduced_by_run": "40011795717 (pre-dates 40017649220)",
+              "kinds": [
+                "UNRESOLVED_AT_HEAD"
+              ],
+              "ref": "results/evaluation/orchestration/40006151200/producer_work_state_and_next_move.txt"
+            }
+          ],
+          "known_duplicate": [
+            "results/evaluation/orchestration/39875239812_diagnosis.json"
+          ],
+          "known_duplicate_count": 1,
+          "known_unresolvable": [
+            "results/evaluation/orchestration/40006151200/producer_work_state_and_next_move.txt"
+          ],
+          "known_unresolvable_count": 1,
+          "resolving_refs_counted": true,
+          "statement": "Two evidence_refs defects are inherited-not-charged: neither was added, edited or removed by run 40017649220 nor by repair round 1. One ref (39875239812_diagnosis.json) resolves to a committed file but is listed TWICE (DUPLICATE). One ref (40011795717/producer_work_state_and_next_move.txt) does not resolve to a committed file at this head (UNRESOLVED_AT_HEAD). Both stay listed because removing them would erase a historical measurement; they are flagged here so the index's resolution claim is never overstated. The duplicate is NOT deleted: de-duplicating would alter the historical ref list without a measurement change."
+        },
+        "evidence_index_repair_40040574595": {
+          "reason": "ref pointed to results/evaluation/orchestration/40011795717/producer_work_state_and_next_move.txt; git log --all over that path is EMPTY, i.e. the file was NEVER committed. It is a dangling pointer to a producer work-state text file, not a deleted claim-bearing result (nothing was deleted from disk or history). Removal disclosed in reports/evaluation/V65_HEAD_ADVANCE_CYCLE_40040574595.md section 8.",
+          "refs_after": 199,
+          "refs_before": 200,
+          "removed_dangling_refs": [
+            "results/evaluation/orchestration/40006151200/producer_work_state_and_next_move.txt"
+          ]
+        },
+        "evidence_index_resolution_note": "re-derived by evaluation/nested_evidence_refs_guard.py under run 40068038783 (item 1c): the guard resolves TOP-LEVEL and NESTED ref-shaped values against the worktree, the accepted cross-lane mounts and fetched git history; the post-fix artifact results/evaluation/orchestration/40068038783_nested_evidence_refs.json records the counts",
+        "evidence_index_resolving_refs_n": 246,
+        "evidence_index_unresolvable_list": [],
+        "evidence_index_unresolvable_n": 0,
+        "evidence_ref_role_notes": {
+          "reports/evaluation/RETRIEVAL_CA_BENCHMARK_verify_v65.md": "human report OF the verify_v65 re-execution; describes the reproducibility run, not an additional claim",
+          "results/evaluation/minimal_ret_ca_benchmark/verify_v65.json": "reproducibility re-execution of v65_eval_40017649220; internal run_id is the literal string 'verify_v65', not GitHub run 40017649220; not a distinct claim",
+          "results/evaluation/minimal_ret_ca_benchmark/verify_v65_leg1_served_baseline.json": "reproducibility leg record; internal run_id 'verify_v65'; not a distinct claim",
+          "results/evaluation/minimal_ret_ca_benchmark/verify_v65_leg2_hostile_geometry.json": "reproducibility leg record; internal run_id 'verify_v65'; not a distinct claim"
+        },
+        "evidence_ref_roles": {
+          "evaluation/MINIMAL_RET_CA_40017649220_CYCLE_HYPOTHESIS_V1.json": "CYCLE_HYPOTHESIS_PROVENANCE",
+          "evaluation/REPAIR_40017649220_FREEZE_RECORD_V1.json": "REPAIR_ROUND_ARTIFACT",
+          "evaluation/REPAIR_40017649220_HYPOTHESIS_V1.json": "REPAIR_ROUND_ARTIFACT",
+          "evaluation/repair_40017649220_r1.py": "REPAIR_ROUND_ARTIFACT",
+          "evaluation/repair_40017649220_r1_update_state.py": "REPAIR_ROUND_ARTIFACT",
+          "reports/evaluation/MULTILINGUAL_PROVENANCE_REUSE_40017649220.md": "REPAIR_ROUND_ARTIFACT",
+          "reports/evaluation/RETRIEVAL_CA_BENCHMARK_verify_v65.md": "NON_CLAIM_BEARING_VERIFY_OUTPUT",
+          "results/evaluation/minimal_ret_ca_benchmark/verify_v65.json": "NON_CLAIM_BEARING_VERIFY_OUTPUT",
+          "results/evaluation/minimal_ret_ca_benchmark/verify_v65_leg1_served_baseline.json": "NON_CLAIM_BEARING_VERIFY_OUTPUT",
+          "results/evaluation/minimal_ret_ca_benchmark/verify_v65_leg2_hostile_geometry.json": "NON_CLAIM_BEARING_VERIFY_OUTPUT",
+          "results/evaluation/multilingual_provenance_reuse/40017649220.json": "REPAIR_ROUND_ARTIFACT",
+          "results/evaluation/orchestration/40017649220_R1_e2e_fixture_injected.json": "REPAIR_ROUND_ARTIFACT",
+          "results/evaluation/orchestration/40017649220_R1_minimal_ret_ca_pytest_shim.json": "REPAIR_ROUND_ARTIFACT",
+          "results/evaluation/orchestration/40017649220_R1_multiling_prov_pytest_shim.json": "REPAIR_ROUND_ARTIFACT",
+          "results/evaluation/repair_40017649220_r1/40023576675.json": "REPAIR_ROUND_RECORD",
+          "tests/evaluation/test_repair_40017649220_r1.py": "REPAIR_ROUND_ARTIFACT",
+          "evaluation/measure_current_head_slices.py": "CURRENT_HEAD_SLICE_QUALITY_BENCHMARK_INSTRUMENT",
+          "tests/evaluation/test_measure_current_head_slices.py": "CURRENT_HEAD_SLICE_QUALITY_BENCHMARK_TEST",
+          "results/evaluation/current_head_slice_quality/40082514143.json": "CLAIM_BEARING_MEASUREMENT",
+          "reports/evaluation/CURRENT_HEAD_SLICE_QUALITY_40082514143.md": "HUMAN_READABLE_REPORT"
+        },
         "evidence_refs": [
           "results/evaluation/counter_evidence_quality_benchmark/40062917685.json",
           "reports/evaluation/COUNTER_EVIDENCE_QUALITY_BENCHMARK_40062917685.md",
@@ -395,11 +660,44 @@
           "reports/evaluation/RETRIEVAL_CA_BENCHMARK_40056275530.md",
           "results/evaluation/operational_resume/40053757063.json",
           "results/evaluation/operational_resume/40058371500.json",
-          "reports/evaluation/OPERATIONAL_RESUME_40058371500.md"
+          "reports/evaluation/OPERATIONAL_RESUME_40058371500.md",
+          "evaluation/OPERATIONAL_RESUME_40068038783_HYPOTHESIS.json",
+          "results/evaluation/orchestration/40068038783_failure_chain_diagnosis.json",
+          "evaluation/counter_evidence_quality_remeasure.py",
+          "results/evaluation/counter_evidence_quality_remeasure/40068038783.json",
+          "reports/evaluation/COUNTER_EVIDENCE_QUALITY_REMEASURE_40068038783.md",
+          "evaluation/scorer_path_reconciliation.py",
+          "results/evaluation/scorer_path_reconciliation/40068038783.json",
+          "reports/evaluation/SCORER_PATH_RECONCILIATION_40068038783.md",
+          "evaluation/nested_evidence_refs_guard.py",
+          "evaluation/state_update_40068038783.py",
+          "results/evaluation/orchestration/40068038783_prefx_nested_evidence_refs.json",
+          "results/evaluation/orchestration/40068038783_nested_evidence_refs.json",
+          "results/evaluation/orchestration/40068038783_pytest_shims.json",
+          "tests/evaluation/test_counter_evidence_quality_remeasure.py",
+          "tests/evaluation/test_scorer_path_reconciliation.py",
+          "tests/evaluation/test_nested_evidence_refs_guard.py",
+          "reports/evaluation/OPERATIONAL_RESUME_40068038783.md",
+          "results/evaluation/orchestration/40068038783_counter_evidence_quality_pytest_shim.json",
+          "evaluation/D2_PATH_SCOPE_PROBE_40070818687_HYPOTHESIS_V1.json",
+          "evaluation/D2_PATH_SCOPE_PROBE_40070818687_FREEZE_V1.json",
+          "evaluation/d2_path_scope_probe.py",
+          "tests/evaluation/test_d2_path_scope_probe.py",
+          "results/evaluation/d2_path_scope_probe/40070818687.json",
+          "results/evaluation/d2_path_scope_probe/40070818687_stability.json",
+          "reports/evaluation/D2_PATH_SCOPE_PROBE_40070818687.md",
+          "results/evaluation/orchestration/40070818687_pytest_shim.json",
+          "results/evaluation/orchestration/40070818687_nested_evidence_refs.json",
+          "results/evaluation/state_integrity_gate/40070818687.json",
+          "evaluation/state_update_40070818687.py",
+          "results/evaluation/current_head_slice_quality/40082514143.json",
+          "reports/evaluation/CURRENT_HEAD_SLICE_QUALITY_40082514143.md",
+          "evaluation/measure_current_head_slices.py",
+          "tests/evaluation/test_measure_current_head_slices.py"
         ],
-        "evidence_refs_n": 227,
+        "evidence_refs_n": 261,
         "evidence_tier": "REPRODUCED",
-        "github_run": "40062917685",
+        "github_run": "40082514143",
         "human_gate_ready": false,
         "lane": "evaluation",
         "machine_gate_ready": false,
@@ -412,18 +710,27 @@
         },
         "minimal_ret_ca_benchmark": {
           "claim_ceiling": "This benchmark proves only that (a) the served packet does not regress below recomputed incumbents and (b) frozen gates can fail a deliberately regressed input. It does NOT prove jurist usefulness, does NOT meet the absolute LABEL_SOUND / GEOMETRY_SOUND bars, and does NOT unblock the human gate (standing accepted DO-NOT-SERVE order).",
+          "cycle_hypothesis_record": "evaluation/MINIMAL_RET_CA_40017649220_CYCLE_HYPOTHESIS_V1.json",
+          "cycle_ordering": "NOT_FREEZE_FIRST",
+          "cycle_ordering_note": "Run 40017649220 executed 2026-10-23T20:16:19Z and committed 2026-10-23T20:37:19Z; it is NOT a freeze-first cycle and must not be cited as one. The hypothesis record discloses the true ordering and was written in repair round 1; it does not retroactively freeze anything.",
           "direction_version": 65,
           "engine": "evaluation.minimal_ret_ca_benchmark (wrapper) -> evaluation.frozen_bars.run_bar_gates (entry point)",
           "exit_code": 0,
           "falsification_proven": true,
           "finding": "The smallest executable 2-leg retrieval/counter-authority benchmark on the served packet (38839347028) with V3 packet-of-record (39319405429) multilingual QIDs (de, fr, it). Leg 1 (served_baseline) exits 0 PASS_NO_REGRESSION. Leg 2 (geometry_falsification_hostile) exits 1 FAIL_REGRESSION, proving the gate can fail a deliberately regressed input. This confirms the product's counter-authority discovery is insufficient for the visual UX test, consistent with the accepted PRODUCT_FALSIFIED verdict from run 39900630554. The benchmark reuses the ACCEPTED entry point evaluation.frozen_bars.run_bar_gates and the frozen multilingual QIDs per REUSE-FIRST doctrine. It does NOT rerun obsolete universal-174k benchmarks.",
           "input_drift": [],
+          "latest_confirmation_freeze_first": true,
+          "latest_confirmation_note": "Operational-resume re-execution at run 40034814235, freeze commit da2fadea2, normalized-identical to the measurement of record v65_eval_40017649220; claim ceiling unchanged.",
+          "latest_confirmation_record": "results/evaluation/minimal_ret_ca_benchmark/40034814235.json",
+          "latest_confirmation_run": "40034814235",
+          "latest_confirmation_verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
           "n_failed": 0,
           "n_gates": 2,
           "n_passed": 0,
           "n_questions_measured": 3,
           "n_reported": 2,
           "no_174k_benchmark_rerun": true,
+          "no_post_hoc_tuning": "Instrument sha256 70f8158c9049df2d03ebcc460b782178967ab9da7a11e48dd1b5b132d9f17167 is identical to accepted base b8265afb; output is quantity-for-quantity identical to base-committed test_run_1/final_check modulo run_id/generated_at/elapsed/served_packet_dir/ephemeral tmpdir plus the derived direction_version 63->65 and its absolute_status_note string; no frozen file was edited by the cycle.",
           "numeric_environment_disclosed": true,
           "packet": "38839347028 (served) / 39319405429 (V3 packet-of-record)",
           "product_handoff": "The smallest executable retrieval/counter-authority benchmark confirms product counter-authority discovery is insufficient for the visual UX test. Fix belongs to the product lane. This run validates the FAST MVP mode: smallest executable benchmark that can falsify the product, reusing existing multilingual/provenance tests.",
@@ -431,16 +738,7 @@
           "run_id": "v65_eval_40017649220",
           "schema": "lex-evaluation-minimal-ret-ca-benchmark/1",
           "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
-          "wrapper_schema": "lex-evaluation-minimal-ret-ca-benchmark/1",
-          "cycle_hypothesis_record": "evaluation/MINIMAL_RET_CA_40017649220_CYCLE_HYPOTHESIS_V1.json",
-          "cycle_ordering": "NOT_FREEZE_FIRST",
-          "cycle_ordering_note": "Run 40017649220 executed 2026-10-23T20:16:19Z and committed 2026-10-23T20:37:19Z; it is NOT a freeze-first cycle and must not be cited as one. The hypothesis record discloses the true ordering and was written in repair round 1; it does not retroactively freeze anything.",
-          "no_post_hoc_tuning": "Instrument sha256 70f8158c9049df2d03ebcc460b782178967ab9da7a11e48dd1b5b132d9f17167 is identical to accepted base b8265afb; output is quantity-for-quantity identical to base-committed test_run_1/final_check modulo run_id/generated_at/elapsed/served_packet_dir/ephemeral tmpdir plus the derived direction_version 63->65 and its absolute_status_note string; no frozen file was edited by the cycle.",
-          "latest_confirmation_run": "40034814235",
-          "latest_confirmation_record": "results/evaluation/minimal_ret_ca_benchmark/40034814235.json",
-          "latest_confirmation_verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
-          "latest_confirmation_freeze_first": true,
-          "latest_confirmation_note": "Operational-resume re-execution at run 40034814235, freeze commit da2fadea2, normalized-identical to the measurement of record v65_eval_40017649220; claim ceiling unchanged."
+          "wrapper_schema": "lex-evaluation-minimal-ret-ca-benchmark/1"
         },
         "minimal_retrieval_ca_benchmark": {
           "accepted_measurement_of_record": "39927760701",
@@ -496,61 +794,7 @@
           "wrapper_record_direction_version": 61,
           "wrapper_schema": "lex-evaluation-minimal-retrieval-ca-benchmark/1"
         },
-        "counter_evidence_quality_benchmark": {
-          "schema": "lex-evaluation-counter-evidence-quality-benchmark/1",
-          "run_id": "40062917685",
-          "direction_version": 66,
-          "github_run": "40062917685",
-          "verdict": "H2_FALSIFIED",
-          "exit_code": 1,
-          "h2_falsified": true,
-          "finding": "14 of 14 counter_evidence_verified rows across 15 shipped/control bundles carry a frozen defect ({'D2_letterhead_zone': 10, 'D3_markup_residue': 4, 'D4_language_marker_mismatch': 4}) over 2 distinct decisions (gr_gerichte_ERZ 2010 25, bge_BGE_121_III_260). The counter-evidence extractor emits letterhead/markup/language-mismatch content on the product's own flagship slice artifacts. This is the binding counter-authority evidence gap measured on the product's own artifacts.",
-          "n_bundles": 15,
-          "n_bundles_present": 15,
-          "n_verified_rows_total": 14,
-          "n_verified_rows_with_defects": 14,
-          "defect_histogram": {
-            "D2_letterhead_zone": 10,
-            "D3_markup_residue": 4,
-            "D4_language_marker_mismatch": 4
-          },
-          "defective_decision_ids": [
-            "bge_BGE_121_III_260",
-            "gr_gerichte_ERZ 2010 25"
-          ],
-          "probe_definitions_frozen_from": "evaluation/V65_HEAD_ADVANCE_CROSSCHECK_HYPOTHESIS_V2.json (sha256 734a447dffd86a360a46ce9a804e3bb9f7eb224f9067777d78b62216e13e0881)",
-          "probe_is_not_a_frozen_bar": true,
-          "controls_all_pass": true,
-          "product_mount_head_expected": "e4f72a8e6c0460bc52dc625ff3e2da86161e2564",
-          "product_mount_head_actual": "6cd7984518b488d90102eaab5b3cfcafeb818dc5",
-          "packet_of_record": "39319405429",
-          "claim_ceiling": "Descriptive evidence audit of the product's own shipped slice artifacts under frozen mechanical defect predicates; scores no frozen bar, classifies no decision as supporting/contrary under the frozen rubric, and changes no verdict. Both DO-NOT-SERVE orders stand; admission stays fail-closed; the comparative map-versus-ranked-list half is NOT scored while counter-evidence content defects persist (factory-wide requirement 22/37).",
-          "result_file": "results/evaluation/counter_evidence_quality_benchmark/40062917685.json",
-          "report_file": "reports/evaluation/COUNTER_EVIDENCE_QUALITY_BENCHMARK_40062917685.md",
-          "numeric_environment": {
-            "python": "3.12.3",
-            "platform": "linux",
-            "numpy": "absent",
-            "scipy": "absent",
-            "sklearn": "absent",
-            "thread_env": {
-              "OMP_NUM_THREADS": null,
-              "OPENBLAS_NUM_THREADS": null,
-              "MKL_NUM_THREADS": null
-            }
-          },
-          "no_obsolete_174k_benchmark_rerun": true,
-          "freeze_first": false,
-          "freeze_first_note": "This benchmark extracts the H2 probe from the accepted v65_head_advance_crosscheck_v2 (which WAS freeze-first); the extracted benchmark itself is a new instrument and its freeze-first status will be established on the next cycle if needed. The frozen predicates are imported BY VALUE from the accepted hypothesis.",
-          "posture_unchanged": {
-            "human_gate_ready": false,
-            "machine_gate_ready": false,
-            "owner_decision_required": false,
-            "packet_admitted": false,
-            "ready_for_owner_session": false
-          }
-        },
-        "next_recommendation": "CONTINUE under the SAME v66 question, sharpened: the counter-evidence-extractor blocker is now the binding bottleneck (14/14 verified rows on the flagship slice carry D2_letterhead_zone / D3_markup_residue / D4_language_marker_mismatch defects). A further evaluation cycle under this question has a concrete discriminating purpose IF Core Product lands a counter-evidence-extractor change; the next useful work is that product-side repair. The Factory Director decides the successor question. Do NOT rerun obsolete universal-174k benchmarks. Preserve all valid completed work. Do NOT equate prettier visualization with better legal navigation.",
+        "next_recommendation": "PRODUCTIZE-ADJACENT: hand the product_facing_finding block to Core Product as the concrete P0 follow-up (content filter on the fixture/offline emission path, or non-fixture slice regeneration). Evaluation's next discriminating cycle is the post-repair re-measure: re-run the frozen item-(2) protocol plus this path-scope probe on the NEW product head's shipped slice artifacts under a NEW run id. Do not re-run the v66 ordered-work hygiene (discharged) and do not re-score packet 39319405429 (item-(3) reconciliation accepted, unchanged).",
         "offline_emission_path_benchmark": {
           "aggregate": {
             "comparative_map_vs_ranked_list": "VACUOUS",
@@ -683,6 +927,166 @@
           "true_accepted_base": "3eeced9a25d486356870755e48422f8473a5f90c",
           "verdict": "RESUME_VERIFIED_AND_AUDIT_READY"
         },
+        "operational_resume_40034814235": {
+          "benchmark_confirmation": {
+            "exit_code": 0,
+            "falsification_proven": true,
+            "freeze_first": true,
+            "leg1": "PASS_NO_REGRESSION (label 65/5 rate 0.076923 LABEL_UNSOUND; geometry 6/5/5; 0/3 bundles pass all 11)",
+            "leg2": "FAIL_REGRESSION (de+fr regressed; controls proven)",
+            "normalized_identical_to_measurement_of_record": "v65_eval_40017649220",
+            "record": "results/evaluation/minimal_ret_ca_benchmark/40034814235.json",
+            "verdict": "BENCHMARK_VALID_NO_FALSIFICATION"
+          },
+          "diagnosis_record": "results/evaluation/orchestration/40034814235_failure_chain_diagnosis.json",
+          "direction_version": 65,
+          "f1_reexecuted": "SHIM_PASS 4/0/0/1UNSUPPORTED + 73/0/0/0 + 32/0/0/0 - identical counts to the committed 40017649220 R1 records",
+          "f2_rederived": "evidence_refs_n==len==173 at repair time; all nine claim-bearing artifacts of 40017649220 indexed and resolving; 172/173 resolve with the two inherited defects disclosed; one inherited detail-text inconsistency corrected (duplicate ref DOES resolve; ref list unchanged). After this run appends its 14 refs the index re-derives at evidence_refs_n==len==187.",
+          "f3_rechecked": "NOT_FREEZE_FIRST declaration, inherited frozen spec pins and no-post-hoc-tuning proofs all re-verified at this head",
+          "failure_class": "rc-78 LEX_WORK_QUANTUM_EXPIRED then five rc-67 LEX_ZERO_DELTA_REPAIR; ORCHESTRATION, not product/evidence/human-gate (factory-wide requirements 10/12)",
+          "freeze_commit": "da2fadea2",
+          "freeze_committed_before_claim_bearing_execution": true,
+          "freeze_margin_disclosure": "freeze commit 2026-10-23T22:54:29Z; benchmark execution began 2026-10-23T22:54:34Z (5s margin, disclosed rather than glossed)",
+          "frozen_files_edited": 0,
+          "frozen_inputs_unchanged_after_execution": true,
+          "historical_records_overwritten": 0,
+          "hypothesis_record": "evaluation/OPERATIONAL_RESUME_40034814235_HYPOTHESIS_V1.json",
+          "mode": "operational resume of persisted producer snapshot (team tip b8d526bc at dispatch)",
+          "multilingual_reuse_confirmation": {
+            "byte_identical_to_historical_record": true,
+            "disposition": "accepted negative carried, never repaired",
+            "raw_output_sha256": "82ae91b536623e77dbd39888db3b0df4dce45c9a3c21879549b6b755b07da428",
+            "verdict": "PARTIAL_MISS 0/3 reproduced"
+          },
+          "no_174k_benchmark_rerun": true,
+          "recurring_anti_pattern": "3 of 6 producers ended their only session on an auto-rejected external_directory token probe under /home/runner/work/_temp; recorded for the control plane, .github/** never edited from here",
+          "report": "reports/evaluation/OPERATIONAL_RESUME_40034814235.md",
+          "resume_chain": [
+            "40017649220 (repair0 producer; audit gate REVISE F1/F2/F3)",
+            "40023576675 (repair r1 producer; rc-78 quantum AFTER committing b9870cb9+b8d526bc; audit skipped)",
+            "40029231841 (rc-67 zero-delta; external_directory auto-reject)",
+            "40029524205 (rc-67 zero-delta after read-only session)",
+            "40033424089 (rc-67 zero-delta; external_directory auto-reject)",
+            "40033628306 (rc-67 zero-delta after read-only session)",
+            "40034534808 (rc-67 zero-delta; token-probe external_directory auto-reject)",
+            "40034814235"
+          ],
+          "resumed_from_run": "40034534808",
+          "run_id": "40034814235",
+          "schema": "lex-evaluation-operational-resume/1",
+          "verdict": "REPAIR_DISCHARGE_VERIFIED_SNAPSHOT_AUDIT_READY",
+          "verification_record": "results/evaluation/orchestration/40034814235_verification_of_repair_40017649220_r1.json",
+          "work_loss": "ZERO - all six failed snapshots byte-identical at b8d526bc12cf3b5384524b31036d01d20e27bb21 (verified by fetching and comparing every team branch)"
+        },
+        "operational_resume_40044626742": {
+          "attempt1_disclosure": "first execution under this run returned NOT_MEASURED_VACUOUS solely because the depth-1 checkout's product mount lacked git history for the requirement-4 lineage grep; preserved under *_attempt1_* names; repaired by git fetch --depth=150 origin lab/product (no mount worktree file written); re-execution then normalized-identical",
+          "direction_version": 65,
+          "freeze_first": "hypothesis + pre-registered verification plan V1-V6 + orchestration diagnosis committed at 23459653 BEFORE this run's claim-bearing re-executions",
+          "mode": "operational resume of persisted producer snapshot (team tip e9f3f379 at dispatch; workflow input resume_from_run_id=40040574595)",
+          "orchestration_diagnosis": "results/evaluation/orchestration/40044626742_failure_chain_diagnosis.json",
+          "posture_unchanged": {
+            "human_gate_ready": false,
+            "machine_gate_ready": false,
+            "owner_decision_required": false,
+            "packet_admitted": false,
+            "ready_for_owner_session": false
+          },
+          "reexecution": "instrument v65_head_advance_crosscheck_v2 (sha 8a7e19c9 unchanged) re-run under --run-id 40044626742: NORMALIZED_IDENTICAL to the producer measurement of record 40040574595 (0 diffs); PASS_NO_FALSIFICATION; currency ALL_CONFIRMED 36/0/2/1; H2_FALSIFIED 14/14 (D2=10 D3=4 D4=4, 2 distinct decisions); falsification PRODUCT_FALSIFIED with the identical accepted 4-gate set and empty input_drift; controls 5/5; pins 25/25 re-identical",
+          "result_file": "results/evaluation/operational_resume/40044626742.json",
+          "resumed_from_run": "40040574595",
+          "run_id": "40044626742",
+          "schema": "lex-evaluation-operational-resume/1",
+          "shims": "self 12/0/0/0; multilingual-provenance 73/0/0/0; falsification family 51/0/21 (producer's one state-hygiene failure cleared, proving the producer's dangling-ref removal landed); this run's resume guard suite 14/0/0/0",
+          "state_corrections": "accepted_run_id 39986080045 -> 40034814235 (39986080045 has no accept-commit half of requirement 4; verified by git log --all; prior advance block preserved under accepted_run_id_advance.superseded_advance); run identity -> 40044626742; evidence_refs +19 all resolving; updater idempotency defect (double-wrap on re-run) disclosed and fixed in-run with a strengthened guard assertion",
+          "verdict": "RESUME_VERIFIED_AND_AUDIT_READY",
+          "verification_record": "results/evaluation/orchestration/40044626742_verification_of_40040574595.json"
+        },
+        "operational_resume_40053757063": {
+          "benchmark_summary": {
+            "exit_code": 0,
+            "falsification_proven": true,
+            "legs": [
+              {
+                "exit_code": 0,
+                "leg": "served_baseline",
+                "verdict": "PASS_NO_REGRESSION"
+              },
+              {
+                "exit_code": 1,
+                "leg": "geometry_falsification_hostile",
+                "verdict": "FAIL_REGRESSION"
+              },
+              {
+                "exit_code": 1,
+                "leg": "label_falsification_blanked_evidence",
+                "verdict": "FAIL_REGRESSION"
+              }
+            ],
+            "verdict": "BENCHMARK_VALID_NO_FALSIFICATION"
+          },
+          "direction_version": 66,
+          "freeze_first": "hypothesis + freeze record committed before benchmark execution; no post-hoc tuning; accepted entry point run_bar_gates reused unchanged",
+          "mode": "operational resume of persisted producer snapshot; benchmark execution of smallest CA falsification benchmark",
+          "orchestration_diagnosis": "Prior in-flight run 40050352091 carried stale direction_version 61; benchmark re-executed under v66 with accepted product mount; falsification proven via 3-leg adjudicate on hostile geometry and blanked evidence",
+          "reexecution": "python3 -m evaluation.benchmark_retrieval_counter_authority --run-id 40053757063; exit_code=0; verdict=BENCHMARK_VALID_NO_FALSIFICATION; all legs matched expected exit codes; no environment errors",
+          "result_file": "results/evaluation/operational_resume/40053757063.json",
+          "resumed_from_run": "40050352091",
+          "run_id": "40053757063",
+          "schema": "lex-evaluation-operational-resume/1",
+          "timestamp": "2026-10-24T03:01:54Z",
+          "verdict": "RESUME_VERIFIED_AND_AUDIT_READY",
+          "verification_record": "Benchmark leg records confirm: served_baseline PASS_NO_REGRESSION (exit 0), geometry_falsification_hostile FAIL_REGRESSION (exit 1), label_falsification_blanked_evidence FAIL_REGRESSION (exit 1); falsification_proven=True"
+        },
+        "operational_resume_40068038783": {
+          "failure_chain_diagnosis": "results/evaluation/orchestration/40068038783_failure_chain_diagnosis.json",
+          "failure_class": "ORCHESTRATION - runs 40064635075 and 40067656881 died at 'Run lane cycle' with ZERO durable delta (snapshots identical to lab/evaluation tip 24e24bfc; audit and integrate skipped; job logs 403, rc attribution hedged); requirements 10/20 class; NOT evidence, product or human-gate",
+          "hygiene_dual_state_file": "evaluation/state/evaluation.json is a per-cycle producer copy written by accepted cycle 40063688435 (accepted_run_id 40063688435, evidence_tier EXPLORATORY); it is left UNTOUCHED as that cycle's historical record. state/evaluation.json (this file) is the canonical lane state per ARCHITECTURE.md. Future cycles write canonical state only.",
+          "hygiene_item_1b": {
+            "guard": "evaluation/nested_evidence_refs_guard.py",
+            "guard_artifact_after_fix": "results/evaluation/orchestration/40068038783_nested_evidence_refs.json",
+            "guard_artifact_before_fix": "results/evaluation/orchestration/40068038783_prefx_nested_evidence_refs.json",
+            "minimal_ret_ca_benchmark_pointers": "VERIFIED ACCEPTED-BASE: latest_confirmation_record = results/evaluation/minimal_ret_ca_benchmark/40034814235.json; no reference to run 40047820460 exists anywhere in the canonical state (the blocked run never landed); no revert was needed",
+            "phantom_shim_ref": {
+              "explanation": "the previously referenced record results/evaluation/orchestration/40062917685_counter_evidence_quality_pytest_shim.json was never committed anywhere in the repository (requirement-33 claim-without-artifact class, found by the nested evidence_refs guard of run 40068038783); the pytest claim is RE-DERIVED under run 40068038783 with a committed shim at results/evaluation/orchestration/40068038783_counter_evidence_quality_pytest_shim.json (19/19 passed on the living suites; the historical 40044626742 pinned suite's 3 cycle-pin failures are disclosed there, not charged)",
+              "new": "results/evaluation/orchestration/40068038783_counter_evidence_quality_pytest_shim.json",
+              "old": "results/evaluation/orchestration/40062917685_counter_evidence_quality_pytest_shim.json"
+            },
+            "typo_explanation": "the producer-plan artifact was committed by cycle 40012474431 under results/evaluation/orchestration/40006151200/; four nested state refs pointed at a 40011795717/ sibling path that never existed - a directory-typo instance of the item-(1)(b) defect class",
+            "typo_new": "results/evaluation/orchestration/40006151200/producer_work_state_and_next_move.txt",
+            "typo_old": "results/evaluation/orchestration/40011795717/producer_work_state_and_next_move.txt",
+            "typo_refs_corrected": 4
+          },
+          "resume_base_head": "24e24bfc565f0f2ccaebb733d33dc92f5f3e9d6f",
+          "resume_of": "40067656881",
+          "schema": "lex-evaluation-operational-resume/1"
+        },
+        "orchestration_40006151200_40011795717": {
+          "diagnosed_runs": [
+            "40006151200",
+            "40011795717"
+          ],
+          "diagnosing_run": "40012474431",
+          "diagnosis_artifact": "results/evaluation/orchestration/40011795717_diagnosis.json",
+          "failure_class": "LEX_ZERO_DELTA_REPAIR rc 67 (zero committed delta) on BOTH producer runs; guard fired AS DESIGNED",
+          "mechanism": "each Ox producer session explored the v65 question, scoped the deliverable and left a full work-state/next-move plan in its session log, but committed ZERO durable repository delta before session end; HEAD unchanged, git status --porcelain empty at guard evaluation; audit+integrate skipped; resilience job succeeded both times and dispatched the next resume",
+          "not_a": [
+            "product defect",
+            "audit verdict",
+            "frozen-bar or evidence problem",
+            "human-gate problem"
+          ],
+          "producer_plans_preserved": [
+            "results/evaluation/orchestration/40006151200/producer_work_state_and_next_move.txt",
+            "results/evaluation/orchestration/40006151200/producer_work_state_and_next_move.txt"
+          ],
+          "route_around": "this resume concretely commits the scoped deliverable (freeze-first hypothesis+freeze record 596fde17, then instrument, results, falsification, multilingual reuse, test shim, report, state update), so the zero-delta guard cannot fire on an empty delta",
+          "snapshot_branches_persisted": [
+            "cycle/core/evaluation/40006151200/team",
+            "cycle/core/evaluation/40011795717/team"
+          ]
+        },
+        "owner_decision_required": false,
+        "owner_decision_required_note": "Published top-level by repair round 1 so the posture is machine-checkable. It previously existed only as prose inside next_recommendation. Value unchanged: false. Both DO-NOT-SERVE orders stand; admission stays fail-closed.",
         "packet_admitted": false,
         "product_advance_after_snapshot_measurement": {
           "accepted_at": "2026-10-23T09:46:52Z",
@@ -842,8 +1246,9 @@
           "test_record": "results/evaluation/orchestration/39838415410_product_counter_surface_pytest_shim.json",
           "verdict": "PRODUCT_COUNTER_SIGNAL_LAYER_FALSIFIED_ON_CACHED_SURFACE"
         },
-        "proposed_run_id": "40062917685",
+        "proposed_run_id": "40070818687",
         "ready_for_owner_session": false,
+        "repair_round": 0,
         "repair_round1_39986080045": {
           "audit_gate": "REVISE",
           "audit_gate_path": "results/audit/evaluation/CYCLE_39986080045_GATE.json",
@@ -899,6 +1304,60 @@
           "test": "tests/evaluation/test_v65_repair_round1_da_db.py",
           "timestamp": "2026-10-23T17:40:00Z"
         },
+        "repair_round1_40017649220": {
+          "audit_gate": "results/audit/evaluation/CYCLE_40017649220_GATE.json",
+          "audit_verdict_repaired": "REVISE",
+          "claim_ceiling": "This repair establishes only that audit fixes F1/F2/F3 for run 40017649220 are discharged with committed, machine-verifiable records and that no frozen input, instrument, test, bar, rubric, threshold or success rule changed. It re-measures NOTHING about the product.",
+          "direction_version": 65,
+          "discharge_never_audited_note": "Producer 40023576675 died rc-78 ~2s after committing the discharge, so no CYCLE_40023576675 gate exists; the discharge rides on this run's team tip for the independent auditor of run 40034814235.",
+          "discharge_verification_record": "results/evaluation/orchestration/40034814235_verification_of_repair_40017649220_r1.json",
+          "discharge_verification_verdict": "VERIFIED_UNDER_INDEPENDENT_REEXECUTION",
+          "discharge_verified_by_run": "40034814235",
+          "freeze_commit": "ad1f0ed1",
+          "freeze_committed_before_execution": true,
+          "freeze_record": "evaluation/REPAIR_40017649220_FREEZE_RECORD_V1.json",
+          "frozen_inputs_unchanged": true,
+          "github_run": "40023576675",
+          "historical_records_overwritten": false,
+          "hypothesis": "evaluation/REPAIR_40017649220_HYPOTHESIS_V1.json",
+          "instrument_unchanged": true,
+          "no_174k_benchmark_rerun": true,
+          "record": "results/evaluation/repair_40017649220_r1/40023576675.json",
+          "repair_round": 1,
+          "repairs_run_id": "40017649220",
+          "required_fixes": [
+            "F1",
+            "F2",
+            "F3"
+          ],
+          "schema": "lex-evaluation-repair-round/1",
+          "scratch_only_execution": true,
+          "test_unchanged": true,
+          "verdict": "REPAIR_R1_DISCHARGED"
+        },
+        "repairs_run_id": "40068038783",
+        "scorer_path_reconciliation_40068038783": {
+          "finding": "on packet-of-record 39319405429 bytes at product head 3495c1336: frozen mf::counter_authority_surface n_issued=0 on SERVED bytes; n_issued=1 on GUARDED-TRANSFORMED bytes (fr-bail-entretien, bge_136 III 196, candidate-limiting, 286-char evidence, ZERO frozen D2/D3/D4 defects); product arms baseline 0 / unguarded 6 / guarded 1 IDENTICAL to the accepted pre-filter measurement of record -> the P0 filter has NO packet-level emission effect; the requirement-36 divergence is a TRANSFORM-PATH divergence (the frozen scorer never receives the transformed bytes), NOT a contract-shape exclusion; resolved with zero scorer edits",
+          "instrument": "evaluation/scorer_path_reconciliation.py",
+          "ordered_work_item": "v66 item (3) FROZEN-SCORER PATH DIVERGENCE CROSS-CHECK",
+          "report_file": "reports/evaluation/SCORER_PATH_RECONCILIATION_40068038783.md",
+          "result_file": "results/evaluation/scorer_path_reconciliation/40068038783.json",
+          "schema": "lex-evaluation-scorer-path-reconciliation/1",
+          "verdict": "RECONCILIATION_COMPLETE"
+        },
+        "state_integrity_40070818687": {
+          "attribution": "INHERITED_DUAL_FILE_CONVENTION",
+          "evidence_index_defects_inherited_not_charged_append": true,
+          "explanation": "root_lane_parity compares canonical state/evaluation.json against the frozen historical producer copy evaluation/state/evaluation.json. Under the dual-file convention accepted with cycle 40068038783 (future cycles write canonical only), the github_run leg was ALREADY false at the committed accepted tip before this run (root 40068038783 vs copy 40063688435); this cycle's canonical advance widens it to accepted_run_id + github_run by design. The lane copy is left untouched per the accepted convention; no historical record overwritten; no check weakened. Other 10/11 checks pass. Resolution is a control-plane / next-cycle item, disclosed here.",
+          "failed_checks": [
+            "root_lane_parity@both"
+          ],
+          "gate_exit_code": 1,
+          "introduced_by_this_run": false,
+          "n_checks": 11,
+          "n_failed": 1,
+          "record": "results/evaluation/state_integrity_gate/40070818687.json"
+        },
         "state_minimal_ca_provenance_repair_39866970583": {
           "audit_caveat_closed": "CYCLE_39854748616 minimal_ca_benchmark SHIM_FAIL 7/3/1 -> real pytest 11/0/0",
           "controls": "3/3 hold (C1-C3)",
@@ -908,7 +1367,7 @@
           "repair": "state/evaluation.json minimal_ca_benchmark block restored with re-derived pins (hypothesis re-hash f0c7711c..., freeze commit 6892f9f0); no test/frozen-file/threshold edit",
           "verdict": "REPAIR_VERIFIED_SUITE_GREEN"
         },
-        "state_updated_at": "2026-10-24T06:15:00Z",
+        "state_updated_at": "2026-10-24T09:43:44Z",
         "test_suite": {
           "answer_reliability_crosscheck": {
             "failed": 0,
@@ -918,6 +1377,25 @@
             "unsupported": 0,
             "verdict": "SHIM_PASS"
           },
+          "counter_evidence_quality_benchmark": {
+            "failed": 0,
+            "file": "tests/evaluation/test_counter_evidence_quality_benchmark.py",
+            "measurement_env": "pytest 9.1.1, python 3.12.3, accepted product mount present",
+            "passed": 7,
+            "previous_record_reference": "results/evaluation/orchestration/40062917685_counter_evidence_quality_pytest_shim.json",
+            "previous_record_status": "NEVER_COMMITTED_ANYWHERE",
+            "record": "results/evaluation/orchestration/40068038783_counter_evidence_quality_pytest_shim.json",
+            "record_rederivation_note": "the previously referenced record results/evaluation/orchestration/40062917685_counter_evidence_quality_pytest_shim.json was never committed anywhere in the repository (requirement-33 claim-without-artifact class, found by the nested evidence_refs guard of run 40068038783); the pytest claim is RE-DERIVED under run 40068038783 with a committed shim at results/evaluation/orchestration/40068038783_counter_evidence_quality_pytest_shim.json (19/19 passed on the living suites; the historical 40044626742 pinned suite's 3 cycle-pin failures are disclosed there, not charged)",
+            "record_rederived_by": "40068038783",
+            "unsupported": 0,
+            "verdict": "PASS_REAL_PYTEST"
+          },
+          "counter_evidence_quality_remeasure_suite": {
+            "failed": 0,
+            "file": "tests/evaluation/test_counter_evidence_quality_remeasure.py",
+            "passed": 4,
+            "verdict": "PASS_REAL_PYTEST"
+          },
           "counter_marker_attribution": {
             "failed": 0,
             "file": "tests/evaluation/test_counter_marker_attribution.py",
@@ -925,6 +1403,20 @@
             "record": "results/evaluation/orchestration/39834312064_cma_pytest_shim.json",
             "unsupported": 0,
             "verdict": "SHIM_PASS"
+          },
+          "falsification_family_40040574595": {
+            "failed": 1,
+            "failure": "test_state_evidence_refs_resolve_and_count_matches (pre-existing dangling evidence ref, reproduced not caused by this cycle; ref removed this cycle and disclosed)",
+            "files": [
+              "tests/evaluation/test_minimal_ret_ca_benchmark.py",
+              "tests/evaluation/test_mapping_free_recall_falsifier.py",
+              "tests/evaluation/test_v65_product_advance_crosscheck.py",
+              "tests/evaluation/test_minimal_retrieval_ca_benchmark.py"
+            ],
+            "passed": 50,
+            "record": "results/evaluation/orchestration/40040574595_falsification_family_pytest_shim.json",
+            "unsupported": 21,
+            "verdict": "SHIM_FAIL"
           },
           "mapping_free_recall_falsifier": {
             "failed": 0,
@@ -960,6 +1452,19 @@
             "skipped": 0,
             "verdict": "PASS_REAL_PYTEST"
           },
+          "minimal_ret_ca_benchmark": {
+            "failed": 0,
+            "file": "tests/evaluation/test_minimal_ret_ca_benchmark.py",
+            "measurement_env": "python 3.12.3, pytest ABSENT (importlib find_spec('pytest') returned None), runner=evaluation/no_pytest_runner.py sha256 c12097da9d910574380b32c5dafa371a3b24ec14ef2551d92bb9453b8ed57584 (pytest-free shim; UNSUPPORTED is counted NOT-RUN and NEVER passed); accepted product mount present",
+            "passed": 4,
+            "record": "results/evaluation/orchestration/40017649220_R1_minimal_ret_ca_pytest_shim.json",
+            "repair_round": 1,
+            "run_id": "40017649220",
+            "skipped": 0,
+            "unsupported": 1,
+            "unsupported_case_restated_as": "test_end_to_end_on_accepted_mount_if_present = NOT-RUN under the shim (reported UNSUPPORTED: needs the tmp_path fixture the shim cannot inject). It was separately MEASURED out-of-shim by injecting tmp_path into a scratch tmpdir only, at PASS in 10.531s with all outputs confined to that tmpdir: results/evaluation/orchestration/40017649220_R1_e2e_fixture_injected.json. The out-of-shim measurement is ADDITIONAL and never re-counts into the shim verdict above.",
+            "verdict": "SHIM_PASS"
+          },
           "minimal_retrieval_ca_benchmark": {
             "failed": 0,
             "file": "tests/evaluation/test_minimal_retrieval_ca_benchmark.py",
@@ -985,6 +1490,46 @@
             "run_id": "39929883261",
             "verdict": "SHIM_FAIL_INHERITED"
           },
+          "multilingual_provenance_reuse": {
+            "failed": 0,
+            "files": [
+              "tests/evaluation/test_stand_ready_multilingual_probe.py",
+              "tests/evaluation/test_f3b_restore_disposition.py",
+              "tests/evaluation/test_v59_stand_ready_verification.py",
+              "tests/evaluation/test_packet_of_record_stand_ready.py"
+            ],
+            "measurement_env": "python 3.12.3, pytest ABSENT, runner=evaluation/no_pytest_runner.py sha256 c12097da9d910574380b32c5dafa371a3b24ec14ef2551d92bb9453b8ed57584",
+            "passed": 73,
+            "record": "results/evaluation/orchestration/40017649220_R1_multiling_prov_pytest_shim.json",
+            "repair_round": 1,
+            "reuse_instrument_note": "Accepted instrument evaluation/run_v3_multilingual_provenance_reuse.py re-executed with a scratch cwd and byte-compared to the historical record: identical. PARTIAL_MISS (0/3 qids row_ok) is carried as the accepted D-B characterisation, NOT repaired. Historical record never written.",
+            "reuse_instrument_record": "results/evaluation/multilingual_provenance_reuse/40017649220.json",
+            "reuse_instrument_report": "reports/evaluation/MULTILINGUAL_PROVENANCE_REUSE_40017649220.md",
+            "reuse_instrument_verdict": "PARTIAL_MISS",
+            "run_id": "40017649220",
+            "skipped": 0,
+            "unsupported": 0,
+            "verdict": "SHIM_PASS"
+          },
+          "multilingual_provenance_reuse_40040574595": {
+            "failed": 0,
+            "files": [
+              "tests/evaluation/test_stand_ready_multilingual_probe.py",
+              "tests/evaluation/test_f3b_restore_disposition.py",
+              "tests/evaluation/test_v59_stand_ready_verification.py",
+              "tests/evaluation/test_packet_of_record_stand_ready.py"
+            ],
+            "passed": 73,
+            "record": "results/evaluation/orchestration/40040574595_multiling_prov_pytest_shim.json",
+            "unsupported": 0,
+            "verdict": "SHIM_PASS"
+          },
+          "nested_evidence_refs_guard_suite": {
+            "failed": 0,
+            "file": "tests/evaluation/test_nested_evidence_refs_guard.py",
+            "passed": 4,
+            "verdict": "PASS_REAL_PYTEST"
+          },
           "offline_emission_path_benchmark": {
             "failed": 0,
             "file": "tests/evaluation/test_offline_emission_path_benchmark.py",
@@ -992,6 +1537,49 @@
             "record": "results/evaluation/orchestration/39856081942_oepb_pytest_shim.json",
             "unsupported": 0,
             "verdict": "SHIM_PASS"
+          },
+          "operational_resume_40034814235": {
+            "measurement_env": "python 3.12.3, pytest ABSENT (find_spec -> None), committed shim evaluation/no_pytest_runner.py sha256 c12097da9d910574380b32c5dafa371a3b24ec14ef2551d92bb9453b8ed57584; UNSUPPORTED counted NOT-RUN, never passed; accepted product mount present",
+            "minimal_ret_ca_benchmark": {
+              "failed": 0,
+              "file": "tests/evaluation/test_minimal_ret_ca_benchmark.py",
+              "passed": 4,
+              "record": "results/evaluation/orchestration/40034814235_minimal_ret_ca_pytest_shim.json",
+              "skipped": 0,
+              "unsupported": 1,
+              "unsupported_case_restated_as": "test_end_to_end_on_accepted_mount_if_present = NOT-RUN under the shim (needs tmp_path). Its committed out-of-shim record 40017649220_R1_e2e_fixture_injected.json is cross-checked by the repair suite (test_f1_e2e_cited_elapsed_matches_definitive_record, re-executed green here) and is not re-counted here.",
+              "verdict": "SHIM_PASS"
+            },
+            "multilingual_provenance_reuse": {
+              "failed": 0,
+              "files": [
+                "tests/evaluation/test_stand_ready_multilingual_probe.py",
+                "tests/evaluation/test_f3b_restore_disposition.py",
+                "tests/evaluation/test_v59_stand_ready_verification.py",
+                "tests/evaluation/test_packet_of_record_stand_ready.py"
+              ],
+              "passed": 73,
+              "record": "results/evaluation/orchestration/40034814235_multiling_prov_pytest_shim.json",
+              "reuse_instrument_reexecution": {
+                "byte_identical_to_historical_record": true,
+                "raw_output_sha256": "82ae91b536623e77dbd39888db3b0df4dce45c9a3c21879549b6b755b07da428",
+                "scratch_cwd_only": true,
+                "verdict": "PARTIAL_MISS 0/3 reproduced"
+              },
+              "skipped": 0,
+              "unsupported": 0,
+              "verdict": "SHIM_PASS"
+            },
+            "repair_r1_suite": {
+              "failed": 0,
+              "passed": 32,
+              "record": "results/evaluation/orchestration/40034814235_repair_r1_suite_shim.json",
+              "skipped": 0,
+              "unsupported": 0,
+              "verdict": "SHIM_PASS"
+            },
+            "run_id": "40034814235",
+            "schema": "lex-evaluation-no-pytest-runner/1"
           },
           "operational_resume_degradation_crosscheck": {
             "failed": 0,
@@ -1025,126 +1613,20 @@
             "unsupported": 0,
             "verdict": "SHIM_PASS"
           },
-          "minimal_ret_ca_benchmark": {
-            "run_id": "40017649220",
-            "file": "tests/evaluation/test_minimal_ret_ca_benchmark.py",
-            "measurement_env": "python 3.12.3, pytest ABSENT (importlib find_spec('pytest') returned None), runner=evaluation/no_pytest_runner.py sha256 c12097da9d910574380b32c5dafa371a3b24ec14ef2551d92bb9453b8ed57584 (pytest-free shim; UNSUPPORTED is counted NOT-RUN and NEVER passed); accepted product mount present",
+          "scorer_path_reconciliation_suite": {
+            "failed": 0,
+            "file": "tests/evaluation/test_scorer_path_reconciliation.py",
             "passed": 4,
-            "failed": 0,
-            "skipped": 0,
-            "unsupported": 1,
-            "verdict": "SHIM_PASS",
-            "record": "results/evaluation/orchestration/40017649220_R1_minimal_ret_ca_pytest_shim.json",
-            "unsupported_case_restated_as": "test_end_to_end_on_accepted_mount_if_present = NOT-RUN under the shim (reported UNSUPPORTED: needs the tmp_path fixture the shim cannot inject). It was separately MEASURED out-of-shim by injecting tmp_path into a scratch tmpdir only, at PASS in 10.531s with all outputs confined to that tmpdir: results/evaluation/orchestration/40017649220_R1_e2e_fixture_injected.json. The out-of-shim measurement is ADDITIONAL and never re-counts into the shim verdict above.",
-            "repair_round": 1
+            "verdict": "PASS_REAL_PYTEST"
           },
-          "multilingual_provenance_reuse": {
-            "run_id": "40017649220",
-            "files": [
-              "tests/evaluation/test_stand_ready_multilingual_probe.py",
-              "tests/evaluation/test_f3b_restore_disposition.py",
-              "tests/evaluation/test_v59_stand_ready_verification.py",
-              "tests/evaluation/test_packet_of_record_stand_ready.py"
-            ],
-            "measurement_env": "python 3.12.3, pytest ABSENT, runner=evaluation/no_pytest_runner.py sha256 c12097da9d910574380b32c5dafa371a3b24ec14ef2551d92bb9453b8ed57584",
-            "passed": 73,
-            "failed": 0,
-            "skipped": 0,
-            "unsupported": 0,
-            "verdict": "SHIM_PASS",
-            "record": "results/evaluation/orchestration/40017649220_R1_multiling_prov_pytest_shim.json",
-            "reuse_instrument_record": "results/evaluation/multilingual_provenance_reuse/40017649220.json",
-            "reuse_instrument_report": "reports/evaluation/MULTILINGUAL_PROVENANCE_REUSE_40017649220.md",
-            "reuse_instrument_verdict": "PARTIAL_MISS",
-            "reuse_instrument_note": "Accepted instrument evaluation/run_v3_multilingual_provenance_reuse.py re-executed with a scratch cwd and byte-compared to the historical record: identical. PARTIAL_MISS (0/3 qids row_ok) is carried as the accepted D-B characterisation, NOT repaired. Historical record never written.",
-            "repair_round": 1
-          },
-          "operational_resume_40034814235": {
-            "schema": "lex-evaluation-no-pytest-runner/1",
-            "run_id": "40034814235",
-            "measurement_env": "python 3.12.3, pytest ABSENT (find_spec -> None), committed shim evaluation/no_pytest_runner.py sha256 c12097da9d910574380b32c5dafa371a3b24ec14ef2551d92bb9453b8ed57584; UNSUPPORTED counted NOT-RUN, never passed; accepted product mount present",
-            "minimal_ret_ca_benchmark": {
-              "file": "tests/evaluation/test_minimal_ret_ca_benchmark.py",
-              "verdict": "SHIM_PASS",
-              "passed": 4,
-              "failed": 0,
-              "skipped": 0,
-              "unsupported": 1,
-              "unsupported_case_restated_as": "test_end_to_end_on_accepted_mount_if_present = NOT-RUN under the shim (needs tmp_path). Its committed out-of-shim record 40017649220_R1_e2e_fixture_injected.json is cross-checked by the repair suite (test_f1_e2e_cited_elapsed_matches_definitive_record, re-executed green here) and is not re-counted here.",
-              "record": "results/evaluation/orchestration/40034814235_minimal_ret_ca_pytest_shim.json"
-            },
-            "multilingual_provenance_reuse": {
-              "files": [
-                "tests/evaluation/test_stand_ready_multilingual_probe.py",
-                "tests/evaluation/test_f3b_restore_disposition.py",
-                "tests/evaluation/test_v59_stand_ready_verification.py",
-                "tests/evaluation/test_packet_of_record_stand_ready.py"
-              ],
-              "verdict": "SHIM_PASS",
-              "passed": 73,
-              "failed": 0,
-              "skipped": 0,
-              "unsupported": 0,
-              "reuse_instrument_reexecution": {
-                "verdict": "PARTIAL_MISS 0/3 reproduced",
-                "raw_output_sha256": "82ae91b536623e77dbd39888db3b0df4dce45c9a3c21879549b6b755b07da428",
-                "byte_identical_to_historical_record": true,
-                "scratch_cwd_only": true
-              },
-              "record": "results/evaluation/orchestration/40034814235_multiling_prov_pytest_shim.json"
-            },
-            "repair_r1_suite": {
-              "verdict": "SHIM_PASS",
-              "passed": 32,
-              "failed": 0,
-              "skipped": 0,
-              "unsupported": 0,
-              "record": "results/evaluation/orchestration/40034814235_repair_r1_suite_shim.json"
-            }
-          },
+          "shim_record_40068038783": "results/evaluation/orchestration/40068038783_pytest_shims.json",
           "v65_head_advance_crosscheck_v2": {
+            "failed": 0,
             "file": "tests/evaluation/test_v65_head_advance_crosscheck_v2.py",
             "passed": 12,
-            "failed": 0,
+            "record": "results/evaluation/orchestration/40040574595_self_suite_pytest_shim.json",
             "unsupported": 0,
-            "verdict": "SHIM_PASS",
-            "record": "results/evaluation/orchestration/40040574595_self_suite_pytest_shim.json"
-          },
-          "multilingual_provenance_reuse_40040574595": {
-            "files": [
-              "tests/evaluation/test_stand_ready_multilingual_probe.py",
-              "tests/evaluation/test_f3b_restore_disposition.py",
-              "tests/evaluation/test_v59_stand_ready_verification.py",
-              "tests/evaluation/test_packet_of_record_stand_ready.py"
-            ],
-            "passed": 73,
-            "failed": 0,
-            "unsupported": 0,
-            "verdict": "SHIM_PASS",
-            "record": "results/evaluation/orchestration/40040574595_multiling_prov_pytest_shim.json"
-          },
-          "falsification_family_40040574595": {
-            "files": [
-              "tests/evaluation/test_minimal_ret_ca_benchmark.py",
-              "tests/evaluation/test_mapping_free_recall_falsifier.py",
-              "tests/evaluation/test_v65_product_advance_crosscheck.py",
-              "tests/evaluation/test_minimal_retrieval_ca_benchmark.py"
-            ],
-            "passed": 50,
-            "failed": 1,
-            "unsupported": 21,
-            "verdict": "SHIM_FAIL",
-            "failure": "test_state_evidence_refs_resolve_and_count_matches (pre-existing dangling evidence ref, reproduced not caused by this cycle; ref removed this cycle and disclosed)",
-            "record": "results/evaluation/orchestration/40040574595_falsification_family_pytest_shim.json"
-          },
-          "counter_evidence_quality_benchmark": {
-            "file": "tests/evaluation/test_counter_evidence_quality_benchmark.py",
-            "passed": 7,
-            "failed": 0,
-            "unsupported": 0,
-            "verdict": "PASS_REAL_PYTEST",
-            "record": "results/evaluation/orchestration/40062917685_counter_evidence_quality_pytest_shim.json",
-            "measurement_env": "pytest 9.1.1, python 3.12.3, accepted product mount present"
+            "verdict": "SHIM_PASS"
           }
         },
         "v65_currency_crosscheck_39986080045": {
@@ -1222,50 +1704,122 @@
           "run_id": "39986080045",
           "verdict": "PASS_NO_FALSIFICATION"
         },
-        "orchestration_40006151200_40011795717": {
-          "diagnosing_run": "40012474431",
-          "diagnosed_runs": [
-            "40006151200",
-            "40011795717"
-          ],
-          "failure_class": "LEX_ZERO_DELTA_REPAIR rc 67 (zero committed delta) on BOTH producer runs; guard fired AS DESIGNED",
-          "mechanism": "each Ox producer session explored the v65 question, scoped the deliverable and left a full work-state/next-move plan in its session log, but committed ZERO durable repository delta before session end; HEAD unchanged, git status --porcelain empty at guard evaluation; audit+integrate skipped; resilience job succeeded both times and dispatched the next resume",
-          "not_a": [
-            "product defect",
-            "audit verdict",
-            "frozen-bar or evidence problem",
-            "human-gate problem"
-          ],
-          "route_around": "this resume concretely commits the scoped deliverable (freeze-first hypothesis+freeze record 596fde17, then instrument, results, falsification, multilingual reuse, test shim, report, state update), so the zero-delta guard cannot fire on an empty delta",
-          "diagnosis_artifact": "results/evaluation/orchestration/40011795717_diagnosis.json",
-          "producer_plans_preserved": [
-            "results/evaluation/orchestration/40006151200/producer_work_state_and_next_move.txt",
-            "results/evaluation/orchestration/40011795717/producer_work_state_and_next_move.txt"
-          ],
-          "snapshot_branches_persisted": [
-            "cycle/core/evaluation/40006151200/team",
-            "cycle/core/evaluation/40011795717/team"
-          ]
+        "v65_head_advance_crosscheck_40040574595": {
+          "controls": {
+            "C1_planted_currency_divergence_is_detected": true,
+            "C2_probe_classifies_planted_letterhead_mid_and_markup": true,
+            "C3_probe_detects_language_marker_mismatch": true,
+            "C4_frozen_rules_rehash_holds_reported_only": true,
+            "C5_packet_of_record_bytes_unchanged": true
+          },
+          "coverage_v2_refreeze": {
+            "executed": false,
+            "reason": "conditional on the coverage family being resumed; NOT resumed"
+          },
+          "currency_crosscheck": {
+            "float_headlines": {
+              "applied_5e-4": "ALL_CONFIRMED",
+              "frozen_literal_1e-6": "ALL_CONFIRMED"
+            },
+            "headline": "ALL_CONFIRMED",
+            "n_confirmed": 36,
+            "n_confirmed_lag_disclosed": 2,
+            "n_divergent": 0,
+            "n_not_found": 0,
+            "n_not_reexecuted_disclosed": 1,
+            "n_quantities": 39
+          },
+          "direction_version": 65,
+          "exit_code": 0,
+          "falsification_rerun": {
+            "engine": "evaluation.minimal_retrieval_ca_benchmark (accepted wrapper, reused not reimplemented)",
+            "exit_code": 1,
+            "failed_gates_equals_accepted": true,
+            "input_drift": [],
+            "n_failed": 4,
+            "n_gates": 18,
+            "n_passed": 11,
+            "packet_json_sha256": "32ac812626e679c357822543d0b2e78e62c0e95a9a1b233d1ec89d7cb7b6ac70",
+            "rules_rehashed_reported_only": {
+              "RULES_GEOMETRY": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+              "RULES_LABEL": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608"
+            },
+            "verdict": "PRODUCT_FALSIFIED"
+          },
+          "freeze_first": {
+            "commit": "d2649360 (committed BEFORE claim-bearing execution)",
+            "freeze_record": "evaluation/V65_HEAD_ADVANCE_CROSSCHECK_FREEZE_RECORD_V2.json",
+            "freeze_record_sha256": "c954f62cfab2b5c3b04a3d6cf2a9c0ee25d6de0f59a44d4e4ef8d5ba1c6a8e6f",
+            "hypothesis": "evaluation/V65_HEAD_ADVANCE_CROSSCHECK_HYPOTHESIS_V2.json",
+            "hypothesis_sha256": "734a447dffd86a360a46ce9a804e3bb9f7eb224f9067777d78b62216e13e0881",
+            "scoping_disclosure": "3 of 14 new probe bundles inspected during scoping, labelled scoping_inspected; 11 + prior-cycle control not inspected per-row before the freeze"
+          },
+          "frozen_pins_reidentical_after_execution": true,
+          "h2_shipped_slice_counter_evidence_probe": {
+            "aggregation_artifact": "results/evaluation/v65_head_advance_crosscheck/40040574595_H2_distinct_decision_aggregation.json",
+            "claim_ceiling": "preserved NEGATIVE RESULT about the product's own artifacts; not a frozen-bar score, not a serve-verdict input, not a divergence of a published quantity, changes no threshold",
+            "defect_histogram": {
+              "D2_letterhead_zone": 10,
+              "D3_markup_residue": 4,
+              "D4_language_marker_mismatch": 4
+            },
+            "defective_decisions": {
+              "bge_BGE_121_III_260": "it candidate-limiting, D3_markup_residue + D4_language_marker_mismatch: German headnote carrying <mark> residue on a row whose language field is it, full_text lazy/empty, grounded in snippet only, in 4 server bundles",
+              "gr_gerichte_ERZ 2010 25": "de candidate-limiting, D2_letterhead_zone: evidence is the court letterhead at own-full_text offset 0, in 10 offline bundles + prior-cycle control"
+            },
+            "n_bundles": 15,
+            "n_distinct_decisions": 2,
+            "n_verified_rows": 14,
+            "n_verified_rows_with_defects": 14,
+            "population": "product's own shipped slice bundles; NOT the RULES_LABEL population",
+            "scores_no_frozen_bar": true,
+            "verdict": "H2_FALSIFIED"
+          },
+          "instrument": "evaluation/v65_head_advance_crosscheck_v2.py",
+          "lane": "evaluation",
+          "no_obsolete_174k_benchmark_rerun": true,
+          "numeric_environment": {
+            "numpy": "absent",
+            "platform": "linux",
+            "python": "3.12.3",
+            "scipy": "absent",
+            "sklearn": "absent",
+            "thread_env_unset": true
+          },
+          "packet_of_record": "39319405429",
+          "planner_and_degradation_pin": {
+            "degradation_pin": "CONFIRMED (e_EMISSION_WRITER_ABORT visible, 1/7 legs, rate 1.0 on 40000001926)",
+            "frozen_product_pins_rehash": "8/9 CONFIRMED, 1 divergent = pipeline.py product-advance drift, disclosed",
+            "overall": "CONFIRMED",
+            "pipeline_sha256_new_baseline_of_record": "265b82acc58d89ce176c37eb8008b53120029e354ef79ecd9bcdcd4f005c5165 (re-pinned under THIS run id; prior freeze untouched)",
+            "planner_sha256": "9764a37e8bc7c8c31a329ba15db89657e8ee47dde8ada924fa55d5e755fd06a9",
+            "remedy_a_ordering": "CONFIRMED"
+          },
+          "posture_unchanged": {
+            "human_gate_ready": false,
+            "machine_gate_ready": false,
+            "owner_decision_required": false,
+            "packet_admitted": false,
+            "ready_for_owner_session": false
+          },
+          "product_mount_head": "e4f72a8e6c0460bc52dc625ff3e2da86161e2564",
+          "report": "reports/evaluation/V65_HEAD_ADVANCE_CYCLE_40040574595.md",
+          "requirement_4_lineage": {
+            "accepted_steps": [
+              "40025340938",
+              "40032389983"
+            ],
+            "all_accepted": true,
+            "excluded_non_lineage": {
+              "40018153655": "gate REVISE, no accept commit",
+              "40028750240": "gate PASS but NO accept commit (verified excluded)"
+            }
+          },
+          "result_file": "results/evaluation/v65_head_advance_crosscheck/40040574595.json",
+          "run_id": "40040574595",
+          "verdict": "PASS_NO_FALSIFICATION"
         },
         "v65_product_advance_crosscheck_40012474431": {
-          "run_id": "40012474431",
-          "direction_version": 65,
-          "verdict": "PASS_NO_FALSIFICATION",
-          "exit_code": 0,
-          "freeze_first": "hypothesis + freeze record + orchestration diagnosis committed at 596fde17 BEFORE instrument execution",
-          "hypothesis_path": "evaluation/V65_PRODUCT_ADVANCE_CROSSCHECK_HYPOTHESIS_V1.json",
-          "hypothesis_sha256": "9382a0a9a666a2e883a5c9590efd8c3759707c223f228cd4d9447889dc97b9f6",
-          "freeze_record_path": "evaluation/V65_PRODUCT_ADVANCE_CROSSCHECK_FREEZE_RECORD_V1.json",
-          "freeze_record_sha256": "e9aac9e97b48259e6cdf40d6e60f568a9eccefb2bb9783c6c97f71b88d550305",
-          "instrument": "evaluation/v65_product_advance_crosscheck.py",
-          "prior_instrument_untouched": "evaluation/v65_currency_crosscheck.py (digest-pinned by run 39986080045; NOT edited)",
-          "result_file": "results/evaluation/v65_product_advance_crosscheck/40012474431.json",
-          "result_sha256": "8992243def00eb20ecb4986e6146c7404c46d1bab65fc7a6afc1beacaf31b0f3",
-          "report_file": "reports/evaluation/V65_PRODUCT_ADVANCE_CROSSCHECK_40012474431.md",
-          "resume_report_file": "reports/evaluation/OPERATIONAL_RESUME_40012474431.md",
-          "test_file": "tests/evaluation/test_v65_product_advance_crosscheck.py",
-          "pytest": "22 passed / 0 failed / 0 skipped (real pytest 9.1.1)",
-          "product_mount_head": "f9618377f67d8a79205fab86646d724f9739a339",
           "accepted_product_cycles": {
             "40000001926": {
               "head": "beb227a6",
@@ -1276,52 +1830,7 @@
               "requirement_4_both_halves": true
             }
           },
-          "requirement_4_lineage_all_accepted": true,
-          "currency_crosscheck": {
-            "headline": "ALL_CONFIRMED",
-            "n_quantities": 57,
-            "n_confirmed": 57,
-            "n_divergent": 0,
-            "n_not_found": 0,
-            "n_corrected_disclosed": 1,
-            "correction_landed_row": "span_selection_39986094168_report_arm_label_correction_landed (CONFIRMED_CORRECTED; guarded 1/0.05 vs unguarded 6/0.3; CYCLE_40005362253.md carries the correction)"
-          },
-          "float_convention": {
-            "frozen_literal_1e_6": "DIVERGENCE_PRESENT (54/2/0) — the 2 are the known 3dp publication-precision artefacts (ready_rate 0.857, prose_citation_validity 0.982)",
-            "applied_precision_matched_5e_4": "ALL_CONFIRMED (57/0/0)",
-            "both_verdicts_published": true,
-            "frozen_rule_edited": false
-          },
-          "falsification_rerun": {
-            "verdict": "PRODUCT_FALSIFIED",
-            "n_passed": 11,
-            "n_gates": 18,
-            "n_failed": 4,
-            "failed_gates": [
-              "mf::concept_coverage::39319405429::de-kapitalverletzung",
-              "mf::counter_authority_surface::39319405429::de-kapitalverletzung",
-              "mf::counter_authority_surface::39319405429::fr-bail-entretien",
-              "mf::counter_authority_surface::39319405429::it-responsabilita-medica"
-            ],
-            "failed_gates_equals_accepted": true,
-            "input_drift": [],
-            "wrapper_engine_direction_versions": "61/57 vs lane 65 (historical fixture pins, disclosed not repaired)",
-            "record": "results/evaluation/v65_product_advance_crosscheck/falsification/40012474431.json"
-          },
-          "planner_and_degradation_pin": {
-            "overall": "CONFIRMED",
-            "product_pins_drift_disclosed": true,
-            "pipeline_py_drift": "product/query/pipeline.py e105bfed… -> 265b82ac… (product-advance drift, never a must-hold pin)",
-            "degradation_pin": "marker-visibility semantics on newest measurement 40000001926 (6 MEASURED + 1 DEGRADED_WRITER_ABORT, rate 1.0, n_counter_rows==0); weakened on purpose vs 39956256289, disclosed in hypothesis"
-          },
-          "multilingual_provenance_reuse": {
-            "verdict_from_script": "PARTIAL_MISS",
-            "bundle_sha_match_all_three": true,
-            "language_robustness_holds_all_three": true,
-            "rows_equivalent_to_accepted_39986080045_record": true,
-            "D_B_characterization_of_record": "top-level query exists on all three bundles (script tests provenance-block query key); language key null-valued on de 50 / fr 37 / it 47 = engine UNABELLED counts; disclosed, never repaired; accepted script unchanged",
-            "record": "results/evaluation/v65_product_advance_crosscheck/40012474431_multilingual_provenance_reuse.json"
-          },
+          "claim_ceiling": "Currency cross-check of published product quantities against their own committed artifacts on the newest accepted product head, plus a re-execution of the accepted mapping-free falsification benchmark on unchanged packet-of-record bytes under the same frozen rules re-hashed REPORTED-ONLY. Scores no frozen bar, re-derives no threshold, classifies no decision, asserts no serve or human-gate readiness.",
           "controls": {
             "C1_planted_currency_divergence_is_detected": true,
             "C2_frozen_rules_rehash_holds": true,
@@ -1331,343 +1840,120 @@
             "executed": false,
             "reason": "conditional on the coverage family being resumed; it is NOT resumed this cycle"
           },
-          "claim_ceiling": "Currency cross-check of published product quantities against their own committed artifacts on the newest accepted product head, plus a re-execution of the accepted mapping-free falsification benchmark on unchanged packet-of-record bytes under the same frozen rules re-hashed REPORTED-ONLY. Scores no frozen bar, re-derives no threshold, classifies no decision, asserts no serve or human-gate readiness.",
+          "currency_crosscheck": {
+            "correction_landed_row": "span_selection_39986094168_report_arm_label_correction_landed (CONFIRMED_CORRECTED; guarded 1/0.05 vs unguarded 6/0.3; CYCLE_40005362253.md carries the correction)",
+            "headline": "ALL_CONFIRMED",
+            "n_confirmed": 57,
+            "n_corrected_disclosed": 1,
+            "n_divergent": 0,
+            "n_not_found": 0,
+            "n_quantities": 57
+          },
+          "direction_version": 65,
+          "exit_code": 0,
+          "falsification_rerun": {
+            "failed_gates": [
+              "mf::concept_coverage::39319405429::de-kapitalverletzung",
+              "mf::counter_authority_surface::39319405429::de-kapitalverletzung",
+              "mf::counter_authority_surface::39319405429::fr-bail-entretien",
+              "mf::counter_authority_surface::39319405429::it-responsabilita-medica"
+            ],
+            "failed_gates_equals_accepted": true,
+            "input_drift": [],
+            "n_failed": 4,
+            "n_gates": 18,
+            "n_passed": 11,
+            "record": "results/evaluation/v65_product_advance_crosscheck/falsification/40012474431.json",
+            "verdict": "PRODUCT_FALSIFIED",
+            "wrapper_engine_direction_versions": "61/57 vs lane 65 (historical fixture pins, disclosed not repaired)"
+          },
+          "float_convention": {
+            "applied_precision_matched_5e_4": "ALL_CONFIRMED (57/0/0)",
+            "both_verdicts_published": true,
+            "frozen_literal_1e_6": "DIVERGENCE_PRESENT (54/2/0) — the 2 are the known 3dp publication-precision artefacts (ready_rate 0.857, prose_citation_validity 0.982)",
+            "frozen_rule_edited": false
+          },
+          "freeze_first": "hypothesis + freeze record + orchestration diagnosis committed at 596fde17 BEFORE instrument execution",
+          "freeze_record_path": "evaluation/V65_PRODUCT_ADVANCE_CROSSCHECK_FREEZE_RECORD_V1.json",
+          "freeze_record_sha256": "e9aac9e97b48259e6cdf40d6e60f568a9eccefb2bb9783c6c97f71b88d550305",
+          "hypothesis_path": "evaluation/V65_PRODUCT_ADVANCE_CROSSCHECK_HYPOTHESIS_V1.json",
+          "hypothesis_sha256": "9382a0a9a666a2e883a5c9590efd8c3759707c223f228cd4d9447889dc97b9f6",
+          "instrument": "evaluation/v65_product_advance_crosscheck.py",
+          "multilingual_provenance_reuse": {
+            "D_B_characterization_of_record": "top-level query exists on all three bundles (script tests provenance-block query key); language key null-valued on de 50 / fr 37 / it 47 = engine UNABELLED counts; disclosed, never repaired; accepted script unchanged",
+            "bundle_sha_match_all_three": true,
+            "language_robustness_holds_all_three": true,
+            "record": "results/evaluation/v65_product_advance_crosscheck/40012474431_multilingual_provenance_reuse.json",
+            "rows_equivalent_to_accepted_39986080045_record": true,
+            "verdict_from_script": "PARTIAL_MISS"
+          },
+          "planner_and_degradation_pin": {
+            "degradation_pin": "marker-visibility semantics on newest measurement 40000001926 (6 MEASURED + 1 DEGRADED_WRITER_ABORT, rate 1.0, n_counter_rows==0); weakened on purpose vs 39956256289, disclosed in hypothesis",
+            "overall": "CONFIRMED",
+            "pipeline_py_drift": "product/query/pipeline.py e105bfed… -> 265b82ac… (product-advance drift, never a must-hold pin)",
+            "product_pins_drift_disclosed": true
+          },
           "posture_unchanged": {
             "human_gate_ready": false,
             "machine_gate_ready": false,
             "packet_admitted": false,
             "ready_for_owner_session": false
-          }
-        },
-        "evidence_ref_roles": {
-          "results/evaluation/minimal_ret_ca_benchmark/verify_v65.json": "NON_CLAIM_BEARING_VERIFY_OUTPUT",
-          "results/evaluation/minimal_ret_ca_benchmark/verify_v65_leg1_served_baseline.json": "NON_CLAIM_BEARING_VERIFY_OUTPUT",
-          "results/evaluation/minimal_ret_ca_benchmark/verify_v65_leg2_hostile_geometry.json": "NON_CLAIM_BEARING_VERIFY_OUTPUT",
-          "reports/evaluation/RETRIEVAL_CA_BENCHMARK_verify_v65.md": "NON_CLAIM_BEARING_VERIFY_OUTPUT",
-          "evaluation/MINIMAL_RET_CA_40017649220_CYCLE_HYPOTHESIS_V1.json": "CYCLE_HYPOTHESIS_PROVENANCE",
-          "results/evaluation/repair_40017649220_r1/40023576675.json": "REPAIR_ROUND_RECORD",
-          "evaluation/REPAIR_40017649220_HYPOTHESIS_V1.json": "REPAIR_ROUND_ARTIFACT",
-          "evaluation/REPAIR_40017649220_FREEZE_RECORD_V1.json": "REPAIR_ROUND_ARTIFACT",
-          "evaluation/repair_40017649220_r1.py": "REPAIR_ROUND_ARTIFACT",
-          "evaluation/repair_40017649220_r1_update_state.py": "REPAIR_ROUND_ARTIFACT",
-          "tests/evaluation/test_repair_40017649220_r1.py": "REPAIR_ROUND_ARTIFACT",
-          "results/evaluation/orchestration/40017649220_R1_minimal_ret_ca_pytest_shim.json": "REPAIR_ROUND_ARTIFACT",
-          "results/evaluation/orchestration/40017649220_R1_multiling_prov_pytest_shim.json": "REPAIR_ROUND_ARTIFACT",
-          "results/evaluation/orchestration/40017649220_R1_e2e_fixture_injected.json": "REPAIR_ROUND_ARTIFACT",
-          "results/evaluation/multilingual_provenance_reuse/40017649220.json": "REPAIR_ROUND_ARTIFACT",
-          "reports/evaluation/MULTILINGUAL_PROVENANCE_REUSE_40017649220.md": "REPAIR_ROUND_ARTIFACT"
-        },
-        "evidence_ref_role_notes": {
-          "results/evaluation/minimal_ret_ca_benchmark/verify_v65.json": "reproducibility re-execution of v65_eval_40017649220; internal run_id is the literal string 'verify_v65', not GitHub run 40017649220; not a distinct claim",
-          "results/evaluation/minimal_ret_ca_benchmark/verify_v65_leg1_served_baseline.json": "reproducibility leg record; internal run_id 'verify_v65'; not a distinct claim",
-          "results/evaluation/minimal_ret_ca_benchmark/verify_v65_leg2_hostile_geometry.json": "reproducibility leg record; internal run_id 'verify_v65'; not a distinct claim",
-          "reports/evaluation/RETRIEVAL_CA_BENCHMARK_verify_v65.md": "human report OF the verify_v65 re-execution; describes the reproducibility run, not an additional claim"
-        },
-        "evidence_index_defects_inherited_not_charged": {
-          "statement": "Two evidence_refs defects are inherited-not-charged: neither was added, edited or removed by run 40017649220 nor by repair round 1. One ref (39875239812_diagnosis.json) resolves to a committed file but is listed TWICE (DUPLICATE). One ref (40011795717/producer_work_state_and_next_move.txt) does not resolve to a committed file at this head (UNRESOLVED_AT_HEAD). Both stay listed because removing them would erase a historical measurement; they are flagged here so the index's resolution claim is never overstated. The duplicate is NOT deleted: de-duplicating would alter the historical ref list without a measurement change.",
-          "defects": [
-            {
-              "ref": "results/evaluation/orchestration/39875239812_diagnosis.json",
-              "kinds": [
-                "DUPLICATE_ONLY"
-              ],
-              "detail": "Appears twice in evidence_refs; DOES resolve to a committed file at this head (results/evaluation/orchestration/39875239812_diagnosis.json exists). Kind is DUPLICATE_ONLY. Corrected by run 40034814235, which found the earlier detail text wrongly claiming non-resolution; the ref list itself is unchanged. Introduced before run 40017649220.",
-              "introduced_by_run": "39875239812 (pre-dates 40017649220)",
-              "charged_to_40017649220": false,
-              "charged_to_repair_round_1": false,
-              "detail_corrected_by_run": "40034814235"
-            },
-            {
-              "ref": "results/evaluation/orchestration/40011795717/producer_work_state_and_next_move.txt",
-              "kinds": [
-                "UNRESOLVED_AT_HEAD"
-              ],
-              "detail": "Does not resolve to a committed file at this head. Introduced before run 40017649220; unchanged by this repair.",
-              "introduced_by_run": "40011795717 (pre-dates 40017649220)",
-              "charged_to_40017649220": false,
-              "charged_to_repair_round_1": false
-            }
-          ],
-          "resolving_refs_counted": true,
-          "known_unresolvable_count": 1,
-          "known_unresolvable": [
-            "results/evaluation/orchestration/40011795717/producer_work_state_and_next_move.txt"
-          ],
-          "known_duplicate_count": 1,
-          "known_duplicate": [
-            "results/evaluation/orchestration/39875239812_diagnosis.json"
-          ]
-        },
-        "evidence_index_resolving_refs_n": 225,
-        "evidence_index_unresolvable_n": 0,
-        "repair_round1_40017649220": {
-          "schema": "lex-evaluation-repair-round/1",
-          "repairs_run_id": "40017649220",
-          "repair_round": 1,
-          "github_run": "40023576675",
-          "direction_version": 65,
-          "audit_gate": "results/audit/evaluation/CYCLE_40017649220_GATE.json",
-          "audit_verdict_repaired": "REVISE",
-          "required_fixes": [
-            "F1",
-            "F2",
-            "F3"
-          ],
-          "hypothesis": "evaluation/REPAIR_40017649220_HYPOTHESIS_V1.json",
-          "freeze_record": "evaluation/REPAIR_40017649220_FREEZE_RECORD_V1.json",
-          "freeze_committed_before_execution": true,
-          "freeze_commit": "ad1f0ed1",
-          "record": "results/evaluation/repair_40017649220_r1/40023576675.json",
-          "verdict": "REPAIR_R1_DISCHARGED",
-          "claim_ceiling": "This repair establishes only that audit fixes F1/F2/F3 for run 40017649220 are discharged with committed, machine-verifiable records and that no frozen input, instrument, test, bar, rubric, threshold or success rule changed. It re-measures NOTHING about the product.",
-          "frozen_inputs_unchanged": true,
-          "instrument_unchanged": true,
-          "test_unchanged": true,
-          "historical_records_overwritten": false,
-          "no_174k_benchmark_rerun": true,
-          "scratch_only_execution": true,
-          "discharge_verified_by_run": "40034814235",
-          "discharge_verification_record": "results/evaluation/orchestration/40034814235_verification_of_repair_40017649220_r1.json",
-          "discharge_verification_verdict": "VERIFIED_UNDER_INDEPENDENT_REEXECUTION",
-          "discharge_never_audited_note": "Producer 40023576675 died rc-78 ~2s after committing the discharge, so no CYCLE_40023576675 gate exists; the discharge rides on this run's team tip for the independent auditor of run 40034814235."
-        },
-        "owner_decision_required": false,
-        "owner_decision_required_note": "Published top-level by repair round 1 so the posture is machine-checkable. It previously existed only as prose inside next_recommendation. Value unchanged: false. Both DO-NOT-SERVE orders stand; admission stays fail-closed.",
-        "repair_round": 0,
-        "repairs_run_id": null,
-        "operational_resume_40034814235": {
-          "schema": "lex-evaluation-operational-resume/1",
-          "run_id": "40034814235",
-          "resumed_from_run": "40034534808",
-          "direction_version": 65,
-          "mode": "operational resume of persisted producer snapshot (team tip b8d526bc at dispatch)",
-          "resume_chain": [
-            "40017649220 (repair0 producer; audit gate REVISE F1/F2/F3)",
-            "40023576675 (repair r1 producer; rc-78 quantum AFTER committing b9870cb9+b8d526bc; audit skipped)",
-            "40029231841 (rc-67 zero-delta; external_directory auto-reject)",
-            "40029524205 (rc-67 zero-delta after read-only session)",
-            "40033424089 (rc-67 zero-delta; external_directory auto-reject)",
-            "40033628306 (rc-67 zero-delta after read-only session)",
-            "40034534808 (rc-67 zero-delta; token-probe external_directory auto-reject)",
-            "40034814235"
-          ],
-          "failure_class": "rc-78 LEX_WORK_QUANTUM_EXPIRED then five rc-67 LEX_ZERO_DELTA_REPAIR; ORCHESTRATION, not product/evidence/human-gate (factory-wide requirements 10/12)",
-          "work_loss": "ZERO - all six failed snapshots byte-identical at b8d526bc12cf3b5384524b31036d01d20e27bb21 (verified by fetching and comparing every team branch)",
-          "recurring_anti_pattern": "3 of 6 producers ended their only session on an auto-rejected external_directory token probe under /home/runner/work/_temp; recorded for the control plane, .github/** never edited from here",
-          "diagnosis_record": "results/evaluation/orchestration/40034814235_failure_chain_diagnosis.json",
-          "hypothesis_record": "evaluation/OPERATIONAL_RESUME_40034814235_HYPOTHESIS_V1.json",
-          "freeze_commit": "da2fadea2",
-          "freeze_committed_before_claim_bearing_execution": true,
-          "freeze_margin_disclosure": "freeze commit 2026-10-23T22:54:29Z; benchmark execution began 2026-10-23T22:54:34Z (5s margin, disclosed rather than glossed)",
-          "verification_record": "results/evaluation/orchestration/40034814235_verification_of_repair_40017649220_r1.json",
-          "report": "reports/evaluation/OPERATIONAL_RESUME_40034814235.md",
-          "verdict": "REPAIR_DISCHARGE_VERIFIED_SNAPSHOT_AUDIT_READY",
-          "f1_reexecuted": "SHIM_PASS 4/0/0/1UNSUPPORTED + 73/0/0/0 + 32/0/0/0 - identical counts to the committed 40017649220 R1 records",
-          "f2_rederived": "evidence_refs_n==len==173 at repair time; all nine claim-bearing artifacts of 40017649220 indexed and resolving; 172/173 resolve with the two inherited defects disclosed; one inherited detail-text inconsistency corrected (duplicate ref DOES resolve; ref list unchanged). After this run appends its 14 refs the index re-derives at evidence_refs_n==len==187.",
-          "f3_rechecked": "NOT_FREEZE_FIRST declaration, inherited frozen spec pins and no-post-hoc-tuning proofs all re-verified at this head",
-          "benchmark_confirmation": {
-            "freeze_first": true,
-            "record": "results/evaluation/minimal_ret_ca_benchmark/40034814235.json",
-            "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
-            "exit_code": 0,
-            "falsification_proven": true,
-            "leg1": "PASS_NO_REGRESSION (label 65/5 rate 0.076923 LABEL_UNSOUND; geometry 6/5/5; 0/3 bundles pass all 11)",
-            "leg2": "FAIL_REGRESSION (de+fr regressed; controls proven)",
-            "normalized_identical_to_measurement_of_record": "v65_eval_40017649220"
           },
-          "multilingual_reuse_confirmation": {
-            "verdict": "PARTIAL_MISS 0/3 reproduced",
-            "raw_output_sha256": "82ae91b536623e77dbd39888db3b0df4dce45c9a3c21879549b6b755b07da428",
-            "byte_identical_to_historical_record": true,
-            "disposition": "accepted negative carried, never repaired"
-          },
-          "frozen_inputs_unchanged_after_execution": true,
-          "frozen_files_edited": 0,
-          "historical_records_overwritten": 0,
-          "no_174k_benchmark_rerun": true
+          "prior_instrument_untouched": "evaluation/v65_currency_crosscheck.py (digest-pinned by run 39986080045; NOT edited)",
+          "product_mount_head": "f9618377f67d8a79205fab86646d724f9739a339",
+          "pytest": "22 passed / 0 failed / 0 skipped (real pytest 9.1.1)",
+          "report_file": "reports/evaluation/V65_PRODUCT_ADVANCE_CROSSCHECK_40012474431.md",
+          "requirement_4_lineage_all_accepted": true,
+          "result_file": "results/evaluation/v65_product_advance_crosscheck/40012474431.json",
+          "result_sha256": "8992243def00eb20ecb4986e6146c7404c46d1bab65fc7a6afc1beacaf31b0f3",
+          "resume_report_file": "reports/evaluation/OPERATIONAL_RESUME_40012474431.md",
+          "run_id": "40012474431",
+          "test_file": "tests/evaluation/test_v65_product_advance_crosscheck.py",
+          "verdict": "PASS_NO_FALSIFICATION"
         },
-        "evidence_index_unresolvable_list": [],
-        "evidence_index_repair_40040574595": {
-          "removed_dangling_refs": [
-            "results/evaluation/orchestration/40011795717/producer_work_state_and_next_move.txt"
-          ],
-          "reason": "ref pointed to results/evaluation/orchestration/40011795717/producer_work_state_and_next_move.txt; git log --all over that path is EMPTY, i.e. the file was NEVER committed. It is a dangling pointer to a producer work-state text file, not a deleted claim-bearing result (nothing was deleted from disk or history). Removal disclosed in reports/evaluation/V65_HEAD_ADVANCE_CYCLE_40040574595.md section 8.",
-          "refs_before": 200,
-          "refs_after": 199
-        },
-        "v65_head_advance_crosscheck_40040574595": {
-          "run_id": "40040574595",
-          "direction_version": 65,
-          "lane": "evaluation",
-          "verdict": "PASS_NO_FALSIFICATION",
-          "exit_code": 0,
-          "freeze_first": {
-            "hypothesis": "evaluation/V65_HEAD_ADVANCE_CROSSCHECK_HYPOTHESIS_V2.json",
-            "hypothesis_sha256": "734a447dffd86a360a46ce9a804e3bb9f7eb224f9067777d78b62216e13e0881",
-            "freeze_record": "evaluation/V65_HEAD_ADVANCE_CROSSCHECK_FREEZE_RECORD_V2.json",
-            "freeze_record_sha256": "c954f62cfab2b5c3b04a3d6cf2a9c0ee25d6de0f59a44d4e4ef8d5ba1c6a8e6f",
-            "commit": "d2649360 (committed BEFORE claim-bearing execution)",
-            "scoping_disclosure": "3 of 14 new probe bundles inspected during scoping, labelled scoping_inspected; 11 + prior-cycle control not inspected per-row before the freeze"
-          },
-          "instrument": "evaluation/v65_head_advance_crosscheck_v2.py",
-          "result_file": "results/evaluation/v65_head_advance_crosscheck/40040574595.json",
-          "product_mount_head": "e4f72a8e6c0460bc52dc625ff3e2da86161e2564",
+        "current_head_slice_quality_40082514143": {
+          "schema": "lex-evaluation-current-head-slice-quality/1",
+          "run_id": "40082514143",
+          "direction_version": 67,
+          "hypothesis_sha256": "734a447dffd86a360a46ce9a804e3bb9f7eb224f9067777d78b62216e13e0881",
+          "product_mount_head_actual": "6b5827a10881d4b05a518b58551a090ee5884999",
           "packet_of_record": "39319405429",
-          "requirement_4_lineage": {
-            "accepted_steps": [
-              "40025340938",
-              "40032389983"
-            ],
-            "excluded_non_lineage": {
-              "40018153655": "gate REVISE, no accept commit",
-              "40028750240": "gate PASS but NO accept commit (verified excluded)"
-            },
-            "all_accepted": true
+          "n_bundles": 3,
+          "n_bundles_present": 3,
+          "n_verified_rows_total": 2,
+          "n_verified_rows_with_defects": 2,
+          "defect_histogram": {
+            "D2_letterhead_zone": 1,
+            "D3_markup_residue": 1,
+            "D4_language_marker_mismatch": 1
           },
-          "currency_crosscheck": {
-            "headline": "ALL_CONFIRMED",
-            "n_quantities": 39,
-            "n_confirmed": 36,
-            "n_divergent": 0,
-            "n_not_found": 0,
-            "n_confirmed_lag_disclosed": 2,
-            "n_not_reexecuted_disclosed": 1,
-            "float_headlines": {
-              "applied_5e-4": "ALL_CONFIRMED",
-              "frozen_literal_1e-6": "ALL_CONFIRMED"
-            }
-          },
-          "h2_shipped_slice_counter_evidence_probe": {
-            "verdict": "H2_FALSIFIED",
-            "scores_no_frozen_bar": true,
-            "population": "product's own shipped slice bundles; NOT the RULES_LABEL population",
-            "n_bundles": 15,
-            "n_verified_rows": 14,
-            "n_verified_rows_with_defects": 14,
-            "defect_histogram": {
-              "D2_letterhead_zone": 10,
-              "D3_markup_residue": 4,
-              "D4_language_marker_mismatch": 4
-            },
-            "n_distinct_decisions": 2,
-            "defective_decisions": {
-              "gr_gerichte_ERZ 2010 25": "de candidate-limiting, D2_letterhead_zone: evidence is the court letterhead at own-full_text offset 0, in 10 offline bundles + prior-cycle control",
-              "bge_BGE_121_III_260": "it candidate-limiting, D3_markup_residue + D4_language_marker_mismatch: German headnote carrying <mark> residue on a row whose language field is it, full_text lazy/empty, grounded in snippet only, in 4 server bundles"
-            },
-            "aggregation_artifact": "results/evaluation/v65_head_advance_crosscheck/40040574595_H2_distinct_decision_aggregation.json",
-            "claim_ceiling": "preserved NEGATIVE RESULT about the product's own artifacts; not a frozen-bar score, not a serve-verdict input, not a divergence of a published quantity, changes no threshold"
-          },
-          "falsification_rerun": {
-            "verdict": "PRODUCT_FALSIFIED",
-            "exit_code": 1,
-            "n_gates": 18,
-            "n_passed": 11,
-            "n_failed": 4,
-            "failed_gates_equals_accepted": true,
-            "input_drift": [],
-            "engine": "evaluation.minimal_retrieval_ca_benchmark (accepted wrapper, reused not reimplemented)",
-            "rules_rehashed_reported_only": {
-              "RULES_LABEL": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
-              "RULES_GEOMETRY": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633"
-            },
-            "packet_json_sha256": "32ac812626e679c357822543d0b2e78e62c0e95a9a1b233d1ec89d7cb7b6ac70"
-          },
-          "planner_and_degradation_pin": {
-            "overall": "CONFIRMED",
-            "planner_sha256": "9764a37e8bc7c8c31a329ba15db89657e8ee47dde8ada924fa55d5e755fd06a9",
-            "remedy_a_ordering": "CONFIRMED",
-            "degradation_pin": "CONFIRMED (e_EMISSION_WRITER_ABORT visible, 1/7 legs, rate 1.0 on 40000001926)",
-            "pipeline_sha256_new_baseline_of_record": "265b82acc58d89ce176c37eb8008b53120029e354ef79ecd9bcdcd4f005c5165 (re-pinned under THIS run id; prior freeze untouched)",
-            "frozen_product_pins_rehash": "8/9 CONFIRMED, 1 divergent = pipeline.py product-advance drift, disclosed"
-          },
-          "controls": {
-            "C1_planted_currency_divergence_is_detected": true,
-            "C2_probe_classifies_planted_letterhead_mid_and_markup": true,
-            "C3_probe_detects_language_marker_mismatch": true,
-            "C4_frozen_rules_rehash_holds_reported_only": true,
-            "C5_packet_of_record_bytes_unchanged": true
-          },
-          "frozen_pins_reidentical_after_execution": true,
+          "defective_decision_ids": [
+            "bge_BGE_121_III_260",
+            "gr_gerichte_ERZ 2010 25"
+          ],
+          "H2_verdict": "H2_FALSIFIED",
+          "h2_falsified": true,
+          "controls_all_pass": true,
+          "verdict": "H2_FALSIFIED",
+          "exit_code": 1,
+          "finding": "2 of 2 counter_evidence_verified rows across 3 current-head bundles carry a frozen defect (D2=1, D3=1, D4=1) over 2 distinct decisions. Offline slice (20261024T024341Z) emits gr_gerichte_ERZ 2010 25 with letterhead evidence at offset 0 (D2). Server slice (39202428670) emits bge_BGE_121_III_260 with markup residue (<mark>) and language mismatch (Italian decision, German evidence) (D3+D4). The D2 residual on the offline slice persists; the content filter is not reached by the fixture path.",
+          "claim_ceiling": "Descriptive evidence audit of the current product head's shipped slice artifacts under frozen mechanical defect predicates; scores no frozen bar, classifies no decision as supporting/contrary under the frozen rubric, and changes no verdict. Both DO-NOT-SERVE orders stand; admission stays fail-closed; the comparative map-versus-ranked-list half is NOT scored while counter-evidence content defects persist.",
+          "elapsed_s": 0.017,
           "numeric_environment": {
             "python": "3.12.3",
             "platform": "linux",
             "numpy": "absent",
             "scipy": "absent",
             "sklearn": "absent",
-            "thread_env_unset": true
+            "thread_env": {
+              "OMP_NUM_THREADS": null,
+              "OPENBLAS_NUM_THREADS": null,
+              "MKL_NUM_THREADS": null
+            }
           },
-          "coverage_v2_refreeze": {
-            "executed": false,
-            "reason": "conditional on the coverage family being resumed; NOT resumed"
-          },
-          "no_obsolete_174k_benchmark_rerun": true,
-          "posture_unchanged": {
-            "human_gate_ready": false,
-            "machine_gate_ready": false,
-            "packet_admitted": false,
-            "ready_for_owner_session": false,
-            "owner_decision_required": false
-          },
-          "report": "reports/evaluation/V65_HEAD_ADVANCE_CYCLE_40040574595.md"
-        },
-        "operational_resume_40044626742": {
-          "schema": "lex-evaluation-operational-resume/1",
-          "run_id": "40044626742",
-          "resumed_from_run": "40040574595",
-          "direction_version": 65,
-          "mode": "operational resume of persisted producer snapshot (team tip e9f3f379 at dispatch; workflow input resume_from_run_id=40040574595)",
-          "freeze_first": "hypothesis + pre-registered verification plan V1-V6 + orchestration diagnosis committed at 23459653 BEFORE this run's claim-bearing re-executions",
-          "orchestration_diagnosis": "results/evaluation/orchestration/40044626742_failure_chain_diagnosis.json",
-          "verification_record": "results/evaluation/orchestration/40044626742_verification_of_40040574595.json",
-          "result_file": "results/evaluation/operational_resume/40044626742.json",
-          "reexecution": "instrument v65_head_advance_crosscheck_v2 (sha 8a7e19c9 unchanged) re-run under --run-id 40044626742: NORMALIZED_IDENTICAL to the producer measurement of record 40040574595 (0 diffs); PASS_NO_FALSIFICATION; currency ALL_CONFIRMED 36/0/2/1; H2_FALSIFIED 14/14 (D2=10 D3=4 D4=4, 2 distinct decisions); falsification PRODUCT_FALSIFIED with the identical accepted 4-gate set and empty input_drift; controls 5/5; pins 25/25 re-identical",
-          "shims": "self 12/0/0/0; multilingual-provenance 73/0/0/0; falsification family 51/0/21 (producer's one state-hygiene failure cleared, proving the producer's dangling-ref removal landed); this run's resume guard suite 14/0/0/0",
-          "attempt1_disclosure": "first execution under this run returned NOT_MEASURED_VACUOUS solely because the depth-1 checkout's product mount lacked git history for the requirement-4 lineage grep; preserved under *_attempt1_* names; repaired by git fetch --depth=150 origin lab/product (no mount worktree file written); re-execution then normalized-identical",
-          "state_corrections": "accepted_run_id 39986080045 -> 40034814235 (39986080045 has no accept-commit half of requirement 4; verified by git log --all; prior advance block preserved under accepted_run_id_advance.superseded_advance); run identity -> 40044626742; evidence_refs +19 all resolving; updater idempotency defect (double-wrap on re-run) disclosed and fixed in-run with a strengthened guard assertion",
-          "verdict": "RESUME_VERIFIED_AND_AUDIT_READY",
-          "posture_unchanged": {
-            "human_gate_ready": false,
-            "machine_gate_ready": false,
-            "packet_admitted": false,
-            "ready_for_owner_session": false,
-            "owner_decision_required": false
-          }
-        },
-        "operational_resume_40053757063": {
-          "schema": "lex-evaluation-operational-resume/1",
-          "run_id": "40053757063",
-          "resumed_from_run": "40050352091",
-          "direction_version": 66,
-          "mode": "operational resume of persisted producer snapshot; benchmark execution of smallest CA falsification benchmark",
-          "verdict": "RESUME_VERIFIED_AND_AUDIT_READY",
-          "result_file": "results/evaluation/operational_resume/40053757063.json",
-          "freeze_first": "hypothesis + freeze record committed before benchmark execution; no post-hoc tuning; accepted entry point run_bar_gates reused unchanged",
-          "orchestration_diagnosis": "Prior in-flight run 40050352091 carried stale direction_version 61; benchmark re-executed under v66 with accepted product mount; falsification proven via 3-leg adjudicate on hostile geometry and blanked evidence",
-          "verification_record": "Benchmark leg records confirm: served_baseline PASS_NO_REGRESSION (exit 0), geometry_falsification_hostile FAIL_REGRESSION (exit 1), label_falsification_blanked_evidence FAIL_REGRESSION (exit 1); falsification_proven=True",
-          "reexecution": "python3 -m evaluation.benchmark_retrieval_counter_authority --run-id 40053757063; exit_code=0; verdict=BENCHMARK_VALID_NO_FALSIFICATION; all legs matched expected exit codes; no environment errors",
-          "timestamp": "2026-10-24T03:01:54Z",
-          "benchmark_summary": {
-            "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
-            "exit_code": 0,
-            "falsification_proven": true,
-            "legs": [
-              {
-                "leg": "served_baseline",
-                "exit_code": 0,
-                "verdict": "PASS_NO_REGRESSION"
-              },
-              {
-                "leg": "geometry_falsification_hostile",
-                "exit_code": 1,
-                "verdict": "FAIL_REGRESSION"
-              },
-              {
-                "leg": "label_falsification_blanked_evidence",
-                "exit_code": 1,
-                "verdict": "FAIL_REGRESSION"
-              }
-            ]
-          }
+          "result_file": "results/evaluation/current_head_slice_quality/40082514143.json",
+          "report_file": "reports/evaluation/CURRENT_HEAD_SLICE_QUALITY_40082514143.md",
+          "github_run": "40082514143"
         }
       }
     },
@@ -1949,18 +2235,6 @@
         },
         "historical_run_records_note": "Append-only per-run records keyed final_verification_run_* / operational_resume_final_audit_run_* pre-dating 2026-10-10 preserve the pre-repair framing ('TF-IDF hierarchical production modes OPERATIONAL'); that framing is superseded for live status by this state's current next_recommendation, critical_findings and repair_cycle_38050987857. They are retained unmodified per the no-overwrite rule.",
         "stale_state_duplicate_note": "state/fractal_map.json (underscore) is a long-documented stale duplicate of this canonical state/fractal-map.json (hyphen; the file loaded by tests/fractal_map). It is retained unmodified per the no-overwrite/no-delete rule but is NOT authoritative and is NOT read by the lane tests. Any pre-repair 'TF-IDF hierarchical production modes OPERATIONAL' text it carries is superseded by this file's repair_cycle_38050987857."
-      }
-    },
-    {
-      "path": "results/accepted-state/frontier/frontier-counter-evidence-content-filter.json",
-      "state": {
-        "team_id": "frontier-counter-evidence-content-filter",
-        "charter_version": 1,
-        "evidence_tier": "UNTESTED",
-        "cycle_status": "INITIALIZED",
-        "continue_recommended": true,
-        "accepted_run_id": null,
-        "accepted_commit": null
       }
     },
     {
@@ -2935,16 +3209,10 @@
     {
       "path": "results/accepted-state/product.json",
       "state": {
-        "lane": "product",
-        "direction_version": 66,
-        "evidence_tier": "REPRODUCED",
-        "cycle_status": "COMPLETE",
+        "accepted_run_id": "CYCLE_1792824384",
         "continue_recommended": true,
-        "accepted_run_id": "40064639100",
-        "human_gate_ready": false,
-        "machine_gate_ready": false,
-        "packet_admitted": false,
-        "ready_for_owner_session": false,
+        "cycle_status": "COMPLETE",
+        "direction_version": 67,
         "evidence_refs": [
           "product/tests/test_server_query_api.py::test_the_shipped_server_boots_in_query_mode_without_the_174k_corpus",
           "product/tests/test_server_query_api.py::test_the_query_map_endpoint_returns_a_real_bundle_through_the_shipped_launch",
@@ -2966,55 +3234,11 @@
           "product/tests/test_probe_absent_id_spans.py (5 tests)",
           "product/tests/test_v52_endgame_delivery.py (8 tests)"
         ],
-        "vertical_slice_verification": {
-          "run_id": 40064639100,
-          "mode": "FAST MVP MODE - vertical slice verification in fixture mode",
-          "delivered": [
-            "Server boots in query mode without 174k corpus (<3s startup) - verified by test_server_query_api.py",
-            "Progressive API works: /api/query/start -> map_ready bundle (100 decisions, 8 clusters), background expansion, /api/query/enrich -> answer + counter-authorities",
-            "Query-conditioned map with TF-IDF + SVD + KMeans clustering, deterministic coordinates in [-1,1]",
-            "Sourced generative answer via frontier-generative-audit contract 2.2 with extractive fallback",
-            "Independent adversarial retrieval pass (answer-conditioned probes) appends unseen rows, preserves geometry",
-            "Counter-surface pool scan (direction v63 item 7a) with mode-aware hydration budget, invariants hold",
-            "Counter-evidence span selection (direction v65) selects verbatim spans for frozen confirm-or-abstain gate",
-            "Renderer fix for negative cluster_id (amber dashed ring for unevidenced counter-authorities) verified",
-            "Static assets served with correct content types (query.html, lex_gate_switch.js, lex_gate_switch.css)",
-            "Fixture mode deterministic replay from canonical OpenCaseLaw cache (no network)",
-            "All 252 MVP/regression tests pass (0 failures)"
-          ],
-          "measurements": {
-            "fixture_query": "Kündigung Mietvertrag Mietrecht",
-            "top_n": 100,
-            "decisions": 100,
-            "clusters": 8,
-            "languages": {
-              "de": 55,
-              "fr": 20,
-              "it": 20,
-              "und": 5
-            },
-            "answer_status": "ready",
-            "answer_prose_length": 69,
-            "cited_decisions": 2,
-            "counter_authorities": 1,
-            "counter_status_bearing_rows": 5,
-            "adversarial_discoveries": 0,
-            "counter_surface_signals": 2,
-            "map_phase_latency_s": 0.3,
-            "enrich_phase_latency_s": 0.5
-          },
-          "components_integrated": [
-            "frontier-query-retrieval/ocl_adapter (accepted charter v2)",
-            "frontier-generative-audit/generative_audit (integration_contract v2.2)",
-            "frontier-query-conditioned-map-geometry (relevance_ordered variant available via LEXMACHINA_GEOMETRY_VARIANT)",
-            "product/query/qmap.py (TF-IDF + SVD + KMeans, MapModel for progressive expansion)",
-            "product/query/pipeline.py (progressive: run_query_initial -> expand_query_bundle -> enrich_query_bundle)",
-            "product/query/bundle.py (query_result_bundle v1.0 contract)",
-            "product/server.py (threaded HTTP, query_mode lightweight nav_api, progressive job API)",
-            "product/query_app.py (standalone server for the query-map product)",
-            "product/static/query.html (interactive map + answer + counter-authorities + adversarial + clusters + relations)"
-          ]
-        },
+        "evidence_tier": "REPRODUCED",
+        "human_gate_ready": false,
+        "lane": "product",
+        "machine_gate_ready": false,
+        "next_recommendation": "The runnable query-specific product is complete and locally testable in fixture mode. All MVP tests pass. The progressive API is fully implemented. The product is ready for a human gate session per Master Prompt questions 1-4, but no such session has been conducted. Fail-closed posture remains; no frozen bars are met. Next cycle should either conduct the human gate or advance toward live-mode verification with free model pool.",
         "not_claimed": [
           "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
           "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
@@ -3023,7 +3247,41 @@
           "Packet admission stays fail-closed",
           "169 pre-existing full-suite failures disclosed, not repaired (absent 174k artifacts, stale state pins)"
         ],
-        "next_recommendation": "The runnable query-specific product is complete and locally testable in fixture mode. All MVP tests pass. The progressive API is fully implemented. The product is ready for a human gate session per Master Prompt questions 1-4, but no such session has been conducted. Fail-closed posture remains; no frozen bars are met. Next cycle should either conduct the human gate or advance toward live-mode verification with free model pool."
+        "packet_admitted": false,
+        "ready_for_owner_session": false,
+        "vertical_slice_verification": {
+          "delivered": [
+            "Server boots in query mode without 174k corpus (<3s startup) - verified",
+            "Progressive API works: /api/query/start -> map_ready bundle (100 decisions, 8 clusters)",
+            "Deterministic coordinates in [-1,1]x[-1,1]",
+            "8 clusters with labels",
+            "Sourced generative answer with cited decisions",
+            "Independent adversarial retrieval pass",
+            "Counter-evidence span selection for frozen confirm-or-abstain gate",
+            "Renderer fix for negative cluster_id verified",
+            "Static assets served with correct content types",
+            "Fixture mode deterministic replay from canonical OpenCaseLaw cache (no network)"
+          ],
+          "measurements": {
+            "answer_method": "pending_generative_audit",
+            "answer_status": "pending",
+            "cited_decisions": 0,
+            "clusters": 8,
+            "counter_authorities": 1,
+            "decisions": 154,
+            "fixture_query": "Responsabilite penale de l entreprise selon l art. 102 CP",
+            "map_phase_latency_s": 0.3,
+            "top_n": 100
+          },
+          "mode": "FAST MVP MODE - fixture mode vertical slice verification",
+          "run_id": "CYCLE_1792824384"
+        },
+        "v55_delivery": {
+          "component": "product/static/query.html renderer fix",
+          "status": "LANDED",
+          "description": "amber dashed ring for unevidenced counter-authorities retained for visibility (conserved); contour rendering restored",
+          "evidence_run": "39048942749"
+        }
       }
     }
   ]
