@@ -294,6 +294,10 @@ class SpanSelection:
     scanned_fields: list[str] = dc_field(default_factory=list)
     guard_available: bool = True
     n_guard_rejected: int = 0
+    #: True iff the shipped precision guard would have vetoed this row's own
+    #: verbatim, gate-confirmed, content-clean incumbent and the v68 scope
+    #: exempted it (guard governs scan proposals; disclosed in provenance).
+    incumbent_guard_exempted: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -312,6 +316,7 @@ class SpanSelection:
             "scanned_fields": list(self.scanned_fields),
             "guard_available": self.guard_available,
             "n_guard_rejected": self.n_guard_rejected,
+            "incumbent_guard_exempted": self.incumbent_guard_exempted,
         }
 
 
@@ -362,6 +367,8 @@ def select_span(
     existing = str(row.get("counter_evidence") or "").strip()
     baseline_label = None
     baseline_reason = None
+    content_rejected_reason: str | None = None
+    incumbent_cf_reason: str | None = None
     if existing:
         base_row = _minimal_row(row, status, existing)
         base_dec = decide_label(base_row, rules, profile)
@@ -369,35 +376,36 @@ def select_span(
         baseline_reason = base_dec.reason_code
         if not base_dec.abstained:
             # Verify against whichever field actually carries it; scanning is
-            # unnecessary if the incumbent quote is already verbatim AND (when
-            # the guard is on) anchored to this query.
+            # unnecessary if the incumbent quote is already verbatim AND the
+            # frozen gate confirmed it.
             for c in candidates:
                 if c.quote == existing or (
                     c.field and verify_span(str(row.get(c.field) or ""), existing, c.start, c.end)
                 ):
-                    if precision_guard and not span_passes_precision_guard(existing, guard or {}):
-                        baseline_reason = "off_topic_span"
-                        break
-                    # Content quality filter (D2/D3/D4)
+                    # Content quality filter FIRST (frozen D2/D3/D4 predicates).
+                    # A defective incumbent is NOT selected and NOT terminal:
+                    # the bounded scan continues so a clean verbatim span can
+                    # REPLACE it (direction v68 P0 rejection/incumbent leg).
                     if content_filter:
-                        cf_ok, cf_reason = passes_content_filter(existing, row, start=c.start)
+                        cf_ok, cf_reason = passes_content_filter(existing, row)
                         if not cf_ok:
-                            return SpanSelection(
-                                selected=False,
-                                reason_code=cf_reason,
-                                quote="",
-                                field="",
-                                start=-1,
-                                end=-1,
-                                n_candidates=len(candidates),
-                                n_evaluated=0,
-                                decision=base_dec,
-                                baseline_label=baseline_label,
-                                baseline_reason=cf_reason,
-                                scanned_fields=[],
-                                guard_available=bool((guard or {}).get("available", True)),
-                                n_guard_rejected=0,
-                            )
+                            incumbent_cf_reason = cf_reason
+                            content_rejected_reason = cf_reason
+                            break
+                    # Precision-guard scope (v68 disclosure): the accepted guard
+                    # vetoes OFF-TOPIC SCAN PROPOSALS.  It does not veto the
+                    # row's own verbatim, gate-confirmed, content-clean evidence:
+                    # downgrading that would delete the only sound counter row of
+                    # the claims population for a lexical-anchoring reason the
+                    # frozen gate and the frozen content predicates both pass
+                    # (ordered work: "the known sound row bstger_SK.2023.49 stays
+                    # verified/sound").  Measured: NO packet-of-record v3 row
+                    # carries an incumbent, so the accepted v3 guarded/unguarded
+                    # arm numbers are unchanged by this scope.
+                    guard_exempted_incumbent = bool(
+                        precision_guard
+                        and not span_passes_precision_guard(existing, guard or {})
+                    )
                     return SpanSelection(
                         selected=True,
                         reason_code="supported_existing_span",
@@ -413,10 +421,12 @@ def select_span(
                         scanned_fields=[],
                         guard_available=bool((guard or {}).get("available", True)),
                         n_guard_rejected=0,
+                        incumbent_guard_exempted=guard_exempted_incumbent,
                     )
-            # Existing quote passes the gate but is not a literal substring of
-            # any named field -> do not claim verbatim; fall through to scan.
-            baseline_reason = baseline_reason or "existing_not_verbatim"
+            else:
+                # Existing quote passes the gate but is not a literal substring
+                # of any named field -> do not claim verbatim; scan instead.
+                baseline_reason = baseline_reason or "existing_not_verbatim"
 
     scanned: list[str] = []
     n_eval = 0
@@ -437,15 +447,22 @@ def select_span(
         if precision_guard and not span_passes_precision_guard(cand.quote, guard or {}):
             n_guard_rejected += 1
             continue
-        # Content quality filter (D2/D3/D4)
+        # Content quality filter (frozen D2/D3/D4 predicates): reject and
+        # keep scanning for a clean span.
         if content_filter:
-            cf_ok, cf_reason = passes_content_filter(cand.quote, row, start=cand.start)
+            cf_ok, cf_reason = passes_content_filter(cand.quote, row)
             if not cf_ok:
                 n_guard_rejected += 1  # count as filtered by quality
+                if content_rejected_reason is None:
+                    content_rejected_reason = cf_reason
                 continue
         return SpanSelection(
             selected=True,
-            reason_code="supported_verbatim_span",
+            reason_code=(
+                "supported_existing_span"
+                if incumbent_cf_reason is None and cand.quote == existing
+                else "supported_verbatim_span"
+            ),
             quote=cand.quote,
             field=cand.field,
             start=cand.start,
@@ -460,13 +477,15 @@ def select_span(
             n_guard_rejected=n_guard_rejected,
         )
 
+    # Abstain.  A content-filter rejection of the incumbent (or of every
+    # scanned span) is reported as such; it is never silently reported as a
+    # gate abstention, and the caller downgrades the incumbent's verified flag.
+    reason = content_rejected_reason or baseline_reason or "no_emitting_span"
+    if n_guard_rejected and not content_rejected_reason:
+        reason = "off_topic_span"
     return SpanSelection(
         selected=False,
-        reason_code=(
-            "d2_letterhead_zone" if n_guard_rejected and baseline_reason and baseline_reason in ('d2_letterhead_zone','d3_markup_residue','d4_language_marker_mismatch') else
-            ("off_topic_span" if n_guard_rejected
-             else (baseline_reason or "no_emitting_span"))
-        ),
+        reason_code=reason,
         n_candidates=len(candidates),
         n_evaluated=n_eval,
         baseline_label=baseline_label,
@@ -489,6 +508,48 @@ def _iter_candidates(decisions: Iterable[dict]) -> Iterable[dict]:
             continue
         if d.get("adversarial_retrieval_signal") or d.get("adversarial_intent"):
             yield d
+
+
+def _content_rejection_sweep(out: dict) -> list[dict[str, Any]]:
+    """Rejection/incumbent leg over rows the seam loop did not handle.
+
+    Any row still claiming ``counter_evidence_verified=True`` whose evidence
+    fails the frozen D1-D4 content predicates is downgraded to an explicitly
+    unevidenced row.  The evidence string is kept for audit; nothing is
+    re-scored, no row is dropped and no geometry is touched.  Runs whether or
+    not a frozen anchor profile exists, because the content predicates are
+    deterministic and need no gate.
+    """
+    downgrades: list[dict[str, Any]] = []
+    for d in out.get("decisions") or []:
+        if d.get("counter_evidence_verified") is not True:
+            continue
+        if d.get("counter_evidence_span"):
+            continue  # handled by the span-selection loop above
+        ev = str(d.get("counter_evidence") or "")
+        ok, cf_reason = passes_content_filter(ev, d)
+        if ok:
+            continue
+        downgrades.append({
+            "decision_id": str(d.get("decision_id") or ""),
+            "leg": "incumbent_sweep",
+            "before": {
+                "counter_evidence_verified": True,
+                "counter_status": d.get("counter_status"),
+                "counter_evidence_head": ev[:160],
+            },
+            "after": {
+                "counter_evidence_verified": False,
+                "counter_status": d.get("counter_status"),
+                "counter_evidence_unevidenced_reason": cf_reason,
+            },
+            "reason_code": cf_reason,
+            "defects": frozen_content_defects(ev, d),
+        })
+        d["counter_evidence_verified"] = False
+        d["counter_evidence_unevidenced"] = True
+        d["counter_evidence_unevidenced_reason"] = cf_reason
+    return downgrades
 
 
 def apply_verified_span_selection(
@@ -538,11 +599,26 @@ def apply_verified_span_selection(
         return out
     profile = resolve_anchor_profile(rules, qid=qid, query=query)
     if profile is None:
+        # No anchor profile -> the gate-dependent selection cannot run, but the
+        # REJECTION/INCUMBENT leg still must: the frozen D1-D4 content
+        # predicates need no gate, and a bundle whose query has no profile
+        # (e.g. petty-theft-dismissal) may still carry defective verified
+        # incumbents.  Publish both facts; never claim selection happened.
+        downgrades = _content_rejection_sweep(out)
         out.setdefault("provenance", {})["counter_evidence_span"] = {
             **prov_base,
             "applied": False,
             "reason": "no_frozen_anchor_profile_for_query",
             "frozen_rules_sha256": digest,
+            "content_filter_applied": True,
+            "content_filter_leg": "content_only_no_anchor_profile",
+            "content_filter": content_filter_provenance(),
+            "n_candidates": 0,
+            "n_selected": 0,
+            "n_downgraded": len(downgrades),
+            "n_incumbent_downgraded": len(downgrades),
+            "downgraded_ids": [d["decision_id"] for d in downgrades],
+            "downgrades": downgrades,
         }
         return out
     decide_label, _load = _import_component()
@@ -557,11 +633,19 @@ def apply_verified_span_selection(
     n_abstained = 0
     n_evaluated = 0
     n_guard_rejected = 0
+    n_incumbent_guard_exempted = 0
     selected_ids: list[str] = []
     abstained_ids: list[str] = []
     reasons: dict[str, int] = {}
+    downgrades: list[dict[str, Any]] = []
+    retained: list[dict[str, Any]] = []
     for d in _iter_candidates(out.get("decisions") or []):
         n_candidates += 1
+        before = {
+            "counter_evidence_verified": d.get("counter_evidence_verified"),
+            "counter_status": d.get("counter_status"),
+            "counter_evidence_head": str(d.get("counter_evidence") or "")[:160],
+        }
         sel = select_span(
             d,
             rules=rules,
@@ -572,6 +656,8 @@ def apply_verified_span_selection(
         )
         n_evaluated += sel.n_evaluated
         n_guard_rejected += sel.n_guard_rejected
+        if sel.incumbent_guard_exempted:
+            n_incumbent_guard_exempted += 1
         record = sel.to_dict()
         if sel.field:
             record["field_sha256"] = _text_sha256(d, sel.field)
@@ -580,9 +666,57 @@ def apply_verified_span_selection(
             n_abstained += 1
             abstained_ids.append(str(d.get("decision_id") or ""))
             reasons[sel.reason_code] = reasons.get(sel.reason_code, 0) + 1
-            # When the seam abstains or a candidate is filter-rejected,
-            # the defective incumbent counter_evidence must not remain verified.
-            d["counter_evidence_verified"] = False
+            # REJECTION/INCUMBENT LEG (direction v68 P0), scoped exactly as the
+            # ordered work words it: a row whose SELECTED OR INCUMBENT evidence
+            # FAILS the frozen D2/D3/D4 predicates is rejected/downgraded to an
+            # explicitly-unevidenced row rather than left verified.  A row whose
+            # incumbent evidence is verbatim and CONTENT-SOUND is NOT downgraded
+            # by this leg - the success rule requires the known sound row
+            # (bstger_SK.2023.49) to stay verified/sound - and its abstention is
+            # published instead (the frozen label gate's abstention is a
+            # different axis from content soundness; on the live path the
+            # accepted anchor seam still owns label-driven clearing).
+            incumbent_ev = str(d.get("counter_evidence") or "")
+            incumbent_defects = frozen_content_defects(incumbent_ev, d)
+            incumbent_grounded, _off = ground_evidence(incumbent_ev, d)
+            content_fail = bool(incumbent_defects) or (
+                bool(incumbent_ev.strip()) and incumbent_grounded is None
+            )
+            if content_fail:
+                was_verified = d.get("counter_evidence_verified") is True
+                d["counter_evidence_verified"] = False
+                d["counter_evidence_unevidenced"] = True
+                d["counter_evidence_unevidenced_reason"] = sel.reason_code
+                if was_verified:
+                    downgrades.append({
+                        "decision_id": str(d.get("decision_id") or ""),
+                        "leg": "seam_abstention",
+                        "before": before,
+                        "after": {
+                            "counter_evidence_verified": False,
+                            "counter_status": d.get("counter_status"),
+                            "counter_evidence_unevidenced_reason": sel.reason_code,
+                        },
+                        "reason_code": sel.reason_code,
+                        "defects": incumbent_defects,
+                        "incumbent_grounded_in": incumbent_grounded,
+                    })
+            else:
+                retained.append({
+                    "decision_id": str(d.get("decision_id") or ""),
+                    "leg": "seam_abstention_content_sound_incumbent",
+                    "reason_code": sel.reason_code,
+                    "counter_evidence_verified": d.get("counter_evidence_verified"),
+                    "counter_status": d.get("counter_status"),
+                    "incumbent_grounded_in": incumbent_grounded,
+                    "defects": [],
+                    "note": (
+                        "frozen label gate abstained (reason_code above); the "
+                        "incumbent evidence is verbatim and passes the frozen "
+                        "D1-D4 content predicates, so this leg does not "
+                        "downgrade it (ordered-work success rule)"
+                    ),
+                })
             continue
         n_selected += 1
         selected_ids.append(str(d.get("decision_id") or ""))
@@ -590,9 +724,19 @@ def apply_verified_span_selection(
         d["counter_status"] = _proposal_status(d)
         d["counter_evidence"] = sel.quote
         d["counter_evidence_verified"] = True
+        d.pop("counter_evidence_unevidenced", None)
+        d.pop("counter_evidence_unevidenced_reason", None)
         if sel.decision is not None:
             d["counter_uncertainty"] = sel.decision.uncertainty
         d["counter_proposal_source"] = SPAN_VERSION
+
+    # Final incumbent sweep: a row the seam never iterated (no scored status,
+    # no adversarial signal) may still claim verified counter evidence.  The
+    # frozen content predicates apply to that incumbent too: a defective one is
+    # downgraded to explicitly-unevidenced rather than left verified.
+    sweep = _content_rejection_sweep(out)
+    downgrades.extend(sweep)
+    n_incumbent_downgraded = len(sweep)
 
     out.setdefault("provenance", {})["counter_evidence_span"] = {
         **prov_base,
@@ -612,11 +756,165 @@ def apply_verified_span_selection(
         "guard_statutes": list(guard.get("statutes") or []),
         "guard_phrase_count": len(guard.get("phrases") or []),
         "n_guard_rejected": n_guard_rejected,
+        "n_incumbent_guard_exempted": n_incumbent_guard_exempted,
+        "precision_guard_scope": (
+            "vetoes off-topic scan proposals; exempts the row's own verbatim, "
+            "gate-confirmed, content-clean incumbent (v68 scope; no "
+            "packet-of-record v3 row carries an incumbent, so the accepted v3 "
+            "arm numbers are unchanged)"
+        ),
         "selected_ids": selected_ids,
         "abstained_ids": abstained_ids,
         "abstention_reasons": dict(sorted(reasons.items())),
+        # Rejection/incumbent leg audit trail (direction v68 P0).
+        "content_filter": content_filter_provenance(),
+        "n_downgraded": len(downgrades),
+        "n_incumbent_downgraded": n_incumbent_downgraded,
+        "downgraded_ids": [d["decision_id"] for d in downgrades],
+        "downgrades": downgrades,
+        "n_retained_content_sound": len(retained),
+        "retained_content_sound": retained,
     }
     return out
+
+
+# ---- Content quality filter (direction v68 P0, rejection/incumbent leg) ----
+#
+# Deterministic, model-free filter over the FROZEN D1-D4 content predicates.
+# Byte-aligned with the accepted evaluation instrument's ``classify_verified_row``
+# (evaluation/counter_evidence_quality_benchmark.py), which the accepted
+# falsifier 40105794124 and the accepted H2 probe both measure with:
+#
+#   * predicate source sha256 : aac86527e5e54f0f9c527daac7ff1016d5124731b8ce673797520ff3dd53067d
+#     (re-hashed REPORTED-ONLY from the frozen hypothesis of run 40105794124;
+#      identical sha recorded by the accepted H2 probe hypothesis)
+#   * frozen hypothesis sha256: 734a447dffd86a360a46ce9a804e3bb9f7eb224f9067777d78b62216e13e0881
+#
+# The constants below are COPIED VERBATIM from that frozen source.  This seam
+# may only NARROW which evidence is offered to (or left claimed by) the frozen
+# confirm-or-abstain gate; it never edits, re-tunes or re-derives the gate, the
+# rubric, a threshold or a bar (factory-wide requirement 37, H2 ruling).
+# A filter run here changes nothing about ``decide_label``: it only decides
+# whether a quote the gate confirmed may still claim ``counter_evidence_verified``.
+
+FROZEN_PREDICATE_SOURCE = "evaluation/counter_evidence_quality_benchmark.py"
+FROZEN_PREDICATE_SOURCE_SHA256 = (
+    "aac86527e5e54f0f9c527daac7ff1016d5124731b8ce673797520ff3dd53067d"
+)
+FROZEN_PREDICATE_HYPOTHESIS_SHA256 = (
+    "734a447dffd86a360a46ce9a804e3bb9f7eb224f9067777d78b62216e13e0881"
+)
+
+#: Frozen D2: evidence grounded in the row's own full_text below this offset
+#: is in the letterhead zone (LETTERHEAD_ZONE_OFFSET_MAX in the frozen source).
+LETTERHEAD_ZONE_OFFSET_MAX = 400
+
+#: Frozen D3: literal markup residue tokens in the evidence string.
+MARKUP_TOKENS = ("<mark>", "</mark>", "<em>", "</em>", "<b>", "</b>", "<highlight>")
+
+#: Frozen D4: minimum hits of the OWNING-LANGUAGE marker set that keeps a row
+#: language-consistent; the mismatch rule needs own == 0 and best other >= this.
+MIN_MARKER_HITS = 3
+
+#: Frozen D4 per-language marker sets (verbatim from the frozen source).
+LANGUAGE_MARKER_SETS = {
+    "de": ["Regeste", "Erwägung", "Kündigung", "Mietvertrag", "Bundesgericht", "Verfügung"],
+    "fr": ["Considérant", "résiliation", "bail", "Tribunal fédéral", "recours", "art."],
+    "it": ["Dispositivo", "risoluzione", "affitto", "Tribunale federale", "ricorso", "regola"],
+}
+
+#: Grounding order, exactly as the frozen classifier searches fields.
+GROUNDING_FIELDS = ("full_text", "snippet", "regeste")
+
+
+def content_filter_provenance() -> dict[str, Any]:
+    """Re-hash metadata published in bundle provenance (REPORTED-ONLY)."""
+    return {
+        "predicate_source": FROZEN_PREDICATE_SOURCE,
+        "predicate_source_sha256": FROZEN_PREDICATE_SOURCE_SHA256,
+        "frozen_hypothesis_sha256": FROZEN_PREDICATE_HYPOTHESIS_SHA256,
+        "letterhead_zone_offset_max": LETTERHEAD_ZONE_OFFSET_MAX,
+        "markup_tokens": list(MARKUP_TOKENS),
+        "min_marker_hits": MIN_MARKER_HITS,
+        "grounding_fields": list(GROUNDING_FIELDS),
+        "alignment": (
+            "constants copied verbatim from the frozen classify_verified_row "
+            "predicates; this filter only narrows evidence, it never edits the "
+            "frozen confirm-or-abstain gate, rubric, threshold or bar"
+        ),
+    }
+
+
+def ground_evidence(quote: str, row: dict) -> tuple[str | None, int]:
+    """First field/offset where ``quote`` occurs verbatim (frozen order)."""
+    ev = str(quote or "")
+    if not ev:
+        return None, -1
+    for field in GROUNDING_FIELDS:
+        text = str(row.get(field) or "")
+        idx = text.find(ev) if text else -1
+        if idx >= 0:
+            return field, idx
+    return None, -1
+
+
+def frozen_content_defects(quote: str, row: dict) -> list[str]:
+    """Apply the frozen D1-D4 content predicates to one evidence string.
+
+    Returns the defect list with the frozen class names (empty = sound).
+    Mirrors ``classify_verified_row`` exactly: D1 empty, D2 letterhead zone
+    (grounded in own full_text below the frozen offset), D3 markup residue,
+    D4 language-marker mismatch.  No model, no network, no re-tuning.
+    """
+    ev = quote if isinstance(quote, str) else ("" if quote is None else str(quote))
+    lang = row.get("language")
+    defects: list[str] = []
+
+    if not ev.strip():
+        defects.append("D1_empty_evidence")
+
+    field, offset = ground_evidence(ev, row)
+    if field == "full_text" and 0 <= offset < LETTERHEAD_ZONE_OFFSET_MAX and ev.strip():
+        defects.append("D2_letterhead_zone")
+
+    if any(tok in ev for tok in MARKUP_TOKENS):
+        defects.append("D3_markup_residue")
+
+    if lang in LANGUAGE_MARKER_SETS and ev.strip():
+        own = sum(1 for tok in LANGUAGE_MARKER_SETS[lang] if tok in ev)
+        others = [
+            sum(1 for tok in LANGUAGE_MARKER_SETS[other] if tok in ev)
+            for other in LANGUAGE_MARKER_SETS
+            if other != lang
+        ]
+        best_other = max(others) if others else 0
+        if own == 0 and best_other >= MIN_MARKER_HITS:
+            defects.append("D4_language_marker_mismatch")
+
+    return defects
+
+
+#: Frozen class name -> lowercase reason code used in seam records.
+_DEFECT_REASON = {
+    "D1_empty_evidence": "d1_empty_evidence",
+    "D2_letterhead_zone": "d2_letterhead_zone",
+    "D3_markup_residue": "d3_markup_residue",
+    "D4_language_marker_mismatch": "d4_language_marker_mismatch",
+}
+
+
+def passes_content_filter(quote: str, row: dict, start: int | None = None) -> tuple[bool, str]:
+    """``(ok, reason_code)`` under the frozen D1-D4 predicates.
+
+    ``start`` is accepted for call-site compatibility and ignored: grounding is
+    recomputed from the row's own fields exactly the way the frozen classifier
+    grounds it, so the product filter and the frozen re-probe can never disagree
+    about where an evidence string sits.
+    """
+    defects = frozen_content_defects(quote, row)
+    if not defects:
+        return True, ""
+    return False, _DEFECT_REASON[defects[0]]
 
 
 __all__ = [
@@ -628,144 +926,12 @@ __all__ = [
     "SpanCandidate",
     "SpanSelection",
     "apply_verified_span_selection",
+    "content_filter_provenance",
     "field_candidates",
+    "frozen_content_defects",
+    "ground_evidence",
+    "passes_content_filter",
     "select_span",
     "sentence_spans",
     "verify_span",
 ]
-
-# ---- Content quality filter (direction v66 P0) ----
-# Deterministic, model-free filter to catch D2/D3/D4 defects.
-# Filter only narrows which spans are offered; never touches decide_label.
-
-import unicodedata
-
-COURT_HEADER_MARKERS = (
-    "bundesgericht",
-    "tribunal fédéral",
-    "tribunale federale",
-    "obergericht",
-    "kantonsgericht",
-    "verwaltungsgericht",
-    "handelsgericht",
-    "sozialversicherungsgericht",
-    "cour de justice",
-    "tribunal cantonal",
-)
-
-COURT_HEADER_PATTERNS = [
-    re.compile(r'(?i)^\s*(bundesgericht|tribunal\s+f[ée]d[ée]ral|tribunale\s+federale)\s*$', re.M),
-    re.compile(r'(?i)^(bundesverwaltungsgericht|tribunal\s+administratif\s+f[ée]d[ée]ral|tribunale\s+amministrativo\s+federale)\s*$', re.M),
-    re.compile(r'(?i)^.*(Geschäfts-?\s*Nr\.|Numéro\s+de\s+dossier|N\.\s*rif\.|Règlement|arrêt\s+du|Urteil\s+vom|sentenza\s+del).*(\d{4}|[A-Z])', re.M),
-]
-
-MARKUP_RESIDUE_PATTERNS = [
-    re.compile(r'<[^>]+>'),  # HTML tags
-    re.compile(r'\[\[.*?\]\]'),  # wiki markup
-    re.compile(r'\{\{.*?\}\}'),  # template markup
-    re.compile(r'&[a-zA-Z]+;'),  # HTML entities
-    re.compile(r'\\[a-zA-Z]+\{'),  # LaTeX-ish
-]
-
-def _normalize_text(s: str) -> str:
-    if not s:
-        return ""
-    # strip diacritics for comparison
-    s2 = unicodedata.normalize("NFKD", str(s))
-    s2 = "".join(c for c in s2 if not unicodedata.combining(c))
-    return s2.lower()
-
-
-def detect_letterhead_zone(text: str, start: int = 0, max_check_chars: int = 500) -> bool:
-    """Detect D2: evidence_head starting at full_text offset 0 with court-header text."""
-    if not text:
-        return False
-    # Check if start is near beginning (evidence head at offset ~0)
-    if start > 50:  # allow small offset
-        return False
-    check = text[:max_check_chars]
-    norm = _normalize_text(check)
-    # Look for court header patterns
-    header_lines = check.split('\n')[:10]  # first few lines
-    for i, line in enumerate(header_lines[:6]):  # check first 6 lines
-        line_norm = _normalize_text(line)
-        if not line_norm.strip():
-            continue
-        # Court name markers
-        for marker in COURT_HEADER_MARKERS:
-            if marker in line_norm:
-                # Likely letterhead if it's in early lines
-                if i <= 4:
-                    return True
-        # Date/case number patterns typical of headers
-        if re.search(r'(?i)^(urteil|arrêt|sentenza|beschluss)\s+(vom|du|del)', line_norm):
-            if i <= 3:
-                return True
-        # Lots of caps and short header-like content
-        if re.match(r'^[A-ZÄÖÜÉÈÊÀÂÆÇÎÏÔŒÙÛË\s\.\-0-9]+$', line.strip()) and len(line.strip()) < 80 and i <= 2:
-            if any(c.isdigit() for c in line) or any(m in line_norm for m in COURT_HEADER_MARKERS):
-                return True
-    return False
-
-
-def detect_markup_residue(text: str) -> bool:
-    """Detect D3: markup residue."""
-    if not text:
-        return False
-    for pat in MARKUP_RESIDUE_PATTERNS:
-        if pat.search(text):
-            return True
-    # Also check for leftover tags like <p>, </div> etc
-    if re.search(r'</?[a-z][^>]{0,20}>', text):
-        return True
-    return False
-
-
-def detect_language_marker_mismatch(quote: str, row_lang: str) -> bool:
-    """Detect D4: language marker mismatch between row language and span text."""
-    if not quote or not row_lang:
-        return False
-    row_lang = str(row_lang).lower()[:2]
-    norm = _normalize_text(quote)
-    # Simple heuristics: check for obvious wrong language markers
-    de_markers = set(['der', 'die', 'das', 'und', 'ist', 'sind', 'wird', 'werden', 'nicht', 'oder'])
-    fr_markers = set(['le', 'la', 'les', 'et', 'est', 'sont', 'ne', 'pas', 'ou', 'dans'])
-    it_markers = set(['il', 'lo', 'la', 'gli', 'le', 'e', 'sono', 'non', 'o', 'nel'])
-    
-    words = set(norm.split())
-    de_score = len(words & de_markers)
-    fr_score = len(words & fr_markers)
-    it_score = len(words & it_markers)
-    
-    scores = {'de': de_score, 'fr': fr_score, 'it': it_score}
-    best = max(scores.items(), key=lambda x: x[1])[0]
-    if best and best != row_lang and max(scores.values()) >= 3 and scores[best] > scores.get(row_lang, 0) * 2:
-        return True
-    return False
-
-
-def passes_content_filter(quote: str, row: dict, start: int = 0) -> tuple[bool, str]:
-    """Returns (passes, reason_if_failed)."""
-    # D2: letterhead zone
-    full_text = str(row.get('full_text') or '')
-    if detect_letterhead_zone(full_text, start=start):
-        return False, 'd2_letterhead_zone'
-    # Check if quote comes from early in full_text
-    if full_text and quote and quote in full_text:
-        idx = full_text.find(quote)
-        if idx >= 0 and detect_letterhead_zone(full_text, start=idx):
-            return False, 'd2_letterhead_zone'
-    
-    # D3: markup residue
-    if detect_markup_residue(quote):
-        return False, 'd3_markup_residue'
-    if detect_markup_residue(full_text[:start+len(quote)+100] if start >=0 else quote):
-        # be more specific
-        pass
-    
-    # D4: language marker mismatch
-    row_lang = row.get('language') or row.get('lang')
-    if detect_language_marker_mismatch(quote, row_lang):
-        return False, 'd4_language_marker_mismatch'
-    
-    return True, ''
