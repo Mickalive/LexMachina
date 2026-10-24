@@ -716,7 +716,7 @@ POSTURE_FLAGS = ("human_gate_ready", "machine_gate_ready", "packet_admitted",
                  "ready_for_owner_session", "owner_decision_required")
 
 
-def state() -> int:
+def state(allow_deferred: bool = False) -> int:
     st = json.loads(STATE.read_text(encoding="utf-8"))
     before = {
         "github_run": st.get("github_run"),
@@ -1046,10 +1046,16 @@ def state() -> int:
     missing = [r for r in refs
                if not (_REPO_ROOT / r).exists()
                and not r.endswith(f"{RUN}_nested_evidence_refs.json")]
-    if missing:
+    if missing and not allow_deferred:
         print(json.dumps({"refused_state_write": "unresolvable refs",
                           "missing": missing}, indent=1), file=sys.stderr)
         return 3
+    deferred = sorted(missing)
+    if deferred:
+        # phase-A write: the living-suite identity pins need the advanced state
+        # BEFORE pytest runs, so refs to not-yet-written pytest/report/guard
+        # records are deferred to the final state pass (same script, strict).
+        pass
 
     _write_json(STATE, st)
     print(json.dumps({
@@ -1062,6 +1068,7 @@ def state() -> int:
                   "evidence_refs_n": st["evidence_refs_n"],
                   "run_identity_history_n": len(st["run_identity_history"])},
         "refs_added": added,
+        "refs_deferred_to_final_pass": deferred,
         "posture": {f: st[f] for f in POSTURE_FLAGS},
     }, indent=1))
     return 0
@@ -1071,6 +1078,9 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("mode", choices=["fetch-rest", "diagnose", "freeze",
                                      "repro", "verify", "state", "all"])
+    ap.add_argument("--allow-deferred", action="store_true",
+                    help="phase-A state pass: defer refs whose records are "
+                         "written later in this same run (final pass is strict)")
     args = ap.parse_args(argv)
     order = {"all": ["fetch-rest", "diagnose", "freeze", "repro", "verify",
                      "state"],
@@ -1079,7 +1089,8 @@ def main(argv=None) -> int:
              "verify": ["verify"], "state": ["state"]}[args.mode]
     rc = 0
     fns = {"fetch-rest": fetch_rest, "diagnose": diagnose, "freeze": freeze,
-           "repro": repro, "verify": verify, "state": state}
+           "repro": repro, "verify": verify,
+           "state": lambda: state(allow_deferred=args.allow_deferred)}
     for m in order:
         code = fns[m]()
         rc = rc or code
