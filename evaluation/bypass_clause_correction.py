@@ -198,8 +198,12 @@ def cc2_measurement_unchanged(repo: Path, freeze: dict, checks: dict) -> dict:
             if not (row.get("defects") or []):
                 sound_ids.append(row.get("decision_id"))
     observed["sound_decision_id"] = sound_ids[0] if len(sound_ids) == 1 else sound_ids
+    # Exclude provenance key 'source' from measurement comparison;
+    # it is not a measurement aggregate and would always mismatch
+    # because observed does not contain it (it is read from the record path, not computed).
+    measurement_keys = {k for k in pinned if k != "source"}
     mismatches = {k: {"expected": pinned.get(k), "actual": observed.get(k)}
-                  for k in pinned if pinned.get(k) != observed.get(k)}
+                  for k in measurement_keys if pinned.get(k) != observed.get(k)}
     _check(checks, "CC2_measurement_unchanged_vs_freeze_pin",
            not mismatches,
            "committed falsifier record reproduces every freeze-pinned aggregate "
@@ -573,11 +577,20 @@ def run_controls(mount: Path, repo: Path, freeze: dict) -> dict:
         "detail": "n_defective 4 -> 3 in a copy diverges from the freeze pin"}
 
     # C4 no falsifier re-execution
+    # Scan the source for actual import statements or function calls to the
+    # forbidden modules, not just substring matches (which would false-positive
+    # on filepaths containing the module name as a path component).
     src = Path(__file__).read_text(encoding="utf-8")
+    import re as _re
     forbidden = ["fast_mvp_current_head_ca_falsifier",
                  "counter_evidence_quality_benchmark",
                  "mapping_free_recall_falsifier"]
-    hits = [name for name in forbidden if name in src]
+    # Check for actual import or invocation of the forbidden modules.
+    # Patterns: "import X", "from ... import X", or "X(" (function call).
+    hits = [name for name in forbidden
+            if _re.search(r'\bimport\s+' + _re.escape(name) + r'\b', src) or
+               _re.search(r'\bfrom\s+.*?\bimport\s+' + _re.escape(name) + r'\b', src) or
+               _re.search(r'\b' + _re.escape(name) + r'\(', src)]
     controls["C4_no_falsifier_reexecution"] = {
         "holds": not hits,
         "detail": "instrument source imports/invokes none of the falsifier, the "
