@@ -1,0 +1,48 @@
+{
+  "schema": "lex-evaluation-orchestration-diagnosis/1",
+  "run_id": "40068038783",
+  "diagnosed_runs": ["40064635075", "40067656881"],
+  "evidence_sources": [
+    "GitHub REST /repos/Mickalive/LexMachina/actions/runs/<id> (public, unauthenticated)",
+    "GitHub REST /repos/Mickalive/LexMachina/actions/runs/<id>/jobs (public, unauthenticated)",
+    "git ls-remote / branch tips for refs/heads/cycle/core/evaluation/<id>/team and /team-attempt-1",
+    "git rev-parse of local checkout operational-resume tracking origin/cycle/core/evaluation/40067656881/team"
+  ],
+  "logs_accessible": false,
+  "logs_note": "The run-log download endpoint returned HTTP 403 unauthenticated; the precise producer exit code (rc-1 vs rc-67 vs rc-78 vs provider death) is NOT readable and every rc attribution below is HEDGED accordingly (requirement-20 discipline: a producer/audit job can die on provider rotation or overload, and that is not a verdict, not a product defect and not a human-gate problem).",
+  "runs": [
+    {
+      "run_id": "40064635075",
+      "name": "Core evaluation dirV66 repair0",
+      "event": "workflow_dispatch",
+      "created_at": "2026-10-24T05:01:31Z",
+      "updated_at": "2026-10-24T05:47:55Z",
+      "conclusion": "failure",
+      "team_job": "failure at step 'Run lane cycle'; 'Validate active MVP producer state' and 'Enforce lane write scope' SKIPPED; 'Clean generated junk' and 'Persist team snapshot' succeeded",
+      "audit_job": "skipped",
+      "integrate_job": "skipped",
+      "resilience_job": "success ('Recover failed chain and wake supervisor')",
+      "durable_delta": "ZERO - refs/heads/cycle/core/evaluation/40064635075/team and /team-attempt-1 both point at 24e24bfc565f0f2ccaebb733d33dc92f5f3e9d6f, byte-identical to the lab/evaluation tip and to the previous accepted cycle 40063688435 accept commit",
+      "runtime": "~46 minutes (long-running producer that died before commit, not an instant guard exit)",
+      "hedged_cause": "producer agent died mid-cycle before committing (provider/model failure class, requirement 20, or rc-78 quantum expiry, requirement 10); rc-67 LEX_ZERO_DELTA_REPAIR cannot be excluded but is less likely given the 46-minute runtime (the rc-67 guard exits as soon as HEAD and porcelain are unchanged at cycle end)",
+      "note": "Core Product's accept commit 3495c1336 (cycle 40064639100, the P0 content-filter landing) landed at 05:32:55Z, DURING this run's lifetime; the run did not survive to observe or measure it"
+    },
+    {
+      "run_id": "40067656881",
+      "name": "Core evaluation dirV66 repair0",
+      "event": "workflow_dispatch",
+      "created_at": "2026-10-24T05:47:51Z",
+      "updated_at": "2026-10-24T05:53:47Z",
+      "conclusion": "failure",
+      "team_job": "failure at step 'Run lane cycle'; audit/integrate skipped; persist succeeded",
+      "audit_job": "skipped",
+      "integrate_job": "skipped",
+      "resilience_job": "success",
+      "durable_delta": "ZERO - team snapshot identical to 24e24bfc (same as above)",
+      "runtime": "~6 minutes (fast producer death)",
+      "hedged_cause": "provider/auth/overload failure of the producer agent (requirement 20 class) or an immediate rc-1/rc-67 exit; not readable from logs"
+    }
+  ],
+  "classification": "ORCHESTRATION class - identical to the standing requirement-10/20 pattern: zero work lost (there was no committed work to lose), audit skipped by design, no gate file exists for either run, NOTHING from either run is or may be cited as evidence, and origin/lab/evaluation correctly did not advance. NOT a product defect, NOT an evidence defect, NOT a human-gate problem.",
+  "operational_resume_decision": "Continue from the persisted snapshot of 40067656881 (= lab/evaluation tip 24e24bfc, clean tree). Do NOT restart from scratch: all previously accepted work (items 1a/2/5 of the v66 ordered work, accepted cycles through 40063688435) is intact on the base. The substantive delta this run must land: (i) item (4) conditional re-measure, newly triggered by product accept 3495c1336; (ii) item (3) frozen-scorer/span-seam path reconciliation; (iii) item (1)(b/c/d) nested evidence_refs hygiene, including two defects found on inspection of the committed state (see 40068038783_nested_evidence_refs artifact when committed)."
+}
