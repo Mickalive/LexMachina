@@ -1,0 +1,52 @@
+{
+  "schema": "lex-evaluation-minimal-ret-ca-benchmark/1",
+  "run_id": "local_test_1",
+  "generated_at_utc": "2026-10-24T16:02:00Z",
+  "direction_version": 67,
+  "reuses_entry_point": "evaluation.frozen_bars.run_bar_gates",
+  "served_packet_dir": "/tmp/lex_accepted/product/served_packet",
+  "served_bundle_sha256": {
+    "de-kapitalverletzung": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "fr-bail-entretien": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "it-responsabilita-medica": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "incumbent_pins_restatement_only": {
+    "label": {"n_scored": 65, "n_supported": 5, "classes": {"OFF-DOMAIN": 38, "UNBACKED": 22, "SUPPORTED": 5, "INVERTED": 0}},
+    "geometry": {"de-kapitalverletzung": 6, "fr-bail-entretien": 5, "it-responsabilita-medica": 5},
+    "note": "re-stated for the summary; authoritative predicates live in label_gate/geometry_gate/run_bar_gates and are never re-derived here"
+  },
+  "legs": [
+    {
+      "leg": "served_baseline",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "exit_code_matches_expectation": true,
+      "verdict": "PASS_NO_REGRESSION",
+      "mode": "served_lineage",
+      "label": {"n_scored": 65, "n_supported": 5, "support_rate": 0.076923, "classes": {"OFF-DOMAIN": 38, "UNBACKED": 22, "SUPPORTED": 5, "INVERTED": 0}, "regression_verdict": "PASS_NO_REGRESSION", "gate_blocks_build": false, "absolute_status": "LABEL_UNSOUND"},
+      "geometry": {"per_bundle_counts": {"de-kapitalverletzung": 6, "fr-bail-entretien": 5, "it-responsabilita-medica": 5}, "regression_verdict": "PASS_NO_REGRESSION", "regressed_qids": [], "gate_blocks_build": false, "absolute_status": "GEOMETRY_UNSOUND", "n_bundles_pass_all_11": 0},
+      "negative_controls_all_proven": true,
+      "absolute_status_summary": "LABEL_UNSOUND / GEOMETRY_UNSOUND",
+      "stderr": ""
+    },
+    {
+      "leg": "geometry_falsification_hostile",
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "exit_code_matches_expectation": true,
+      "verdict": "FAIL_REGRESSION",
+      "mode": "adjudicate",
+      "label": {"n_scored": 65, "n_supported": 5, "support_rate": 0.076923, "classes": {"OFF-DOMAIN": 38, "UNBACKED": 22, "SUPPORTED": 5, "INVERTED": 0}, "regression_verdict": "PASS_NO_REGRESSION", "gate_blocks_build": false, "absolute_status": "LABEL_UNSOUND"},
+      "geometry": {"per_bundle_counts": {"de-kapitalverletzung": 1, "fr-bail-entretien": 1, "it-responsabilita-medica": 1}, "regression_verdict": "FAIL_REGRESSION", "regressed_qids": ["de-kapitalverletzung", "fr-bail-entretien", "it-responsabilita-medica"], "gate_blocks_build": true, "absolute_status": "GEOMETRY_UNSOUND", "n_bundles_pass_all_11": 0},
+      "negative_controls_all_proven": true,
+      "absolute_status_summary": "LABEL_UNSOUND / GEOMETRY_UNSOUND",
+      "stderr": ""
+    }
+  ],
+  "falsification_proven": true,
+  "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
+  "exit_code": 0,
+  "reason": "served packet passes regression and the regressed input makes the gate fail — the benchmark can falsify",
+  "absolute_status_note": "absolute bars LABEL_UNSOUND / GEOMETRY_UNSOUND are REPORTED by the underlying gates and are NOT enforced as build blockers (direction v67, derived from state/evaluation.json at run time); BENCHMARK_VALID_NO_FALSIFICATION does NOT certify the absolute 1.0 label bar or the all-11 geometry bar, and does NOT unblock the human gate (standing accepted DO-NOT-SERVE order).",
+  "elapsed_s": 2.5
+}
