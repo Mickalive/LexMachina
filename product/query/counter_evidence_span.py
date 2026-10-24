@@ -382,8 +382,22 @@ def select_span(
                     if content_filter:
                         cf_ok, cf_reason = passes_content_filter(existing, row, start=c.start)
                         if not cf_ok:
-                            baseline_reason = cf_reason
-                            break  # reject this existing quote
+                            return SpanSelection(
+                                selected=False,
+                                reason_code=cf_reason,
+                                quote="",
+                                field="",
+                                start=-1,
+                                end=-1,
+                                n_candidates=len(candidates),
+                                n_evaluated=0,
+                                decision=base_dec,
+                                baseline_label=baseline_label,
+                                baseline_reason=cf_reason,
+                                scanned_fields=[],
+                                guard_available=bool((guard or {}).get("available", True)),
+                                n_guard_rejected=0,
+                            )
                     return SpanSelection(
                         selected=True,
                         reason_code="supported_existing_span",
@@ -449,10 +463,9 @@ def select_span(
     return SpanSelection(
         selected=False,
         reason_code=(
-            "d2_letterhead_zone" if any(True for _ in []) else  # placeholder
-            ("d2_letterhead_zone" if n_guard_rejected and baseline_reason and baseline_reason in ('d2_letterhead_zone','d3_markup_residue','d4_language_marker_mismatch') else
-             ("off_topic_span" if n_guard_rejected
-              else (baseline_reason or "no_emitting_span")))
+            "d2_letterhead_zone" if n_guard_rejected and baseline_reason and baseline_reason in ('d2_letterhead_zone','d3_markup_residue','d4_language_marker_mismatch') else
+            ("off_topic_span" if n_guard_rejected
+             else (baseline_reason or "no_emitting_span"))
         ),
         n_candidates=len(candidates),
         n_evaluated=n_eval,
