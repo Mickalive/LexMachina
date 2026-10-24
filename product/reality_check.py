@@ -394,14 +394,20 @@ def fixture_wiring_gates(report: dict) -> list[dict]:
 
 def _counter_evidence_invariant(final: dict):
     """The one live counter policy that is mode-independent: a surfaced
-    counter row must carry verified evidence. Fixture runs must uphold it too,
-    because the render/evidence contract is bundle-level, not model-level."""
+    counter row must either carry verified evidence OR be explicitly disclosed
+    as unevidenced with a documented reason (direction v68: rejection/incumbent
+    leg downgrades defective incumbent evidence rather than leaving it verified).
+    Fixture runs must uphold this because the render/evidence contract is
+    bundle-level, not model-level."""
     def check() -> None:
         for d in final.get("decisions") or []:
             if d.get("counter_status") in {"candidate-limiting", "candidate-contrary",
                                            "candidate-distinguishing", "candidate-exception"}:
-                _require(d.get("counter_evidence_verified") is True, report_proxy(d),
-                         f"surfaced counter lacks verified evidence: {d.get('decision_id')}")
+                verified = d.get("counter_evidence_verified") is True
+                unevidenced = d.get("counter_evidence_unevidenced") is True
+                reason = str(d.get("counter_evidence_unevidenced_reason") or "").strip()
+                _require(verified or (unevidenced and reason), report_proxy(d),
+                         f"surfaced counter lacks verified evidence and is not disclosed as unevidenced: {d.get('decision_id')}")
     return check
 
 
