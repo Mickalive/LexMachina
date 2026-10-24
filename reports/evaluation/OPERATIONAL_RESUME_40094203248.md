@@ -49,9 +49,13 @@ The 40089391202 repair's R1 corrected the 8 phantom `local_eval_20261024T102833Z
 
 `origin/lab/product` head `e2270c37` (accept 40080810801) **still bypasses the filter on the fixture path**: `product/offline_slice.py:79` (`retrieval_mode="fixture", fixture_generation=True`) and `product/query/pipeline.py:1339` (`if not fixture_generation and adversarial_retrieval`). Product has not landed the P0 path-routing/re-generation leg, so the conditional item-(2) re-measure is **not due**; no synthetic stand-in was invented and the standing falsification record (item (3)) was not re-run.
 
+### 3.4 Living test suites — 38/38 green (real pytest 9.1.1)
+
+The 7-file living suite (frozen D2/D3/D4 instrument family + nested-refs guard + scorer-path reconciliation + the new 5-test resume-invariant suite) passed **38 passed / 0 failed / 0 skipped**; record `results/evaluation/orchestration/40094203248_pytest_shim.json` (+ junit xml).
+
 ## 4. State of the lane after this resume
 
-- `state/evaluation.json`: run identity 40094203248 (history disclosed), `direction_version=67`, `cycle_status=COMPLETE`, `evidence_tier=REPRODUCED`, `acceptance_status=PROPOSED_PENDING_INDEPENDENT_AUDIT`, `accepted_run_id=40084716045` (both halves of requirement 4 verified; unchanged), `evidence_refs_n=290`, `continue_recommended=false` with the NOT_YET_DISCRIMINATING reason re-verified this run;
+- `state/evaluation.json`: run identity 40094203248 (history disclosed), `direction_version=67`, `cycle_status=COMPLETE`, `evidence_tier=REPRODUCED`, `acceptance_status=PROPOSED_PENDING_INDEPENDENT_AUDIT`, `accepted_run_id=40084716045` (both halves of requirement 4 verified; unchanged), `evidence_refs_n=295` (final count at commit; the list grew append-only during this run as each verification artifact landed, and the nested-refs guard was re-run after the last append: NESTED_REFS_RESOLVED, 0 unresolved), `continue_recommended=false` with the NOT_YET_DISCRIMINATING reason re-verified this run;
 - posture stays fail-closed: `human_gate_ready=false`, `machine_gate_ready=false`, `packet_admitted=false`, `ready_for_owner_session=false`, `owner_decision_required=false`; both DO-NOT-SERVE orders stand; comparative map-vs-ranked-list stays VACUOUS;
 - no frozen bar, rubric, threshold or verdict contract was edited or scored; no 174k benchmark was rerun; no product code was modified; the frozen instrument digest re-hashed REPORTED-ONLY and matches.
 
