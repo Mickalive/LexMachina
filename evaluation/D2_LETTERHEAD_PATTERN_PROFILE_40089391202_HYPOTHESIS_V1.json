@@ -1,0 +1,89 @@
+{
+  "schema": "lex-evaluation-cycle-hypothesis/1",
+  "run_id": "40089391202",
+  "lane": "evaluation",
+  "direction_version": 67,
+  "github_run": "40089391202",
+  "frozen_at_utc": "2026-10-24T11:30:00Z",
+  "question_source": "factory_direction v67 evaluation lane ordered work item (1): D2 LETTERHEAD PATTERN HETEROGENEITY PROFILE - UNCONDITIONAL, EXECUTE FIRST, NOT PRODUCT-DEPENDENT",
+  "operational_resume_of": {
+    "producer_run": "40085602229",
+    "producer_team_branch": "cycle/core/evaluation/40085602229/team",
+    "producer_commit": "e36f7afa3cf30c4c1703f10cbb68dac2a59073ff",
+    "producer_state_defect_found": "producer state/evaluation.json added 8 top-level evidence_refs named local_eval_20261024T102833Z that exist nowhere (actual committed artifacts are local_eval_20261024T102500Z and local_eval_1792837481); github_run field carried the same phantom string; evidence_refs carried 2 duplicate entries; no audit branch exists for 40085602229. Verified by evaluation/nested_evidence_refs_guard.py (9 unresolved, 8 top-level). The producer's four measurement re-executions themselves are REAL committed artifacts and are preserved; this resume repairs the state and executes the v67 item-(1) deliverable the producer never ran.",
+    "disposition": "preserve producer measurement blocks (minimal_ret_ca_benchmark_latest, counter_evidence_quality_benchmark_latest, current_head_slice_quality_latest, d2_path_scope_probe_latest); repair phantom refs by name; execute item (1) now"
+  },
+  "hypothesis": "The D2_LETTERHEAD_ZONE defect rows observed on the product's committed flagship offline/server slice bundle families and on the packet-of-record 39319405429 bytes collapse into a SMALL NUMBER of DISTINCT, MECHANICALLY DETECTABLE letterhead patterns (specifically: offset-0 multi-line court headers, mid-document headers in the (0,400) zone, and every other observed form), rather than heterogeneous beyond mechanical detection. The profile is descriptive only; it scores no frozen bar.",
+  "baseline": {
+    "accepted_baseline_run": "40062917685",
+    "accepted_baseline_finding": "14/14 counter_evidence_verified rows across 15 shipped/control bundles defective: D2_letterhead_zone 10, D3_markup_residue 4, D4_language_marker_mismatch 4 over 2 distinct decisions (gr_gerichte_ERZ 2010 25, bge_BGE_121_III_260)",
+    "accepted_baseline_d2_pattern_evidence": "PRIOR EVIDENCE, read before this freeze from the committed accepted artifact results/evaluation/counter_evidence_quality_benchmark/40062917685.json: all 10 accepted-baseline D2 rows carry the SAME evidence head (trilingual 'Kantonsgericht von Graubünden / Dretgira chantunala dal Grischun / Tribunale cantonale dei Grigioni / ____...' court header at full_text offset 0). This published prior evidence motivates the hypothesis; the claim-bearing measurement below extends the POPULATION, not the baseline.",
+    "baseline_not_moved": "This run does NOT replace, re-baseline or move accepted baseline 40062917685. It is a POPULATION EXTENSION disclosed as a separate named run (v67 item (1) population-extension disclosure)."
+  },
+  "population": {
+    "named_set": "every committed flagship offline/server slice bundle family on the accepted-product mount PLUS the packet-of-record 39319405429 question bundles, both labelled",
+    "slice_bundles": {
+      "roots": [
+        "results/product/offline_slice/*/*.bundle.json",
+        "results/product/server_slice/*/*.bundle.json"
+      ],
+      "expected_count_at_freeze": 90,
+      "count_note": "76 offline + 14 server *.bundle.json files present on the mount at freeze time; each is sha256-pinned at run time in the result artifact",
+      "family_labelling": "bundles named in accepted baseline 40062917685 keep their accepted family names (offline_accept_40025340938, offline_accept_40032389983, server_accept_40032389983, prior_cycle_control); the newest offline/server dirs get offline_latest_<ts>/server_latest_<ts>; all remaining committed dirs are labelled offline_slice_other_<ts>/server_slice_other_<ts>. Scoping decision disclosed: 'flagship family' = every committed bundle under the two shipped-slice roots, not a subset."
+    },
+    "packet_of_record": {
+      "id": "39319405429",
+      "roots": ["results/product/gate_packet/39319405429/questions/*.bundle.json"],
+      "expected_count_at_freeze": 3,
+      "sha256_at_freeze": {
+        "results/product/gate_packet/39319405429/questions/de-kapitalverletzung.bundle.json": "9b856e2b1b3e4675f8d4d135cd5d1ad23f0baa63fcb2e4cc7bc45182c012881b",
+        "results/product/gate_packet/39319405429/questions/fr-bail-entretien.bundle.json": "054bec47ae8e5a0f98593902c2c7bd09f7f52761be1c85225328853f34d3213b",
+        "results/product/gate_packet/39319405429/questions/it-responsabilita-medica.bundle.json": "345e20d1f352fd4e907cac144c8dbbae296f3a9132605d4354f12e7a783e6e3b"
+      },
+      "label": "packet_of_record_39319405429"
+    },
+    "row_predicate": "counter_evidence_verified is True (the same row population the frozen item-(2) probe scores); on served packet bytes this predicate is EXPECTED to yield 0 rows per accepted requirement 36/42 (Side A on SERVED bytes n_issued=0) - published as a labelled population result, not treated as an error"
+  },
+  "instrument": {
+    "path": "evaluation/d2_letterhead_pattern_profile.py",
+    "frozen_predicates": {
+      "path": "evaluation/counter_evidence_quality_benchmark.py",
+      "sha256_expected": "aac86527e5e54f0f9c527daac7ff1016d5124731b8ce673797520ff3dd53067d",
+      "usage": "imported by value; digest re-hashed REPORTED-ONLY at runtime (control C4); NEVER edited, re-tuned or re-derived"
+    }
+  },
+  "metric": {
+    "pattern_key": "sha256 of whitespace-normalized (strip + collapse runs of whitespace to single space) counter_evidence string among D2_letterhead_zone rows",
+    "per_pattern_fields": [
+      "n_rows", "languages", "bundle_families", "full_text_offsets", "line_count", "line_lengths", "line_structure_preview", "detectability_class"
+    ],
+    "detectability_class_taxonomy_frozen": {
+      "P1_OFFSET0_MULTILINE_COURT_HEADER": "first_offset == 0 AND evidence line_count >= 2 AND every line <= 120 chars (mechanically detectable: offset + line-structure rule)",
+      "P2_MID_DOCUMENT_HEADER_ZONE": "0 < first_offset < 400 (mechanically detectable: offset-band rule; the frozen D2 predicate itself fires here)",
+      "P3_OTHER_LETTERHEAD_ZONE_FORM": "any other letterhead-zone form (e.g. offset-0 single-line); listed with full structure for inspection, flagged as requires-inspection beyond the P1/P2 mechanical rules"
+    }
+  },
+  "decision_rule_frozen_before_execution": {
+    "CONTROLS_FAILED": "any control (C3/C4/C5/C6) failure voids the profile for this cycle",
+    "LETTERHEAD_PATTERN_INVENTORY_PUBLISHED": "the run publishes the complete per-pattern inventory over the named population with per-pattern defect-class counts; the feasibility reading for Core Product's P0-residual decision is stated per observed pattern: mechanically-detectable (P1/P2) vs requires-inspection (P3), and fixture-bypass-only vs would-fire-if-routed reachability (the latter CITED from accepted PATH_SCOPE_RESIDUAL ARM2 cycle 40070818687, never re-run)",
+    "no_threshold_invented": "NO count threshold or bar is introduced; if all observed D2 forms are P1/P2 the report states so descriptively; if any P3 form appears it is published verbatim as the load-bearing heterogeneous evidence per the v67 direction, never hidden",
+    "packet_label": "packet rows under the frozen verified-row predicate are published as a labelled population count (expected 0 per accepted requirement 36/42); no serve verdict, no bar, no posture change"
+  },
+  "controls": [
+    "C3 frozen rubric re-hash REPORTED-ONLY (RULES_LABEL 4457e971..., RULES_GEOMETRY a7452748...)",
+    "C4 frozen instrument digest unchanged (aac86527...)",
+    "C5 non-vacuity: planted offset-0 multi-line letterhead row must classify P1 and fire D2; planted offset-500 mid-document substantive span must NOT fire D2",
+    "C6 accepted-baseline population cross-check: re-probing the 15 accepted-baseline bundles must reproduce the accepted defect histogram (D2=10, D3=4, D4=4 over 2 distinct decisions) NORMALIZED-IDENTICAL to artifact 40062917685, pinning that this extension uses the identical predicates"
+  ],
+  "reachability_annotation_rule": "Per observed D2 row: rows inside offline/server slice bundles were emitted on the fixture path (product/offline_slice.py fixture_generation=True; product/query/pipeline.py:1339 gates the span seam behind 'not fixture_generation and adversarial_retrieval') - label 'fixture_bypass_only'. Accepted PATH_SCOPE_RESIDUAL ARM2 (cycle 40070818687, accept d0d3c4a7a) additionally established the unmodified filter ABSTAINS pivot_absent when routed diagnostically on the known offset-0 trilingual header, so for that known pattern the defect would NOT fire through the filter's own detector either - CITED, not re-run (v67 standing rule: ARM2 is accepted, never re-executed).",
+  "product_decision_unlocked": "Core Product's P0-residual decision: whether deterministic letterhead filtering is FEASIBLE on the observed variant distribution. If observed variants are homogeneous/mechanically detectable, the deterministic filter branch remains viable; if heterogeneous beyond mechanical detection (P3 forms appear), this profile IS the load-bearing bounded-negative evidence that ends that branch, published as such rather than as a defect count.",
+  "claim_ceiling": "Descriptive profile only. Scores no frozen bar, edits nothing frozen, classifies no decision as supporting/contrary under the frozen rubric, changes no serve verdict, makes no legal-usefulness claim. Both DO-NOT-SERVE orders stand; admission stays fail-closed; comparative map-versus-ranked-list stays VACUOUS; owner_decision_required stays false. Population extension disclosed; accepted baseline 40062917685 unmoved.",
+  "not_in_scope": [
+    "no frozen bar, rubric, threshold or verdict contract edited",
+    "no serve verdict re-run; no posture flag changed",
+    "no 174k benchmark rerun",
+    "ARM2 filter-routing diagnostic NOT re-run (accepted evidence cited)",
+    "conditional item (2) post-repair re-measure NOT executed (product has not landed the fixture-path repair; per current_head_slice_quality on product head e2270c37, accept 40080810801, H2 defects persist) - recorded NOT_YET_DISCRIMINATING",
+    "frontier-counter-evidence-content-filter stays TERMINATED; counter-anchor classifier stays closed"
+  ]
+}

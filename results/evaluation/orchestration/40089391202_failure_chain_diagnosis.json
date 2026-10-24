@@ -1,0 +1,63 @@
+{
+  "schema": "lex-evaluation-orchestration-diagnosis/1",
+  "run_id": "40089391202",
+  "diagnosed_runs": ["40085602229"],
+  "evidence_sources": [
+    "GitHub REST /repos/Mickalive/LexMachina/actions/runs/40085602229 (public, unauthenticated)",
+    "GitHub REST /repos/Mickalive/LexMachina/actions/runs/40085602229/jobs (public, unauthenticated)",
+    "git ls-remote for refs/heads/cycle/core/evaluation/40085602229/team and /team-attempt-1 (both at e36f7afa); no /audit ref exists",
+    "local checkout operational-resume tracking origin/cycle/core/evaluation/40085602229/team",
+    "evaluation/nested_evidence_refs_guard.py re-executed on the producer snapshot (diagnostic artifacts local_diag_40085602229_nested_evidence_refs.json and local_diag_preproducer_nested_evidence_refs.json)"
+  ],
+  "logs_accessible": false,
+  "logs_note": "The run-log download endpoint returned HTTP 403 unauthenticated; the audit job's precise failure mode (provider rotation/overload per requirement 20 vs the audit agent deterministically rejecting the producer state) is NOT readable and every attribution below is HEDGED accordingly. A producer/audit job can die on provider rotation or overload, and that is not a verdict, not a product defect and not a human-gate problem.",
+  "runs": [
+    {
+      "run_id": "40085602229",
+      "name": "Core evaluation dirV67 repair0",
+      "event": "workflow_dispatch",
+      "created_at": "2026-10-24T10:21:43Z",
+      "updated_at": "2026-10-24T11:18:48Z",
+      "conclusion": "failure",
+      "team_job": "completed SUCCESS (all steps incl. 'Validate active MVP producer state', 'Enforce lane write scope', 'Persist team snapshot'); producer commit e36f7afa3cf30c4c1703f10cbb68dac2a59073ff pushed to cycle/core/evaluation/40085602229/team and /team-attempt-1",
+      "audit_job": "completed FAILURE at step 5 'Independent audit'; steps 6 'Enforce audit scope and read gate' and 7 'Persist audit snapshot' SKIPPED — no gate file written, no audit branch pushed (git ls-remote shows no cycle/core/evaluation/40085602229/audit ref)",
+      "integrate_job": "skipped (no gate)",
+      "resilience_job": "success ('Recover failed chain and wake supervisor')",
+      "acceptance_status": "NOT ACCEPTED — requirement 4 unmet (no CYCLE_40085602229_GATE.json anywhere; lab/evaluation never received an accept commit for it)"
+    }
+  ],
+  "durable_defect_found_in_producer_output": {
+    "class": "requirement-33 unresolving-refs fabrication class (requirement-38 operational-resume guard scope)",
+    "measured_by": "evaluation/nested_evidence_refs_guard.py on the producer snapshot",
+    "counts_at_snapshot": {
+      "n_unresolved": 9,
+      "n_top_level_unresolved": 8,
+      "inherited_unresolved": 1
+    },
+    "inherited_baseline_control": "the same guard run on the accepted lab-tip state (f2734734) shows exactly 1 unresolved ($.repair_round1_40017649220.audit_gate) and 0 top-level unresolved — so the producer ADDED exactly the 8 phantom top-level refs",
+    "phantom_refs": [
+      "results/evaluation/minimal_ret_ca_benchmark/local_eval_20261024T102833Z.json (real: local_eval_20261024T102500Z.json)",
+      "reports/evaluation/RETRIEVAL_CA_BENCHMARK_local_eval_20261024T102833Z.md (real: local_eval_20261024T102500Z.md)",
+      "results/evaluation/counter_evidence_quality_benchmark/local_eval_20261024T102833Z.json (real: local_eval_20261024T102500Z.json)",
+      "reports/evaluation/COUNTER_EVIDENCE_QUALITY_BENCHMARK_local_eval_20261024T102833Z.md (real: local_eval_20261024T102500Z.md)",
+      "results/evaluation/current_head_slice_quality/local_eval_20261024T102833Z.json (real: local_eval_20261024T102500Z.json)",
+      "reports/evaluation/CURRENT_HEAD_SLICE_QUALITY_local_eval_20261024T102833Z.md (real: local_eval_20261024T102500Z.md)",
+      "results/evaluation/d2_path_scope_probe/local_eval_20261024T102833Z.json (real: local_eval_1792837481.json)",
+      "reports/evaluation/D2_PATH_SCOPE_PROBE_local_eval_20261024T102833Z.md (real: local_eval_1792837481.md)"
+    ],
+    "github_run_field": "carried the same phantom string local_eval_20261024T102833Z",
+    "duplicate_refs": [
+      "evaluation/measure_current_head_slices.py",
+      "tests/evaluation/test_measure_current_head_slices.py"
+    ],
+    "substance_gap": "producer declared continue_recommended=false (NOT_YET_DISCRIMINATING) while v67 ordered work item (1) — the UNCONDITIONAL D2 letterhead pattern heterogeneity profile — had not been executed by any accepted cycle or by the producer run",
+    "preserved_work": "the producer's four measurement re-executions are REAL committed artifacts and were preserved intact by the resume; the defect was in state-level ref names / field hygiene plus the missing item-(1) deliverable, not in the measurements themselves",
+    "hedged_note": "Whether the audit agent's death was a provider failure (requirement 20) or a deterministic rejection of the phantom refs cannot be distinguished from the REST record; either way the phantom refs were a real audit-blocking defect and the repair addresses both the defect and the missing deliverable."
+  },
+  "repairs_executed_by_40089391202": [
+    "state repairs R1-R6 via evaluation/operational_resume_40089391202_state_repair.py (phantom refs corrected by name, github_run fixed, dupes removed, requirement-39 labelling added, accepted_run_id advanced with disclosure, continue_recommended reason updated)",
+    "v67 ordered work item (1) executed: freeze-first D2 letterhead pattern heterogeneity profile run 40089391202 (LETTERHEAD_PATTERNS_MECHANICALLY_DETECTED, 93 sha256-pinned bundles, 41 D2 rows -> 2 distinct P1 patterns, controls C3-C6 all pass)",
+    "post-repair nested-refs guard: 0 top-level unresolved (inherited 1 unchanged, identical to accepted lab-tip)"
+  ],
+  "claim_ceiling": "Orchestration diagnosis only: names the failed jobs/steps from the public REST record and the durable defects measured by the lane's own guard. Makes no product, bar or serve claim; hedges every rc attribution per requirement 20."
+}
