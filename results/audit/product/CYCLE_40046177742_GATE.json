@@ -1,0 +1,52 @@
+{
+  "gate": "REVISE",
+  "cycle_id": "40046177742",
+  "run_id": "40046177742",
+  "lane": "product",
+  "repair_round": 0,
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "1) Regenerate results/product/live_slice_stages/STAGE_DISCLOSURE_AMENDMENT.json (python3 product/live_slice_stage_amendment.py --write) so the three live-slice records committed by 9634c5b are covered; this turns the two tests this cycle broke green: product/tests/test_live_slice_and_query_env.py::test_shipped_live_slice_artifact_verdict_matches_its_own_stage_fields and product/tests/test_live_slice_stage_disclosure.py::test_every_committed_record_discloses_its_stages_or_is_named_by_the_amendment (repair verified by the auditor in a scratch copy: 19/19 and 28/28 passed).",
+    "2) Publish cache accounting for this run's 21 in-place tracked query-cache rewrites (results/product/query_cache, all committed in 9634c5b; 20 of 21 covered by frozen snapshot CYCLE_39799042649_cache_manifest.json and now SHA-mismatching it). Either attribute them to a committed owning recorded run (live_slice.py --tracked-cache record + product/cache_rewrite_attribution.py --run-id <run> --write and --write-snapshot) or restore the 20 snapshot-covered envelopes to their pre-cycle committed bytes and re-verify the offline slice - such that python3 product/cache_rewrite_attribution.py --check returns to the disclosed baseline (13 pre-existing or 0 mismatched; currently 33) and the cycle's cache accounting is recorded (no report, state note, or attribution artifact exists; all three committed live-slice records fingerprint ephemeral roots with n_files_modified=0 and own none of the tracked writes).",
+    "3) (minor) Update frontier/frontier-query-map-ui/src/serve.py module docstring and route comments: /api/query/run is now fixture mode (retrieval_mode='fixture', fixture_generation=True, adversarial_retrieval=False), no product_compat shim is installed (the _status_counts defect is fixed upstream at product/query/answer.py:89), and _get_product_compat is dead code; the header still claims 'live pipeline (shimmed product pipeline)'."
+  ],
+  "claim_ceiling": "The query-specific vertical slice reproduces from real/cached OpenCaseLaw input (offline fixture replay over recorded OpenCaseLaw envelopes, plus disclosed fresh-network map-only runs): question -> retrieval -> query_result_bundle -> sourced generative answer -> independent counter-authority pass -> clickable, source-linked map - 100 decisions, 8 clusters, 67/67 page-contract assertions, 4 cited IDs resolving to bundle rows, 1 counter authority / 5 status-bearing rows, 100/100 canonical links on mcp.opencaselaw.ch, and zero network cost on the fixture path (verified under an external socket trap; the new frontier prototype fixture endpoint is likewise offline and read-only). All posture flags remain fail-closed (human_gate_ready/machine_gate_ready/packet_admitted/ready_for_owner_session false; serve verdict BOUNDED-NEGATIVE; continue_recommended=true). This ceiling applies only after the three required fixes land; until then the two red tests and the unattributed frozen-cache rewrite stand. No legal-usefulness, answer-quality, recall, or human-gate claim is supported; milestones beyond the clickable vertical slice remain incomplete.",
+  "evidence_summary": {
+    "producer_commit": "9634c5b79da94f79004d05c4a3123385ac20a83f",
+    "audited_base": "e4f72a8 (accept product cycle 40032389983)",
+    "accumulated_delta_commits": [
+      "3341032 (cycle 40039651192, offline-slice artifacts only)",
+      "e5f145f (cycle 40044664367, frontier fixtures + serve.py)",
+      "9634c5b (cycle 40046177742, live/offline records + query-cache writes)"
+    ],
+    "independent_recomputation": {
+      "offline_slice_external_socket_trap": "PASS: verdict PASS, 67/67 page-contract assertions, 1.213s, network none, 100 decisions, 8 clusters (largest 35), rows_with_source_url/xy/cluster_id 100, counter_rows 1, counter_status_bearing_rows 5, answer ready, cited_decision_ids 4, geometry_preserved_by_enrich true, replay product_query_cache_live_config_replay (candidates=165); producer workspace git status clean afterwards",
+      "served_slice": "PASS: 100 first-page -> 100 final decisions, 8 clusters, 2 cited decisions, 1 counter authority, 3 status-bearing rows, rows_with_source_url 100, 67 page-contract assertions, bundle round-trip identical, total 1.383s",
+      "state_contract": "python3 product/state_contract.py --check --direction-version 65 -> exit 0",
+      "frontier_fixture_endpoint": "GET /api/query/run -> HTTP 200, 1.6s, 50 decisions, provenance.fixture_mode=true, answer ready; tracked cache delta added 0 / modified 0 / removed 0",
+      "tests": "targeted batches 52 + 34 + 125 + 15 passed; full product/tests failure-set diff base vs head: head 167 failed / 1322 passed vs base 166 failed, net-new failures = exactly the 2 stage-amendment tests (1 observed in-sweep, 1 in directly-run file); remaining 166 failures byte-identical on base and head (environment-class legacy/174k/state suites)",
+      "cache_rewrite_attribution_check": "product/cache_rewrite_attribution.py --check: base 13 mismatched / 0 missing; head 33 mismatched / 0 missing (this cycle added 20); test_cache_rewrite_attribution.py 2 failed on both trees"
+    },
+    "source_validity": {
+      "canonical_host_reproduced_offline": "100/100 rows host exactly mcp.opencaselaw.ch",
+      "canonical_host_live_record_bundle": "100/100 rows mcp.opencaselaw.ch (20261024T011126Z)",
+      "frontier_fixtures": "105/105 bundle rows mcp.opencaselaw.ch; visualization<->bundle id overlap 105/105; coords match 105/105; answer.status=pending, n_cited=0, n_counter=0 (no overstated showcase claims)",
+      "cited_ids": "4/4 cited answer IDs resolve to bundle decision rows; answer-contract tests green",
+      "counter_pass": "offline 1 counter authority / 5 status-bearing rows; served 1 / 3"
+    },
+    "zero_cost": {
+      "offline_path": "completes under auditor's external socket.connect trap with network: none; fixture replay performs zero tracked-cache writes",
+      "committed_live_records": "honestly disclosed network users: cache_root 'ephemeral (outside the tracked product cache)', probes fingerprint /tmp roots with n_files_modified=0, verdict PASS_MAP_ONLY with stages_executed.answer/canonical_chain/counter_authority=false",
+      "violation_found": "an undisclosed unrecorded live/refresh invocation at 2026-10-24 01:00:24-01:02:29 UTC rewrote 21 tracked cache envelopes; no committed record covers it (findings defect 2)"
+    },
+    "defects": [
+      "D1 (new, blocking): 3 live-slice records committed without regenerating STAGE_DISCLOSURE_AMENDMENT.json -> 2 previously-green tests red on head, green on base; repair live_slice_stage_amendment.py --write verified by auditor (19/19, 28/28 green)",
+      "D2 (integrity/disclosure, blocking): 21 tracked query-cache envelopes rewritten in place and committed by 9634c5b with no attribution artifact, no owning run record, no report/state note; 20 covered by frozen snapshot CYCLE_39799042649 now mismatch; --check 13 -> 33; bytes remain recoverable from git history and rewritten content is genuine fresh upstream data, so repairable same-cycle",
+      "D3 (minor): serve.py header/comments still describe a live shimmed endpoint while the route is fixture-mode with no shim"
+    ],
+    "state_posture": "state/product.json byte-unchanged vs base: evidence_tier=REPRODUCED, cycle_status=COMPLETE, continue_recommended=true, human_gate_ready/machine_gate_ready/packet_admitted/ready_for_owner_session=false, accepted_run_id=40000001926, serve verdict BOUNDED-NEGATIVE; milestones beyond the vertical slice correctly marked incomplete",
+    "anti_gaming": "no test, frozen file, rubric, threshold, bar, verdict, .github or state file edited (code delta = frontier fixtures + serve.py only); no benchmark or comparison numbers published this cycle; slice stats match independent re-measurement exactly; no legal-usefulness/recall/answer-quality claim in any new artifact; negative results honestly represented (pending answer, none-status counters, PASS_MAP_ONLY scoping)",
+    "auditor_disclosure": "auditor installed pytest/numpy/scipy/sklearn/networkx in its own environment; one exploratory call to the replaced product_compat.run_query default path (live mode) appended 4 untracked cache files to the producer workspace - those 4 files were deleted and git status verified 0 lines at exit on both producer workspace and base worktree; no tracked byte modified by the audit",
+    "block_recurrence_note": "both red conditions are first-time: no prior product audit ever required a cache-attribution repair (all recent gates PASS with the 13-mismatch drift disclosed as pre-existing) and the stage-amendment tests never failed at base; gate is REVISE rather than BLOCKED for this round"
+  }
+}
