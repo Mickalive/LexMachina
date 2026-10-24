@@ -170,11 +170,18 @@ class QueryMapHandler(BaseHTTPRequestHandler):
             if not q.strip():
                 return self._send_json({"error": "empty query"}, 400)
             try:
-                product_compat = _get_product_compat()
-                bundle, report = product_compat.run_query(q, top_n=n)
+                from product.query.pipeline import run_query_initial, enrich_query_bundle
+                initial = run_query_initial(q, top_n=n, retrieval_mode="fixture")
+                bundle = enrich_query_bundle(
+                    initial,
+                    retrieval_mode="fixture",
+                    evidence_count=12,
+                    max_cites=8,
+                    fixture_generation=True,
+                    adversarial_retrieval=False,
+                )
             except Exception as exc:  # pragma: no cover - surfaced to the UI
                 return self._send_json({"error": f"{type(exc).__name__}: {exc}"}, 500)
-            bundle["_product_compat_shim"] = report
             return self._send_json(bundle)
 
         if path == "/api/fixture":
