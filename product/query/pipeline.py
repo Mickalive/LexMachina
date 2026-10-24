@@ -1336,20 +1336,16 @@ def enrich_query_bundle(
     # any decision IS supporting/contrary/limiting.  Placed exactly where the
     # accepted INTEGRATION_CONTRACT names: between adversarial_retrieval_pass()
     # and apply_anchor_labels().
-    if not fixture_generation and adversarial_retrieval:
-        # Direction v65: select a VERBATIM span from the row's own text and let
-        # the already-accepted frozen gate confirm-or-abstain on it.  The
-        # incumbent short evidence string is often not a substring of the raw
-        # text (split_sentences rewrites newlines), so the frozen gate abstains
-        # on marker/anchor grounds even when the decision body carries them.
-        # This seam does not touch the gate; it only chooses the quote.  It
-        # runs before the accepted emission repair so repaired rows keep their
-        # proposal status.  Kill-switch: LEXMACHINA_COUNTER_SPAN=off.
+    if adversarial_retrieval:
+        # Direction v65 / v67: select a VERBATIM span from the row's own text and let
+        # the already-accepted frozen gate confirm-or-abstain on it.  Run even in
+        # fixture mode so the shipped offline/slice path exercises the filter.
         audited = apply_verified_span_selection(
             audited,
             qid=(initial_bundle.get("provenance") or {}).get("qid"),
         )
-        audited = apply_counter_emission_repair(audited)
+        if not fixture_generation:
+            audited = apply_counter_emission_repair(audited)
 
     # Adopted Frontier component (frontier-counter-anchor-classifier, Outcome A,
     # accept d236f5990): confirm-or-abstain on the counter labels the
