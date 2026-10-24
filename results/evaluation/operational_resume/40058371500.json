@@ -1,0 +1,44 @@
+{
+  "schema": "lex-evaluation-operational-resume/1",
+  "run_id": "40058371500",
+  "resumed_from_run": "40056275530",
+  "direction_version": 66,
+  "mode": "operational resume of persisted producer snapshot; benchmark verification and audit-readiness",
+  "verdict": "RESUME_VERIFIED_AND_AUDIT_READY",
+  "result_file": "results/evaluation/operational_resume/40058371500.json",
+  "freeze_first": "NOT_FREEZE_FIRST: repair cycles applied to existing audited state; verification executed on committed artifacts",
+  "orchestration_diagnosis": "Prior cycle 40056275530 reached REVISE with 5 mechanical defects (pseudo-audit files, freeze-first mislabel, run-id attribution, durability, evidence index); all defects discharged in repair commit 5de5ef53 (cycle 40058371500 repair 1). No work lost; artifacts preserved.",
+  "verification_record": "Benchmark re-executed: served_baseline PASS_NO_REGRESSION (exit 0), geometry_falsification_hostile FAIL_REGRESSION (exit 1), label_falsification_blanked_evidence FAIL_REGRESSION (exit 1); falsification_proven=True. Frozen rules unchanged (RULES_LABEL 4457e971..., RULES_GEOMETRY a7452748...). Product mount at accepted head e4f72a8e.",
+  "reexecution": "python3 -m evaluation.benchmark_retrieval_counter_authority --run-id 40058371500_verification; exit_code=0; verdict=BENCHMARK_VALID_NO_FALSIFICATION",
+  "timestamp": "2026-10-24T03:36:00Z",
+  "benchmark_summary": {
+    "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
+    "exit_code": 0,
+    "falsification_proven": true,
+    "legs": [
+      {
+        "leg": "served_baseline",
+        "exit_code": 0,
+        "verdict": "PASS_NO_REGRESSION"
+      },
+      {
+        "leg": "geometry_falsification_hostile",
+        "exit_code": 1,
+        "verdict": "FAIL_REGRESSION"
+      },
+      {
+        "leg": "label_falsification_blanked_evidence",
+        "exit_code": 1,
+        "verdict": "FAIL_REGRESSION"
+      }
+    ]
+  },
+  "repairs_discharged": [
+    "D1: removed producer-committed pseudo-audit files CYCLE_40052532425",
+    "D2: corrected freeze_first to NOT_FREEZE_FIRST in operational_resume/40053757063.json",
+    "D3: fixed run-id attribution to 40056275530, advanced github_run/proposed_run_id",
+    "D4: re-executed benchmark into committed destinations with all leg records",
+    "D5: registered artifacts in evidence_refs, refreshed evidence_index_resolving_refs_n and state_updated_at"
+  ],
+  "claim_ceiling": "Benchmark proves served packet does not regress below recomputed incumbents and both frozen gates are live/falsifiable; does not prove jurist usefulness, does not meet absolute LABEL_SOUND/GEOMETRY_SOUND bars (LABEL_UNSOUND 5/65, GEOMETRY_UNSOUND reported), does not lift DO-NOT-SERVE orders, does not certify admission or human-gate readiness."
+}
