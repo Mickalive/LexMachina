@@ -8,6 +8,12 @@ Pins the resume's durable invariants:
   3. canonical state carries this run's identity with disclosure, keeps
      accepted_run_id=40084716045 and the fail-closed posture flags;
   4. the frozen instrument digest is still the accepted one (never edited).
+
+F3 REPAIR (round 1 of rejected cycle 40099481633): ``test_state_run_identity_
+and_posture`` no longer pins literal historical run ids for the MOVING state
+fields (github_run / operational_resume_of); it pins them to the append-only
+run_identity_history chain plus the frozen invariants above.  Nothing was
+deleted: the historically pinned run ids remain asserted from the history.
 """
 from __future__ import annotations
 
@@ -61,8 +67,32 @@ def test_no_phantom_role_note_keys_remain():
 
 
 def test_state_run_identity_and_posture():
-    assert STATE["github_run"] == "40094203248"
-    assert STATE["operational_resume_of"] == "40089391202"
+    """Run identity is pinned to the APPEND-ONLY chain, not a literal run id.
+
+    F3 repair (round 1 of rejected cycle 40099481633, audit required_fixes
+    item F3): this function previously pinned ``github_run == "40094203248"``
+    and ``operational_resume_of == "40089391202"`` literally.  Both went
+    stale as later cycles legitimately advanced the canonical state (the
+    state carried 40096174340 when the 40099481633 audit recomputed it),
+    producing a red living-suite test at head.  The pins are WIDENED to the
+    documented identity chain recorded in ``run_identity_history`` - every
+    state advance appends its run there - so the test can never go stale
+    again without state history being deleted.  The historical run ids
+    themselves stay asserted: history is preserved, never removed.
+    """
+    history_ids = {str(h.get("run_id"))
+                   for h in STATE.get("run_identity_history", [])}
+    # every state run identity must live in the append-only history
+    assert str(STATE["github_run"]) in history_ids, (
+        "github_run must be recorded in run_identity_history")
+    assert str(STATE["operational_resume_of"]) in history_ids, (
+        "operational_resume_of must be recorded in run_identity_history")
+    # history is NOT deleted: the runs this test originally pinned remain
+    assert "40094203248" in history_ids
+    assert "40089391202" in history_ids
+    assert str(STATE.get("inherited_deliverable_of_record")) == "40089391202"
+    # the rejected cycle this state lineage was repaired through is recorded
+    assert "40099481633" in history_ids
     assert STATE["direction_version"] == 67
     assert STATE["accepted_run_id"] == "40084716045"
     assert STATE["cycle_status"] == "COMPLETE"
