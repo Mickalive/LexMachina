@@ -1,30 +1,30 @@
 # D2 Letterhead Pattern Heterogeneity Profile — test_live_profile
 
-- direction_version: 67 (v67 ordered work item (1), population extension, separate named run — accepted baseline 40062917685 UNMOVED)
-- product mount: `/tmp/lex_accepted/product` head `e2270c373a8f26c6b826053e8527a216a3304e8b`
+- direction_version: 68 (v67 ordered work item (1), population extension, separate named run — accepted baseline 40062917685 UNMOVED)
+- product mount: `/tmp/lex_accepted/product` head `8b5b08dddeda482961ecfd432a5b5b40675b92ab`
 - packet-of-record: 39319405429 (labelled; verified rows under frozen predicate: 0)
 - verdict: **LETTERHEAD_PATTERNS_MECHANICALLY_DETECTED** (exit 0)
 - controls: ALL PASS (C3=PASS, C4=PASS, C5=PASS, C6=PASS)
 
 ## Finding
 
-Population-extension profile over 93 named sha256-pinned bundles (90 shipped-slice + 3 packet-of-record 39319405429): 41 D2_letterhead_zone rows collapse into 2 distinct letterhead pattern(s) (P1_OFFSET0_MULTILINE_COURT_HEADER). Slice verified rows 77 (72 defective); packet-of-record verified rows 0 under the frozen predicate (accepted requirement 36/42 expectation: 0 on served bytes - labelled, not an error).
+Population-extension profile over 96 named sha256-pinned bundles (93 shipped-slice + 3 packet-of-record 39319405429): 44 D2_letterhead_zone rows collapse into 2 distinct letterhead pattern(s) (P1_OFFSET0_MULTILINE_COURT_HEADER). Slice verified rows 80 (75 defective); packet-of-record verified rows 0 under the frozen predicate (accepted requirement 36/42 expectation: 0 on served bytes - labelled, not an error).
 
 ## Letterhead pattern inventory
 
-D2 rows profiled: 41 — distinct patterns: 2
+D2 rows profiled: 44 — distinct patterns: 2
 
 ### pattern `9000e8885f099066…` — P1_OFFSET0_MULTILINE_COURT_HEADER
 
-- n_rows: 36; languages: ['de']
+- n_rows: 39; languages: ['de']
 - decisions: ['gr_gerichte_ERZ 2010 25']
-- bundles (36): `results/product/offline_slice/20261020T172114Z/rent-default.bundle.json`, `results/product/offline_slice/20261021T021147Z/rent-default.bundle.json`, `results/product/offline_slice/20261021T033430Z/rent-default.bundle.json`, `results/product/offline_slice/20261021T043137Z/rent-default.bundle.json`, `results/product/offline_slice/20261021T043531Z/rent-default.bundle.json`, `results/product/offline_slice/20261021T201333Z/rent-default.bundle.json`, `results/product/offline_slice/20261022T104548Z/rent-default.bundle.json`, `results/product/offline_slice/20261022T105527Z/rent-default.bundle.json` …
-- families: ['offline_accept_40025340938', 'offline_accept_40032389983', 'offline_latest_20261024T024341Z', 'offline_slice_other_20261020T172114Z', 'offline_slice_other_20261021T021147Z', 'offline_slice_other_20261021T033430Z', 'offline_slice_other_20261021T043137Z', 'offline_slice_other_20261021T043531Z', 'offline_slice_other_20261021T201333Z', 'offline_slice_other_20261022T104548Z', 'offline_slice_other_20261022T105527Z', 'offline_slice_other_20261022T142043Z', 'offline_slice_other_20261022T165438Z', 'offline_slice_other_20261022T170046Z', 'offline_slice_other_20261022T211706Z', 'offline_slice_other_20261022T212101Z', 'offline_slice_other_20261022T212152Z', 'offline_slice_other_20261023T004550Z', 'offline_slice_other_20261023T012737Z', 'offline_slice_other_20261023T041949Z', 'offline_slice_other_20261023T061232Z', 'offline_slice_other_20261023T074335Z', 'offline_slice_other_20261023T120954Z', 'offline_slice_other_20261023T125701Z', 'offline_slice_other_20261023T132709Z', 'offline_slice_other_20261023T140339Z', 'offline_slice_other_20261023T150834Z', 'offline_slice_other_20261023T_warm_verify', 'prior_cycle_control']
+- bundles (39): `results/product/offline_slice/20261020T172114Z/rent-default.bundle.json`, `results/product/offline_slice/20261021T021147Z/rent-default.bundle.json`, `results/product/offline_slice/20261021T033430Z/rent-default.bundle.json`, `results/product/offline_slice/20261021T043137Z/rent-default.bundle.json`, `results/product/offline_slice/20261021T043531Z/rent-default.bundle.json`, `results/product/offline_slice/20261021T201333Z/rent-default.bundle.json`, `results/product/offline_slice/20261022T104548Z/rent-default.bundle.json`, `results/product/offline_slice/20261022T105527Z/rent-default.bundle.json` …
+- families: ['offline_accept_40025340938', 'offline_accept_40032389983', 'offline_latest_20261024T142517Z', 'offline_slice_other_20261020T172114Z', 'offline_slice_other_20261021T021147Z', 'offline_slice_other_20261021T033430Z', 'offline_slice_other_20261021T043137Z', 'offline_slice_other_20261021T043531Z', 'offline_slice_other_20261021T201333Z', 'offline_slice_other_20261022T104548Z', 'offline_slice_other_20261022T105527Z', 'offline_slice_other_20261022T142043Z', 'offline_slice_other_20261022T165438Z', 'offline_slice_other_20261022T170046Z', 'offline_slice_other_20261022T211706Z', 'offline_slice_other_20261022T212101Z', 'offline_slice_other_20261022T212152Z', 'offline_slice_other_20261023T004550Z', 'offline_slice_other_20261023T012737Z', 'offline_slice_other_20261023T041949Z', 'offline_slice_other_20261023T061232Z', 'offline_slice_other_20261023T074335Z', 'offline_slice_other_20261023T120954Z', 'offline_slice_other_20261023T125701Z', 'offline_slice_other_20261023T132709Z', 'offline_slice_other_20261023T140339Z', 'offline_slice_other_20261023T150834Z', 'offline_slice_other_20261023T_warm_verify', 'offline_slice_other_20261024T024341Z', 'offline_slice_other_20261024T123044Z', 'offline_slice_other_20261024T130306Z', 'prior_cycle_control']
 - full_text offsets: [0]
 - line structure: 4 lines, lengths [29, 32, 32, 24]
 - evidence preview: 'Kantonsgericht von Graubünden Dretgira chantunala dal Grischun Tribunale cantonale dei Grigioni ________________________'
 - reachability: ['fixture_bypass_only (emitted on the fixture path: product/offline_slice.py fixture_generation=True gates the span seam at product/query/pipeline.py:1339; the filter never runs). Per accepted PATH_SCOPE_RESIDUAL ARM2 (40070818687) the unmodified filter would ABSTAIN pivot_absent on the known offset-0 trilingual header if routed - cited, not re-run.']
-- defect classes on these rows: {'D2_letterhead_zone': 36}
+- defect classes on these rows: {'D2_letterhead_zone': 39}
 
 ### pattern `41a185c481e9d493…` — P1_OFFSET0_MULTILINE_COURT_HEADER
 
