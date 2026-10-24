@@ -1,0 +1,52 @@
+{
+  "schema": "lex-evaluation-orchestration-diagnosis/1",
+  "run_id": "40044626742",
+  "diagnosed_run": "40040574595",
+  "generated_at_utc": "2026-10-24T00:33:00Z",
+  "lane": "evaluation",
+  "direction_version": 65,
+  "resume_from_run_id": "40040574595",
+  "MEASURED_FACTS": [
+    {
+      "fact": "Producer-authored commit d2649360 'evaluation cycle 40040574595 (freeze): v65 head-advance cross-check v2 - hypothesis + freeze record + instrument + guard tests committed BEFORE claim-bearing execution'",
+      "author": "LexMachina Evaluation <evaluation@lexmachina.local>",
+      "committed_at_utc": "2026-10-24T00:12:45Z",
+      "contents": "evaluation/V65_HEAD_ADVANCE_CROSSCHECK_HYPOTHESIS_V2.json, evaluation/V65_HEAD_ADVANCE_CROSSCHECK_FREEZE_RECORD_V2.json, evaluation/v65_head_advance_crosscheck_v2.py (1105 lines), tests/evaluation/test_v65_head_advance_crosscheck_v2.py (174 lines)"
+    },
+    {
+      "fact": "Commit e9f3f379 'evaluation cycle 40040574595 repair 0' carries ALL claim-bearing outputs of the cycle (11 files, +4793 lines: result JSON, H2 aggregation, falsification wrapper+engine records, three shim records, two reports, state/evaluation.json update)",
+      "author": "lex-evaluation-team <lex-team@autonomous.local> (the workflow Persist-team-snapshot step's bot identity and mechanical message format '<lane> cycle <run> repair <round>')",
+      "committed_at_utc": "2026-10-24T00:21:52Z",
+      "producer_committed_its_own_results": false
+    },
+    {
+      "fact": "result generated_at_utc=2026-10-24T00:12:55Z; state state_updated_at=2026-10-24T00:18:03Z - the producer finished executing and updating state between the two commits",
+      "inference": "the producer's Ox turn ended (non-zero) after the state update and before any results commit"
+    },
+    {
+      "fact": "origin has refs/heads/cycle/core/evaluation/40040574595/team and .../team-attempt-1 BOTH at e9f3f379; GITHUB_RUN_ATTEMPT for that run was 1 (no in-run Ox retry)",
+      "source": "git ls-remote origin, observed 2026-10-24T00:24Z"
+    },
+    {
+      "fact": "NO refs/heads/cycle/core/evaluation/40040574595/audit exists; NO results/audit/evaluation/CYCLE_40040574595_GATE.json exists anywhere in the repository history reachable from this checkout; origin/lab/evaluation is still 5c21f6bd 'accept evaluation cycle 40034814235'",
+      "source": "git ls-remote origin + local results/audit/evaluation listing + git log origin/lab/evaluation"
+    },
+    {
+      "fact": "core-lane.yml (origin/main) gates the audit job on needs.team.result == 'success'; Persist-team-snapshot has if: always() and force-pushes even when earlier steps failed",
+      "source": ".github/workflows/core-lane.yml on origin/main (read, not edited)"
+    }
+  ],
+  "DEDUCTION": {
+    "team_job_conclusion": "non-success (failure)",
+    "only_consistent_failing_step": "Run lane cycle (the Ox producer wrapper). 'Validate active MVP producer state' would pass on the committed state (direction_version=65, cycle_status=COMPLETE); 'Enforce lane write scope' would pass (leftover files all under evaluation/, results/evaluation/, reports/evaluation/, state/evaluation.json); 'Clean generated junk' cannot fail the run; a Persist-step push failure would have left the remote team branches unpushed, but they carry the commit.",
+    "most_probable_rc": "rc-78 LEX_WORK_QUANTUM_EXPIRED (2700s). Timing fit: if the team job began within minutes of the preceding accept 5c21f6bd at 2026-10-23T23:35:27Z, quantum expiry lands at ~00:21Z, matching the snapshot-persist timestamp 00:21:52Z one quantum later.",
+    "alternatives_not_excluded": ["rc-1 Ox/provider failure (rotation or overload signature)", "any other non-zero wrapper exit after state update"],
+    "why_hedged": "GitHub job logs for run 40040574595 are not readable from this producer environment (no GH_TOKEN in the agent shell); the rc code itself is therefore not directly observed.",
+    "classification": "ORCHESTRATION FAILURE, NOT AN EVIDENCE, PRODUCT OR HUMAN-GATE PROBLEM (factory-wide requirement 10/12 class). Zero producer work lost: every byte the producer wrote was preserved by the workflow snapshot step."
+  },
+  "RESUME_DISCIPLINE": {
+    "no_restart_from_scratch": true,
+    "preserved": "both commits (freeze d2649360 + results e9f3f379) are the base of this resume; nothing is rewritten; the 40040574595 artifacts keep their run-40040574595 names byte-for-byte",
+    "verification_target": "evaluation/OPERATIONAL_RESUME_40044626742_HYPOTHESIS_V1.json (frozen before this resume's re-executions)"
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "schema": "lex-evaluation-operational-resume-hypothesis/1",
+  "record_kind": "OPERATIONAL-RESUME HYPOTHESIS / FREEZE RECORD (committed BEFORE the claim-bearing re-executions of this run)",
+  "lane": "evaluation",
+  "direction_version": 65,
+  "run_id": "40044626742",
+  "run_kind": "operational resume (core-lane.yml workflow input resume_from_run_id=40040574595; branch operational-resume seeded from origin/cycle/core/evaluation/40040574595/team at e9f3f379)",
+  "frozen_at_utc": "2026-10-24T00:31:55Z",
+  "question": "Does the persisted producer snapshot of run 40040574595 (freeze commit d2649360 + workflow-persisted claim-bearing commit e9f3f379) actually hold under independent re-execution of its committed instrument and guard suites under this run id, and is the snapshot audit-ready for the independent auditor of run 40044626742?",
+  "ORCHESTRATION_CHAIN_OF_RECORD": {
+    "statement": "Run 40040574595 completed all substantive v65 ordered work (freeze-first hypothesis/instrument/guard tests at d2649360; instrument execution; results; reports; state update) but its claim-bearing artifacts were committed by the workflow Persist-team-snapshot step, not by the producer, and no independent audit exists for that run. This is the orchestration class the core-lane resume mechanism was built for. Zero producer work was lost.",
+    "links": [
+      {
+        "run": "40034814235",
+        "role": "prior accepted evaluation cycle (accept commit 5c21f6bd, gate PASS)",
+        "conclusion": "ACCEPTED; lab/evaluation tip at dispatch of 40040574595 and still at dispatch of this run"
+      },
+      {
+        "run": "40040574595",
+        "role": "v65 head-advance cross-check producer (fresh cycle; freeze d2649360 at 00:12:45Z authored by the producer, results generated_at 00:12:55Z, state_updated_at 00:18:03Z)",
+        "conclusion": "Run lane cycle step exited non-zero BEFORE the producer committed its claim-bearing artifacts; the workflow Persist-team-snapshot step (if: always(); commit message format '<lane> cycle <run> repair <round>'; author lex-evaluation-team) committed the remaining delta as e9f3f379 at 00:21:52Z and force-pushed cycle/core/evaluation/40040574595/team and .../team-attempt-1 (GITHUB_RUN_ATTEMPT=1). No producer-authored commit of the results exists.",
+        "audit": "SKIPPED - no cycle/core/evaluation/40040574595/audit branch exists; no CYCLE_40040574595_GATE.json exists anywhere; lab/evaluation unmoved at 5c21f6bd",
+        "team_head": "e9f3f379"
+      },
+      {
+        "run": "40044626742",
+        "role": "THIS RUN - operational resume of 40040574595 (resume_from_run_id input)",
+        "conclusion": "in flight"
+      }
+    ],
+    "failure_class_deduction": {
+      "established": [
+        "The team job of 40040574595 must have concluded non-success: under core-lane.yml the audit job runs only if needs.team.result == 'success', and no audit branch or gate file exists while the team snapshot branches were pushed successfully.",
+        "The 'Run lane cycle' step is the only step whose failure is consistent with all observations: 'Validate active MVP producer state' would pass on the committed state (direction_version=65, cycle_status=COMPLETE); 'Enforce lane write scope' would pass (all leftover files under evaluation/, results/evaluation/, reports/evaluation/, state/evaluation.json); 'Persist team snapshot' has if: always() and demonstrably ran; a push failure would have left the team branches unpushed.",
+        "The producer finished its state update at 00:18:03Z but never git-committed the results, reports or state itself - unlike every healthy producer cycle on this lane, which commit their own delta with descriptive messages. The only commit carrying the claim-bearing artifacts has the workflow snapshot step's mechanical message and bot author."
+      ],
+      "most_probable_cause": "rc-78 LEX_WORK_QUANTUM_EXPIRED (the 2700s wrapper work-quantum guard, factory-wide requirement 10/12 class: NOT a product, evidence or human-gate problem). Circumstantial timing: if the team job began within minutes of the preceding accept 5c21f6bd at 23:35:27Z (the plausible dispatch window), the producer froze at T+~37m, updated state at T+~42m, and the snapshot persisted at T+~46m - one quantum past start.",
+      "alternatives_not_excluded": [
+        "rc-1 non-signature Ox/provider failure (rotation, overload) - indistinguishable from rc-78 without the job logs",
+        "any other non-zero exit of the Ox wrapper after the state update"
+      ],
+      "not_readable_from_here": "GitHub job logs are not readable from this producer environment (no GH_TOKEN in the agent shell); the rc attribution is therefore hedged and the DURABLE facts above stand independently of which non-zero exit occurred.",
+      "classification": "ORCHESTRATION, NOT EVIDENCE: nothing about the 40040574595 measurement content is impugned by the step failure; the resume's job is to verify the content by re-execution and make the snapshot audit-ready under this run id."
+    }
+  },
+  "VERIFICATION_PLAN_FROZEN": {
+    "V1_full_instrument_reexecution": {
+      "what": "Re-execute the committed instrument evaluation/v65_head_advance_crosscheck_v2.py UNCHANGED (sha256 8a7e19c9f1c31bbc... must re-hash identical first) with --run-id 40044626742 against the same product mount (lab/product tip e4f72a8e verified still at that sha at resume time) and packet-of-record 39319405429, then normalized-compare to results/evaluation/v65_head_advance_crosscheck/40040574595.json.",
+      "normalization": "strip run_id, generated_at(_utc), elapsed/time-like fields, and output/report file paths; everything else compared quantity-for-quantity",
+      "success_rule": "normalized-IDENTICAL: verdict PASS_NO_FALSIFICATION; currency 36 CONFIRMED / 0 DIVERGENT / 2 CONFIRMED_LAG / 1 NOT_REEXECUTED; H2_FALSIFIED with n_verified_rows 14/14 and histogram D2=10 D3=4 D4=4 over 2 distinct decisions; falsification PRODUCT_FALSIFIED with the identical accepted four-gate set and empty input_drift; controls 5/5; pins_before/pins_after identical"
+    },
+    "V2_shim_suites": {
+      "what": "Re-run the three committed shim suites via evaluation/no_pytest_runner.py (sha256 c12097da9d910574380b32c5dafa371a3b24ec14ef2551d92bb9453b8ed57584 must re-hash identical first) under run id 40044626742",
+      "success_rule": "self suite tests/evaluation/test_v65_head_advance_crosscheck_v2.py >= 12 passed / 0 failed; multilingual-provenance family (4 files) 73 passed / 0 failed; falsification family (4 files) 0 failed with >= 51 passed and <= 21 UNSUPPORTED - the single state-hygiene failure recorded by 40040574595 (dangling ref 40011795717/producer_work_state_and_next_move.txt) is EXPECTED TO CLEAR because the producer's state update removed that ref before the snapshot persisted; UNSUPPORTED is counted not-run, never passed"
+    },
+    "V3_frozen_pin_rehash": {
+      "what": "Re-hash all 25 frozen pins of evaluation/V65_HEAD_ADVANCE_CROSSCHECK_FREEZE_RECORD_V2.json (repo rubrics, packet, planner, pipeline, product artifacts) against the live mount and repo",
+      "success_rule": "all 25 identical to the freeze record; no frozen or historical file modified by this resume"
+    },
+    "V4_evidence_index": {
+      "what": "Every path in state/evaluation.json.evidence_refs must resolve on disk at the snapshot head; evidence_refs_n must equal len(evidence_refs)",
+      "success_rule": "0 missing; count reconciled; the one ref removed by the 40040574595 state update is disclosed, never re-added silently"
+    },
+    "V5_freeze_first_ordering": {
+      "what": "Verify 40040574595's freeze-first claim from git: the commit containing hypothesis+freeze+instrument+guard tests (d2649360, 00:12:45Z) strictly precedes the commit containing any claim-bearing result (e9f3f379, 00:21:52Z), and the result generated_at (00:12:55Z) is after the freeze commit timestamp",
+      "success_rule": "ordering holds as claimed in the report of record"
+    },
+    "V6_state_hygiene_correction_frozen_in_advance": {
+      "what": "state/evaluation.json.accepted_run_id is '39986080045'. Audit of lab/evaluation accept commits shows NO 'accept evaluation cycle 39986080045' commit exists anywhere; the accepted lineage after 39936790420 is 40002636192 -> 40012474431 -> 40034814235, each carrying both halves of factory-wide requirement 4. 39986080045 has a PASS gate file but no accept commit naming it, so it is not an accepted run of record.",
+      "action_frozen_now": "advance accepted_run_id to '40034814235' with an accepted_run_id_advance block that records BOTH the measured misstatement (39986080045 accepted_run_id had no accept-commit half) and the verified lineage; disclosed in the resume report and verification record, never laundered",
+      "success_rule": "correction applied exactly once, idempotent on re-run, and the verification record carries the git evidence (accept-commit list) that justified it"
+    }
+  },
+  "OUT_OF_SCOPE": [
+    "no frozen bar, rubric, threshold or verdict contract is edited, applied or re-derived (RULES_LABEL/RULES_GEOMETRY re-hashed REPORTED-ONLY)",
+    "no serve verdict is re-run; both DO-NOT-SERVE orders stand; the packet of record is not rescored under any bar",
+    "no obsolete universal-174k benchmark is rerun",
+    "no historical claim-bearing result is overwritten; the 40040574595 artifacts keep their run-40040574595 names byte-for-byte (requirement 30); this resume's measurements live under 40044626742 names",
+    "no product-side work; posture flags stay false (human_gate_ready, machine_gate_ready, packet_admitted, ready_for_owner_session, owner_decision_required)"
+  ],
+  "claim_ceiling": "This record freezes, before execution, the plan to verify by re-execution the already-produced (but unaudited) 40040574595 cycle and to make its snapshot audit-ready under run 40044626742. It asserts no measurement outcome in advance; every success_rule above is a pre-registered comparison target, not a result."
+}
