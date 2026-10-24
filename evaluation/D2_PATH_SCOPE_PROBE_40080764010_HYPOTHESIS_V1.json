@@ -1,0 +1,48 @@
+{
+  "schema": "lex-evaluation-hypothesis/1",
+  "run_id": "40080764010",
+  "lane": "evaluation",
+  "direction_version": 67,
+  "github_run": "40080764010",
+  "frozen_at_utc": "2026-10-24T09:17:00Z",
+  "commit_discipline": "This hypothesis and its companion freeze record are committed BEFORE any claim-bearing execution of the three probe arms (established freeze-first convention, accepted cycles 40062917685 / 40068038783).",
+  "lane_question_position": "v67 evaluation question re-anchored by the Director at v67 on the accepted PATH_SCOPE_RESIDUAL finding (run 40070818687) and the accepted per-class verdict (run 40068038783). The binding finding is a PATH-SCOPED D2_LETTERHEAD_ZONE RESIDUAL with two mechanisms: (a) the fixture path bypasses the content filter (fixture_generation=True gates apply_verified_span_selection), and (b) even when forced, the frozen gate abstains (pivot_absent). Product has not landed content-filter-repaired slices. This cycle re-measures ARM0 static provenance on the latest product head 6b5827a10 to confirm the diagnosis persists.",
+  "hypotheses": {
+    "H0_stale_artifact": "The residual D2 row is a stale pre-filter artifact: the shipped offline slice was generated before the content filter existed, so regenerating with current code removes the defect.",
+    "H1_path_scope": "The residual D2 row is structural path scope: product/offline_slice.py enriches with fixture_generation=True and product/query/pipeline.py gates apply_verified_span_selection behind 'not fixture_generation and adversarial_retrieval', so the filter never runs on the fixture path. Regeneration reproduces the identical D2 row and span-seam provenance stays absent."
+  },
+  "discriminating_question": "Does the PATH_SCOPE_RESIDUAL diagnosis from run 40070818687 persist on the latest accepted product head 6b5827a10?",
+  "product_decision_unlocked": "If H1 confirmed, product must route the offline/server slice generation through the filtered span seam (or emit through non-fixture audit path); regeneration alone cannot clear D2. If H0, regeneration alone clears D2.",
+  "plan": {
+    "ARM0_static_provenance": "On the shipped slice bundle (sha256 pinned in the freeze record) record (a) bundle-level and row-level presence of provenance.counter_evidence_span, (b) the exact pipeline gate line(s) that admit apply_verified_span_selection with file:line provenance, (c) the row's counter_evidence_verified / counter_evidence / full_text_status fields.",
+    "ARM1_regeneration": "Copy the accepted product worktree (head 6b5827a10) to scratch, run python product/offline_slice.py --slug rent-default --out <scratch> UNMODIFIED, then score the regenerated bundle with the FROZEN D2/D3/D4 predicates.",
+    "ARM2_routed_filter_counterfactual_DIAGNOSTIC": "Apply the accepted head's own apply_verified_span_selection (imported unmodified) to the regenerated bundle and score the targeted row with the same frozen predicates. Labelled DIAGNOSTIC: measures what the accepted filter WOULD do if routed; NOT a claim about shipped behaviour.",
+    "CONTROLS": {
+      "C3_frozen_rubric_rehash": "Re-hash RULES_LABEL.json and RULES_GEOMETRY.json and compare with accepted digests; REPORTED-ONLY.",
+      "C4_frozen_instrument_digest": "evaluation/counter_evidence_quality_benchmark.py sha256 must equal aac86527e5e54f0f9c527daac7ff1016d5124731b8ce673797520ff3dd53067d.",
+      "C5_non_vacuity": "Planted synthetic letterhead-zone row must be flagged D2_letterhead_zone; planted mid-document substantive row must NOT be flagged."
+    }
+  },
+  "decision_rule_frozen_before_execution": {
+    "STALE_ARTIFACT_RESIDUAL": "ARM1 regenerated bundle carries ZERO D2 defects AND span-seam provenance is present on the bundle.",
+    "PATH_SCOPE_RESIDUAL": "ARM1 regenerated bundle still carries the identical D2 row AND bundle-level provenance.counter_evidence_span is still absent.",
+    "MIXED_OR_INCONCLUSIVE": "Any other combination, reported as-is with exact evidence.",
+    "void_condition": "If any of C3/C4/C5 fails, this cycle makes NO claim about H0/H1 and reports CONTROLS_FAILED."
+  },
+  "pins": {
+    "product_head_at_freeze": "6b5827a10881d4b05a518b58551a090ee5884999 (accept 40071621940)",
+    "shipped_slice_bundle": "results/product/offline_slice/20261024T024341Z/rent-default.bundle.json",
+    "latest_accepted_evaluation_cycle": "40070818687 (accept commit d0d3c4a7a, PASS gate)",
+    "accepted_path_scope_probe_of_record": "results/evaluation/d2_path_scope_probe/40070818687.json",
+    "packet_of_record": "39319405429"
+  },
+  "out_of_scope": [
+    "no frozen bar, rubric, threshold or verdict contract is edited, re-derived or re-tuned",
+    "no serve verdict re-run; both DO-NOT-SERVE orders stand",
+    "no obsolete universal-174k benchmark rerun",
+    "no product code is modified; the seam is imported unmodified for ARM2 diagnostic",
+    "comparative map-vs-ranked-list half is NOT scored; posture flags stay FALSE",
+    "the content-quality FILTER IMPLEMENTATION and any slice-regeneration decision stay Core Product's",
+    ".github/** is control-plane scope and is recorded, never edited"
+  ]
+}

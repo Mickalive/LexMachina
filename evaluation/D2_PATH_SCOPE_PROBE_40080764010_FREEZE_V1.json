@@ -1,0 +1,53 @@
+{
+  "schema": "lex-evaluation-freeze-record/1",
+  "run_id": "40080764010",
+  "lane": "evaluation",
+  "direction_version": 67,
+  "github_run": "40080764010",
+  "frozen_at_utc": "2026-10-24T09:17:30Z",
+  "instrument": "evaluation/d2_path_scope_probe.py (this cycle's instrument; to be committed with the run artifacts)",
+  "hypothesis_record": "evaluation/D2_PATH_SCOPE_PROBE_40080764010_HYPOTHESIS_V1.json",
+  "hypothesis_sha256": "pending_rehash_after_commit",
+  "frozen_inputs": {
+    "shipped_slice_bundle": {
+      "path_on_product_mount": "results/product/offline_slice/20261024T024341Z/rent-default.bundle.json",
+      "sha256": "9de09a28784289dea7333d5afcbfc2bb7652914857d4ac6936d13c49ce69cf29"
+    },
+    "product_mount": {
+      "path": "/tmp/lex_accepted/product",
+      "head": "6b5827a10881d4b05a518b58551a090ee5884999",
+      "accept_cycle": "40071621940"
+    },
+    "frozen_predicates_instrument": {
+      "path": "evaluation/counter_evidence_quality_benchmark.py",
+      "sha256": "aac86527e5e54f0f9c527daac7ff1016d5124731b8ce673797520ff3dd53067d",
+      "usage": "imported by value; digest re-verified at runtime (control C4); NEVER edited"
+    },
+    "frozen_rubrics_reported_only": {
+      "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633"
+    }
+  },
+  "pre_execution_observations_disclosed": [
+    "Before this freeze, non-claim-bearing scoping reads were performed: the shipped bundle's row gr_gerichte_ERZ 2010 25 was opened (counter_evidence_verified=true, counter_evidence is the court letterhead, full_text_status=lazy, counter_evidence_span absent); bundle-level provenance.counter_evidence_span was read (absent); product/offline_slice.py and product/query/pipeline.py were read (the enrich call passes fixture_generation=True; the apply_verified_span_selection call site is gated by 'not fixture_generation and adversarial_retrieval').",
+    "These reads are the reason the PATH_SCOPE_RESIDUAL diagnosis is expected to persist; they are NOT the claim-bearing measurement. The claim-bearing measurement is ARM0 static provenance re-executed on the latest product head, which re-pins every bundle by sha256 and verifies the pipeline gates are unchanged.",
+    "ARM1/ARM2 could not execute due to missing numpy in the evaluation environment (ModuleNotFoundError on import numpy in product/query/qmap.py). This is an environment limitation, not a product code change. The path-scope diagnosis from run 40070818687 is expected to persist because the gating logic in pipeline.py is unchanged."
+  ],
+  "numeric_environment": {
+    "python": "3.12.3 (system)",
+    "pytest": "not available",
+    "numpy": "NOT AVAILABLE (ARM1/ARM2 could not execute)",
+    "scipy": "NOT AVAILABLE",
+    "scikit_learn": "NOT AVAILABLE",
+    "blas_note": "No geometry, projection or clustering is scored this cycle; ARM1 regeneration requires numpy for product.query.qmap which is not available in the evaluation environment."
+  },
+  "arms": [
+    "ARM0 static provenance on the pinned shipped bundle + file:line gate provenance in product/query/pipeline.py",
+    "ARM1 unmodified regeneration of the rent-default offline slice - NOT EXECUTED (missing numpy dependency)",
+    "ARM2 DIAGNOSTIC - NOT EXECUTED (requires ARM1 bundle)"
+  ],
+  "controls": ["C3 frozen rubric re-hash REPORTED-ONLY", "C4 frozen instrument digest", "C5 planted letterhead / planted mid-document non-vacuity"],
+  "decision_rule": "See the hypothesis record's decision_rule_frozen_before_execution block; any control failure voids all H0/H1 claims for this cycle (CONTROLS_FAILED). ARM1/ARM2 non-execution due to environment dependency is disclosed and does NOT invalidate ARM0 findings.",
+  "no_bar_movement": true,
+  "claim_ceiling": "PATH-SCOPE DIAGNOSTIC ONLY: this probe classifies where the accepted content-quality filter sits relative to the shipped offline slice's counter-evidence emission path. It scores no frozen bar, edits no rubric/threshold, classifies no decision as supporting/contrary under the frozen rubric, changes no serve verdict and makes no legal-usefulness claim. Both DO-NOT-SERVE orders stand; admission stays fail-closed; the comparative map-versus-ranked-list half is NOT scored."
+}
