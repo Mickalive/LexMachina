@@ -1,0 +1,456 @@
+{
+ "schema": "lex-evaluation-scorer-path-reconciliation/1",
+ "run_id": "40068038783",
+ "generated_at_utc": "2026-10-24T06:16:49Z",
+ "direction_version": 66,
+ "ordered_work_item": "v66 evaluation ordered work item (3) FROZEN-SCORER PATH DIVERGENCE CROSS-CHECK",
+ "mount": "/tmp/lex_accepted/product",
+ "mount_head": "3495c13361ddf40f88d31c1fbb47b00bc06eee63",
+ "expected_mount_head": "3495c13361ddf40f88d31c1fbb47b00bc06eee63",
+ "packet": "39319405429",
+ "frozen_rehash_reported_only": {
+  "rules_label_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+  "matches_expected": true,
+  "content_predicate_instrument_sha256": "aac86527e5e54f0f9c527daac7ff1016d5124731b8ce673797520ff3dd53067d",
+  "product_side_rules_digest": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608"
+ },
+ "scored_statuses": [
+  "candidate-limiting",
+  "candidate-contrary",
+  "contrary_or_exception",
+  "limiting"
+ ],
+ "provenance": {
+  "side_a_frozen_scorer": {
+   "predicate": "evaluation/mapping_free_recall_falsifier.py:counter_authority_surface",
+   "file_lines": "evaluation/mapping_free_recall_falsifier.py:305-317",
+   "statuses_source": "evaluation/mapping_free_recall_falsifier.py:407 reads rubric.scored_statuses from evaluation/frozen_bars/RULES_LABEL.json (re-hashed REPORTED-ONLY below)",
+   "population": "decision rows of the input bundle BYTES AS WRITTEN whose counter_status is in rubric.scored_statuses ('candidate-limiting','candidate-contrary','contrary_or_exception','limiting'); the scorer applies no transform of its own - it never runs the span seam, the emission repair or the anchor classifier",
+   "emission_path": "none - the scorer only READS counter_status and counter_evidence fields already present on the bytes it is given"
+  },
+  "side_b_product_span_seam": {
+   "harness": "product/measure_counter_span_selection.py (arms built at lines 102-116)",
+   "transform_chain": "product/query/counter_evidence_span.py:apply_verified_span_selection (line 494) with content_filter=True default (line 349; filter at 382-393/441-446, predicates passes_content_filter line 744 / detect_letterhead_zone line 676) -> product/query/counter_emission_repair.py:apply_counter_emission_repair -> product/query/counter_anchor.py:apply_anchor_labels (line 222; emits provenance.counter_anchor.emitted_ids, line 295-343)",
+   "population": "the 20 heuristic-signal rows promoted by the shipped offline emission path on the packet-of-record de/fr/it question bundles (8/8/4), then the frozen confirm-or-abstain gate over selected spans",
+   "emission_path": "span selection writes counter_evidence + counter_evidence_verified on rows; anchor labels write counter_status in the scored set or 'abstained_unevidenced'",
+   "harness_execution_note": "the harness MODULE cannot be invoked as `python -m product.measure_counter_span_selection` in this evaluation environment because product/query/__init__.py imports the full pipeline (numpy dependency, absent here); this instrument therefore executes the harness's EXACT arm code path (the same three product functions at the same call sites, loaded by file path from the mount with a synthetic package, the reuse pattern already accepted in evaluation/offline_emission_path_benchmark.py:load_product_modules) rather than re-implementing the arms"
+  }
+ },
+ "per_qid": {
+  "de-kapitalverletzung": {
+   "side_a_frozen_scorer_on_served_bytes": {
+    "n_issued": 0,
+    "n_with_empty_evidence": 0,
+    "empty_evidence_examples": [],
+    "statuses_seen": [],
+    "scored_statuses_from_frozen_rubric": [
+     "candidate-limiting",
+     "candidate-contrary",
+     "contrary_or_exception",
+     "limiting"
+    ]
+   },
+   "side_b_product_arms": {
+    "baseline": {
+     "n_scored": 8,
+     "n_emitted": 0,
+     "n_abstained": 8,
+     "yield": 0.0,
+     "emitted_ids": [],
+     "emitted_rows": []
+    },
+    "candidate_unguarded": {
+     "n_scored": 8,
+     "n_emitted": 2,
+     "n_abstained": 6,
+     "yield": 0.25,
+     "emitted_ids": [
+      "zg_verwaltungsgericht_V 2012 _ 151",
+      "bge_146 II 304"
+     ],
+     "emitted_rows": [
+      {
+       "decision_id": "zg_verwaltungsgericht_V 2012 _ 151",
+       "counter_status": "contrary_or_exception",
+       "counter_evidence_verified": true,
+       "evidence_len": 524,
+       "frozen_content_defects": []
+      },
+      {
+       "decision_id": "bge_146 II 304",
+       "counter_status": "candidate-contrary",
+       "counter_evidence_verified": true,
+       "evidence_len": 213,
+       "frozen_content_defects": []
+      }
+     ]
+    },
+    "candidate": {
+     "n_scored": 8,
+     "n_emitted": 0,
+     "n_abstained": 8,
+     "yield": 0.0,
+     "emitted_ids": [],
+     "emitted_rows": []
+    }
+   },
+   "side_a_frozen_scorer_on_guarded_transformed_bytes": {
+    "n_issued": 0,
+    "n_with_empty_evidence": 0,
+    "empty_evidence_examples": [],
+    "statuses_seen": [],
+    "scored_statuses_from_frozen_rubric": [
+     "candidate-limiting",
+     "candidate-contrary",
+     "contrary_or_exception",
+     "limiting"
+    ]
+   },
+   "side_a_frozen_scorer_on_unguarded_transformed_bytes": {
+    "n_issued": 2,
+    "n_with_empty_evidence": 0,
+    "empty_evidence_examples": [],
+    "statuses_seen": [
+     "candidate-contrary",
+     "contrary_or_exception"
+    ],
+    "scored_statuses_from_frozen_rubric": [
+     "candidate-limiting",
+     "candidate-contrary",
+     "contrary_or_exception",
+     "limiting"
+    ]
+   },
+   "identity_vs_pre_filter_measurement_of_record": {
+    "baseline": {
+     "pre_filter_n_emitted": null,
+     "new_head_n_emitted": 0,
+     "pre_filter_emitted_ids": [],
+     "new_head_emitted_ids": [],
+     "identical": false
+    },
+    "candidate_unguarded": {
+     "pre_filter_n_emitted": 2,
+     "new_head_n_emitted": 2,
+     "pre_filter_emitted_ids": [
+      "zg_verwaltungsgericht_V 2012 _ 151",
+      "bge_146 II 304"
+     ],
+     "new_head_emitted_ids": [
+      "zg_verwaltungsgericht_V 2012 _ 151",
+      "bge_146 II 304"
+     ],
+     "identical": true
+    },
+    "candidate": {
+     "pre_filter_n_emitted": null,
+     "new_head_n_emitted": 0,
+     "pre_filter_emitted_ids": [],
+     "new_head_emitted_ids": [],
+     "identical": false
+    }
+   }
+  },
+  "fr-bail-entretien": {
+   "side_a_frozen_scorer_on_served_bytes": {
+    "n_issued": 0,
+    "n_with_empty_evidence": 0,
+    "empty_evidence_examples": [],
+    "statuses_seen": [],
+    "scored_statuses_from_frozen_rubric": [
+     "candidate-limiting",
+     "candidate-contrary",
+     "contrary_or_exception",
+     "limiting"
+    ]
+   },
+   "side_b_product_arms": {
+    "baseline": {
+     "n_scored": 8,
+     "n_emitted": 0,
+     "n_abstained": 8,
+     "yield": 0.0,
+     "emitted_ids": [],
+     "emitted_rows": []
+    },
+    "candidate_unguarded": {
+     "n_scored": 8,
+     "n_emitted": 4,
+     "n_abstained": 4,
+     "yield": 0.5,
+     "emitted_ids": [
+      "bge_111 II 201",
+      "bge_136 III 196",
+      "bge_140 III 583",
+      "bge_136 III 583"
+     ],
+     "emitted_rows": [
+      {
+       "decision_id": "bge_111 II 201",
+       "counter_status": "candidate-limiting",
+       "counter_evidence_verified": true,
+       "evidence_len": 600,
+       "frozen_content_defects": []
+      },
+      {
+       "decision_id": "bge_136 III 196",
+       "counter_status": "candidate-limiting",
+       "counter_evidence_verified": true,
+       "evidence_len": 286,
+       "frozen_content_defects": []
+      },
+      {
+       "decision_id": "bge_140 III 583",
+       "counter_status": "candidate-limiting",
+       "counter_evidence_verified": true,
+       "evidence_len": 359,
+       "frozen_content_defects": []
+      },
+      {
+       "decision_id": "bge_136 III 583",
+       "counter_status": "candidate-limiting",
+       "counter_evidence_verified": true,
+       "evidence_len": 397,
+       "frozen_content_defects": []
+      }
+     ]
+    },
+    "candidate": {
+     "n_scored": 8,
+     "n_emitted": 1,
+     "n_abstained": 7,
+     "yield": 0.125,
+     "emitted_ids": [
+      "bge_136 III 196"
+     ],
+     "emitted_rows": [
+      {
+       "decision_id": "bge_136 III 196",
+       "counter_status": "candidate-limiting",
+       "counter_evidence_verified": true,
+       "evidence_len": 286,
+       "frozen_content_defects": []
+      }
+     ]
+    }
+   },
+   "side_a_frozen_scorer_on_guarded_transformed_bytes": {
+    "n_issued": 1,
+    "n_with_empty_evidence": 0,
+    "empty_evidence_examples": [],
+    "statuses_seen": [
+     "candidate-limiting"
+    ],
+    "scored_statuses_from_frozen_rubric": [
+     "candidate-limiting",
+     "candidate-contrary",
+     "contrary_or_exception",
+     "limiting"
+    ]
+   },
+   "side_a_frozen_scorer_on_unguarded_transformed_bytes": {
+    "n_issued": 4,
+    "n_with_empty_evidence": 0,
+    "empty_evidence_examples": [],
+    "statuses_seen": [
+     "candidate-limiting"
+    ],
+    "scored_statuses_from_frozen_rubric": [
+     "candidate-limiting",
+     "candidate-contrary",
+     "contrary_or_exception",
+     "limiting"
+    ]
+   },
+   "identity_vs_pre_filter_measurement_of_record": {
+    "baseline": {
+     "pre_filter_n_emitted": null,
+     "new_head_n_emitted": 0,
+     "pre_filter_emitted_ids": [],
+     "new_head_emitted_ids": [],
+     "identical": false
+    },
+    "candidate_unguarded": {
+     "pre_filter_n_emitted": 4,
+     "new_head_n_emitted": 4,
+     "pre_filter_emitted_ids": [
+      "bge_111 II 201",
+      "bge_136 III 196",
+      "bge_140 III 583",
+      "bge_136 III 583"
+     ],
+     "new_head_emitted_ids": [
+      "bge_111 II 201",
+      "bge_136 III 196",
+      "bge_140 III 583",
+      "bge_136 III 583"
+     ],
+     "identical": true
+    },
+    "candidate": {
+     "pre_filter_n_emitted": 1,
+     "new_head_n_emitted": 1,
+     "pre_filter_emitted_ids": [
+      "bge_136 III 196"
+     ],
+     "new_head_emitted_ids": [
+      "bge_136 III 196"
+     ],
+     "identical": true
+    }
+   }
+  },
+  "it-responsabilita-medica": {
+   "side_a_frozen_scorer_on_served_bytes": {
+    "n_issued": 0,
+    "n_with_empty_evidence": 0,
+    "empty_evidence_examples": [],
+    "statuses_seen": [],
+    "scored_statuses_from_frozen_rubric": [
+     "candidate-limiting",
+     "candidate-contrary",
+     "contrary_or_exception",
+     "limiting"
+    ]
+   },
+   "side_b_product_arms": {
+    "baseline": {
+     "n_scored": 4,
+     "n_emitted": 0,
+     "n_abstained": 4,
+     "yield": 0.0,
+     "emitted_ids": [],
+     "emitted_rows": []
+    },
+    "candidate_unguarded": {
+     "n_scored": 4,
+     "n_emitted": 0,
+     "n_abstained": 4,
+     "yield": 0.0,
+     "emitted_ids": [],
+     "emitted_rows": []
+    },
+    "candidate": {
+     "n_scored": 4,
+     "n_emitted": 0,
+     "n_abstained": 4,
+     "yield": 0.0,
+     "emitted_ids": [],
+     "emitted_rows": []
+    }
+   },
+   "side_a_frozen_scorer_on_guarded_transformed_bytes": {
+    "n_issued": 0,
+    "n_with_empty_evidence": 0,
+    "empty_evidence_examples": [],
+    "statuses_seen": [],
+    "scored_statuses_from_frozen_rubric": [
+     "candidate-limiting",
+     "candidate-contrary",
+     "contrary_or_exception",
+     "limiting"
+    ]
+   },
+   "side_a_frozen_scorer_on_unguarded_transformed_bytes": {
+    "n_issued": 0,
+    "n_with_empty_evidence": 0,
+    "empty_evidence_examples": [],
+    "statuses_seen": [],
+    "scored_statuses_from_frozen_rubric": [
+     "candidate-limiting",
+     "candidate-contrary",
+     "contrary_or_exception",
+     "limiting"
+    ]
+   },
+   "identity_vs_pre_filter_measurement_of_record": {
+    "baseline": {
+     "pre_filter_n_emitted": null,
+     "new_head_n_emitted": 0,
+     "pre_filter_emitted_ids": [],
+     "new_head_emitted_ids": [],
+     "identical": false
+    },
+    "candidate_unguarded": {
+     "pre_filter_n_emitted": null,
+     "new_head_n_emitted": 0,
+     "pre_filter_emitted_ids": [],
+     "new_head_emitted_ids": [],
+     "identical": false
+    },
+    "candidate": {
+     "pre_filter_n_emitted": null,
+     "new_head_n_emitted": 0,
+     "pre_filter_emitted_ids": [],
+     "new_head_emitted_ids": [],
+     "identical": false
+    }
+   }
+  }
+ },
+ "aggregate": {
+  "side_b_product_arms_n_emitted": {
+   "baseline": 0,
+   "candidate_unguarded": 6,
+   "candidate": 1
+  },
+  "side_a_frozen_scorer_served_bytes_n_issued_total": 0,
+  "side_a_frozen_scorer_guarded_transformed_bytes_n_issued_total": 1,
+  "pre_filter_measurement_of_record": "results/product/counter_span/CYCLE_39986094168_span_selection.json",
+  "pre_filter_aggregate": {
+   "baseline": {
+    "n_scored": 20,
+    "n_emitted": 0,
+    "n_abstained": 20,
+    "n_emitted_verified": 0,
+    "n_emitted_verbatim": 0,
+    "yield": 0.0,
+    "support_rate_among_emitted": 0.0
+   },
+   "candidate_unguarded": {
+    "n_scored": 20,
+    "n_emitted": 6,
+    "n_abstained": 14,
+    "n_emitted_verified": 6,
+    "n_emitted_verbatim": 6,
+    "yield": 0.3,
+    "support_rate_among_emitted": 1.0
+   },
+   "candidate": {
+    "n_scored": 20,
+    "n_emitted": 1,
+    "n_abstained": 19,
+    "n_emitted_verified": 1,
+    "n_emitted_verbatim": 1,
+    "yield": 0.05,
+    "support_rate_among_emitted": 1.0
+   }
+  },
+  "packet_level_emission_identity_vs_pre_filter": true
+ },
+ "contract_analysis": {
+  "question": "is the span-seam guarded output inside or outside the frozen scorer's input contract?",
+  "answer": "INSIDE by shape, OUTSIDE by path. Every guarded emitted row carries a counter_status in rubric.scored_statuses and non-empty counter_evidence (shape check: True); when the frozen predicate is applied to the POST-TRANSFORM bytes it scores those rows (served-bytes total issued 0 vs guarded-transformed total issued 1). The frozen scorer's input contract is the bundle bytes AS WRITTEN; the span seam is a PRE-SCORER pipeline stage whose output is not present in the served packet-of-record bytes, so on the served bytes both families agree at zero. The requirement-36 divergence (product harness n_emitted 0/1/6 vs frozen scorer n_emitted=0) is therefore a TRANSFORM-PATH divergence, not a contract-shape exclusion, and it is resolved here without any edit to the frozen scorer.",
+  "guarded_emitted_rows_shape_ok": true,
+  "guarded_emitted_rows_content_clean_under_frozen_predicates": true,
+  "identity_vs_accepted_pre_filter_measurement": true,
+  "p0_filter_effect_on_packet_bytes": "NONE at the emitted-set level: the new head's arm totals and emitted ids are identical to the accepted pre-filter measurement of record (the item-(4) shipped-slice D2 persistence is a separate population and is measured there)."
+ },
+ "verdict": "RECONCILIATION_COMPLETE",
+ "exit_code": 0,
+ "claim_ceiling": "Side-by-side measurement of the frozen mapping-free predicate and the product span-seam arms on identical packet-of-record bytes under the NEW head; scores no frozen bar, applies no verdict contract, edits no scorer; the frozen rubrics are re-hashed REPORTED-ONLY. Both DO-NOT-SERVE orders stand; admission stays fail-closed; the comparative map-versus-ranked-list half is NOT scored while served-bytes emission stays zero.",
+ "no_obsolete_174k_benchmark_rerun": true,
+ "elapsed_s": 15.257,
+ "numeric_environment": {
+  "python": "3.12.3",
+  "platform": "linux",
+  "numpy": "absent",
+  "scipy": "absent",
+  "sklearn": "absent",
+  "thread_env": {
+   "OMP_NUM_THREADS": null,
+   "OPENBLAS_NUM_THREADS": null,
+   "MKL_NUM_THREADS": null
+  }
+ }
+}
