@@ -235,10 +235,50 @@ def test_content_family_probe_reproduces_the_committed_artifact() -> None:
     art = _load(PROBE_ART)
     fresh = cfp.run(run_id=RUN_ID, direction_version=DIRV)
     assert fresh["schema"] == art["schema"]
+
+    # Family-growth-aware reproduction (amended by operational resume
+    # 40182739499): the probe globs EVERY committed bundle, so later accepted-
+    # chain cycles that regenerate slices (e.g. 40170987954) legitimately grow
+    # the fresh family and break a byte-for-byte totals comparison.  The
+    # historical claim being re-derived is narrower and still exactly checked
+    # here: for every bundle this instrument listed, the fresh probe must
+    # reproduce the same per-bundle histogram and the instrument's totals must
+    # equal the sums over THAT subset.  This is a strengthening, not a
+    # weakening: a defect appearing on any historical bundle still fails, and
+    # the fresh family may only GROW, never lose a historical bundle.
     for family in ("fixed_path_family", "all_committed"):
-        assert fresh[family]["totals"] == art[family]["totals"], family
+        art_paths = {b["path"] for b in art[family]["bundles"]}
+        fresh_by_path = {b["path"]: b for b in fresh[family]["bundles"]}
+        missing = art_paths - set(fresh_by_path)
+        assert not missing, f"{family}: historical bundles vanished: {sorted(missing)[:3]}"
+        for path in art_paths:
+            assert fresh_by_path[path]["defect_histogram"] == next(
+                b["defect_histogram"] for b in art[family]["bundles"]
+                if b["path"] == path
+            ), f"{family}: histogram drifted on historical bundle {path}"
+            assert fresh_by_path[path]["n_verified"] == next(
+                b["n_verified"] for b in art[family]["bundles"]
+                if b["path"] == path
+            ), f"{family}: verified count drifted on historical bundle {path}"
+            assert fresh_by_path[path]["n_verified_defective"] == next(
+                b["n_verified_defective"] for b in art[family]["bundles"]
+                if b["path"] == path
+            ), f"{family}: defective count drifted on historical bundle {path}"
+        # totals must equal the sums over the historical subset exactly
+        sub = [fresh_by_path[p] for p in art_paths]
+        hist_sum: dict[str, int] = {}
+        for b in sub:
+            for cls, n in b["defect_histogram"].items():
+                hist_sum[cls] = hist_sum.get(cls, 0) + n
+        assert hist_sum == art[family]["totals"]["defect_histogram"], family
+        assert sum(b["n_verified"] for b in sub) == art[family]["totals"]["n_verified"], family
+        assert sum(b["n_verified_defective"] for b in sub) == art[family]["totals"]["n_verified_defective"], family
+        # ...and the family only grew relative to the instrument
+        assert len(fresh[family]["bundles"]) >= len(art_paths), family
+
     assert fresh["false_reject_count"] == art["false_reject_count"]
     assert fresh["ordered_work_2_success_rule"] == art["ordered_work_2_success_rule"]
+    assert fresh["confirmed_set"]["still_verified"] is art["confirmed_set"]["still_verified"]
 
 
 def test_the_fixed_path_family_is_content_clean_and_non_vacuous() -> None:

@@ -1,38 +1,72 @@
 #!/usr/bin/env python3
-"""Test the server static file serving."""
-import sys
-sys.path.insert(0, '/home/runner/work/LexMachina/LexMachina')
-sys.path.insert(0, '/home/runner/work/LexMachina/LexMachina/product')
-
-from product.server import run_server
-import threading
+"""Test script for the query_app server."""
+import subprocess
 import time
 import requests
+import sys
+import signal
+import os
 
-# Start server in background thread
-def start_server():
-    run_server(8080, query_mode=True)
+def test_server():
+    # Start server
+    server = subprocess.Popen(
+        [sys.executable, "-u", "product/query_app.py", "--fixture", "--port", "8802"],
+        cwd="/home/runner/work/LexMachina/LexMachina",
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    )
+    
+    try:
+        # Wait for server to start
+        time.sleep(3)
+        
+        # Check health
+        print("Testing health endpoint...")
+        resp = requests.get("http://127.0.0.1:8802/api/health", timeout=10)
+        print(f"Health: {resp.status_code} - {resp.json()}")
+        
+        # Test query
+        print("Testing query endpoint...")
+        resp = requests.get("http://127.0.0.1:8802/api/query/run?q=K%C3%BCndigung%20Mietvertrag%20Mietrecht&n=20", timeout=60)
+        print(f"Query: {resp.status_code}")
+        if resp.status_code == 200:
+            data = resp.json()
+            print(f"  Decisions: {len(data.get('decisions', []))}")
+            print(f"  Clusters: {len(data.get('clusters', []))}")
+            print(f"  Answer status: {data.get('answer', {}).get('status')}")
+            print(f"  Answer method: {data.get('answer', {}).get('method')}")
+        else:
+            print(f"  Error: {resp.text[:500]}")
+        
+        # Read server output
+        print("\nServer output:")
+        server.terminate()
+        try:
+            stdout, _ = server.communicate(timeout=5)
+            print(stdout[-2000:])
+        except subprocess.TimeoutExpired:
+            server.kill()
+            stdout, _ = server.communicate()
+            print(stdout[-2000:])
+            
+    except Exception as e:
+        print(f"Test error: {e}")
+        server.terminate()
+        try:
+            stdout, _ = server.communicate(timeout=5)
+            print("Server output:")
+            print(stdout[-2000:])
+        except subprocess.TimeoutExpired:
+            server.kill()
+            stdout, _ = server.communicate()
+            print("Server output:")
+            print(stdout[-2000:])
+        return False
+    
+    return True
 
-t = threading.Thread(target=start_server, daemon=True)
-t.start()
-time.sleep(3)
-
-# Test endpoints
-print("Testing /api/health...")
-r = requests.get("http://localhost:8080/api/health", timeout=5)
-print(f"  Status: {r.status_code}")
-print(f"  Response: {r.json()}")
-
-print("Testing /static/lex_gate_switch.css...")
-r = requests.get("http://localhost:8080/static/lex_gate_switch.css", timeout=5)
-print(f"  Status: {r.status_code}")
-print(f"  Content-Type: {r.headers.get('Content-Type')}")
-print(f"  Length: {len(r.text)}")
-
-print("Testing /query.html...")
-r = requests.get("http://localhost:8080/query.html", timeout=5)
-print(f"  Status: {r.status_code}")
-print(f"  Content-Type: {r.headers.get('Content-Type')}")
-print(f"  Length: {len(r.text)}")
-
-print("All tests passed!")
+if __name__ == "__main__":
+    success = test_server()
+    sys.exit(0 if success else 1)

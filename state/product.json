@@ -85,7 +85,13 @@
     "results/product/progressive_smoke/CYCLE_40168184617_progressive_smoke.json",
     "reports/product/incidents/self_minted_gate_40160899758.RETIRED.json",
     "reports/product/incidents/self_minted_report_40160899758.RETIRED.md",
-    "reports/product/CYCLE_40168184617.md"
+    "reports/product/CYCLE_40168184617.md",
+    "product/zero_delta_chain_diagnosis.py -> results/product/orchestration/CYCLE_40182739499_resume_diagnosis.json",
+    "product/tests/test_cycle_40182739499.py",
+    "product/content_family_probe.py -> results/product/counter_content_family/CYCLE_40182739499.json",
+    "results/product/progressive_smoke/CYCLE_40182739499_progressive_smoke.json",
+    "reports/product/incidents/out_of_scope_40170987954_scratch/MANIFEST.json",
+    "reports/product/CYCLE_40182739499.md"
   ],
   "evidence_tier": "REPRODUCED",
   "human_gate_ready": false,
@@ -106,7 +112,7 @@
   },
   "lane": "product",
   "machine_gate_ready": false,
-  "next_recommendation": "Direction v68 ordered work, status after OPERATIONAL RESUME of run 40164459036 (cycle 40168184617): (1) P0 REJECTION/INCUMBENT LEG - LANDED and accepted on the chain (test file added by cycle 40118487798; content filter byte-aligned with the frozen D1-D4 predicates) and re-verified this cycle by product/tests/test_counter_content_rejection_v68.py (13 tests) plus product/tests/test_counter_evidence_span.py. (2) FULL-FAMILY REGENERATION - SUCCESS RULE MET on the committed bytes and RE-MEASURED this cycle: product/content_family_probe.py --run-id 40168184617 -> results/product/counter_content_family/CYCLE_40168184617.json reports the fixed-path family at 25 bundles / 2500 decisions with D2=D3=D4=D1=0, 12 verified rows of which 0 are content-defective, 0 false rejects on the confirmed set and bstger_SK.2023.49 still verified; the all-committed historical histogram (D2=44 D3=31 D4=7 over 122 bundles) is published beside it and stays preserved evidence. The prior committed instrument CYCLE_40154120551.json (14 bundles, 2 verified) is superseded as the latest measurement, not deleted. (3) CONSUMED, NOT RE-DERIVED: evaluation 40070818687, 40068038783, 40105794124 and the accepted D2 profile 40089391202; the machine-readable diagnosis is results/product/orchestration/CYCLE_40168184617_resume_diagnosis.json. (4) STATE-POINTER HYGIENE - accepted_run_id advanced to CYCLE_40159523259 / 29a5c4a54 with both halves of requirement 4; the producer-self-minted audit gate and report that run 40163751502 wrote into the auditor's namespace are retired BYTE-EXACTLY into reports/product/incidents/ (sha256 c3de89dc... / 4f131547...). (5) LIVE LATENCY/PRECISION stays DEFERRED, recorded; live budget stays 8. (6) FROZEN-RULES PROFILE COVERAGE GAP stays DISCLOSED and TRANSFERRED to evaluation. UNADJUDICATED INHERIT: 40160899758 (team rc=78 quantum), 40163751502 (team rc=3 scope guard, out-of-scope bytes persisted anyway by the if:always() snapshot step) and 40164459036 (team success, audit rc=78 quantum) produced team refs but no /audit ref, no accept commit - their work is PRESERVED, runs, and is NOT citable as accepted. NEXT: an independent audit of this cycle's snapshot; the human product gate remains blocked while either frozen bar is unmet and is never staged from here.",
+  "next_recommendation": "Direction v68 ordered work, status after OPERATIONAL RESUME of run 40181378979 (cycle 40182739499): (1) P0 REJECTION/INCUMBENT LEG - LANDED and accepted on the chain (accept 40159523259); re-verified this cycle by product/tests/test_counter_content_rejection_v68.py plus product/tests/test_counter_evidence_span.py (all green). (2) FULL-FAMILY REGENERATION - SUCCESS RULE MET and RE-MEASURED this cycle on the grown family: results/product/counter_content_family/CYCLE_40182739499.json covers 29 fixed-path bundles including the four 20261025T0703xxZ flagship bundles committed by unadjudicated run 40170987954, with D2=D3=D4=D1=0, 0 false rejects, the sound row still verified; the previous instrument (CYCLE_40168184617.json, 25 bundles) is superseded as latest, not deleted. (3) CONSUMED, NOT RE-DERIVED: evaluation 40070818687, 40068038783, 40105794124, D2 profile 40089391202. (4) SCOPE REPAIR of 40170987954's committed root scratch (byte-exact retirement + root test_server.py restoration, MANIFEST + ratchet test) and a re-derivable zero-delta chain diagnosis for 40173935166/40181378979. (5) LIVE LATENCY/PRECISION stays DEFERRED; live budget stays 8. (6) FROZEN-RULES PROFILE COVERAGE GAP stays DISCLOSED and TRANSFERRED to evaluation. UNADJUDICATED INHERIT: 40160899758, 40163751502, 40164459036, 40168184617, 40170987954, 40173935166, 40176984119 and 40181378979 produced work preserved on this chain but no /audit ref and no accept commit - their code, tests and instruments pass here yet they may not be cited as accepted. NEXT: an independent audit of this snapshot; the human product gate remains blocked while either frozen bar is unmet and is never staged from here.",
   "not_claimed": [
     "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
     "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
@@ -405,5 +411,46 @@
       "success_rule_met": true
     },
     "claim_ceiling": "Reported-only diagnosis and measurement over local git refs, committed job records and committed bundle bytes. No gate minted, no frozen bar scored, no serve verdict re-run, no run labelled rejected. The stage-2 counter-surface bridge inherited from run 40160899758 is preserved and its tests pass, but it is UNADJUDICATED and may not be cited as accepted."
+  },
+  "cycle_40182739499_operational_resume": {
+    "mode": "OPERATIONAL RESUME from the persisted producer snapshot of run 40181378979 (branch operational-resume, head 019b485b); inherited work preserved, not restarted",
+    "resumed_run": "40181378979",
+    "orchestration_failure_of_record": {
+      "runs": [
+        "40173935166",
+        "40181378979"
+      ],
+      "classification": "ZERO_DURABLE_DELTA",
+      "observable": "both team snapshot refs point at their predecessor's commit (40173935166 at f4d6e3b; 40181378979 at 019b485b); zero files added or changed; the working tree at snapshot time was clean",
+      "mechanism_ceiling": "from refs alone rc-67 LEX_ZERO_DELTA_REPAIR (producer found nothing to do; factory-wide requirement 10) and a producer death (requirement 20) are indistinguishable; GitHub job logs were not reachable from this resumed environment (no gh auth), so NO specific mechanism is claimed",
+      "verdict_ceiling": "orchestration outcome, NOT a product defect, NOT an audit verdict; the runs are UNADJUDICATED",
+      "route_around": "this resume cycle carries concrete deliverables (scope repair of 40170987954's committed root scratch, a family-growth-aware probe re-run covering the four 20261025T0703xxZ flagship bundles, and a re-derivable zero-delta chain diagnosis instrument) so the next producer is not handed a nothing-to-do question",
+      "instrument": "product/zero_delta_chain_diagnosis.py -> results/product/orchestration/CYCLE_40182739499_resume_diagnosis.json"
+    },
+    "validation_failure_repaired": {
+      "run_id": "40170987954",
+      "classification": "OUT_OF_SCOPE_ROOT_SCRATCH_COMMITTED",
+      "mechanism": "the producer committed five scratch files at the repository root (check_bundle.py, check_bundle2.py, server.log, test_query_flow.py, test_query_run.py) and clobbered the pre-existing legacy root test_server.py with an ad-hoc script containing absolute runner paths; the core-lane scope guard inspects only PENDING paths, so bytes a producer already COMMITTED are invisible to it (same class that let producer-minted audit gates reach the chain in run 40163751502)",
+      "disposition": "all six files retired BYTE-EXACTLY into reports/product/incidents/out_of_scope_40170987954_scratch/ (see its MANIFEST.json for per-file sha256); root test_server.py restored from origin/lab/product (blob 53b4ce14); historical commit f4d6e3b preserved untouched; ratchet in product/tests/test_cycle_40182739499.py re-derives every sha256 and fails if any scratch name reappears at the tip"
+    },
+    "measurement_this_cycle": {
+      "content_family_probe": "results/product/counter_content_family/CYCLE_40182739499.json: fixed-path family grew 25 -> 29 bundles (the four 20261025T0703xxZ flagship bundles regenerated by 40170987954 are now covered), 2900 decisions, 20 verified rows, 0 verified+defective, D2=D3=D4=D1=0, 0 false rejects on the confirmed set, bstger_SK.2023.49 still verified, ordered-work (2) success rule MET; all-committed historical histogram preserved at D2=44 D3=31 D4=7 over 126 bundles",
+      "progressive_smoke": "results/product/progressive_smoke/CYCLE_40182739499_progressive_smoke.json: PASS 23/23 over a real socket in fixture mode; server boot 1.243 s; query -> first map-ready bundle 0.653 s",
+      "historical_instrument_amendment": "test_cycle_40168184617.py::test_content_family_probe_reproduces_the_committed_artifact was made family-growth-aware: it now re-derives the historical instrument's per-bundle histograms and subset totals from a fresh probe run and requires the fresh family to be a superset - a strengthening, since a defect on any historical bundle still fails"
+    },
+    "chain_adjudication": {
+      "unadjudicated": [
+        "40160899758",
+        "40163751502",
+        "40164459036",
+        "40168184617",
+        "40170987954",
+        "40173935166",
+        "40176984119",
+        "40181378979"
+      ],
+      "accepted": "only 40159523259 (and earlier pointer history) satisfies BOTH halves of factory-wide requirement 4; no chain run above may be cited as accepted",
+      "accepted_run_id_unchanged": true
+    }
   }
 }

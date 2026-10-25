@@ -1,0 +1,50 @@
+{
+  "schema": "product-incident-retirement/1",
+  "incident_id": "out_of_scope_40170987954_scratch",
+  "diagnosis": "Product cycle 40170987954 (commit f4d6e3b) committed five producer-scratch files at the repository root (check_bundle.py, check_bundle2.py, server.log, test_query_flow.py, test_query_run.py) and clobbered the pre-existing legacy root file test_server.py with an ad-hoc scratch script containing absolute runner paths. The product lane's write scope is product/, tests/product/, results/product/, reports/product/ and state/product.json; the root scratch files are out of scope. The core-lane scope guard inspects only pending (uncommitted) changes, so bytes that a producer COMMITTED are invisible to it - the same class that let producer-minted audit gates reach the chain in run 40163751502 (recorded in reports/product/CYCLE_40168184617.md section 2). This is a validation defect of the tip tree, found by this operational-resume cycle (40182739499), and repaired here at lane scope.",
+  "repaired_by_run": "40182739499",
+  "repaired_at_commit_parent": "019b485b8b2435ff9ce9ec87ee4a298353098aa0",
+  "disposition": "BYTE-EXACT RETIREMENT into this directory plus restoration of the clobbered root test_server.py from origin/lab/product. Nothing is deleted; every retired file keeps its exact pre-retirement bytes under a .RETIRED suffix. The historical commits that introduced the bytes (f4d6e3b) are preserved untouched (AGENTS.md items 5 and 6).",
+  "restoration": {
+    "path": "test_server.py",
+    "restored_from": "origin/lab/product:test_server.py",
+    "blob_sha1": "53b4ce1408e619a76a542f03fdb02cc1418391b4",
+    "verified": "git hash-object test_server.py == git rev-parse origin/lab/product:test_server.py after restore"
+  },
+  "retired_files": [
+    {
+      "original_path": "check_bundle.py",
+      "retired_path": "reports/product/incidents/out_of_scope_40170987954_scratch/check_bundle.py.RETIRED",
+      "sha256": "75c4fda215c5f8b054912f9fc442ad1ec724b505bec326cf6c8830ce413f422a",
+      "git_blob_f4d6e3b": "verified identical to f4d6e3b root blob"
+    },
+    {
+      "original_path": "check_bundle2.py",
+      "retired_path": "reports/product/incidents/out_of_scope_40170987954_scratch/check_bundle2.py.RETIRED",
+      "sha256": "191be829e2c4316f7a790b2bece9f52cedfb2c9b3b7cf815ce062a1824351df9"
+    },
+    {
+      "original_path": "server.log",
+      "retired_path": "reports/product/incidents/out_of_scope_40170987954_scratch/server.log.RETIRED",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "note": "empty file (0 bytes); sha256 is the empty-string digest"
+    },
+    {
+      "original_path": "test_query_flow.py",
+      "retired_path": "reports/product/incidents/out_of_scope_40170987954_scratch/test_query_flow.py.RETIRED",
+      "sha256": "008c9bd37bd16a118644fa88cef4abd9982f817f49d48b3e5aa202e040741fd4"
+    },
+    {
+      "original_path": "test_query_run.py",
+      "retired_path": "reports/product/incidents/out_of_scope_40170987954_scratch/test_query_run.py.RETIRED",
+      "sha256": "b2488a786fde541daaab891efa43e58ff8ffbd13d12f6155a2b3dc376d4c32ae"
+    },
+    {
+      "original_path": "test_server.py (clobbered content at f4d6e3b)",
+      "retired_path": "reports/product/incidents/out_of_scope_40170987954_scratch/test_server.clobbered_40170987954.py.RETIRED",
+      "sha256": "74e911fca27709ea52a6fd8945ab90dba0f2302a6570e950b549ab6850f74853",
+      "git_blob": "94538eead1bdb1878b4dddb331ad7260a24cd8b8 == git rev-parse f4d6e3b:test_server.py"
+    }
+  ],
+  "ratchet": "product/tests/test_cycle_40182739499.py re-derives every sha256 above from the committed tree, asserts the root scratch names are absent at the tip, and asserts the restored root test_server.py is blob-identical to origin/lab/product, on every future run of this chain."
+}

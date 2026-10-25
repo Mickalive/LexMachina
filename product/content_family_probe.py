@@ -263,9 +263,13 @@ def main(argv: list[str] | None = None) -> int:
         json.dumps(rec, indent=2, ensure_ascii=False, sort_keys=True) + "\n",
         encoding="utf-8",
     )
+    try:
+        shown = out_path.relative_to(ROOT)
+    except ValueError:  # relative --out passed from the repo root
+        shown = out_path
     t = rec["fixed_path_family"]["totals"]
     h = t["defect_histogram"]
-    print(f"content family probe -> {out_path.relative_to(ROOT)}")
+    print(f"content family probe -> {shown}")
     print(f"  fixed-path family: {t['n_bundles']} bundle(s), {t['n_decisions']} decisions")
     print(f"  verified rows: {t['n_verified']}  verified+defective: {t['n_verified_defective']}")
     print(f"  D2={h['D2_letterhead_zone']} D3={h['D3_markup_residue']} "
