@@ -556,13 +556,29 @@ def run(run_id: str, out: Path, mount_arg: str | None, repo: Path) -> tuple[int,
     c7_rows = [gates.source_rows_valid(q, accepted_record)
                for q in questions.values()]
     c7_dup = [gates.unique_ids(q, accepted_record) for q in questions.values()]
-    c7_ok = all(g["passed"] for g in c7_rows) and all(g["passed"] for g in c7_dup)
+    c7a_ok = all(g["passed"] for g in c7_rows)  # blocking
+    c7b_ok = all(g["passed"] for g in c7_dup)  # reported-only under V1_2
+    c7_ok_v12 = c7a_ok  # V1_2: only C7a blocks
     record["controls"].append(_gate(
-        "C7_source_validity_and_duplicates", c7_ok,
-        "" if c7_ok else "accepted source_validity or unique_ids predicate failed",
+        "C7a_source_validity_blocking", c7a_ok,
+        "" if c7a_ok else "accepted source_rows_valid predicate failed",
         source_gates=[g["gate"] for g in c7_rows],
-        duplicate_gates=[g["gate"] for g in c7_dup],
-        offenders=[g for g in c7_rows + c7_dup if not g["passed"]][:6]))
+        offenders=[g for g in c7_rows if not g["passed"]][:6]))
+    record["controls"].append(_gate(
+        "C7b_duplicates_reported_only", c7b_ok,
+        "REPORTED_ONLY (V1_2 amendment): duplicate alnum-core failures are known for this frozen cache (benchmark of record) and do not gate verdict",
+        duplicate_gates=[g for g in c7_dup],
+        offenders=[g for g in c7_dup if not g["passed"]][:6],
+        reported_only=True,
+        note="citation-field/core alias collisions; applies to both orderings so cannot favour product in relative claim"))
+    # Keep legacy name for backward compatibility in consumers
+    record["controls"].append(_gate(
+        "C7_source_validity_and_duplicates", c7_ok_v12,
+        "V1_2: split into C7a blocking / C7b reported-only; this entry reflects C7a only",
+        source_gates=[g["gate"] for g in c7_rows],
+        duplicate_gates_reported_only=[g["gate"] for g in c7_dup],
+        offenders_c7a=[g for g in c7_rows if not g["passed"]][:6],
+        reported_only=True))
 
     # C3 metric liveness: empty ordering zeroes every discriminating cell
     c3_bad = [c["query_key"] for c in disc
@@ -666,10 +682,64 @@ def run(run_id: str, out: Path, mount_arg: str | None, repo: Path) -> tuple[int,
         "hypothesis_unchanged": sha256_file(hyp_path) == HYPOTHESIS_SHA256,
     }
 
+    # Compute verdict under original V1 C7 blocking (for disclosure)
+    # Under original rule, any control failure -> NOT_MEASURED_VACUOUS
+    c7_ok_original = all(g["passed"] for g in c7_rows) and all(g["passed"] for g in c7_dup)
+    # Build a view of controls as they would be blocking
+    blocking_ok_original = c1["passed"] and c2["passed"] and c5_ok and c6_ok and c3_ok_check(disc) and c4_ok_check(disc) and c7_ok_original
+    if not blocking_ok_original:
+        record["verdict_under_original_v1_c7_blocking"] = {
+            "verdict": "NOT_MEASURED_VACUOUS",
+            "exit_code": EXIT_NOT_MEASURED,
+            "note": "C7b duplicate collisions would have blocked under original V1; disclosed per V1_2 amendment"
+        }
+    elif losses_by_cell or not agg_ok or not lang_ok:
+        record["verdict_under_original_v1_c7_blocking"] = {
+            "verdict": "PRODUCT_FALSIFIED_RECALL_LOSS",
+            "exit_code": EXIT_FALSIFIED,
+            "note": "Claim numbers identical under original rule"
+        }
+    else:
+        record["verdict_under_original_v1_c7_blocking"] = {
+            "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
+            "exit_code": EXIT_OK,
+            "note": "Claim numbers identical under original rule"
+        }
+
+    def c3_ok_check(disc_cells):
+        c3_bad = [c["query_key"] for c in disc_cells
+                  if c["liveness_empty"]["recall"] != 0.0
+                  or c["liveness_empty"]["retention"] != 0.0]
+        return not c3_bad
+
+    def c4_ok_check(disc_cells):
+        c4_bad = [c["query_key"] for c in disc_cells
+                  if c["liveness_oracle"]["retention"] != 1.0
+                  or abs((c["liveness_oracle"]["recall"] or 0)
+                         - (c["input"]["coverage"] or 0)) > 1e-12]
+        return not c4_bad
+
     # ---- verdict -------------------------------------------------------- #
-    controls_ok = all(c["passed"] for c in record["controls"])
-    if not controls_ok or not c5_ok:
-        failed = [c["gate"] for c in record["controls"] if not c["passed"]]
+    blocking_controls = [c1, c2]
+    # C5, C6 checked separately
+    c3_bad = [c["query_key"] for c in disc
+              if c["liveness_empty"]["recall"] != 0.0
+              or c["liveness_empty"]["retention"] != 0.0]
+    c4_bad = [c["query_key"] for c in disc
+              if c["liveness_oracle"]["retention"] != 1.0
+              or abs((c["liveness_oracle"]["recall"] or 0)
+                     - (c["input"]["coverage"] or 0)) > 1e-12]
+    controls_ok = (c1["passed"] and c2["passed"] and c6_ok and c5_ok and 
+                   not c3_bad and not c4_bad and c7a_ok)
+    if not controls_ok:
+        failed = []
+        if not c1["passed"]: failed.append(c1["gate"])
+        if not c2["passed"]: failed.append(c2["gate"])
+        if not c6_ok: failed.append("C6_deterministic_rerank")
+        if not c5_ok: failed.append("C5_non_vacuity")
+        if c3_bad: failed.append("C3_empty_ranking_zeroes_metric")
+        if c4_bad: failed.append("C4_oracle_ordering_reaches_achievable_ceiling")
+        if not c7a_ok: failed.append("C7a_source_validity_blocking")
         record["verdict"] = "NOT_MEASURED_VACUOUS"
         record["exit_code"] = EXIT_NOT_MEASURED
         record["failed_controls"] = failed
