@@ -1,0 +1,684 @@
+{
+  "schema": "lex-evaluation-bypass-clause-correction/1",
+  "lane": "evaluation",
+  "direction_version": 68,
+  "run_id": "40144816305",
+  "corrects_run": "40105794124",
+  "ordered_work_item": "v68 lanes.evaluation ordered work item (1) REPORT-ONLY CORRECTION OF RECORD",
+  "generated_at_utc": "2026-10-25T00:17:34Z",
+  "elapsed_s": 0.086,
+  "verdict": "CORRECTION_NOT_CONFIRMED",
+  "exit_code": 1,
+  "hypothesis": {
+    "path": "evaluation/BYPASS_CLAUSE_CORRECTION_40105794124_HYPOTHESIS_V1.json",
+    "sha256": "54056440bc11c38b9427115d11d06dde10a5743646704ffaec34417faab52b96",
+    "sha_matches_freeze_record": true
+  },
+  "freeze": {
+    "path": "evaluation/BYPASS_CLAUSE_CORRECTION_40105794124_FREEZE_V1.json",
+    "sha256": "6b8f6c8844e576f478079c2099909a3637ab821bfa81389328e0cbaaee32668d"
+  },
+  "claim_checks": {
+    "CC1_stale_clause_located_only_in_reading_report": {
+      "ok": true,
+      "expected": "exactly one clause occurrence in the READING report spanning two lines; zero 'bypass' occurrences in the machine report and the committed record",
+      "actual": {
+        "reading_spans": [
+          {
+            "head_line": 48,
+            "tail_line": 49,
+            "head_text": "because the product path still sets `fixture_generation=True` and bypasses the",
+            "tail_text": "landed filter."
+          }
+        ],
+        "n_bypass_machine_report": 0,
+        "n_bypass_committed_record": 0
+      },
+      "evidence": "reports/evaluation/FAST_MVP_CURRENT_HEAD_CA_FALSIFIER_40105794124_READING.md:48-49"
+    },
+    "CC2_measurement_unchanged_vs_freeze_pin": {
+      "ok": true,
+      "expected": "committed falsifier record reproduces every freeze-pinned aggregate value exactly (this correction changes no number)",
+      "actual": {
+        "mismatches": {},
+        "observed": {
+          "verdict": "SOUND_COUNTER_ROW_PRESENT",
+          "exit_code": 0,
+          "falsification_proven": false,
+          "n_bundles": 6,
+          "n_enriched": 5,
+          "n_enriched_with_verified_scored_row": 5,
+          "n_verified_scored_rows_total": 5,
+          "n_defective_verified_scored_rows_total": 4,
+          "defect_histogram": {
+            "D2_letterhead_zone": 2,
+            "D3_markup_residue": 2,
+            "D4_language_marker_mismatch": 1
+          },
+          "n_enriched_with_sound_counter_row": 1,
+          "distinct_defective_decision_ids": [
+            "bge_BGE_110_II_391",
+            "bge_BGE_121_III_260",
+            "ge_gerichte_CAPH_107_2004",
+            "gr_gerichte_ERZ 2010 25"
+          ],
+          "sound_decision_id": "bstger_SK.2023.49"
+        }
+      },
+      "evidence": "results/evaluation/fast_mvp_current_head_ca_falsifier/40105794124.json"
+    },
+    "CC3_bundle_sha256_of_record": {
+      "ok": true,
+      "expected": "mount digest == freeze pin == the digest recorded inside the committed falsifier record",
+      "actual": {
+        "expected": "6eee1149b3c0ec23124746af482e15d9298c2120ee25de4bc4dd7e1cf7d93fa9",
+        "mount_actual": "6eee1149b3c0ec23124746af482e15d9298c2120ee25de4bc4dd7e1cf7d93fa9",
+        "recorded_in_falsifier_record": "6eee1149b3c0ec23124746af482e15d9298c2120ee25de4bc4dd7e1cf7d93fa9"
+      },
+      "evidence": "results/product/offline_slice/20261024T142517Z/rent-default.bundle.json"
+    },
+    "CC4_span_seam_provenance_of_record": {
+      "ok": true,
+      "expected": "applied=true, n_selected=0, abstained_ids + pivot_absent abstention as named in the v68 direction",
+      "actual": {
+        "mismatches": {},
+        "observed": {
+          "applied": true,
+          "mode": "select",
+          "n_candidates": 1,
+          "n_selected": 0,
+          "n_abstained": 1,
+          "abstained_ids": [
+            "gr_gerichte_ERZ 2010 25"
+          ],
+          "abstention_reasons": {
+            "pivot_absent": 1
+          },
+          "guard_available": true,
+          "frozen_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608"
+        },
+        "n_selected_is_zero": true
+      },
+      "evidence": "results/product/offline_slice/20261024T142517Z/rent-default.bundle.json"
+    },
+    "CC5_incumbent_left_in_place": {
+      "ok": true,
+      "expected": "all 4 defective rows named by the committed record are still counter_evidence_verified=true at the mount, and the 1 sound row is verified too (reading a flag, never re-scoring)",
+      "actual": {
+        "n_defective_rows": 4,
+        "n_sound_rows": 1,
+        "all_verified_at_mount": true,
+        "rows": [
+          {
+            "path": "results/product/offline_slice/20261024T142517Z/rent-default.bundle.json",
+            "decision_id": "gr_gerichte_ERZ 2010 25",
+            "defects_read_from_committed_record": [
+              "D2_letterhead_zone"
+            ],
+            "counter_evidence_verified_at_mount": true,
+            "counter_status_at_mount": "candidate-limiting",
+            "counter_uncertainty_at_mount": 0.2,
+            "counter_evidence_head_at_mount": "Kantonsgericht von Graub\u00fcnden\nDretgira chantunala dal Grischun\nTribunale cantonale dei Grigioni\n________________________",
+            "ok": true
+          },
+          {
+            "path": "results/product/offline_slice/20261023T121512Z/corporate-criminal-liability.bundle.json",
+            "decision_id": "bstger_SK.2023.49",
+            "defects_read_from_committed_record": [],
+            "counter_evidence_verified_at_mount": true,
+            "counter_status_at_mount": "candidate-limiting",
+            "counter_uncertainty_at_mount": 0.2,
+            "counter_evidence_head_at_mount": "Subsidiairement, les 4 versements suivants pour un montant total de USD 1'933'183.\u2013 et de EUR 57'458.\u2013 sur le compte n\u00b0 ",
+            "ok": true
+          },
+          {
+            "path": "results/product/offline_slice/20261023T121515Z/business-judgment-rule.bundle.json",
+            "decision_id": "bge_BGE_110_II_391",
+            "defects_read_from_committed_record": [
+              "D2_letterhead_zone"
+            ],
+            "counter_evidence_verified_at_mount": true,
+            "counter_status_at_mount": "candidate-limiting",
+            "counter_uncertainty_at_mount": 0.2,
+            "counter_evidence_head_at_mount": "Urteilskopf\n110 II 391\n75. Auszug aus dem Urteil der I. Zivilabteilung vom 10. April 1984 i.S. X. gegen Immorest AG (Ber",
+            "ok": true
+          },
+          {
+            "path": "results/product/offline_slice/20261023T121518Z/petty-theft-dismissal.bundle.json",
+            "decision_id": "ge_gerichte_CAPH_107_2004",
+            "defects_read_from_committed_record": [
+              "D3_markup_residue"
+            ],
+            "counter_evidence_verified_at_mount": true,
+            "counter_status_at_mount": "candidate-limiting",
+            "counter_uncertainty_at_mount": 0.2,
+            "counter_evidence_head_at_mount": "<mark>Selon</mark> l\u2019art. 337 CO, l\u2019employeur et le travailleur peuvent r\u00e9silier imm\u00e9diatement le contrat de travail en ",
+            "ok": true
+          },
+          {
+            "path": "results/product/server_slice/20261023T224255Z/served.bundle.json",
+            "decision_id": "bge_BGE_121_III_260",
+            "defects_read_from_committed_record": [
+              "D3_markup_residue",
+              "D4_language_marker_mismatch"
+            ],
+            "counter_evidence_verified_at_mount": true,
+            "counter_status_at_mount": "candidate-limiting",
+            "counter_uncertainty_at_mount": 0.2,
+            "counter_evidence_head_at_mount": "Regeste Resolutiv bedingter <mark>Mietvertrag</mark>; Anfechtung der K\u00fcndigung; Erstreckung (Art. 255, 271 und 271a, 272",
+            "ok": true
+          }
+        ]
+      },
+      "evidence": "accepted mount bundle rows vs committed record row list"
+    },
+    "CC6_accepted_code_path_file_line": {
+      "ok": false,
+      "expected": "file:line inventory of the accepted head exactly as frozen, the old fixture gate absent, and worktree blobs == HEAD blobs == 51d306c blob",
+      "actual": {
+        "pipeline_line_1339": "    if adversarial_retrieval:",
+        "pipeline_line_1343": "        audited = apply_verified_span_selection(",
+        "pipeline_line_1347": "        if not fixture_generation:",
+        "pipeline_line_1348": "            audited = apply_counter_emission_repair(audited)",
+        "pipeline_line_1357": "    if not fixture_generation:",
+        "offline_slice_line_79": "            initial, retrieval_mode=\"fixture\", fixture_generation=True)",
+        "absent_string_occurrences": 0,
+        "head": "e53662be8d33cd3bde0e8bfb21ec5d30668e1e27",
+        "pipeline_blob_head": "3659e3eed834911305cbda762db8413e040af7ae",
+        "pipeline_blob_worktree": "3659e3eed834911305cbda762db8413e040af7ae",
+        "pipeline_blob_at_51d306c": "51d306c:product/query/pipeline.py",
+        "offline_slice_blob_head": "7e79f679112d509832a28a1d35c41859f8a7bd28",
+        "offline_slice_blob_worktree": "7e79f679112d509832a28a1d35c41859f8a7bd28"
+      },
+      "evidence": "product/query/pipeline.py:1339,1343,1347,1348,1357 and product/offline_slice.py:79 at 8b5b08dd"
+    },
+    "CC7_51d306c_diff_provenance": {
+      "ok": false,
+      "expected": "51d306c (parent e2270c37, 2026-10-24T13:10:55Z) removes the 'not fixture_generation' gate and adds 'if adversarial_retrieval:'",
+      "actual": {
+        "meta": [],
+        "removed_line_present": false,
+        "added_line_present": false
+      },
+      "evidence": "git -C <mount> show 51d306c -- product/query/pipeline.py"
+    },
+    "CC8_span_seam_run_inventory_on_scored_population": {
+      "ok": true,
+      "expected": "exactly 1 of the 6 scored bundles carries a provenance.counter_evidence_span block (the regenerated rent-default family); the other 5 carry no such key, 4 of them among the enriched bundles",
+      "actual": {
+        "n_bundles": 6,
+        "n_with_span": 1,
+        "n_without_span": 5,
+        "n_enriched_without_span": 4,
+        "rows": [
+          {
+            "path": "results/product/offline_slice/20261024T142517Z/rent-default.bundle.json",
+            "enriched": true,
+            "span_provenance_present": true,
+            "applied": true,
+            "n_selected": 0,
+            "family_dir": "20261024T142517Z"
+          },
+          {
+            "path": "results/product/offline_slice/20261023T121512Z/corporate-criminal-liability.bundle.json",
+            "enriched": true,
+            "span_provenance_present": false,
+            "applied": null,
+            "n_selected": null,
+            "family_dir": "20261023T121512Z"
+          },
+          {
+            "path": "results/product/offline_slice/20261023T121515Z/business-judgment-rule.bundle.json",
+            "enriched": true,
+            "span_provenance_present": false,
+            "applied": null,
+            "n_selected": null,
+            "family_dir": "20261023T121515Z"
+          },
+          {
+            "path": "results/product/offline_slice/20261023T121518Z/petty-theft-dismissal.bundle.json",
+            "enriched": true,
+            "span_provenance_present": false,
+            "applied": null,
+            "n_selected": null,
+            "family_dir": "20261023T121518Z"
+          },
+          {
+            "path": "results/product/server_slice/20261023T224255Z/served.bundle.json",
+            "enriched": true,
+            "span_provenance_present": false,
+            "applied": null,
+            "n_selected": null,
+            "family_dir": "20261023T224255Z"
+          },
+          {
+            "path": "results/product/server_slice/20261023T224255Z/first_page.bundle.json",
+            "enriched": false,
+            "span_provenance_present": false,
+            "applied": null,
+            "n_selected": null,
+            "family_dir": "20261023T224255Z"
+          }
+        ]
+      },
+      "evidence": "provenance block presence per scored bundle on the accepted mount"
+    },
+    "CC9_frozen_inputs_untouched": {
+      "ok": true,
+      "expected": "every frozen repo input re-hashes to its freeze pin (REPORTED-ONLY) AND the bundle's embedded frozen_rules_sha256 equals the on-disk RULES_LABEL.json digest",
+      "actual": {
+        "mismatches": {},
+        "bundle_embedded_frozen_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+        "on_disk_rules_label_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+        "cross_artifact_integrity": true,
+        "observed": {
+          "results/evaluation/fast_mvp_current_head_ca_falsifier/40105794124.json": "fd25345b02da6658edbd5ed8722c69c9b3c7dbbc22e7856740cfdd421c5c4592",
+          "reports/evaluation/FAST_MVP_CURRENT_HEAD_CA_FALSIFIER_40105794124.md": "4b60a0e3eef387e781227c52eca8d0d2f3e9b34abfd4e5139eb352173164f5b9",
+          "reports/evaluation/FAST_MVP_CURRENT_HEAD_CA_FALSIFIER_40105794124_READING.md": "cf2050847022f7a593c2f97d4cdc7e12d4149a6c7bc2532852835efe38863746",
+          "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+          "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+          "evaluation/frozen_bars/VERDICT_CONTRACT.json": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c",
+          "evaluation/counter_evidence_quality_benchmark.py": "aac86527e5e54f0f9c527daac7ff1016d5124731b8ce673797520ff3dd53067d",
+          "evaluation/mapping_free_recall_falsifier.py": "58a2e77a66bb60385a53185e9426447e8465da9105e8a0cb8945d5fd77bfb302"
+        }
+      },
+      "evidence": "sha256 re-hash of the freeze-pinned inputs"
+    },
+    "CC10_d1_d2_d3_disclosure_source": {
+      "ok": true,
+      "expected": "gate=PASS with exactly 3 required_fixes, each marked NON-BLOCKING, so this lane may quote 'three non-blocking required fixes'",
+      "actual": {
+        "gate": "PASS",
+        "safe_to_integrate": true,
+        "n_required_fixes": 3,
+        "all_non_blocking": true,
+        "fix_prefixes": [
+          "NON-BLOCKING (D1, wording)",
+          "NON-BLOCKING (D2, wording)",
+          "NON-BLOCKING (D3, environment disclosure)"
+        ],
+        "sha256": "f915bac807af988c840c6911738d646e5f794ab16261c63df85d278d227509ef"
+      },
+      "evidence": "results/audit/product/CYCLE_39965089504_GATE.json"
+    },
+    "CC11_item2_gate_status": {
+      "ok": false,
+      "expected": "head unchanged, flagship family not regenerated, seam abstained and the defective incumbent still verified -> item (2) NOT_YET_DISCRIMINATING (no re-measure, no synthetic stand-in)",
+      "actual": {
+        "mount_head": "e53662be8d33cd3bde0e8bfb21ec5d30668e1e27",
+        "head_same_as_falsifier_head": false,
+        "newest_offline_slice_family": "20261024T185303Z",
+        "newest_server_slice_family": "39202428670",
+        "n_offline_slice_family_dirs": 82,
+        "n_server_slice_family_dirs": 8,
+        "not_regenerated": false,
+        "seam_applied": true,
+        "seam_n_selected": 0,
+        "seam_abstained": true,
+        "incumbent_still_verified": true,
+        "rejection_incumbent_leg_landed": false,
+        "item_2_status": "NOT_YET_DISCRIMINATING"
+      },
+      "evidence": "accepted mount head + family inventory + bundle row flag"
+    }
+  },
+  "controls": {
+    "C1_planted_span_provenance_divergence_must_be_detected": {
+      "holds": true,
+      "detail": "n_selected 0 -> 1 in a copy is reported as a divergence"
+    },
+    "C2_clause_detector_must_not_fire_on_absent_text": {
+      "holds": true,
+      "detail": "machine report contains no clause -> detector returns no match"
+    },
+    "C3_planted_measurement_mutation_must_be_detected": {
+      "holds": true,
+      "detail": "n_defective 4 -> 3 in a copy diverges from the freeze pin"
+    },
+    "C4_no_falsifier_reexecution": {
+      "holds": true,
+      "detail": "instrument source imports/invokes none of the falsifier, the D1-D4 predicate module or the mapping-free gate module",
+      "forbidden_substrings_found": []
+    },
+    "C5_bundle_embedded_frozen_rules_digest_matches_disk": {
+      "holds": true,
+      "detail": "bundle provenance frozen_rules_sha256 == sha256(RULES_LABEL.json)",
+      "embedded": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "on_disk": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608"
+    }
+  },
+  "details": {
+    "CC1": {
+      "clause_location": {
+        "head_line": 48,
+        "tail_line": 49,
+        "head_text": "because the product path still sets `fixture_generation=True` and bypasses the",
+        "tail_text": "landed filter."
+      },
+      "n_bypass_machine_report": 0,
+      "n_bypass_committed_record": 0
+    },
+    "CC2": {
+      "observed": {
+        "verdict": "SOUND_COUNTER_ROW_PRESENT",
+        "exit_code": 0,
+        "falsification_proven": false,
+        "n_bundles": 6,
+        "n_enriched": 5,
+        "n_enriched_with_verified_scored_row": 5,
+        "n_verified_scored_rows_total": 5,
+        "n_defective_verified_scored_rows_total": 4,
+        "defect_histogram": {
+          "D2_letterhead_zone": 2,
+          "D3_markup_residue": 2,
+          "D4_language_marker_mismatch": 1
+        },
+        "n_enriched_with_sound_counter_row": 1,
+        "distinct_defective_decision_ids": [
+          "bge_BGE_110_II_391",
+          "bge_BGE_121_III_260",
+          "ge_gerichte_CAPH_107_2004",
+          "gr_gerichte_ERZ 2010 25"
+        ],
+        "sound_decision_id": "bstger_SK.2023.49"
+      },
+      "mismatches": {},
+      "record_sha256": "fd25345b02da6658edbd5ed8722c69c9b3c7dbbc22e7856740cfdd421c5c4592"
+    },
+    "CC3": {
+      "path": "results/product/offline_slice/20261024T142517Z/rent-default.bundle.json",
+      "sha256": "6eee1149b3c0ec23124746af482e15d9298c2120ee25de4bc4dd7e1cf7d93fa9",
+      "expected": "6eee1149b3c0ec23124746af482e15d9298c2120ee25de4bc4dd7e1cf7d93fa9",
+      "recorded_in_falsifier_record": "6eee1149b3c0ec23124746af482e15d9298c2120ee25de4bc4dd7e1cf7d93fa9"
+    },
+    "CC4": {
+      "path": "results/product/offline_slice/20261024T142517Z/rent-default.bundle.json",
+      "observed": {
+        "applied": true,
+        "mode": "select",
+        "n_candidates": 1,
+        "n_selected": 0,
+        "n_abstained": 1,
+        "abstained_ids": [
+          "gr_gerichte_ERZ 2010 25"
+        ],
+        "abstention_reasons": {
+          "pivot_absent": 1
+        },
+        "guard_available": true,
+        "frozen_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608"
+      },
+      "mismatches": {},
+      "full_provenance_block": {
+        "abstained_ids": [
+          "gr_gerichte_ERZ 2010 25"
+        ],
+        "abstention_reasons": {
+          "pivot_absent": 1
+        },
+        "anchor_profile": "fr-bail-entretien",
+        "applied": true,
+        "claim_ceiling": "The span is verified verbatim and the frozen classifier confirms or abstains. This seam never asserts that a decision IS supporting, contrary or limiting; emitted labels remain the row's own proposal.",
+        "frozen_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+        "guard_available": true,
+        "guard_phrase_count": 53,
+        "guard_statutes": [
+          "257d",
+          "257f",
+          "257h",
+          "259b",
+          "260a",
+          "271"
+        ],
+        "max_candidates_per_field": 240,
+        "min_span_chars": 40,
+        "mode": "select",
+        "n_abstained": 1,
+        "n_candidates": 1,
+        "n_guard_rejected": 0,
+        "n_selected": 0,
+        "n_sentences_evaluated": 244,
+        "precision_guard": true,
+        "qid": null,
+        "selected_ids": [],
+        "selection_order": "row_status_then_field_then_text_order",
+        "text_fields": [
+          "full_text",
+          "regeste",
+          "snippet",
+          "title"
+        ],
+        "version": "counter_span_selection/1"
+      }
+    },
+    "CC5": {
+      "rows": [
+        {
+          "path": "results/product/offline_slice/20261024T142517Z/rent-default.bundle.json",
+          "decision_id": "gr_gerichte_ERZ 2010 25",
+          "defects_read_from_committed_record": [
+            "D2_letterhead_zone"
+          ],
+          "counter_evidence_verified_at_mount": true,
+          "counter_status_at_mount": "candidate-limiting",
+          "counter_uncertainty_at_mount": 0.2,
+          "counter_evidence_head_at_mount": "Kantonsgericht von Graub\u00fcnden\nDretgira chantunala dal Grischun\nTribunale cantonale dei Grigioni\n________________________",
+          "ok": true
+        },
+        {
+          "path": "results/product/offline_slice/20261023T121512Z/corporate-criminal-liability.bundle.json",
+          "decision_id": "bstger_SK.2023.49",
+          "defects_read_from_committed_record": [],
+          "counter_evidence_verified_at_mount": true,
+          "counter_status_at_mount": "candidate-limiting",
+          "counter_uncertainty_at_mount": 0.2,
+          "counter_evidence_head_at_mount": "Subsidiairement, les 4 versements suivants pour un montant total de USD 1'933'183.\u2013 et de EUR 57'458.\u2013 sur le compte n\u00b0 ",
+          "ok": true
+        },
+        {
+          "path": "results/product/offline_slice/20261023T121515Z/business-judgment-rule.bundle.json",
+          "decision_id": "bge_BGE_110_II_391",
+          "defects_read_from_committed_record": [
+            "D2_letterhead_zone"
+          ],
+          "counter_evidence_verified_at_mount": true,
+          "counter_status_at_mount": "candidate-limiting",
+          "counter_uncertainty_at_mount": 0.2,
+          "counter_evidence_head_at_mount": "Urteilskopf\n110 II 391\n75. Auszug aus dem Urteil der I. Zivilabteilung vom 10. April 1984 i.S. X. gegen Immorest AG (Ber",
+          "ok": true
+        },
+        {
+          "path": "results/product/offline_slice/20261023T121518Z/petty-theft-dismissal.bundle.json",
+          "decision_id": "ge_gerichte_CAPH_107_2004",
+          "defects_read_from_committed_record": [
+            "D3_markup_residue"
+          ],
+          "counter_evidence_verified_at_mount": true,
+          "counter_status_at_mount": "candidate-limiting",
+          "counter_uncertainty_at_mount": 0.2,
+          "counter_evidence_head_at_mount": "<mark>Selon</mark> l\u2019art. 337 CO, l\u2019employeur et le travailleur peuvent r\u00e9silier imm\u00e9diatement le contrat de travail en ",
+          "ok": true
+        },
+        {
+          "path": "results/product/server_slice/20261023T224255Z/served.bundle.json",
+          "decision_id": "bge_BGE_121_III_260",
+          "defects_read_from_committed_record": [
+            "D3_markup_residue",
+            "D4_language_marker_mismatch"
+          ],
+          "counter_evidence_verified_at_mount": true,
+          "counter_status_at_mount": "candidate-limiting",
+          "counter_uncertainty_at_mount": 0.2,
+          "counter_evidence_head_at_mount": "Regeste Resolutiv bedingter <mark>Mietvertrag</mark>; Anfechtung der K\u00fcndigung; Erstreckung (Art. 255, 271 und 271a, 272",
+          "ok": true
+        }
+      ],
+      "n_defective": 4,
+      "n_sound": 1
+    },
+    "CC6": {
+      "observed": {
+        "pipeline_line_1339": "    if adversarial_retrieval:",
+        "pipeline_line_1343": "        audited = apply_verified_span_selection(",
+        "pipeline_line_1347": "        if not fixture_generation:",
+        "pipeline_line_1348": "            audited = apply_counter_emission_repair(audited)",
+        "pipeline_line_1357": "    if not fixture_generation:",
+        "offline_slice_line_79": "            initial, retrieval_mode=\"fixture\", fixture_generation=True)",
+        "absent_string_occurrences": 0,
+        "head": "e53662be8d33cd3bde0e8bfb21ec5d30668e1e27",
+        "pipeline_blob_head": "3659e3eed834911305cbda762db8413e040af7ae",
+        "pipeline_blob_worktree": "3659e3eed834911305cbda762db8413e040af7ae",
+        "pipeline_blob_at_51d306c": "51d306c:product/query/pipeline.py",
+        "offline_slice_blob_head": "7e79f679112d509832a28a1d35c41859f8a7bd28",
+        "offline_slice_blob_worktree": "7e79f679112d509832a28a1d35c41859f8a7bd28"
+      },
+      "file_line_inventory": {
+        "product/query/pipeline.py:1339": "    if adversarial_retrieval:",
+        "product/query/pipeline.py:1343": "        audited = apply_verified_span_selection(",
+        "product/query/pipeline.py:1347": "        if not fixture_generation:",
+        "product/query/pipeline.py:1348": "            audited = apply_counter_emission_repair(audited)",
+        "product/query/pipeline.py:1357": "    if not fixture_generation:",
+        "product/offline_slice.py:79": "            initial, retrieval_mode=\"fixture\", fixture_generation=True)"
+      }
+    },
+    "CC7": {
+      "commit": null,
+      "parent": null,
+      "commit_time": null,
+      "subject": null,
+      "diff_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "CC8": {
+      "rows": [
+        {
+          "path": "results/product/offline_slice/20261024T142517Z/rent-default.bundle.json",
+          "enriched": true,
+          "span_provenance_present": true,
+          "applied": true,
+          "n_selected": 0,
+          "family_dir": "20261024T142517Z"
+        },
+        {
+          "path": "results/product/offline_slice/20261023T121512Z/corporate-criminal-liability.bundle.json",
+          "enriched": true,
+          "span_provenance_present": false,
+          "applied": null,
+          "n_selected": null,
+          "family_dir": "20261023T121512Z"
+        },
+        {
+          "path": "results/product/offline_slice/20261023T121515Z/business-judgment-rule.bundle.json",
+          "enriched": true,
+          "span_provenance_present": false,
+          "applied": null,
+          "n_selected": null,
+          "family_dir": "20261023T121515Z"
+        },
+        {
+          "path": "results/product/offline_slice/20261023T121518Z/petty-theft-dismissal.bundle.json",
+          "enriched": true,
+          "span_provenance_present": false,
+          "applied": null,
+          "n_selected": null,
+          "family_dir": "20261023T121518Z"
+        },
+        {
+          "path": "results/product/server_slice/20261023T224255Z/served.bundle.json",
+          "enriched": true,
+          "span_provenance_present": false,
+          "applied": null,
+          "n_selected": null,
+          "family_dir": "20261023T224255Z"
+        },
+        {
+          "path": "results/product/server_slice/20261023T224255Z/first_page.bundle.json",
+          "enriched": false,
+          "span_provenance_present": false,
+          "applied": null,
+          "n_selected": null,
+          "family_dir": "20261023T224255Z"
+        }
+      ],
+      "n_with_span": 1,
+      "n_enriched_without_span": 4
+    },
+    "CC9": {
+      "observed": {
+        "results/evaluation/fast_mvp_current_head_ca_falsifier/40105794124.json": "fd25345b02da6658edbd5ed8722c69c9b3c7dbbc22e7856740cfdd421c5c4592",
+        "reports/evaluation/FAST_MVP_CURRENT_HEAD_CA_FALSIFIER_40105794124.md": "4b60a0e3eef387e781227c52eca8d0d2f3e9b34abfd4e5139eb352173164f5b9",
+        "reports/evaluation/FAST_MVP_CURRENT_HEAD_CA_FALSIFIER_40105794124_READING.md": "cf2050847022f7a593c2f97d4cdc7e12d4149a6c7bc2532852835efe38863746",
+        "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+        "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+        "evaluation/frozen_bars/VERDICT_CONTRACT.json": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c",
+        "evaluation/counter_evidence_quality_benchmark.py": "aac86527e5e54f0f9c527daac7ff1016d5124731b8ce673797520ff3dd53067d",
+        "evaluation/mapping_free_recall_falsifier.py": "58a2e77a66bb60385a53185e9426447e8465da9105e8a0cb8945d5fd77bfb302"
+      },
+      "mismatches": {},
+      "bundle_embedded_frozen_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "cross_artifact_integrity": true
+    },
+    "CC10": {
+      "path": "results/audit/product/CYCLE_39965089504_GATE.json",
+      "sha256": "f915bac807af988c840c6911738d646e5f794ab16261c63df85d278d227509ef",
+      "gate": "PASS",
+      "required_fixes": [
+        "NON-BLOCKING (D1, wording): reports/product/CYCLE_39965089504.md section 6 says test_state_cycle_39965089504.py passes 6/6, but the committed file has 7 tests (7th added in follow-up commit e0c9e32); state/product.json is internally inconsistent, saying both '7-test re-derivation suite' and '(6 tests)'. All 7 pass and suite totals are unaffected; correct the wording in the next cycle.",
+        "NON-BLOCKING (D2, wording): results/product/orchestration/CYCLE_39965089504_resume_diagnosis.json durable_delta calls product/tests/test_counter_surface_known.py '(new, 90 lines)', but the file existed on accepted base b48d6f3 (created by cycle 39949461593 with 4 tests); this cycle appended 2 D1 tests (90 inserted lines). Inventory wording only; the appended tests are real and pass.",
+        "NON-BLOCKING (D3, environment disclosure): producer suite artifact records base 172/1309/20 and head 171/1325/20 (failed/passed/skipped); an auditor environment with identical package versions reproduces 172/1308/21 and 171/1324/21 - one mount/data-dependent skip-to-pass variance present identically on BOTH trees, so FAILED sets and the 0-new/1-fixed conclusion are unaffected. Worth one disclosing sentence next time suite counts are published."
+      ]
+    },
+    "CC11": {
+      "item_2_status": "NOT_YET_DISCRIMINATING",
+      "mount_head": "e53662be8d33cd3bde0e8bfb21ec5d30668e1e27",
+      "newest_offline_slice_family": "20261024T185303Z",
+      "newest_server_slice_family": "39202428670",
+      "n_offline_slice_family_dirs": 82,
+      "n_server_slice_family_dirs": 8,
+      "rejection_incumbent_leg_landed": false,
+      "seam_applied": true,
+      "seam_n_selected": 0,
+      "incumbent_still_verified": true
+    }
+  },
+  "n_claims": 11,
+  "n_claims_ok": 8,
+  "n_controls": 5,
+  "n_controls_holding": 5,
+  "failed_claims": [
+    "CC6_accepted_code_path_file_line",
+    "CC7_51d306c_diff_provenance",
+    "CC11_item2_gate_status"
+  ],
+  "failed_controls": [],
+  "product_mount_head": "e53662be8d33cd3bde0e8bfb21ec5d30668e1e27",
+  "corrected_statement_of_record": "The accepted product head 8b5b08dd does NOT bypass the landed span seam: product/query/pipeline.py:1339 gates the seam on `adversarial_retrieval` alone (51d306c removed the `not fixture_generation` condition) and the accepted bundle rent-default 20261024T142517Z carries counter_evidence_span.applied=true, n_candidates=1, n_selected=0, abstained_ids=['gr_gerichte_ERZ 2010 25'], abstention_reasons={pivot_absent:1}. The seam executed and ABSTAINED; the defective trilingual Graub\u00fcnden letterhead stays counter_evidence_verified=true because the INCUMBENT is left in place. The remaining leg is REJECTION/INCUMBENT HANDLING, not bypass. The 40105794124 measurement (4 of 5 enriched bundles defective, histogram D2 2 / D3 2 / D4 1, 1 sound row) is UNCHANGED by this correction.",
+  "measurement_unchanged": true,
+  "falsifier_reexecuted": false,
+  "no_174k_benchmark_rerun": true,
+  "no_bar_movement": true,
+  "no_frozen_edit": true,
+  "serve_verdict_issued": false,
+  "posture": {
+    "packet_admitted": false,
+    "machine_gate_ready": false,
+    "human_gate_ready": false,
+    "ready_for_owner_session": false,
+    "owner_decision_required": false
+  },
+  "item_2_status": "NOT_YET_DISCRIMINATING",
+  "numeric_environment": {
+    "python": "3.12.3",
+    "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+    "numpy": "NOT_IMPORTABLE",
+    "scipy": "NOT_IMPORTABLE",
+    "sklearn": "NOT_IMPORTABLE",
+    "thread_env": {
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "MKL_NUM_THREADS": null
+    }
+  },
+  "claim_ceiling": "Provenance and mechanism correction over committed accepted artifacts only. It restates what the accepted bytes and the accepted product code path establish about WHY the 40105794124 measurement looks the way it does; it adds no quality measurement, moves no bar, and makes no admission, serve, legal-usefulness or human-gate claim.",
+  "recompute_command": "python3 -m evaluation.bypass_clause_correction --run-id 40144816305 --out-dir results/evaluation/bypass_clause_correction",
+  "result_file": "results/evaluation/bypass_clause_correction/40144816305.json"
+}
