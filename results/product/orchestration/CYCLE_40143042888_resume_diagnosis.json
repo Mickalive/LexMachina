@@ -1,0 +1,123 @@
+{
+  "schema": "product-orchestration-resume-diagnosis/1",
+  "run_id": "40143042888",
+  "resumed_run_id": "40141595725",
+  "direction_version": 68,
+  "mode": "OPERATIONAL RESUME from the persisted producer snapshot of run 40141595725 (commit daefc7aae 'product cycle 40141595725 repair 0' on cycle/core/product/40141595725/team, based on accepted e53662be8 'accept product cycle 40139832004')",
+  "evidence_sources": {
+    "github_rest_api": "public unauthenticated REST calls to api.github.com (runs, jobs, check-run annotations); succeeded this cycle",
+    "job_logs": "HTTP 403 'Must have admin rights to Repository' for /actions/jobs/<id>/logs - job LOG TEXT IS UNAVAILABLE and is recorded as unavailable, never invented",
+    "git_refs": "git ls-remote origin refs/heads/cycle/core/product/40141595725/*",
+    "committed_tree": "the resumed snapshot in this checkout"
+  },
+  "resumed_run_record": {
+    "id": 40141595725,
+    "name": "Core product dirV68 repair0",
+    "workflow": ".github/workflows/core-lane.yml",
+    "event": "workflow_dispatch",
+    "status": "completed",
+    "conclusion": "failure",
+    "run_attempt": 1,
+    "created_at": "2026-10-24T23:09:55Z",
+    "updated_at": "2026-10-24T23:30:54Z",
+    "head_branch": "main",
+    "head_sha": "8e0ac0e243424be72cbcbc6969990aa187a9704b"
+  },
+  "jobs": {
+    "team": {
+      "id": 121014306668,
+      "conclusion": "success",
+      "steps": "1 Set up job / 2 checkout / 3 Validate lane and initialize working base / 4 Mount accepted peer evidence / 5 Install Ox/OpenCode / 6 Run lane cycle / 7 Validate active MVP producer state / 8 Clean generated junk / 9 Enforce lane write scope / 10 Persist team snapshot - ALL success"
+    },
+    "audit": {
+      "id": 121017465961,
+      "conclusion": "failure",
+      "steps": "1 Set up job success / 2 checkout success / 3 Checkout accepted base and mount team success / 4 Install Ox/OpenCode success / 5 Independent audit SUCCESS / 6 Enforce audit scope and read gate FAILURE / 7 Persist audit snapshot SKIPPED"
+    },
+    "integrate": {"id": 121018553740, "conclusion": "skipped"},
+    "resilience": {"id": 121018553401, "conclusion": "success"}
+  },
+  "diagnosis": [
+    {
+      "id": "D1",
+      "signature": "AUDIT_JOB_SCOPE_GUARD_EXIT_3_NOT_A_GATE_FILE_FAILURE",
+      "status": "ESTABLISHED",
+      "evidence": "The GitHub check-run annotations for check-run 121017465961 (job 'audit', run 40141595725) are exactly two failure annotations: (a) 'Process completed with exit code 3.' and (b) 'auditor crossed scope:'. Both carry empty raw_details. The step 'Enforce audit scope and read gate' has TWO failure exits: exit 3, emitted only by the scope branch (`[[ -z \"$BAD\" ]] || { echo -e \"::error::auditor crossed scope:\\n$BAD\"; exit 3; }`), and a non-3 failure from `jq -e '.gate==.../...' results/audit/product/CYCLE_40141595725_GATE.json` (jq exits 1 on a false filter and 2 on a file error). Exit code 3 therefore maps uniquely to the SCOPE branch: the independent auditor wrote at least one path outside results/audit/product/* and reports/audit/product/*. It was NOT a missing or malformed gate file.",
+      "claim_ceiling": "The exit-code-to-branch mapping is read from the workflow source on main and is exact. The SPECIFIC offending paths are NOT observable: raw_details on both annotations is empty and the job-log endpoint returns HTTP 403 for this token. No path is named here; naming one would be a fabrication.",
+      "candidate_paths_not_observed": [
+        "a producer-style report written to reports/product/CYCLE_40141595725.md instead of reports/audit/product/CYCLE_40141595725.md (the two directories differ only by one path segment, and the auditor's prompt names the correct one)",
+        "a scratch/recompute artifact written under results/product/ or product/ while independently recomputing the producer's claims",
+        "a gate/report written under results/audit/ without the lane segment, which does not match the results/audit/product/* glob",
+        "any untracked scratch file at the repository root (the audit job has no 'Clean generated junk' step; the team job does have one at step 8)",
+        "an unintended `git add` staging a file, which git status --porcelain also reports"
+      ],
+      "ruled_out": [
+        ".pytest_cache: pytest writes .pytest_cache/.gitignore containing '*', so git never reports it in `git status --porcelain -uall`. Verified in this checkout this cycle.",
+        "__pycache__/*.pyc: covered by the repository .gitignore on the audit base (lab/product) and deleted by nothing that would surface them; also covered by the pytest-internal ignore for the cache dir"
+      ]
+    },
+    {
+      "id": "D2",
+      "signature": "PRODUCER_SIDE_VALIDATION_WAS_GREEN",
+      "status": "ESTABLISHED",
+      "evidence": "Every team-job step concluded success, including step 7 'Validate active MVP producer state' (which would exit 68/69 on a missing or direction_version-mismatched state/product.json) and step 9 'Enforce lane write scope'. The producer snapshot therefore satisfied both workflow validations and was persisted by step 10. The failure is auditor-side, not producer-side.",
+      "consequence": "Resuming from the snapshot (rather than restarting a fresh cycle) is the correct route: the inherited work was never adjudicated."
+    },
+    {
+      "id": "D3",
+      "signature": "NO_AUDIT_BRANCH_AND_NO_GATE_FILE_EXIST_ANYWHERE",
+      "status": "ESTABLISHED",
+      "evidence": "`git ls-remote origin 'refs/heads/cycle/core/product/40141595725/*'` returns ONLY refs/heads/cycle/core/product/40141595725/team and .../team-attempt-1, both at daefc7aae. There is no .../audit ref, because step 7 'Persist audit snapshot' was skipped after the step-6 failure (it has no `if: always()`).",
+      "consequence": "No results/audit/product/CYCLE_40141595725_GATE.json exists in any ref, integrate was skipped, and origin/lab/product did not advance past e53662be8. Nothing from run 40141595725 is accepted evidence; this resume treats it as UNADJUDICATED PRODUCER WORK, not as accepted work and not as rejected work."
+    },
+    {
+      "id": "D4",
+      "signature": "THE_FAILING_GUARD_IS_IN_GITHUB_WORKFLOWS_AND_IS_CONTROL_PLANE_SCOPE",
+      "status": "ESTABLISHED",
+      "evidence": "The scope guard that exited 3 lives in .github/workflows/core-lane.yml, job 'audit', step 'Enforce audit scope and read gate'.",
+      "consequence": "Per factory-wide requirement 'Do not attempt to repair .github/** from a lane', this run RECORDS the gap as a control-plane hardening item (see state/product.json control_plane_hardening_items) and does not edit it. Product cannot make an independent auditor stay in scope from inside the producer write scope; what it CAN do is hand the auditor a complete, self-describing snapshot (report of record, machine-readable artifacts, an executable re-derivation test) so no scratch file is needed."
+    },
+    {
+      "id": "D5",
+      "signature": "INHERITED_ARTIFACT_CLAIM_EXCEEDS_ITS_OWN_PROVENANCE_ON_LIVE_RETRIEVAL",
+      "status": "ESTABLISHED",
+      "evidence": "results/product/vertical_slice/cycle_vertical_slice_20261024T232419Z.json records retrieval_mode='live', mode='live', fixture_mode=false, yet its own request_summary is network_calls=0, cache_hits=9, cache_hits/budget_used=9/9, failures=0, and its coverage_expansion records n_cache_miss_texts=0 while cache_stats records n_keys=870, writes=0. The inherited report CYCLE_20261024T232405Z_report.md states 'OpenCaseLaw retrieval (live): 150 decisions from OpenCaseLaw MCP API' and 'First-page retrieval from OpenCaseLaw works'.",
+      "correction": "The run made ZERO upstream HTTP calls: all 150 decisions were replayed from the local OpenCaseLaw query cache (results/product/query_cache, 870 keys). The correct statement is 'retrieval replayed from the committed local OpenCaseLaw cache in live-mode configuration; no upstream latency measured this run', which is consistent with direction v68 ordered item 5 (LIVE LATENCY stays DEFERRED).",
+      "claim_ceiling": "Read from the artifact's own provenance fields; no network trace is available and none is claimed."
+    },
+    {
+      "id": "D6",
+      "signature": "INHERITED_ARTIFACT_HAS_NO_COMMITTED_GENERATOR",
+      "status": "ESTABLISHED",
+      "evidence": "The schema string 'product-vertical-slice/1' appears in exactly one file in the repository - the artifact itself. No committed module under product/ emits it, no report of record under reports/product/ names run 40141595725, and state/product.json carried no cycle record for that run.",
+      "consequence": "The inherited numbers were not re-derivable from the committed tree, which is the requirement-33 'claim does not reproduce from the committed tree' defect class. Repaired this cycle by verifying the same end-to-end slice through the three COMMITTED instruments (offline_slice --verify, server_slice, progressive_smoke), all of which PASS and are committed as this run's artifacts, and by committing product/content_family_probe.py for the content claim."
+    }
+  ],
+  "verification_performed_this_cycle": {
+    "offline_slice": "python3 product/offline_slice.py --verify -> PASS: 100 decisions, 8 clusters, 35 largest, 100/100 rows with source_url + x/y + cluster_id, counter_rows=1, counter_status_bearing_rows=5, answer_status=ready, cited_decision_ids=4, geometry_preserved_by_enrich=True, replay=product_query_cache_live_config_replay (candidates=165), page contract PASS 68 assertions, network none, 1.51 s. Written to results/product/offline_slice/20261024T235221Z/.",
+    "server_slice": "python3 product/server_slice.py --run-id 40143042888 -> PASS all 10 checks (socket trap, /api/health, shipped query.html byte-for-byte, first-page completeness, expansion, sourced answer, geometry preservation, bundle round-trip, both counter definitions, DOM contract), n_first_page=100, n_final=100, n_clusters=8, n_cited=2, counter_authorities=1, 68 page assertions, total_s=1.799. Written to results/product/server_slice/40143042888/.",
+    "progressive_smoke": "python3 product/progressive_smoke.py --run-id 40143042888 -> PASS 23/23 checks over a real subprocess + real socket (health, start, status, expand, enrich, bundle, static assets), server_boot_s=1.243, enrich_s=0.511. Written to results/product/progressive_smoke/CYCLE_40143042888_progressive_smoke.json.",
+    "content_family_probe": "python3 product/content_family_probe.py --run-id 40143042888 --direction-version 68 -> fixed-path family 8 bundles / 800 decisions, verified rows 1, verified+defective 0, D2=0 D3=0 D4=0 D1=0; all committed 105 bundles D2=44 D3=31 D4=7 (historical, preserved); confirmed-set false rejects 0; ordered-work (2) success rule met. Written to results/product/counter_content_family/CYCLE_40143042888.json.",
+    "v68_p0_tests": "python3 -m pytest product/tests/test_counter_content_rejection_v68.py product/tests/test_counter_evidence_span.py -> 30 passed.",
+    "state_contract": "python3 product/state_contract.py --check --direction-version 68 -> PASS on the inherited tree and after this cycle's state write.",
+    "preexisting_failure_found_and_repaired": "python3 -m pytest product/tests/test_frontier_serve_audit_intake.py -> 1 failed, 12 passed BEFORE this cycle's state write: test_product_state_carries_no_owner_readiness_claim asserts state/product.json human_gate_ready is False, but accepted commit 7279e18db (cycle 40128639259) had set it true. This cycle's posture correction restores the committed test to green."
+  },
+  "repairs_or_finishes_this_cycle": [
+    "product/content_family_probe.py: new committed instrument that re-probes the frozen D1-D4 content predicates over every committed flagship bundle and publishes per-bundle and per-class histograms (direction v68 ordered work item 2 asked for this publication; only prose existed before).",
+    "results/product/counter_content_family/CYCLE_40143042888.json: the published histogram - fixed-path family D2/D3/D4 = 0/0/0 with 0 false rejects on the confirmed set, all-committed historical histogram kept side by side so the two populations are never conflated.",
+    "results/product/offline_slice/20261024T235221Z/, results/product/server_slice/40143042888/, results/product/progressive_smoke/CYCLE_40143042888_progressive_smoke.json: this run's runnable vertical-slice verification through committed instruments, all PASS.",
+    "reports/product/CYCLE_40143042888.md: report of record for the resume (the artifact run 40141595725 never got to write).",
+    "state/product.json: accepted_run_id advanced to CYCLE_40139832004 (the current accepted GitHub run id, ordered item 4), cycle_40143042888_operational_resume record added, human_gate_ready corrected true -> false with provenance, control-plane hardening item recorded, next_recommendation re-anchored on ordered work.",
+    "product/tests/test_cycle_40143042888.py: executable re-derivation of every number published in the report and in this diagnosis."
+  ],
+  "posture_after_resume": {
+    "human_gate_ready": false,
+    "human_gate_ready_correction": "corrected from true (set by accepted commit 7279e18db, cycle 40128639259) to false. Basis: factory-wide requirement that a status field carrying human_gate_ready=true while either frozen bar is unmet misstates accepted evidence; direction v68 'posture flags stay FALSE'; both frozen bars are unmet (serve verdict BOUNDED-NEGATIVE, packet_admitted=false); no human-gate session evidence exists in the tree; and product/tests/test_frontier_serve_audit_intake.py::test_product_state_carries_no_owner_readiness_claim fails on the true value. The historical value stays visible in git history and is never deleted.",
+    "machine_gate_ready": false,
+    "packet_admitted": false,
+    "ready_for_owner_session": false,
+    "owner_decision_required": false,
+    "continue_recommended": true,
+    "serve_verdict_of_record": "BOUNDED-NEGATIVE; both DO-NOT-SERVE orders stand and are never re-run here"
+  }
+}
