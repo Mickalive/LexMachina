@@ -1,0 +1,64 @@
+{
+  "base": {
+    "authored": "2026-10-25T02:08:45Z",
+    "collected_total": 1580,
+    "commit": "a1de800b4d4248f2f3b17320611b06cc36fbd724",
+    "short": "a1de800",
+    "subject": "product cycle 40152073380 repair 0"
+  },
+  "claim_ceiling": "A collection-count attribution measured in THIS environment at THIS root. It says nothing about pass/fail (no suite was run), nothing about any other environment, and nothing about any frozen bar. It measures which commit moved a collected count, which is a statement about the git history of this repository, not about product behaviour.",
+  "cross_check": {
+    "status": "NOT_RUN",
+    "why": "no regression-scope artifact supplied"
+  },
+  "decomposition_line": "collected-test delta a1de800 -> head = +0 = +0  ()",
+  "environment": {
+    "measured_at_root": "/home/runner/work/LexMachina/LexMachina",
+    "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+    "pytest": "9.1.1",
+    "python": "3.12.3"
+  },
+  "head": {
+    "collected_total": 1580,
+    "commit": "a1de800b4d4248f2f3b17320611b06cc36fbd724",
+    "label": "head commit a1de800 (range endpoint)"
+  },
+  "method": {
+    "attribution_rule": "a step's delta is the change in the whole-suite collected count across that commit, attributed to the modules git says it added or modified",
+    "head_and_working_tree": "the range ends at a COMMIT, so the committed decomposition always closes on its own; the uncommitted working tree is measured separately and attributed to the modules `git status` reports, because a cycle's in-flight tests are not a commit and must never be silently folded into a committed range's arithmetic",
+    "measurement": "pytest --collect-only -q (collection only; NO suite run, no pass/fail claim)",
+    "per_module": "per-module counts are collected AFTER the commit; a module that cannot be collected in this environment is recorded as an error, never as 0",
+    "step_selection": "git log --reverse base..head, keeping only commits whose name-status touches product/tests/; a commit that touches no test module cannot move a collected count and is skipped with this rule stated rather than silently",
+    "worktree_lifecycle": "one detached worktree per measured commit under a temporary directory, removed and pruned in a finally block; nothing outside it is touched"
+  },
+  "observed_collected_delta": 0,
+  "reconciles": true,
+  "run_id": 40154120551,
+  "schema": "product-test-delta-attribution/1",
+  "step_deltas_sum": 0,
+  "steps": [],
+  "working_tree": {
+    "attributed_by_module": {
+      "test_cycle_40154120551.py": 14
+    },
+    "attributed_delta": 14,
+    "collected_total": 1594,
+    "decomposition_line": "working-tree collected delta a1de800 -> tree = +14 = +14  (test_cycle_40154120551.py=+14)",
+    "delta_vs_head_commit": 14,
+    "head_collected_total": 1580,
+    "head_commit": "a1de800b4d4248f2f3b17320611b06cc36fbd724",
+    "measured": true,
+    "reconciles": true,
+    "reconciliation_rule": "the working-tree delta must equal the sum of the per-module collection deltas of every uncommitted test-module change git reports (new modules add their whole collected count; edited modules add what the edit collected). A conftest change, a plugin or a different pytest version can move collection with no module to blame; that leaves reconciles false and the tool REFUSES to publish rather than explaining the number away",
+    "uncommitted_test_modules": [
+      {
+        "collected_after": 14,
+        "collected_before": 0,
+        "delta": 14,
+        "git": "??",
+        "module": "test_cycle_40154120551.py",
+        "state_before": "ABSENT"
+      }
+    ]
+  }
+}

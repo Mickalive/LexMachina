@@ -1,0 +1,175 @@
+{
+  "schema": "product-resume-diagnosis/2",
+  "run_id": "40154120551",
+  "lane": "product",
+  "direction_version": 68,
+  "mode": "OPERATIONAL RESUME from the persisted producer snapshot of run 40152073380; inherited work preserved, not restarted",
+  "observed_snapshot": {
+    "resumed_from_run": "40152073380",
+    "team_ref": "refs/heads/cycle/core/product/40152073380/team",
+    "team_commit": "a1de800b4d4248f2f3b17320611b06cc36fbd724",
+    "head_commit_message": "product cycle 40152073380 repair 0",
+    "immediately_preceding_run": "40147748763",
+    "immediately_preceding_commit": "122bf6af646098445d8b95d8bfb778b2bff1f220",
+    "last_accepted_cycle": {
+      "run_id": "40139832004",
+      "accept_commit": "e53662be8",
+      "accept_message": "accept product cycle 40139832004",
+      "gate_file": "results/audit/product/CYCLE_40139832004_GATE.json",
+      "gate": "PASS",
+      "safe_to_integrate": true
+    },
+    "producer_delta_of_40152073380": [
+      "product/state/product.json (2 lines changed)",
+      "results/product/offline_slice/20261025T015155Z/rent-default.bundle.json (added)",
+      "results/product/offline_slice/20261025T015155Z/summary.json (added)"
+    ],
+    "inherited_work_preserved": [
+      "results/product/offline_slice/20261025T004717Z .. 20261025T015155Z (offline slice family regenerations)",
+      "product/tests/test_counter_content_rejection_v68.py (14 tests) and the v68 P0 rejection/incumbent leg in product/query/counter_evidence_span.py",
+      "state/product.json posture (human_gate_ready=false, packet_admitted=false, ready_for_owner_session=false)",
+      "results/product/counter_content_family/CYCLE_40143042888.json (ordered-work (2) instrument)"
+    ]
+  },
+  "failure_diagnosis": {
+    "orchestration_failure_of_record": {
+      "classification": "the independent audit never completed for runs 40147748763 and 40152073380",
+      "evidence": [
+        "git ls-remote origin shows refs/heads/cycle/core/product/40147748763/team and refs/heads/cycle/core/product/40152073380/team (plus -attempt-1) and NO /audit ref for either run",
+        "the newest core-product /audit ref on origin is refs/heads/cycle/core/product/40139832004/audit - the last independently audited and promoted cycle",
+        "git log --all finds no results/audit/product/CYCLE_40147748763_GATE.json and no results/audit/product/CYCLE_40152073380_GATE.json in any ref, and no reports/audit/product/CYCLE_40152073380.md",
+        "no 'accept product cycle 40147748763' or 'accept product cycle 40152073380' commit exists in any ref (git log --all --grep)"
+      ],
+      "exact_job_log_text_available": false,
+      "why_unavailable": "GitHub job-log endpoints return HTTP 403 to this producer (no token); this is recorded as unavailable rather than invented, exactly as in the 40143042888 resume diagnosis",
+      "consequence": "both cycles are UNADJUDICATED - neither accepted nor rejected. origin/lab/product and results/accepted-state/product.json still name CYCLE_40139832004 as the accepted cycle."
+    },
+    "validation_failure_reproducible_on_the_snapshot": {
+      "classification": "shadow-state contract violation - product/state/product.json existed as a second, diverging copy of the workflow-validated state/product.json",
+      "why_it_is_a_validation_failure": "product/state_contract.py --check --direction-version 68 returns exit code 3 and product/tests/test_state_contract.py fails 3 of its 29 tests while the file exists; the file sits inside the lane write scope (product/**) so the workflow's shell scope check can never see it, which is the exact defect class documented in product/state_contract.py's module docstring",
+      "origin": "reintroduced by run 40147748763 (commit 122bf6a adds the file). The file did NOT exist at 122bf6a's parent and did NOT exist at 81a9dfa (cycle 40143042888), where it had already been retired by commit 8feb9c6 'product: retire producer-self-minted audit artifacts ... canonical state/product.json -> direction v51'. Run 40152073380 then edited the shadow (a1de800, 2 lines) instead of deleting it.",
+      "before_repair": {
+        "command": "python product/state_contract.py --check --direction-version 68",
+        "exit_code": 3,
+        "failing_line": "[FAIL] No shadow state copies allowed: ['product/state/product.json']",
+        "pytest": "product/tests/test_state_contract.py -> 3 failed, 26 passed",
+        "divergent_fields": {
+          "accepted_run_id": "shadow '40147748763' vs canonical 'CYCLE_40139832004'",
+          "human_gate_ready": "shadow true vs canonical false",
+          "next_recommendation": "shadow 'Ready for human product gate evaluation.' vs canonical ordered-work text",
+          "evidence_refs": "shadow pointed at offline_slice/20261025T015155Z, canonical at the 40143042888 family"
+        }
+      },
+      "after_repair": {
+        "action": "product/state/product.json deleted (git rm); its only unique key, 'capabilities', merged into canonical state/product.json so no information is lost",
+        "command": "python product/state_contract.py --check --direction-version 68",
+        "exit_code": 0,
+        "pytest": "product/tests/test_state_contract.py -> 29 passed, 0 failed"
+      }
+    },
+    "claim_path_defects_in_the_shadow": [
+      {
+        "field": "accepted_run_id",
+        "shadow_value": "40147748763",
+        "defect": "run 40147748763 has no audit gate file and no accept commit in any ref; naming it as accepted would misstate accepted evidence (factory-wide requirement 4: both halves of requirement 4 are required)",
+        "repair": "canonical state/product.json keeps accepted_run_id=CYCLE_40139832004 / accepted_commit=e53662be8, which has both halves"
+      },
+      {
+        "field": "human_gate_ready",
+        "shadow_value": true,
+        "defect": "human_gate_ready=true while either frozen bar is unmet is a misstatement of accepted evidence (factory-wide requirement 17), and direction v68's claim ceiling keeps posture flags FALSE; the same defect was already corrected once by posture_correction_40143042888",
+        "repair": "canonical state/product.json keeps human_gate_ready=false together with ready_for_owner_session=false, machine_gate_ready=false, packet_admitted=false"
+      }
+    ]
+  },
+  "runnable_verification_this_cycle": {
+    "content_family_probe": {
+      "instrument": "python product/content_family_probe.py --run-id 40154120551 --direction-version 68",
+      "artifact": "results/product/counter_content_family/CYCLE_40154120551.json",
+      "fixed_path_family": "14 bundles, 1400 decisions, verified rows 2, verified+defective 0",
+      "defect_histogram": {
+        "D2_letterhead_zone": 0,
+        "D3_markup_residue": 0,
+        "D4_language_marker_mismatch": 0,
+        "D1_empty_evidence": 0
+      },
+      "confirmed_set_false_rejects": 0,
+      "ordered_work_2_success_rule_met": true,
+      "all_committed_historical": "111 bundles, D2=44 D3=31 D4=7 - preserved historical evidence, not a current-head defect",
+      "vs_accepted_instrument_40143042888": "fixed-path family grew 8/800 -> 14/1400 because cycles 40147748763 and 40152073380 regenerated more slices; the success rule reads MET on both"
+    },
+    "page_contract_of_the_resumed_snapshot_bundle": {
+      "command": "node product/verify_query_page.js results/product/offline_slice/20261025T015155Z/rent-default.bundle.json",
+      "result": "PASS 68 assertions, exit 0",
+      "why": "this is the bundle run 40152073380 itself committed; the resume proves the inherited deliverable is still clickable, not just present"
+    },
+    "mvp_core_suite": "170 passed / 0 failed across test_query_map_mvp.py, test_server_query_api.py, test_offline_slice.py, test_progressive_smoke.py, test_adversarial_retrieval.py, test_counter_evidence_span.py, test_counter_content_rejection_v68.py, test_state_contract.py, test_progressive_query.py",
+    "state_contract": "exit 0 (was exit 3 on the inherited snapshot)",
+    "resumed_snapshot_slice_summary": {
+      "bundle": "results/product/offline_slice/20261025T015155Z/rent-default.bundle.json",
+      "claim_ceiling": "OFFLINE WIRING EVIDENCE ONLY: runnable vertical-slice check of query -> bundle -> sourced answer -> counter-authority pass -> clickable map from recorded envelopes (fixture provider); no frozen gate is evaluated and no legal-usefulness claim is made.",
+      "mode": "full_loop",
+      "page_contract": true,
+      "page_contract_detail": "PASS 68 assertions",
+      "seconds": 1.189,
+      "slug": "rent-default",
+      "stats": {
+        "answer_status": "ready",
+        "cited_decision_ids": 4,
+        "counter_rows": 1,
+        "counter_status_bearing_rows": 5,
+        "enriched": true,
+        "fixture_replay": {
+          "mode": "offline",
+          "n_candidates": 165,
+          "network": "none",
+          "source": "product_query_cache_live_config_replay"
+        },
+        "geometry_preserved_by_enrich": true,
+        "largest_cluster": 35,
+        "n_clusters": 8,
+        "n_decisions": 100,
+        "rows_with_cluster_id": 100,
+        "rows_with_source_url": 100,
+        "rows_with_xy": 100
+      },
+      "verified": true
+    },
+    "lane_gate_instrument": {
+      "instrument": "python product/cycle_verify.py",
+      "at_resumed_snapshot_head_a1de800": "70/78 claims verified",
+      "after_this_cycle": "72/78 claims verified",
+      "fixed_this_cycle": [
+        "(test_delta) the attribution artifact's working-tree count still equals this tree's",
+        "(test_delta) every report citing the attribution quotes its decomposition line verbatim"
+      ],
+      "pre_existing_failures_unchanged": [
+        "(handoff) the accepted Frontier component has a recorded adopt/decline decision - /tmp/lex_accepted/frontier empty (external)",
+        "(handoff) the decision carries at least one machine-copied measured reason - same missing mount",
+        "(handoff) the committed adoption record matches a fresh read of the accepted mount - same missing mount",
+        "(counter_instability) the pinned accepted Evaluation digest re-derives from the pin commit - pin commit 50166b4c absent from this checkout (external)",
+        "(guards) the pinned citation-sweep scope matches a fresh sweep of this tree - inherited stale pin",
+        "(guards) every verification-register record accepted at bcb1217 is still present with an unedited value - inherited register drift"
+      ],
+      "no_new_failure_introduced": "the same six failures were reproduced at a1de800 before the repair; the two fixed claims are the only delta"
+    }
+  },
+  "repair_delivered_this_cycle": [
+    "Deleted the shadow state file product/state/product.json and merged its unique 'capabilities' map into canonical state/product.json",
+    "Ran the frozen D2/D3/D4 content-family re-probe for run 40154120551 (ordered work item 2) and committed the machine-readable artifact",
+    "Added product/tests/test_cycle_40154120551.py, which re-derives every number above from the committed tree",
+    "Recorded this resume in state/product.json as cycle_40154120551_operational_resume and refreshed next_recommendation to the direction-v68 ordered work"
+  ],
+  "ordered_work_status": {
+    "1_p0_rejection_incumbent_leg": "LANDED on the accepted chain (8b5b08dd) and re-verified this cycle by test_counter_content_rejection_v68.py + test_counter_evidence_span.py",
+    "2_full_family_regeneration": "MET on the committed bytes per results/product/counter_content_family/CYCLE_40154120551.json (D2=D3=D4=0, 0 false rejects, sound row bstger_SK.2023.49 still verified)",
+    "3_consume_accepted_findings": "cited, never re-derived: evaluation 40070818687, 40068038783, 40105794124, D2 profile 40089391202",
+    "4_state_pointer_hgiene": "canonical state/product.json carries accepted_run_id=CYCLE_40139832004 with both halves of requirement 4; the shadow copy that contradicted it is removed",
+    "5_live_latency_precision": "DEFERRED, recorded, budget 8 unchanged",
+    "6_frozen_rules_profile_gap": "DISCLOSED and TRANSFERRED to evaluation; product never re-derives a profile"
+  },
+  "claim_ceiling": "The query->result-bundle->clickable-map vertical slice remains complete and locally runnable (170 core tests pass, offline slice and progressive server both reproduce). The v68 P0 rejection/incumbent leg is LANDED and the frozen D2/D3/D4 histogram reads 0 on the committed fixed-path family with 0 false rejects. NOTHING beyond CYCLE_40139832004 is accepted: runs 40147748763 and 40152073380 are UNADJUDICATED (no audit ref, no gate file, no accept commit). human_gate_ready stays false, ready_for_owner_session stays false, machine_gate_ready stays false, packet_admitted stays false while either frozen bar is unmet; the serve verdict stays BOUNDED-NEGATIVE; no human-gate session is staged. The packet-level emission effect of the landed filter on packet-of-record bytes remains ZERO, and the comparative map-versus-ranked-list question stays VACUOUS until evidenced sound counter rows exist on a packet that could be served under the frozen bars as written. No producer-authored GATE.json was written this cycle: results/audit/product/ and reports/audit/product/ belong to the independent auditor only (product/state_contract.py audit-artifact ownership rule).",
+  "continue_recommended": true,
+  "human_gate_ready": false,
+  "ready_for_owner_session": false
+}
