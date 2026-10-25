@@ -128,25 +128,88 @@
         "accepted_run_id": 40143419165,
         "evidence_refs": [
           "tests/evaluation/test_retrieval_benchmark.py",
-          "results/evaluation/test_retrieval_benchmark_40143419165.json"
+          "results/evaluation/test_retrieval_benchmark_40143419165.json",
+          "results/audit/evaluation/CYCLE_40143419165_GATE.json",
+          "evaluation/BYPASS_CLAUSE_CORRECTION_40105794124_HYPOTHESIS_V1.json",
+          "evaluation/BYPASS_CLAUSE_CORRECTION_40105794124_FREEZE_V1.json",
+          "evaluation/bypass_clause_correction.py",
+          "results/evaluation/bypass_clause_correction/40113448025.json",
+          "results/evaluation/bypass_clause_correction/40144816305.json",
+          "results/evaluation/fast_mvp_current_head_ca_falsifier/40105794124.json",
+          "results/audit/evaluation/CYCLE_40105794124_GATE.json",
+          "results/audit/evaluation/CYCLE_40111496300_GATE.json",
+          "reports/audit/evaluation/CYCLE_40111496300.md",
+          "results/evaluation/fast_mvp_retrieval_recall_benchmark/40152672734.json",
+          "results/audit/evaluation/CYCLE_40152672734_GATE.json",
+          "reports/audit/evaluation/CYCLE_40152672734.md",
+          "evaluation/fast_mvp_retrieval_recall_benchmark.py",
+          "results/evaluation/fast_mvp_retrieval_recall_benchmark/40153096228.json",
+          "results/evaluation/fast_mvp_retrieval_recall_benchmark/40153096228_PROVENANCE.json",
+          "results/evaluation/fast_mvp_retrieval_recall_benchmark/40153908549.json",
+          "results/evaluation/test_suite_40153908549.json",
+          "tests/evaluation/test_fast_mvp_retrieval_recall_benchmark.py",
+          "reports/evaluation/CYCLE_40153908549.md",
+          "reports/evaluation/OPERATIONAL_RESUME_40153096228_AUDIT_READY.md"
         ],
-        "next_recommendation": "The minimal executable retrieval/counter-authority benchmark is complete and passes. All 38 tests pass covering: retrieval coverage and relevance (fixture query), adversarial pass execution and exclusion of initial decisions, source/URL/decision-ID validity, multilingual robustness (FR/DE/IT), duplicate suppression, cached reproducibility, latency budgets, cluster stability, and integrated pipeline smoke test. The frozen protocol digest is e1a0b18d23d18bd1aafe54a66329fd0b04cd6f95f794d3d0336e0d867af41b7e. This benchmark can falsify the query-map MVP by detecting regressions in any of these dimensions. No further same-question cycle is justified; the factory director should advance to the next question.",
+        "evidence_refs_resolution": {
+          "repaired_in_run": 40153908549,
+          "repairs_rejected_cycle": 40153096228,
+          "repair_round": 1,
+          "before": {
+            "total": 15,
+            "resolved": 15,
+            "unresolved": 0,
+            "unresolved_paths": []
+          },
+          "after": {
+            "total": 23,
+            "resolved": 23,
+            "unresolved": 0,
+            "unresolved_paths": []
+          },
+          "method": "recomputed by running evaluation/nested_evidence_refs_guard.py over state/evaluation.json: every top-level evidence_refs entry resolves in the worktree (os.path.exists / git history), and the same walk classifies every nested ref-shaped string. Top-level unresolved must be 0; nested ref-shaped strings are counted separately and any that do not resolve are listed by json path rather than silently dropped.",
+          "added_this_run": [
+            "evaluation/fast_mvp_retrieval_recall_benchmark.py",
+            "results/evaluation/fast_mvp_retrieval_recall_benchmark/40153096228.json",
+            "results/evaluation/fast_mvp_retrieval_recall_benchmark/40153096228_PROVENANCE.json",
+            "results/evaluation/fast_mvp_retrieval_recall_benchmark/40153908549.json",
+            "results/evaluation/test_suite_40153908549.json",
+            "tests/evaluation/test_fast_mvp_retrieval_recall_benchmark.py",
+            "reports/evaluation/CYCLE_40153908549.md",
+            "reports/evaluation/OPERATIONAL_RESUME_40153096228_AUDIT_READY.md"
+          ],
+          "note_on_prior_count": "the count carried by the previous cycle is preserved under 'before'; this run appends its own claim-bearing artifacts and re-measures rather than adopting either side's earlier number.",
+          "nested_ref_shaped": {
+            "n_ref_shaped_values_total": 44,
+            "n_top_level_evidence_refs": 23,
+            "n_top_level_unresolved": 0,
+            "n_unresolved": 0,
+            "unresolved": [],
+            "note": "the guard walked every string value of this file: 44 ref-shaped strings, 0 unresolved at top level and 0 unresolved overall, so exit code 0. Resolutions are counted, not asserted silently: both the top-level count and the full walk are recorded here."
+          }
+        },
+        "next_recommendation": "OPERATIONAL RESUME COMPLETE (run 40153908549 of producer run 40153096228, direction v68). Two facts lead: (1) under the V1_2 amendment the frozen FAST-MVP retrieval/counter-authority recall@20 benchmark now REPRODUCES from the repaired instrument as verdict=PRODUCT_FALSIFIED_RECALL_LOSS, exit_code=1, controls 10 executed / 9 passed (the single non-passing entry C7b_duplicates_reported_only is reported-only under V1_2); (2) under original V1 C7 blocking the same data reads NOT_MEASURED_VACUOUS, exit_code=2 - both readings are published in results/evaluation/fast_mvp_retrieval_recall_benchmark/40153908549.json (sha256 6d48e485eebf635c070a1023b119eb46fc3a2d3890e467f6892e198e0bc943ee) and the claim numbers are identical under both. Measurement: 24/24 cached cells replayed, 10 discriminating, aggregate product_hits 15 < input_hits 17, losses on baseline:business-judgment-rule:de (retention 1.0->0.0) and counter:petty-theft-dismissal:fr (1.0->0.667), language leg fr 4->3 and de 12->11 fail while it 1->1 holds. F-3B disposition executed and proved by re-hash: 40152672734.json restored to its own measurement (ef039fbf8475de0a03003eb6c2190ca5e80a32f641ee23621e3061a7c68bbbd2), the producer's in-place rewrite re-homed verbatim as 40153096228.json (78f249803b1342a156644953866a90603f96147904fef5d9c29cf7196f623989) with a provenance sidecar; nothing deleted. Orchestration diagnosis: run 40153096228's team job returned non-success, so the audit job (gated needs.team.result == success) never ran and no audit branch/gate exists; by elimination the failing step was 'Run lane cycle' (the opencode agent invocation) - state validation, scope guard, job timeout and every pre-agent wrapper failure are ruled out on evidence, and the remaining why is INFERRED because gh is unauthenticated and no run log is readable. Direction item (2) CONDITIONAL RE-MEASURE is NOT_YET_DISCRIMINATING: mount e53662be has the rejection/incumbent leg code but no regenerated 15-bundle flagship family (newest slice dirs hold 1 bundle each), so there is nothing new to measure. continue_recommended=false: the benchmark exists, runs reproducibly and falsifies correctly; the remaining binding residual is Product's ordered work (v68 item 2), not an evaluation measurement, so the successor question is the Factory Director's to set. Full report: reports/evaluation/CYCLE_40153908549.md; resume audit-readiness: reports/evaluation/OPERATIONAL_RESUME_40153096228_AUDIT_READY.md.",
         "metrics_summary": {
-          "total_tests": 38,
-          "passed": 38,
-          "failed": 0,
+          "artifact": "results/evaluation/test_suite_40153908549.json",
+          "artifact_sha256": "845622c2acdb06ad8ce9ae129d1f62cab8aa7ce2b191f97069e310cc457bbfd0",
+          "command": "PYTHONPATH=/tmp/lex_accepted/product python3 -m pytest -q <10 lane test files>",
+          "total_tests": 159,
+          "passed": 156,
+          "failed": 3,
           "skipped": 0,
-          "test_categories": {
-            "retrieval_coverage": 5,
-            "adversarial_execution": 5,
-            "source_validity": 8,
-            "multilingual_robustness": 4,
-            "duplicate_suppression": 3,
-            "cached_reproducibility": 3,
-            "latency": 4,
-            "cluster_stability": 3,
-            "integrated_pipeline": 2,
-            "protocol_freeze": 1
+          "baseline_at_snapshot_head": {
+            "head": "ed231f654e083fede185e638b2a93332149c9f65",
+            "total_tests": 38,
+            "passed": 26,
+            "failed": 12,
+            "note": "measured in a clean detached worktree with the same command; 9 of the 12 were the missing state open_items key and are repaired this cycle"
+          },
+          "remaining_failures_are_pre_existing": true,
+          "remaining_failures_disposition": "reports/evaluation/CYCLE_40153908549.md section 4",
+          "new_instrument_contract_tests": {
+            "file": "tests/evaluation/test_fast_mvp_retrieval_recall_benchmark.py",
+            "total": 7,
+            "passed": 7
           }
         },
         "frozen_protocol_digest": "e1a0b18d23d18bd1aafe54a66329fd0b04cd6f95f794d3d0336e0d867af41b7e",
@@ -167,7 +230,47 @@
         ],
         "no_universal_174k_benchmarks": true,
         "no_network_calls": true,
-        "deterministic_offline_only": true
+        "deterministic_offline_only": true,
+        "v68_correction": {
+          "run_id": 40144816305,
+          "corrects_run": 40105794124,
+          "verdict": "CORRECTION_NOT_CONFIRMED_against_current_mount_pins_but_measurement_unchanged",
+          "measurement_unchanged": true,
+          "item_2_status": "NOW_DISCRIMINATING",
+          "bypass_clause_superseded_as_explanation": true,
+          "remaining_mechanism": "rejection/incumbent_handling",
+          "reranking_falsifier_run": 40152672734,
+          "reranking_falsifier_verdict": "PRODUCT_FALSIFIED_RECALL_LOSS (claim data published despite C7_EXPLORATORY failure)",
+          "reranking_falsifier_summary": "2 discriminating cells lose ground-truth authorities under product reranking: baseline:business-judgment-rule:de (retention 0.0->1.0, 5 lost ids) and counter:petty-theft-dismissal:fr (retention 0.667->1.0, 1 lost id). Aggregate product_hits 15 < input_hits 17. Language leg fr/de fail hold condition."
+        },
+        "open_items": {
+          "item_5_fr_live_counter_run_instability_P1": "NOW FORMALIZED AS A GATE-LEVEL DIVERGENCE (v58, run 39322925971): under the frozen mapping-free contract the FR 102-CP same-query group is DIVERGENT on sr::counter_authority_surface (CYCLE_39128456801_live passes, CYCLE_39139648336_F1F2_VERIFY fails with n_issued=0). Retrieval/validity/duplicate verdicts are STABLE on both same-query groups, so P1 is BOUNDED to the counter stage, not systemic. Product response still requested: determinism for a fixed query+corpus, or a run-to-run counter instability disclosure beside the coverage-gap disclosure. Evidence: results/evaluation/cross_run_stability_sweep/39322925971.json.",
+          "item_6_population_and_limiting_identity_movement_P1ext": "NEW THIS CYCLE (REPORTED-ONLY, no gate fails on it). Same-query re-runs move the retrieved population materially: jaccard 0.904762 (DE) / 0.892216 (FR); common ids changing rank 26 / 126; common ids reassigned to a different cluster 71 of 95 (0.747) and 113 of 149 (0.758); on FR the counter evidence is LOST on bge_146 IV 68 and bstger_TPF_2012_62 and GAINED on bger_6B_750_2020, so the IDENTITY of the limiting decision can swap between runs of the same question, and the answer prose sha256 differs (6 cited vs 5 cited). DE counter stability is UNTESTED (stage NOT_APPLICABLE in both DE runs), not proven. Whatever disclosure or determinism fix Product ships should cover the population movement, not only the label count. Evidence: same record, group reported_only_diagnostics."
+        },
+        "open_items_restoration": {
+          "restored_by_run": 40153908549,
+          "restored_from": "state/evaluation.json at parent of commit 8fe862e83ade65dcd136e3bcba370347e50e7e66 (the cycle that removed the whole open_items key while slimming this file)",
+          "scope": "ONLY the two items that evaluation/disclosure_provenance_crosscheck.py freezes by text sha (FROZEN_TEXT_SHAS): item_5_fr_live_counter_run_instability_P1 and item_6_population_and_limiting_identity_movement_P1ext. Items 1-4 and 7 are NOT restored: they were deliberately slimmed and their statuses live in reports/evaluation/.",
+          "byte_exact_proof": {
+            "item_5_fr_live_counter_run_instability_P1": {
+              "item_text_sha256": "ab771b847c3524efdef8229f5453971dda5b51bf872992d5ac8f1fcae03c61d4",
+              "frozen_text_sha256": "ab771b847c3524efdef8229f5453971dda5b51bf872992d5ac8f1fcae03c61d4",
+              "match": true
+            },
+            "item_6_population_and_limiting_identity_movement_P1ext": {
+              "item_text_sha256": "fb26cf86389b6c7db80e43bad9b1c6531b4d476c503a0afc67a6fc34b5105157",
+              "frozen_text_sha256": "fb26cf86389b6c7db80e43bad9b1c6531b4d476c503a0afc67a6fc34b5105157",
+              "match": true
+            }
+          },
+          "why": "the removal left tests/evaluation/test_disclosure_provenance_crosscheck.py failing with KeyError 'open_items' on the pinned text-sha convention test; this is a byte-exact restoration of frozen-pinned content, not a re-wording."
+        },
+        "evidence_refs_n": 23,
+        "github_run": 40153908549,
+        "proposed_run_id": 40153908549,
+        "audit_status": "PENDING_INDEPENDENT_AUDIT",
+        "resumed_run_id": 40153096228,
+        "resume_dispatch_path": "resume_from_run_id (established: parent b9a01d22 is cycle/core/evaluation/40152672734/team; the repair path is impossible because that run has no /audit branch and git fetch of a missing ref returns 128; lab/evaluation tip 3fdb7d63 is not the parent). See reports/evaluation/OPERATIONAL_RESUME_40153096228_AUDIT_READY.md"
       }
     },
     {
@@ -1422,7 +1525,48 @@
     {
       "path": "results/accepted-state/product.json",
       "state": {
-        "accepted_run_id": "CYCLE_40100397058",
+        "accepted_run_id": "CYCLE_40139832004",
+        "accepted_commit": "e53662be8",
+        "accepted_run_supersession": "CYCLE_40100397058 -> CYCLE_40139832004 this cycle (direction v68 ordered item 4: advance accepted_run_id to the current accepted GitHub run id). Reads from BOTH halves of factory-wide requirement 4: origin/lab/product head is e53662be8 'accept product cycle 40139832004'. The earlier value is preserved in git history at 43f3191d9 and in results/audit/product/CYCLE_40100397058_GATE.json.",
+        "cycle_39056694835_frontier_serve_audit_intake": {
+          "admission": "fail-closed",
+          "claim_ceiling": [
+            "Verdict is REPRODUCED not accepted; must not be cited as accepted or as superseding DO-NOT-SERVE.",
+            "5/5 support-among-emitted always quoted with 60 abstentions and yield 0.0769.",
+            "Label-bar status published BY INSTRUMENT/TEXT (FIX-3): instrument LABEL_SOUND at n_scored=5; frozen rules-text residual INSUFFICIENT_POPULATION at n_scored<7.",
+            "Core Evaluation adjudication 39049030442 is EXISTING, not accepted (audit outstanding).",
+            "No ready_for_owner_session=true or human_gate_ready=true while either bar is unmet."
+          ],
+          "core_evaluation_adjudication_reference": {
+            "geometry_absolute_status": "GEOMETRY_UNSOUND",
+            "label_absolute_status": "LABEL_SOUND",
+            "n_bundles_pass_all_11": 0,
+            "note": "Core Evaluation HAS scored the rebuilt packet (contra the frontier team's false ABSENT claim per audit FIX-1). Recorded as EXISTING operational evidence; its own independent audit is outstanding.",
+            "packet_admitted": false,
+            "packet_json_raw_sha256": "2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170",
+            "run_id": "39049030442"
+          },
+          "delta": "Product-owned intake of the frontier-rebuilt-packet-serve-audit verdict STATUS and the resulting standing, plus a reference to Core Evaluation's completed same-bytes adjudication. No re-measurement, no packet/threshold/rubric/bar change, no Frontier re-charter or re-dispatch.",
+          "direction_version": 55,
+          "do_not_serve_order": "IN_FORCE",
+          "frontier_verdict_intake_record": "results/product/frontier_verdicts/frontier-rebuilt-packet-serve-audit_intake.json",
+          "owner_question_status": "PREPARED_NOT_FIRED",
+          "route_around_status": "PENDING_ACCEPTANCE_NOT_FIRED",
+          "run_id": "39056694835",
+          "verdict_status": {
+            "accepted": false,
+            "charter_outcome": "B",
+            "charter_version": 3,
+            "evidence_tier": "REPRODUCED",
+            "independent_audit_completed_at": "2026-10-17T18:07:43Z",
+            "independent_audit_gate": "REVISE",
+            "independent_audit_run_id": "39053132092",
+            "independent_audit_safe_to_integrate": false,
+            "n_required_fixes": 4,
+            "serve_recommendation": "DO-NOT-SERVE-UNCHANGED",
+            "team_id": "frontier-rebuilt-packet-serve-audit"
+          }
+        },
         "continue_recommended": true,
         "cycle_status": "COMPLETE",
         "direction_version": 68,
@@ -1433,8 +1577,8 @@
           "product/tests/test_query_map_mvp.py (22 tests)",
           "product/tests/test_progressive_query.py (22 tests)",
           "product/tests/test_adversarial_retrieval.py (51 tests)",
-          "product/tests/test_counter_surface.py (28 tests)",
-          "product/tests/test_counter_surface_known.py (14 tests)",
+          "product/tests/test_counter_surface.py (29 tests)",
+          "product/tests/test_counter_surface_known.py (6 tests)",
           "product/tests/test_cached_detail_warm.py (14 tests)",
           "product/tests/test_answer_reliability.py (13 tests)",
           "product/tests/test_offline_slice.py (8 tests)",
@@ -1442,27 +1586,51 @@
           "product/tests/test_canvas_ring_strokes.py (5 tests)",
           "product/tests/test_language_normalization.py (5 tests)",
           "product/tests/test_counter_evidence_span.py (17 tests)",
-          "product/tests/test_counter_emission_repair.py (14 tests)",
-          "product/tests/test_counter_precision.py (6 tests)",
-          "product/tests/test_probe_absent_id_spans.py (5 tests)",
-          "product/tests/test_v52_endgame_delivery.py (8 tests)",
-          "product/tests/test_counter_content_rejection_v68.py (14 tests)",
+          "product/tests/test_counter_emission_repair.py (13 tests)",
+          "product/tests/test_counter_precision.py (7 tests)",
+          "product/tests/test_probe_absent_id_spans.py (4 tests)",
+          "product/tests/test_v52_endgame_delivery.py (25 tests)",
+          "product/tests/test_counter_content_rejection_v68.py (13 tests)",
           "product/tests/test_server_slice.py (7 tests)",
-          "product/tests/test_reality_check.py (14 tests)",
-          "product/tests/test_progressive_smoke.py (2 tests)"
+          "product/tests/test_reality_check.py (15 tests)",
+          "product/tests/test_progressive_smoke.py (2 tests)",
+          "product/tests/test_cycle_40143042888.py",
+          "product/content_family_probe.py -> results/product/counter_content_family/CYCLE_40143042888.json",
+          "results/product/orchestration/CYCLE_40143042888_resume_diagnosis.json",
+          "results/product/orchestration/CYCLE_40154120551_resume_diagnosis.json",
+          "reports/product/CYCLE_40154120551.md",
+          "results/product/counter_content_family/CYCLE_40154120551.json",
+          "product/tests/test_cycle_40154120551.py",
+          "results/product/regression/CYCLE_40154120551_test_delta_attribution.json"
         ],
         "evidence_tier": "REPRODUCED",
-        "human_gate_ready": true,
+        "human_gate_ready": false,
+        "posture_correction_40143042888": {
+          "field": "human_gate_ready",
+          "from": true,
+          "to": false,
+          "set_by": "accepted commit 7279e18db (product cycle 40128639259, accept 8e58724bc)",
+          "corrected_by": "this cycle (operational resume 40143042888 of run 40141595725)",
+          "basis": [
+            "factory-wide requirement: a status field carrying human_gate_ready=true while either frozen bar is unmet is misstating accepted evidence - both bars are unmet (serve verdict BOUNDED-NEGATIVE, packet_admitted=false)",
+            "direction v68 NOT-IN-SCOPE clause: 'posture flags stay FALSE'",
+            "no human-gate session evidence exists in the tree; results/product/human_gate_sessions_simulated/ is simulated by construction and never counts",
+            "product/tests/test_frontier_serve_audit_intake.py::test_product_state_carries_no_owner_readiness_claim asserts state/product.json human_gate_ready is False and FAILED on the true value (measured this cycle: 1 failed, 12 passed before the correction)"
+          ],
+          "history_preserved": "the true value remains readable at git show 7279e18db:state/product.json; nothing was deleted or re-labelled",
+          "not_a_claim": "this correction is fail-closing only. It claims no gate outcome, no serve verdict and no session."
+        },
         "lane": "product",
         "machine_gate_ready": false,
-        "next_recommendation": "The v68 P0 rejection/incumbent leg is now LANDED and verified: the counter_evidence_span seam runs on all paths (fixture/offline/live) and when it abstains (pivot_absent/no_intent_marker), the defective incumbent counter_evidence is downgraded via the frozen D1-D4 content filter (D2_letterhead_zone, D3_markup_residue, D4_language_marker_mismatch). All 4 offline slice bundles and the server slice bundle regenerated with the fix show correct downgrades. The sound row (bstger_SK.2023.49) is correctly retained. The runnable query-specific product is complete and locally testable in fixture mode. All MVP tests pass. The progressive API is fully implemented. Next cycle should either conduct the human gate or advance toward live-mode verification with free model pool.",
+        "next_recommendation": "Direction v68 ordered work, status after OPERATIONAL RESUME of run 40152073380 (cycle 40154120551): (1) P0 REJECTION/INCUMBENT LEG - LANDED on the accepted chain (8b5b08dd) and re-verified this cycle by product/tests/test_counter_content_rejection_v68.py + product/tests/test_counter_evidence_span.py. (2) FULL-FAMILY REGENERATION - SUCCESS RULE MET on the committed bytes: product/content_family_probe.py -> results/product/counter_content_family/CYCLE_40154120551.json reports the fixed-path family at 14 bundles / 1400 decisions with D2=D3=D4=D1=0, 0 false rejects on the confirmed set and the sound row bstger_SK.2023.49 still verified; the all-committed historical histogram (D2=44 D3=31 D4=7 over 111 bundles) is published beside it and is preserved evidence, not a current-head defect. (3) CONSUMED, NOT RE-DERIVED: evaluation 40070818687, 40068038783, 40105794124 and the accepted D2 profile 40089391202. (4) STATE-POINTER HYGIENE - the shadow copy product/state/product.json that run 40147748763 reintroduced (and 40152073380 edited) has been deleted; state_contract --check went exit 3 -> exit 0 and test_state_contract 3 failed/26 passed -> 29 passed; canonical accepted_run_id stays CYCLE_40139832004 / e53662be8, the only cycle with BOTH halves of requirement 4. (5) LIVE LATENCY/PRECISION stays DEFERRED, recorded, budget 8 unchanged. (6) FROZEN-RULES PROFILE COVERAGE GAP stays DISCLOSED and TRANSFERRED to evaluation. UNADJUDICATED INHERIT: runs 40147748763 and 40152073380 produced team refs but no /audit ref, no gate file in any ref and no accept commit, so neither is accepted evidence. NEXT: an independent audit of this cycle's snapshot; the human product gate remains blocked while either frozen bar is unmet and is never staged from here.",
         "not_claimed": [
           "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
           "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
-          "Human-gate session conducted; end-to-end vertical slice verified runnable in fixture mode",
+          "No human-gate session conducted and none is staged; human_gate_ready stays false while either frozen bar is unmet (supersedes the ambiguous 40128639259 wording, which is preserved in git history)",
           "Serve verdict remains BOUNDED-NEGATIVE (both frozen bars unmet)",
           "Packet admission stays fail-closed",
-          "169 pre-existing full-suite failures disclosed, not repaired (absent 174k artifacts, stale state pins)"
+          "169 pre-existing full-suite failures disclosed, not repaired (absent 174k artifacts, stale state pins)",
+          "No claim that run 40141595725 was adjudicated - its audit job failed the scope guard and no gate file exists in any ref"
         ],
         "packet_admitted": false,
         "ready_for_owner_session": false,
@@ -1546,6 +1714,134 @@
             "suite": "product/tests/test_counter_evidence_render.py (3 served-packet integration tests incl. 16-row cross-check de1/fr4/it11 against real bundles via node) + test_adversarial_retrieval.py 2 new verified-flag tests + verify_query_page.js section 8 synthetic predicate/ring/pill/filter checks; all pass",
             "sweep": "frontier_verdict_sweep live-mount test now accepts the v55 TERMINATED portfolio shape (no verification file on mount -> snapshot-stands); covers_this_packet=false and counter_label_re_measured=false preserved, never claimed"
           }
+        },
+        "cycle_40143042888_operational_resume": {
+          "kind": "OPERATIONAL RESUME of run 40141595725 (persisted producer snapshot daefc7aae)",
+          "direction_version": 68,
+          "failure_of_record": "run 40141595725 concluded failure with the TEAM job green (10/10 steps, including 'Validate active MVP producer state' and 'Enforce lane write scope') and the AUDIT job failing at step 6 'Enforce audit scope and read gate' with exit code 3 and the annotation 'auditor crossed scope:'. Exit 3 maps uniquely to the scope branch of that step, so this was a scope violation by the independent auditor, NOT a missing or malformed gate file. No .../40141595725/audit ref exists, no gate file exists in any ref, integrate was skipped and origin/lab/product did not advance past e53662be8. Job log text is unavailable (HTTP 403) and the offending paths are therefore NOT named anywhere in this state.",
+          "diagnosis_artifact": "results/product/orchestration/CYCLE_40143042888_resume_diagnosis.json",
+          "report_of_record": "reports/product/CYCLE_40143042888.md",
+          "status_of_inherited_work": "UNADJUDICATED - neither accepted nor rejected. It is preserved verbatim under results/product/vertical_slice/ and is superseded on one point only (see correction below).",
+          "corrections": [
+            "The inherited report's '150 decisions from OpenCaseLaw MCP API (live)' is corrected: its own artifact records network_calls=0, cache_hits=9/9, n_cache_miss_texts=0 and cache_stats.writes=0 over 870 cached keys, so the run replayed the local OpenCaseLaw cache and measured no upstream latency. Ordered item 5 (live latency DEFERRED) still holds.",
+            "The inherited artifact's schema 'product-vertical-slice/1' has no committed generator, so its numbers were not re-derivable from the committed tree. This cycle re-verifies the same slice through the three committed instruments instead, all PASS."
+          ],
+          "runnable_verification_this_cycle": {
+            "offline_slice": "results/product/offline_slice/20261024T235221Z/ - PASS, 100 decisions, 8 clusters, 4 cited, page contract 68 assertions, network none, 1.51s",
+            "server_slice": "results/product/server_slice/40143042888/ - PASS 10/10 checks, 100 -> 100 decisions, 8 clusters, total_s 1.799",
+            "progressive_smoke": "results/product/progressive_smoke/CYCLE_40143042888_progressive_smoke.json - PASS 23/23 checks over a real subprocess and socket",
+            "content_family_probe": "results/product/counter_content_family/CYCLE_40143042888.json - fixed-path family D2/D3/D4 = 0/0/0, 0 false rejects, sound row retained; all-committed historical histogram published beside it"
+          },
+          "ordered_work_discharged": [
+            "(1) P0 rejection/incumbent leg: LANDED on the accepted chain and re-verified this cycle (30 tests pass).",
+            "(2) full-family publication: now machine-readable; success rule reads MET on the committed fixed-path family.",
+            "(3) accepted findings consumed, not re-derived.",
+            "(4) state-pointer hygiene: accepted_run_id, posture and cycle record corrected this cycle."
+          ],
+          "ordered_work_still_open": [
+            "(5) live latency/precision - DEFERRED, recorded, budget 8 unchanged.",
+            "(6) frozen-rules profile coverage gap - DISCLOSED and TRANSFERRED to evaluation (business-judgment-rule -> fr-bail-entretien, petty-theft -> None).",
+            "packet-level emission effect of the landed filter on packet-of-record bytes remains ZERO (claim ceiling, unchanged)."
+          ],
+          "test_delta": "product/tests/test_cycle_40143042888.py re-derives every number published above from the committed artifacts.",
+          "continue_recommended": true
+        },
+        "control_plane_hardening_items": [
+          {
+            "id": "CP-AUDIT-SCOPE-3",
+            "recorded_by": "product cycle 40143042888 (operational resume of 40141595725)",
+            "gap": ".github/workflows/core-lane.yml job 'audit' step 'Enforce audit scope and read gate' exits 3 when the independent auditor writes any path outside results/audit/product/* and reports/audit/product/*, and the job then skips 'Persist audit snapshot', so the run ends with no audit branch, no gate file and no adjudication. This happened on run 40141595725 (annotations: exit code 3, 'auditor crossed scope:').",
+            "why_a_lane_cannot_fix_it": ".github/** is control-plane scope and is never edited from a lane, a team or the director.",
+            "intended_upstream_fix_for_the_control_plane_maintainer": [
+              "emit the offending paths in the annotation's raw_details (the `echo -e \"::error::auditor crossed scope:\\n$BAD\"` text is not surfaced today, so the failure is undiagnosable from outside)",
+              "give the audit job the same 'Clean generated junk' step the team job has, or run the scope check against an explicit allow-list of the two directories after a cleanup pass",
+              "persist the audit snapshot with `if: always()` so an out-of-scope write is still inspectable instead of vanishing",
+              "make the 'Independent audit' prompt state that scratch/recompute output must go to a temp directory outside the checkout, since the guard cannot distinguish scratch from a verdict file"
+            ],
+            "route_around_used": "the producer hands the auditor a complete, self-describing snapshot (report of record, machine-readable artifacts, an executable re-derivation test) so no scratch file inside the checkout should be needed; and this lane records the diagnosis rather than retrying the identical dispatch."
+          }
+        ],
+        "evidence_ref_counts_40143042888": {
+          "measured_by": "python3 -m pytest <file> --collect-only -q (RF2: both numbers published side by side)",
+          "environment": "Python 3.12.3, numpy 2.5.4, scipy 1.18.1, scikit-learn 1.9.1, pytest 9.1.1",
+          "scope": "the 8 evidence_refs whose published count did not reproduce in this environment; the other 12 counted refs reproduced exactly and were not touched",
+          "supersession": [
+            {
+              "file": "product/tests/test_counter_surface.py",
+              "declared_before": 28,
+              "measured": 29
+            },
+            {
+              "file": "product/tests/test_counter_surface_known.py",
+              "declared_before": 14,
+              "measured": 6
+            },
+            {
+              "file": "product/tests/test_counter_emission_repair.py",
+              "declared_before": 14,
+              "measured": 13
+            },
+            {
+              "file": "product/tests/test_counter_precision.py",
+              "declared_before": 6,
+              "measured": 7
+            },
+            {
+              "file": "product/tests/test_probe_absent_id_spans.py",
+              "declared_before": 5,
+              "measured": 4
+            },
+            {
+              "file": "product/tests/test_v52_endgame_delivery.py",
+              "declared_before": 8,
+              "measured": 25
+            },
+            {
+              "file": "product/tests/test_counter_content_rejection_v68.py",
+              "declared_before": 14,
+              "measured": 13
+            },
+            {
+              "file": "product/tests/test_reality_check.py",
+              "declared_before": 14,
+              "measured": 15
+            }
+          ],
+          "caveat": "collection counts are environment-scoped, never a frozen benchmark and never a test-quality claim"
+        },
+        "capabilities": {
+          "offline_slice": true,
+          "live_server": true,
+          "progressive_api": true,
+          "sourced_answer": true,
+          "counter_authority_pass": true,
+          "adversarial_retrieval": true,
+          "clickable_map": true,
+          "counter_evidence_span_selection": true,
+          "rejection_incumbent_leg": true,
+          "page_contract_verified": true,
+          "source": "merged from the retired shadow copy product/state/product.json (run 40147748763) when that file was deleted by cycle 40154120551"
+        },
+        "cycle_40154120551_operational_resume": {
+          "kind": "OPERATIONAL RESUME of run 40152073380 (persisted producer snapshot a1de800)",
+          "direction_version": 68,
+          "failure_of_record": "Runs 40147748763 and 40152073380 each produced a team ref but NO cycle/core/product/<run>/audit ref, no results/audit/product/CYCLE_<run>_GATE.json in any ref and no accept commit, so both are UNADJUDICATED; the newest core-product audit ref on origin is 40139832004. Exact job-log text is unavailable (GitHub log endpoint returns HTTP 403 to this producer) and is recorded as unavailable rather than invented. The reproducible validation failure ON the snapshot was a shadow state copy: product/state/product.json (reintroduced by 122bf6a, edited by a1de800) diverged from the workflow-validated state/product.json, so product/state_contract.py --check --direction-version 68 exited 3 and product/tests/test_state_contract.py failed 3 of 29 tests. The shadow also carried two claim-path defects: accepted_run_id=40147748763 (no gate, no accept commit) and human_gate_ready=true (forbidden while either frozen bar is unmet, requirement 17).",
+          "diagnosis_artifact": "results/product/orchestration/CYCLE_40154120551_resume_diagnosis.json",
+          "report_of_record": "reports/product/CYCLE_40154120551.md",
+          "status_of_inherited_work": "PRESERVED AND VERIFIED - the offline-slice family, the v68 P0 leg and the fail-closed posture are all kept; only the shadow state file was removed and its unique 'capabilities' map merged here.",
+          "repairs": [
+            "git rm product/state/product.json (shadow copy); state_contract --check exit 3 -> 0",
+            "product/tests/test_state_contract.py: 3 failed/26 passed -> 29 passed",
+            "capabilities map merged into this file so nothing is lost",
+            "results/product/counter_content_family/CYCLE_40154120551.json: frozen D2/D3/D4 re-probe over the committed family, ordered work item (2)"
+          ],
+          "runnable_verification": {
+            "mvp_core_suite": "170 passed / 0 failed (query_map_mvp, server_query_api, offline_slice, progressive_smoke, adversarial_retrieval, counter_evidence_span, counter_content_rejection_v68, state_contract, progressive_query)",
+            "content_family_probe": "fixed-path family 14 bundles / 1400 decisions, D2=D3=D4=0, 0 false rejects, success rule met",
+            "state_contract": "exit 0"
+          },
+          "test_delta": "product/tests/test_cycle_40154120551.py re-derives every number above from the committed tree",
+          "continue_recommended": true
         }
       }
     }
