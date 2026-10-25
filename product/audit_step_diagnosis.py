@@ -174,7 +174,13 @@ def classify(snapshot: dict) -> dict:
         (audit_step or {}).get("started_at"),
         (audit_step or {}).get("completed_at"),
     )
+    failed_team_step_seconds = _seconds_between(
+        (failed_team_step or {}).get("started_at"),
+        (failed_team_step or {}).get("completed_at"),
+    )
     if quantum_expired:
+        who = ("the independent-audit agent" if failed_team_step is None
+               else "the lane-cycle (producer) agent")
         mechanism_status = "OBSERVED_QUANTUM_EXPIRED"
         mechanism_claim = (
             "The agent was stopped by the workflow's own work quantum: the "
@@ -182,9 +188,17 @@ def classify(snapshot: dict) -> dict:
             f"{annotations.get('quantum_message')!r}"
             + (f" with exit code {annotations.get('exit_code')}"
                if annotations.get("exit_code") is not None else "")
-            + f" after {audit_step_seconds} s. No gate was written because the "
-            "quantum ended before the agent could write one. No provider or "
-            "auth cause is claimed."
+            + f" after {audit_step_seconds or failed_team_step_seconds} s. "
+            + (
+                "No gate was written because the quantum ended before the "
+                "agent could write one."
+                if failed_team_step is None
+                else "The producer was stopped before the workflow's state "
+                     "validation and write-scope steps could run, so those "
+                     "steps report 'skipped'; the always-run persist step "
+                     "then published the tree it had."
+            )
+            + " No provider or auth cause is claimed."
         )
     elif not team_ok:
         mechanism_status = "UNOBSERVED"
@@ -210,14 +224,35 @@ def classify(snapshot: dict) -> dict:
         )
 
     if quantum_expired:
-        control_plane_attention = (
-            "the independent-audit agent consumed the entire agent work "
-            f"quantum ({quantum_seconds} s) before writing a gate. This is a "
-            "control-plane budget/turnaround fact, not a product defect; a "
-            "bounded audit-readiness dossier is published so the next audit "
-            "does not have to re-derive the slice. .github/** is "
-            "control-plane scope and is recorded, never edited from a lane."
-        )
+        # Name the agent that actually hit the quantum.  Both jobs run the
+        # same 2700 s wrapper, so attributing a *team*-job expiry to "the
+        # independent-audit agent" would be a false attribution of the kind
+        # requirement 33 forbids; the failed job is observable from the
+        # snapshot and is stated instead.  The audit-job wording is kept
+        # byte-identical to the artifacts already committed for run
+        # 40196023042 so a re-classification of that snapshot still compares
+        # equal to its evidence of record.
+        if failed_team_step is None:
+            control_plane_attention = (
+                "the independent-audit agent consumed the entire agent work "
+                f"quantum ({quantum_seconds} s) before writing a gate. This is "
+                "a control-plane budget/turnaround fact, not a product defect; "
+                "a bounded audit-readiness dossier is published so the next "
+                "audit does not have to re-derive the slice. .github/** is "
+                "control-plane scope and is recorded, never edited from a lane."
+            )
+        else:
+            control_plane_attention = (
+                "the lane-cycle (producer) agent consumed the entire agent "
+                f"work quantum ({quantum_seconds} s) before its cycle could "
+                "finish, so the workflow's state-validation and write-scope "
+                "steps were skipped and the always-run persist step published "
+                "the tree it had. This is a control-plane budget/turnaround "
+                "fact, not a product defect; a bounded audit-readiness dossier "
+                "is published so the next audit does not have to re-derive the "
+                "slice. .github/** is control-plane scope and is recorded, "
+                "never edited from a lane."
+            )
         next_action = (
             "Resume from the persisted team snapshot, consume the bounded "
             "audit-readiness dossier, and re-run the independent audit; do not "

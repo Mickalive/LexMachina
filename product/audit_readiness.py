@@ -53,23 +53,105 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = "product-audit-readiness/1"
 DIRECTION_VERSION = 68
-RESUMED_RUN_ID = "40196023042"
-PREDECESSOR_RUN_ID = "40193974025"
 ACCEPTED_RUN_ID = "CYCLE_40159523259"
 ACCEPTED_COMMIT = "29a5c4a54"
 
 ORCH = ROOT / "results" / "product" / "orchestration"
-RAW = ORCH / f"CYCLE_{RESUMED_RUN_ID}_run_jobs_raw.json"
-RESUME_DIAG = ORCH / f"CYCLE_{RESUMED_RUN_ID}_resume_diagnosis.json"
 CONTENT_FAMILY = (ROOT / "results" / "product" / "counter_content_family"
                   / "CYCLE_40188639817.json")
 BEFORE_BUNDLE = (ROOT / "results" / "product" / "offline_slice"
                  / "20261024T142517Z" / "rent-default.bundle.json")
 AFTER_BUNDLE = (ROOT / "results" / "product" / "offline_slice"
                 / "20261025T070356Z" / "rent-default.bundle.json")
+STATE = ROOT / "state" / "product.json"
+
+# --- run profiles -------------------------------------------------------
+# The dossier was originally pinned to one snapshot (40196023042, resumed by
+# 40200882831).  Every later operational resume needs the same bounded
+# dossier, so the run-specific facts live in profiles instead of being
+# re-derived per cycle.  A profile is selected by the --run-id argument
+# (either the resuming run or the resumed snapshot) and falls back to
+# ``DEFAULT_PROFILE_KEY`` so the original pinned behaviour is unchanged.
+# Everything a profile does NOT override (posture, accepted pointer, frozen
+# claim artifacts, MVP test set) is shared by design: those are accepted
+# evidence, not per-run facts.
+RESUMED_RUN_ID = "40196023042"          # default profile (kept for imports)
+PREDECESSOR_RUN_ID = "40193974025"      # default profile (kept for imports)
+RAW = ORCH / f"CYCLE_{RESUMED_RUN_ID}_run_jobs_raw.json"
+RESUME_DIAG = ORCH / f"CYCLE_{RESUMED_RUN_ID}_resume_diagnosis.json"
 INHERITED_REPORT = ROOT / "reports" / "product" / f"CYCLE_{PREDECESSOR_RUN_ID}.md"
 CURRENT_REPORT = ROOT / "reports" / "product" / "CYCLE_40200882831.md"
-STATE = ROOT / "state" / "product.json"
+DEFAULT_PROFILE_KEY = "40196023042"
+
+PROFILES: dict[str, dict[str, Any]] = {
+    "40196023042": {
+        "resumed_run_id": "40196023042",
+        "predecessor_run_id": "40193974025",
+        "raw": ORCH / "CYCLE_40196023042_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40196023042_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40193974025.md",
+        "current_report": ROOT / "reports" / "product" / "CYCLE_40200882831.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 9,
+        "changed_paths_include": ("product/audit_step_diagnosis.py",),
+        "cycle_test": "product/tests/test_cycle_40200882831.py",
+        "state_block": "cycle_40200882831_operational_resume",
+    },
+    "40200882831": {"alias_of": "40196023042"},
+    "40217792931": {
+        "resumed_run_id": "40217792931",
+        "predecessor_run_id": "40211497166",
+        "raw": ORCH / "CYCLE_40217792931_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40217792931_resume_diagnosis.json",
+        "inherited_report": None,
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40217792931.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 15,
+        "changed_paths_include": ("results/product/offline_slice",),
+        "cycle_test": "product/tests/test_cycle_40217792931.py",
+        "state_block": "cycle_40217792931_operational_resume",
+    },
+    "40221519475": {"alias_of": "40217792931"},
+}
+
+# Active profile; empty means "the module constants above" (the original
+# pinned run).  Set by run()/select_profile() only.
+PROFILE: dict[str, Any] = {}
+
+
+def select_profile(run_id: str) -> dict[str, Any]:
+    """Resolve the dossier profile for ``run_id`` (aliases are followed)."""
+    key = str(run_id)
+    prof = PROFILES.get(key)
+    while isinstance(prof, dict) and "alias_of" in prof:
+        prof = PROFILES.get(str(prof["alias_of"]))
+    if prof is None:
+        prof = PROFILES[DEFAULT_PROFILE_KEY]
+    return dict(prof)
+
+
+def p(field: str, default: Any = None) -> Any:
+    """Profile field with a fallback to the pinned module constants."""
+    if field in PROFILE:
+        return PROFILE[field]
+    return default
+
+
+def _report_paths() -> list[Path]:
+    out = []
+    for value in (p("inherited_report", INHERITED_REPORT),
+                  p("current_report", CURRENT_REPORT)):
+        if value is not None:
+            out.append(Path(value))
+    return out
 
 MVP_CORE_TESTS = (
     "product/tests/test_query_map_mvp.py",
@@ -227,45 +309,62 @@ def check_posture() -> dict[str, Any]:
 
 
 def check_resumed_diagnosis() -> dict[str, Any]:
-    diag = _load(RESUME_DIAG)
+    raw = Path(p("raw", RAW))
+    resume_diag = Path(p("resume_diag", RESUME_DIAG))
+    resumed_id = p("resumed_run_id", RESUMED_RUN_ID)
+    predecessor = p("predecessor_run_id", PREDECESSOR_RUN_ID)
+    classification = p("classification", "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE")
+    failed_job = p("failed_job", "audit")
+    quantum_seconds = p("quantum_seconds", 2700)
+    exit_code = p("exit_code", 78)
+    changed_files = p("changed_files", 9)
+    diag = _load(resume_diag)
     orch = diag.get("orchestration") or {}
     delta = diag.get("durable_delta") or {}
     adj = diag.get("adjudication") or {}
     mechanism = orch.get("mechanism") or {}
     problems = []
-    if diag.get("run_id") != RESUMED_RUN_ID:
+    if diag.get("run_id") != resumed_id:
         problems.append("run_id")
-    if diag.get("predecessor_run_id") != PREDECESSOR_RUN_ID:
+    if diag.get("predecessor_run_id") != predecessor:
         problems.append("predecessor_run_id")
-    if orch.get("classification") != (
-            "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE"):
+    if orch.get("classification") != classification:
         problems.append("classification")
     if mechanism.get("status") != "OBSERVED_QUANTUM_EXPIRED":
         problems.append("mechanism_status")
     if mechanism.get("quantum_expired") is not True:
         problems.append("quantum_expired")
-    if mechanism.get("quantum_seconds") != 2700:
+    if mechanism.get("quantum_seconds") != quantum_seconds:
         problems.append("quantum_seconds")
-    if mechanism.get("exit_code") != 78:
+    if mechanism.get("exit_code") != exit_code:
         problems.append("exit_code")
     if (orch.get("audit") or {}).get("gate_file_written") is not False:
         problems.append("gate_file_written")
     if delta.get("classification") != "COMMITTED_DELTA":
         problems.append("durable_delta")
-    if delta.get("changed_files") != 9:
+    if delta.get("changed_files") != changed_files:
         problems.append("changed_files")
+    paths_sample = delta.get("changed_paths_sample") or []
+    for needle in p("changed_paths_include", ()):
+        if not any(str(needle) in str(s) for s in paths_sample):
+            problems.append(f"changed_paths_include:{needle}")
     if adj.get("status") != "UNADJUDICATED" or adj.get("accepted") is not False:
         problems.append("adjudication")
+    who = ("independent-audit" if failed_job == "audit"
+           else "lane-cycle (producer)")
     return _check(
         "resumed_diagnosis",
-        "Resumed run 40196023042: audit quantum expiry proven, durable delta "
-        "present, run unadjudicated",
+        f"Resumed run {resumed_id}: {who} work-quantum expiry observed, "
+        "durable delta present, run unadjudicated",
         not problems,
-        {"problems": problems, "audit_step_seconds": (
-            (orch.get("audit") or {}).get("independent_audit_step_seconds")),
+        {"problems": problems, "failed_job": failed_job,
+         "audit_step_seconds": (
+             (orch.get("audit") or {}).get("independent_audit_step_seconds")),
+         "failed_step_seconds": ((orch.get("team") or {}).get(
+             "failed_step_seconds")),
          "changed_files": delta.get("changed_files"),
-         "changed_paths_sample": delta.get("changed_paths_sample")},
-        [str(RAW.relative_to(ROOT)), str(RESUME_DIAG.relative_to(ROOT))],
+         "changed_paths_sample": paths_sample},
+        [str(raw.relative_to(ROOT)), str(resume_diag.relative_to(ROOT))],
     )
 
 
@@ -276,8 +375,9 @@ def _row(bundle: dict, decision_id: str) -> dict | None:
 
 def check_claim_artifacts() -> dict[str, Any]:
     paths = [
-        CONTENT_FAMILY, BEFORE_BUNDLE, AFTER_BUNDLE, RAW, RESUME_DIAG,
-        INHERITED_REPORT, CURRENT_REPORT, STATE,
+        CONTENT_FAMILY, BEFORE_BUNDLE, AFTER_BUNDLE,
+        Path(p("raw", RAW)), Path(p("resume_diag", RESUME_DIAG)),
+        *_report_paths(), STATE,
     ]
     missing = [str(p.relative_to(ROOT)) for p in paths if not p.is_file()]
     hashes = {str(p.relative_to(ROOT)): _sha256(p)
@@ -459,7 +559,14 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
             f"this snapshot was dispatched under direction v{DIRECTION_VERSION}; "
             f"got v{direction_version}"
         )
-    resumed = _load(RESUME_DIAG)
+    PROFILE.clear()
+    PROFILE.update(select_profile(run_id))
+    resume_diag = Path(p("resume_diag", RESUME_DIAG))
+    raw = Path(p("raw", RAW))
+    resumed_id = p("resumed_run_id", RESUMED_RUN_ID)
+    predecessor = p("predecessor_run_id", PREDECESSOR_RUN_ID)
+    failed_job = p("failed_job", "audit")
+    resumed = _load(resume_diag)
     checks = [
         check_state_contract(),
         check_posture(),
@@ -483,12 +590,17 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
     failed = [c["id"] for c in checks if c["status"] == "FAIL"]
     skipped = [c["id"] for c in checks if c["status"] == "SKIP"]
     overall = "FAIL" if failed else ("PASS" if not skipped else "PARTIAL")
+    who = ("audit" if failed_job == "audit" else "team lane-cycle")
+    inherited = p("inherited_report", INHERITED_REPORT)
+    cycle_test = p("cycle_test", "product/tests/test_cycle_40200882831.py")
+    delta_files = ((resumed.get("durable_delta") or {}).get("changed_files"))
     return {
         "schema": SCHEMA,
         "generated_at": _now(),
         "run_id": str(run_id),
-        "resumed_run_id": RESUMED_RUN_ID,
-        "predecessor_run_id": PREDECESSOR_RUN_ID,
+        "resumed_run_id": resumed_id,
+        "predecessor_run_id": predecessor,
+        "profile": "default" if resumed_id == RESUMED_RUN_ID else resumed_id,
         "direction_version": DIRECTION_VERSION,
         "overall_status": overall,
         "failed_checks": failed,
@@ -499,22 +611,28 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
                 "classification"),
             "mechanism": ((resumed.get("orchestration") or {}).get("mechanism")
                           or {}).get("status"),
+            "quantum_seconds": p("quantum_seconds", 2700),
+            "exit_code": p("exit_code", 78),
+            "failed_job": failed_job,
             "durable_delta": (resumed.get("durable_delta") or {}).get(
                 "classification"),
             "adjudication": (resumed.get("adjudication") or {}).get("status"),
         },
         "claims": [
             {"id": "C1",
-             "claim": "Run 40196023042's audit died from the workflow quantum "
-                      "(2700 s, exit 78) before writing a gate.",
+             "claim": f"Run {resumed_id}'s {who} agent ended on the workflow "
+                      f"work quantum ({p('quantum_seconds', 2700)} s, exit "
+                      f"{p('exit_code', 78)}) before an independent gate could "
+                      "be written; observed from the public check-run "
+                      "annotations, not inferred.",
              "check": "resumed_diagnosis",
-             "artifacts": [str(RAW.relative_to(ROOT)),
-                           str(RESUME_DIAG.relative_to(ROOT))]},
+             "artifacts": [str(raw.relative_to(ROOT)),
+                           str(resume_diag.relative_to(ROOT))]},
             {"id": "C2",
-             "claim": "Run 40196023042 persisted a 9-file durable delta over "
-                      "40193974025 and is UNADJUDICATED.",
+             "claim": f"Run {resumed_id} persisted a {delta_files}-file "
+                      f"durable delta over {predecessor} and is UNADJUDICATED.",
              "check": "resumed_diagnosis",
-             "artifacts": [str(RESUME_DIAG.relative_to(ROOT))]},
+             "artifacts": [str(resume_diag.relative_to(ROOT))]},
             {"id": "C3",
              "claim": "The v68 rejection/incumbent leg flips the D2 letterhead "
                       "row from verified to unverified with reason pivot_absent.",
@@ -550,11 +668,12 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
                 "python3 product/audit_readiness.py --run-id "
                 f"{run_id} --out /tmp/lex_audit_readiness.json"
             ),
-            "resumed_run_diagnosis": str(RESUME_DIAG.relative_to(ROOT)),
-            "inherited_report": str(INHERITED_REPORT.relative_to(ROOT)),
-            "current_cycle_test": (
-                "python3 -m pytest product/tests/test_cycle_40200882831.py -q"
-            ),
+            "resumed_run_diagnosis": str(resume_diag.relative_to(ROOT)),
+            "inherited_report": (str(Path(inherited).relative_to(ROOT))
+                                 if inherited else None),
+            "current_report": str(Path(
+                p("current_report", CURRENT_REPORT)).relative_to(ROOT)),
+            "current_cycle_test": f"python3 -m pytest {cycle_test} -q",
             "not_required": (
                 "Do not re-derive accepted evaluation 40070818687 / "
                 "40068038783 / 40105794124 or the D2 profile 40089391202; "

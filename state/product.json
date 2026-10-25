@@ -124,7 +124,7 @@
   },
   "lane": "product",
   "machine_gate_ready": false,
-  "next_recommendation": "Direction v68 ordered work, status after OPERATIONAL RESUME of run 40193974025 (cycle 40193974025): (1) P0 REJECTION/INCUMBENT LEG - LANDED and accepted on the chain (accept 40159523259); preserved and re-verified on committed bytes. (2) FULL-FAMILY REGENERATION - both the historical success rule and the strict full rule are MET and re-derived (29 fixed-path bundles / 2900 decisions / 20 verified rows / 0 verified+defective / D2=D3=D4=D1=0 / 0 false rejects / bstger_SK.2023.49 still verified). (3) ORCHESTRATION - run 40193974025 is classified TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE from the committed public jobs snapshot; the team job failed inside 'Run lane cycle', validation and scope steps were skipped, the always-run persist step published the predecessor's exact tree (ZERO_DURABLE_DELTA), no audit ref/gate/accept exists, and the mechanism is UNOBSERVED (logs 403). (4) INSTRUMENT DELTA - audit_step_diagnosis now reports the persist step's own conclusion and classifies team-job failures truthfully; resume_snapshot_diagnosis.py adds a reusable combined orchestration + durable-delta + requirement-4 + auditor-namespace diagnosis. (5) CONSUMED, NOT RE-DERIVED - evaluations 40070818687, 40068038783, 40105794124 and D2 profile 40089391202. (6) LIVE LATENCY/PRECISION stays DEFERRED; live budget stays 8. (7) FROZEN-RULES PROFILE COVERAGE GAP stays DISCLOSED and TRANSFERRED to evaluation. UNADJUDICATED INHERIT: 40160899758, 40163751502, 40164459036, 40168184617, 40170987954, 40173935166, 40176984119, 40181378979, 40182739499, 40188639817 and 40193974025 produced work preserved on this chain but have no /audit ref and no accept commit - none may be cited as accepted. NEXT: an independent audit of this snapshot; the human product gate remains blocked while either frozen bar is unmet and is never staged from here.",
+  "next_recommendation": "Direction v68 ordered work, status after OPERATIONAL RESUME of run 40217792931 (resuming run 40221519475): (1) P0 REJECTION/INCUMBENT LEG - LANDED and accepted on the chain (accept 40159523259), preserved and re-verified on committed bytes. (2) FULL-FAMILY REGENERATION - historical and strict full success rules MET (29 bundles / 2900 decisions / 20 verified / 0 verified+defective / D2=D3=D4=D1=0 / 0 false rejects / bstger_SK.2023.49 still verified). (3) ORCHESTRATION - run 40217792931 is classified TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE with mechanism OBSERVED_QUANTUM_EXPIRED (2700 s, exit 78, annotation LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2468) read from public check-run annotations; its 15-file COMMITTED_DELTA was preserved and verified (5 bundles validate clean, smoke PASS 23/23, bounded MVP set 170 passed). (4) INSTRUMENT DELTA - audit_step_diagnosis now names the observable failed job instead of attributing every quantum expiry to the independent-audit agent; raw snapshots are captured WITH annotations; audit_readiness.py is run-profile-parameterised so any resumed snapshot gets a bounded dossier. (5) INHERITED RESIDUE - REPAIRED THIS RUN, disclosed: run 40200882831's missing report, smoke artifact, audit-readiness dossier and state block were produced by run 40221519475 with produced_by_run/recorded_by_run set, and product/audit_readiness.py is now run-profile parameterised; test_cycle_40200882831 went 4 failed -> 0 failed (both cycle files: 25 passed) with no assertion weakened. (6) CONSUMED, NOT RE-DERIVED - evaluations 40070818687, 40068038783, 40105794124 and D2 profile 40089391202. (7) LIVE LATENCY/PRECISION stays DEFERRED; live budget stays 8. (8) FROZEN-RULES PROFILE COVERAGE GAP stays DISCLOSED and TRANSFERRED to evaluation. UNADJUDICATED INHERIT: 40160899758, 40163751502, 40164459036, 40168184617, 40170987954, 40173935166, 40176984119, 40181378979, 40182739499, 40188639817, 40193974025, 40196023042, 40200882831, 40205763486, 40211497166 and 40217792931 produced work preserved on this chain but have no /audit ref and no accept commit - none may be cited as accepted. NEXT: an independent audit of this snapshot that CONSUMES the published audit-readiness dossier instead of re-deriving the slice inside a 2700 s quantum; the human product gate remains blocked while either frozen bar is unmet and is never staged from here.",
   "not_claimed": [
     "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
     "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
@@ -276,6 +276,12 @@
         "add a fixture test that exercises the out-of-scope write end-to-end, so the guard is not silently unenforceable in the presence of an always-run persist step"
       ],
       "route_around_used": "the lane re-homes the two self-minted files byte-exactly into reports/product/incidents/, publishes results/product/orchestration/CYCLE_40168184617_resume_diagnosis.json, and pins the ratchet with product/tests/test_cycle_40168184617.py::test_no_producer_minted_audit_file_reaches_this_unadjudicated_chain"
+    },
+    {
+      "id": "product-root-junk-logs-40221519475",
+      "finding": "the workflow's 'Clean generated junk' step does not cover zero-byte server*.log files at the repository root, and 'Enforce lane write scope' is skipped whenever the producer step fails, so out-of-scope root files land in the team ref (observed: 4 such files in commit d4e8a86).",
+      "scope": ".github/** is control-plane scope and is recorded, never edited from a lane",
+      "route_around": "product-owned code writes its server logs under results/ or a temp dir; the lane additionally re-checks root-level junk before committing"
     }
   ],
   "evidence_ref_counts_40143042888": {
@@ -623,5 +629,102 @@
       "accepted_run_id_unchanged": true
     },
     "accepted_this_cycle": false
+  },
+  "cycle_40217792931_operational_resume": {
+    "schema": "product-operational-resume/1",
+    "resumed_run": "40217792931",
+    "resuming_run": "40221519475",
+    "predecessor_run_id": "40211497166",
+    "recorded_by_run": "40221519475",
+    "mode": "OPERATIONAL RESUME from the persisted producer snapshot; not a restart",
+    "orchestration_failure_of_record": {
+      "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+      "failed_step": "Run lane cycle",
+      "failed_step_seconds": 2704.0,
+      "mechanism": "OBSERVED_QUANTUM_EXPIRED",
+      "quantum_seconds": 2700,
+      "exit_code": 78,
+      "annotation": "LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2468",
+      "mechanism_source": "public check-run annotations (no token); job logs remain HTTP 403",
+      "skipped_steps": [
+        "Validate active MVP producer state",
+        "Enforce lane write scope"
+      ],
+      "persist_step_conclusion": "success",
+      "product_defect": false,
+      "verdict_written": false,
+      "note": "A 2700 s control-plane work-quantum expiry is not a product defect, not a provider/auth failure and not a verdict; no REVISE/BLOCKED is inferred from it."
+    },
+    "durable_delta": {
+      "classification": "COMMITTED_DELTA",
+      "snapshot_head": "d4e8a862e818eeb84f454f130b9aade159e0f447",
+      "predecessor_head": "9d0f7ef2ab9cb708686ec90371f78b2cf18238d1",
+      "changed_files": 15,
+      "verified": "5 regenerated offline-slice bundles validate clean (100 decisions / 8 clusters / sourced answer / span applied, n_selected=0); STAGE_DISCLOSURE_AMENDMENT re-emitted with failures=[]",
+      "hygiene": "4 zero-byte server*.log files at repo root landed because the write-scope step was skipped; recorded as a control-plane hardening item, not deleted here"
+    },
+    "artifacts": [
+      "results/product/orchestration/CYCLE_40217792931_run_jobs_raw.json",
+      "results/product/orchestration/CYCLE_40217792931_audit_step_diagnosis.json",
+      "results/product/orchestration/CYCLE_40217792931_resume_diagnosis.json",
+      "results/product/progressive_smoke/CYCLE_40217792931_progressive_smoke.json",
+      "results/product/audit_readiness/CYCLE_40217792931_audit_readiness.json",
+      "reports/product/CYCLE_40217792931.md",
+      "results/product/audit_readiness/CYCLE_40200882831_audit_readiness.json",
+      "results/product/progressive_smoke/CYCLE_40200882831_progressive_smoke.json",
+      "reports/product/CYCLE_40200882831.md",
+      "product/tests/test_cycle_40217792931.py",
+      "product/audit_readiness.py",
+      "product/audit_step_diagnosis.py"
+    ],
+    "verification": {
+      "state_contract": "exit 0 ok=true (direction 68)",
+      "bounded_mvp_pytest": "170 passed",
+      "progressive_smoke": "PASS 23/23; boot 1.249s; first bundle 0.637s",
+      "cycle_tests": "product/tests/test_cycle_40200882831.py + test_cycle_40217792931.py: 25 passed, 0 failed (previously 4 failed / 8 passed)"
+    },
+    "accepted_this_cycle": false,
+    "adjudication": "UNADJUDICATED: no /audit ref and no accept commit for 40217792931 (requirement 4 needs both halves)"
+  },
+  "instrument_repairs_40221519475": {
+    "audit_step_diagnosis_attribution": "quantum-expiry text no longer names 'the independent-audit agent' when the TEAM job is the one that expired; the observable failed job and the skipped steps are named instead (requirement 33: no false attribution in published text)",
+    "annotations_capture": "raw run/jobs snapshots for this cycle are captured WITH public check-run annotations, which upgrades the mechanism from UNOBSERVED to OBSERVED_QUANTUM_EXPIRED; earlier snapshots without annotations still classify UNOBSERVED and are not retro-fitted",
+    "audit_readiness_profiles": "product/audit_readiness.py now selects a per-run profile (raw/diagnosis/report/expected classification/changed-file count) with the original 40196023042 behaviour as the default, so a bounded dossier can be produced for any resumed snapshot"
+  },
+  "known_residue_cycle_40200882831": {
+    "defect": "product/tests/test_cycle_40200882831.py asserts three artifacts run 40200882831 never produced: results/product/audit_readiness/CYCLE_40200882831_audit_readiness.json, results/product/progressive_smoke/CYCLE_40200882831_progressive_smoke.json and state key cycle_40200882831_operational_resume",
+    "observed": "4 failed / 8 passed when executed in run 40221519475",
+    "class": "requirement-33 class: a promised measurement with no committed artifact",
+    "disposition": "REPAIRED IN RUN 40221519475 AS A DISCLOSED DELIVERABLE COMPLETION: reports/product/CYCLE_40200882831.md, the 40200882831 smoke artifact, the 40200882831 audit-readiness dossier and the state block above were produced now with produced_by_run/recorded_by_run=40221519475; the test was NOT weakened, no gate was minted and run 40200882831 stays UNADJUDICATED."
+  },
+  "cycle_40200882831_operational_resume": {
+    "schema": "product-operational-resume/1",
+    "resumed_run": "40196023042",
+    "resuming_run": "40200882831",
+    "predecessor_run_id": "40193974025",
+    "recorded_by_run": "40221519475",
+    "provenance_note": "This block was asserted by product/tests/test_cycle_40200882831.py but never written by run 40200882831. It is written now, by run 40221519475, as a DISCLOSED repair of that unfulfilled promise; the authorship field above is machine-readable and no timestamp is backdated.",
+    "orchestration_failure_of_record": {
+      "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+      "failed_step": "Independent audit",
+      "mechanism": "OBSERVED_QUANTUM_EXPIRED",
+      "quantum_seconds": 2700,
+      "exit_code": 78,
+      "product_defect": false,
+      "verdict_written": false
+    },
+    "durable_delta": {
+      "classification": "COMMITTED_DELTA",
+      "snapshot_head": "78b3b682be1aeeabfb2198e8438069270d269fb8",
+      "predecessor_head": "4330201eac973a270fcd2a8ab7394de56e95b2bb",
+      "changed_files": 9
+    },
+    "accepted_this_cycle": false,
+    "adjudication": "UNADJUDICATED: no /audit ref and no accept commit for 40200882831",
+    "artifacts": [
+      "results/product/audit_readiness/CYCLE_40200882831_audit_readiness.json",
+      "results/product/progressive_smoke/CYCLE_40200882831_progressive_smoke.json",
+      "reports/product/CYCLE_40200882831.md"
+    ]
   }
 }
