@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from product.query.counter_status import (
+from .counter_status import (
     counter_authority_count,
     counter_status_bearing_count,
     counter_status_histogram,
