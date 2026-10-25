@@ -44,7 +44,7 @@ import copy
 import time
 from typing import Any
 
-from .bundle import build_bundle, validate_bundle
+from .bundle import annotate_content_state, build_bundle, validate_bundle
 from .qmap import MapModel, build_map, fit_map_model
 
 #: One upstream page is enough to draw a real map immediately.  The accepted
@@ -235,6 +235,7 @@ def run_query_first_page(query: str, top_n: int = 150, *, retrieval_mode: str = 
         "target_clusters": target_clusters(target),
         "map_stability": "not_applicable_single_pass",
     }
+    annotate_content_state(bundle)
     errors = validate_bundle(bundle)
     if errors:
         raise RuntimeError(f"first-page query bundle invalid: {errors}")
@@ -400,6 +401,7 @@ def expand_query_bundle(
         "expanded_after_answer": had_answer,
     })
     prov["progressive"] = first
+    annotate_content_state(out)
     errors = validate_bundle(out)
     if errors:
         raise RuntimeError(f"expanded query bundle invalid: {errors}")

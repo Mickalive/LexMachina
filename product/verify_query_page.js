@@ -94,6 +94,8 @@ const statusEl = documentShim.getElementById("status");
 
 check(listEl.hidden === true, "list starts hidden (map is the first paint)");
 check(mapEl.hidden === false, "map is visible on boot");
+check((documentShim.getElementById("contentCoverage").innerHTML || "").indexOf("Couverture locale") !== -1,
+      "map discloses how many points are locally inspectable");
 if (!deepLinkRun) {
   check(fetchCalls.length === 0, "rendering a bundle made no network call");
 }
@@ -163,6 +165,24 @@ setTimeout(async () => {
         "clicking a drawn point opens its decision (" + (clicked && clicked.id) + ")");
   check(!!clicked && detailHtml.indexOf("Ouvrir la source") !== -1,
         "the clicked point's panel carries the source link");
+
+  /* 6b. A reference-only point (citation / leading-case shell) must say so.
+   *     The committed business-judgment-rule bundle of run 40227581597 put 13
+   *     such rows on the map with no excerpt; a silent empty panel made them
+   *     look like unreadable decisions.  Exercise the real page predicate. */
+  const pointerRow = (bundle.decisions || []).find((d) =>
+    !String(d.full_text || "").trim() && !String(d.regeste || "").trim() &&
+    !String(d.snippet || "").trim() && !String(d.title || "").trim());
+  if (pointerRow) {
+    page.evaluate("showDetail(" + JSON.stringify(pointerRow.decision_id) + ");");
+    const ptrDetail = documentShim.getElementById("detail").innerHTML;
+    check(ptrDetail.indexOf("Référence seule") !== -1,
+          "reference-only row is labelled in the detail panel (" + pointerRow.decision_id + ")");
+    check(ptrDetail.indexOf("Ouvrir la source") !== -1,
+          "reference-only row still opens its public source");
+  } else {
+    check(true, "bundle carries no reference-only row (nothing to exercise)");
+  }
 
   /* 7. Deep links.  The gate packet hands the owner one link per question
    *    (?q=&n= runs it, ?run_id= opens the bundle that was verified at run time).

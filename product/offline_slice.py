@@ -45,6 +45,7 @@ from product.query.counter_status import (  # noqa: E402
     counter_authority_count,
     counter_status_bearing_count,
 )
+from product.query.bundle import content_coverage  # noqa: E402
 
 DEFAULT_SLUG = "rent-default"
 
@@ -118,11 +119,27 @@ def summarise(bundle: dict) -> dict:
     counter_authorities = counter_authority_count(rows)
     counter_status_bearing = counter_status_bearing_count(rows)
     slice_prov = (bundle.get("provenance") or {}).get("offline_slice") or {}
+    provenance = bundle.get("provenance") or {}
+    # Audit of accepted run 40227581597, caveat (1): the old
+    # ``rows_with_source_url`` counted ``canonical_url``, while eight
+    # citation-only rows carried no ``source_url`` at all.  A count named after
+    # one field must measure that field.  ``rows_with_source_link`` is the
+    # user-visible invariant (every point opens *some* public notice).
+    canonical = [r for r in rows if r.get("canonical_url")]
+    source_url = [r for r in rows if r.get("source_url")]
+    remote = (provenance.get("retrieval") or {}).get("remote") or {}
+    request_summary = (provenance.get("adversarial_retrieval") or {}).get("request_summary")
+    fixture_replay = dict(provenance.get("product_fixture_replay") or {})
+    coverage = content_coverage(rows)
     return {
         "n_decisions": len(rows),
         "n_clusters": len(clusters),
         "largest_cluster": max(clusters.values()) if clusters else 0,
-        "rows_with_source_url": sum(1 for r in rows if r.get("canonical_url")),
+        "rows_with_source_link": sum(1 for r in rows
+                                     if r.get("canonical_url") or r.get("source_url")),
+        "rows_with_canonical_url": len(canonical),
+        # Honest field counts (kept separately, never conflated).
+        "rows_with_source_url": len(source_url),
         "rows_with_xy": sum(1 for r in rows
                             if isinstance(r.get("x"), (int, float))
                             and isinstance(r.get("y"), (int, float))),
@@ -131,11 +148,28 @@ def summarise(bundle: dict) -> dict:
         "rows_with_cluster_id": sum(1 for r in rows if r.get("cluster_id") is not None),
         "counter_rows": counter_authorities,
         "counter_status_bearing_rows": counter_status_bearing,
+        "content_coverage": coverage,
         "answer_status": (bundle.get("answer") or {}).get("status"),
         "cited_decision_ids": len((bundle.get("answer") or {}).get("cited_decision_ids") or []),
         "enriched": bool(slice_prov.get("enriched")),
         "geometry_preserved_by_enrich": slice_prov.get("geometry_preserved"),
-        "fixture_replay": ((bundle.get("provenance") or {}).get("product_fixture_replay") or {}),
+        # Caveat (1) of accepted run 40227581597: fixture replay can be marked
+        # degraded by cache-miss search pages.  Surface it instead of leaving it
+        # buried in the bundle.  ``network_calls`` below is the adapter's
+        # transport-attempt counter, NOT a live-network measurement; the
+        # offline path traps socket.connect and the bundle records
+        # ``network: none``.
+        "fixture_replay": fixture_replay,
+        "fixture_replay_degraded": bool(
+            fixture_replay.get("degraded") or remote.get("degraded")
+        ),
+        "fixture_replay_cache_misses": ((remote.get("cache_stats") or {}).get("misses")),
+        "fixture_replay_failures": list(remote.get("failures") or []),
+        "adapter_transport_attempts": (request_summary or {}).get("network_calls"),
+        "metric_disclosure": (
+            "network= none (socket.connect trapped offline). "
+            "adapter_transport_attempts counts cache-miss transport attempts, not live calls."
+        ),
     }
 
 
@@ -214,7 +248,7 @@ def main(argv: list[str] | None = None) -> int:
         ok = False; reasons.append("rows missing map coordinates")
     if stats["rows_with_cluster_id"] != stats["n_decisions"]:
         ok = False; reasons.append("rows missing cluster_id")
-    if stats["rows_with_source_url"] != stats["n_decisions"]:
+    if stats["rows_with_canonical_url"] != stats["n_decisions"]:
         ok = False; reasons.append("rows missing canonical_url source link")
     if stats["n_clusters"] < 2:
         ok = False; reasons.append("fewer than 2 clusters (no map structure)")
@@ -237,11 +271,15 @@ def main(argv: list[str] | None = None) -> int:
 
     if not args.quiet:
         print(f"offline slice [{args.slug}] in {elapsed}s (network: none)")
-        for k in ("n_decisions", "n_clusters", "largest_cluster", "rows_with_source_url",
-                  "rows_with_xy", "rows_with_cluster_id", "counter_rows",
-                  "counter_status_bearing_rows", "answer_status",
-                  "cited_decision_ids", "enriched", "geometry_preserved_by_enrich"):
+        for k in ("n_decisions", "n_clusters", "largest_cluster", "rows_with_source_link",
+                  "rows_with_canonical_url", "rows_with_source_url", "rows_with_xy",
+                  "rows_with_cluster_id", "counter_rows", "counter_status_bearing_rows",
+                  "answer_status", "cited_decision_ids", "enriched",
+                  "geometry_preserved_by_enrich", "fixture_replay_degraded",
+                  "fixture_replay_cache_misses"):
             print(f"  {k}: {stats[k]}")
+        print(f"  content_coverage: {stats['content_coverage']['by_state']}"
+              f" (pointer-only={stats['content_coverage']['n_pointer_only']})")
         print(f"  replay: {stats['fixture_replay'].get('source')}"
               f" (candidates={stats['fixture_replay'].get('n_candidates')})")
         print(f"  bundle: {_repo_relative(bundle_path)}")
@@ -252,6 +290,12 @@ def main(argv: list[str] | None = None) -> int:
 
     (out_dir / "summary.json").write_text(json.dumps(
         {"slug": args.slug, "seconds": elapsed, "verified": ok,
+         "degraded": bool(stats["fixture_replay_degraded"]),
+         "degraded_scope": "fixture_replay_only" if stats["fixture_replay_degraded"] else None,
+         "degraded_reasons": (
+             [f"fixture replay: {stats['fixture_replay_cache_misses']} search cache miss(es)"]
+             if stats["fixture_replay_degraded"] else []
+         ),
          "page_contract": page_ok, "page_contract_detail": page_last,
          "stats": stats,
          "mode": "full_loop" if stats["enriched"] else "map_only",

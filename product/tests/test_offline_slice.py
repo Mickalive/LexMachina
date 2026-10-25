@@ -38,7 +38,14 @@ def test_one_command_slice_is_offline_clickable_and_verified(monkeypatch, tmp_pa
     assert stats["n_decisions"] >= 40
     assert stats["rows_with_xy"] == stats["n_decisions"], "every row needs map coordinates"
     assert stats["rows_with_cluster_id"] == stats["n_decisions"], "every row needs a cluster_id"
-    assert stats["rows_with_source_url"] == stats["n_decisions"], "every row needs a source link"
+    assert stats["rows_with_canonical_url"] == stats["n_decisions"], \
+        "every row needs a canonical OpenCaseLaw source link"
+    assert stats["rows_with_source_link"] == stats["n_decisions"], \
+        "every row must open some public source"
+    coverage = stats["content_coverage"]
+    assert coverage["n_decisions"] == stats["n_decisions"]
+    assert coverage["by_state"]["pointer"] == coverage["n_pointer_only"]
+    assert coverage["n_with_local_content"] + coverage["n_pointer_only"] == stats["n_decisions"]
     assert stats["n_clusters"] >= 2, "a map with one cluster is a list"
     assert "OFFLINE WIRING EVIDENCE ONLY" in summary["claim_ceiling"]
     bundle = json.loads((tmp_path / "rent-default.bundle.json").read_text(encoding="utf-8"))

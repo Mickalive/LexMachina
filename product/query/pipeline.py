@@ -25,7 +25,12 @@ from .answer_provider import (
     probe_timeout_from_env,
     select_model,
 )
-from .bundle import build_bundle, validate_bundle
+from .bundle import (
+    annotate_content_state,
+    build_bundle,
+    content_state,
+    validate_bundle,
+)
 from .qmap import _body, build_map, find_citations, shared_citation_relations
 from . import relation_channel
 from .qmap_variants import apply_geometry_variant, selected_variant
@@ -445,19 +450,57 @@ def _citation_shell(c: dict) -> bool:
     )
 
 
+#: A BGE citation is an identity, not a docket: ``bge_113 II 52`` and
+#: ``bge_BGE_113_II_52`` are the same decision under two upstream spellings.
+#: Audited on the committed business-judgment-rule bundle (run 40227581597):
+#: two such alias pairs rendered as four points, violating "point = decision"
+#: and the MVP's duplication metric.  The pattern is deliberately narrow: it
+#: only accepts a BGE volume / roman section / page triple, never an EGMR or
+#: docket form.
+BGE_IDENTITY_RE = re.compile(
+    r"^(?:bge[_\s]+)?(?:bge[_\s]+)?(\d{1,3})[_\s]+([ivx]+)[_\s]+(\d{1,4})$",
+    re.IGNORECASE,
+)
+
+
+def _bge_identity(decision: dict) -> tuple[str, str] | None:
+    """Canonical (court, identity) for a BGE citation spelling, else None."""
+    candidates = [str(decision.get("decision_id") or "").strip()]
+    citation = decision.get("citation")
+    if isinstance(citation, str):
+        candidates.append(citation)
+    elif isinstance(citation, (list, tuple)):
+        candidates.extend(str(c) for c in citation)
+    for raw in candidates:
+        text = raw.strip().strip("[]()").replace("BGE", "bge", 1)
+        match = BGE_IDENTITY_RE.match(text)
+        if match:
+            volume, section, page = match.groups()
+            return ("bge", f"bge-{int(volume)}-{section.lower()}-{int(page)}")
+    return None
+
+
 def _decision_identity(decision: dict) -> tuple[str, str] | None:
-    """(court, docket) identity of a row, or None when it has no docket.
+    """Identity of a row: court+docket, or canonical BGE citation.
 
     Upstream ids are not identity enough on their own: the same decision arrives
     both as ``bvger_A-1979_2024`` (from a citation edge) and as
     ``bvger_A-1979_2024_d20240326`` (from a search hit).  Court plus docket is
-    what identifies it, and both are already product-row fields.
+    what identifies it, and both are already product-row fields.  BGE rows carry
+    no docket, so their citation is the identity (see ``_bge_identity``).
     """
     docket = str(decision.get("docket_number") or "").strip()
-    if not docket:
-        return None
     court = str(decision.get("court") or "").strip().lower()
-    return (court, re.sub(r"[^a-z0-9]", "", docket.lower()))
+    # BGE rows sometimes carry a docket-shaped string ("113 II 52" vs
+    # "BGE 113 II 52"), so the canonical BGE citation must win over the raw
+    # docket field for court "bge"; otherwise the same decision enters twice.
+    if court == "bge":
+        bge = _bge_identity(decision)
+        if bge is not None:
+            return bge
+    if docket:
+        return (court, re.sub(r"[^a-z0-9]", "", docket.lower()))
+    return _bge_identity(decision)
 
 
 def _row_strength(decision: dict) -> tuple[int, int, int, str]:
@@ -493,6 +536,13 @@ def merge_duplicate_identities(decisions: list[dict]) -> tuple[list[dict], list[
     milder form (``bvger_A-1979_2024`` shell beside the hydrated
     ``..._d20240326`` row, carrying two different citation strings for one
     decision).
+
+    BGE rows carry no docket at all: the committed business-judgment-rule
+    bundle of run 40227581597 rendered ``bge_113 II 52`` beside
+    ``bge_BGE_113_II_52`` (and the same for 121 II 97) as four points for two
+    decisions.  ``_decision_identity`` therefore also accepts a canonical BGE
+    citation, so "point = decision" holds for the public BGE spelling variants
+    as well.
 
     Merging is product-owned because identity is the product's contract here -
     the same reason the citation repair below lives in this module rather than
@@ -586,13 +636,14 @@ def _candidate_to_product(candidate_bundle: dict) -> dict:
             decision["rank"] = position
     if merges:
         out.setdefault("provenance", {})["identity_merge"] = {
-            "method": "court_docket_identity_merge_v1",
+            "method": "court_docket_or_bge_identity_merge_v2",
             "n_merges": len(merges),
             "n_rows_removed": sum(len(m["merged_decision_ids"]) for m in merges),
             "merges": merges,
             "claim_ceiling": (
-                "rows were collapsed because court + docket identify one decision; the kept id is "
-                "deterministic and the dropped ids are listed per merge"
+                "rows were collapsed because court + docket (or a canonical BGE citation) "
+                "identify one decision; the kept id is deterministic and the dropped ids are "
+                "listed per merge"
             ),
         }
     return out
@@ -932,6 +983,10 @@ def run_query_initial(query: str, top_n: int = 150, *, retrieval_mode: str = "li
         "fixture_mode": retrieval_mode == "fixture",
     }
     bundle["provenance"]["latency_seconds"] = round(local_total_s, 3)
+    # Measured on the final map rows: a point is either locally inspectable or
+    # an explicit reference-only pointer. Never let an empty shell masquerade as
+    # a decision the jurist can read.
+    annotate_content_state(bundle)
     errors = validate_bundle(bundle)
     if errors:
         raise RuntimeError(f"initial query bundle invalid: {errors}")
@@ -966,6 +1021,9 @@ def _merge_hydrated_evidence(bundle: dict, *, retrieval_mode: str, evidence_coun
                 hydrated_ids.append(d["decision_id"])
             if c.get("structure"):
                 d["structure"] = copy.deepcopy(c["structure"])
+            # Freshly hydrated text changes local inspectability; keep the
+            # disclosure truthful at the point of hydration.
+            d["content_state"] = content_state(d)
         out.setdefault("provenance", {})["evidence_hydration"] = {
             "requested": min(evidence_count, n),
             "hydrated_ids": hydrated_ids,
@@ -1433,6 +1491,9 @@ def enrich_query_bundle(
         + float(audited["provenance"]["enrichment_latency_seconds"]),
         3,
     )
+    # Re-measure after hydration and adversarial additions: the coverage note
+    # must describe the FINAL rendered set, never the first-page snapshot.
+    annotate_content_state(audited)
     errors = validate_bundle(audited)
     if errors:
         raise RuntimeError(f"enriched query bundle invalid: {errors}")

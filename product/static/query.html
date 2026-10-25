@@ -70,6 +70,11 @@ h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#737b88;ma
   <div id="adversarialList" class="muted">—</div>
   <h3>Clusters</h3>
   <div id="clusterList" class="muted">—</div>
+  <!-- Honest map coverage: a point can be a full/short local evidence row or a
+       reference-only pointer (citation / leading-case shell).  The bundle
+       measures this per row; the page never lets an empty shell pass as a
+       readable judgment. -->
+  <div id="contentCoverage" class="muted"></div>
   <!-- Owner-gate answer card (product-owned). The accepted switch exports
        answers:{} by charter — it has no form — so the four Master Prompt gate
        questions are collected here and merged into the draft at export time.
@@ -146,7 +151,7 @@ h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#737b88;ma
   </div>
   <div id="mapWrap">
     <canvas id="cv"></canvas><div id="detail"></div>
-    <div id="legend">couleur = cluster · gris = contexte non regroupé (hors cluster) · contour rouge = contre-autorité étayée · contour pointillé ambré = non étayée (conservée pour visibilité) · or = citée · anneau cyan = trouvée par la passe contradictoire indépendante (provenance de recherche, pas une qualification) · anneau violet = surface contraire heuristique (marqueur limitatif du texte, exploration uniquement, jamais une qualification) · point pâle = outlier</div>
+    <div id="legend">couleur = cluster · gris = contexte non regroupé (hors cluster) · contour rouge = contre-autorité étayée · contour pointillé ambré = non étayée (conservée pour visibilité) · or = citée · anneau cyan = trouvée par la passe contradictoire indépendante (provenance de recherche, pas une qualification) · anneau violet = surface contraire heuristique (marqueur limitatif du texte, exploration uniquement, jamais une qualification) · point pâle = outlier · « référence seule » = décision sans extrait local, source ouverte au clic</div>
     <!-- Relation-channel disclosure. MVP §7 asks for "citation/relation edges
          available on selection". When the channel is genuinely empty the jurist
          must be told WHY at the point of use, with the measured counts — an
@@ -197,6 +202,28 @@ function isCounter(d){return d.counter_status&& !["none","cited","supporting-can
    flag) stays on the map for visibility, but it must never render as a
    confident counter — it renders as an explicitly marked unevidenced row. */
 function counterEvidenced(d){return isCounter(d)&&!!(d.counter_evidence||"").trim()&&d.counter_evidence_verified===true}
+/* Local inspectability of a map point.  The bundle writes content_state; older
+   bundles are inferred from the same fields the server uses (never invented).
+   A "pointer" is a real decision identity without local text: the source link
+   still opens the public notice, and the page must say so. */
+function contentState(d){
+  const s=d&&d.content_state;
+  if(s==="full_text"||s==="regeste"||s==="snippet"||s==="pointer")return s;
+  if(String(d?.full_text||"").trim())return "full_text";
+  if(String(d?.regeste||"").trim())return "regeste";
+  if(String(d?.snippet||"").trim()||String(d?.title||"").trim())return "snippet";
+  return "pointer";
+}
+function renderContentCoverage(){
+  const el=document.getElementById("contentCoverage");if(!el)return;
+  const ds=BUNDLE?.decisions||[];
+  if(!ds.length){el.innerHTML="";return}
+  const ptr=ds.filter(d=>contentState(d)==="pointer").length;
+  const local=ds.length-ptr;
+  el.innerHTML='<div class="card">Couverture locale : '+local+'/'+ds.length+' décision(s) inspectable(s) ici'
+    +(ptr?' · <b>'+ptr+'</b> référence(s) seule(s) sans extrait local — le panneau de détail ouvre la source OpenCaseLaw':"")
+    +"</div>";
+}
 /* Independent adversarial pass — DISCOVERY provenance (cycle 39063665073).
    A row whose retrieval channels carry an `adversarial.<intent>` entry reached
    this map through the contrary / exception / minority / older-line probes,
@@ -292,7 +319,7 @@ cv.onclick=e=>{
 };
 
 function renderBundle(b){
-  BUNDLE=b;renderAnswer();renderCounters();renderAdversarial();renderClusters();renderRelationChannel();draw();
+  BUNDLE=b;renderAnswer();renderCounters();renderAdversarial();renderClusters();renderContentCoverage();renderRelationChannel();draw();
   /* accepted harness contract: the conventional list must follow every bundle
      replacement, otherwise it would show the previous query's results */
   if(window.LexGateSwitch)LexGateSwitch.notifyBundleChanged();
@@ -483,11 +510,13 @@ function showDetail(id){
   panel.innerHTML='<button class="close" onclick="this.parentElement.style.display=\'none\'">×</button>'+
     '<b>'+esc(d.decision_id)+'</b><br><span class="muted">'+esc(d.court)+' · '+esc(d.language)+' · '+esc(d.decision_date||"")+'</span><br>'+
     '<span class="pill">rang '+esc(d.rank)+'</span><span class="pill">C'+esc(d.cluster_id)+'</span>'+
+    (contentState(d)==="pointer"?'<span class="pill">référence seule</span>':"")+
     (counterEvidenced(d)?'<span class="pill red">'+esc(d.counter_status)+'</span>':"")+
     (isCounter(d)&&!counterEvidenced(d)?'<span class="pill amber">non étayée · conservée pour visibilité</span>':"")+
     (d.counter_status==="cited"?'<span class="pill gold">citée</span>':"")+
     advChannels(d).map(c=>'<span class="pill disc">passe contradictoire · '+esc(advLabel(c))+"</span>").join("")+
     (surfaceOnly(d)?'<span class="pill disc">surface contraire · '+esc((d.counter_surface_signal.intent||"")+" ("+(d.counter_surface_signal.heuristic_status||"")+")")+"</span>":"")+
+    (contentState(d)==="pointer"?'<p class="warn"><b>Référence seule :</b> aucun extrait local pour cette décision dans le corpus récupéré. Le lien « Ouvrir la source » ouvre la notice OpenCaseLaw.</p>':"")+
     '<p>'+esc(d.snippet||"")+'</p>'+
     (counterEvidenced(d)?'<p><b>Élément contraire :</b> '+esc(d.counter_evidence)+'</p>':"")+
     (isCounter(d)&&!counterEvidenced(d)?'<p class="warn"><b>Contre-autorité non étayée :</b> aucune preuve textuelle à l’appui (incertitude '+esc(d.counter_uncertainty??"?")+'). Ligne conservée pour visibilité, sans valeur de classification.</p>':"")+
