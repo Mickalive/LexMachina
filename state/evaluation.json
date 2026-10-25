@@ -17,7 +17,10 @@
     "results/evaluation/fast_mvp_current_head_ca_falsifier/40105794124.json",
     "results/audit/evaluation/CYCLE_40105794124_GATE.json",
     "results/audit/evaluation/CYCLE_40111496300_GATE.json",
-    "reports/audit/evaluation/CYCLE_40111496300.md"
+    "reports/audit/evaluation/CYCLE_40111496300.md",
+    "results/evaluation/fast_mvp_retrieval_recall_benchmark/40152672734.json",
+    "results/audit/evaluation/CYCLE_40152672734_GATE.json",
+    "reports/audit/evaluation/CYCLE_40152672734.md"
   ],
   "evidence_refs_resolution": {
     "repaired_in_run": 40149704173,
@@ -29,7 +32,7 @@
     "method": "recomputed from the committed tree with os.path.exists over every evidence_refs entry; run 40111496300's producer result was never committed (only its audit gate and audit report exist), so the pointer was repointed to those two artifacts instead of fabricating a result file",
     "note_on_prior_count": "the round-0 gate phrased the pre-repair state as 12/13 resolving; the committed tree at 9ed0edea holds 12 evidence_refs with 11 resolving. The named unresolving path is identical in both counts; the total differs by one and is disclosed rather than silently adopted from either side."
   },
-  "next_recommendation": "FAST-MVP benchmark suite (test_retrieval_benchmark.py) verified passing 38/38 tests with audit PASS (run 40143419165). Cached-bundle benchmark (run 40111496300) also audit PASS. FAST-MVP falsifier (40105794124) measures 4/5 enriched bundles carrying frozen content defects (D2 2, D3 2, D4 1) with 1 sound row; v68 bypass clause correction (40144816305) reconciles the mechanism: span seam runs on offline path but abstains, leaving defective incumbent verified. Item (2) remains NOT_YET_DISCRIMINATING until Product lands rejection/incumbent leg and regenerates full flagship family. No discriminating same-question evaluation work remains until Product ships a rebuilt packet. Lane remains continue_recommended=false per factory direction v68.",
+  "next_recommendation": "FAST-MVP retrieval/counter-authority recall benchmark run 40152672734 executed against frozen 24-cell multilingual cache (direction v68). 24/24 searches succeeded, 10/24 cells discriminating. Two discriminating cells fail the product-retention claim: (1) baseline:business-judgment-rule:de — product reranker dropped all 5 frozen known-relevant authorities (product_retention 0.0 vs input_retention 1.0). (2) counter:petty-theft-dismissal:fr — product reranker dropped 1 of 3 frozen known-counter authorities (product_retention 0.667 vs input_retention 1.0). Aggregate: product_hits 15 < input_hits 17. Language leg: fr 3/4 retained (holds=false), de 11/12 retained (holds=false), it 1/1 retained (holds=true). Benchmark verdict NOT_MEASURED_VACUOUS only because C7_source_validity_and_duplicates failed (EXPLORATORY cache alias collision check, not claim-bearing). Item (2) — the product reranking leg deficit — is NOW_DISCRIMINATING. No universal-174k reruns. Lane remains continue_recommended=false per factory direction v68 while content-filter leg (rejection/incumbent_handling) remains unrepaired per requirement 4 of factory-wide operational requirements.",
   "metrics_summary": {
     "total_tests": 38,
     "passed": 38,
@@ -72,8 +75,11 @@
     "corrects_run": 40105794124,
     "verdict": "CORRECTION_NOT_CONFIRMED_against_current_mount_pins_but_measurement_unchanged",
     "measurement_unchanged": true,
-    "item_2_status": "NOT_YET_DISCRIMINATING",
+    "item_2_status": "NOW_DISCRIMINATING",
     "bypass_clause_superseded_as_explanation": true,
-    "remaining_mechanism": "rejection/incumbent_handling"
+    "remaining_mechanism": "rejection/incumbent_handling",
+    "reranking_falsifier_run": 40152672734,
+    "reranking_falsifier_verdict": "PRODUCT_FALSIFIED_RECALL_LOSS (claim data published despite C7_EXPLORATORY failure)",
+    "reranking_falsifier_summary": "2 discriminating cells lose ground-truth authorities under product reranking: baseline:business-judgment-rule:de (retention 0.0->1.0, 5 lost ids) and counter:petty-theft-dismissal:fr (retention 0.667->1.0, 1 lost id). Aggregate product_hits 15 < input_hits 17. Language leg fr/de fail hold condition."
   }
 }

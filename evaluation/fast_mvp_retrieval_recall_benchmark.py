@@ -652,7 +652,7 @@ def run(run_id: str, out: Path, mount_arg: str | None, repo: Path) -> tuple[int,
         "rule_c_language": lang_ok,
     }
 
-    if record["amendment"]:
+    if record["has_v1_2_amendment"]:
         record["controls"].append(_gate(
             "C4_amendment_applied", True,
             "C4 executed per the pre-execution V1_1 amendment (achievable-ceiling "
