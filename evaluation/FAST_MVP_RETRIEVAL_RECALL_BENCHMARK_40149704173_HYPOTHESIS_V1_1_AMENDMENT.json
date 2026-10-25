@@ -1,0 +1,19 @@
+{
+  "schema": "lex-evaluation-fast-mvp-retrieval-recall-benchmark-hypothesis-amendment/1",
+  "lane": "evaluation",
+  "run_id": "40149704173",
+  "direction_version": 68,
+  "amends": "evaluation/FAST_MVP_RETRIEVAL_RECALL_BENCHMARK_40149704173_HYPOTHESIS_V1.json",
+  "amended_file_sha256": "a9fe256cea627c0bbc9ecd8e316f68b00b1911ab4e99bf0c294576b60cafe4f7",
+  "amends_field": "controls_FROZEN[3] = C4_oracle_ordering_full_metric",
+  "written_at_utc": "2026-10-25T01:58:00Z",
+  "written_before_claim_bearing_execution": true,
+  "reason": "Implementation-time defect in ONE control's wording, found while writing the instrument and BEFORE any product import, TF-IDF fit, rerank or recall computation. C4 as frozen reads: an oracle ordering that puts every present ground-truth row first yields product_recall@20 = 1.0 AND product_retention@20 = 1.0 in EVERY discriminating cell. That is arithmetically unachievable for any cell whose corpus coverage < 1, because recall@20's denominator is the FULL frozen ground-truth set (frozen metrics_FROZEN.recall_at_k): with 6 ground-truth ids of which 3 are present, the best any ordering can score is 3/6 = 0.5. Executing C4 verbatim would have forced NOT_MEASURED_VACUOUS (exit 2) on honest cells and destroyed the benchmark - i.e. the defect is in the control's wording, not in the metric or in the population.",
+  "superseded_rule": "C4_oracle_ordering_full_metric: 'an oracle ordering that puts every present ground-truth row first yields product_recall@20 = 1.0 and product_retention@20 = 1.0 in EVERY discriminating cell'.",
+  "amended_rule_FROZEN": {
+    "id": "C4_oracle_ordering_reaches_achievable_ceiling",
+    "rule": "Metric liveness: feeding an oracle ordering that puts every ground-truth-carrying row first yields, in EVERY discriminating cell, product_retention@20 = 1.0 AND product_recall@20 = that cell's coverage (i.e. recall reaches exactly the ceiling the corpus allows). Any deviation fails the control. This still proves both directions of liveness - the metric can reach its achievable maximum (kills saturating-at-zero) and recall stays normalised by the full frozen ground-truth set (kills an inflated denominator) - while being arithmetically attainable for partial-coverage cells."
+  },
+  "what_is_unchanged": "Everything else in the V1 hypothesis is untouched and the V1 file itself is byte-identical to its freeze pin (sha256 a9fe256cea627c0bbc9ecd8e316f68b00b1911ab4e99bf0c294576b60cafe4f7): population, ground truth, id matching, k values (20 primary / 10 reported), metrics, success rule, falsification rule, vacuity rule, controls C1 C2 C3 C5 C6 C7, latency report-only rule, verdict vocabulary, claim ceiling, not-in-scope list. No threshold, no bar, no label and no posture flag is created. The result record must reference this file and the instrument must record it; a run executed without this amendment's C4 would be invalid.",
+  "freeze_discipline_note": "Amendment is committed BEFORE the first claim-bearing execution of run 40149704173. Ordering proof: git log --diff-filter=A --format='%H %cI %s' -- evaluation/FAST_MVP_RETRIEVAL_RECALL_BENCHMARK_40149704173_HYPOTHESIS_V1_1_AMENDMENT.json must precede the first commit containing results/evaluation/fast_mvp_retrieval_recall_benchmark/40149704173.json."
+}
