@@ -1,0 +1,87 @@
+{
+  "schema": "product-resume-snapshot-diagnosis/1",
+  "generated_at": "2026-10-25T13:20:41Z",
+  "run_id": "40193974025",
+  "predecessor_run_id": "40188639817",
+  "raw_snapshot": "results/product/orchestration/CYCLE_40193974025_team_step_raw.json",
+  "orchestration": {
+    "schema": "product-audit-step-diagnosis/1",
+    "generated_at": "20261025T132041Z",
+    "run_id": "40193974025",
+    "run_name": "Core product dirV68 repair0",
+    "run_conclusion": "failure",
+    "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+    "team": {
+      "conclusion": "failure",
+      "team_snapshot_persisted": true,
+      "team_snapshot_step_conclusion": "success",
+      "team_snapshot_persisted_after_failed_team_job": true,
+      "failed_step": "Run lane cycle",
+      "failed_step_seconds": 1517.0,
+      "producer_state_validation_ran": false,
+      "producer_state_validation_step_conclusion": "skipped",
+      "write_scope_step_ran": false,
+      "write_scope_step_conclusion": "skipped"
+    },
+    "audit": {
+      "conclusion": "skipped",
+      "failed_step": null,
+      "independent_audit_step_seconds": null,
+      "gate_step": null,
+      "persist_step": null,
+      "gate_file_written": false
+    },
+    "integrate": {
+      "conclusion": "skipped",
+      "why_skipped": "audit job did not succeed, so the integrate job is skipped by the workflow condition"
+    },
+    "mechanism": {
+      "status": "UNOBSERVED",
+      "logs_available": false,
+      "logs_endpoint_status": 403,
+      "claim": "The lane-cycle agent process exited non-zero after 2026-10-25T12:39:53Z and before 2026-10-25T13:05:10Z. The workflow's 'Persist team snapshot' step is guarded by `if: always()` and concluded 'success', so the team ref can be published with ZERO durable delta. Job logs are not downloadable without admin rights, so no provider, auth, timeout or token mechanism is claimed."
+    },
+    "adjudication": {
+      "product_defect": false,
+      "verdict_written": false,
+      "team_work_preserved": true,
+      "requires_product_repair": false,
+      "control_plane_attention": "resume from the persisted snapshot and verify whether it carries a durable delta; `if: always()` can publish a failed producer's unchanged tree, which the producer-side scope and validation steps never get to reject",
+      "next_action": "Resume from the persisted team snapshot, prove whether it has a durable delta against its predecessor, re-verify the lane deliverable and make the snapshot audit-ready; do not infer a REVISE, a BLOCKED verdict or a product regression from a failed producer step."
+    },
+    "claim_ceiling": "This artifact classifies an orchestration failure from a public run/jobs snapshot. It asserts no cause it could not observe, writes no audit gate, treats no run as accepted or rejected, and makes no product, legal or serve claim."
+  },
+  "durable_delta": {
+    "snapshot_ref": "origin/cycle/core/product/40193974025/team",
+    "snapshot_head": "c6e81324bfc61ada1d8d90b9883d1d24846a8d2a",
+    "predecessor_ref": "origin/cycle/core/product/40188639817/team",
+    "predecessor_head": "c6e81324bfc61ada1d8d90b9883d1d24846a8d2a",
+    "classification": "ZERO_DURABLE_DELTA",
+    "changed_files": 0,
+    "changed_paths_sample": [],
+    "meaning": "the team ref points at the predecessor's exact commit: the producer added and changed nothing, and the always-run persist step published that unchanged tree. This is an orchestration outcome, NOT a product defect and NOT a verdict; refs alone cannot distinguish rc-67 zero-delta from a producer death."
+  },
+  "adjudication": {
+    "audit": {
+      "audit_ref": "origin/cycle/core/product/40193974025/audit",
+      "audit_ref_present": false,
+      "gate_file_present": false,
+      "gate_verdict": null
+    },
+    "accept": {
+      "accepted_ref_present": true,
+      "accept_commit": null
+    },
+    "accepted": false,
+    "status": "UNADJUDICATED",
+    "product_defect": false,
+    "verdict_written": false,
+    "why_not_accepted": "requirement 4 needs BOTH an independent PASS gate on the audit ref AND an accept commit on lab/product; at least one half is absent for this run"
+  },
+  "audit_namespace": {
+    "accepted_ref_present": true,
+    "producer_minted_unadjudicated_chain": [],
+    "producer_minted_accepted_baseline_count": 5
+  },
+  "claim_ceiling": "This artifact classifies an orchestration outcome and a git-ref delta. It writes no gate, labels no run accepted or rejected, asserts no cause the committed run/jobs snapshot cannot show, and makes no product, legal or serve claim."
+}

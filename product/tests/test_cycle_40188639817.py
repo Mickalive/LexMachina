@@ -72,7 +72,13 @@ def test_audit_step_diagnosis_is_reproducible_from_the_raw_snapshot() -> None:
     assert raw["run"]["conclusion"] == "failure"
     fresh = asd.classify(raw)
     assert fresh["classification"] == art["classification"]
-    assert fresh["team"] == art["team"]
+    # Amendment (operational resume 40193974025): the classifier gained
+    # additive, separately-derived fields (persist-step conclusion, failed
+    # team step, producer-validation/scope step conclusions).  Compare every
+    # key the historical artifact published instead of forbidding additions.
+    # This is not a weakening: an existing key that changes value still fails.
+    for key, value in art["team"].items():
+        assert fresh["team"][key] == value, key
     assert fresh["audit"] == art["audit"]
     assert fresh["integrate"] == art["integrate"]
     assert fresh["mechanism"]["status"] == "UNOBSERVED"
