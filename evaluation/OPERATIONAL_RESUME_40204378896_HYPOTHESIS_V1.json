@@ -1,0 +1,67 @@
+{
+  "schema": "lex-evaluation-operational-resume-hypothesis/1",
+  "lane": "evaluation",
+  "run_id": 40204378896,
+  "direction_version": 68,
+  "generated_at_utc": "2026-10-25T14:56:19Z",
+  "kind": "operational_resume_verification",
+  "claim_bearing": true,
+  "claim_ceiling": "Operational-resume verification and orchestration diagnosis only. This hypothesis does not re-score a benchmark, re-run a frozen bar, move a threshold, issue a serve verdict, lift a DO-NOT-SERVE order or open a new same-question cycle.",
+  "resume_base": {
+    "persisted_producer_snapshot_of_run": 40198184759,
+    "snapshot_commit_expected": "251a6f5967c653d3ca93bf0a2d3ad7a1dd3f875e",
+    "prior_accepted_evaluation_run": 40159747851,
+    "prior_accepted_accept_commit": "9be8a7d5b3a4b84eb45da6160bf90620f7d81d40"
+  },
+  "hypotheses": [
+    {
+      "id": "H_ORCH_40198184759",
+      "statement": "Run 40198184759 failed ONLY in its independent-audit job. The producer team job and all five producer validation/persist steps succeeded, the audit's 'Independent audit' step was killed at the frozen 2700s work quantum (observed 2704s, the same recurrence as 40192868113 and 40187594111), the gate/snapshot steps were skipped, integrate was skipped and resilience succeeded. No audit branch or gate exists, so the run issued no verdict and is not a producer/gate failure.",
+      "success_rule": "All of: team conclusion success; audit conclusion failure; failing step name 'Independent audit'; failing-step duration within 10s of the 2700s wrapper quantum; 'Enforce audit scope and read gate' and 'Persist audit snapshot' skipped; integrate skipped; resilience success; no refs/heads/cycle/core/evaluation/40198184759/audit branch; the same audit-step signature present for 40192868113 and 40187594111.",
+      "falsified_if": "Any producer step failed, or the audit wrote a gate/audit branch, or the failing step is not the independent audit, or the duration does not match the quantum."
+    },
+    {
+      "id": "H_SNAPSHOT_PRESERVED",
+      "statement": "The persisted producer snapshot 251a6f59 is intact and no prior claim-bearing artifact from the 40198184759 audit-ready pack was destroyed or rewritten by this resume.",
+      "success_rule": "HEAD is 251a6f59; every file listed in the 40192868113 manifest resolves and matches its recorded sha256; every claim-bearing file recorded in state/evaluation.json::operational_resume_40198184759 resolves; the new run writes only its own namespace plus state/report additions.",
+      "falsified_if": "A manifest/reference file is missing or hash-mismatched, or an old claim-bearing artifact changes bytes."
+    },
+    {
+      "id": "H_ITEM1_CORRECTION",
+      "statement": "Ordered item (1), the report-only correction of record for the superseded v67 bypass clause, remains present and verified: the 40105794124 measurement is unchanged (SOUND_COUNTER_ROW_PRESENT, falsification_proven=false, 4/5 enriched bundles with defects D2=2/D3=2/D4=1 over 4 distinct decisions, exactly 1 sound row bstger_SK.2023.49), and the historical CC6/CC7 citation gap is closed at the current mount by direct object-level verification of 51d306c and the 8b5b08dd -> 85e816f -> 51d306c chain. No falsifier is re-executed.",
+      "success_rule": "The prior verifier's item-(1) checks all pass and its measurement-of-record/aggregate checks remain true.",
+      "falsified_if": "The correction artifacts are missing or changed, the measurement differs, or the 51d306c/8b5b08dd objects/chain no longer verify."
+    },
+    {
+      "id": "H_ITEM2_NOT_DISCRIMINATING",
+      "statement": "Ordered item (2) remains NOT_YET_DISCRIMINATING at this mount: the named frozen 15-member family is matched 10/15 member-for-member, per-role multiplicity parity is false, the post-repair record 40162507752 is NOT_MEASURED_VACUOUS on pin drift, and no synthetic stand-in or new same-question re-measure is executed.",
+      "success_rule": "The prior verifier's item-(2) precondition checks all pass: H1 true, H2 false, matched=10, frozen_family_n=15, post_repair_bundles_n=21, multiplicity_parity=false, post record verdict NOT_MEASURED_VACUOUS.",
+      "falsified_if": "The fresh coverage relation changes (e.g. 15/15), or a synthetic stand-in/measurement is substituted, or the status is upgraded without the frozen protocol."
+    },
+    {
+      "id": "H_STATE_AND_SCOPE",
+      "statement": "After this resume's state/report updates, the lane state is internally consistent: evidence_refs_n equals len(evidence_refs) in both state files, every evidence ref resolves, nested refs resolve, the write scope is clean under the control-plane patterns, and targeted lane tests pass under the disclosed no-pytest shim.",
+      "success_rule": "state_integrity_gate verdict ALL_CHECKS_PASS (11/11); nested_evidence_refs_guard verdict NESTED_REFS_RESOLVED with 0 unresolved; write_scope verdict SCOPE_CLEAN; targeted shim verdict SHIM_PASS with 0 failed and 0 absent. Unsupported counts are disclosed, not counted as passes.",
+      "falsified_if": "Any of these instruments returns a fail/divergence."
+    },
+    {
+      "id": "H_POSTURE_UNCHANGED",
+      "statement": "Standing posture is unchanged: accepted_run_id stays 40159747851, direction_version is 68, continue_recommended=false, both frozen bars re-hash to 4457e971.../a7452748..., human_gate_ready=false, machine_gate_ready=false, both DO-NOT-SERVE orders stand, no universal-174k benchmark is run.",
+      "success_rule": "All named values/invariants observed exactly; no new claim beyond the audit-ready operational resume.",
+      "falsified_if": "Any posture value moves or a frozen bar hash changes."
+    }
+  ],
+  "pre_registered_commands": [
+    "python3 -m evaluation.state_integrity_gate --run-id 40204378896 --out results/evaluation/operational_resume_40204378896/state_integrity_gate_40204378896.json",
+    "python3 evaluation/nested_evidence_refs_guard.py --run-id 40204378896 --out-dir results/evaluation/operational_resume_40204378896",
+    "python3 -m evaluation.no_pytest_runner --run-id 40204378896 --test-file tests/evaluation/test_minimal_retrieval_ca_benchmark.py --test-file tests/evaluation/test_nested_evidence_refs_guard.py --test-file tests/evaluation/test_state_integrity_gate.py --test-file tests/evaluation/test_post_repair_family_ca_falsifier.py --out results/evaluation/operational_resume_40204378896/pytest_targeted_40204378896.json",
+    "python3 -m evaluation.snapshot_audit.write_scope --lane evaluation",
+    "python3 evaluation/operational_resume_40204378896.py"
+  ],
+  "decision_unlocked": "Whether the persisted evaluation snapshot can be presented to an independent auditor now, without another same-question measurement, and whether the audit-quantum failure is an orchestration defect rather than a deliverable defect.",
+  "no_new_same_question_cycle": true,
+  "no_frozen_bar_movement": true,
+  "no_serve_verdict": true,
+  "no_universal_174k_rerun": true,
+  "owner_decision_required": false
+}

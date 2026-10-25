@@ -1,0 +1,236 @@
+{
+  "schema": "lex-evaluation-operational-resume-diagnosis/2",
+  "lane": "evaluation",
+  "run_id": "40204378896",
+  "resumed_run_id": "40198184759",
+  "generated_at_utc": "2026-10-25T14:53:49Z",
+  "classification": "ORCHESTRATION_WORK_QUANTUM_EXPIRED",
+  "classification_confidence": "high_on_mechanism_not_proven_on_log_text",
+  "why_not_proven": "GitHub job logs require admin rights (HTTP 403 unauthenticated); the 2700s wrapper quantum and the repeatedly identical 2704s audit-step duration are strong but not log-quoted. Nothing in the producer jobs failed.",
+  "run": {
+    "head_sha": "0a0897c805fbbac45b912365cb5b1c569d599f75",
+    "event": "workflow_dispatch",
+    "created_at": "2026-10-25T13:33:55Z",
+    "updated_at": "2026-10-25T14:53:53Z",
+    "conclusion": "failure",
+    "html_url": "https://github.com/Mickalive/LexMachina/actions/runs/40198184759",
+    "run_attempt": 1,
+    "head_branch": "main"
+  },
+  "jobs": {
+    "team": {
+      "conclusion": "success",
+      "started_at": "2026-10-25T13:34:01Z",
+      "completed_at": "2026-10-25T14:07:51Z",
+      "steps": {
+        "Set up job": "success",
+        "Run actions/checkout@v6": "success",
+        "Validate lane and initialize working base": "success",
+        "Mount accepted peer evidence": "success",
+        "Install Ox/OpenCode": "success",
+        "Run lane cycle": "success",
+        "Validate active MVP producer state": "success",
+        "Clean generated junk": "success",
+        "Enforce lane write scope": "success",
+        "Persist team snapshot": "success",
+        "Post Run actions/checkout@v6": "success",
+        "Complete job": "success"
+      }
+    },
+    "audit": {
+      "conclusion": "failure",
+      "started_at": "2026-10-25T14:07:54Z",
+      "completed_at": "2026-10-25T14:53:40Z",
+      "seconds": 2746.0,
+      "failing_step": {
+        "completed_at": "2026-10-25T14:53:38Z",
+        "conclusion": "failure",
+        "name": "Independent audit",
+        "number": 5,
+        "started_at": "2026-10-25T14:08:34Z",
+        "status": "completed"
+      },
+      "step_seconds": 2704.0,
+      "skipped_steps": [
+        "Enforce audit scope and read gate",
+        "Persist audit snapshot"
+      ]
+    },
+    "integrate": {
+      "conclusion": "skipped"
+    },
+    "resilience": {
+      "conclusion": "success",
+      "started_at": "2026-10-25T14:53:43Z",
+      "completed_at": "2026-10-25T14:53:53Z"
+    }
+  },
+  "work_quantum": {
+    "source": "origin/main:.github/scripts/run-ox-with-retry.sh",
+    "seconds": 2700,
+    "quantum_line": 22,
+    "warning_line": 183,
+    "exit78_line": 223,
+    "warning_text": "::warning::LEX_WORK_QUANTUM_EXPIRED seconds=<quantum> pid=<child>",
+    "exit_code": 78,
+    "git_show_returncode": 0,
+    "stderr": ""
+  },
+  "audit_branch_probe": {
+    "command": "git ls-remote --heads origin refs/heads/cycle/core/evaluation/40198184759/*",
+    "returncode": 0,
+    "refs": [
+      "refs/heads/cycle/core/evaluation/40198184759/team",
+      "refs/heads/cycle/core/evaluation/40198184759/team-attempt-1"
+    ],
+    "audit_refs": [],
+    "audit_branch_present": false,
+    "stderr": ""
+  },
+  "recurrence": {
+    "runs": [
+      {
+        "run_id": "40192868113",
+        "audit_conclusion": "failure",
+        "failing_step": "Independent audit",
+        "failing_step_seconds": 2704.0,
+        "audit_seconds": 2743.0
+      },
+      {
+        "run_id": "40187594111",
+        "audit_conclusion": "failure",
+        "failing_step": "Independent audit",
+        "failing_step_seconds": 2704.0,
+        "audit_seconds": 2753.0
+      }
+    ],
+    "same_independent_audit_signature": true,
+    "conclusion": "THREE CONSECUTIVE RUNS (40187594111, 40192868113, 40198184759) died in the same independent-audit step at the same quantum boundary and none wrote an audit branch or gate."
+  },
+  "checks": [
+    {
+      "check": "team_job_success",
+      "ok": true,
+      "started_at": "2026-10-25T13:34:01Z",
+      "completed_at": "2026-10-25T14:07:51Z"
+    },
+    {
+      "check": "all_producer_steps_success",
+      "ok": true,
+      "steps": {
+        "Set up job": "success",
+        "Run actions/checkout@v6": "success",
+        "Validate lane and initialize working base": "success",
+        "Mount accepted peer evidence": "success",
+        "Install Ox/OpenCode": "success",
+        "Run lane cycle": "success",
+        "Validate active MVP producer state": "success",
+        "Clean generated junk": "success",
+        "Enforce lane write scope": "success",
+        "Persist team snapshot": "success",
+        "Post Run actions/checkout@v6": "success",
+        "Complete job": "success"
+      }
+    },
+    {
+      "check": "audit_job_failure",
+      "ok": true,
+      "started_at": "2026-10-25T14:07:54Z",
+      "completed_at": "2026-10-25T14:53:40Z",
+      "seconds": 2746.0
+    },
+    {
+      "check": "failing_step_is_independent_audit",
+      "ok": true,
+      "failing_step": {
+        "completed_at": "2026-10-25T14:53:38Z",
+        "conclusion": "failure",
+        "name": "Independent audit",
+        "number": 5,
+        "started_at": "2026-10-25T14:08:34Z",
+        "status": "completed"
+      },
+      "step_seconds": 2704.0
+    },
+    {
+      "check": "audit_quantum_expired",
+      "ok": true,
+      "audit_step_seconds": 2704.0,
+      "wrapper_quantum_seconds": 2700,
+      "delta_seconds": 4.0
+    },
+    {
+      "check": "gate_and_snapshot_steps_skipped",
+      "ok": true,
+      "skipped_steps": [
+        "Enforce audit scope and read gate",
+        "Persist audit snapshot"
+      ]
+    },
+    {
+      "check": "integrate_skipped",
+      "ok": true
+    },
+    {
+      "check": "resilience_success",
+      "ok": true
+    },
+    {
+      "check": "no_audit_branch_or_gate",
+      "ok": true,
+      "refs": [
+        "refs/heads/cycle/core/evaluation/40198184759/team",
+        "refs/heads/cycle/core/evaluation/40198184759/team-attempt-1"
+      ]
+    },
+    {
+      "check": "recurrence_on_prior_two_runs",
+      "ok": true,
+      "prior": [
+        {
+          "run_id": "40192868113",
+          "audit_conclusion": "failure",
+          "failing_step": "Independent audit",
+          "failing_step_seconds": 2704.0,
+          "audit_seconds": 2743.0
+        },
+        {
+          "run_id": "40187594111",
+          "audit_conclusion": "failure",
+          "failing_step": "Independent audit",
+          "failing_step_seconds": 2704.0,
+          "audit_seconds": 2753.0
+        }
+      ]
+    },
+    {
+      "check": "producer_snapshot_commit_is_resume_base",
+      "ok": true,
+      "run_head_sha": "0a0897c805fbbac45b912365cb5b1c569d599f75",
+      "snapshot_commit": "251a6f5967c653d3ca93bf0a2d3ad7a1dd3f875e"
+    }
+  ],
+  "all_checks_ok": true,
+  "root_cause": "The independent-audit agent is killed by the frozen 2700s work quantum before it writes an audit branch or gate. The producer team job is healthy: all validation, write-scope and snapshot steps succeeded. Integrate correctly skipped; resilience re-dispatched this resume.",
+  "not_a_producer_failure": [
+    "Set up job: success",
+    "Run actions/checkout@v6: success",
+    "Validate lane and initialize working base: success",
+    "Mount accepted peer evidence: success",
+    "Install Ox/OpenCode: success",
+    "Run lane cycle: success",
+    "Validate active MVP producer state: success",
+    "Clean generated junk: success",
+    "Enforce lane write scope: success",
+    "Persist team snapshot: success",
+    "Post Run actions/checkout@v6: success",
+    "Complete job: success"
+  ],
+  "control_plane_note": "This resume does not edit .github/** or the audit quantum. The durable fix is control-plane (smaller/split audit scope or a larger quantum); the lane can only make the snapshot cheaper to audit, which this pack does.",
+  "provenance": {
+    "run_json": "results/evaluation/operational_resume_40204378896/run_40198184759_api.json",
+    "jobs_json": "results/evaluation/operational_resume_40204378896/jobs_40198184759_api.json",
+    "api_authentication": false,
+    "api_note": "Public GitHub REST API; logs are not available unauthenticated."
+  }
+}
