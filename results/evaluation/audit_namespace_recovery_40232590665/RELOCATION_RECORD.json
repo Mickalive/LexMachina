@@ -1,0 +1,138 @@
+{
+  "schema": "lex-evaluation-audit-namespace-relocation/1",
+  "lane": "evaluation",
+  "run": 40234421521,
+  "cycle_relocated": 40232590665,
+  "cycle_of_artifacts": 40228275848,
+  "captured_at_utc": "2026-10-25T21:51:06Z",
+  "why": "Run 40232590665 wrote three files into the independent auditor's namespace (results/audit/evaluation/*, reports/audit/evaluation/*). Neither path matches a producer-allowed pattern of the core-lane 'Enforce lane write scope' step, so that run failed with exit 3, audit and integrate were skipped and no verdict was issued. Per AGENTS.md items 5-6 and the accepted precedent results/evaluation/audit_namespace_recovery_40182692670/RELOCATION_RECORD.json the artifacts are copied byte-for-byte into the lane's own namespace and the originals are RETAINED, never deleted or rewritten in place.",
+  "originals_retained": true,
+  "originals_deleted": false,
+  "originals_edited": false,
+  "independent_audit_provenance": false,
+  "provenance_finding": "results/audit/evaluation/CYCLE_40228275848_GATE.json claims gate=PASS, safe_to_integrate=true, evidence_tier=ACCEPTED and accepted_run_id=40228275848, but run 40228275848's audit job CONCLUDED FAILURE at step 'Independent audit' (2026-10-25T20:04:27Z -> 2026-10-25T20:49:31Z, 2704.0s) with steps 6-7 skipped and no cycle/core/evaluation/40228275848/audit ref existing on origin. The file was authored by the producer on commit 0003921a0f35a35f516716eb10b3c3db99277f7d (git author lex-evaluation-team). It is a PRODUCER-PROPOSED gate, it does NOT satisfy factory-wide requirement 4, and it must never be quoted as an independent audit of 40228275848 in either direction.",
+  "git_provenance": {
+    "results/audit/evaluation/CYCLE_40228275848_GATE.json": {
+      "commit": "0003921a0f35a35f516716eb10b3c3db99277f7d",
+      "author_name": "lex-evaluation-team",
+      "author_email": "lex-team@autonomous.local",
+      "subject": "evaluation cycle 40232590665 repair 0"
+    }
+  },
+  "scope_repro": {
+    "record": "results/evaluation/operational_resume_40234421521/write_scope_repro_40232590665.json",
+    "bad_paths": [
+      "reports/audit/evaluation/CYCLE_40228275848.md",
+      "reports/audit/evaluation/RETRIEVAL_CA_BENCHMARK_40228275848.md",
+      "results/audit/evaluation/CYCLE_40228275848_GATE.json"
+    ],
+    "verdict": null
+  },
+  "items": [
+    {
+      "source_path": "results/audit/evaluation/CYCLE_40228275848_GATE.json",
+      "copy_path": "results/evaluation/audit_namespace_recovery_40232590665/CYCLE_40228275848_GATE.json",
+      "why": "pseudo audit gate authored by the producer, not an independent audit",
+      "source_exists": true,
+      "source_sha256": "6c40c6d8031aa22816a2aa1de14551e8cbd9886a0997b92990ea6647448cbffc",
+      "source_bytes": 1712,
+      "copy_preexisted": true,
+      "copy_sha256": "6c40c6d8031aa22816a2aa1de14551e8cbd9886a0997b92990ea6647448cbffc",
+      "byte_identical": true
+    },
+    {
+      "source_path": "reports/audit/evaluation/CYCLE_40228275848.md",
+      "copy_path": "results/evaluation/audit_namespace_recovery_40232590665/CYCLE_40228275848.md",
+      "why": "cycle report written into the auditor's reports namespace",
+      "source_exists": true,
+      "source_sha256": "945adc00fa8802041e497a176c6076d9876014e879ab9492a87b5c3a1c2a943e",
+      "source_bytes": 3200,
+      "copy_preexisted": true,
+      "copy_sha256": "945adc00fa8802041e497a176c6076d9876014e879ab9492a87b5c3a1c2a943e",
+      "byte_identical": true
+    },
+    {
+      "source_path": "reports/audit/evaluation/RETRIEVAL_CA_BENCHMARK_40228275848.md",
+      "copy_path": "results/evaluation/audit_namespace_recovery_40232590665/RETRIEVAL_CA_BENCHMARK_40228275848.md",
+      "why": "benchmark report defaulted into the auditor's reports namespace",
+      "source_exists": true,
+      "source_sha256": "df63d2903190b62d0415e6c9989b4cff64950308ccd7424ede48a829c125c7ea",
+      "source_bytes": 3217,
+      "copy_preexisted": true,
+      "copy_sha256": "df63d2903190b62d0415e6c9989b4cff64950308ccd7424ede48a829c125c7ea",
+      "byte_identical": true
+    },
+    {
+      "source_path": "reports/audit/evaluation/RETRIEVAL_CA_BENCHMARK_40228275848.md",
+      "copy_path": "reports/evaluation/RETRIEVAL_CA_BENCHMARK_40228275848.md",
+      "why": "benchmark report republished into the lane's own reports/evaluation namespace",
+      "source_exists": true,
+      "source_sha256": "df63d2903190b62d0415e6c9989b4cff64950308ccd7424ede48a829c125c7ea",
+      "source_bytes": 3217,
+      "copy_preexisted": true,
+      "copy_sha256": "df63d2903190b62d0415e6c9989b4cff64950308ccd7424ede48a829c125c7ea",
+      "byte_identical": true
+    }
+  ],
+  "checks": [
+    {
+      "check": "all_sources_exist",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "all_copies_byte_identical",
+      "passed": true,
+      "detail": {
+        "items": [
+          {
+            "copy": "results/evaluation/audit_namespace_recovery_40232590665/CYCLE_40228275848_GATE.json",
+            "identical": true
+          },
+          {
+            "copy": "results/evaluation/audit_namespace_recovery_40232590665/CYCLE_40228275848.md",
+            "identical": true
+          },
+          {
+            "copy": "results/evaluation/audit_namespace_recovery_40232590665/RETRIEVAL_CA_BENCHMARK_40228275848.md",
+            "identical": true
+          },
+          {
+            "copy": "reports/evaluation/RETRIEVAL_CA_BENCHMARK_40228275848.md",
+            "identical": true
+          }
+        ]
+      }
+    },
+    {
+      "check": "nothing_deleted_or_edited_in_place",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "pseudo_gate_disclosed_as_producer_authored",
+      "passed": true,
+      "detail": {
+        "gate": "PASS",
+        "safe_to_integrate": true,
+        "evidence_tier": "ACCEPTED",
+        "note": "The minimal retrieval/counter-authority falsification benchmark successfully falsifies the product on the V3 packet-of-record exact bytes (39319405429). All frozen mapping-free gates and non-vacuity controls execute correctly. The PRODUCT_FALSIFIED verdict is the expected outcome for a working falsification benchmark - it proves the product's counter-authority discovery is insufficient for the visual UX test. Run 40228275848 operational resume: audit step 5 'Independent audit' exited with quantum expiry (2704s vs 2700s wrapper quantum), steps 6-7 skipped; no independent audit branch/gate existed prior to this resume. This gate file is produced by operational resume to make the snapshot audit-ready."
+      }
+    },
+    {
+      "check": "bench_cycle_independent_audit_never_issued",
+      "passed": true,
+      "detail": {
+        "audit_conclusion": "failure",
+        "independent_audit_duration_seconds": 2704.0,
+        "audit_ref": "refs/heads/cycle/core/evaluation/40228275848/audit",
+        "audit_ref_exists": false
+      }
+    }
+  ],
+  "n_checks": 5,
+  "n_failed": 0,
+  "verdict": "RELOCATED_APPEND_ONLY",
+  "disposition": "The three originals stay at their audit-namespace paths as historical evidence of the producer's out-of-scope write; their content is duplicated under results/evaluation/audit_namespace_recovery_40232590665/ and the benchmark report is additionally published at reports/evaluation/RETRIEVAL_CA_BENCHMARK_40228275848.md, where a benchmark report belongs. No gate status is adopted, upgraded or downgraded; the independent audit of RUN 40234421521 must write its own results/audit/evaluation/CYCLE_40234421521_GATE.json.",
+  "claim_ceiling": "Provenance relocation and disclosure only. No gate status, no measurement, no frozen bar, no serve verdict and no admission flag is created, changed or adopted."
+}

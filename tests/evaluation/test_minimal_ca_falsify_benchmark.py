@@ -255,10 +255,25 @@ def test_numeric_environment_disclosed():
 # ---------------------------------------------------------------------------
 
 def test_output_defaults_point_at_the_committed_tree():
-    """Make the scratch-run obligation explicit: defaults ARE the committed tree."""
+    """Make the scratch-run obligation explicit: defaults ARE the committed tree.
+
+    Strengthened by the operational resume of run 40232590665 (direction v68):
+    the report default was reports/audit/evaluation, the independent auditor's
+    namespace, which fails the workflow's "Enforce lane write scope" step for
+    any producer run that executes this wrapper with defaults.  A basename
+    check (".../evaluation") passed while the path was still out of scope, so
+    the assertion now pins the full lane-relative location.
+    """
     assert BM.DEFAULT_OUT_DIR.name == "minimal_ca_falsify_benchmark"
     assert BM.DEFAULT_OUT_DIR.parent.name == "evaluation"
     assert BM.DEFAULT_REPORT_DIR.name == "evaluation"
+    # lane-relative namespace: reports/<lane>/, never reports/audit/<lane>/
+    assert BM.DEFAULT_REPORT_DIR == _REPO_ROOT / "reports" / "evaluation", (
+        "a producer instrument must not default its report into the audit namespace; "
+        f"got {BM.DEFAULT_REPORT_DIR}"
+    )
+    assert not str(BM.DEFAULT_REPORT_DIR).startswith(
+        str(_REPO_ROOT / "reports" / "audit")), "report default crosses into reports/audit"
     assert BM.DEFAULT_OUT_DIR.is_dir() and BM.DEFAULT_REPORT_DIR.is_dir()
 
 

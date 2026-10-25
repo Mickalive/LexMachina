@@ -34,7 +34,20 @@ from evaluation import mapping_free_recall_falsifier as ENGINE  # noqa: E402
 
 WRAPPER_SCHEMA = "lex-evaluation-minimal-ca-falsify-benchmark/1"
 DEFAULT_OUT_DIR = REPO_ROOT / "results/evaluation/minimal_ca_falsify_benchmark"
-DEFAULT_REPORT_DIR = REPO_ROOT / "reports/audit/evaluation"
+# Root-cause fix (operational resume of run 40232590665, direction v68): this
+# default used to be reports/audit/evaluation, i.e. the INDEPENDENT AUDITOR's
+# namespace.  Running the wrapper with defaults therefore wrote
+# reports/audit/evaluation/RETRIEVAL_CA_BENCHMARK_40228275848.md, which does not
+# match any producer-allowed pattern of the core-lane "Enforce lane write scope"
+# step (evaluation/*, tests/evaluation/*, results/evaluation/*,
+# reports/evaluation/*, state/evaluation.json, data/evaluation/*), so run
+# 40232590665 failed that step (exit 3), audit and integrate were skipped and no
+# verdict was ever issued.  A lane instrument must never default its OUTPUT into
+# the audit namespace; reports/evaluation/ is the lane's own report namespace
+# (ARCHITECTURE.md "Output layout").  Only the independent auditor may write
+# reports/audit/<lane>/, from the AUDIT JOB checkout.  No gate predicate, frozen
+# rule, threshold, verdict contract or record field changes with this path move.
+DEFAULT_REPORT_DIR = REPO_ROOT / "reports/evaluation"
 import json as _json
 _STATE_PATH = REPO_ROOT / "state" / "evaluation.json"
 

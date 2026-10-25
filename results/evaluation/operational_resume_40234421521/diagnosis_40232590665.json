@@ -1,0 +1,230 @@
+{
+  "schema": "lex-evaluation-operational-resume-diagnosis/1",
+  "run_id": "40234421521",
+  "diagnosed_run_id": "40232590665",
+  "failure_class": "VALIDATION_LANE_WRITE_SCOPE_ENFORCEMENT",
+  "verdict": "DIAGNOSIS_CONFIRMED",
+  "n_checks": 18,
+  "n_failed": 0,
+  "checks": [
+    {
+      "check": "run_metadata",
+      "passed": true,
+      "detail": {
+        "run_id": 40232590665,
+        "conclusion": "failure",
+        "event": "workflow_dispatch",
+        "run_name": "Core evaluation dirV68 repair0",
+        "head_sha": "dd1ed9dabce3a93b9235e7a7de7c2f426f8ff877"
+      }
+    },
+    {
+      "check": "team_job_failed",
+      "passed": true,
+      "detail": {
+        "conclusion": "failure"
+      }
+    },
+    {
+      "check": "lane_cycle_step_succeeded",
+      "passed": true,
+      "detail": {
+        "conclusion": "success",
+        "duration_seconds": 1324.0
+      }
+    },
+    {
+      "check": "state_validation_step_succeeded",
+      "passed": true,
+      "detail": {
+        "conclusion": "success"
+      }
+    },
+    {
+      "check": "junk_clean_step_succeeded",
+      "passed": true,
+      "detail": {
+        "conclusion": "success"
+      }
+    },
+    {
+      "check": "failing_step_is_enforce_lane_write_scope",
+      "passed": true,
+      "detail": {
+        "step_number": 9,
+        "step_name": "Enforce lane write scope",
+        "conclusion": "failure",
+        "duration_seconds": 0.0
+      }
+    },
+    {
+      "check": "snapshot_persisted_despite_failure",
+      "passed": true,
+      "detail": {
+        "conclusion": "success",
+        "note": "Persist team snapshot runs with if: always(), so the snapshot was pushed even though the scope guard failed"
+      }
+    },
+    {
+      "check": "audit_job_skipped",
+      "passed": true,
+      "detail": {
+        "conclusion": "skipped"
+      }
+    },
+    {
+      "check": "integrate_job_skipped",
+      "passed": true,
+      "detail": {
+        "conclusion": "skipped"
+      }
+    },
+    {
+      "check": "resilience_job_success",
+      "passed": true,
+      "detail": {
+        "conclusion": "success"
+      }
+    },
+    {
+      "check": "no_audit_ref_for_resumed_run",
+      "passed": true,
+      "detail": {
+        "ref": "refs/heads/cycle/core/evaluation/40232590665/audit",
+        "exists": false,
+        "meaning": "no verdict of any kind was issued for run 40232590665"
+      }
+    },
+    {
+      "check": "write_scope_repro_exit_1_violation",
+      "passed": true,
+      "detail": {
+        "repro_exit_code": 1,
+        "verdict": "SCOPE_VIOLATION",
+        "n_bad": 3,
+        "bad_paths": [
+          "reports/audit/evaluation/CYCLE_40228275848.md",
+          "reports/audit/evaluation/RETRIEVAL_CA_BENCHMARK_40228275848.md",
+          "results/audit/evaluation/CYCLE_40228275848_GATE.json"
+        ],
+        "record": "results/evaluation/operational_resume_40234421521/write_scope_repro_40232590665.json"
+      }
+    },
+    {
+      "check": "bad_paths_are_exactly_the_three_audit_namespace_files",
+      "passed": true,
+      "detail": {
+        "observed": [
+          "reports/audit/evaluation/CYCLE_40228275848.md",
+          "reports/audit/evaluation/RETRIEVAL_CA_BENCHMARK_40228275848.md",
+          "results/audit/evaluation/CYCLE_40228275848_GATE.json"
+        ],
+        "expected": [
+          "reports/audit/evaluation/CYCLE_40228275848.md",
+          "reports/audit/evaluation/RETRIEVAL_CA_BENCHMARK_40228275848.md",
+          "results/audit/evaluation/CYCLE_40228275848_GATE.json"
+        ]
+      }
+    },
+    {
+      "check": "deliverable_artifacts_were_in_scope",
+      "passed": true,
+      "detail": {
+        "allowed": [
+          "results/evaluation/minimal_ca_falsify_benchmark/40228275848.json",
+          "results/evaluation/minimal_ca_falsify_benchmark/40228275848_engine_mapping_free_recall_falsifier.json"
+        ]
+      }
+    },
+    {
+      "check": "failure_is_not_a_work_quantum_starvation",
+      "passed": true,
+      "detail": {
+        "scope_step_seconds": 0.0,
+        "independent_audit_step_seconds": null,
+        "interpretation": "the audit job never started, so the 2704.0s work-quantum signature of runs 40187594111..40213041041 cannot apply to this run"
+      }
+    },
+    {
+      "check": "control_plane_rule_read",
+      "passed": true,
+      "detail": {
+        "allowed_pattern_line": "215: \"$CODE\"/*|\"tests/$LANE\"/*|\"results/$LANE\"/*|\"reports/$LANE\"/*|\"state/$LANE.json\"|\"data/$LANE\"/*|\"\") ;;",
+        "exit3_line": "220: if [[ -n \"$BAD\" ]]; then echo -e \"::error::lane crossed protected scope:\\n$BAD\"; exit 3; fi",
+        "producer_allowed_prefixes": [
+          "evaluation/*",
+          "tests/evaluation/*",
+          "results/evaluation/*",
+          "reports/evaluation/*",
+          "state/evaluation.json",
+          "data/evaluation/*"
+        ]
+      }
+    },
+    {
+      "check": "same_class_recorded_in_lane_instruments",
+      "passed": true,
+      "detail": {
+        "earlier_instances": [
+          "38982176936",
+          "39470495546",
+          "40167904552",
+          "40186604273"
+        ],
+        "sources": [
+          "evaluation/snapshot_audit/write_scope.py",
+          "results/evaluation/audit_namespace_recovery_40182692670/RELOCATION_RECORD.json"
+        ]
+      }
+    },
+    {
+      "check": "benchmark_deliverable_committed_in_snapshot",
+      "passed": true,
+      "detail": {
+        "bench_record_sha256": "5f5e4156976764be3cc40d79728a5ca11bfcee66bb41f8cbe13bcb26acc726c4",
+        "bench_engine_sha256": "2b962ab759c947833f4a09aba0484093c58d2e02fb467596e4c67503115db284"
+      }
+    }
+  ],
+  "failure_summary": "Run 40232590665 completed its producer lane cycle (Run lane cycle step success, 'Validate active MVP producer state' success, 'Clean generated junk' success) and FAILED at step 9 'Enforce lane write scope' (conclusion failure, sub-second). A byte-faithful re-execution of that step's classifier over the snapshot's own commit pair bb75f263 -> 0003921a reproduces exit 3 with exactly 3 bad paths, all three in the independent auditor's namespace (results/audit/evaluation/* and reports/audit/evaluation/*), while both FAST-MVP benchmark artifacts under results/evaluation/ classify IN scope. 'Persist team snapshot' runs with if: always(), so the snapshot was force-pushed; audit and integrate were skipped and no /audit ref exists for 40232590665, i.e. the run issued NO verdict. Root cause of the misplaced paths: evaluation/minimal_ca_falsify_benchmark.py defaulted its report dir to reports/audit/evaluation (the auditor's namespace), and the producer additionally authored a pseudo-audit gate there. This is a VALIDATION/LANE-SCOPE failure of the producer, not a provider failure, not a work-quantum starvation, not a gate REVISE/BLOCKED and not a product defect. The deliverable itself is intact.",
+  "api": {
+    "run": "results/evaluation/operational_resume_40234421521/api/run_40232590665_api.json",
+    "jobs": "results/evaluation/operational_resume_40234421521/api/jobs_40232590665_api.json",
+    "run_source": "committed_envelope_replay",
+    "jobs_source": "committed_envelope_replay"
+  },
+  "step_durations_seconds": {
+    "run_lane_cycle": 1324.0,
+    "enforce_lane_write_scope": 0.0,
+    "independent_audit": null
+  },
+  "control_plane_scope_rule": {
+    "available": true,
+    "step_start_line": 198,
+    "allowed_pattern_line": "215: \"$CODE\"/*|\"tests/$LANE\"/*|\"results/$LANE\"/*|\"reports/$LANE\"/*|\"state/$LANE.json\"|\"data/$LANE\"/*|\"\") ;;",
+    "exit3_line": "220: if [[ -n \"$BAD\" ]]; then echo -e \"::error::lane crossed protected scope:\\n$BAD\"; exit 3; fi",
+    "producer_allowed_prefixes": [
+      "evaluation/*",
+      "tests/evaluation/*",
+      "results/evaluation/*",
+      "reports/evaluation/*",
+      "state/evaluation.json",
+      "data/evaluation/*"
+    ],
+    "read_from": "origin/main:.github/workflows/core-lane.yml (control plane, read-only)"
+  },
+  "audit_branch_probe": {
+    "ref": "refs/heads/cycle/core/evaluation/40232590665/audit",
+    "exists": false,
+    "stdout": "(empty)"
+  },
+  "prior_same_class_instances_recorded_not_edited": [
+    "38982176936 (write_scope.py module docstring)",
+    "39470495546 (orchestration_resume_39471603258.py)",
+    "40167904552 / 40186604273 (audit_namespace_recovery_40182692670 RELOCATION_RECORD)"
+  ],
+  "control_plane_hardening_items_recorded_not_edited": [
+    ".github/** is control-plane scope and is NOT edited from this lane. The 'Enforce lane write scope' step runs only AFTER the full agent cycle, so an out-of-scope write costs the whole cycle before it is reported. A pre-flight scope check (the lane already ships an executable port: python -m evaluation.snapshot_audit.write_scope) would fail in seconds.",
+    "A producer that authors results/audit/<lane>/CYCLE_<run>_GATE.json self-certifies; the workflow gives no signal distinguishing auditor-written from producer-written gate files. Recorded, not edited."
+  ]
+}

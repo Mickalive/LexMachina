@@ -1,0 +1,117 @@
+{
+  "schema": "lex-evaluation-benchmark-replay-comparison/1",
+  "lane": "evaluation",
+  "run_id": 40234421521,
+  "generated_at_utc": "2026-10-25T21:51:06Z",
+  "committed_record": "results/evaluation/minimal_ca_falsify_benchmark/40228275848.json",
+  "committed_sha256": "5f5e4156976764be3cc40d79728a5ca11bfcee66bb41f8cbe13bcb26acc726c4",
+  "replay_record": "results/evaluation/operational_resume_40234421521/replay/40234421521.json",
+  "replay_sha256": "d7bec2bef95ecf7ee6b35a4caf504295d4a78f7d94bded33e8b6e7ae36ea973c",
+  "replay_exit_code": 1,
+  "replay_wall_seconds": 0.3,
+  "compared_fields": [
+    "verdict",
+    "exit_code",
+    "n_gates",
+    "n_passed",
+    "n_failed",
+    "n_reported",
+    "n_questions_measured",
+    "packets_measured",
+    "run_valid",
+    "input_drift",
+    "input_drift_invalidates_run",
+    "product_mount_head",
+    "packet_admitted",
+    "human_gate_ready",
+    "ready_for_owner_session",
+    "no_174k_benchmark_rerun",
+    "no_new_thresholds",
+    "falsification_proven",
+    "engine_verdict_before_drift_guard",
+    "engine_exit_code_before_drift_guard",
+    "direction_version",
+    "frozen_hypothesis",
+    "freeze_record",
+    "frozen_label_rubric",
+    "frozen_spec",
+    "non_vacuity",
+    "admissibility",
+    "rehash_before_execution",
+    "rehash_after_execution",
+    "failed_gate_ids",
+    "failed_gate_details",
+    "per_question_identity",
+    "gate_ids",
+    "gate_statuses",
+    "gate_details"
+  ],
+  "excluded_fields_with_reason": {
+    "run_id": "expected to differ (replay run id)",
+    "generated_at_utc": "expected to differ (wall clock)",
+    "engine_record_path": "path differs (scratch out dir)",
+    "wrapper_instrument.sha256_commit_time": "commit-time digest only, never a freeze proof; changed this run by the in-lane DEFAULT_REPORT_DIR fix"
+  },
+  "diffs": [],
+  "verdict": "REPLAY_REPRODUCES",
+  "n_checks": 6,
+  "n_failed": 0,
+  "checks": [
+    {
+      "check": "replay_process_exit_matches_verdict_contract",
+      "passed": true,
+      "detail": {
+        "exit_code": 1,
+        "stderr_tail": ""
+      }
+    },
+    {
+      "check": "replay_record_written",
+      "passed": true,
+      "detail": {
+        "path": "results/evaluation/operational_resume_40234421521/replay/40234421521.json"
+      }
+    },
+    {
+      "check": "replay_measurement_fields_identical",
+      "passed": true,
+      "detail": {
+        "n_compared": 34,
+        "diffs": []
+      }
+    },
+    {
+      "check": "replay_verdict_is_product_falsified",
+      "passed": true,
+      "detail": {
+        "verdict": "PRODUCT_FALSIFIED"
+      }
+    },
+    {
+      "check": "replay_no_input_drift",
+      "passed": true,
+      "detail": {
+        "input_drift": []
+      }
+    },
+    {
+      "check": "wrapper_commit_time_digest_disclosed_as_changed",
+      "passed": true,
+      "detail": {
+        "wrapper_changed": true,
+        "committed": {
+          "path": "evaluation/minimal_ca_falsify_benchmark.py",
+          "sha256_commit_time": "d180944463b46328eabfbb43f760225f0347808154e925848ea10b8f98b89c00",
+          "status": "NEW thin adapter; commit-time digest only, NEVER a freeze proof"
+        },
+        "replay": {
+          "path": "evaluation/minimal_ca_falsify_benchmark.py",
+          "sha256_commit_time": "d06909e9f4d965cb205ba660a639abc5ff8cb5f35b9a3ae111812373b2498ba4",
+          "status": "NEW thin adapter; commit-time digest only, NEVER a freeze proof"
+        },
+        "why": "this resume moved DEFAULT_REPORT_DIR out of the audit namespace; the field is explicitly 'commit-time digest only, NEVER a freeze proof' and is excluded from the measurement comparison"
+      }
+    }
+  ],
+  "claim_ceiling": "Verification re-execution of the accepted wrapper on already-accepted bytes. It is NOT a second independent falsification, NOT a re-score, NOT a bar movement and NOT a serve verdict. The standing falsification of record remains the committed cycle-40228275848 measurement."
+}
