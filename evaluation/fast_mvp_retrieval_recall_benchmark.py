@@ -64,6 +64,18 @@ CODE_FIX_AFTER_FREEZE = [
     "pre_amendment_debug_run_disclosure so both readings are published. That change "
     "is authorised by, and fully described in, "
     "evaluation/FAST_MVP_RETRIEVAL_RECALL_BENCHMARK_40149704173_HYPOTHESIS_V1_2_AMENDMENT.json",
+    "REPAIR (run 40153908549, operational resume of producer run 40153096228): the "
+    "two nested disclosure helpers c3_ok_check / c4_ok_check were DEFINED AFTER their "
+    "call site, so the committed instrument raised UnboundLocalError at "
+    "fast_mvp_retrieval_recall_benchmark.py:689 and could not re-derive its own "
+    "committed record. Reproduced verbatim before the fix: "
+    "`python -m evaluation.fast_mvp_retrieval_recall_benchmark --run-id 40153908549 "
+    "--out /tmp/opencode/prefix_commit_40153908549.json --product-root "
+    "/tmp/lex_accepted/product` -> rc=1, UnboundLocalError on c3_ok_check. The fix "
+    "only reorders the two def statements above their use. No frozen predicate, k, "
+    "population, ground-truth set, control definition, success rule, verdict "
+    "vocabulary or claim ceiling changed; the hypothesis file stays byte-identical "
+    "to its freeze pin.",
 ]
 FREEZE_RELPATH = "evaluation/FAST_MVP_RETRIEVAL_RECALL_BENCHMARK_40149704173_FREEZE_V1.json"
 SPEC_RELPATH = "evaluation/retrieval_gate/frozen_retrieval_benchmark.json"
@@ -682,6 +694,24 @@ def run(run_id: str, out: Path, mount_arg: str | None, repo: Path) -> tuple[int,
         "hypothesis_unchanged": sha256_file(hyp_path) == HYPOTHESIS_SHA256,
     }
 
+    # Helpers for the original-V1 disclosure block MUST be bound before first
+    # use (they were defined after their call site, which raised
+    # UnboundLocalError and made the committed instrument unable to re-derive
+    # its own committed record - repaired in run 40153908549; see
+    # CODE_FIX_AFTER_FREEZE). No predicate, k, population or rule changed.
+    def c3_ok_check(disc_cells):
+        c3_bad = [c["query_key"] for c in disc_cells
+                  if c["liveness_empty"]["recall"] != 0.0
+                  or c["liveness_empty"]["retention"] != 0.0]
+        return not c3_bad
+
+    def c4_ok_check(disc_cells):
+        c4_bad = [c["query_key"] for c in disc_cells
+                  if c["liveness_oracle"]["retention"] != 1.0
+                  or abs((c["liveness_oracle"]["recall"] or 0)
+                         - (c["input"]["coverage"] or 0)) > 1e-12]
+        return not c4_bad
+
     # Compute verdict under original V1 C7 blocking (for disclosure)
     # Under original rule, any control failure -> NOT_MEASURED_VACUOUS
     c7_ok_original = all(g["passed"] for g in c7_rows) and all(g["passed"] for g in c7_dup)
@@ -705,19 +735,6 @@ def run(run_id: str, out: Path, mount_arg: str | None, repo: Path) -> tuple[int,
             "exit_code": EXIT_OK,
             "note": "Claim numbers identical under original rule"
         }
-
-    def c3_ok_check(disc_cells):
-        c3_bad = [c["query_key"] for c in disc_cells
-                  if c["liveness_empty"]["recall"] != 0.0
-                  or c["liveness_empty"]["retention"] != 0.0]
-        return not c3_bad
-
-    def c4_ok_check(disc_cells):
-        c4_bad = [c["query_key"] for c in disc_cells
-                  if c["liveness_oracle"]["retention"] != 1.0
-                  or abs((c["liveness_oracle"]["recall"] or 0)
-                         - (c["input"]["coverage"] or 0)) > 1e-12]
-        return not c4_bad
 
     # ---- verdict -------------------------------------------------------- #
     blocking_controls = [c1, c2]

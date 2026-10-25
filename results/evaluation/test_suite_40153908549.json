@@ -1,0 +1,59 @@
+{
+  "schema": "lex-evaluation-lane-test-suite/1",
+  "lane": "evaluation",
+  "run_id": "40153908549",
+  "direction_version": 68,
+  "generated_at_utc": "2026-10-25T03:01:56Z",
+  "command": "PYTHONPATH=/tmp/lex_accepted/product /usr/bin/python3 -m pytest -q tests/evaluation/test_fast_mvp_retrieval_recall_benchmark.py tests/evaluation/test_retrieval_benchmark.py tests/evaluation/test_retrieval_gate.py tests/evaluation/test_retrieval_instrument_falsification.py tests/evaluation/test_stand_ready_multilingual_probe.py tests/evaluation/test_cross_lingual_alignment_v10.py tests/evaluation/test_disclosure_provenance_crosscheck.py tests/evaluation/test_mount_provenance_gate.py tests/evaluation/test_nested_evidence_refs_guard.py tests/evaluation/test_benchmark_retrieval_counter_authority.py",
+  "deterministic_offline_only": true,
+  "network_calls": 0,
+  "no_universal_174k_benchmarks": true,
+  "selection_rationale": "reuse-first: the accepted retrieval/counter-authority protocol tests, the retrieval gate, the retrieval-instrument falsification legs, the multilingual and cross-lingual robustness tests, the disclosure/provenance crosscheck, the mount-provenance gate, the nested evidence_refs guard, and the new FAST-MVP recall@K instrument contract test. No universal-174k geometry benchmark is run.",
+  "total": 159,
+  "passed": 156,
+  "failed": 3,
+  "returncode": 1,
+  "wall_seconds": 48.875,
+  "failed_tests": [
+    "tests/evaluation/test_cross_lingual_alignment_v10.py::test_cross_lingual_findings",
+    "tests/evaluation/test_disclosure_provenance_crosscheck.py::TestMountEndToEnd::test_full_run_reproduces_the_committed_record",
+    "tests/evaluation/test_mount_provenance_gate.py::test_check_provenance_on_the_committed_tree_does_not_re_derive"
+  ],
+  "baseline_at_snapshot_head": {
+    "head": "ed231f654e083fede185e638b2a93332149c9f65",
+    "measured_by": "the same command executed in a clean detached worktree at that commit during run 40153908549",
+    "total": 38,
+    "passed": 26,
+    "failed": 12,
+    "note": "12 failures at snapshot head; 9 of them were the missing state/evaluation.json 'open_items' key dropped by commit 8fe862e83ade65dcd136e3bcba370347e50e7e66 and are repaired here by a byte-exact, frozen-text-sha-verified restoration; the remaining 3 are pre-existing and are itemised below."
+  },
+  "state_sensitive_subset_comparison": {
+    "files": 12,
+    "baseline_failed": 36,
+    "after_failed": 25,
+    "test_ids_that_newly_fail": [],
+    "test_ids_fixed": 11,
+    "note": "compared by test id (not by message) between the clean worktree at ed231f65 and this run after the state repairs: no test that passed before fails now; 9 open_items failures, evidence_refs_n_matches@state/evaluation.json, root_lane_parity@both and test_evidence_index_resolves_and_counts are fixed. The remaining 25 are historical-pin tests that assert against run ids of long-closed cycles and cannot pass against live state."
+  },
+  "pre_existing_failures_not_repaired_with_disposition": [
+    {
+      "test": "tests/evaluation/test_cross_lingual_alignment_v10.py::test_cross_lingual_findings",
+      "error": "FileNotFoundError: evaluation/results/v3_extended/evaluation_v10_cross_lingual_alignment_results.json absent",
+      "cause": "the fixture was deleted by commit 198c6a65 'cleanup: slim active evaluation branch for query-map MVP' while the test was left in place",
+      "why_not_repaired": "restoring a deliberately-deleted legacy 174k-era fixture, or retiring the legacy test, are lane decisions that need their own explicit record; neither is a side effect of an operational resume, and the lane directive forbids re-running obsolete universal-174k benchmarks"
+    },
+    {
+      "test": "tests/evaluation/test_disclosure_provenance_crosscheck.py::TestMountEndToEnd::test_full_run_reproduces_the_committed_record",
+      "error": "live re-run returns VERDICT_DIVERGENCE_HEADLINE, committed record says VERDICT_DISCLOSURE_PROVENANCE_VERIFIED_ZERO_DIVERGENCE",
+      "cause": "the committed record was produced at an older product mount head; the accepted product mount has advanced to e53662be8d33cd3bde0e8bfb21ec5d30668e1e27",
+      "why_not_repaired": "re-measuring a different claim-bearing record under a new product head is a new measurement with its own run id, not an operational-resume repair"
+    },
+    {
+      "test": "tests/evaluation/test_mount_provenance_gate.py::test_check_provenance_on_the_committed_tree_does_not_re_derive",
+      "error": "assert 3 == 4 (n_do_not_re_derive vs len(PROVENANCE_SOURCES))",
+      "cause": "mount-dependent: the live product mount head changed, so one of the four recorded mount-head sources no longer counts as non-reproducing",
+      "why_not_repaired": "the test pins a 'finding of record' for run 39231573047; editing either the recorded sources or the assertion would re-derive a pinned finding"
+    }
+  ],
+  "scope_note": "all three remaining failures reproduce identically at snapshot head ed231f65 in a clean detached worktree; none was introduced by run 40153908549."
+}

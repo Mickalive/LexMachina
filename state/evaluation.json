@@ -20,35 +20,75 @@
     "reports/audit/evaluation/CYCLE_40111496300.md",
     "results/evaluation/fast_mvp_retrieval_recall_benchmark/40152672734.json",
     "results/audit/evaluation/CYCLE_40152672734_GATE.json",
-    "reports/audit/evaluation/CYCLE_40152672734.md"
+    "reports/audit/evaluation/CYCLE_40152672734.md",
+    "evaluation/fast_mvp_retrieval_recall_benchmark.py",
+    "results/evaluation/fast_mvp_retrieval_recall_benchmark/40153096228.json",
+    "results/evaluation/fast_mvp_retrieval_recall_benchmark/40153096228_PROVENANCE.json",
+    "results/evaluation/fast_mvp_retrieval_recall_benchmark/40153908549.json",
+    "results/evaluation/test_suite_40153908549.json",
+    "tests/evaluation/test_fast_mvp_retrieval_recall_benchmark.py",
+    "reports/evaluation/CYCLE_40153908549.md",
+    "reports/evaluation/OPERATIONAL_RESUME_40153096228_AUDIT_READY.md"
   ],
   "evidence_refs_resolution": {
-    "repaired_in_run": 40149704173,
-    "repairs_rejected_cycle": 40146190698,
+    "repaired_in_run": 40153908549,
+    "repairs_rejected_cycle": 40153096228,
     "repair_round": 1,
-    "before": {"total": 12, "resolved": 11, "unresolved": 1,
-               "unresolved_paths": ["results/evaluation/query_map_cached_bundle_benchmark/40111496300.json"]},
-    "after": {"total": 12, "resolved": 12, "unresolved": 0, "unresolved_paths": []},
-    "method": "recomputed from the committed tree with os.path.exists over every evidence_refs entry; run 40111496300's producer result was never committed (only its audit gate and audit report exist), so the pointer was repointed to those two artifacts instead of fabricating a result file",
-    "note_on_prior_count": "the round-0 gate phrased the pre-repair state as 12/13 resolving; the committed tree at 9ed0edea holds 12 evidence_refs with 11 resolving. The named unresolving path is identical in both counts; the total differs by one and is disclosed rather than silently adopted from either side."
+    "before": {
+      "total": 15,
+      "resolved": 15,
+      "unresolved": 0,
+      "unresolved_paths": []
+    },
+    "after": {
+      "total": 23,
+      "resolved": 23,
+      "unresolved": 0,
+      "unresolved_paths": []
+    },
+    "method": "recomputed by running evaluation/nested_evidence_refs_guard.py over state/evaluation.json: every top-level evidence_refs entry resolves in the worktree (os.path.exists / git history), and the same walk classifies every nested ref-shaped string. Top-level unresolved must be 0; nested ref-shaped strings are counted separately and any that do not resolve are listed by json path rather than silently dropped.",
+    "added_this_run": [
+      "evaluation/fast_mvp_retrieval_recall_benchmark.py",
+      "results/evaluation/fast_mvp_retrieval_recall_benchmark/40153096228.json",
+      "results/evaluation/fast_mvp_retrieval_recall_benchmark/40153096228_PROVENANCE.json",
+      "results/evaluation/fast_mvp_retrieval_recall_benchmark/40153908549.json",
+      "results/evaluation/test_suite_40153908549.json",
+      "tests/evaluation/test_fast_mvp_retrieval_recall_benchmark.py",
+      "reports/evaluation/CYCLE_40153908549.md",
+      "reports/evaluation/OPERATIONAL_RESUME_40153096228_AUDIT_READY.md"
+    ],
+    "note_on_prior_count": "the count carried by the previous cycle is preserved under 'before'; this run appends its own claim-bearing artifacts and re-measures rather than adopting either side's earlier number.",
+    "nested_ref_shaped": {
+      "n_ref_shaped_values_total": 44,
+      "n_top_level_evidence_refs": 23,
+      "n_top_level_unresolved": 0,
+      "n_unresolved": 0,
+      "unresolved": [],
+      "note": "the guard walked every string value of this file: 44 ref-shaped strings, 0 unresolved at top level and 0 unresolved overall, so exit code 0. Resolutions are counted, not asserted silently: both the top-level count and the full walk are recorded here."
+    }
   },
-  "next_recommendation": "FAST-MVP retrieval/counter-authority recall benchmark run 40152672734 executed against frozen 24-cell multilingual cache (direction v68). 24/24 searches succeeded, 10/24 cells discriminating. Two discriminating cells fail the product-retention claim: (1) baseline:business-judgment-rule:de — product reranker dropped all 5 frozen known-relevant authorities (product_retention 0.0 vs input_retention 1.0). (2) counter:petty-theft-dismissal:fr — product reranker dropped 1 of 3 frozen known-counter authorities (product_retention 0.667 vs input_retention 1.0). Aggregate: product_hits 15 < input_hits 17. Language leg: fr 3/4 retained (holds=false), de 11/12 retained (holds=false), it 1/1 retained (holds=true). Benchmark verdict NOT_MEASURED_VACUOUS only because C7_source_validity_and_duplicates failed (EXPLORATORY cache alias collision check, not claim-bearing). Item (2) — the product reranking leg deficit — is NOW_DISCRIMINATING. No universal-174k reruns. Lane remains continue_recommended=false per factory direction v68 while content-filter leg (rejection/incumbent_handling) remains unrepaired per requirement 4 of factory-wide operational requirements.",
+  "next_recommendation": "OPERATIONAL RESUME COMPLETE (run 40153908549 of producer run 40153096228, direction v68). Two facts lead: (1) under the V1_2 amendment the frozen FAST-MVP retrieval/counter-authority recall@20 benchmark now REPRODUCES from the repaired instrument as verdict=PRODUCT_FALSIFIED_RECALL_LOSS, exit_code=1, controls 10 executed / 9 passed (the single non-passing entry C7b_duplicates_reported_only is reported-only under V1_2); (2) under original V1 C7 blocking the same data reads NOT_MEASURED_VACUOUS, exit_code=2 - both readings are published in results/evaluation/fast_mvp_retrieval_recall_benchmark/40153908549.json (sha256 6d48e485eebf635c070a1023b119eb46fc3a2d3890e467f6892e198e0bc943ee) and the claim numbers are identical under both. Measurement: 24/24 cached cells replayed, 10 discriminating, aggregate product_hits 15 < input_hits 17, losses on baseline:business-judgment-rule:de (retention 1.0->0.0) and counter:petty-theft-dismissal:fr (1.0->0.667), language leg fr 4->3 and de 12->11 fail while it 1->1 holds. F-3B disposition executed and proved by re-hash: 40152672734.json restored to its own measurement (ef039fbf8475de0a03003eb6c2190ca5e80a32f641ee23621e3061a7c68bbbd2), the producer's in-place rewrite re-homed verbatim as 40153096228.json (78f249803b1342a156644953866a90603f96147904fef5d9c29cf7196f623989) with a provenance sidecar; nothing deleted. Orchestration diagnosis: run 40153096228's team job returned non-success, so the audit job (gated needs.team.result == success) never ran and no audit branch/gate exists; by elimination the failing step was 'Run lane cycle' (the opencode agent invocation) - state validation, scope guard, job timeout and every pre-agent wrapper failure are ruled out on evidence, and the remaining why is INFERRED because gh is unauthenticated and no run log is readable. Direction item (2) CONDITIONAL RE-MEASURE is NOT_YET_DISCRIMINATING: mount e53662be has the rejection/incumbent leg code but no regenerated 15-bundle flagship family (newest slice dirs hold 1 bundle each), so there is nothing new to measure. continue_recommended=false: the benchmark exists, runs reproducibly and falsifies correctly; the remaining binding residual is Product's ordered work (v68 item 2), not an evaluation measurement, so the successor question is the Factory Director's to set. Full report: reports/evaluation/CYCLE_40153908549.md; resume audit-readiness: reports/evaluation/OPERATIONAL_RESUME_40153096228_AUDIT_READY.md.",
   "metrics_summary": {
-    "total_tests": 38,
-    "passed": 38,
-    "failed": 0,
+    "artifact": "results/evaluation/test_suite_40153908549.json",
+    "artifact_sha256": "845622c2acdb06ad8ce9ae129d1f62cab8aa7ce2b191f97069e310cc457bbfd0",
+    "command": "PYTHONPATH=/tmp/lex_accepted/product python3 -m pytest -q <10 lane test files>",
+    "total_tests": 159,
+    "passed": 156,
+    "failed": 3,
     "skipped": 0,
-    "test_categories": {
-      "retrieval_coverage": 5,
-      "adversarial_execution": 5,
-      "source_validity": 8,
-      "multilingual_robustness": 4,
-      "duplicate_suppression": 3,
-      "cached_reproducibility": 3,
-      "latency": 4,
-      "cluster_stability": 3,
-      "integrated_pipeline": 2,
-      "protocol_freeze": 1
+    "baseline_at_snapshot_head": {
+      "head": "ed231f654e083fede185e638b2a93332149c9f65",
+      "total_tests": 38,
+      "passed": 26,
+      "failed": 12,
+      "note": "measured in a clean detached worktree with the same command; 9 of the 12 were the missing state open_items key and are repaired this cycle"
+    },
+    "remaining_failures_are_pre_existing": true,
+    "remaining_failures_disposition": "reports/evaluation/CYCLE_40153908549.md section 4",
+    "new_instrument_contract_tests": {
+      "file": "tests/evaluation/test_fast_mvp_retrieval_recall_benchmark.py",
+      "total": 7,
+      "passed": 7
     }
   },
   "frozen_protocol_digest": "e1a0b18d23d18bd1aafe54a66329fd0b04cd6f95f794d3d0336e0d867af41b7e",
@@ -81,5 +121,33 @@
     "reranking_falsifier_run": 40152672734,
     "reranking_falsifier_verdict": "PRODUCT_FALSIFIED_RECALL_LOSS (claim data published despite C7_EXPLORATORY failure)",
     "reranking_falsifier_summary": "2 discriminating cells lose ground-truth authorities under product reranking: baseline:business-judgment-rule:de (retention 0.0->1.0, 5 lost ids) and counter:petty-theft-dismissal:fr (retention 0.667->1.0, 1 lost id). Aggregate product_hits 15 < input_hits 17. Language leg fr/de fail hold condition."
-  }
+  },
+  "open_items": {
+    "item_5_fr_live_counter_run_instability_P1": "NOW FORMALIZED AS A GATE-LEVEL DIVERGENCE (v58, run 39322925971): under the frozen mapping-free contract the FR 102-CP same-query group is DIVERGENT on sr::counter_authority_surface (CYCLE_39128456801_live passes, CYCLE_39139648336_F1F2_VERIFY fails with n_issued=0). Retrieval/validity/duplicate verdicts are STABLE on both same-query groups, so P1 is BOUNDED to the counter stage, not systemic. Product response still requested: determinism for a fixed query+corpus, or a run-to-run counter instability disclosure beside the coverage-gap disclosure. Evidence: results/evaluation/cross_run_stability_sweep/39322925971.json.",
+    "item_6_population_and_limiting_identity_movement_P1ext": "NEW THIS CYCLE (REPORTED-ONLY, no gate fails on it). Same-query re-runs move the retrieved population materially: jaccard 0.904762 (DE) / 0.892216 (FR); common ids changing rank 26 / 126; common ids reassigned to a different cluster 71 of 95 (0.747) and 113 of 149 (0.758); on FR the counter evidence is LOST on bge_146 IV 68 and bstger_TPF_2012_62 and GAINED on bger_6B_750_2020, so the IDENTITY of the limiting decision can swap between runs of the same question, and the answer prose sha256 differs (6 cited vs 5 cited). DE counter stability is UNTESTED (stage NOT_APPLICABLE in both DE runs), not proven. Whatever disclosure or determinism fix Product ships should cover the population movement, not only the label count. Evidence: same record, group reported_only_diagnostics."
+  },
+  "open_items_restoration": {
+    "restored_by_run": 40153908549,
+    "restored_from": "state/evaluation.json at parent of commit 8fe862e83ade65dcd136e3bcba370347e50e7e66 (the cycle that removed the whole open_items key while slimming this file)",
+    "scope": "ONLY the two items that evaluation/disclosure_provenance_crosscheck.py freezes by text sha (FROZEN_TEXT_SHAS): item_5_fr_live_counter_run_instability_P1 and item_6_population_and_limiting_identity_movement_P1ext. Items 1-4 and 7 are NOT restored: they were deliberately slimmed and their statuses live in reports/evaluation/.",
+    "byte_exact_proof": {
+      "item_5_fr_live_counter_run_instability_P1": {
+        "item_text_sha256": "ab771b847c3524efdef8229f5453971dda5b51bf872992d5ac8f1fcae03c61d4",
+        "frozen_text_sha256": "ab771b847c3524efdef8229f5453971dda5b51bf872992d5ac8f1fcae03c61d4",
+        "match": true
+      },
+      "item_6_population_and_limiting_identity_movement_P1ext": {
+        "item_text_sha256": "fb26cf86389b6c7db80e43bad9b1c6531b4d476c503a0afc67a6fc34b5105157",
+        "frozen_text_sha256": "fb26cf86389b6c7db80e43bad9b1c6531b4d476c503a0afc67a6fc34b5105157",
+        "match": true
+      }
+    },
+    "why": "the removal left tests/evaluation/test_disclosure_provenance_crosscheck.py failing with KeyError 'open_items' on the pinned text-sha convention test; this is a byte-exact restoration of frozen-pinned content, not a re-wording."
+  },
+  "evidence_refs_n": 23,
+  "github_run": 40153908549,
+  "proposed_run_id": 40153908549,
+  "audit_status": "PENDING_INDEPENDENT_AUDIT",
+  "resumed_run_id": 40153096228,
+  "resume_dispatch_path": "resume_from_run_id (established: parent b9a01d22 is cycle/core/evaluation/40152672734/team; the repair path is impossible because that run has no /audit branch and git fetch of a missing ref returns 128; lab/evaluation tip 3fdb7d63 is not the parent). See reports/evaluation/OPERATIONAL_RESUME_40153096228_AUDIT_READY.md"
 }
