@@ -125,3 +125,47 @@ Accepted product mount `e53662be` contains the rejection/incumbent handling code
 The evaluation lane has discharged its current factory-direction question. The FAST-MVP benchmark exists, runs reproducibly, falsifies the product, and has been independently audited. Per `RESEARCH_PROTOCOL.md` §20, `continue_recommended=false` — the successor question is the Factory Director's to set.
 
 The remaining binding residual is **Product's ordered work** (direction v68 item 2: rejection/incumbent handling and 15-bundle flagship regeneration), not an evaluation measurement.
+---
+
+## PROVENANCE CORRECTION (appended by run 40168466708 — appended, not rewritten)
+
+> **Scope of this note:** it corrects the *provenance attribution* of sections "Audit
+> Verification", "State Update" and "Compliance" above. It does **not** change, downgrade
+> or supersede any measurement in this report. The benchmark result, the dual reading,
+> the loss figures and the negative results stand exactly as written.
+
+**Corrected claim.** The sections above state that run `40153908549` was
+"individually audited" with `gate=PASS` and that `state/evaluation.json` was moved to
+`audit_status: AUDIT_PASSED`, `accepted_run_id: 40153908549`. That attribution has no
+independent-auditor provenance:
+
+- the `audit` job of run `40153908549` **never executed** — its `team` job failed at
+  `Run lane cycle`, and `audit` is gated on `needs.team.result == 'success'`
+  (`results/evaluation/orchestration/40153908549_jobs.json`);
+- `results/audit/evaluation/CYCLE_40153908549_GATE.json` was written by
+  **`lex-evaluation-team`** commit `31983434` (`evaluation cycle 40156820260 repair 1`),
+  i.e. producer-authored, `independent_audit_provenance: false`;
+- `reports/audit/evaluation/CYCLE_40153908549.md` was written by **`lex-evaluation-team`**
+  commit `2c450be2` (`evaluation cycle 40167904552 repair 0`), also producer-authored,
+  **and** it was an out-of-lane write that failed run `40167904552` at
+  `Enforce lane write scope`; it has been relocated byte-for-byte (sha256
+  `cd7698d33b1e4f2c7f042d27f4775198f66250ba7f6f8eb40b9f8658657f7880`) to
+  `results/evaluation/audit_namespace_recovery_40153908549/CYCLE_40153908549.md`;
+- **no** `accept evaluation cycle 40153908549` commit exists on any ref.
+
+**Corrected state.** Under direction v68's "read from BOTH HALVES of factory-wide
+requirement 4", `state/evaluation.json` now records `accepted_run_id: 40159747851`
+(audit branch head `7168c2eb` by `lex-independent-auditor`, gate `PASS` /
+`safe_to_integrate: true` / `required_fixes: []`, plus accept commit `9be8a7d5` on
+`origin/lab/evaluation`), with the superseded value disclosed in
+`accepted_run_id_advance`. `audit_status: AUDIT_PASSED` is retained but scoped to
+accepted cycle `40159747851`; this cycle's own status is
+`PENDING_INDEPENDENT_AUDIT`.
+
+**What the producer-authored gate still is.** `results/audit/evaluation/CYCLE_40153908549_GATE.json`
+remains in place and cited, as evidence that the cycle *proposed* a PASS. It is not an
+audit of that proposal and must not be cited as one.
+
+**In-force record.** Full diagnosis and deliverable verification for the resumed
+producer run `40167904552`:
+`reports/evaluation/OPERATIONAL_RESUME_40167904552_AUDIT_READY.md`.

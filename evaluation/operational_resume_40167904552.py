@@ -136,30 +136,47 @@ def diagnose_scope() -> dict:
     jobs = load_json(REPO / "results/evaluation/orchestration" /
                      f"{RESUMED_RUN}_jobs.json")
     steps = {}
+    job_conclusions = {}
     team_conclusion = None
     for job in jobs.get("jobs", []):
         steps[job["name"]] = [
             {"name": s["name"], "status": s["status"],
              "conclusion": s["conclusion"]} for s in job.get("steps", [])]
+        job_conclusions[job["name"]] = job.get("conclusion")
         if job["name"] == "team":
             team_conclusion = job.get("conclusion")
     failing = [s["name"] for s in steps.get("team", [])
                if s["conclusion"] == "failure"]
+
+    # job-level conclusions, not step-level: an empty step list means the job
+    # never reached its steps (skipped), it does NOT mean the job passed.
+    jobs_observed = {
+        name: {
+            "conclusion": job_conclusions.get(name),
+            "failing_steps": [s["name"] for s in steps.get(name, [])
+                              if s["conclusion"] == "failure"],
+            "n_steps_recorded": len(steps.get(name, [])),
+        }
+        for name in steps
+    }
 
     return {
         "run_id": RESUMED_RUN,
         "team_job_conclusion": team_conclusion,
         "failing_steps": failing,
         "failing_step": failing[0] if len(failing) == 1 else None,
-        "jobs_observed": {k: [s for s in v if s["conclusion"] == "failure"]
-                          for k, v in steps.items()},
-        "audit_job_present": "audit" in steps,
-        "audit_job_skipped": any(
-            s["conclusion"] == "skipped"
-            for s in steps.get("audit", [])),
-        "integrate_job_skipped": any(
-            s["conclusion"] == "skipped"
-            for s in steps.get("integrate", [])),
+        "job_conclusions": job_conclusions,
+        "jobs_observed": jobs_observed,
+        "audit_job_present": "audit" in job_conclusions,
+        "audit_job_skipped": job_conclusions.get("audit") == "skipped",
+        "integrate_job_skipped": job_conclusions.get("integrate") == "skipped",
+        "persist_team_snapshot_is_if_always": (
+            '- name: Persist team snapshot' in main_text
+            and 'if: always()' in main_text.split(
+                '- name: Persist team snapshot', 1)[1][:400]),
+        "persist_team_snapshot_commits_with_git_add_A": (
+            'git add -A' in main_text.split(
+                '- name: Persist team snapshot', 1)[1][:600]),
         "scope_rule_source": {
             "ref": "origin/main:.github/workflows/core-lane.yml",
             "blob_sha256": SCOPE_RULE_BLOB,
