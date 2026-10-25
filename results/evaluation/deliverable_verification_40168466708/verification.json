@@ -1,0 +1,367 @@
+{
+  "schema": "lex-evaluation-operational-resume-diagnosis/1",
+  "lane": "evaluation",
+  "direction_version": 68,
+  "run_id": 40168466708,
+  "resumed_run_id": 40167904552,
+  "generated_at_utc": "2026-10-25T06:36:07Z",
+  "entry_point": "python3 evaluation/operational_resume_40167904552.py",
+  "no_network_calls": true,
+  "deterministic_offline_only": true,
+  "no_universal_174k_benchmarks": true,
+  "falsifier_rerun": false,
+  "d2_path_scope_probe_rerun": false,
+  "packet_of_record_read_for_scoring": false,
+  "orchestration_diagnosis": {
+    "run_id": 40167904552,
+    "team_job_conclusion": "failure",
+    "failing_steps": [
+      "Enforce lane write scope"
+    ],
+    "failing_step": "Enforce lane write scope",
+    "jobs_observed": {
+      "team": [
+        {
+          "name": "Enforce lane write scope",
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ],
+      "resilience": [],
+      "audit": [],
+      "integrate": []
+    },
+    "audit_job_present": true,
+    "audit_job_skipped": false,
+    "integrate_job_skipped": false,
+    "scope_rule_source": {
+      "ref": "origin/main:.github/workflows/core-lane.yml",
+      "blob_sha256": "875fab3f584532bd511a0c44003eebf39f3b5de0",
+      "checked_out_worktree_blob_sha256": "64ffe9d50971e35c775cc5330b3e4da7e841fafc50387123cd7bd392c0290ed2",
+      "checked_out_matches_rule_source": false,
+      "code_assignment_found": true,
+      "case_block": "case \"$p\" in\n              \"$CODE\"/*|\"tests/$LANE\"/*|\"results/$LANE\"/*|\"reports/$LANE\"/*|\"state/$LANE.json\"|\"data/$LANE\"/*|\"\") ;;\n              requirements.txt|pyproject.toml|uv.lock) [[ \"$LANE\" == product ]] || BAD+=\"$p\\n\" ;;\n              *) BAD+=\"$p\\n\" ;;"
+    },
+    "snapshot_commit": "2c450be2a56b36111913b47395d15d89056a4043",
+    "snapshot_changed_paths": [
+      "reports/audit/evaluation/CYCLE_40153908549.md",
+      "reports/evaluation/CYCLE_40162507752_COMPLETION.md",
+      "state/evaluation.json"
+    ],
+    "snapshot_scope_violations": [
+      "reports/audit/evaluation/CYCLE_40153908549.md"
+    ],
+    "snapshot_scope_verdict": "FAIL",
+    "live_worktree_paths": [
+      "results/evaluation/disclosure_provenance_crosscheck/test_local_reexec.json",
+      "evaluation/operational_resume_40167904552.py",
+      "results/evaluation/deliverable_verification_40168466708/lane_suite_40168466708.junit.xml",
+      "results/evaluation/orchestration/40153908549_jobs.json",
+      "results/evaluation/orchestration/40156820260_jobs.json",
+      "results/evaluation/orchestration/40157198963_jobs.json",
+      "results/evaluation/orchestration/40157743614_jobs.json",
+      "results/evaluation/orchestration/40159747851_jobs.json",
+      "results/evaluation/orchestration/40162507752_jobs.json",
+      "results/evaluation/orchestration/40167904552_jobs.json",
+      "results/evaluation/orchestration/40167904552_run_record.json",
+      "results/evaluation/orchestration/40168466708_nested_evidence_refs.json"
+    ],
+    "live_worktree_scope_violations": [],
+    "live_worktree_scope_verdict": "PASS",
+    "root_cause": "the producer cycle wrote a file into reports/audit/evaluation/, which is the independent-auditor namespace and is NOT in the evaluation lane's allowed write scope (evaluation/*, tests/evaluation/*, results/evaluation/*, reports/evaluation/*, state/evaluation.json, data/evaluation/*). Enforce lane write scope therefore exited 3, the team job was marked failure, and the audit job - gated on needs.team.result == 'success' - was skipped, so no gate and no integration were produced."
+  },
+  "deliverable_verification": {
+    "run_id": 40168466708,
+    "direction_version": 68,
+    "checks": {
+      "item1_gate_file_exists": {
+        "ok": true,
+        "detail": "/home/runner/work/LexMachina/LexMachina/results/audit/evaluation/CYCLE_40133253347_GATE.json"
+      },
+      "item1_gate_pass": {
+        "ok": true,
+        "detail": "PASS"
+      },
+      "item1_gate_authored_by_independent_auditor": {
+        "ok": true,
+        "detail": "23967d7325175990ae82f30da802ba011053abb1 audit evaluation cycle 40133253347"
+      },
+      "item1_required_fixes_are_non_blocking": {
+        "ok": true,
+        "detail": [
+          "NON-BLOCKING (CC6/CC7, provenance verification): The correction instrument's CC6 and CC7 checks fail because commit 51d306c is not resolvable in the product mou"
+        ]
+      },
+      "item1_file_line_inventory_rederived": {
+        "ok": true,
+        "detail": {
+          "file": "product/query/pipeline.py",
+          "file_present": true,
+          "if adversarial_retrieval:": [
+            1310,
+            1339
+          ],
+          "audited = apply_verified_span_selection(": [
+            1343
+          ],
+          "if not fixture_generation:": [
+            1230,
+            1347,
+            1357
+          ],
+          "audited = apply_counter_emission_repair(audited)": [
+            1348
+          ],
+          "file_sha256": "cb2c2595a3e85eb4ad53a6333bbbd91a671f85ec61f90ce9350a8df3558eda4f",
+          "commit_51d306c_resolvable_in_mount": false,
+          "mount_head": "29a5c4a548ba0ab8b6a8f574de1e732d17f3d109",
+          "mount_is_shallow_clone": "true"
+        }
+      },
+      "item2_mount_head_unchanged_since_recorded_adjudication": {
+        "ok": true,
+        "detail": {
+          "recorded": "29a5c4a548ba0ab8b6a8f574de1e732d17f3d109",
+          "now": "29a5c4a548ba0ab8b6a8f574de1e732d17f3d109"
+        }
+      },
+      "item2_recorded_post_repair_bundles_byte_identical": {
+        "ok": true,
+        "detail": [
+          {
+            "path": "results/product/offline_slice/20261024T185212Z/rent-default.bundle.json",
+            "recorded": "04dbabd0dc34881934119756390d55139a611c2c141df8514bbff07618f2704b",
+            "now": "04dbabd0dc34881934119756390d55139a611c2c141df8514bbff07618f2704b",
+            "match": true
+          },
+          {
+            "path": "results/product/offline_slice/20261024T185255Z/rent-default.bundle.json",
+            "recorded": "154b12edaa8d11b9b7dcea56494a0af0f3c58504e3f9ba4fccfd900d5401836a",
+            "now": "154b12edaa8d11b9b7dcea56494a0af0f3c58504e3f9ba4fccfd900d5401836a",
+            "match": true
+          },
+          {
+            "path": "results/product/offline_slice/20261024T185257Z/petty-theft-dismissal.bundle.json",
+            "recorded": "b3ea9671cb1b2e04ac76acd784d5079c094008141b4f28e7845d847f72826c96",
+            "now": "b3ea9671cb1b2e04ac76acd784d5079c094008141b4f28e7845d847f72826c96",
+            "match": true
+          },
+          {
+            "path": "results/product/offline_slice/20261024T185300Z/corporate-criminal-liability.bundle.json",
+            "recorded": "3ea3a25e24e05e6d22fadf76b91810054fe7cd35c013037f9b9e19b12508c47c",
+            "now": "3ea3a25e24e05e6d22fadf76b91810054fe7cd35c013037f9b9e19b12508c47c",
+            "match": true
+          },
+          {
+            "path": "results/product/offline_slice/20261024T185303Z/business-judgment-rule.bundle.json",
+            "recorded": "1202c30d298ed6c349c8e9f497cecad0b43d76b5e651d36299dfd404597dc655",
+            "now": "1202c30d298ed6c349c8e9f497cecad0b43d76b5e651d36299dfd404597dc655",
+            "match": true
+          },
+          {
+            "path": "results/product/server_slice/20261024T185740Z/served.bundle.json",
+            "recorded": "7cbd65288b1c6860888c88f76999da9262afd567eb599963fa450c777132e8d5",
+            "now": "7cbd65288b1c6860888c88f76999da9262afd567eb599963fa450c777132e8d5",
+            "match": true
+          },
+          {
+            "path": "results/product/server_slice/20261024T185740Z/first_page.bundle.json",
+            "recorded": "7b66249c52e611c9e66a9a07148cddc8af15bd27166cc9a1e63592c546a0dd39",
+            "now": "7b66249c52e611c9e66a9a07148cddc8af15bd27166cc9a1e63592c546a0dd39",
+            "match": true
+          }
+        ]
+      },
+      "item2_carry_forward_valid": {
+        "ok": true,
+        "detail": "recorded precondition verdict is applicable to the current mount only because head and every scored bundle are byte-identical"
+      },
+      "item3_frozen_inputs_present": {
+        "ok": true,
+        "detail": {
+          "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+          "results/evaluation/fast_mvp_current_head_ca_falsifier/40105794124.json": "fd25345b02da6658edbd5ed8722c69c9b3c7dbbc22e7856740cfdd421c5c4592",
+          "evaluation/FAST_MVP_CURRENT_HEAD_CA_FALSIFIER_40105794124_HYPOTHESIS_V1.json": "446cf7ce12b53a02b55b7515a183da2170ff071dfb3db2db0bfa1a717f8fcd6f",
+          "evaluation/FAST_MVP_CURRENT_HEAD_CA_FALSIFIER_40105794124_FREEZE_V1.json": "992d717b3acce26918cb5191ec7dc6ee46be2a8713b62c6987019939b89eef7a"
+        }
+      },
+      "item4_three_non_blocking_fixes_quoted_verbatim": {
+        "ok": true,
+        "detail": [
+          "NON-BLOCKING (D1, wording): reports/product/CYCLE_39965089504.md section 6 says test_state_cycle_39965089504.py passes 6/6, but the committed file has 7 tests (7th added in follow-up commit e0c9e32); state/product.json is internally inconsistent, saying both '7-test re-derivation suite' and '(6 tests)'. All 7 pass and suite totals are unaffected; correct the wording in the next cycle.",
+          "NON-BLOCKING (D2, wording): results/product/orchestration/CYCLE_39965089504_resume_diagnosis.json durable_delta calls product/tests/test_counter_surface_known.py '(new, 90 lines)', but the file existed on accepted base b48d6f3 (created by cycle 39949461593 with 4 tests); this cycle appended 2 D1 tests (90 inserted lines). Inventory wording only; the appended tests are real and pass.",
+          "NON-BLOCKING (D3, environment disclosure): producer suite artifact records base 172/1309/20 and head 171/1325/20 (failed/passed/skipped); an auditor environment with identical package versions reproduces 172/1308/21 and 171/1324/21 - one mount/data-dependent skip-to-pass variance present identically on BOTH trees, so FAILED sets and the 0-new/1-fixed conclusion are unaffected. Worth one disclosing sentence next time suite counts are published."
+        ]
+      }
+    },
+    "failures": [],
+    "item1": {
+      "status": "DISCHARGED",
+      "accepted_cycle": 40133253347,
+      "gate": "PASS",
+      "non_blocking_required_fixes": [
+        "NON-BLOCKING (CC6/CC7, provenance verification): The correction instrument's CC6 and CC7 checks fail because commit 51d306c is not resolvable in the product mount's git history (git rev-parse/git show fail). The observable code state at head 8b5b08dd matches the correction's description (new adversarial_retrieval gate at line 1339, span seam call at 1343, separate fixture_generation gates for counter_emission_repair at 1347/1357). The HEAD blob hash matches the freeze-pinned expected blob for 51d306c. This is a mount history availability limitation, not a substantive error. Document the gap in any follow-up citation of this correction."
+      ],
+      "cc6_cc7_gap_now_documented_here": {
+        "file": "product/query/pipeline.py",
+        "file_present": true,
+        "if adversarial_retrieval:": [
+          1310,
+          1339
+        ],
+        "audited = apply_verified_span_selection(": [
+          1343
+        ],
+        "if not fixture_generation:": [
+          1230,
+          1347,
+          1357
+        ],
+        "audited = apply_counter_emission_repair(audited)": [
+          1348
+        ],
+        "file_sha256": "cb2c2595a3e85eb4ad53a6333bbbd91a671f85ec61f90ce9350a8df3558eda4f",
+        "commit_51d306c_resolvable_in_mount": false,
+        "mount_head": "29a5c4a548ba0ab8b6a8f574de1e732d17f3d109",
+        "mount_is_shallow_clone": "true"
+      }
+    },
+    "item2": {
+      "status": "NOT_YET_DISCRIMINATING",
+      "H1_leg_landed": true,
+      "H2_full_family_regenerated": false,
+      "set_relations": {
+        "frozen_probe_family_n": 15,
+        "member_for_member_matching": {
+          "matched_members": 10,
+          "matched_per_role": {
+            "offline/business-judgment-rule": 0,
+            "offline/corporate-criminal-liability": 0,
+            "offline/petty-theft-dismissal": 0,
+            "offline/rent-default": 8,
+            "server/served": 2
+          },
+          "of": 15,
+          "rule": "each frozen family member matches at most one distinct post-repair bundle of the same (slice_kind, query) role"
+        },
+        "never_cardinality_only": "path-identity sets, role tables and the member-for-member matching are all published; no 'exactly/all-of' claim is made from a count alone",
+        "path_identity": {
+          "frozen_family_only": [
+            "results/product/offline_slice/20261023T190402Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T202433Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T202440Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T203316Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T212530Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T214943Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T220629Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T222223Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T223903Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T224023Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T224250Z/rent-default.bundle.json",
+            "results/product/server_slice/20261023T223109Z/served.bundle.json",
+            "results/product/server_slice/20261023T223909Z/served.bundle.json",
+            "results/product/server_slice/20261023T224031Z/served.bundle.json",
+            "results/product/server_slice/20261023T224255Z/served.bundle.json"
+          ],
+          "frozen_family_only_n": 15,
+          "interpretation": "path identity is EXPECTED to be 0 while the baseline family is preserved byte-for-byte (append-only); it is reported for completeness and is never the sole basis of the verdict",
+          "intersection_by_path": [],
+          "intersection_by_path_n": 0,
+          "post_repair_only": [
+            "results/product/offline_slice/20261024T185212Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261024T185255Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261024T185257Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261024T185300Z/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/20261024T185303Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261024T235221Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T004717Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T005703Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T010046Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261025T010052Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261025T010108Z/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/20261025T015155Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T031500Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T033046Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261025T033055Z/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/20261025T035854Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T040208Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261025T040216Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261025T040222Z/corporate-criminal-liability.bundle.json",
+            "results/product/server_slice/20261024T185740Z/served.bundle.json",
+            "results/product/server_slice/40143042888/served.bundle.json"
+          ],
+          "post_repair_only_n": 21
+        },
+        "per_role_multiplicity_parity": false,
+        "post_repair_n": 21,
+        "role_covered_every_frozen_role_has_a_post_repair_bundle": true,
+        "role_relation": {
+          "offline/business-judgment-rule": {
+            "covered": true,
+            "frozen_family": 0,
+            "post_repair": 3
+          },
+          "offline/corporate-criminal-liability": {
+            "covered": true,
+            "frozen_family": 0,
+            "post_repair": 4
+          },
+          "offline/petty-theft-dismissal": {
+            "covered": true,
+            "frozen_family": 0,
+            "post_repair": 4
+          },
+          "offline/rent-default": {
+            "covered": false,
+            "frozen_family": 11,
+            "post_repair": 8
+          },
+          "server/served": {
+            "covered": false,
+            "frozen_family": 4,
+            "post_repair": 2
+          }
+        },
+        "roles_frozen_family": {
+          "offline/rent-default": 11,
+          "server/served": 4
+        },
+        "roles_post_repair": {
+          "offline/business-judgment-rule": 3,
+          "offline/corporate-criminal-liability": 4,
+          "offline/petty-theft-dismissal": 4,
+          "offline/rent-default": 8,
+          "server/served": 2
+        }
+      },
+      "recorded_artifact": "results/evaluation/post_repair_family_ca_falsifier/40162507752.json",
+      "recorded_run": "40162507752",
+      "carried_forward_without_rerun": true,
+      "reexecution_declined_reason": "direction v68 ordered work (5): a cycle that repeats the frozen bench, the D2 profile or the bypass diagnosis is zero delta. The mount head and every scored bundle are byte-identical to the recorded adjudication, so re-running would reproduce the same bytes; the falsifier, d2_path_scope_probe and packet-of-record 39319405429 are NOT re-run.",
+      "full_protocol": "NOT_YET_DISCRIMINATING (ordered item (2) protocol not executed: member-for-member regeneration of the named frozen family is 10/15; no synthetic stand-in is substituted, d2_path_scope_probe is not re-run as the ordered re-measure, packet-of-record 39319405429 is not scored and the standing falsification is not re-run)"
+    },
+    "item3": {
+      "benchmark_of_record": "PRODUCT_FALSIFIED on packet-of-record 39319405429 (4-gate set)",
+      "frozen_input_sha256": {
+        "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+        "results/evaluation/fast_mvp_current_head_ca_falsifier/40105794124.json": "fd25345b02da6658edbd5ed8722c69c9b3c7dbbc22e7856740cfdd421c5c4592",
+        "evaluation/FAST_MVP_CURRENT_HEAD_CA_FALSIFIER_40105794124_HYPOTHESIS_V1.json": "446cf7ce12b53a02b55b7515a183da2170ff071dfb3db2db0bfa1a717f8fcd6f",
+        "evaluation/FAST_MVP_CURRENT_HEAD_CA_FALSIFIER_40105794124_FREEZE_V1.json": "992d717b3acce26918cb5191ec7dc6ee46be2a8713b62c6987019939b89eef7a"
+      },
+      "reread_for_scoring": false,
+      "bars_moved": false
+    },
+    "item4": {
+      "source": "/tmp/lex_accepted/product/results/audit/product/CYCLE_39965089504_GATE.json",
+      "gate": "PASS",
+      "required_fixes": [
+        "NON-BLOCKING (D1, wording): reports/product/CYCLE_39965089504.md section 6 says test_state_cycle_39965089504.py passes 6/6, but the committed file has 7 tests (7th added in follow-up commit e0c9e32); state/product.json is internally inconsistent, saying both '7-test re-derivation suite' and '(6 tests)'. All 7 pass and suite totals are unaffected; correct the wording in the next cycle.",
+        "NON-BLOCKING (D2, wording): results/product/orchestration/CYCLE_39965089504_resume_diagnosis.json durable_delta calls product/tests/test_counter_surface_known.py '(new, 90 lines)', but the file existed on accepted base b48d6f3 (created by cycle 39949461593 with 4 tests); this cycle appended 2 D1 tests (90 inserted lines). Inventory wording only; the appended tests are real and pass.",
+        "NON-BLOCKING (D3, environment disclosure): producer suite artifact records base 172/1309/20 and head 171/1325/20 (failed/passed/skipped); an auditor environment with identical package versions reproduces 172/1308/21 and 171/1324/21 - one mount/data-dependent skip-to-pass variance present identically on BOTH trees, so FAILED sets and the 0-new/1-fixed conclusion are unaffected. Worth one disclosing sentence next time suite counts are published."
+      ],
+      "all_non_blocking": true
+    },
+    "verdict": "DELIVERABLE_VERIFIED"
+  },
+  "exit_code": 0
+}

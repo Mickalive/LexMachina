@@ -1,0 +1,31 @@
+{
+  "schema": "lex-evaluation-audit-namespace-relocation/1",
+  "lane": "evaluation",
+  "direction_version": 68,
+  "run_id": 40168466708,
+  "resumed_run_id": 40167904552,
+  "generated_at_utc": "2026-10-25T06:38:39Z",
+  "action": "RELOCATION_NOT_DELETION",
+  "reason": "reports/audit/evaluation/ is the independent-auditor namespace. The evaluation lane write scope in .github/workflows/core-lane.yml on origin/main allows only evaluation/*, tests/evaluation/*, results/evaluation/*, reports/evaluation/*, state/evaluation.json and data/evaluation/*. Producer run 40167904552 committed a file there, Enforce lane write scope exited 3, the team job failed and the audit job (gated on needs.team.result == success) was skipped - that is the orchestration failure this operational resume repairs. The lane may neither keep nor delete files in that namespace during its own run; the file is therefore moved into the lane namespace with its bytes preserved exactly.",
+  "removed_from": "reports/audit/evaluation/CYCLE_40153908549.md",
+  "removed_from_sha256": "cd7698d33b1e4f2c7f042d27f4775198f66250ba7f6f8eb40b9f8658657f7880",
+  "preserved_at": "results/evaluation/audit_namespace_recovery_40153908549/CYCLE_40153908549.md",
+  "preserved_at_sha256": "cd7698d33b1e4f2c7f042d27f4775198f66250ba7f6f8eb40b9f8658657f7880",
+  "bytes_identical": true,
+  "nothing_deleted": true,
+  "accepted_base_consistency": {
+    "accepted_ref": "origin/lab/evaluation",
+    "file_present_at_accepted_base": false,
+    "note": "the file did not exist on the accepted base before producer run 40167904552 added it; removing it restores reports/audit/evaluation/ and results/audit/evaluation/ byte-for-byte to the accepted-base tree, so the team snapshot adds nothing to the auditor namespace."
+  },
+  "provenance": {
+    "file_added_by_commit": "2c450be2a56b36111913b47395d15d89056a4043|lex-evaluation-team|evaluation cycle 40167904552 repair 0",
+    "companion_gate_added_by_commit": "319834343499a1cae7c67698b52c57c849653e77|lex-evaluation-team|evaluation cycle 40156820260 repair 1",
+    "independent_auditor_commits_for_this_md": [],
+    "independent_auditor_commits_for_this_gate": [],
+    "finding": "no commit authored by lex-independent-auditor ever touched reports/audit/evaluation/CYCLE_40153908549.md or results/audit/evaluation/CYCLE_40153908549_GATE.json, and the GitHub Actions jobs API shows run 40153908549's audit job was SKIPPED (team job failed at 'Run lane cycle'). Both artifacts were therefore produced by producer (team) runs, not by the independent auditor. The .md is preserved for provenance and is explicitly NOT an independent audit report.",
+    "jobs_evidence": "results/evaluation/orchestration/40153908549_jobs.json"
+  },
+  "evidence_refs_impact": "state/evaluation.json evidence_refs entry 'reports/audit/evaluation/CYCLE_40153908549.md' is repointed to the preserved path; the gate entry results/audit/evaluation/CYCLE_40153908549_GATE.json is left untouched because it is historical accepted-lineage content the lane may not rewrite.",
+  "not_an_audit_rewriting": "No gate, verdict, required_fixes, frozen bar, rubric, threshold or accepted result is changed by this relocation. This run's own work is submitted to the independent audit job as run 40168466708."
+}
