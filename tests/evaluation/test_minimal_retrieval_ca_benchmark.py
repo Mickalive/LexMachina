@@ -366,16 +366,32 @@ def test_freeze_record_v1_mount_digests_are_real_not_placeholder():
 
 
 def test_wrapper_instrument_pin_matches_state():
-    """The wrapper's commit-time digest is state-pinned and is NEVER called a
-    freeze proof.
+    """The wrapper's commit-time digest is HISTORICALLY state-pinned and is
+    NEVER called a freeze proof.
 
     Repaired by run 39732040165: the pin lives in the re-homed HISTORICAL block
-    fixture and still re-hashes to the live wrapper file.
+    fixture.  Repaired again by run 40187594111: the fixture describes the
+    wrapper as it stood at HISTORICAL_BLOCK_SOURCE_COMMIT, but the original
+    assertion re-hashed the LIVE wrapper.  The live wrapper legitimately changed
+    in accepted cycle 40159747851 (dynamic direction-version lookup), so the
+    assertion was pinned to a moving target.  The digest assertion is preserved
+    unchanged; only its anchor is corrected to the historical commit the fixture
+    itself names.  The live wrapper is intentionally not pinned here — a live
+    digest belongs in a live claim record, not in a 2026-10-20 fixture.
     """
     blk = _historical_block()
-    actual = _sha256(WRAPPER_INSTRUMENT)
+    # Hash the RAW git blob bytes.  _git()/ _git_show() strip the trailing
+    # newline, which would change the digest; the pin is a file digest.
+    proc = subprocess.run(
+        ["git", "-C", str(_REPO_ROOT), "show",
+         f"{HISTORICAL_BLOCK_SOURCE_COMMIT}:evaluation/minimal_retrieval_ca_benchmark.py"],
+        capture_output=True, timeout=60)
+    if proc.returncode != 0:
+        pytest.skip("git show unavailable; historical wrapper digest cannot be re-hashed")
+    actual = hashlib.sha256(proc.stdout).hexdigest()
     assert blk["instrument_sha256_at_repair"] == actual, (
-        "state wrapper-instrument pin does not re-hash to the file")
+        "historical state wrapper-instrument pin does not re-hash to the file "
+        f"at {HISTORICAL_BLOCK_SOURCE_COMMIT}")
     assert "NEVER a freeze proof" in blk["instrument_sha256_status"]
 
 

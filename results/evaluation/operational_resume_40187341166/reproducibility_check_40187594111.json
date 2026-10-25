@@ -1,0 +1,65 @@
+{
+  "schema": "lex-evaluation-reproducibility-check/1",
+  "lane": "evaluation",
+  "run": 40187594111,
+  "captured_at_utc": "2026-10-25T11:19:34Z",
+  "purpose": "Verify the frozen minimal retrieval/counter-authority benchmark is deterministic and that the committed record 40182692670 still reproduces on the current accepted product mount. This is a verification re-execution, not a new claim-bearing measurement.",
+  "command": "PYTHONPATH=/tmp/lex_accepted/product python3 -m evaluation.minimal_retrieval_ca_benchmark --run-id local_40187594111 --out-dir /tmp/opencode/eval_resume/out --report-dir /tmp/opencode/eval_resume/reports",
+  "committed_record": {
+    "path": "results/evaluation/minimal_retrieval_ca_benchmark/40182692670.json",
+    "sha256": "fd29a395f8b5307d67abeb79335337250518cc6de171a26ddbf09768840ade73",
+    "verdict": "PRODUCT_FALSIFIED",
+    "exit_code": 1,
+    "product_mount_head": "29a5c4a548ba0ab8b6a8f574de1e732d17f3d109"
+  },
+  "scratch_record": {
+    "path": "results/evaluation/operational_resume_40187341166/scratch_40187594111_wrapper.json",
+    "sha256": "75ef2582878ad33f36314ada3b7e52d76b9af3eb43a71fcc35c3a146b55a4297",
+    "verdict": "PRODUCT_FALSIFIED",
+    "exit_code": 1,
+    "product_mount_head": "29a5c4a548ba0ab8b6a8f574de1e732d17f3d109"
+  },
+  "committed_engine_record": {
+    "path": "results/evaluation/minimal_retrieval_ca_benchmark/40182692670_engine_mapping_free_recall_falsifier.json",
+    "sha256": "7870ba356a867c56476fe7e14ad4e35ee4989ecc7f952b1b6ff5c8bf3c18d2eb"
+  },
+  "scratch_engine_record": {
+    "path": "results/evaluation/operational_resume_40187341166/scratch_40187594111_engine.json",
+    "sha256": "fe0e5b88c5606b99b9ee44dda69587b63704edf292b61f6a64d49b728c4057be"
+  },
+  "normalization": {
+    "stripped_keys": [
+      "run_id",
+      "generated_at_utc",
+      "engine_record_path",
+      "elapsed_s",
+      "elapsed_seconds",
+      "generated_at"
+    ],
+    "why": "these are run identity / wall-clock / path fields, not measurements; every gate predicate, measured payload, bundle digest, rehash map, non-vacuity control and verdict is compared"
+  },
+  "wrapper_normalized_equal": true,
+  "wrapper_differing_top_level_keys": [],
+  "engine_normalized_equal": true,
+  "engine_differing_top_level_keys": [],
+  "gates_equal": true,
+  "failed_gates_equal": true,
+  "non_vacuity_equal": true,
+  "per_question_equal": true,
+  "rehash_maps_equal": true,
+  "input_drift": [],
+  "run_valid": true,
+  "falsification_proven": true,
+  "n_gates": 18,
+  "n_passed": 11,
+  "n_failed": 4,
+  "n_reported": 3,
+  "failed_gate_names": [
+    "mf::concept_coverage::39319405429::de-kapitalverletzung",
+    "mf::counter_authority_surface::39319405429::de-kapitalverletzung",
+    "mf::counter_authority_surface::39319405429::fr-bail-entretien",
+    "mf::counter_authority_surface::39319405429::it-responsabilita-medica"
+  ],
+  "interpretation": "The scratch re-execution is byte-identical to the committed 40182692670 record after stripping run identity/timestamp/path fields. No input drift. The product verdict PRODUCT_FALSIFIED and all four failed gates reproduce on mount head 29a5c4a5.",
+  "claim_ceiling": "This check verifies reproducibility of the frozen instrument. It does not create a second independent falsification, move a bar, or certify admission."
+}

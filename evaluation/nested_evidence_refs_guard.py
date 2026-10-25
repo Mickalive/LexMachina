@@ -50,11 +50,15 @@ DISCLOSED_KNOWN_UNRESOLVABLE = {
     # evidence_index_repair_40040574595 blocks which are self-labelling.
 }
 
-# Top-level evidence_refs that are known publication-lag artifacts:
-# their artifacts live on audit branches, not in the main worktree or
-# accepted mounts. Factory-wide requirement 39: "a stale mount or a lagging
-# accepted-state index is a publication-lag artifact, NOT evidence that a
-# cycle is unaccepted". These are preserved for provenance and disclosed here.
+# HISTORICAL disclosure only. These two paths were cited by the producer-authored
+# audit gate CYCLE_40174940149_GATE.json but were never committed on any ref:
+# `git rev-list --all --objects` finds only the gate/report, not the claimed
+# benchmark result or human report. They are NOT publication-lag artifacts.
+# Run 40187594111 removed them from state/evaluation.json and re-pointed the
+# evidence index at the real 40175266143 artifacts; the set is retained here
+# only so a replay of the old state does not fail this guard while the removal
+# and its proof are recorded in
+# results/evaluation/operational_resume_40187341166/evidence_ref_correction.json.
 DISCLOSED_TOP_LEVEL_UNRESOLVABLE = {
     "results/evaluation/retrieval_counter_authority_benchmark/40174940149.json",
     "reports/evaluation/RETRIEVAL_CA_BENCHMARK_40174940149.md",
@@ -71,6 +75,10 @@ _REF_RE = re.compile(
 DISCLOSURE_PARENT_KEYS = {
     "old", "typo_old", "previous_record_reference", "previous",
     "known_unresolvable", "removed_dangling_refs", "was",
+    # run 40187594111: `removed_refs` is the explicit disclosure list for the
+    # 40174940149 phantom paths; they are preserved as evidence of the index
+    # correction, never charged as current unresolved refs.
+    "removed_refs",
 }
 
 

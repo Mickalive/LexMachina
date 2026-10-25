@@ -1,0 +1,55 @@
+{
+  "schema": "lex-evaluation-audit-namespace-relocation/1",
+  "lane": "evaluation",
+  "run": 40187594111,
+  "captured_at_utc": "2026-10-25T11:19:47Z",
+  "cycle_disclosed": 40182692670,
+  "why": "the evaluation team wrote these audit-namespace paths; results/audit/* and reports/audit/* are outside the evaluation lane write scope. Run 40186604273 failed at Enforce lane write scope on this class; run 40167904552 had the same defect. Per AGENTS.md #6 and the accepted precedent, the artifacts are disclosed and copied byte-for-byte, not deleted or rewritten.",
+  "originals_retained": true,
+  "originals_deleted": false,
+  "independent_audit_provenance": false,
+  "provenance_finding": "the gate says auditor_scope_note \"Audit artifacts written to the audit-job checkout ...\", but git records the author as lex-evaluation-team on commit 2eee3a16 (evaluation cycle 40186604273 repair 0). The gate is producer-authored and must not be cited as an independent audit.",
+  "git_provenance": {
+    "results/audit/evaluation/CYCLE_40182692670_GATE.json": {
+      "commit": "2eee3a16ab410a71ece2017d1ce0ed40d1e23433",
+      "author_name": "lex-evaluation-team",
+      "author_email": "lex-team@autonomous.local",
+      "subject": "evaluation cycle 40186604273 repair 0"
+    },
+    "reports/audit/evaluation/CYCLE_40182692670.md": {
+      "commit": "2eee3a16ab410a71ece2017d1ce0ed40d1e23433",
+      "author_name": "lex-evaluation-team",
+      "author_email": "lex-team@autonomous.local",
+      "subject": "evaluation cycle 40186604273 repair 0"
+    }
+  },
+  "items": [
+    {
+      "source_path": "results/audit/evaluation/CYCLE_40182692670_GATE.json",
+      "relocated_copy": "results/evaluation/audit_namespace_recovery_40182692670/CYCLE_40182692670_GATE.json",
+      "source_sha256": "3991791601058a76e3af041b4bc59ddb8bfcd6fe71c2d8434e1b5bc3b3a6a655",
+      "copy_sha256": "3991791601058a76e3af041b4bc59ddb8bfcd6fe71c2d8434e1b5bc3b3a6a655",
+      "byte_identical": true
+    },
+    {
+      "source_path": "reports/audit/evaluation/CYCLE_40182692670.md",
+      "relocated_copy": "results/evaluation/audit_namespace_recovery_40182692670/CYCLE_40182692670.md",
+      "source_sha256": "7f6b085985ecfd510d38e5640f3a60ee8bb7ea2b0e140fdfee183bfe27b741f9",
+      "copy_sha256": "7f6b085985ecfd510d38e5640f3a60ee8bb7ea2b0e140fdfee183bfe27b741f9",
+      "byte_identical": true
+    }
+  ],
+  "gate_content_summary": {
+    "gate": "REVISE",
+    "safe_to_integrate": false,
+    "required_fixes_count": 4,
+    "required_fixes": [
+      "Content filter (D2/D3/D4) span-seam must be exercised on V3 packet 39319405429; current V3 packet predates filter landing on product chain v68",
+      "Counter-authority surface must emit rows on all three language bundles (de/fr/it) for the served questions; currently emits zero rows across all bundles",
+      "Concept coverage gap: 2/8 core concepts (kapitalverletzung, uberwachungspflicht) retrieve zero rows for de-kapitalverletzung question",
+      "Span-seam/filter must not leave defective incumbent counter_evidence verified when it abstains (factory direction v68 requirement)"
+    ]
+  },
+  "disposition": "The gate is retained as evidence that a producer run PROPOSED REVISE and as a source of reproducible product findings (this run independently reproduced the retrieval/CA measurements). It is NOT an independent audit and cannot satisfy factory-wide requirement 4. The independent audit job for the current run must produce its own gate under results/audit/evaluation/.",
+  "claim_ceiling": "Disclosure/relocation only; no gate status is adopted, upgraded or downgraded, and no measurement is rewritten."
+}

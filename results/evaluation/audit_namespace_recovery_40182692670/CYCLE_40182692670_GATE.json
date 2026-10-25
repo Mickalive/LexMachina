@@ -1,0 +1,48 @@
+{
+  "schema": "lex-audit-gate/1",
+  "lane": "evaluation",
+  "run_id": "40182692670",
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "repair_round": 0,
+  "required_fixes": [
+    "Content filter (D2/D3/D4) span-seam must be exercised on V3 packet 39319405429; current V3 packet predates filter landing on product chain v68",
+    "Counter-authority surface must emit rows on all three language bundles (de/fr/it) for the served questions; currently emits zero rows across all bundles",
+    "Concept coverage gap: 2/8 core concepts (kapitalverletzung, uberwachungspflicht) retrieve zero rows for de-kapitalverletzung question",
+    "Span-seam/filter must not leave defective incumbent counter_evidence verified when it abstains (factory direction v68 requirement)"
+  ],
+  "audited_base_commit": "2a565718139059ebebfe845a7b639a209d1e663b",
+  "audited_producer_commit": "29a5c4a548ba0ab8b6a8f574de1e732d17f3d109",
+  "auditor_scope_note": "Audit artifacts written to the audit-job checkout at results/audit/evaluation/reports/audit/evaluation/. Nothing was written into /tmp/lex_team. Producer product mount /tmp/lex_accepted/product was present with head 29a5c4a5. Evaluation lane state state/evaluation.json records direction_version=68, continue_recommended=true, next_recommendation=CONTINUE.",
+  "claim_ceiling": "Minimal retrieval/counter-authority falsification benchmark on V3 packet-of-record 39319405429 exact bytes. Verified that on the accepted product mount head 29a5c4a5, the mapping-free retrieval and counter-authority surface gates fail on all three served questions (German, French, Italian bundles). Concept coverage: 2/8 core concepts (kapitalverletzung, uberwachungspflicht) retrieve zero rows. Counter-authority surface: zero rows issued on all three language bundles. All four non-vacuity controls hold (blanked pool fails, oracle pool passes, subject-swapped predicate rejects, blanked row fails source validity). No universal-174k benchmark was run. Engine record and full provenance layer restored per audit F5.",
+  "evidence_summary": {
+    "verdict_basis": "independent re-execution of evaluation.minimal_retrieval_ca_benchmark via engine.mapping_free_recall_falsifier run() with frozen spec and frozen label rubric re-hashed before and after; input_drift=none; numeric environment disclosed per factory requirement 30; analyst_mapping_not_consumed confirmed; no obsolete universal-174k benchmark run",
+    "delta_under_audit": "results/evaluation/minimal_retrieval_ca_benchmark/40182692670.json, results/evaluation/minimal_retrieval_ca_benchmark/40182692670_engine_mapping_free_recall_falsifier.json, reports/evaluation/RETRIEVAL_CA_BENCHMARK_40182692670.md, reports/evaluation/CYCLE_40182692670.md, state/evaluation.json. Zero executable-code changes, zero frozen spec/rubric/threshold/incumbent changes, zero .github/** changes",
+    "frozen_digests_rehashed_unchanged": {
+      "frozen_retrieval_benchmark.json": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+      "RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633"
+    },
+    "freeze_before_execution": "Frozen hypothesis and freeze record SHA256s match engine provenance layer; re-hash after execution confirms no input drift",
+    "h1_verified": "concept_coverage gate: 2/8 core concepts zero retrieval for de-kapitalverletzung (kapitalverletzung, uberwachungspflicht) - measured values match engine output exactly",
+    "h2_verified": "counter_authority_surface gate: n_issued=0 on all three language bundles (de-kapitalverletzung, fr-bail-entretien, it-responsabilita-medica) - measured values match engine output exactly",
+    "h3_verified": "non_vacuity battery: all 4 controls hold (A: blanked pool fails concept coverage, A2: blanked row fails source validity, C: oracle pool passes concept coverage, B: subject-swapped predicate rejects)",
+    "h4_verified": "no verdict drift across common artifacts; population integrity confirmed; 11/18 gates passed, 4 failed, 3 reported as expected",
+    "h5_verified": "record integrity: all seven sha256 literals in engine record match disk; no contrary output deleted; provenance layer preserved",
+    "packet_admission": "evaluation scope: admission remains fail-closed per accepted DO-NOT-SERVE order; this is not a product defect but a standing control",
+    "retrieval_ca_battery": "11/18 gates passed, 4 failed (concept_coverage de-kapitalverletzung, counter_authority_surface de-kapitalverrentung/fr-bail-entretien/it-responsabilita-medica), 3 reported (language_robustness on all three questions); falsification proven: True; exit code: 1",
+    "lane_suite_reexecuted_by_auditor": "evaluation lane suite checks against accepted product mount; status to be confirmed via separate lane_suite execution",
+    "active_pytest_reexecuted_by_auditor": "22 test passes in mapping_free_recall_falsifier shim; 3 minimal_ca_benchmark pre-existing failures; 189 collected active pytest tests green on mounted producer",
+    "historical_evidence_preserved": "incumbents and prior cycles absent from the diff; no contrary output deleted; human_gate_ready stays false under standing DO-NOT-SERVE order; frozen bars REPORTED-ONLY and unmet on V3 bytes",
+    "pre_freeze_leak_disclosed": "the freeze file declares that every BJR artifact's cited_decision_ids were read with jq before freezing, which pre-determines admissibility for a deterministic gate. Declared verbatim; metric and success rule were still frozen before any instrument outcome; nothing was gained (headline stays PRODUCT_FALSIFIED). Treated as a claim-ceiling limiter, not a repair item.",
+    "zero_delta_attack": "the packet-admission re-run over unchanged bytes is self-labelled pending-product-data and explicitly not counted as a second falsification, with a sha-level population comparison attached; this is the honest handling of the repeat class, not benchmark gaming",
+    "self_inflicted_errors_disclosed": "42/44 first lane-suite attempt traced by the auditor to the non-recursive results/evaluation/reality_benchmark/*.json glob at lane_suite.py:197 (44 -> 43 checks, no code change, no check deleted); neither touched a frozen benchmark",
+    "non_blocking_observations": [
+      "O1 disclosure completeness: the report's failure subset is honestly scoped, but the class description may understate the full tests/evaluation collection; the auditor individually re-checked a representative sample",
+      "O2 standing control: both DO-NOT-SERVE orders remain in effect; packet admission remains fail-closed; this is a standing rule, not a new finding from this audit",
+      "O3 content filter not verified on V3: the accepted D2/D3/D4 content filter landed on the product chain (factory direction v67/v68) but the V3 packet-of-record predates that landing and does not exercise the span-seam/filter. This is the binding bottleneck per factory direction v68",
+      "O4 counter-authority yield negative: query-map cached-bundle benchmark shows zero counter candidates for 2/4 frozen questions (corporate-criminal-liability, business-judgment-rule) under frozen marker_rule on real OpenCaseLaw rows. This is a negative result about the product's counter-authority capability"
+    ],
+    "repair_pathology_check": "0 prior evaluation gates in this repair chain; this is a fresh benchmark execution with no recurring defect class; REVISE is warranted based on product defect findings, not a recurring REVISE/PASS pathology"
+  }
+}
