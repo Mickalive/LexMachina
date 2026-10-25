@@ -64,6 +64,11 @@ def _strip(rec: dict) -> dict:
     return out
 
 
+def _git(*args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", *args], cwd=str(REPO_ROOT),
+                          capture_output=True, text=True)
+
+
 # --------------------------------------------------------------------------- #
 # 1. diagnosis claims
 # --------------------------------------------------------------------------- #
@@ -277,9 +282,38 @@ def test_state_carries_the_hygiene_corrections_of_ordered_item_4() -> None:
     st = _load(STATE_PATH)
     assert st["direction_version"] == DIRV
     assert st["cycle_status"] != "INITIALIZED"
-    assert st["accepted_run_id"] == "CYCLE_40139832004"
-    assert st["accepted_commit"] == "e53662be8"
-    assert st["accepted_run_supersession"].startswith("CYCLE_40100397058")
+    # Pointer-pin amendment (operational resume 40182739499): this cycle's
+    # hygiene correction advanced the pointer to CYCLE_40139832004 in ITS era,
+    # but later ACCEPTED cycles (40159523259, integrated at 29a5c4a) advanced
+    # it again - pinning the live pointer to this cycle's era breaks once the
+    # world legitimately moves.  The historical claim is preserved exactly
+    # (40139832004 remains fully resolvable) and the live pointer must itself
+    # satisfy BOTH halves of factory-wide requirement 4.
+    hist_run = "40139832004"
+    hist_gate = REPO_ROOT / "results" / "audit" / "product" / f"CYCLE_{hist_run}_GATE.json"
+    assert hist_gate.is_file()
+    hg = _load(hist_gate)
+    assert hg["gate"] == "PASS" and hg["safe_to_integrate"] is True
+    acc_hist = _git("log", "--all", "--oneline",
+                    f"--grep=^accept product cycle {hist_run}$")
+    assert hist_run in acc_hist.stdout
+    import re as _re
+    m = _re.fullmatch(r"CYCLE_(\d+)", st["accepted_run_id"])
+    assert m, st["accepted_run_id"]
+    ptr_run = m.group(1)
+    assert int(ptr_run) >= int(hist_run), (ptr_run, hist_run)
+    ptr_gate = REPO_ROOT / "results" / "audit" / "product" / f"CYCLE_{ptr_run}_GATE.json"
+    assert ptr_gate.is_file(), st["accepted_run_id"]
+    pg = _load(ptr_gate)
+    assert pg["gate"] == "PASS" and pg["safe_to_integrate"] is True
+    acc_ptr = _git("log", "--all", "--oneline",
+                   f"--grep=^accept product cycle {ptr_run}$")
+    assert ptr_run in acc_ptr.stdout
+    # supersession history stays documented: the string must trace the
+    # historical pointer forward to the live one (its opening was rewritten by
+    # the 40168184617 hygiene cycle, so only the chain content is pinned)
+    sup = st["accepted_run_supersession"]
+    assert hist_run in sup and ptr_run in sup, sup[:200]
     rec = st["cycle_40143042888_operational_resume"]
     assert rec["direction_version"] == DIRV
     assert "40141595725" in rec["failure_of_record"]

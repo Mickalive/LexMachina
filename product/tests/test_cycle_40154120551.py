@@ -176,9 +176,23 @@ def test_the_snapshot_shadow_diverged_and_the_contract_now_passes() -> None:
     assert report["ok"] is True, json.dumps(report, indent=1)[:2000]
     assert report["write_scope"]["ok"] is True
     assert report["audit_artifact_ownership"]["producer_wrote_audit_paths"] == []
-    # the producer never mints its own gate file
-    assert not (REPO_ROOT / "results" / "audit" / "product"
-                / f"CYCLE_{RUN_ID}_GATE.json").exists()
+    # the producer never mints its own gate file.  Amendment (operational
+    # resume 40182739499): when this test was authored the gate did not exist
+    # yet; the independent auditor later minted the REAL gate at this path in
+    # commits 25c7f17a ("audit product cycle 40154120551") / d191a1e6
+    # ("accept product cycle 40154120551"), which is legitimate.  The
+    # surviving ratchet: every commit that INTRODUCED this path must be a
+    # non-producer commit - never a "product cycle ... repair" commit.
+    gate_rel = f"results/audit/product/CYCLE_{RUN_ID}_GATE.json"
+    gate_abs = REPO_ROOT / gate_rel
+    if gate_abs.exists():
+        introducing = _git("log", "--all", "--diff-filter=A", "--format=%s",
+                           "--", gate_rel)
+        subjects = [s.strip() for s in introducing.stdout.splitlines() if s.strip()]
+        assert subjects, "gate exists but no introducing commit found"
+        for subj in subjects:
+            assert not re.match(r"^product cycle \d+ repair", subj), (
+                f"producer-minted audit gate introduced by: {subj}")
 
 
 # --------------------------------------------------------------------------- #
@@ -200,9 +214,35 @@ def test_content_family_probe_reproduces_the_committed_artifact() -> None:
         assert rec["ordered_work_2_success_rule"]["confirmed_sound_row_still_verified"] is True
         assert totals["n_bundles"] >= 14, (label, totals)
         assert totals["n_decisions"] == totals["n_bundles"] * 100
-    # the two records agree on every number we quote
-    assert (fresh["fixed_path_family"]["totals"]
-            == committed["fixed_path_family"]["totals"])
+    # Family-growth-aware agreement (amended by operational resume 40182739499,
+    # same rationale as test_cycle_40168184617.py): later accepted-chain cycles
+    # legitimately grow the probe's glob, so byte-for-byte totals comparison
+    # against this cycle's own instrument breaks once the family grows.  The
+    # claim that still must hold, and is checked exactly: the fresh probe
+    # reproduces every historical bundle's histogram, the instrument's totals
+    # equal the sums over THAT historical subset, and the family only grew.
+    art_paths = {b["path"] for b in committed["fixed_path_family"]["bundles"]}
+    fresh_by_path = {b["path"]: b for b in fresh["fixed_path_family"]["bundles"]}
+    assert art_paths <= set(fresh_by_path), (
+        art_paths - set(fresh_by_path))
+    for path in art_paths:
+        art_row = next(b for b in committed["fixed_path_family"]["bundles"]
+                       if b["path"] == path)
+        assert fresh_by_path[path]["defect_histogram"] == art_row["defect_histogram"], path
+        assert fresh_by_path[path]["n_verified"] == art_row["n_verified"], path
+        assert fresh_by_path[path]["n_verified_defective"] == art_row["n_verified_defective"], path
+    sub = [fresh_by_path[p] for p in art_paths]
+    hist_sum: dict[str, int] = {}
+    for b in sub:
+        for cls, n in b["defect_histogram"].items():
+            hist_sum[cls] = hist_sum.get(cls, 0) + n
+    assert hist_sum == committed["fixed_path_family"]["totals"]["defect_histogram"]
+    assert sum(b["n_verified"] for b in sub) == \
+        committed["fixed_path_family"]["totals"]["n_verified"]
+    assert sum(b["n_verified_defective"] for b in sub) == \
+        committed["fixed_path_family"]["totals"]["n_verified_defective"]
+    assert len(fresh["fixed_path_family"]["bundles"]) >= len(art_paths)
+    # the historical all-committed defect histogram is reproduced exactly
     assert (fresh["all_committed"]["totals"]["defect_histogram"]
             == committed["all_committed"]["totals"]["defect_histogram"])
 
@@ -317,18 +357,35 @@ def test_mvp_core_suite_collects_the_published_number_of_tests() -> None:
 
 def test_accepted_pointer_is_the_only_cycle_with_both_halves() -> None:
     st = _load(STATE_PATH)
-    assert st["accepted_run_id"] == f"CYCLE_{LAST_ACCEPTED_RUN_ID}"
-    assert st["accepted_commit"] == "e53662be8"
     assert st["direction_version"] == DIRV
-    assert (REPO_ROOT / "results" / "audit" / "product"
-            / f"CYCLE_{LAST_ACCEPTED_RUN_ID}_GATE.json").is_file()
-    gate = _load(REPO_ROOT / "results" / "audit" / "product"
-                 / f"CYCLE_{LAST_ACCEPTED_RUN_ID}_GATE.json")
-    assert gate["gate"] == "PASS"
-    assert gate["safe_to_integrate"] is True
-    acc = _git("log", "--all", "--oneline", "--grep=^accept product cycle "
-               f"{LAST_ACCEPTED_RUN_ID}$")
-    assert LAST_ACCEPTED_RUN_ID in acc.stdout
+    # this cycle's own acceptance remains re-derivable from both halves of
+    # factory-wide requirement 4
+    gate_self = _load(REPO_ROOT / "results" / "audit" / "product"
+                      / f"CYCLE_{RUN_ID}_GATE.json")
+    assert gate_self["gate"] == "PASS"
+    assert gate_self["safe_to_integrate"] is True
+    acc_self = _git("log", "--all", "--oneline",
+                    f"--grep=^accept product cycle {RUN_ID}$")
+    assert RUN_ID in acc_self.stdout
+    # Pointer-pin amendment (operational resume 40182739499): later ACCEPTED
+    # cycles (40154120551 -> 40157327638 -> 40159523259, then the 40168184617
+    # hygiene advance) legitimately moved the live pointer past this cycle's
+    # era, so pinning accepted_run_id to LAST_ACCEPTED_RUN_ID breaks once the
+    # world moves.  The surviving claim: WHATEVER run the pointer names must
+    # itself satisfy both halves of requirement 4 - gate PASS/safe_to_integrate
+    # committed AND an "accept product cycle <run>" commit on a lab ref.
+    m = re.fullmatch(r"CYCLE_(\d+)", st["accepted_run_id"])
+    assert m, st["accepted_run_id"]
+    ptr_run = m.group(1)
+    gate = REPO_ROOT / "results" / "audit" / "product" / f"CYCLE_{ptr_run}_GATE.json"
+    assert gate.is_file(), st["accepted_run_id"]
+    g = _load(gate)
+    assert g["gate"] == "PASS"
+    assert g["safe_to_integrate"] is True
+    acc = _git("log", "--all", "--oneline",
+               f"--grep=^accept product cycle {ptr_run}$")
+    assert ptr_run in acc.stdout
+    assert st["accepted_commit"]
 
 
 def test_posture_stays_fail_closed_and_the_shadow_is_named_as_removed() -> None:
@@ -355,10 +412,18 @@ def test_posture_stays_fail_closed_and_the_shadow_is_named_as_removed() -> None:
     assert st["capabilities"]["clickable_map"] is True
     assert st["capabilities"]["rejection_incumbent_leg"] is True
     assert "40154120551" in st["capabilities"]["source"]
-    # ordered-work pointers stay honest
+    # ordered-work pointers stay honest.  Amendment (operational resume
+    # 40182739499): the old assertion pinned the literal historical pointer
+    # string "CYCLE_40139832004" into next_recommendation, which breaks every
+    # time a later cycle rewrites the recommendation - the 40168184617 cycle
+    # already broke it by advancing the pointer.  The surviving claim: the
+    # recommendation must name the CURRENT accepted pointer's run id.
     assert "DEFERRED" in st["next_recommendation"]
     assert "UNADJUDICATED" in st["next_recommendation"]
-    assert "CYCLE_40139832004" in st["next_recommendation"]
+    m = re.fullmatch(r"CYCLE_(\d+)", st["accepted_run_id"])
+    assert m, st["accepted_run_id"]
+    assert m.group(1) in st["next_recommendation"], (
+        "next_recommendation must name the current accepted pointer")
 
 
 def test_the_producer_never_writes_an_audit_gate_path() -> None:
