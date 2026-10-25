@@ -1,0 +1,111 @@
+{
+  "chain_record": {
+    "all_jobs": {
+      "audit": {
+        "conclusion": "skipped",
+        "status": "completed"
+      },
+      "integrate": {
+        "conclusion": "skipped",
+        "status": "completed"
+      },
+      "resilience": {
+        "conclusion": "success",
+        "status": "completed"
+      },
+      "team": {
+        "conclusion": "failure",
+        "status": "completed"
+      }
+    },
+    "attempt": 1,
+    "conclusion": "failure",
+    "created_at": "2026-10-25T04:35:15Z",
+    "display_title": "Core evaluation dirV68 repair0",
+    "event": "workflow_dispatch",
+    "head_sha": "e34f3982bc7428c980af9e15292ced48c94d49c9",
+    "team_job": {
+      "all_steps": [
+        "1:Set up job=success",
+        "2:Run actions/checkout@v6=success",
+        "3:Validate lane and initialize working base=success",
+        "4:Mount accepted peer evidence=success",
+        "5:Install Ox/OpenCode=success",
+        "6:Run lane cycle=failure",
+        "7:Validate active MVP producer state=skipped",
+        "8:Clean generated junk=success",
+        "9:Enforce lane write scope=skipped",
+        "10:Persist team snapshot=success",
+        "20:Post Run actions/checkout@v6=success",
+        "21:Complete job=success"
+      ],
+      "completed_at": "2026-10-25T04:36:26Z",
+      "conclusion": "failure",
+      "started_at": "2026-10-25T04:35:19Z"
+    },
+    "updated_at": "2026-10-25T04:36:40Z",
+    "url": "https://github.com/Mickalive/LexMachina/actions/runs/40162425755",
+    "workflow": "LEX Core Lane"
+  },
+  "control_plane_hardening_items": [
+    "CP-RETRY-UNSUPPORTED-1: run-ox-with-retry.sh should treat an '[unsupported_parameter]' / 'Unrecognized request argument' provider rejection as a ROTATE-class failure (like AUTH), otherwise one incompatible healthy-pool model kills a run in ~16s on attempt 1 of 8. Recorded, not edited (.github/** is control-plane scope).",
+    "CP-HEALTH-PROBE-1: the model-health tool probe should exercise an agent-shaped request, or its PASS should be published as 'probe_only'. Recorded, not edited."
+  ],
+  "diagnosed_from": {
+    "artifacts": {
+      "results/evaluation/orchestration/40162425755_rest_jobs.json": "1e3b44ad3533983611152e067898687f01a82445582d67902c4148b99136b775",
+      "results/evaluation/orchestration/40162425755_run_record.json": "f2e4e5f92947f52785d531853cc539b2e7c43e14386ca2db473e9e02550ffb49",
+      "results/evaluation/orchestration/40162425755_team_job_log.txt": "4df17676df76f5d11f0308ba35a78b7eda3bfd49bb139e7fa96cf85dd9b50f3a"
+    },
+    "source": "GitHub REST/gh CLI authenticated with the runner's own git extraheader token (decoded from the checkout credential includeIf, no owner secret); job LOGS WERE READ, so the return-code attribution below is ESTABLISHED FACT, not an inference"
+  },
+  "diagnosing_run": "40162507752",
+  "direction_version": 68,
+  "dispatch_mode_of_failed_run": "FRESH CYCLE (repair_from_run_id empty AND resume_from_run_id empty; displayTitle 'Core evaluation dirV68 repair0'), i.e. the failed run was NOT itself a resume",
+  "generated_at_utc": "2026-10-25T04:50:53Z",
+  "github_run": "40162425755",
+  "health_probe_coverage_gap": {
+    "consequence": "model_health PASS is necessary but NOT sufficient for dispatch; a slot-based healthy-pool selection can still hand a run an incompatible model.",
+    "finding": "opencode/beam-free is listed healthy (tool_probe PASS, exit 0) by model_health run 40162242541, yet it cannot serve the actual lane agent request. The health probe exercises a trivial command, not the agent's full request payload.",
+    "scope": "recorded as a control-plane hardening item; .github/** and state/model_health.json are not edited by this lane"
+  },
+  "lane_deliverable_status_at_resume_start": {
+    "accepted_baseline": "run 40159747851, gate PASS safe_to_integrate=true required_fixes=[] (results/audit/evaluation/CYCLE_40159747851_GATE.json)",
+    "v68_ordered_item_1_correction_of_record": "DISCHARGED (accepted cycle 40133253347; reports/evaluation/BYPASS_CLAUSE_CORRECTION_OF_RECORD_40105794124_v68.md)",
+    "v68_ordered_item_2_conditional_re_measure": "re-adjudicated THIS run from current accepted product bytes; see results/evaluation/post_repair_family_ca_falsifier/40162507752.json",
+    "v68_ordered_item_3_standing_falsification_record": "UNCHANGED, untouched this run",
+    "v68_ordered_item_5_no_re_derivation": "honoured: no frozen bench, D2 profile or bypass diagnosis was re-derived"
+  },
+  "not_claimed": [
+    "No validation step failed: steps 7 and 9 were SKIPPED, so no validation defect exists for this run.",
+    "No product, benchmark, frozen-bar or evidence claim is made or changed by this diagnosis.",
+    "This is an operational diagnosis artifact; it is not a measurement of retrieval or counter-authority capability."
+  ],
+  "repair_round": 0,
+  "root_cause": {
+    "class": "MODEL/PROVIDER REQUEST-CONTRACT FAILURE at agent start; NOT a lane, product, evidence, validation or human-gate problem",
+    "downstream_consequences": [
+      "step 7 'Validate active MVP producer state' SKIPPED (never ran) - so there is NO validation verdict for 40162425755; it is neither pass nor fail",
+      "step 9 'Enforce lane write scope' SKIPPED (never ran)",
+      "step 10 'Persist team snapshot' SUCCESS but 'nothing to commit, working tree clean': the pushed refs cycle/core/evaluation/40162425755/team and .../team-attempt-1 are both exactly 9be8a7d5, byte-identical to origin/lab/evaluation - zero durable delta",
+      "audit job SKIPPED (needs.team.result == 'success' false); integrate SKIPPED; no cycle/core/evaluation/40162425755/audit ref exists; origin/lab/evaluation unmoved",
+      "resilience job SUCCESS -> dispatched this operational-resume run 40162507752"
+    ],
+    "established_chain": [
+      "step 3 'Validate lane and initialize working base' SUCCESS: fresh-cycle base = origin/lab/evaluation 9be8a7d5 ('accept evaluation cycle 40159747851'); no resume, no repair base",
+      "run-ox-with-retry.sh resolve_model_args logged: LEX_MODEL_POOL size=4 slot=core:evaluation:v68:40162425755 requested=opencode/x-preview-f-free selected=opencode/beam-free index=3 (model_health.json of run 40162242541 lists beam-free as healthy, tool_probe PASS)",
+      "LEX_OX_ATTEMPT=1/8, LEX_AGENT_SESSION_PID=2465 at 2026-10-25T04:36:06.732Z",
+      "04:36:08.633Z agent banner '> lane_researcher . beam-free' (agent started)",
+      "04:36:09.588Z 'Error: Upstream request failed: [unsupported_parameter] Unrecognized request argument supplied: permissions.' - the upstream provider rejected the OpenCode request payload itself, ~1s after start",
+      "04:36:21.749Z run-ox-with-retry.sh: 'OpenCode failed without transient/auth signature (rc=1)' then exit 1: rc=1 with neither AUTH_RE (script line 33) nor NETWORK_RE (line 32) matching 'unsupported_parameter', so the script's rotate/retry branches (lines 226-243) never fire and the run dies on attempt 1 of 8"
+    ],
+    "why_no_retry": ".github/scripts/run-ox-with-retry.sh classifies failures ONLY as AUTH (line 33) or TRANSIENT/NETWORK (line 32) or stall (rc 75) or quantum (rc 78). The provider's '[unsupported_parameter]' class matches none, so the 'OpenCode failed without transient/auth signature' branch exits rc=1 with zero rotation across the 3 other healthy models. RECORDED, NOT EDITED: .github/** is control-plane scope."
+  },
+  "run_id": "40162425755",
+  "schema": "lex-evaluation-orchestration-failure-chain-diagnosis/1",
+  "zero_durable_delta_diagnosis": {
+    "evidence": "git rev-parse of origin/cycle/core/evaluation/40162425755/{team,team-attempt-1} == 9be8a7d5b3a4b84eb45da6160bf90620f7d81d40 == origin/lab/evaluation; worktree clean at resume start",
+    "explanation": "The failed run produced no file, no commit and no state change anywhere: its snapshot refs are identical to the accepted base 9be8a7d5 and no committed artifact of any ref carries run id 40162425755. Nothing from that run needs preserving OR reverting; the resume starts from the accepted state of run 40159747851 (gate PASS, safe_to_integrate=true, required_fixes=[]) which is fully intact.",
+    "verdict": "ZERO_DURABLE_DELTA_UNDER_MODEL_FAILURE"
+  }
+}
