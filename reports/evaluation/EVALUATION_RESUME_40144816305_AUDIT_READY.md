@@ -8,7 +8,7 @@
 
 ## Summary
 
-Resumed from persisted producer snapshot (run 40144816305 — bypass clause correction). Diagnosed orchestration/validation failure: the lane state incorrectly recorded the report-only bypass clause correction (40144816305, exit_code=1, CORRECTION_NOT_CONFIRMED) as the `accepted_run_id`, but this run lacks an audit gate and was executed against an advanced product mount (e53662be) rather than the accepted head (8b5b08dd) it was written for.
+Resumed from persisted producer snapshot (run 40144816305 — bypass clause correction). Diagnosed orchestration/validation failure: the lane state incorrectly recorded the report-only bypass clause correction (40144816305, exit_code=1, CORRECTION_NOT_CONFIRMED) as the `accepted_run_id`, but this run lacks an audit gate, and its product mount was the **current accepted product head** (`e53662be`) while the correction's freeze record pinned the **earlier accepted product head** (`8b5b08dd`). That is a *pin-vs-current-mount* mismatch, not an accepted-vs-advanced one — see "Accepted product heads (D3 correction of record)" below.
 
 **Corrected state:** The evaluation lane's benchmark deliverable is the FAST-MVP retrieval & counter-authority benchmark (`tests/evaluation/test_retrieval_benchmark.py`), which passed 38/38 tests in run 40143419165 with independent audit PASS (`CYCLE_40143419165_GATE.json`). The cached-bundle benchmark (run 40111496300) also holds audit PASS. The FAST-MVP falsifier (40105794124) remains the substantive content finding.
 
@@ -21,9 +21,34 @@ Resumed from persisted producer snapshot (run 40144816305 — bypass clause corr
 | 40111496300 | Cached-bundle benchmark | PASS | BENCHMARK_VALID_NO_FALSIFICATION | Valid accepted cycle |
 | 40105794124 | FAST-MVP falsifier | PASS | SOUND_COUNTER_ROW_PRESENT | Substantive content finding |
 | 40143419165 | test_retrieval_benchmark | PASS | 38/38 tests pass | **Latest benchmark with audit** |
-| 40144816305 | Bypass clause correction | **MISSING** | CORRECTION_NOT_CONFIRMED | Run against advanced mount; not a benchmark cycle |
+| 40144816305 | Bypass clause correction | **MISSING** | CORRECTION_NOT_CONFIRMED | No audit gate; freeze-pin (`8b5b08dd`) vs then-current mount (`e53662be`); not a benchmark cycle |
 
 **Root cause:** State file updated `accepted_run_id` to 40144816305 despite missing audit gate. The bypass clause correction is a report-only reconciliation of the FAST-MVP falsifier's mechanism explanation — it does not re-execute the falsifier, add benchmark capability, or meet acceptance criteria (requires both audit PASS + accept commit per factory-wide requirement 4).
+
+---
+
+## Accepted product heads (D3 correction of record)
+
+Round-0 audit finding D3: this report previously called `e53662be` an "advanced product
+mount" contrasted with "the accepted head 8b5b08dd". **Both heads are accepted.** The
+correct statement is *pin-vs-current-mount*. Recomputed and verified this cycle:
+
+| head | accept run | evidence read | surface read |
+|---|---|---|---|
+| `e53662be8d33cd3bde0e8bfb21ec5d30668e1e27` — **current accepted product head** | 40139832004 | commit message `accept product cycle 40139832004` on `origin/lab/product` (both halves of requirement 4 at that ref) + `results/audit/product/CYCLE_40139832004_GATE.json` on that ref: `gate=PASS, safe_to_integrate=true, required_fixes=[]` | `/tmp/lex_accepted/product` mount (== `origin/lab/product` tip) **and** the gate file at that ref |
+| `8b5b08dddeda482961ecfd432a5b5b40675b92ab` — **earlier accepted head, the freeze pin** | 40100397058 | commit message `accept product cycle 40100397058` on `origin/lab/product` + `results/audit/product/CYCLE_40100397058_GATE.json` on that ref: `gate=PASS, safe_to_integrate=true, required_fixes=[]`; **ancestry independently verified this cycle** (`git merge-base --is-ancestor 8b5b08dd e53662be` → true, after deepening the local product fetch from 1 to 61 commits) | `origin/lab/product` history + `origin/main:results/accepted-state/product.json` (`accepted_run_id=CYCLE_40100397058`) |
+
+**Index lag disclosed, not smoothed:** `origin/main:results/accepted-state/product.json`
+(the compact accepted-state index) still records `accepted_run_id=CYCLE_40100397058`,
+while `origin/lab/product` has since accepted 40125024681, 40128639259 and 40139832004
+(gates for all three verified `PASS / safe_to_integrate=true / required_fixes=[]` at that
+ref). This is the requirement-39 class of lag (mount vs compact index); wherever an
+accepted head is named below, the surface actually read is named beside it.
+
+**Consequences for this lane's claims:** run 40144816305's residual correction-instrument
+failures (CC6/CC11) are *mount-currency pin mismatches*, not measurement changes; the
+freeze pin `mount@8b5b08dd` stays as recorded; and no statement in this lane may describe
+`e53662be` as unaccepted or `8b5b08dd` as the current head.
 
 ---
 
@@ -55,7 +80,7 @@ Resumed from persisted producer snapshot (run 40144816305 — bypass clause corr
 ## Substantive Findings (Preserved from Accepted Cycles)
 
 ### FAST-MVP Falsifier (40105794124, audit PASS)
-- **5 enriched bundles** from accepted product head 8b5b08dd
+- **5 enriched bundles** from the freeze-pinned accepted product head `8b5b08dd` (accept run 40100397058; surface read: accepted artifact `results/evaluation/fast_mvp_current_head_ca_falsifier/40105794124.json` + `results/audit/evaluation/CYCLE_40105794124_GATE.json`)
 - **4/5 bundles** carry verified counter rows with frozen content defects:
   - D2_LETTERHEAD_ZONE: 2 (gr_gerichte_ERZ 2010 25, bge_BGE_110_II_391)
   - D3_MARKUP_RESIDUE: 2 (ge_gerichte_CAPH_107_2004, bge_BGE_121_III_260)
@@ -72,7 +97,7 @@ Resumed from persisted producer snapshot (run 40144816305 — bypass clause corr
 - **Known relevant recall:** rent-default 0/0, corporate-criminal-liability 2/2, business-judgment-rule 3/5, petty-theft-dismissal 1/2
 
 ### Bypass Clause Correction (40144816305, report-only)
-- **Corrected statement of record:** The accepted product head 8b5b08dd does NOT bypass the span seam. Commit 51d306c removed the `not fixture_generation` gate; the seam runs on the offline path and ABSTAINS (n_selected=0, pivot_absent). The defective incumbent (trilingual Graubünden letterhead) stays `counter_evidence_verified=true` because the rejection/incumbent leg is open.
+- **Corrected statement of record:** The freeze-pinned accepted product head `8b5b08dd` (accept run 40100397058) does NOT bypass the span seam. The correction instrument was executed against the then-current accepted mount `e53662be` (accept run 40139832004) — a pin-vs-current-mount difference, both accepted; surfaces read are named in the D3 table above. Commit 51d306c removed the `not fixture_generation` gate; the seam runs on the offline path and ABSTAINS (n_selected=0, pivot_absent). The defective incumbent (trilingual Graubünden letterhead) stays `counter_evidence_verified=true` because the rejection/incumbent leg is open.
 - **Measurement unchanged:** 40105794124 aggregate values byte-for-byte identical
 - **Item (2) status:** NOT_YET_DISCRIMINATING — requires Product to land rejection/incumbent handling + full flagship family regeneration
 

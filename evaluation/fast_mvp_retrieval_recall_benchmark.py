@@ -49,6 +49,22 @@ SCHEMA = "lex-evaluation-fast-mvp-retrieval-recall-benchmark/1"
 HYPOTHESIS_RELPATH = "evaluation/FAST_MVP_RETRIEVAL_RECALL_BENCHMARK_40149704173_HYPOTHESIS_V1.json"
 HYPOTHESIS_SHA256 = "a9fe256cea627c0bbc9ecd8e316f68b00b1911ab4e99bf0c294576b60cafe4f7"
 AMENDMENT_RELPATH = "evaluation/FAST_MVP_RETRIEVAL_RECALL_BENCHMARK_40149704173_HYPOTHESIS_V1_1_AMENDMENT.json"
+AMENDMENT_V12_RELPATH = "evaluation/FAST_MVP_RETRIEVAL_RECALL_BENCHMARK_40149704173_HYPOTHESIS_V1_2_AMENDMENT.json"
+CODE_FIX_AFTER_FREEZE = [
+    "AUTHORING (between freeze commit a8186ae7 and the first execution): the "
+    "instrument source was written at all - the freeze pins the hypothesis and its "
+    "digest, never the code; during that authoring the oracle-ordering expression "
+    "was corrected to a present-rows-first permutation, corpus docs gained "
+    "_src_index so a ranked item maps back to its input row independently of "
+    "duplicate decision_ids, and controls_ok was moved after the last control "
+    "append. None of these touch a frozen predicate.",
+    "AFTER THE DEBUGGING EXECUTION disclosed in the V1_2 amendment: C7 was split "
+    "into blocking C7a (source validity) and reported-only C7b (duplicate alnum "
+    "cores), and the record gained verdict_under_original_v1_c7_blocking plus "
+    "pre_amendment_debug_run_disclosure so both readings are published. That change "
+    "is authorised by, and fully described in, "
+    "evaluation/FAST_MVP_RETRIEVAL_RECALL_BENCHMARK_40149704173_HYPOTHESIS_V1_2_AMENDMENT.json",
+]
 FREEZE_RELPATH = "evaluation/FAST_MVP_RETRIEVAL_RECALL_BENCHMARK_40149704173_FREEZE_V1.json"
 SPEC_RELPATH = "evaluation/retrieval_gate/frozen_retrieval_benchmark.json"
 SPEC_SHA256 = "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72"
@@ -288,7 +304,41 @@ def run(run_id: str, out: Path, mount_arg: str | None, repo: Path) -> tuple[int,
         "entry_point": "python -m evaluation.fast_mvp_retrieval_recall_benchmark",
         "frozen_hypothesis": HYPOTHESIS_RELPATH,
         "frozen_hypothesis_sha256": HYPOTHESIS_SHA256,
-        "amendment": None,
+        "amendments": [],
+        "code_fix_after_freeze": CODE_FIX_AFTER_FREEZE,
+        "pre_amendment_debug_run_disclosure": {
+            "executed": True,
+            "command": ("/tmp/opencode/venv_eval/bin/python -m "
+                        "evaluation.fast_mvp_retrieval_recall_benchmark --run-id "
+                        "40149704173 --out /tmp/opencode/dryrun_40149704173.json "
+                        "--product-root /tmp/lex_accepted/product"),
+            "output_path": "/tmp/opencode/dryrun_40149704173.json (OUTSIDE the "
+                           "repository; never committed; not a claim-bearing artifact)",
+            "outcome": ("NOT_MEASURED_VACUOUS exit 2, 7/8 controls passed; the only "
+                        "failure was C7_source_validity_and_duplicates because "
+                        "gates.unique_ids passed=false for all four questions "
+                        "(citation-field/core alias collisions, published as a known "
+                        "property of this cache by the benchmark of record in "
+                        "reports/evaluation/CYCLE_38945976309.md and "
+                        "reports/evaluation/CYCLE_38951152192.md)"),
+            "claim_numbers_observed_then": {
+                "n_discriminating_cells": 10, "n_cells": 24,
+                "input_hits": 17, "product_hits": 15, "present_denominator": 18,
+                "input_retention": 0.9444444444444444,
+                "product_retention": 0.8333333333333334,
+                "losses": ["baseline:business-judgment-rule:de (1.0 -> 0.0; "
+                           "bger_4A_219_2015, bger_4A_603_2014)",
+                           "counter:petty-theft-dismissal:fr (1.0 -> 0.667; "
+                           "ge_gerichte_CAPH_107_2004)"],
+                "language_leg": "fr 4->3 holds=false; de 12->11 holds=false; "
+                                "it 1->1 holds=true",
+                "rule_a": False, "rule_b": False, "rule_c": False},
+            "why_published": ("The V1_2 amendment was written after these numbers "
+                              "were known. They are reproduced here so an auditor "
+                              "can verify that the amendment changed only the "
+                              "blocking status of C7 and left every claim-side "
+                              "number and rule untouched."),
+        },
         "freeze_record": FREEZE_RELPATH,
         "frozen_spec": SPEC_RELPATH,
         "frozen_spec_sha256": SPEC_SHA256,
@@ -323,10 +373,15 @@ def run(run_id: str, out: Path, mount_arg: str | None, repo: Path) -> tuple[int,
         "spec_matches_pin": spec_sha == SPEC_SHA256,
         "freeze_record_present": freeze_path.is_file(),
     }
-    amendment_path = repo / AMENDMENT_RELPATH
-    if amendment_path.is_file():
-        record["amendment"] = {
-            "file": AMENDMENT_RELPATH, "sha256": sha256_file(amendment_path)}
+    for relpath in (AMENDMENT_RELPATH, AMENDMENT_V12_RELPATH):
+        amendment_path = repo / relpath
+        if amendment_path.is_file():
+            record["amendments"].append(
+                {"file": relpath, "sha256": sha256_file(amendment_path)})
+    record["has_v1_1_amendment"] = any(a["file"] == AMENDMENT_RELPATH
+                                       for a in record["amendments"])
+    record["has_v1_2_amendment"] = any(a["file"] == AMENDMENT_V12_RELPATH
+                                       for a in record["amendments"])
 
     if not record["rehash_before_execution"]["hypothesis_matches_freeze_pin"]:
         record["verdict"] = "NOT_MEASURED_VACUOUS"
