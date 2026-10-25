@@ -51,6 +51,12 @@ from evaluation import mapping_free_recall_falsifier as ENGINE  # noqa: E402
 WRAPPER_SCHEMA = "lex-evaluation-minimal-retrieval-ca-benchmark/1"
 DEFAULT_OUT_DIR = REPO_ROOT / "results/evaluation/minimal_retrieval_ca_benchmark"
 DEFAULT_REPORT_DIR = REPO_ROOT / "reports/evaluation"
+import json as _json
+_STATE_PATH = REPO_ROOT / "state" / "evaluation.json"
+
+
+def _direction_version() -> int:
+    return _json.loads(_STATE_PATH.read_text(encoding="utf-8"))["direction_version"]
 
 REUSE_DECLARATION = {
     "invoked_entry_point": "evaluation.mapping_free_recall_falsifier.run()",
@@ -122,7 +128,7 @@ def run_benchmark(run_id: str, out_dir: Path, report_dir: Path,
         "schema": WRAPPER_SCHEMA,
         "lane": "evaluation",
         "run_id": run_id,
-        "direction_version": 61,
+        "direction_version": _direction_version(),
         "verdict": verdict,
         "exit_code": code,
         "entry_point": "python -m evaluation.minimal_retrieval_ca_benchmark",
@@ -193,7 +199,7 @@ def run_benchmark(run_id: str, out_dir: Path, report_dir: Path,
         f"# Minimal Retrieval / Counter-authority Falsification Benchmark — run {run_id}",
         "",
         f"- Wrapper schema: `{WRAPPER_SCHEMA}`",
-        f"- Direction: v{record['direction_version']} (factory direction v61)",
+        f"- Direction: v{record['direction_version']}",
         f"- Engine: `evaluation.mapping_free_recall_falsifier.run()` invoked as the accepted "
         f"entry point (full provenance layer restored, audit F5)",
         f"- Packet: {', '.join(record.get('packets_measured') or [])} (V3 packet-of-record exact bytes)",

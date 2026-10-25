@@ -159,7 +159,7 @@ def test_v3_end_to_end_falsifies_the_product(tmp_path):
     out = tmp_path / "v3.json"
     code, rec = C.run("t", out, None, REPO, (PACKET_OF_RECORD,))
     assert code == 1 and rec["verdict"] == "PRODUCT_FALSIFIED"
-    assert rec["direction_version"] == int(
+    assert rec["direction_version"] == json.loads(
         (REPO / "state" / "evaluation.json").read_text(encoding="utf-8"))["direction_version"]
     assert rec["input_drift"] == [] and rec["input_drift_invalidates_run"] is False
     assert rec["non_vacuity"]["all_hold"] is True

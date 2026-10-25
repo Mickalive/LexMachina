@@ -8,7 +8,7 @@
 - Engine verdict before drift guard: **PRODUCT_FALSIFIED** (exit 1)
 - Falsification proven: **True**
 - Input drift: none (run_valid=True)
-- Product mount head: 8e58724bcd3382c5cf533e81cb8b6a8cbced4199
+- Product mount head: 4060964a1d63d0a0186035556b5a24a658033cbd
 - Questions measured: 3
 - Gates: 18 total, 11 passed, 4 failed, 3 reported
 - Failed gates: mf::concept_coverage::39319405429::de-kapitalverletzung, mf::counter_authority_surface::39319405429::de-kapitalverletzung, mf::counter_authority_surface::39319405429::fr-bail-entretien, mf::counter_authority_surface::39319405429::it-responsabilita-medica
