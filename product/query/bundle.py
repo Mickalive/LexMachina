@@ -8,11 +8,38 @@ from __future__ import annotations
 
 from typing import Any
 
-from .counter_status import (
-    counter_authority_count,
-    counter_status_bearing_count,
-    counter_status_histogram,
-)
+try:
+    if __package__:
+        from .counter_status import (
+            counter_authority_count,
+            counter_status_bearing_count,
+            counter_status_histogram,
+        )
+    else:
+        raise ImportError
+except Exception:
+    try:
+        from product.query.counter_status import (
+            counter_authority_count,
+            counter_status_bearing_count,
+            counter_status_histogram,
+        )
+    except Exception:
+        # Fallback for file-path loaders with no package context
+        import importlib.util
+        import sys
+        from pathlib import Path
+
+        _cs_path = Path(__file__).parent / "counter_status.py"
+        _cs_spec = importlib.util.spec_from_file_location("product.query.counter_status", _cs_path)
+        if _cs_spec is None or _cs_spec.loader is None:
+            raise
+        _cs_mod = importlib.util.module_from_spec(_cs_spec)
+        sys.modules.setdefault("product.query.counter_status", _cs_mod)
+        _cs_spec.loader.exec_module(_cs_mod)
+        counter_authority_count = _cs_mod.counter_authority_count
+        counter_status_bearing_count = _cs_mod.counter_status_bearing_count
+        counter_status_histogram = _cs_mod.counter_status_histogram
 
 BUNDLE_VERSION = "1.0"
 
