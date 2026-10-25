@@ -1,0 +1,72 @@
+{
+  "schema": "lex-evaluation-operational-resume-hypothesis/1",
+  "lane": "evaluation",
+  "run_id": 40209360877,
+  "direction_version": 68,
+  "generated_at_utc": "2026-10-25T16:12:00Z",
+  "kind": "operational_resume_verification",
+  "claim_bearing": true,
+  "claim_ceiling": "Operational-resume verification, orchestration diagnosis and a verification re-execution of the ALREADY-FROZEN smallest retrieval/counter-authority falsifier. This hypothesis does not move a frozen bar or rubric, does not re-score a packet-of-record claim, issues no serve verdict, lifts no DO-NOT-SERVE order and opens no new same-question cycle.",
+  "resume_base": {
+    "persisted_producer_snapshot_of_run": 40204378896,
+    "snapshot_commit_expected": "14b9e9cf9d8c4d88f378fd8ae4281d3cbb18c2f5",
+    "prior_resume_run": 40198184759,
+    "prior_accepted_evaluation_run": 40159747851,
+    "prior_accepted_accept_commit": "9be8a7d5b3a4b84eb45da6160bf90620f7d81d40",
+    "dispatch_evidence": "resilience job of run 40204378896 dispatched this run with resume_from_run_id=40204378896 because refs/heads/cycle/core/evaluation/40204378896/team existed (origin/main:.github/workflows/core-lane.yml:380-386); the team job of this run created branch operational-resume from that ref (origin/main core-lane.yml:80)."
+  },
+  "hypotheses": [
+    {
+      "id": "H_ORCH_40204378896",
+      "statement": "Run 40204378896 failed ONLY in its independent-audit job. Its producer team job succeeded end-to-end (all ten steps success, snapshot persisted), the audit job's 'Independent audit' step ran 2704.0s and failed, 'Enforce audit scope and read gate' and 'Persist audit snapshot' were skipped, integrate was skipped and resilience succeeded. This is the FOURTH consecutive occurrence of the identical signature (40187594111, 40192868113, 40198184759, 40204378896 each 2704.0s) and it matches the checked-in work-quantum wrapper: origin/main:.github/scripts/run-ox-with-retry.sh:22 sets WORK_QUANTUM_SECONDS=2700, line 180 sleeps 15s, line 182 kills at now-start>=2700, line 187 returns 78. 2700 is divisible by 15, so detection lands exactly 2700s after agent start and the GitHub step duration is 2700s + ~4s setup = 2704.0s. No audit branch and no gate exist, so the run issued NO verdict: this is an orchestration/work-quantum failure, not a producer, validation, gate or product failure.",
+      "success_rule": "All of: team conclusion success with every step success; audit conclusion failure with failing step named 'Independent audit'; that step's duration exactly 2704.0s; the two later audit steps skipped; integrate skipped; resilience success; no refs/heads/cycle/core/evaluation/40204378896/audit ref on origin; the same 2704.0s duration present for 40187594111, 40192868113 and 40198184759; the wrapper's quantum constant and kill branch read from origin/main at the documented lines.",
+      "falsified_if": "Any producer step failed, or the audit wrote a gate/audit branch, or the failing step is not the independent audit, or the duration differs from the quantum pattern, or the wrapper no longer carries the 2700s quantum/15s poll/exit-78 branch."
+    },
+    {
+      "id": "H_SNAPSHOT_PRESERVED",
+      "statement": "The persisted producer snapshot 14b9e9cf is intact and no prior claim-bearing artifact of the 40204378896 audit-ready pack was destroyed or rewritten by this resume. Every artifact entry of AUDIT_INDEX_40204378896.json still matches its recorded sha256, the frozen rubric/geometry pins are unchanged, and the accepted evaluation cycle 40159747851 is unchanged.",
+      "success_rule": "HEAD at resume start equals 14b9e9cf9d8c4d88f378fd8ae4281d3cbb18c2f5; all 14 artifact_inventory entries of AUDIT_INDEX_40204378896.json exist and re-hash equal; RULES_LABEL.json=4457e971..., RULES_GEOMETRY.json=a7452748...; state accepted_run_id stays 40159747851 with its in-tree gate results/audit/evaluation/CYCLE_40159747851_GATE.json present; the new run writes only evaluation/*, tests/evaluation/*, results/evaluation/*, reports/evaluation/* and state/evaluation.json.",
+      "falsified_if": "A pack artifact is missing or hash-mismatched, a frozen pin changes, or any write lands outside the lane scope."
+    },
+    {
+      "id": "H_FALSIFIER_REPRODUCES",
+      "statement": "The smallest executable retrieval/counter-authority benchmark that can falsify the product (python -m evaluation.minimal_retrieval_ca_benchmark, which invokes the accepted frozen engine evaluation.mapping_free_recall_falsifier.run()) reproduces its committed measurement of record 40182692670 on the current accepted product mount: verdict PRODUCT_FALSIFIED, exit 1, 18 gates / 11 passed / 4 failed with the identical four failed gate ids, input_drift=[], run_valid=true, and byte-equal gates, per_question, frozen hypothesis/freeze/rubric/spec pins, rehashes, drift guard, non-vacuity battery, numeric environment and product mount head. This is a VERIFICATION re-execution of an already-frozen protocol in scratch output, never a new measurement and never an overwrite of the committed record.",
+      "success_rule": "Re-execution completes in-scope with exit 1 and every compared field equal to the committed record; output written only under results/evaluation/operational_resume_40209360877/; the committed record 40182692670 keeps sha256 fd29a395f8b5307d67abeb79335337250518cc6de171a26ddbf09768840ade73.",
+      "falsified_if": "Any compared field differs, the verdict differs, input drift appears, the exit code differs, or the committed record's bytes change."
+    },
+    {
+      "id": "H_STATE_AND_SCOPE",
+      "statement": "After this resume's state/report updates the lane claim path is internally consistent and in scope: evidence_refs_n equals len(evidence_refs) in both state files, every top-level and nested evidence ref resolves, the write scope is clean under the control-plane patterns, and the targeted plus multilingual/provenance lane tests pass under the disclosed no-pytest shim with zero failed and zero absent.",
+      "success_rule": "state_integrity_gate ALL_CHECKS_PASS (11/11); nested_evidence_refs_guard NESTED_REFS_RESOLVED with 0 unresolved; write_scope SCOPE_CLEAN with 0 bad; both shim records verdict SHIM_PASS with n_failed=0. Unsupported/absent/import-error counts are published, never counted as passes.",
+      "falsified_if": "Any of these instruments returns a fail, or an unsupported case is silently reported as a pass."
+    },
+    {
+      "id": "H_POSTURE_UNCHANGED",
+      "statement": "Standing posture is unchanged: accepted_run_id stays 40159747851, direction_version stays 68, continue_recommended stays false (no new same-question cycle), human_gate_ready=false, machine_gate_ready=false, both DO-NOT-SERVE orders stand, item (2) stays NOT_YET_DISCRIMINATING, and no universal-174k benchmark is run.",
+      "success_rule": "Every named value observed exactly after the state update; no frozen bar, rubric, threshold or verdict contract is edited.",
+      "falsified_if": "Any posture value moves, item (2) is upgraded, or a 174k benchmark executes."
+    },
+    {
+      "id": "H_AUDIT_PACK_COMPACT",
+      "statement": "This run leaves the independent auditor a single-entry, hash-indexed audit pack whose complete re-execution is measured far below the 2700s work quantum, so a recurring audit starvation cannot be attributed to pack size. The pack names every claim, its artifact sha256 and the exact command that re-derives it, plus the measured wall time of each command.",
+      "success_rule": "AUDIT_INDEX_40209360877.json exists with claim_to_artifact, exact_commands, per-command measured seconds and an artifact_inventory whose every sha256 re-hashes equal; the reported total measured seconds is < 2700.",
+      "falsified_if": "The index is missing, any indexed hash mismatches, no runtimes are published, or the total measured verification time reaches 2700s."
+    }
+  ],
+  "pre_registered_commands": [
+    "python3 evaluation/operational_resume_40209360877.py prepare",
+    "python3 -m evaluation.minimal_retrieval_ca_benchmark --run-id 40209360877 --out-dir results/evaluation/operational_resume_40209360877/falsifier_replay_postfreeze --report-dir results/evaluation/operational_resume_40209360877/falsifier_replay_postfreeze",
+    "python3 -m evaluation.state_integrity_gate --run-id 40209360877 --out results/evaluation/operational_resume_40209360877/state_integrity_gate_40209360877.json",
+    "python3 evaluation/nested_evidence_refs_guard.py --run-id 40209360877 --out-dir results/evaluation/operational_resume_40209360877/nested_refs",
+    "python3 -m evaluation.snapshot_audit.write_scope --lane evaluation --out results/evaluation/operational_resume_40209360877/write_scope_40209360877.json",
+    "python3 -m evaluation.no_pytest_runner --run-id 40209360877 --test-file tests/evaluation/test_minimal_retrieval_ca_benchmark.py --test-file tests/evaluation/test_nested_evidence_refs_guard.py --test-file tests/evaluation/test_state_integrity_gate.py --test-file tests/evaluation/test_post_repair_family_ca_falsifier.py --out results/evaluation/operational_resume_40209360877/pytest_targeted_40209360877.json",
+    "python3 -m evaluation.no_pytest_runner --run-id 40209360877 --test-file tests/evaluation/test_stand_ready_multilingual_probe.py --test-file tests/evaluation/test_cross_lingual_alignment_v10.py --test-file tests/evaluation/test_disclosure_provenance_crosscheck.py --test-file tests/evaluation/test_fast_mvp_retrieval_recall_benchmark.py --test-file tests/evaluation/test_boilerplate_resistance_real.py --test-file tests/evaluation/test_nested_evidence_refs_guard.py --out results/evaluation/operational_resume_40209360877/pytest_multilingual_provenance_40209360877.json",
+    "python3 evaluation/operational_resume_40209360877.py finalize"
+  ],
+  "decision_unlocked": "Whether the persisted evaluation snapshot of run 40204378896 can be handed to an independent auditor now, with the audit-starvation failure diagnosed as orchestration rather than deliverable, and whether the product falsification of record still reproduces from the committed tree without opening a new same-question cycle.",
+  "no_new_same_question_cycle": true,
+  "no_frozen_bar_movement": true,
+  "no_serve_verdict": true,
+  "no_universal_174k_rerun": true,
+  "owner_decision_required": false
+}
