@@ -1,0 +1,44 @@
+...................................................F.................... [ 88%]
+.........                                                                [100%]
+=================================== FAILURES ===================================
+_____ test_fixture_mode_offline_slice_downgrades_the_known_letterhead_row ______
+
+    def test_fixture_mode_offline_slice_downgrades_the_known_letterhead_row():
+        """The shipped fixture path (offline_slice.build_bundle) really runs the
+        rejection leg: the trilingual Graubuenden letterhead row ends unverified
+        and the bundle keeps its full clickable-map shape."""
+        socket = __import__("socket")
+        real_connect = socket.socket.connect
+        socket.socket.connect = lambda *a, **k: (_ for _ in ()).throw(
+            AssertionError("offline slice attempted network access"))
+        try:
+            import offline_slice as ofs
+            bundle = ofs.build_bundle("rent-default", top_n=100, enrich=True)
+        finally:
+            socket.socket.connect = real_connect
+        prov = (bundle.get("provenance") or {}).get("counter_evidence_span") or {}
+        assert prov.get("applied") is True
+        assert prov.get("content_filter", {}).get("predicate_source_sha256") == (
+            FROZEN_PREDICATE_SOURCE_SHA)
+        row = next(d for d in bundle["decisions"]
+                   if d.get("decision_id") == "gr_gerichte_ERZ 2010 25")
+        assert row.get("counter_evidence_verified") is False
+>       assert row.get("counter_evidence_unevidenced") is True
+E       AssertionError: assert None is True
+E        +  where None = <built-in method get of dict object at 0x7f50d9a28940>('counter_evidence_unevidenced')
+E        +    where <built-in method get of dict object at 0x7f50d9a28940> = {'decision_id': 'gr_gerichte_ERZ 2010 25', 'court': 'gr_gerichte', 'language': 'de', 'rank': 5, ...}.get
+
+product/tests/test_counter_content_rejection_v68.py:314: AssertionError
+=============================== warnings summary ===============================
+product/tests/test_offline_slice.py: 4 warnings
+product/tests/test_query_map_mvp.py: 16 warnings
+product/tests/test_counter_content_rejection_v68.py: 1 warning
+  /home/runner/.local/lib/python3.12/site-packages/sklearn/feature_extraction/text.py:412: UserWarning: Your stop_words may be inconsistent with your preprocessing. Tokenizing the stop words generated tokens ['arret', 'considerant', 'erwagung', 'fur', 'perche', 'piu', 'puo', 'uber'] not in stop_words.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED product/tests/test_counter_content_rejection_v68.py::test_fixture_mode_offline_slice_downgrades_the_known_letterhead_row - AssertionError: assert None is True
+ +  where None = <built-in method get of dict object at 0x7f50d9a28940>('counter_evidence_unevidenced')
+ +    where <built-in method get of dict object at 0x7f50d9a28940> = {'decision_id': 'gr_gerichte_ERZ 2010 25', 'court': 'gr_gerichte', 'language': 'de', 'rank': 5, ...}.get
+1 failed, 80 passed, 21 warnings in 16.55s

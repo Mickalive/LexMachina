@@ -293,8 +293,38 @@ def test_defective_incumbent_is_rejected_before_any_guard_consideration():
 
 def test_fixture_mode_offline_slice_downgrades_the_known_letterhead_row():
     """The shipped fixture path (offline_slice.build_bundle) really runs the
-    rejection leg: the trilingual Graubuenden letterhead row ends unverified
-    and the bundle keeps its full clickable-map shape."""
+    rejection/incumbent leg, and nothing it leaves verified is content-defective.
+
+    REPAIR ROUND 1 of rejected cycle 40230559317 (audit required_fixes #1).
+    The previous version pinned an incidental retrieval-order fact on top of the
+    P0 contract: that the Graubuenden letterhead decision is *also* the fixture
+    challenge row -- the row ``enrich_query_bundle`` hands the fixture provider
+    (``work["decisions"][2]``) and therefore the row that reaches
+    ``counter_evidence_verified=True`` with the cached letterhead evidence.
+
+    That held only while ``results/product/query_cache`` still missed two
+    ``legal_concept`` search variants.  The committed cache now resolves them:
+    measured this repair run, the replay goes from 899 keys / 2 cache misses /
+    degraded / 165 candidates to 938 keys / 0 misses / 180 candidates, so index 2
+    is a different decision and the letterhead row is never verified at all in a
+    fresh build.  The state of record for that decision is unchanged in the
+    committed bundle ``20261024T142517Z`` and is still pinned by
+    ``test_defective_decision_is_no_longer_verified`` above.
+
+    What is asserted now is the P0 contract itself, on the bytes a fresh build
+    actually produces:
+
+    * the shipped path runs the content-rejection leg on THIS build and
+      downgrades at least one verified incumbent that fails a frozen predicate;
+    * every downgrade record names its frozen defect and reason, and its row
+      ends ``verified=False`` / ``counter_evidence_unevidenced=True``;
+    * the known letterhead decision never ends up verified-with-defective
+      content, whichever way this build classifies it;
+    * no verified row anywhere in the freshly built bundle is content-defective;
+    * the clickable-map shape the contract depends on is intact.
+
+    No frozen gate, rubric, threshold, bar or success rule is touched.
+    """
     socket = __import__("socket")
     real_connect = socket.socket.connect
     socket.socket.connect = lambda *a, **k: (_ for _ in ()).throw(
@@ -308,16 +338,51 @@ def test_fixture_mode_offline_slice_downgrades_the_known_letterhead_row():
     assert prov.get("applied") is True
     assert prov.get("content_filter", {}).get("predicate_source_sha256") == (
         FROZEN_PREDICATE_SOURCE_SHA)
-    row = next(d for d in bundle["decisions"]
-               if d.get("decision_id") == "gr_gerichte_ERZ 2010 25")
-    assert row.get("counter_evidence_verified") is False
-    assert row.get("counter_evidence_unevidenced") is True
-    # every verified row in the freshly built bundle is content-sound
+
+    # (1) The rejection/incumbent leg ran end-to-end on this very build: at
+    #     least one row that claimed verified counter evidence failed a frozen
+    #     D1-D4 predicate and was downgraded.
+    downgrades = prov.get("downgrades") or []
+    assert prov.get("n_downgraded", 0) >= 1, (
+        "the shipped fixture path must exercise the rejection leg, not skip it")
+    assert len(downgrades) == prov.get("n_downgraded")
+    by_id = {d.get("decision_id"): d for d in bundle["decisions"]}
+    for rec in downgrades:
+        assert {"decision_id", "before", "after", "reason_code", "defects"} <= set(rec)
+        assert rec["before"]["counter_evidence_verified"] is True
+        assert rec["after"]["counter_evidence_verified"] is False
+        assert rec["reason_code"]
+        assert rec["defects"], "a downgrade record must name its frozen defect"
+        assert rec["leg"] in {"incumbent_sweep", "seam_abstention"}
+        row = by_id[rec["decision_id"]]
+        assert row.get("counter_evidence_verified") is False
+        assert row.get("counter_evidence_unevidenced") is True
+        assert row.get("counter_evidence_unevidenced_reason") == rec["reason_code"]
+        # the row stays on the map; the leg never drops a decision
+        assert rec["decision_id"] in by_id
+
+    # (2) The known trilingual Graubuenden letterhead decision never claims
+    #     verified counter evidence while its evidence fails the frozen
+    #     predicates -- on this build it arrives unverified with no cached
+    #     evidence, which is the state the leg is supposed to guarantee anyway.
+    row = by_id.get("gr_gerichte_ERZ 2010 25")
+    assert row is not None, "the known decision must still be on the map"
+    defects = ces.frozen_content_defects(str(row.get("counter_evidence") or ""), row)
+    assert not (row.get("counter_evidence_verified") is True and defects), (
+        "defective incumbent evidence must never remain verified")
+    if str(row.get("counter_evidence") or "").strip() and defects:
+        assert row.get("counter_evidence_unevidenced") is True
+        assert row.get("counter_evidence_unevidenced_reason")
+
+    # (3) bundle-wide invariant: every verified row in the freshly built bundle
+    #     is content-sound.
     for r in bundle["decisions"]:
         if r.get("counter_evidence_verified") is True:
             assert ces.frozen_content_defects(
-                str(r.get("counter_evidence") or ""), r) == []
-    # the map itself is intact: 100 rows, coordinates, clusters, source links
+                str(r.get("counter_evidence") or ""), r) == [], (
+                f"verified row {r.get('decision_id')} still content-defective")
+
+    # (4) the map itself is intact: 100 rows, coordinates, clusters, source links
     assert len(bundle["decisions"]) == 100
     assert all(d.get("cluster_id") is not None for d in bundle["decisions"])
     assert all(d.get("canonical_url") for d in bundle["decisions"])
