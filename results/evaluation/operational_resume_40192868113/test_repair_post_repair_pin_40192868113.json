@@ -1,0 +1,33 @@
+{
+  "schema": "lex-evaluation-test-repair/1",
+  "run": 40192868113,
+  "test_file": "tests/evaluation/test_post_repair_family_ca_falsifier.py",
+  "head_version_sha256": "367a373c703d9b1c6671a22e77eda0218ccd66db388d7658e9fd69d1eb7205e1",
+  "repaired_version_sha256": "d90607bdbfa0b2ed9e5b6d5b1fba6029b9144d8695210d3012465b60a6bd5a5b",
+  "before_shim": {
+    "verdict": "SHIM_FAIL",
+    "passed": 9,
+    "failed": 1,
+    "unsupported": 4,
+    "record": "/home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40192868113/pytest_post_repair_before_40192868113.json",
+    "failed_test": "test_population_and_baseline_family_pins_match_mount",
+    "failure": "The test re-hashed the LIVE accepted mount against the historical mount-head pin 8e58724b; the live accepted head is 29a5c4a5.",
+    "note": "The HEAD bytes were materialized under a temporary in-repo filename so the shim could resolve REPO_ROOT; the recorded sha256 is the HEAD bytes, identical to head_version_sha256."
+  },
+  "after_shim": {
+    "verdict": "SHIM_PASS",
+    "passed": 14,
+    "failed": 0,
+    "unsupported": 0,
+    "record": "/home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40192868113/pytest_post_repair_40192868113.json",
+    "record_sha256": "952d125a6783f53901692eac7d8a0e28563fc84a07174bd82efec8f1b244556c"
+  },
+  "repair": [
+    "The historical hypothesis and freeze bytes are unchanged.",
+    "The live-mount check now allows ONLY the documented mount-head advance; every frozen bundle, baseline-family member and instrument byte must still match live.",
+    "The historical mount-head pin is verified against the historical tree at 8e58724b, the commit the hypothesis itself names, via a temporary git worktree; it is not waived.",
+    "The four synthetic sweep tests now use tempfile instead of the pytest-only tmp_path fixture, so they actually execute under the stdlib shim instead of being counted UNSUPPORTED."
+  ],
+  "why_not_a_weakening": "No frozen rule, threshold, predicate, population or claim check was changed. The pin assertion is stricter in coverage: it verifies the historical tree in addition to the live non-head pins, and it now executes four previously unrun control tests.",
+  "claim_ceiling": "This is test-infrastructure repair after a provider failure, not a new measurement or a re-score."
+}

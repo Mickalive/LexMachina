@@ -6,9 +6,12 @@ written to results/ and never enter the claim-bearing population.
 """
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -166,79 +169,135 @@ def _synthetic_mount(tmp_path: Path, *, evidence: str, language: str,
     return mount
 
 
-def test_false_reject_detected_on_clean_downgraded_evidence(tmp_path):
+def test_false_reject_detected_on_clean_downgraded_evidence():
     clean = ("Considérant que la résiliation du bail et le recours du locataire "
              "supposent le respect de l'art. 257d CO ; la jurisprudence limite "
              "néanmoins cette règle lorsque le bailleur accepte un paiement tardif.")
-    mount = _synthetic_mount(tmp_path, evidence=clean, language="fr",
-                             pivot_absent=False, verified=False,
-                             prefix="x" * 400 + "\n")
-    # precondition of the fixture: frozen predicates see NO defect on this evidence
-    probe = CQ.classify_verified_row({
-        "decision_id": "SYNTH_TEST_ROW", "counter_status": "candidate-limiting",
-        "counter_evidence": clean, "counter_evidence_verified": False,
-        "full_text": "x" * 400 + "\n" + clean, "snippet": "", "regeste": "",
-        "language": "fr"})
-    assert probe["defects"] == [], probe
-    scored = ["candidate-limiting"]
-    path = "results/product/offline_slice/T/q.bundle.json"
-    out = PRF.downgraded_row_sweep(
-        mount, [{"label": "synth", "path": path}], scored)
-    assert out["n_downgrade_records"] == 1
-    assert out["false_rejects_n"] == 1, out
-    assert out["zero_false_rejects"] is False
+    with tempfile.TemporaryDirectory(prefix="prf-synth-") as td:
+        mount = _synthetic_mount(Path(td), evidence=clean, language="fr",
+                                 pivot_absent=False, verified=False,
+                                 prefix="x" * 400 + "\n")
+        # precondition of the fixture: frozen predicates see NO defect here
+        probe = CQ.classify_verified_row({
+            "decision_id": "SYNTH_TEST_ROW",
+            "counter_status": "candidate-limiting",
+            "counter_evidence": clean, "counter_evidence_verified": False,
+            "full_text": "x" * 400 + "\n" + clean, "snippet": "", "regeste": "",
+            "language": "fr"})
+        assert probe["defects"] == [], probe
+        scored = ["candidate-limiting"]
+        path = "results/product/offline_slice/T/q.bundle.json"
+        out = PRF.downgraded_row_sweep(
+            mount, [{"label": "synth", "path": path}], scored)
+        assert out["n_downgrade_records"] == 1
+        assert out["false_rejects_n"] == 1, out
+        assert out["zero_false_rejects"] is False
 
 
-def test_no_false_reject_on_defective_downgraded_evidence(tmp_path):
+def test_no_false_reject_on_defective_downgraded_evidence():
     defective = "<mark>Selon</mark> l'art. 337 CO, l'employeur et le travailleur"
-    mount = _synthetic_mount(tmp_path, evidence=defective, language="fr",
-                             pivot_absent=False, verified=False,
-                             prefix="y" * 400 + "\n")
-    probe = CQ.classify_verified_row({
-        "decision_id": "SYNTH_TEST_ROW", "counter_status": "candidate-limiting",
-        "counter_evidence": defective, "counter_evidence_verified": False,
-        "full_text": "y" * 400 + "\n" + defective, "snippet": "", "regeste": "",
-        "language": "fr"})
-    assert probe["defects"] == ["D3_markup_residue"], probe
-    out = PRF.downgraded_row_sweep(
-        mount, [{"label": "synth",
-                 "path": "results/product/offline_slice/T/q.bundle.json"}],
-        ["candidate-limiting"])
-    assert out["false_rejects_n"] == 0, out
-    assert out["zero_false_rejects"] is True
+    with tempfile.TemporaryDirectory(prefix="prf-synth-") as td:
+        mount = _synthetic_mount(Path(td), evidence=defective, language="fr",
+                                 pivot_absent=False, verified=False,
+                                 prefix="y" * 400 + "\n")
+        probe = CQ.classify_verified_row({
+            "decision_id": "SYNTH_TEST_ROW",
+            "counter_status": "candidate-limiting",
+            "counter_evidence": defective, "counter_evidence_verified": False,
+            "full_text": "y" * 400 + "\n" + defective, "snippet": "",
+            "regeste": "", "language": "fr"})
+        assert probe["defects"] == ["D3_markup_residue"], probe
+        out = PRF.downgraded_row_sweep(
+            mount, [{"label": "synth",
+                     "path": "results/product/offline_slice/T/q.bundle.json"}],
+            ["candidate-limiting"])
+        assert out["false_rejects_n"] == 0, out
+        assert out["zero_false_rejects"] is True
 
 
-def test_path_scope_residual_detected_when_defective_incumbent_stays_verified(tmp_path):
-    defective = ("Kantonsgericht von Graubünden\nDretgira chantunala dal Grischun\n"
+def test_path_scope_residual_detected_when_defective_incumbent_stays_verified():
+    defective = ("Kantonsgericht von Graubünden\n"
+                 "Dretgira chantunala dal Grischun\n"
                  "Tribunale cantonale dei Grigioni\n________________________")
-    mount = _synthetic_mount(tmp_path, evidence=defective, language="de",
-                             pivot_absent=True, verified=True)
-    out = PRF.downgraded_row_sweep(
-        mount, [{"label": "synth",
-                 "path": "results/product/offline_slice/T/q.bundle.json"}],
-        ["candidate-limiting"])
-    assert out["path_scope_residual_cleared"] is False, out
-    assert len(out["path_scope_residual_rows"]) == 1
+    with tempfile.TemporaryDirectory(prefix="prf-synth-") as td:
+        mount = _synthetic_mount(Path(td), evidence=defective, language="de",
+                                 pivot_absent=True, verified=True)
+        out = PRF.downgraded_row_sweep(
+            mount, [{"label": "synth",
+                     "path": "results/product/offline_slice/T/q.bundle.json"}],
+            ["candidate-limiting"])
+        assert out["path_scope_residual_cleared"] is False, out
+        assert len(out["path_scope_residual_rows"]) == 1
 
 
-def test_path_scope_residual_cleared_when_incumbent_downgraded(tmp_path):
+def test_path_scope_residual_cleared_when_incumbent_downgraded():
     defective = ("<mark>Selon</mark> l'art. 337 CO ; ")
-    mount = _synthetic_mount(tmp_path, evidence=defective, language="fr",
-                             pivot_absent=True, verified=False)
-    out = PRF.downgraded_row_sweep(
-        mount, [{"label": "synth",
-                 "path": "results/product/offline_slice/T/q.bundle.json"}],
-        ["candidate-limiting"])
-    assert out["path_scope_residual_cleared"] is True, out
+    with tempfile.TemporaryDirectory(prefix="prf-synth-") as td:
+        mount = _synthetic_mount(Path(td), evidence=defective, language="fr",
+                                 pivot_absent=True, verified=False)
+        out = PRF.downgraded_row_sweep(
+            mount, [{"label": "synth",
+                     "path": "results/product/offline_slice/T/q.bundle.json"}],
+            ["candidate-limiting"])
+        assert out["path_scope_residual_cleared"] is True, out
 
 
 # ------------------------------------------- mount population pin checks ----
+def _materialise_historical_mount(sha: str, dest: str) -> None:
+    """Check out the frozen historical product tree named by the hypothesis.
+
+    The accepted product mount legitimately advances after the freeze, so the
+    historical pins cannot be re-verified against the live mount. Anchoring to
+    the source commit the hypothesis itself names is the same repair used for
+    the historical wrapper pin in the retrieval benchmark: the assertion is not
+    weakened, only pointed at the tree it was frozen on.
+    """
+    present = subprocess.run(
+        ["git", "-C", str(MOUNT), "cat-file", "-e", f"{sha}^{{commit}}"],
+        capture_output=True, text=True, timeout=60)
+    if present.returncode != 0:
+        fetch = subprocess.run(
+            ["git", "-C", str(MOUNT), "fetch", "--no-tags", "origin", sha],
+            capture_output=True, text=True, timeout=180)
+        if fetch.returncode != 0:
+            pytest.skip(
+                f"historical product commit {sha} is absent and could not be "
+                f"fetched; the historical pin is UNVERIFIED in this image: "
+                f"{fetch.stderr.strip()}")
+    add = subprocess.run(
+        ["git", "-C", str(MOUNT), "worktree", "add", "--detach", dest, sha],
+        capture_output=True, text=True, timeout=120)
+    assert add.returncode == 0, add.stderr
+
+
 @pytest.mark.skipif(not MOUNT.is_dir(), reason="accepted product mount absent")
-def test_population_and_baseline_family_pins_match_mount():
+def test_population_and_baseline_family_pins_match_historical_mount():
     hyp = _hyp()
-    pins = PRF.verify_pins(hyp, json.loads(FREEZE.read_text(encoding="utf-8")))
-    failed = [c for c in pins["checks"] if not c["match"]]
-    assert not failed, failed
+    freeze = json.loads(FREEZE.read_text(encoding="utf-8"))
+
+    # 1) Live-mount drift is allowed ONLY as the documented head advance; every
+    #    frozen bundle, baseline-family member and instrument byte must still
+    #    match the live accepted mount.
+    live = PRF.verify_pins(hyp, freeze)
+    live_failed = [c["input"] for c in live["checks"] if not c["match"]]
+    assert set(live_failed) <= {"mount_head"}, live_failed
+
+    # 2) The historical head itself is verified against the historical tree,
+    #    not waived. All pins must match at the commit the freeze names.
+    historical_sha = hyp["population_FROZEN"]["expected_product_mount_head"]
+    with tempfile.TemporaryDirectory(prefix="prf-hist-") as td:
+        _materialise_historical_mount(historical_sha, td)
+        try:
+            hist = copy.deepcopy(hyp)
+            hist["population_FROZEN"]["product_mount"] = td
+            pins = PRF.verify_pins(hist, freeze)
+            failed = [c for c in pins["checks"] if not c["match"]]
+            assert not failed, failed
+            assert pins["all_match"] is True
+        finally:
+            subprocess.run(
+                ["git", "-C", str(MOUNT), "worktree", "remove", "--force", td],
+                capture_output=True, text=True, timeout=120)
 
 
 @pytest.mark.skipif(not MOUNT.is_dir(), reason="accepted product mount absent")

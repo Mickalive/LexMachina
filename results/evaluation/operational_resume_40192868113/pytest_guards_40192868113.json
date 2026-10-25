@@ -1,0 +1,122 @@
+{
+ "schema": "lex-evaluation-no-pytest-runner/1",
+ "run_id": "40192868113",
+ "generated_at_utc": "2026-10-25T12:32:33Z",
+ "python": "3.12.3",
+ "pytest_available": false,
+ "supported_constructs": [
+  "plain test function with no parameters",
+  "pytest.mark.skipif(condition, reason=...)",
+  "pytest.raises",
+  "module-level `from evaluation import ... as ...`"
+ ],
+ "verdict": "SHIM_PASS",
+ "n_files": 2,
+ "n_passed": 4,
+ "n_failed": 0,
+ "n_skipped": 0,
+ "n_unsupported": 12,
+ "n_absent": 0,
+ "results": [
+  {
+   "test_file": "tests/evaluation/test_nested_evidence_refs_guard.py",
+   "test_file_sha256": "1135d3bf572e537c2b800ad324c303c7b4397cd30684d0990ef8a4ba6cb6150b",
+   "status": "PASS",
+   "n_passed": 2,
+   "n_failed": 0,
+   "n_skipped": 0,
+   "n_unsupported": 2,
+   "cases": [
+    {
+     "test": "test_first_token_strips_prose",
+     "status": "PASS"
+    },
+    {
+     "test": "test_guard_run_on_real_state",
+     "status": "UNSUPPORTED",
+     "reason": "test needs fixture(s): ['tmp_path']"
+    },
+    {
+     "test": "test_ref_regex_matches_path_shapes",
+     "status": "PASS"
+    },
+    {
+     "test": "test_walk_classifies_and_resolves",
+     "status": "UNSUPPORTED",
+     "reason": "test needs fixture(s): ['tmp_path']"
+    }
+   ]
+  },
+  {
+   "test_file": "tests/evaluation/test_state_integrity_gate.py",
+   "test_file_sha256": "07f4d22399a4fd072d2ba66bfaf2be2763f556ffe201d04c453d0b5c88785ba6",
+   "status": "PASS",
+   "n_passed": 2,
+   "n_failed": 0,
+   "n_skipped": 0,
+   "n_unsupported": 10,
+   "cases": [
+    {
+     "test": "test_committed_tree_passes_the_gate",
+     "status": "PASS"
+    },
+    {
+     "test": "test_control_1_count_mismatch_bites",
+     "status": "UNSUPPORTED",
+     "reason": "test needs fixture(s): ['tmp_path']"
+    },
+    {
+     "test": "test_control_2_invalid_ref_path_bites",
+     "status": "UNSUPPORTED",
+     "reason": "test needs fixture(s): ['tmp_path']"
+    },
+    {
+     "test": "test_control_3_indent_regression_bites",
+     "status": "UNSUPPORTED",
+     "reason": "test needs fixture(s): ['tmp_path']"
+    },
+    {
+     "test": "test_control_4_unaudited_promotion_at_cutoff_bites",
+     "status": "UNSUPPORTED",
+     "reason": "test needs fixture(s): ['tmp_path']"
+    },
+    {
+     "test": "test_control_4b_pending_disclosure_discharges_promotion_check",
+     "status": "UNSUPPORTED",
+     "reason": "test needs fixture(s): ['tmp_path']"
+    },
+    {
+     "test": "test_control_4c_historical_run_below_cutoff_is_inventory_only",
+     "status": "UNSUPPORTED",
+     "reason": "test needs fixture(s): ['tmp_path']"
+    },
+    {
+     "test": "test_control_5_in_tree_gate_discharges_promotion_check",
+     "status": "UNSUPPORTED",
+     "reason": "test needs fixture(s): ['tmp_path']"
+    },
+    {
+     "test": "test_control_6_parity_break_bites",
+     "status": "UNSUPPORTED",
+     "reason": "test needs fixture(s): ['tmp_path']"
+    },
+    {
+     "test": "test_control_7_accepted_run_without_gate_bites",
+     "status": "UNSUPPORTED",
+     "reason": "test needs fixture(s): ['tmp_path']"
+    },
+    {
+     "test": "test_control_8_environment_error_never_passes_never_fails",
+     "status": "UNSUPPORTED",
+     "reason": "test needs fixture(s): ['tmp_path']"
+    },
+    {
+     "test": "test_spec_is_frozen_and_rehashable",
+     "status": "PASS"
+    }
+   ]
+  }
+ ],
+ "what_this_is_not": "NOT pytest. This runner does not discover, collect, fixture-inject, xfail or report the way pytest does. A case needing a fixture, a parametrisation or a construct outside supported_constructs is reported UNSUPPORTED and counted as NOT-RUN, never as passed, so the counts here are an UPPER BOUND on what pytest would execute. A SHIM_PASS does NOT withdraw the standing disclosure that the lane's pytest scope is unexecuted in the producer image and that the snapshot-audit READY verdict is conditional on that absence.",
+ "why_it_exists": "An unexecuted test file is an unverified claim. This converts the lane's pytest-style tests into a measurement in an image where pytest is absent, without pretending the absence is fixed."
+}
