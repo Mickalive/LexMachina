@@ -1,0 +1,153 @@
+{
+  "schema": "lex-evaluation-operational-resume-diagnosis/1",
+  "lane": "evaluation",
+  "run_id": "40198184759",
+  "resumed_run_id": "40192868113",
+  "generated_at_utc": "2026-10-25T13:33:55Z",
+  "classification": "ORCHESTRATION_WORK_QUANTUM_EXPIRED",
+  "classification_confidence": "high_on_mechanism_not_proven_on_log_text",
+  "why_not_proven": "GitHub job logs are not readable without admin rights (HTTP 403); the 2700s wrapper quantum and the 45m4s audit-step duration are strong but not log-confirmed.",
+  "run": {
+    "head_sha": "98fb4d7a7104adaac9c1e7a3c1e9860acf9c0907",
+    "event": "workflow_dispatch",
+    "created_at": "2026-10-25T12:23:09Z",
+    "updated_at": "2026-10-25T13:33:59Z",
+    "conclusion": "failure",
+    "html_url": "https://github.com/Mickalive/LexMachina/actions/runs/40192868113"
+  },
+  "jobs": {
+    "team": {
+      "conclusion": "success",
+      "started_at": "2026-10-25T12:23:15Z",
+      "completed_at": "2026-10-25T12:48:02Z"
+    },
+    "audit": {
+      "conclusion": "failure",
+      "started_at": "2026-10-25T12:48:05Z",
+      "completed_at": "2026-10-25T13:33:48Z",
+      "seconds": 2743.0,
+      "failing_step": {
+        "name": "Independent audit",
+        "status": "completed",
+        "conclusion": "failure",
+        "number": 5,
+        "started_at": "2026-10-25T12:48:42Z",
+        "completed_at": "2026-10-25T13:33:46Z"
+      },
+      "step_seconds": 2704.0
+    },
+    "integrate": {
+      "conclusion": "skipped"
+    },
+    "resilience": {
+      "conclusion": "success",
+      "started_at": "2026-10-25T13:33:51Z",
+      "completed_at": "2026-10-25T13:33:58Z"
+    },
+    "prior_audit": {
+      "run_id": "40187594111",
+      "conclusion": "failure",
+      "seconds": 2753.0,
+      "failing_step": "Independent audit"
+    }
+  },
+  "work_quantum": {
+    "source": "origin/main:.github/scripts/run-ox-with-retry.sh",
+    "seconds": 2700,
+    "quantum_line": 22,
+    "warning_line": 183,
+    "exit78_line": 223,
+    "warning": "::warning::LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=<child>",
+    "exit_code": 78,
+    "git_show_returncode": 0,
+    "stderr": ""
+  },
+  "audit_branch_probe": {
+    "command": "git ls-remote --heads origin refs/heads/cycle/core/evaluation/40192868113/*",
+    "returncode": 0,
+    "refs": [
+      "refs/heads/cycle/core/evaluation/40192868113/team",
+      "refs/heads/cycle/core/evaluation/40192868113/team-attempt-1"
+    ],
+    "audit_refs": [],
+    "audit_branch_present": false,
+    "stderr": ""
+  },
+  "checks": [
+    {
+      "check": "team_job_success",
+      "ok": true,
+      "started_at": "2026-10-25T12:23:15Z",
+      "completed_at": "2026-10-25T12:48:02Z"
+    },
+    {
+      "check": "audit_job_failure",
+      "ok": true,
+      "started_at": "2026-10-25T12:48:05Z",
+      "completed_at": "2026-10-25T13:33:48Z",
+      "seconds": 2743.0
+    },
+    {
+      "check": "failing_step_is_independent_audit",
+      "ok": true,
+      "failing_step": {
+        "name": "Independent audit",
+        "status": "completed",
+        "conclusion": "failure",
+        "number": 5,
+        "started_at": "2026-10-25T12:48:42Z",
+        "completed_at": "2026-10-25T13:33:46Z"
+      },
+      "seconds": 2704.0
+    },
+    {
+      "check": "gate_and_audit_snapshot_steps_skipped",
+      "ok": true,
+      "skipped_steps": [
+        "Enforce audit scope and read gate",
+        "Persist audit snapshot"
+      ]
+    },
+    {
+      "check": "integrate_skipped",
+      "ok": true
+    },
+    {
+      "check": "resilience_success",
+      "ok": true
+    },
+    {
+      "check": "audit_duration_matches_wrapper_quantum",
+      "ok": true,
+      "audit_step_seconds": 2704.0,
+      "wrapper_quantum_seconds": 2700,
+      "delta_seconds": 4.0
+    },
+    {
+      "check": "no_audit_branch",
+      "ok": true,
+      "refs": [
+        "refs/heads/cycle/core/evaluation/40192868113/team",
+        "refs/heads/cycle/core/evaluation/40192868113/team-attempt-1"
+      ],
+      "returncode": 0
+    },
+    {
+      "check": "prior_run_same_failure",
+      "ok": true,
+      "prior_failing_seconds": 2704.0,
+      "prior_audit_seconds": 2753.0,
+      "prior_failing_step": "Independent audit"
+    }
+  ],
+  "all_checks_ok": true,
+  "root_cause": "The independent-audit agent is killed by the 2700s work quantum before it writes an audit branch or gate. The producer team job is healthy: it completed, validated state, clean-junk, write-scope and persisted its snapshot. Integrate correctly skipped; resilience dispatched the next repair run.",
+  "not_a_producer_failure": [
+    "Run lane cycle: success",
+    "Validate active MVP producer state: success",
+    "Clean generated junk: success",
+    "Enforce lane write scope: success",
+    "Persist team snapshot: success"
+  ],
+  "control_plane_note": "This resume does not edit .github/** or the audit quantum. A durable fix (split audit scope, reduce the audit prompt, or raise the quantum) is a control-plane decision outside the evaluation lane write scope."
+}
