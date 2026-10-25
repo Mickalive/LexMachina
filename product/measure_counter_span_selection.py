@@ -97,6 +97,16 @@ def _summarise(bundle: dict) -> dict:
     }
 
 
+def summarise_arm(bundle: dict) -> dict:
+    """Public alias for the accepted arm summary.
+
+    ``content_family_probe.py`` re-uses this shape when it re-runs the shipped
+    guarded arm over packet-of-record v3 bytes, so the after-check metrics are
+    computed by the same code as the accepted baseline and cannot drift.
+    """
+    return _summarise(bundle)
+
+
 def measure_bundle(path: Path, qid: str) -> dict:
     source = json.loads(path.read_text(encoding="utf-8"))
     baseline = apply_anchor_labels(
