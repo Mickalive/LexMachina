@@ -53,12 +53,23 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = "product-audit-readiness/1"
 DIRECTION_VERSION = 68
-ACCEPTED_RUN_ID = "CYCLE_40159523259"
-ACCEPTED_COMMIT = "29a5c4a54"
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from product.state_contract import accepted_pointer_evidence  # noqa: E402
 
 ORCH = ROOT / "results" / "product" / "orchestration"
 CONTENT_FAMILY = (ROOT / "results" / "product" / "counter_content_family"
                   / "CYCLE_40188639817.json")
+# The default profile's pinned family measurement.  A newer profile may pin its
+# own artifact/numbers; the report is always REPORTED-ONLY and the frozen
+# predicates are never re-derived here.
+CONTENT_FAMILY_EXPECTED = {
+    "n_bundles": 29,
+    "n_decisions": 2900,
+    "n_verified": 20,
+    "n_verified_defective": 0,
+    "false_reject_count": 0,
+}
 BEFORE_BUNDLE = (ROOT / "results" / "product" / "offline_slice"
                  / "20261024T142517Z" / "rent-default.bundle.json")
 AFTER_BUNDLE = (ROOT / "results" / "product" / "offline_slice"
@@ -120,6 +131,39 @@ PROFILES: dict[str, dict[str, Any]] = {
         "state_block": "cycle_40217792931_operational_resume",
     },
     "40221519475": {"alias_of": "40217792931"},
+    "40234815780": {
+        "resumed_run_id": "40234815780",
+        "predecessor_run_id": "40230559317",
+        "raw": ORCH / "CYCLE_40234815780_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40234815780_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40230559317.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40234815780.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 8,
+        "changed_paths_include": (
+            "product/tests/test_counter_content_rejection_v68.py",
+            "results/product/repair_40234815780/",
+        ),
+        "cycle_test": "product/tests/test_cycle_40234815780_resume.py",
+        "state_block": "cycle_40234815780_operational_resume",
+        # This resume's family artifact is newer than the default profile's.
+        # Both are valid REPORTED-ONLY measurements; the profile pins the one
+        # the current run's audit should consume, not a re-derived number.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40230559317.json",
+        "content_family_expected": {
+            "n_bundles": 43,
+            "n_decisions": 4300,
+            "n_verified": 44,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -128,13 +172,20 @@ PROFILE: dict[str, Any] = {}
 
 
 def select_profile(run_id: str) -> dict[str, Any]:
-    """Resolve the dossier profile for ``run_id`` (aliases are followed)."""
+    """Resolve the dossier profile for ``run_id`` (aliases are followed).
+
+    A dossier for the wrong run is worse than no dossier: it would re-derive
+    another run's claims and label them with this run's id.  Unknown run ids
+    therefore fail closed instead of silently inheriting the default profile.
+    """
     key = str(run_id)
     prof = PROFILES.get(key)
     while isinstance(prof, dict) and "alias_of" in prof:
         prof = PROFILES.get(str(prof["alias_of"]))
     if prof is None:
-        prof = PROFILES[DEFAULT_PROFILE_KEY]
+        raise SystemExit(
+            f"no audit-readiness profile for run {key}; refusing to fall back "
+            f"to {DEFAULT_PROFILE_KEY} and publish another run's claims")
     return dict(prof)
 
 
@@ -294,16 +345,17 @@ def check_posture() -> dict[str, Any]:
         "machine_gate_ready": False,
         "packet_admitted": False,
         "ready_for_owner_session": False,
-        "accepted_run_id": ACCEPTED_RUN_ID,
     }
     bad = {k: {"expected": v, "actual": st.get(k)}
            for k, v in expected.items() if st.get(k) != v}
-    ok = not bad and str(st.get("accepted_commit", "")).startswith(ACCEPTED_COMMIT)
+    pointer = accepted_pointer_evidence(st, ROOT)
+    ok = not bad and not pointer["problems"]
     return _check(
         "posture",
-        "Fail-closed posture and unchanged accepted pointer",
+        "Fail-closed posture and an accepted pointer that still satisfies "
+        "both halves of requirement 4",
         ok,
-        {"mismatches": bad, "accepted_commit": st.get("accepted_commit")},
+        {"mismatches": bad, "accepted_pointer": pointer},
         ["state/product.json"],
     )
 
@@ -374,8 +426,10 @@ def _row(bundle: dict, decision_id: str) -> dict | None:
 
 
 def check_claim_artifacts() -> dict[str, Any]:
+    cf_path = Path(p("content_family", CONTENT_FAMILY))
+    expected = dict(p("content_family_expected", CONTENT_FAMILY_EXPECTED))
     paths = [
-        CONTENT_FAMILY, BEFORE_BUNDLE, AFTER_BUNDLE,
+        cf_path, BEFORE_BUNDLE, AFTER_BUNDLE,
         Path(p("raw", RAW)), Path(p("resume_diag", RESUME_DIAG)),
         *_report_paths(), STATE,
     ]
@@ -385,21 +439,17 @@ def check_claim_artifacts() -> dict[str, Any]:
     problems: list[str] = []
     detail: dict[str, Any] = {}
 
-    if not problems and CONTENT_FAMILY.is_file():
-        cf = _load(CONTENT_FAMILY)
+    if not problems and cf_path.is_file():
+        cf = _load(cf_path)
         fp = (cf.get("fixed_path_family") or {}).get("totals") or {}
         try:
-            if fp.get("n_bundles") != 29:
-                problems.append("fixed_path_family.n_bundles")
-            if fp.get("n_decisions") != 2900:
-                problems.append("fixed_path_family.n_decisions")
-            if fp.get("n_verified") != 20:
-                problems.append("fixed_path_family.n_verified")
-            if fp.get("n_verified_defective") != 0:
-                problems.append("fixed_path_family.n_verified_defective")
+            for key in ("n_bundles", "n_decisions", "n_verified",
+                        "n_verified_defective"):
+                if fp.get(key) != expected[key]:
+                    problems.append(f"fixed_path_family.{key}")
             if any(v != 0 for v in (fp.get("defect_histogram") or {}).values()):
                 problems.append("fixed_path_family.defect_histogram")
-            if cf.get("false_reject_count") != 0:
+            if cf.get("false_reject_count") != expected["false_reject_count"]:
                 problems.append("false_reject_count")
             if not (cf.get("confirmed_set") or {}).get("still_verified"):
                 problems.append("confirmed_sound_row")
@@ -410,9 +460,11 @@ def check_claim_artifacts() -> dict[str, Any]:
             if any((cf.get("frozen_predicate_provenance") or {}).get(k) is None
                    for k in ("predicate_source_sha256", "frozen_hypothesis_sha256")):
                 problems.append("frozen_predicate_provenance")
-        except (TypeError, AttributeError):
+        except (TypeError, AttributeError, KeyError):
             problems.append("content_family_shape")
         detail["content_family"] = {
+            "path": str(cf_path.relative_to(ROOT)),
+            "expected": expected,
             "n_bundles": fp.get("n_bundles"),
             "n_decisions": fp.get("n_decisions"),
             "n_verified": fp.get("n_verified"),
@@ -594,6 +646,9 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
     inherited = p("inherited_report", INHERITED_REPORT)
     cycle_test = p("cycle_test", "product/tests/test_cycle_40200882831.py")
     delta_files = ((resumed.get("durable_delta") or {}).get("changed_files"))
+    cf_path = Path(p("content_family", CONTENT_FAMILY))
+    cf_expected = dict(p("content_family_expected", CONTENT_FAMILY_EXPECTED))
+    live_state = _load(STATE)
     return {
         "schema": SCHEMA,
         "generated_at": _now(),
@@ -629,7 +684,7 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
              "artifacts": [str(raw.relative_to(ROOT)),
                            str(resume_diag.relative_to(ROOT))]},
             {"id": "C2",
-             "claim": f"Run {resumed_id} persisted a {delta_files}-file "
+             "claim": f"Run {resumed_id} persisted an {delta_files}-file "
                       f"durable delta over {predecessor} and is UNADJUDICATED.",
              "check": "resumed_diagnosis",
              "artifacts": [str(resume_diag.relative_to(ROOT))]},
@@ -639,13 +694,16 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
              "check": "claim_artifacts",
              "artifacts": [str(BEFORE_BUNDLE.relative_to(ROOT)),
                            str(AFTER_BUNDLE.relative_to(ROOT)),
-                           str(CONTENT_FAMILY.relative_to(ROOT))]},
+                           str(cf_path.relative_to(ROOT))]},
             {"id": "C4",
-             "claim": "The fixed-path family is 29 bundles / 2900 decisions / "
-                      "20 verified rows / 0 verified-and-defective, with the "
-                      "sound row retained and 0 false rejects.",
+             "claim": f"The fixed-path family is {cf_expected['n_bundles']} "
+                      f"bundles / {cf_expected['n_decisions']} decisions / "
+                      f"{cf_expected['n_verified']} verified rows / "
+                      f"{cf_expected['n_verified_defective']} "
+                      "verified-and-defective, with the sound row retained "
+                      "and 0 false rejects (REPORTED-ONLY measurement).",
              "check": "claim_artifacts",
-             "artifacts": [str(CONTENT_FAMILY.relative_to(ROOT))]},
+             "artifacts": [str(cf_path.relative_to(ROOT))]},
             {"id": "C5",
              "claim": "The shipped progressive query slice still answers over a "
                       "real socket in fixture mode within the local budgets.",
@@ -655,8 +713,11 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
              "claim": "The bounded MVP core pytest set is green.",
              "check": "mvp_core_tests", "artifacts": list(MVP_CORE_TESTS)},
             {"id": "C7",
-             "claim": "Posture is fail-closed and the accepted pointer remains "
-                      "CYCLE_40159523259 / 29a5c4a54.",
+             "claim": "Posture is fail-closed and the accepted pointer "
+                      f"({live_state.get('accepted_run_id')} / "
+                      f"{str(live_state.get('accepted_commit') or '')[:9]}) "
+                      "satisfies BOTH halves of requirement 4: a committed "
+                      "PASS/safe gate and an accept commit.",
              "check": "posture", "artifacts": ["state/product.json"]},
             {"id": "C8",
              "claim": "This run minted no audit gate and wrote no "

@@ -44,6 +44,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -96,6 +97,65 @@ def load_state(path: Path = CANONICAL_STATE) -> dict:
         return json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:  # pragma: no cover - defensive
         raise StateContractError(f"{path} is not valid JSON: {exc}", exit_code=69) from exc
+
+
+def accepted_pointer_evidence(
+    state: dict,
+    repo_root: Path | None = None,
+) -> dict:
+    """Validate the accepted pointer the state actually names.
+
+    Factory-wide requirement 4 is a conjunction: the accepted run must have a
+    committed ``PASS``/``safe_to_integrate`` gate *and* an ``accept product
+    cycle <run>`` commit.  Pinning a literal run id instead goes stale the
+    moment a later cycle is accepted, which is the drift class historical
+    cycle tests kept tripping over.
+    """
+    root = Path(repo_root) if repo_root is not None else REPO_ROOT
+    pointer = str(state.get("accepted_run_id") or "")
+    commit = str(state.get("accepted_commit") or "")
+    out: dict = {
+        "accepted_run_id": pointer,
+        "accepted_commit": commit,
+        "problems": [],
+    }
+    match = re.fullmatch(r"CYCLE_(\d+)", pointer)
+    if not match:
+        out["problems"].append("accepted_run_id_shape")
+        return out
+    run_id = match.group(1)
+    gate_rel = f"results/audit/product/CYCLE_{run_id}_GATE.json"
+    gate_path = root / gate_rel
+    gate = None
+    if gate_path.is_file():
+        try:
+            gate = json.loads(gate_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            gate = None
+    gate_ok = bool(
+        gate and gate.get("gate") == "PASS"
+        and gate.get("safe_to_integrate") is True
+    )
+    log = subprocess.run(
+        ["git", "log", "--all", "--oneline",
+         f"--grep=^accept product cycle {run_id}$"],
+        cwd=str(root), capture_output=True, text=True, check=False,
+    ).stdout
+    accept_ok = run_id in log
+    if not gate_ok:
+        out["problems"].append("accepted_gate_not_PASS_safe")
+    if not accept_ok:
+        out["problems"].append("accept_commit_missing")
+    if not commit:
+        out["problems"].append("accepted_commit_empty")
+    out.update({
+        "gate": gate_rel,
+        "gate_present": gate_path.is_file(),
+        "gate_ok": gate_ok,
+        "accept_commit_present": accept_ok,
+        "accept_log_sample": log.splitlines()[:3],
+    })
+    return out
 
 
 def workflow_validation(

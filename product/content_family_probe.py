@@ -603,8 +603,17 @@ def packet_v3_arms() -> dict:
     }
 
 
-def run(run_id: str | None = None, direction_version: int | None = None) -> dict:
-    rows = [probe_bundle(p) for p in bundle_paths()]
+def run(
+    run_id: str | None = None,
+    direction_version: int | None = None,
+    paths: list[Path] | None = None,
+) -> dict:
+    # ``paths`` exists so a historical artifact can be re-derived over the
+    # population it actually measured.  Later cycles legitimately commit new
+    # bundles; allowing those to leak into an old artifact's recomputation
+    # turns a true claim into a permanent false failure.  The default remains
+    # the live committed population.
+    rows = [probe_bundle(p) for p in (paths if paths is not None else bundle_paths())]
     fixed = [r for r in rows if r["fixed_path_family"]]
     historical = [r for r in rows if not r["fixed_path_family"]]
     fixed_totals = _totals(fixed)

@@ -292,7 +292,13 @@ def test_the_resumed_snapshot_bundle_is_still_clickable() -> None:
         check=False,
     )
     assert proc.returncode == 0, proc.stdout[-2000:] + proc.stderr[-2000:]
-    assert "PASS 68 assertions" in proc.stdout
+    # Later accepted cycles legitimately extend the page contract (the live
+    # verifier now reports PASS 70 assertions).  The historical claim is that
+    # the inherited bundle still verifies and no assertion fails, not that the
+    # verifier's assertion count is frozen.
+    match = re.search(r"PASS (\d+) assertions", proc.stdout)
+    assert match, proc.stdout[-2000:]
+    assert int(match.group(1)) >= 68
     assert "FAIL" not in proc.stdout
 
 

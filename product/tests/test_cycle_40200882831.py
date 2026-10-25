@@ -317,10 +317,16 @@ def test_state_records_this_resume_and_stays_fail_closed() -> None:
     assert st["machine_gate_ready"] is False
     assert st["packet_admitted"] is False
     assert st["ready_for_owner_session"] is False
-    assert st["accepted_run_id"] == "CYCLE_40159523259"
-    assert st["accepted_commit"].startswith("29a5c4a")
-    assert "audit_readiness" in st["next_recommendation"].lower() or (
-        "audit-readiness" in st["next_recommendation"].lower())
+    # The pointer legitimately advances; this run's claim is that it still
+    # names a run with BOTH halves of requirement 4.  Likewise the next
+    # recommendation evolves, so assert it still names a next action rather
+    # than a cycle id that later hops necessarily replace.
+    from product.state_contract import accepted_pointer_evidence
+    pointer = accepted_pointer_evidence(st, REPO_ROOT)
+    assert not pointer["problems"], pointer
+    assert "NEXT:" in st["next_recommendation"]
+    assert "audit" in st["next_recommendation"].lower() or (
+        "resume" in st["next_recommendation"].lower())
 
 
 def test_no_producer_audit_namespace_write_for_this_run() -> None:

@@ -181,14 +181,23 @@ def test_the_repaired_fixture_mode_test_pins_the_contract_not_the_cache_order():
     assert "FROZEN_PREDICATE_SOURCE_SHA" in fixture_body
 
 
+#: The rejected producer head this repair was cut from and the repair commit
+#: itself.  The scope claim belongs to THOSE bytes, not to whatever a later
+#: operational resume has pending in the worktree - an operational resume
+#: legitimately adds orchestration/report/test artifacts of its own, and a test
+#: that conflates the two either skips (clean tree) or fails spuriously (dirty
+#: tree) depending on who runs it.
+REPAIR_BASE = "a5658be264d6cf887f514e3cd9cf6980554d5eae"
+REPAIR_COMMIT = "b55f7e15e7eb714810b90ffb0874edfba7213cf5"
+
+
 def test_this_repair_touched_no_frozen_baseline_data_or_committed_bundle():
-    """The repair's write scope, measured from git rather than asserted in prose."""
-    changed = [ln.strip() for ln in _git("diff", "--name-only", "HEAD").splitlines() if ln.strip()]
-    untracked = [ln.strip() for ln in
-                 _git("ls-files", "--others", "--exclude-standard").splitlines() if ln.strip()]
-    paths = changed + untracked
-    if not paths:  # already committed by the workflow before this test ran
-        pytest.skip("worktree clean: the workflow committed the repair before tests ran")
+    """The repair commit's write scope, measured from git rather than prose."""
+    committed = [ln.strip() for ln in _git(
+        "diff", "--name-only", REPAIR_BASE, REPAIR_COMMIT).splitlines() if ln.strip()]
+    assert committed, (
+        "the repair commit is empty or unavailable; the scope claim cannot be "
+        "re-derived from the committed tree")
     forbidden_prefixes = (
         "product/frozen/",
         "results/product/gate_packet/",
@@ -200,7 +209,7 @@ def test_this_repair_touched_no_frozen_baseline_data_or_committed_bundle():
         "results/evaluation/",
         ".github/",
     )
-    offenders = [p for p in paths if p.startswith(forbidden_prefixes)]
+    offenders = [p for p in committed if p.startswith(forbidden_prefixes)]
     assert not offenders, (
         "the repair wrote outside its declared scope (frozen baselines, committed "
         f"bundles or control-plane workflows): {offenders}")
@@ -212,6 +221,18 @@ def test_this_repair_touched_no_frozen_baseline_data_or_committed_bundle():
         "results/product/repair_40234815780/",
         "state/product.json",
     )
-    unexpected = [p for p in paths if not p.startswith(allowed)]
+    unexpected = [p for p in committed if not p.startswith(allowed)]
     assert not unexpected, (
         f"files changed by this repair outside its declared delta: {unexpected}")
+
+    # A later operational resume may add product-owned artifacts on top.  It may
+    # never touch frozen baselines, committed bundles or control-plane paths.
+    pending = [ln.strip() for ln in _git("diff", "--name-only", "HEAD").splitlines()
+               if ln.strip()]
+    pending += [ln.strip() for ln in
+                _git("ls-files", "--others", "--exclude-standard").splitlines()
+                if ln.strip()]
+    pending_offenders = [p for p in pending if p.startswith(forbidden_prefixes)]
+    assert not pending_offenders, (
+        "a resumed cycle wrote outside the lane's allowed evidence paths: "
+        f"{pending_offenders}")

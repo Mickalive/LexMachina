@@ -172,8 +172,11 @@ def test_committed_family_has_no_duplicate_identity_and_names_pointer_rows():
 def test_state_records_cycle_pointer_and_measured_delta():
     state = json.loads((ROOT / "state/product.json").read_text(encoding="utf-8"))
     assert state["direction_version"] == 68
-    assert state["accepted_run_id"] == "CYCLE_40227581597"
-    assert state["accepted_commit"].startswith("02b1269")
+    # The pointer advances when later cycles are accepted; validate the
+    # both-halves invariant rather than freezing this cycle's literal.
+    from product.state_contract import accepted_pointer_evidence
+    pointer = accepted_pointer_evidence(state, ROOT)
+    assert not pointer["problems"], pointer
     assert state["human_gate_ready"] is False
     assert state["machine_gate_ready"] is False
     assert state["continue_recommended"] is True

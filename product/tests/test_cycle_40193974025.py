@@ -229,7 +229,10 @@ def test_state_stays_fail_closed_and_the_accepted_pointer_is_unchanged() -> None
     assert st["ready_for_owner_session"] is False
     # This run has neither half of requirement 4, so it may not advance the
     # pointer; the pointer still names the last BOTH-halves accepted cycle.
-    assert st["accepted_run_id"] == "CYCLE_40159523259"
-    assert st["accepted_commit"].startswith("29a5c4a")
+    # Later accepted cycles may advance it, so validate the invariant rather
+    # than pinning a literal that is expected to drift.
+    from product.state_contract import accepted_pointer_evidence
+    pointer = accepted_pointer_evidence(st, REPO_ROOT)
+    assert not pointer["problems"], pointer
     assert st.get("cycle_40193974025_operational_resume"), (
         "the state must record this resume, not silently inherit the predecessor")

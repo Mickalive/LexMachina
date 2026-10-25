@@ -117,7 +117,14 @@
     "results/product/repair_40234815780/test_counts_40234815780.json",
     "product/tests/test_cycle_40234815780.py",
     "reports/product/CYCLE_40234815780_REPAIR1.md",
-    "reports/product/CYCLE_40230559317.md (corrected in place by run 40234815780)"
+    "reports/product/CYCLE_40230559317.md (corrected in place by run 40234815780)",
+    "results/product/orchestration/CYCLE_40234815780_run_jobs_raw.json",
+    "product/audit_step_diagnosis.py -> results/product/orchestration/CYCLE_40234815780_resume_diagnosis.json",
+    "product/resume_snapshot_diagnosis.py -> results/product/orchestration/CYCLE_40234815780_resume_diagnosis.json",
+    "product/tests/test_cycle_40234815780_resume.py",
+    "reports/product/CYCLE_40234815780.md",
+    "results/product/audit_readiness/CYCLE_40234815780_audit_readiness.json",
+    "results/product/orchestration/CYCLE_40234815780_audit_step_diagnosis.json"
   ],
   "evidence_tier": "REPRODUCED",
   "human_gate_ready": false,
@@ -138,7 +145,7 @@
   },
   "lane": "product",
   "machine_gate_ready": false,
-  "next_recommendation": "Direction v68 / FAST MVP. REPAIR ROUND 1 of REVISE-gated cycle 40230559317 is complete on run 40234815780: both required_fixes are applied and machine-guarded. Fix 1 - the fixture-mode rejection test no longer pins the incidental fixture index; it now asserts the leg's per-downgrade contract plus the bundle-wide zero-defect invariant, and the root cause is measured and disclosed (committed query cache 899 -> 938 keys, fixture replay 2 misses -> 0, 165 -> 180 candidates, letterhead row no longer at work[\"decisions\"][2]). Fix 2 - the producer report now publishes 80 passed / 1 FAILED beside the post-repair 81 passed, with both raw logs and a tool-parsed counts artifact committed under results/product/repair_40234815780/. Measured: group 1 81 passed (was 1 failed, 80 passed), group 2 130 passed, counter group 57 passed, cycle guard 7 passed, report arithmetic unchanged at its 3 pre-existing failures. NEXT: (a) independent audit of run 40234815780 against this delta - it is UNADJUDICATED from here; (b) the honest residual for an owner test is that 13 business rows stay reference-only and the four committed bundles were built against an older cache state than the one replaying them; (c) do not restart 174k alignment, embeddings, scraping or citation-graph reconstruction. The human product gate remains blocked while either frozen bar is unmet and is never staged from here.",
+  "next_recommendation": "Direction v68 / FAST MVP. OPERATIONAL RESUME of run 40234815780 preserves the REVISE repair of cycle 40230559317 and closes the audit-readiness gap: the team job ended on the workflow's 2700 s work quantum (exit 78) after committing an 8-file delta (b55f7e15 over a5658be2), so state validation and write-scope checks were skipped and the audit/integrate jobs never ran. The accepted pointer remains CYCLE_40227581597 / 02b1269d, re-validated here against both halves of requirement 4 instead of a stale literal. The resume publishes a run-specific audit-readiness dossier, and adds a machine guard (test_cycle_40234815780_resume.py) over the diagnosis, durable delta, inherited repair and no-gate rule. NEXT: (a) independent audit of run 40234815780 against this snapshot - it is UNADJUDICATED from here; (b) the honest residual for an owner test is that 13 business rows stay reference-only and the four committed bundles were built against an older cache state than the one replaying them; (c) do not restart 174k alignment, embeddings, scraping or citation-graph reconstruction. The human product gate remains DEFERRED (blocked while either frozen bar is unmet) and is never staged from here.",
   "not_claimed": [
     "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
     "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
@@ -912,5 +919,71 @@
     "claim_ceiling": "OFFLINE CACHED MAP-INTEGRITY EVIDENCE ONLY (inherited unchanged from the REVISE audit of 40230559317). No live retrieval, no legal usefulness, no frozen bar, no serve verdict, no human-gate readiness.",
     "adjudication": "PENDING: this repair run requires its own independent audit before any integration. safe_to_integrate is not set from here.",
     "continue_recommended": true
+  },
+  "cycle_40234815780_operational_resume": {
+    "run_id": "40234815780",
+    "predecessor_run_id": "40230559317",
+    "resumed_run": "40234815780",
+    "resume_diagnosis": "results/product/orchestration/CYCLE_40234815780_resume_diagnosis.json",
+    "run_jobs_snapshot": "results/product/orchestration/CYCLE_40234815780_run_jobs_raw.json",
+    "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+    "mechanism": "OBSERVED_QUANTUM_EXPIRED",
+    "quantum_seconds": 2700,
+    "exit_code": 78,
+    "failed_job": "team",
+    "failed_step": "Run lane cycle",
+    "skipped_steps": [
+      "Validate active MVP producer state",
+      "Enforce lane write scope"
+    ],
+    "durable_delta": {
+      "classification": "COMMITTED_DELTA",
+      "changed_files": 8,
+      "snapshot_ref": "origin/cycle/core/product/40234815780/team",
+      "snapshot_head": "b55f7e15e7eb714810b90ffb0874edfba7213cf5",
+      "predecessor_ref": "origin/cycle/core/product/40230559317/team",
+      "predecessor_head": "a5658be264d6cf887f514e3cd9cf6980554d5eae"
+    },
+    "repair": {
+      "round": 1,
+      "required_fixes_applied": 2,
+      "repair_commit": "b55f7e15e7eb714810b90ffb0874edfba7213cf5",
+      "as_submitted": "1 failed, 80 passed, 21 warnings in 16.55s (81 collected)",
+      "after_repair": "81 passed, 21 warnings in 16.78s (81 collected)",
+      "counts_artifact": "results/product/repair_40234815780/test_counts_40234815780.json",
+      "report": "reports/product/CYCLE_40234815780_REPAIR1.md"
+    },
+    "content_family": {
+      "path": "results/product/counter_content_family/CYCLE_40230559317.json",
+      "n_bundles": 43,
+      "n_decisions": 4300,
+      "n_verified": 44,
+      "n_verified_defective": 0,
+      "false_reject_count": 0,
+      "status": "REPORTED_ONLY"
+    },
+    "audit_readiness": {
+      "profile": "40234815780",
+      "dossier": "results/product/audit_readiness/CYCLE_40234815780_audit_readiness.json",
+      "command": "python3 product/audit_readiness.py --run-id 40234815780 --out results/product/audit_readiness/CYCLE_40234815780_audit_readiness.json",
+      "instrument_repairs": [
+        "profile pinned to this run; unknown run ids raise instead of inheriting the default profile",
+        "accepted pointer validated from live state by both halves of requirement 4 instead of a stale literal",
+        "content-family path and expected counts are profile-specific (43 bundles / 4300 decisions / 44 verified / 0 defective / 0 false rejects)"
+      ]
+    },
+    "adjudication": {
+      "status": "UNADJUDICATED",
+      "accepted": false,
+      "product_defect": false,
+      "verdict_written": false,
+      "gate_minted": false,
+      "audit_namespace_written": false,
+      "reason": "the team job ended on the work quantum before state validation/write scope, and the audit job was skipped; no audit ref or gate exists"
+    },
+    "accepted_this_cycle": false,
+    "gate_minted": false,
+    "audit_namespace_written": false,
+    "claim_ceiling": "OPERATIONAL-RESUME AND AUDIT-READINESS EVIDENCE ONLY. No live retrieval, legal usefulness, frozen bar, serve verdict, acceptance or human-gate readiness is asserted."
   }
 }

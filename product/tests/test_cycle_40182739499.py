@@ -169,7 +169,11 @@ def test_the_resumed_run_and_its_predecessor_are_zero_delta_and_unadjudicated() 
 def test_latest_content_family_instrument_reproduces_and_covers_the_new_bundles() -> None:
     art = _load(PROBE_ART)
     assert art["run_id"] == RUN_ID
-    fresh = cfp.run(run_id=RUN_ID, direction_version=DIRV)
+    # Re-derive the artifact over the population it measured. Newer cycles
+    # commit newer bundles; those must not falsify a historical claim.
+    population = [REPO_ROOT / b["path"]
+                  for b in art["all_committed"]["bundles"]]
+    fresh = cfp.run(run_id=RUN_ID, direction_version=DIRV, paths=population)
     for key in ("fixed_path_family", "all_committed", "false_reject_count",
                 "ordered_work_2_success_rule", "confirmed_set",
                 "family_definition", "claim_ceiling"):
@@ -221,10 +225,12 @@ def test_state_stays_fail_closed_and_the_accepted_pointer_still_holds() -> None:
     assert st["packet_admitted"] is False
     assert st["ready_for_owner_session"] is False
     # no new acceptance exists for any chain run; the pointer must still name
-    # the last run with BOTH halves of factory-wide requirement 4
-    assert st["accepted_run_id"] == "CYCLE_40159523259"
-    gate = (REPO_ROOT / "results" / "audit" / "product"
-            / "CYCLE_40159523259_GATE.json")
+    # a run with BOTH halves of factory-wide requirement 4.  It legitimately
+    # advances over time, so validate the invariant instead of a literal.
+    from product.state_contract import accepted_pointer_evidence
+    pointer = accepted_pointer_evidence(st, REPO_ROOT)
+    assert not pointer["problems"], pointer
+    gate = REPO_ROOT / pointer["gate"]
     if gate.exists():
         g = _load(gate)
         assert g["gate"] == "PASS"

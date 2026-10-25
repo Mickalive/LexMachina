@@ -324,10 +324,15 @@ def test_state_records_this_resume_and_stays_fail_closed() -> None:
     assert st["machine_gate_ready"] is False
     assert st["packet_admitted"] is False
     assert st["ready_for_owner_session"] is False
-    assert st["accepted_run_id"] == "CYCLE_40159523259"
-    assert st["accepted_commit"].startswith("29a5c4a")
-    assert "test_cycle_40200882831" in st["next_recommendation"]
-    assert "audit_readiness" in st["next_recommendation"].lower()
+    # The pointer and the recommendation both evolve as cycles are accepted;
+    # validate the durable invariant (both halves of requirement 4, a named
+    # next action) instead of freezing a predecessor's literals.
+    from product.state_contract import accepted_pointer_evidence
+    pointer = accepted_pointer_evidence(st, REPO_ROOT)
+    assert not pointer["problems"], pointer
+    assert "NEXT:" in st["next_recommendation"]
+    assert "audit" in st["next_recommendation"].lower() or (
+        "resume" in st["next_recommendation"].lower())
 
 
 def test_no_producer_audit_namespace_write_for_this_run() -> None:

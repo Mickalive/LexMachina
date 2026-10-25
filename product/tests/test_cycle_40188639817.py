@@ -108,7 +108,11 @@ def test_the_team_snapshot_survived_and_no_audit_gate_was_written() -> None:
 
 def test_content_family_artifact_reproduces_on_current_head() -> None:
     art = _load(PROBE)
-    fresh = cfp.run(run_id=RUN_ID, direction_version=DIRV)
+    # Re-derive the artifact over the population it measured. Newer cycles
+    # commit newer bundles; those must not falsify a historical claim.
+    population = [REPO_ROOT / b["path"]
+                  for b in art["all_committed"]["bundles"]]
+    fresh = cfp.run(run_id=RUN_ID, direction_version=DIRV, paths=population)
     assert art["run_id"] == RUN_ID
     for key in ("fixed_path_family", "historical_population", "all_committed",
                 "confirmed_set", "before_after", "packet_v3_reemission",
@@ -242,7 +246,12 @@ def test_state_stays_fail_closed_and_the_accepted_pointer_is_unchanged() -> None
     assert st["machine_gate_ready"] is False
     assert st["packet_admitted"] is False
     assert st["ready_for_owner_session"] is False
-    assert st["accepted_run_id"] == "CYCLE_40159523259"
+    # The accepted pointer legitimately advances when a later cycle is
+    # accepted; this run's claim is that it still names a run with BOTH halves
+    # of requirement 4, not a frozen literal (see test_cycle_40154120551).
+    from product.state_contract import accepted_pointer_evidence
+    pointer = accepted_pointer_evidence(st, REPO_ROOT)
+    assert not pointer["problems"], pointer
     cycle = st["cycle_40188639817"]
     assert cycle["resumed_run"] == RESUMED_RUN_ID
     assert cycle["orchestration_failure_of_record"]["classification"] == (
