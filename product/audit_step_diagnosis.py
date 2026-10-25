@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -37,6 +38,8 @@ SCHEMA = "product-audit-step-diagnosis/1"
 TEAM_JOB = "team"
 AUDIT_JOB = "audit"
 AUDIT_STEP = "Independent audit"
+QUANTUM_RE = re.compile(r"LEX_WORK_QUANTUM_EXPIRED\s+seconds=(\d+)")
+EXIT_CODE_RE = re.compile(r"exit code\s+(\d+)", re.IGNORECASE)
 
 
 def _step(job: dict, name: str) -> dict | None:
@@ -49,6 +52,71 @@ def _seconds_between(start: str | None, end: str | None) -> float | None:
     fmt = "%Y-%m-%dT%H:%M:%SZ"
     return round((datetime.strptime(end, fmt) - datetime.strptime(start, fmt))
                  .total_seconds(), 1)
+
+
+def _job_annotations(snapshot: dict, job: dict) -> list[dict]:
+    """Return the check-run annotations for ``job`` from a committed snapshot.
+
+    Two layouts are accepted because the raw snapshots were captured by hand:
+    ``snapshot["annotations"][<job id>]`` (what the workflow-adjacent fetcher
+    writes) and a job-local ``job["annotations"]`` list.  Anything else is
+    treated as "not captured", never guessed.
+    """
+    ann = snapshot.get("annotations")
+    if isinstance(ann, dict):
+        for key in (str(job.get("id")), job.get("id")):
+            if key in ann and isinstance(ann[key], list):
+                return ann[key]
+    job_ann = job.get("annotations")
+    if isinstance(job_ann, list):
+        return job_ann
+    return []
+
+
+def _failure_annotations(snapshot: dict, team: dict, audit: dict,
+                         audit_step_failed: bool, failed_team_step: dict | None
+                         ) -> dict:
+    """Extract the *observable* failure annotations, if the snapshot has them.
+
+    GitHub check-run annotations are public even when job logs require admin
+    rights.  The workflow's own 45-minute agent wrapper announces
+    ``LEX_WORK_QUANTUM_EXPIRED seconds=2700`` and exit code 78, so a quantum
+    expiry can be stated as observed evidence instead of "mechanism unknown".
+    """
+    if audit_step_failed:
+        job_name, job = AUDIT_JOB, audit
+    elif failed_team_step is not None:
+        job_name, job = TEAM_JOB, team
+    else:
+        job_name, job = None, {}
+    messages = [
+        str(a.get("message") or "")
+        for a in _job_annotations(snapshot, job)
+        if isinstance(a, dict)
+    ]
+    quantum_seconds = None
+    exit_code = None
+    quantum_message = None
+    for message in messages:
+        m = QUANTUM_RE.search(message)
+        if m:
+            quantum_seconds = int(m.group(1))
+            quantum_message = message.strip()
+        e = EXIT_CODE_RE.search(message)
+        if e and exit_code is None:
+            exit_code = int(e.group(1))
+    return {
+        "source": (
+            "github_actions_check_run_annotations" if messages else "none"
+        ),
+        "annotations_available": bool(messages),
+        "job": job_name,
+        "exit_code": exit_code,
+        "quantum_expired": quantum_seconds is not None,
+        "quantum_seconds": quantum_seconds,
+        "quantum_message": quantum_message,
+        "messages": messages,
+    }
 
 
 def classify(snapshot: dict) -> dict:
@@ -82,6 +150,11 @@ def classify(snapshot: dict) -> dict:
         None,
     )
     audit_skipped = audit.get("conclusion") == "skipped"
+    annotations = _failure_annotations(
+        snapshot, team, audit, audit_step_failed, failed_team_step
+    )
+    quantum_seconds = annotations.get("quantum_seconds")
+    quantum_expired = bool(annotations.get("quantum_expired"))
 
     if not team_ok and failed_team_step and audit_skipped:
         if failed_team_step.get("name") == "Run lane cycle":
@@ -96,6 +169,86 @@ def classify(snapshot: dict) -> dict:
         classification = "AUDIT_JOB_COMPLETED"
     else:
         classification = "TEAM_JOB_DID_NOT_COMPLETE_SUCCESSFULLY"
+
+    audit_step_seconds = _seconds_between(
+        (audit_step or {}).get("started_at"),
+        (audit_step or {}).get("completed_at"),
+    )
+    if quantum_expired:
+        mechanism_status = "OBSERVED_QUANTUM_EXPIRED"
+        mechanism_claim = (
+            "The agent was stopped by the workflow's own work quantum: the "
+            f"public check-run annotation reads "
+            f"{annotations.get('quantum_message')!r}"
+            + (f" with exit code {annotations.get('exit_code')}"
+               if annotations.get("exit_code") is not None else "")
+            + f" after {audit_step_seconds} s. No gate was written because the "
+            "quantum ended before the agent could write one. No provider or "
+            "auth cause is claimed."
+        )
+    elif not team_ok:
+        mechanism_status = "UNOBSERVED"
+        mechanism_claim = (
+            "The lane-cycle agent process exited non-zero after "
+            f"{(failed_team_step or {}).get('started_at')} and before "
+            f"{(failed_team_step or {}).get('completed_at')}. The "
+            "workflow's 'Persist team snapshot' step is guarded by "
+            "`if: always()` and concluded "
+            f"{(snapshot_step or {}).get('conclusion')!r}, so the team "
+            "ref can be published with ZERO durable delta. Job logs are "
+            "not downloadable without admin rights, so no provider, "
+            "auth, timeout or token mechanism is claimed."
+        )
+    else:
+        mechanism_status = "UNOBSERVED"
+        mechanism_claim = (
+            "The independent-audit agent process exited non-zero after "
+            f"{(audit_step or {}).get('started_at')} and before "
+            f"{(audit_step or {}).get('completed_at')}. Job logs are not "
+            "downloadable without admin rights, so no provider, auth, "
+            "timeout or token mechanism is claimed."
+        )
+
+    if quantum_expired:
+        control_plane_attention = (
+            "the independent-audit agent consumed the entire agent work "
+            f"quantum ({quantum_seconds} s) before writing a gate. This is a "
+            "control-plane budget/turnaround fact, not a product defect; a "
+            "bounded audit-readiness dossier is published so the next audit "
+            "does not have to re-derive the slice. .github/** is "
+            "control-plane scope and is recorded, never edited from a lane."
+        )
+        next_action = (
+            "Resume from the persisted team snapshot, consume the bounded "
+            "audit-readiness dossier, and re-run the independent audit; do not "
+            "infer a REVISE, BLOCKED verdict or a product regression from a "
+            "quantum expiry."
+        )
+    elif team_ok:
+        control_plane_attention = (
+            "re-run the independent audit; no workflow change is identified "
+            "from the observable snapshot"
+        )
+        next_action = (
+            "Resume from the persisted team snapshot, re-verify the lane "
+            "deliverable and make the snapshot audit-ready; do not infer a "
+            "REVISE, a BLOCKED verdict or a product regression from a failed "
+            "audit job."
+        )
+    else:
+        control_plane_attention = (
+            "resume from the persisted snapshot and verify whether it "
+            "carries a durable delta; `if: always()` can publish a "
+            "failed producer's unchanged tree, which the producer-side "
+            "scope and validation steps never get to reject"
+        )
+        next_action = (
+            "Resume from the persisted team snapshot, prove whether it "
+            "has a durable delta against its predecessor, re-verify the "
+            "lane deliverable and make the snapshot audit-ready; do not "
+            "infer a REVISE, a BLOCKED verdict or a product regression "
+            "from a failed producer step."
+        )
 
     return {
         "schema": SCHEMA,
@@ -132,10 +285,7 @@ def classify(snapshot: dict) -> dict:
         "audit": {
             "conclusion": audit.get("conclusion"),
             "failed_step": AUDIT_STEP if audit_step_failed else None,
-            "independent_audit_step_seconds": _seconds_between(
-                (audit_step or {}).get("started_at"),
-                (audit_step or {}).get("completed_at"),
-            ),
+            "independent_audit_step_seconds": audit_step_seconds,
             "gate_step": (gate_step or {}).get("conclusion"),
             "persist_step": (persist_step or {}).get("conclusion"),
             # Only a gate step that actually ran and succeeded can have
@@ -154,58 +304,23 @@ def classify(snapshot: dict) -> dict:
             ),
         },
         "mechanism": {
-            "status": "UNOBSERVED",
+            "status": mechanism_status,
             "logs_available": bool(snapshot.get("logs_endpoint_status") == 200),
             "logs_endpoint_status": snapshot.get("logs_endpoint_status"),
-            "claim": (
-                (
-                    "The lane-cycle agent process exited non-zero after "
-                    f"{(failed_team_step or {}).get('started_at')} and before "
-                    f"{(failed_team_step or {}).get('completed_at')}. The "
-                    "workflow's 'Persist team snapshot' step is guarded by "
-                    "`if: always()` and concluded "
-                    f"{(snapshot_step or {}).get('conclusion')!r}, so the team "
-                    "ref can be published with ZERO durable delta. Job logs are "
-                    "not downloadable without admin rights, so no provider, "
-                    "auth, timeout or token mechanism is claimed."
-                )
-                if not team_ok else (
-                    "The independent-audit agent process exited non-zero after "
-                    f"{(audit_step or {}).get('started_at')} and before "
-                    f"{(audit_step or {}).get('completed_at')}. Job logs are not "
-                    "downloadable without admin rights, so no provider, auth, "
-                    "timeout or token mechanism is claimed."
-                )
-            ),
+            "annotations_available": annotations.get("annotations_available"),
+            "quantum_expired": quantum_expired,
+            "quantum_seconds": quantum_seconds,
+            "exit_code": annotations.get("exit_code"),
+            "claim": mechanism_claim,
         },
+        "observed_failure": annotations,
         "adjudication": {
             "product_defect": False,
             "verdict_written": False,
             "team_work_preserved": team_snapshot_persisted,
             "requires_product_repair": False,
-            "control_plane_attention": (
-                "re-run the independent audit; no workflow change is "
-                "identified from the observable snapshot"
-                if team_ok else (
-                    "resume from the persisted snapshot and verify whether it "
-                    "carries a durable delta; `if: always()` can publish a "
-                    "failed producer's unchanged tree, which the producer-side "
-                    "scope and validation steps never get to reject"
-                )
-            ),
-            "next_action": (
-                "Resume from the persisted team snapshot, re-verify the lane "
-                "deliverable and make the snapshot audit-ready; do not infer a "
-                "REVISE, a BLOCKED verdict or a product regression from a failed "
-                "audit job."
-                if team_ok else (
-                    "Resume from the persisted team snapshot, prove whether it "
-                    "has a durable delta against its predecessor, re-verify the "
-                    "lane deliverable and make the snapshot audit-ready; do not "
-                    "infer a REVISE, a BLOCKED verdict or a product regression "
-                    "from a failed producer step."
-                )
-            ),
+            "control_plane_attention": control_plane_attention,
+            "next_action": next_action,
         },
         "claim_ceiling": (
             "This artifact classifies an orchestration failure from a public "
