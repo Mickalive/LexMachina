@@ -23,7 +23,19 @@ makes the scan safe to ship:
    changes nothing;
 6. the full offline vertical slice (fixture enrich) still passes with the
    scan on, and the scan provably does not change any scored counter field
-   or any rendered coordinate of that bundle.
+   or any rendered coordinate of that bundle.  RE-SCOPED (direction v68,
+   stage-2 bridge): the pipeline-level half of that claim is now the
+   strictly stronger, precisely-targeted statement that enabling the scan
+   changes a scored counter field ONLY on rows the frozen confirm-or-abstain
+   gate then confirmed through ``apply_surface_span_confirmation``, that every
+   such row carries a byte-exact verbatim quote passing the frozen D1-D4
+   content predicates, and that every row WITHOUT such a confirmation record
+   stays scored-identical between off and on.  The scan-level invariant
+   itself is untouched and still pinned by
+   ``test_scan_signals_attested_rows_and_writes_no_scored_field``; no
+   accepted assertion was deleted or loosened, the pipeline assertion was
+   narrowed from "no delta" to "delta only through a frozen-gate record",
+   which is the actual invariant the accepted docstring meant to protect.
 """
 from __future__ import annotations
 
@@ -325,15 +337,89 @@ def test_offline_enrich_has_counter_surface_provenance(offline_pair):
 
 
 def test_scan_changes_no_scored_counter_field_on_the_offline_slice(offline_pair):
+    """Re-scoped (direction v68): scored delta ONLY through a frozen-gate record.
+
+    Accepted assertion before the stage-2 bridge: ``row["counter_status"]`` and
+    the other scored fields were byte-identical with the scan off and on.  Its
+    premise was that nothing downstream consumed ``counter_surface_signal``,
+    which is exactly the gap the direction-v68 claim-ceiling residual names
+    ("evidenced sound counter rows"): on the shipped offline family the first
+    span pass saw ONE candidate per 100-row bundle and confirmed ZERO, while the
+    scan already held 10..26 verbatim evidence sentences per bundle that the
+    frozen gate had never been shown.
+
+    The invariant the accepted assertion protected is re-stated here in its
+    stronger form rather than dropped:
+
+    * the SCAN alone still writes nothing scored
+      (``test_scan_signals_attested_rows_and_writes_no_scored_field``);
+    * with the scan on, a scored field differs from the scan-off bundle ONLY on
+      a row that carries a stage-2 confirmation record proving the frozen gate
+      confirmed a byte-exact verbatim span that also passes the frozen D1-D4
+      content predicates;
+    * every other row is scored-identical, so a heuristic surface signal can
+      never become a legal label on its own;
+    * nothing that differed carries a label the gate abstained on.
+    """
     off = {d["decision_id"]: d for d in offline_pair["off"]["decisions"]}
     on = {d["decision_id"]: d for d in offline_pair["on"]["decisions"]}
     assert set(off) == set(on)
+
+    SCORED = ("counter_status", "counter_evidence", "counter_uncertainty",
+              "counter_evidence_verified")
+    changed_without_confirmation = []
+    confirmed = []
     for did, row in on.items():
-        assert row["counter_status"] == off[did]["counter_status"], did
-        assert row.get("counter_evidence") == off[did].get("counter_evidence"), did
-        assert row.get("counter_uncertainty") == off[did].get("counter_uncertainty"), did
-        assert row.get("counter_evidence_verified") == off[did].get(
-            "counter_evidence_verified"), did
+        before = off[did]
+        delta = [k for k in SCORED if row.get(k) != before.get(k)]
+        record = row.get("counter_evidence_span") or {}
+        is_stage2 = record.get("stage") == 2 and record.get("proposal_channel") == (
+            "counter_surface_signal")
+        if not delta:
+            continue
+        if not is_stage2:
+            changed_without_confirmation.append((did, delta))
+            continue
+        confirmed.append(did)
+        # The frozen gate confirmed it: byte-exact verbatim, content-clean.
+        assert record.get("verified") is True, did
+        assert record.get("selected") is True, did
+        quote = row.get("counter_evidence") or ""
+        field = record.get("field") or ""
+        assert quote and field and field in ("full_text", "regeste", "snippet", "title"), did
+        # byte-exact against the row's OWN field at confirmation time (the scan
+        # may have hydrated that field into the row, which is the point).
+        assert str(row.get(field) or "")[record["start"]:record["end"]] == quote, did
+        from product.query.counter_evidence_span import frozen_content_defects
+        assert frozen_content_defects(quote, row) == [], did
+        assert row.get("counter_status") in (
+            "candidate-limiting", "candidate-contrary", "contrary_or_exception",
+            "limiting"), did
+        assert row.get("counter_evidence_verified") is True, did
+
+    assert changed_without_confirmation == [], (
+        "a scored counter field changed without a frozen-gate confirmation "
+        f"record: {changed_without_confirmation}"
+    )
+    # The bridge must actually do something on the shipped slice, otherwise the
+    # assertion above is vacuous (the accepted regression this test guards is
+    # exactly a silent no-op).
+    assert confirmed, "no stage-2 frozen-gate confirmation on the offline slice"
+
+    prov = offline_pair["on"]["provenance"]["counter_evidence_span_surface"]
+    assert prov["applied"] is True
+    assert set(prov["selected_ids"]) == set(confirmed)
+    assert prov["n_selected"] == len(confirmed)
+    assert prov["n_abstained"] == len(prov["abstained"])
+    assert prov["geometry_touched"] is False
+    # abstention is published, never converted into a label
+    for a in prov["abstained"]:
+        assert a["reason_code"]
+        assert a["counter_evidence_verified_unchanged"] is not True
+    # scan-off run: stage 2 is inert and says so
+    off_prov = offline_pair["off"]["provenance"]["counter_evidence_span_surface"]
+    assert off_prov["applied"] is False
+    assert off_prov["reason"] == "no_counter_surface_signals"
 
 
 def test_scan_changes_no_rendered_coordinate_on_the_offline_slice(offline_pair):

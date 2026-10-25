@@ -496,6 +496,302 @@ def select_span(
     )
 
 
+# ---- Stage 2: offer the pool counter-surface signals to the frozen gate ----
+#
+# Why this stage exists (direction v68, claim-ceiling residual)
+# -------------------------------------------------------------
+# The shipped first pass only examines rows the adversarial/generative stage
+# already scored, and on the flagship offline family that is EXACTLY ONE row per
+# 100-row bundle (measured: n_candidates=1, n_selected=0 on every
+# profile-bearing bundle of the 2026-10-25 family).  Meanwhile the accepted
+# pool counter-surface scan (``counter_surface/2``) hydrates a bounded,
+# marker-preferring subset of the RENDERED pool and classifies it locally —
+# measured 10..26 signalled rows per bundle with a verbatim evidence sentence
+# each — but its contract forbids it from writing a scored counter field, so
+# those evidence sentences were never offered to the frozen confirm-or-abstain
+# gate at all.
+#
+# This stage is that missing hand-off.  It is purely additive:
+#
+# * it runs the SAME ``select_span`` → ``decide_label`` chain as stage 1, with
+#   the same frozen rules, the same anchor profile, the same precision guard and
+#   the same frozen D1-D4 content filter;
+# * it only touches rows that carry a ``counter_surface_signal.heuristic_status``
+#   AND no ``counter_evidence_span`` record (i.e. rows stage 1 never saw);
+# * a row is written ONLY when the frozen gate confirms a byte-exact verbatim
+#   span that also passes the content predicates.  Every other row keeps
+#   ``counter_status`` / ``counter_evidence_verified`` exactly as it was, and
+#   the abstention is published in provenance with its reason code instead of
+#   being silently converted into a label;
+# * geometry, ranks, clusters and relations are never touched.
+#
+# It never edits, re-tunes or re-derives the frozen gate, the rubric, a
+# threshold or a bar (factory-wide requirement 37 / H2 ruling): it only widens
+# WHICH evidence is offered to that gate, and it publishes n_candidates /
+# n_selected / n_abstained side by side so the yield is auditable.  Whether a
+# frozen scorer counts abstained rows is decided by that scorer's own
+# population predicate as written — this stage pre-declares no support rate.
+
+SURFACE_SPAN_VERSION = "counter_span_surface/1"
+#: Kill-switch for stage 2 only, so stage 1 keeps its accepted behaviour when
+#: an auditor wants the bridged population switched off for comparison.
+SURFACE_SPAN_ENV = "LEXMACHINA_COUNTER_SPAN_SURFACE"
+
+
+def _surface_status(row: dict) -> str | None:
+    """Scored proposal status the pool counter-surface scan attributed, else None.
+
+    Returns ``None`` (never an invented status) when the row carries no surface
+    signal or the signal is not one of the frozen rubric's scored statuses.
+    """
+    status = str((row.get("counter_surface_signal") or {}).get("heuristic_status") or "")
+    return status if status in SCORED_STATUSES else None
+
+
+def _surface_candidates(
+    bundle: dict,
+) -> tuple[list[dict], list[dict], list[str]]:
+    """Partition the pool for stage 2.
+
+    Returns ``(pending, previously_confirmed, excluded_cited, owned_elsewhere,
+    n_surface)``:
+
+    * ``pending`` — rows stage 1 never handled (no ``counter_evidence_span``
+      record) that carry a scored surface proposal and are not ``cited``;
+    * ``previously_confirmed`` — rows stage 2 already confirmed on an earlier
+      run of this same stage, so a re-run reproduces its own provenance
+      instead of silently losing the confirmations (determinism/idempotence);
+    * ``excluded_cited`` — surface-signalled rows whose current
+      ``counter_status`` is ``cited``.  ``counter_status.NON_COUNTER_STATUSES``
+      documents that "citing a case is the opposite of countering it", so this
+      stage never re-purposes the sourced answer's own support into a
+      counter-authority finding.  The ids are published so the observed
+      population is fully accounted for rather than silently narrowed.
+    """
+    pending: list[dict] = []
+    confirmed: list[dict] = []
+    excluded_cited: list[str] = []
+    owned_elsewhere = 0
+    n_surface = 0
+    for d in bundle.get("decisions") or []:
+        if _surface_status(d) is None:
+            continue
+        n_surface += 1
+        record = d.get("counter_evidence_span") or {}
+        if record:
+            # an existing record means a span stage already owns this row;
+            # stage 2 re-publishes its own prior confirmations so a re-run is
+            # byte-stable (stage-1 rows are simply not stage-2 population)
+            if record.get("stage") == 2 and d.get("counter_evidence_verified") is True:
+                confirmed.append(d)
+            else:
+                owned_elsewhere += 1
+            continue
+        if str(d.get("counter_status") or "") == "cited":
+            excluded_cited.append(str(d.get("decision_id") or ""))
+            continue
+        pending.append(d)
+    return pending, confirmed, excluded_cited, owned_elsewhere, n_surface
+
+
+def apply_surface_span_confirmation(
+    bundle: dict,
+    *,
+    qid: str | None = None,
+    mode: str | None = None,
+    env: dict[str, str] | None = None,
+) -> dict:
+    """Stage 2 — offer ``counter_surface_signal`` rows to the frozen gate.
+
+    Additive counterpart of :func:`apply_verified_span_selection`.  Writes only
+    on frozen-gate confirmation, publishes the whole population (confirmed and
+    abstained) in its own provenance block, and never touches geometry.
+    """
+    out = copy.deepcopy(bundle)
+    chosen = mode or _mode(env)
+    env_map = env if env is not None else os.environ
+    surface_on = str(env_map.get(SURFACE_SPAN_ENV, "on")).strip().lower() not in (
+        "off", "0", "false", "no",
+    )
+    pending, prior, excluded_cited, owned_elsewhere, n_surface = (
+        _surface_candidates(out)
+    )
+    population = [*prior, *pending]
+    prov: dict[str, Any] = {
+        "version": SURFACE_SPAN_VERSION,
+        "stage": 2,
+        "mode": chosen,
+        "enabled": surface_on,
+        "proposal_channel": "counter_surface_signal",
+        "consumes": "product.query.counter_surface (counter_surface/2)",
+        "n_surface_signals": n_surface,
+        "n_candidates": len(population),
+        "candidate_ids": [str(d.get("decision_id") or "") for d in population],
+        "n_previously_confirmed": len(prior),
+        "n_owned_by_stage_1": owned_elsewhere,
+        "population_partition": (
+            "n_candidates + n_excluded_cited + n_owned_by_stage_1 == "
+            "n_surface_signals"
+        ),
+        "n_excluded_cited": len(excluded_cited),
+        "excluded_cited_ids": excluded_cited,
+        "excluded_cited_reason": (
+            "counter_status.NON_COUNTER_STATUSES: citing a case is the opposite "
+            "of countering it, so this stage never re-purposes the sourced "
+            "answer's own support into a counter-authority finding"
+        ),
+        "selection_chain": (
+            "select_span -> decide_label (frozen RULES_LABEL) with the shipped "
+            "precision guard and the frozen D1-D4 content filter; identical to "
+            "stage 1"
+        ),
+        "claim_ceiling": (
+            "Stage 2 only widens WHICH evidence is offered to the already-frozen "
+            "confirm-or-abstain gate. It never asserts that a decision IS "
+            "supporting, contrary or limiting, never writes a label the gate "
+            "abstained on, and pre-declares no support rate: n_candidates, "
+            "n_selected and n_abstained are published together and the frozen "
+            "scorer decides the rest under its own population predicate."
+        ),
+        "geometry_touched": False,
+    }
+    if chosen != MODE_SELECT:
+        out.setdefault("provenance", {})["counter_evidence_span_surface"] = {
+            **prov, "applied": False, "reason": "selection disabled",
+        }
+        return out
+    if not surface_on:
+        out.setdefault("provenance", {})["counter_evidence_span_surface"] = {
+            **prov, "applied": False, "reason": f"{SURFACE_SPAN_ENV}=off",
+        }
+        return out
+    if not population:
+        out.setdefault("provenance", {})["counter_evidence_span_surface"] = {
+            **prov, "applied": False, "reason": "no_counter_surface_signals",
+        }
+        return out
+
+    query = str(out.get("query") or "")
+    try:
+        rules, digest = load_frozen_rules()
+    except Exception as exc:  # noqa: BLE001 - fail safe, never silently re-score
+        out.setdefault("provenance", {})["counter_evidence_span_surface"] = {
+            **prov,
+            "applied": False,
+            "reason": f"frozen_rules_unavailable: {exc.__class__.__name__}",
+        }
+        return out
+    profile = resolve_anchor_profile(rules, qid=qid, query=query)
+    if profile is None:
+        # The frozen gate cannot decide without a profile, so no row may be
+        # written.  The OBSERVED population is still published: a reader must be
+        # able to see that the signals existed and were not silently dropped.
+        out.setdefault("provenance", {})["counter_evidence_span_surface"] = {
+            **prov,
+            "applied": False,
+            "reason": "no_frozen_anchor_profile_for_query",
+            "frozen_rules_sha256": digest,
+            "n_selected": 0,
+            "n_abstained": 0,
+        }
+        return out
+
+    decide_label, _load = _import_component()
+    precision_guard = str(env_map.get(SPAN_GUARD_ENV, "on")).strip().lower() not in (
+        "off", "0", "false", "no",
+    )
+    guard = guard_terms(profile, query)
+
+    n_selected = len(prior)
+    n_abstained = 0
+    n_evaluated = 0
+    n_guard_rejected = 0
+    selected_ids: list[str] = [str(d.get("decision_id") or "") for d in prior]
+    abstained: list[dict[str, Any]] = []
+    reasons: dict[str, int] = {}
+    for d in pending:
+        status = _surface_status(d)
+        if status is None:  # defensive: _surface_candidates already filtered
+            continue
+        probe = dict(d)
+        probe["counter_status"] = status
+        sel = select_span(
+            probe,
+            rules=rules,
+            profile=profile,
+            decide_label=decide_label,
+            guard=guard,
+            precision_guard=precision_guard,
+        )
+        n_evaluated += sel.n_evaluated
+        n_guard_rejected += sel.n_guard_rejected
+        record = sel.to_dict()
+        record["proposal_channel"] = "counter_surface_signal"
+        record["proposal_status"] = status
+        record["status_before"] = d.get("counter_status")
+        record["stage"] = 2
+        if sel.field:
+            record["field_sha256"] = _text_sha256(d, sel.field)
+        did = str(d.get("decision_id") or "")
+        if not sel.selected:
+            n_abstained += 1
+            reasons[sel.reason_code] = reasons.get(sel.reason_code, 0) + 1
+            abstained.append({
+                "decision_id": did,
+                "reason_code": sel.reason_code,
+                "proposal_status": status,
+                # The row keeps its pre-stage values: no label, no verified flag.
+                "counter_status_unchanged": d.get("counter_status"),
+                "counter_evidence_verified_unchanged": d.get("counter_evidence_verified"),
+            })
+            continue
+        n_selected += 1
+        selected_ids.append(did)
+        d["counter_evidence_span"] = record
+        d["counter_status"] = status
+        d["counter_evidence"] = sel.quote
+        d["counter_evidence_verified"] = True
+        d.pop("counter_evidence_unevidenced", None)
+        d.pop("counter_evidence_unevidenced_reason", None)
+        if sel.decision is not None:
+            d["counter_uncertainty"] = sel.decision.uncertainty
+        d["counter_proposal_source"] = SURFACE_SPAN_VERSION
+        d.setdefault("counter_proposal_channels", [])
+        if "counter_surface_signal" not in d["counter_proposal_channels"]:
+            d["counter_proposal_channels"] = [
+                *d["counter_proposal_channels"], "counter_surface_signal",
+            ]
+
+    out.setdefault("provenance", {})["counter_evidence_span_surface"] = {
+        **prov,
+        "applied": True,
+        "frozen_rules_sha256": digest,
+        "qid": qid,
+        "anchor_profile": next(
+            (k for k, v in (getattr(rules, "anchors", {}) or {}).items() if v is profile),
+            None,
+        ),
+        "precision_guard": precision_guard,
+        "guard_available": bool(guard.get("available")),
+        "guard_statutes": list(guard.get("statutes") or []),
+        "guard_phrase_count": len(guard.get("phrases") or []),
+        "n_sentences_evaluated": n_evaluated,
+        "n_guard_rejected": n_guard_rejected,
+        "n_selected": n_selected,
+        "n_abstained": n_abstained,
+        "yield_on_candidates": (
+            round(n_selected / len(population), 6) if population else 0.0
+        ),
+        "selected_ids": selected_ids,
+        "abstained": abstained,
+        "abstention_reasons": dict(sorted(reasons.items())),
+        "content_filter": content_filter_provenance(),
+        "stage_1_provenance_block": "provenance.counter_evidence_span (unchanged)",
+        "writes_scored_counter_fields_only_on_frozen_gate_confirmation": True,
+    }
+    return out
+
+
 def _text_sha256(row: dict, field_name: str) -> str:
     return hashlib.sha256(str(row.get(field_name) or "").encode("utf-8")).hexdigest()
 
@@ -921,17 +1217,20 @@ __all__ = [
     "SPAN_ENV",
     "SPAN_GUARD_ENV",
     "SPAN_VERSION",
-    "guard_terms",
-    "span_passes_precision_guard",
-    "SpanCandidate",
-    "SpanSelection",
+    "SURFACE_SPAN_ENV",
+    "SURFACE_SPAN_VERSION",
+    "apply_surface_span_confirmation",
     "apply_verified_span_selection",
     "content_filter_provenance",
     "field_candidates",
     "frozen_content_defects",
+    "guard_terms",
     "ground_evidence",
     "passes_content_filter",
     "select_span",
     "sentence_spans",
+    "span_passes_precision_guard",
     "verify_span",
+    "SpanCandidate",
+    "SpanSelection",
 ]

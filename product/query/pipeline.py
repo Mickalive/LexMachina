@@ -38,7 +38,10 @@ from .adversarial_retrieval import (
 )
 from .counter_anchor import apply_anchor_labels
 from .counter_emission_repair import apply_counter_emission_repair
-from .counter_evidence_span import apply_verified_span_selection
+from .counter_evidence_span import (
+    apply_surface_span_confirmation,
+    apply_verified_span_selection,
+)
 from .counter_surface import apply_counter_surface, hydration_budget
 from . import concept_seed
 from .query_texts import (
@@ -1377,6 +1380,21 @@ def enrich_query_bundle(
         audited,
         retrieval_mode=counter_mode,
         hydrate_top=hydration_budget(counter_mode),
+    )
+
+    # Stage 2 of the counter-evidence seam (direction v68 claim-ceiling
+    # residual: "evidenced sound counter rows").  The pool counter-surface scan
+    # above hydrates and classifies a bounded marker-bearing subset of the
+    # rendered pool but writes NO scored field by contract, so its verbatim
+    # evidence sentences never reached the frozen confirm-or-abstain gate.  This
+    # hand-off runs the SAME select_span -> decide_label chain, with the same
+    # frozen rules, precision guard and D1-D4 content filter, and writes a scored
+    # field ONLY on frozen-gate confirmation.  Everything it does or declines to
+    # do is published in provenance.counter_evidence_span_surface.  Kill-switch:
+    # LEXMACHINA_COUNTER_SPAN_SURFACE=off (stage 1 is unaffected).
+    audited = apply_surface_span_confirmation(
+        audited,
+        qid=(initial_bundle.get("provenance") or {}).get("qid"),
     )
 
     # The adversarial/generative stage must never move the already visible map.
