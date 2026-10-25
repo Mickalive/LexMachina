@@ -1,0 +1,537 @@
+{
+  "schema": "lex-evaluation-operational-resume-diagnosis/1",
+  "lane": "evaluation",
+  "run_id": "40209360877",
+  "diagnosed_run_id": "40204378896",
+  "direction_version": 68,
+  "generated_at_utc": "2026-10-25T16:48:29Z",
+  "failure_class": "ORCHESTRATION_WORK_QUANTUM_EXPIRED",
+  "failure_class_confidence": "high",
+  "failure_summary": "Run 40204378896's producer team job succeeded end-to-end and persisted snapshot 14b9e9cf9d8c4d88f378fd8ae4281d3cbb18c2f5; its independent-audit job failed at step 'Independent audit' after 2704.0s (quantum 2700s + 4s step setup), the two later audit steps were skipped, integrate was skipped and resilience dispatched this resume with resume_from_run_id=40204378896. The identical 2704.0s signature now appears on four consecutive runs (40187594111, 40192868113, 40198184759, 40204378896), no /audit ref exists for any of them, and the run therefore issued NO verdict. This is not a producer failure, not a validation failure, not a gate REVISE/BLOCKED and not a product defect.",
+  "mechanism": {
+    "source": "origin/main:.github/scripts/run-ox-with-retry.sh (control plane; recorded, never edited by this lane)",
+    "quantum_seconds": 2700,
+    "poll_seconds": 15,
+    "kill_branch": "lines 180-187: sleep 15; if now-start>=WORK_QUANTUM_SECONDS -> LEX_WORK_QUANTUM_EXPIRED -> kill_agent_group -> return 78",
+    "exit_code": 78,
+    "why_exactly_2704_seconds": "the quantum (2700) is an exact multiple of the poll interval (15), so the boundary test first fires exactly 2700s after the agent session starts; the GitHub step clock also includes ~4s of step setup, giving the observed 2704.0s. Four identical durations is the signature of a programmatic kill, not random provider behaviour.",
+    "log_evidence_available": false,
+    "log_evidence_note": "GitHub job-log endpoint returns HTTP 403 unauthenticated and GH_TOKEN is unset in this producer job; the mechanism is inferred from duration arithmetic plus the checked-in wrapper, and is labelled inference, not a quoted crash line."
+  },
+  "runs": [
+    {
+      "run_id": "40187594111",
+      "run_name": "Core evaluation dirV68 repair0",
+      "run_status": "completed",
+      "run_conclusion": "failure",
+      "run_created_at": "2026-10-25T11:08:06Z",
+      "team_job": {
+        "conclusion": "success",
+        "started_at": "2026-10-25T11:08:13Z",
+        "completed_at": "2026-10-25T11:37:06Z",
+        "n_steps": 12,
+        "all_steps_success": true,
+        "step_conclusions": {
+          "Set up job": "success",
+          "Run actions/checkout@v6": "success",
+          "Validate lane and initialize working base": "success",
+          "Mount accepted peer evidence": "success",
+          "Install Ox/OpenCode": "success",
+          "Run lane cycle": "success",
+          "Validate active MVP producer state": "success",
+          "Clean generated junk": "success",
+          "Enforce lane write scope": "success",
+          "Persist team snapshot": "success",
+          "Post Run actions/checkout@v6": "success",
+          "Complete job": "success"
+        }
+      },
+      "audit_job": {
+        "conclusion": "failure",
+        "started_at": "2026-10-25T11:37:09Z",
+        "completed_at": "2026-10-25T12:23:02Z",
+        "failed_step": "Independent audit",
+        "independent_audit_step": {
+          "started_at": "2026-10-25T11:37:56Z",
+          "completed_at": "2026-10-25T12:23:00Z",
+          "conclusion": "failure",
+          "duration_seconds": 2704.0
+        },
+        "enforce_gate_step": {
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        "persist_audit_step": {
+          "status": "completed",
+          "conclusion": "skipped"
+        }
+      },
+      "integrate_job": {
+        "conclusion": "skipped"
+      },
+      "resilience_job": {
+        "conclusion": "success"
+      },
+      "api_sources": {
+        "run": "results/evaluation/operational_resume_40209360877/api/run_40187594111_api.json",
+        "jobs": "results/evaluation/operational_resume_40209360877/api/jobs_40187594111_api.json"
+      }
+    },
+    {
+      "run_id": "40192868113",
+      "run_name": "Core evaluation dirV68 repair0",
+      "run_status": "completed",
+      "run_conclusion": "failure",
+      "run_created_at": "2026-10-25T12:23:09Z",
+      "team_job": {
+        "conclusion": "success",
+        "started_at": "2026-10-25T12:23:15Z",
+        "completed_at": "2026-10-25T12:48:02Z",
+        "n_steps": 12,
+        "all_steps_success": true,
+        "step_conclusions": {
+          "Set up job": "success",
+          "Run actions/checkout@v6": "success",
+          "Validate lane and initialize working base": "success",
+          "Mount accepted peer evidence": "success",
+          "Install Ox/OpenCode": "success",
+          "Run lane cycle": "success",
+          "Validate active MVP producer state": "success",
+          "Clean generated junk": "success",
+          "Enforce lane write scope": "success",
+          "Persist team snapshot": "success",
+          "Post Run actions/checkout@v6": "success",
+          "Complete job": "success"
+        }
+      },
+      "audit_job": {
+        "conclusion": "failure",
+        "started_at": "2026-10-25T12:48:05Z",
+        "completed_at": "2026-10-25T13:33:48Z",
+        "failed_step": "Independent audit",
+        "independent_audit_step": {
+          "started_at": "2026-10-25T12:48:42Z",
+          "completed_at": "2026-10-25T13:33:46Z",
+          "conclusion": "failure",
+          "duration_seconds": 2704.0
+        },
+        "enforce_gate_step": {
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        "persist_audit_step": {
+          "status": "completed",
+          "conclusion": "skipped"
+        }
+      },
+      "integrate_job": {
+        "conclusion": "skipped"
+      },
+      "resilience_job": {
+        "conclusion": "success"
+      },
+      "api_sources": {
+        "run": "results/evaluation/operational_resume_40209360877/api/run_40192868113_api.json",
+        "jobs": "results/evaluation/operational_resume_40209360877/api/jobs_40192868113_api.json"
+      }
+    },
+    {
+      "run_id": "40198184759",
+      "run_name": "Core evaluation dirV68 repair0",
+      "run_status": "completed",
+      "run_conclusion": "failure",
+      "run_created_at": "2026-10-25T13:33:55Z",
+      "team_job": {
+        "conclusion": "success",
+        "started_at": "2026-10-25T13:34:01Z",
+        "completed_at": "2026-10-25T14:07:51Z",
+        "n_steps": 12,
+        "all_steps_success": true,
+        "step_conclusions": {
+          "Set up job": "success",
+          "Run actions/checkout@v6": "success",
+          "Validate lane and initialize working base": "success",
+          "Mount accepted peer evidence": "success",
+          "Install Ox/OpenCode": "success",
+          "Run lane cycle": "success",
+          "Validate active MVP producer state": "success",
+          "Clean generated junk": "success",
+          "Enforce lane write scope": "success",
+          "Persist team snapshot": "success",
+          "Post Run actions/checkout@v6": "success",
+          "Complete job": "success"
+        }
+      },
+      "audit_job": {
+        "conclusion": "failure",
+        "started_at": "2026-10-25T14:07:54Z",
+        "completed_at": "2026-10-25T14:53:40Z",
+        "failed_step": "Independent audit",
+        "independent_audit_step": {
+          "started_at": "2026-10-25T14:08:34Z",
+          "completed_at": "2026-10-25T14:53:38Z",
+          "conclusion": "failure",
+          "duration_seconds": 2704.0
+        },
+        "enforce_gate_step": {
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        "persist_audit_step": {
+          "status": "completed",
+          "conclusion": "skipped"
+        }
+      },
+      "integrate_job": {
+        "conclusion": "skipped"
+      },
+      "resilience_job": {
+        "conclusion": "success"
+      },
+      "api_sources": {
+        "run": "results/evaluation/operational_resume_40209360877/api/run_40198184759_api.json",
+        "jobs": "results/evaluation/operational_resume_40209360877/api/jobs_40198184759_api.json"
+      }
+    },
+    {
+      "run_id": "40204378896",
+      "run_name": "Core evaluation dirV68 repair0",
+      "run_status": "completed",
+      "run_conclusion": "failure",
+      "run_created_at": "2026-10-25T14:53:49Z",
+      "team_job": {
+        "conclusion": "success",
+        "started_at": "2026-10-25T14:53:55Z",
+        "completed_at": "2026-10-25T15:11:12Z",
+        "n_steps": 12,
+        "all_steps_success": true,
+        "step_conclusions": {
+          "Set up job": "success",
+          "Run actions/checkout@v6": "success",
+          "Validate lane and initialize working base": "success",
+          "Mount accepted peer evidence": "success",
+          "Install Ox/OpenCode": "success",
+          "Run lane cycle": "success",
+          "Validate active MVP producer state": "success",
+          "Clean generated junk": "success",
+          "Enforce lane write scope": "success",
+          "Persist team snapshot": "success",
+          "Post Run actions/checkout@v6": "success",
+          "Complete job": "success"
+        }
+      },
+      "audit_job": {
+        "conclusion": "failure",
+        "started_at": "2026-10-25T15:11:16Z",
+        "completed_at": "2026-10-25T15:57:10Z",
+        "failed_step": "Independent audit",
+        "independent_audit_step": {
+          "started_at": "2026-10-25T15:12:03Z",
+          "completed_at": "2026-10-25T15:57:07Z",
+          "conclusion": "failure",
+          "duration_seconds": 2704.0
+        },
+        "enforce_gate_step": {
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        "persist_audit_step": {
+          "status": "completed",
+          "conclusion": "skipped"
+        }
+      },
+      "integrate_job": {
+        "conclusion": "skipped"
+      },
+      "resilience_job": {
+        "conclusion": "success"
+      },
+      "api_sources": {
+        "run": "results/evaluation/operational_resume_40209360877/api/run_40204378896_api.json",
+        "jobs": "results/evaluation/operational_resume_40209360877/api/jobs_40204378896_api.json"
+      }
+    },
+    {
+      "run_id": "40209360877",
+      "run_name": "Core evaluation dirV68 repair0",
+      "run_status": "in_progress",
+      "run_conclusion": null,
+      "run_created_at": "2026-10-25T15:57:18Z",
+      "team_job": {
+        "conclusion": null,
+        "started_at": "2026-10-25T15:57:25Z",
+        "completed_at": null,
+        "n_steps": 11,
+        "all_steps_success": false,
+        "step_conclusions": {
+          "Set up job": "success",
+          "Run actions/checkout@v6": "success",
+          "Validate lane and initialize working base": "success",
+          "Mount accepted peer evidence": "success",
+          "Install Ox/OpenCode": "success",
+          "Run lane cycle": null,
+          "Validate active MVP producer state": null,
+          "Clean generated junk": null,
+          "Enforce lane write scope": null,
+          "Persist team snapshot": null,
+          "Post Run actions/checkout@v6": null
+        }
+      },
+      "audit_job": {
+        "conclusion": null,
+        "started_at": null,
+        "completed_at": null,
+        "failed_step": null,
+        "independent_audit_step": {
+          "started_at": null,
+          "completed_at": null,
+          "conclusion": null,
+          "duration_seconds": null
+        },
+        "enforce_gate_step": {
+          "status": null,
+          "conclusion": null
+        },
+        "persist_audit_step": {
+          "status": null,
+          "conclusion": null
+        }
+      },
+      "integrate_job": {
+        "conclusion": null
+      },
+      "resilience_job": {
+        "conclusion": null
+      },
+      "api_sources": {
+        "run": "results/evaluation/operational_resume_40209360877/api/run_40209360877_api.json",
+        "jobs": "results/evaluation/operational_resume_40209360877/api/jobs_40209360877_api.json"
+      }
+    }
+  ],
+  "audit_branch_probes": {
+    "40187594111": {
+      "ref": "refs/heads/cycle/core/evaluation/40187594111/audit",
+      "probe": "git ls-remote --heads origin",
+      "exists": false,
+      "stdout": "(empty)"
+    },
+    "40192868113": {
+      "ref": "refs/heads/cycle/core/evaluation/40192868113/audit",
+      "probe": "git ls-remote --heads origin",
+      "exists": false,
+      "stdout": "(empty)"
+    },
+    "40198184759": {
+      "ref": "refs/heads/cycle/core/evaluation/40198184759/audit",
+      "probe": "git ls-remote --heads origin",
+      "exists": false,
+      "stdout": "(empty)"
+    },
+    "40204378896": {
+      "ref": "refs/heads/cycle/core/evaluation/40204378896/audit",
+      "probe": "git ls-remote --heads origin",
+      "exists": false,
+      "stdout": "(empty)"
+    },
+    "40209360877": {
+      "ref": "refs/heads/cycle/core/evaluation/40209360877/audit",
+      "probe": "git ls-remote --heads origin",
+      "exists": false,
+      "stdout": "(empty)"
+    }
+  },
+  "observation_summary": {
+    "starvation_runs": [
+      "40187594111",
+      "40192868113",
+      "40198184759",
+      "40204378896"
+    ],
+    "independent_audit_durations_seconds": [
+      2704.0,
+      2704.0,
+      2704.0,
+      2704.0
+    ],
+    "durations_all_equal": true,
+    "duration_value": 2704.0,
+    "quantum_seconds": 2700,
+    "poll_seconds": 15,
+    "predicted_step_duration": 2704,
+    "quantum_divisible_by_poll": true,
+    "max_poll_detection_delay_seconds": 15,
+    "observed_pre_agent_overhead_seconds": 4.0,
+    "audit_branches_exist": {
+      "40187594111": false,
+      "40192868113": false,
+      "40198184759": false,
+      "40204378896": false,
+      "40209360877": false
+    },
+    "any_audit_branch_exists": false
+  },
+  "checks": [
+    {
+      "check": "team_all_steps_success_every_starvation_run",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "audit_conclusion_failure_every_starvation_run",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "failing_step_is_independent_audit_every_starvation_run",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "durations_all_equal_and_within_quantum_window",
+      "passed": true,
+      "detail": {
+        "observed_seconds": [
+          2704.0,
+          2704.0,
+          2704.0,
+          2704.0
+        ],
+        "quantum": 2700,
+        "poll": 15,
+        "window": "[2700, 2715]"
+      }
+    },
+    {
+      "check": "gate_and_persist_steps_skipped_every_starvation_run",
+      "passed": true,
+      "detail": {
+        "note": "GitHub reports a skipped step as status=completed, conclusion=skipped; the conclusion column is the one that matters here"
+      }
+    },
+    {
+      "check": "integrate_skipped_every_starvation_run",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "resilience_success_every_starvation_run",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "no_audit_branch_for_any_starvation_run",
+      "passed": true,
+      "detail": {
+        "branches": {
+          "40187594111": {
+            "ref": "refs/heads/cycle/core/evaluation/40187594111/audit",
+            "probe": "git ls-remote --heads origin",
+            "exists": false,
+            "stdout": "(empty)"
+          },
+          "40192868113": {
+            "ref": "refs/heads/cycle/core/evaluation/40192868113/audit",
+            "probe": "git ls-remote --heads origin",
+            "exists": false,
+            "stdout": "(empty)"
+          },
+          "40198184759": {
+            "ref": "refs/heads/cycle/core/evaluation/40198184759/audit",
+            "probe": "git ls-remote --heads origin",
+            "exists": false,
+            "stdout": "(empty)"
+          },
+          "40204378896": {
+            "ref": "refs/heads/cycle/core/evaluation/40204378896/audit",
+            "probe": "git ls-remote --heads origin",
+            "exists": false,
+            "stdout": "(empty)"
+          }
+        }
+      }
+    },
+    {
+      "check": "wrapper_quantum_mechanism_present",
+      "passed": true,
+      "detail": {
+        "wrapper": {
+          "available": true,
+          "ref": "origin/main:.github/scripts/run-ox-with-retry.sh",
+          "lines": {
+            "quantum_constant": [
+              {
+                "line": 22,
+                "text": "WORK_QUANTUM_SECONDS=\"${LEX_AGENT_QUANTUM_SECONDS:-2700}\""
+              }
+            ],
+            "poll_interval": [
+              {
+                "line": 180,
+                "text": "sleep 15"
+              }
+            ],
+            "kill_condition": [
+              {
+                "line": 182,
+                "text": "if (( now - start >= WORK_QUANTUM_SECONDS )); then"
+              }
+            ],
+            "exit_78_return": [
+              {
+                "line": 187,
+                "text": "return 78"
+              }
+            ],
+            "expired_warning": [
+              {
+                "line": 183,
+                "text": "echo \"::warning::LEX_WORK_QUANTUM_EXPIRED seconds=$WORK_QUANTUM_SECONDS pid=$CHILD_PID\" >&2"
+              }
+            ]
+          },
+          "quantum_seconds": 2700,
+          "poll_seconds": 15,
+          "quantum_divisible_by_poll": true
+        }
+      }
+    },
+    {
+      "check": "this_run_is_the_operational_resume_dispatch",
+      "passed": false,
+      "detail": {
+        "evidence": {
+          "branch": "operational-resume",
+          "upstream": "origin/cycle/core/evaluation/40209360877/team",
+          "snapshot_is_ancestor_of_head": true,
+          "expected_upstream": "origin/cycle/core/evaluation/40204378896/team",
+          "workflow_evidence": [
+            "origin/main:.github/workflows/core-lane.yml:80",
+            "origin/main:.github/workflows/core-lane.yml:385"
+          ],
+          "ok": false
+        }
+      }
+    },
+    {
+      "check": "current_run_team_job_still_in_progress_or_success",
+      "passed": true,
+      "detail": {}
+    }
+  ],
+  "n_checks": 11,
+  "n_failed": 1,
+  "failed_checks": [
+    "this_run_is_the_operational_resume_dispatch"
+  ],
+  "verdict": "DIAGNOSIS_DIVERGENCE",
+  "control_plane_hardening_items_recorded_not_edited": [
+    "The independent-audit job of core-lane.yml runs the same 2700s work quantum as the producer but must independently recompute a multi-hundred-artifact pack; four consecutive audits have now starved at the identical boundary. .github/** is control-plane scope and is NOT edited from this lane. Candidate durable fixes for the control-plane maintainer: raise LEX_AGENT_QUANTUM_SECONDS for the independent_auditor agent, split the audit into a short first pass, or hand the auditor a pre-verified pack (this run publishes exactly that).",
+    "Job logs remain unauthenticated-readable (403); a durable fix would be a public per-step duration export or an actions:read token for the auditor. Recorded, not edited."
+  ],
+  "non_claims": [
+    "No statement about WHY beyond the duration arithmetic is proven from a log line.",
+    "This is not a gate verdict: no gate file exists for any of the four runs.",
+    "This diagnosis does not decide whether the pending producer work deserves PASS; that is the independent auditor's decision once the quantum allows it to run."
+  ]
+}

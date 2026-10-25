@@ -1,0 +1,345 @@
+{
+  "schema": "lex-evaluation-operational-resume-diagnosis/1",
+  "lane": "evaluation",
+  "run_id": "40217938706",
+  "diagnosed_run_id": "40213041041",
+  "direction_version": 68,
+  "generated_at_utc": "2026-10-25T17:59:43Z",
+  "failure_class": "ORCHESTRATION_WORK_QUANTUM_EXPIRED",
+  "failure_class_confidence": "high",
+  "failure_summary": "Run 40213041041's producer team job succeeded end-to-end and persisted snapshot c11aff55cc4acaca30f5c5fe33f61c1dc603a174; its independent-audit job failed at step 'Independent audit' after 2704.0s (quantum 2700s + ~4s step setup), the two later audit steps were skipped, integrate was skipped and resilience dispatched this resume. The identical 2704.0s signature now appears on FIVE consecutive runs (40187594111, 40192868113, 40198184759, 40204378896, 40213041041), no /audit ref exists for any of them, and the run therefore issued NO verdict. This is not a producer failure, not a validation failure, not a gate REVISE/BLOCKED and not a product defect.",
+  "log_evidence_available": false,
+  "log_evidence_note": "GitHub job-log endpoint is HTTP 403 unauthenticated (GH_TOKEN unset); the mechanism is inference from public run/jobs metadata plus the checked-in wrapper, never a quoted log line.",
+  "recurrence": {
+    "40187594111": {
+      "audit_conclusion": "failure",
+      "step": "Independent audit",
+      "duration_seconds": 2704.0,
+      "envelope": "results/evaluation/operational_resume_40209360877/api/jobs_40187594111_api.json"
+    },
+    "40192868113": {
+      "audit_conclusion": "failure",
+      "step": "Independent audit",
+      "duration_seconds": 2704.0,
+      "envelope": "results/evaluation/operational_resume_40209360877/api/jobs_40192868113_api.json"
+    },
+    "40198184759": {
+      "audit_conclusion": "failure",
+      "step": "Independent audit",
+      "duration_seconds": 2704.0,
+      "envelope": "results/evaluation/operational_resume_40209360877/api/jobs_40198184759_api.json"
+    },
+    "40204378896": {
+      "audit_conclusion": "failure",
+      "step": "Independent audit",
+      "duration_seconds": 2704.0,
+      "envelope": "results/evaluation/operational_resume_40209360877/api/jobs_40204378896_api.json"
+    },
+    "40213041041": {
+      "audit_conclusion": "failure",
+      "step": "Independent audit",
+      "duration_seconds": 2704.0,
+      "envelope": "results/evaluation/operational_resume_40213041041/api/jobs_40213041041_api.json"
+    }
+  },
+  "wrapper": {
+    "available": true,
+    "quantum_line": {
+      "found": true,
+      "hits": [
+        [
+          22,
+          "WORK_QUANTUM_SECONDS=\"${LEX_AGENT_QUANTUM_SECONDS:-2700}\""
+        ]
+      ]
+    },
+    "sleep_line": {
+      "found": true,
+      "hits": [
+        [
+          180,
+          "sleep 15"
+        ]
+      ]
+    },
+    "kill_line": {
+      "found": true,
+      "hits": [
+        [
+          182,
+          "if (( now - start >= WORK_QUANTUM_SECONDS )); then"
+        ]
+      ]
+    },
+    "return_78_line": {
+      "found": true,
+      "hits": [
+        [
+          187,
+          "return 78"
+        ]
+      ]
+    },
+    "quantum_divisible_by_15": true
+  },
+  "audit_branch": {
+    "ref": "refs/heads/cycle/core/evaluation/40213041041/audit",
+    "probe": "git ls-remote --heads origin",
+    "exists": false,
+    "stdout": "(empty)"
+  },
+  "checks": [
+    {
+      "check": "diagnosed_run_metadata",
+      "passed": true,
+      "detail": {
+        "run_name": "Core evaluation dirV68 repair0",
+        "conclusion": "failure",
+        "head_sha": "a3a0b3994f0dfc4baf6f84d672e98625554f2d45"
+      }
+    },
+    {
+      "check": "team_success_all_steps",
+      "passed": true,
+      "detail": {
+        "steps": [
+          [
+            1,
+            "Set up job",
+            "success"
+          ],
+          [
+            2,
+            "Run actions/checkout@v6",
+            "success"
+          ],
+          [
+            3,
+            "Validate lane and initialize working base",
+            "success"
+          ],
+          [
+            4,
+            "Mount accepted peer evidence",
+            "success"
+          ],
+          [
+            5,
+            "Install Ox/OpenCode",
+            "success"
+          ],
+          [
+            6,
+            "Run lane cycle",
+            "success"
+          ],
+          [
+            7,
+            "Validate active MVP producer state",
+            "success"
+          ],
+          [
+            8,
+            "Clean generated junk",
+            "success"
+          ],
+          [
+            9,
+            "Enforce lane write scope",
+            "success"
+          ],
+          [
+            10,
+            "Persist team snapshot",
+            "success"
+          ],
+          [
+            20,
+            "Post Run actions/checkout@v6",
+            "success"
+          ],
+          [
+            21,
+            "Complete job",
+            "success"
+          ]
+        ]
+      }
+    },
+    {
+      "check": "audit_conclusion_failure",
+      "passed": true,
+      "detail": {
+        "conclusion": "failure"
+      }
+    },
+    {
+      "check": "failing_step_is_independent_audit",
+      "passed": true,
+      "detail": {
+        "step": "Independent audit",
+        "conclusion": "failure"
+      }
+    },
+    {
+      "check": "duration_is_2704_0s",
+      "passed": true,
+      "detail": {
+        "duration_seconds": 2704.0
+      }
+    },
+    {
+      "check": "gate_and_persist_steps_skipped",
+      "passed": true,
+      "detail": {
+        "steps": [
+          [
+            6,
+            "Enforce audit scope and read gate",
+            "skipped"
+          ],
+          [
+            7,
+            "Persist audit snapshot",
+            "skipped"
+          ]
+        ]
+      }
+    },
+    {
+      "check": "integrate_skipped",
+      "passed": true,
+      "detail": {
+        "conclusion": "skipped"
+      }
+    },
+    {
+      "check": "resilience_success",
+      "passed": true,
+      "detail": {
+        "conclusion": "success"
+      }
+    },
+    {
+      "check": "no_audit_branch",
+      "passed": true,
+      "detail": {
+        "branch": {
+          "ref": "refs/heads/cycle/core/evaluation/40213041041/audit",
+          "probe": "git ls-remote --heads origin",
+          "exists": false,
+          "stdout": "(empty)"
+        }
+      }
+    },
+    {
+      "check": "five_run_recurrence_all_2704_0s",
+      "passed": true,
+      "detail": {
+        "recurrence": {
+          "40187594111": {
+            "audit_conclusion": "failure",
+            "step": "Independent audit",
+            "duration_seconds": 2704.0,
+            "envelope": "results/evaluation/operational_resume_40209360877/api/jobs_40187594111_api.json"
+          },
+          "40192868113": {
+            "audit_conclusion": "failure",
+            "step": "Independent audit",
+            "duration_seconds": 2704.0,
+            "envelope": "results/evaluation/operational_resume_40209360877/api/jobs_40192868113_api.json"
+          },
+          "40198184759": {
+            "audit_conclusion": "failure",
+            "step": "Independent audit",
+            "duration_seconds": 2704.0,
+            "envelope": "results/evaluation/operational_resume_40209360877/api/jobs_40198184759_api.json"
+          },
+          "40204378896": {
+            "audit_conclusion": "failure",
+            "step": "Independent audit",
+            "duration_seconds": 2704.0,
+            "envelope": "results/evaluation/operational_resume_40209360877/api/jobs_40204378896_api.json"
+          },
+          "40213041041": {
+            "audit_conclusion": "failure",
+            "step": "Independent audit",
+            "duration_seconds": 2704.0,
+            "envelope": "results/evaluation/operational_resume_40213041041/api/jobs_40213041041_api.json"
+          }
+        }
+      }
+    },
+    {
+      "check": "wrapper_quantum_mechanism_present",
+      "passed": true,
+      "detail": {
+        "wrapper": {
+          "available": true,
+          "quantum_line": {
+            "found": true,
+            "hits": [
+              [
+                22,
+                "WORK_QUANTUM_SECONDS=\"${LEX_AGENT_QUANTUM_SECONDS:-2700}\""
+              ]
+            ]
+          },
+          "sleep_line": {
+            "found": true,
+            "hits": [
+              [
+                180,
+                "sleep 15"
+              ]
+            ]
+          },
+          "kill_line": {
+            "found": true,
+            "hits": [
+              [
+                182,
+                "if (( now - start >= WORK_QUANTUM_SECONDS )); then"
+              ]
+            ]
+          },
+          "return_78_line": {
+            "found": true,
+            "hits": [
+              [
+                187,
+                "return 78"
+              ]
+            ]
+          },
+          "quantum_divisible_by_15": true
+        }
+      }
+    },
+    {
+      "check": "snapshot_is_resume_head",
+      "passed": true,
+      "detail": {
+        "head": "c11aff55cc4acaca30f5c5fe33f61c1dc603a174",
+        "expected": "c11aff55cc4acaca30f5c5fe33f61c1dc603a174"
+      }
+    },
+    {
+      "check": "this_run_is_the_operational_resume_dispatch",
+      "passed": true,
+      "detail": {
+        "branch": "operational-resume",
+        "upstream": "origin/cycle/core/evaluation/40213041041/team",
+        "expected_upstream": "origin/cycle/core/evaluation/40213041041/team"
+      }
+    }
+  ],
+  "n_checks": 13,
+  "n_failed": 0,
+  "failed_checks": [],
+  "verdict": "DIAGNOSIS_CONFIRMED",
+  "control_plane_hardening_items_recorded_not_edited": [
+    "The independent-audit job runs the same 2700s work quantum as the producer but must independently recompute a multi-hundred-artifact pack; five consecutive audits starved at the identical boundary. .github/** is control-plane scope and is NOT edited from this lane. Candidate durable fixes: raise LEX_AGENT_QUANTUM_SECONDS for the independent_auditor agent, split the audit into a short first pass, or hand the auditor a pre-verified pack (this run publishes exactly that).",
+    "Job logs remain unauthenticated-readable (403); a durable fix would be a public per-step duration export or an actions:read token for the auditor. Recorded, not edited."
+  ]
+}

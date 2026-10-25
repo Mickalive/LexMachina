@@ -4,7 +4,7 @@
   "run_id": "40209360877",
   "diagnosed_run_id": "40204378896",
   "direction_version": 68,
-  "generated_at_utc": "2026-10-25T16:48:29Z",
+  "generated_at_utc": "2026-10-25T16:36:24Z",
   "failure_class": "ORCHESTRATION_WORK_QUANTUM_EXPIRED",
   "failure_class_confidence": "high",
   "failure_summary": "Run 40204378896's producer team job succeeded end-to-end and persisted snapshot 14b9e9cf9d8c4d88f378fd8ae4281d3cbb18c2f5; its independent-audit job failed at step 'Independent audit' after 2704.0s (quantum 2700s + 4s step setup), the two later audit steps were skipped, integrate was skipped and resilience dispatched this resume with resume_from_run_id=40204378896. The identical 2704.0s signature now appears on four consecutive runs (40187594111, 40192868113, 40198184759, 40204378896), no /audit ref exists for any of them, and the run therefore issued NO verdict. This is not a producer failure, not a validation failure, not a gate REVISE/BLOCKED and not a product defect.",
@@ -498,18 +498,18 @@
     },
     {
       "check": "this_run_is_the_operational_resume_dispatch",
-      "passed": false,
+      "passed": true,
       "detail": {
         "evidence": {
           "branch": "operational-resume",
-          "upstream": "origin/cycle/core/evaluation/40209360877/team",
+          "upstream": "origin/cycle/core/evaluation/40204378896/team",
           "snapshot_is_ancestor_of_head": true,
           "expected_upstream": "origin/cycle/core/evaluation/40204378896/team",
           "workflow_evidence": [
             "origin/main:.github/workflows/core-lane.yml:80",
             "origin/main:.github/workflows/core-lane.yml:385"
           ],
-          "ok": false
+          "ok": true
         }
       }
     },
@@ -520,11 +520,9 @@
     }
   ],
   "n_checks": 11,
-  "n_failed": 1,
-  "failed_checks": [
-    "this_run_is_the_operational_resume_dispatch"
-  ],
-  "verdict": "DIAGNOSIS_DIVERGENCE",
+  "n_failed": 0,
+  "failed_checks": [],
+  "verdict": "DIAGNOSIS_CONFIRMED",
   "control_plane_hardening_items_recorded_not_edited": [
     "The independent-audit job of core-lane.yml runs the same 2700s work quantum as the producer but must independently recompute a multi-hundred-artifact pack; four consecutive audits have now starved at the identical boundary. .github/** is control-plane scope and is NOT edited from this lane. Candidate durable fixes for the control-plane maintainer: raise LEX_AGENT_QUANTUM_SECONDS for the independent_auditor agent, split the audit into a short first pass, or hand the auditor a pre-verified pack (this run publishes exactly that).",
     "Job logs remain unauthenticated-readable (403); a durable fix would be a public per-step duration export or an actions:read token for the auditor. Recorded, not edited."
