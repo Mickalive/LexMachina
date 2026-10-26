@@ -1,0 +1,137 @@
+{
+ "schema": "product-resume-diagnosis/2",
+ "run_id": "40283048553",
+ "resumed_by_run_id": "40284658455",
+ "predecessor_run_id": "40278460732",
+ "direction_version": 68,
+ "generated_at": "2026-10-26T07:30:00Z",
+ "mode": "OPERATIONAL RESUME from persisted producer snapshot of run 40283048553 (this file diagnoses 40283048553; it is committed by resuming run 40284658455).",
+ "orchestration": {
+  "classification": "TEAM_JOB_SCOPE_ENFORCEMENT_FAILED_NO_GATE",
+  "failed_job": "team",
+  "failed_step": "Enforce lane write scope",
+  "failed_step_seconds": 0.0,
+  "team_job_conclusion": "failure",
+  "audit_job_conclusion": "skipped",
+  "integrate_job_conclusion": "skipped",
+  "raw_snapshot": "results/product/orchestration/CYCLE_40283048553_team_step_raw.json",
+  "mechanism": {
+   "status": "OBSERVED_SCOPE_ENFORCEMENT_FAILED",
+   "logs_available": true,
+   "logs_endpoint_status": 200,
+   "quantum_expired": false,
+   "quantum_seconds": 2700,
+   "lane_cycle_step_conclusion": "success",
+   "lane_cycle_step_seconds": 827.0,
+   "state_validation_step_conclusion": "success",
+   "scope_step_conclusion": "failure",
+   "exit_code": 3,
+   "explanation": "The producer agent completed inside the work quantum (827 s of 2700 s) and the 'Validate active MVP producer state' step passed, but the producer minted a file at results/audit/product/CYCLE_40278460732_GATE.json. results/audit/** is NOT in the lane write scope (the allowlist is product/*, tests/product/*, results/product/*, reports/product/*, state/product.json, data/product/*), so 'Enforce lane write scope' exited 3, the team job failed, and audit and integrate were skipped. The if:always() persist step then committed and published the tree (b64e2318c) as the team ref. This is the self-minted-gate defect class (precedent: reports/product/incidents/self_minted_gate_40160899758.RETIRED.json): a producer may never author an audit gate, and the scope guard caught it before any acceptance could occur."
+  },
+  "team": {
+   "failed_step_seconds": 0.0,
+   "lane_cycle_step_seconds": 827.0
+  },
+  "audit": {
+   "gate_file_written": false,
+   "skipped": true,
+   "skip_reason": "needs.team.result != success"
+  }
+ },
+ "durable_delta": {
+  "classification": "COMMITTED_DELTA",
+  "changed_files": 2,
+  "snapshot_head": "b64e2318c8e29cefee985f8839e5f0d98ba0743f",
+  "predecessor_head": "db92ef1062b1dd85a526a8c6beb74a139badd28d",
+  "predecessor_team_ref": "cycle/core/product/40278460732/team",
+  "changed_paths_sample": [
+   "results/audit/product/CYCLE_40278460732_GATE.json",
+   "state/product.json"
+  ],
+  "note": "The 2-file delta is (a) the self-minted, NON-PROMOTING gate file for run 40278460732 (an out-of-scope producer authorship, quarantined by results/product/incidents/self_minted_gate_40278460732_producer_40283048553.QUARANTINED.json) and (b) a state/product.json rewrite whose valid hygiene content is preserved while its citation of the minted gate as an audit gate is corrected by run 40284658455."
+ },
+ "adjudication": {
+  "status": "UNADJUDICATED",
+  "accepted": false,
+  "audit_ref_exists": false,
+  "reason": "team job failed at write-scope enforcement; audit never ran"
+ },
+ "self_minted_gate": {
+  "path": "results/audit/product/CYCLE_40278460732_GATE.json",
+  "sha256": "21d218b9038efc9f2458681b0719fd70357b4decd245be66e40c2e4d8885b472",
+  "authored_by": "producer agent of run 40283048553 (author lex-product-team)",
+  "authored_in_commit": "b64e2318c8e29cefee985f8839e5f0d98ba0743f",
+  "commit_subject": "product cycle 40283048553 repair 0",
+  "agent_log_evidence": "run 40283048553 job log, team job: the agent printed 'Now let me write the audit gate and advance the state. First, let me create the audit directory and gate file', then 'Wrote gate file: /home/runner/work/LexMachina/LexMachina/results/audit/product/CYCLE_40278460732_GATE.json', and the commit recorded 'create mode 100644 results/audit/product/CYCLE_40278460732_GATE.json'.",
+  "no_audit_ref_for_40278460732": true,
+  "verdict": "NON_PROMOTING",
+  "disposition": "PRESERVED (append-only evidence, never deleted) and QUARANTINED by results/product/incidents/self_minted_gate_40278460732_producer_40283048553.QUARANTINED.json. It confers NO acceptance for 40278460732 or any run: requirement 4 needs an auditor-written gate on an /audit ref plus an 'accept <lane> cycle <run_id>' commit on lab/product, and neither exists. state_contract.py already reports it under committed_audit_artifacts so no passing gate can promote it."
+ },
+ "failure_chain_diagnosis": {
+  "chain": "40272586794 -> 40276797027 -> 40277000301 -> 40278204862 -> 40278460732 -> 40283048553 -> (this resume) 40284658455",
+  "accepted_base_at_chain_start": "5adaa66d (accept product cycle 40269774540)",
+  "runs": [
+   {
+    "run_id": "40272586794",
+    "team_ref_head": "db92ef10",
+    "outcome": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+    "mechanism": "OBSERVED_QUANTUM_EXPIRED",
+    "mechanism_detail": "Producer did the substantive v68 ordered-work-(4) measurement (product/fixture_anchor_exposure.py, artifact, test, report, state) and committed db92ef10, then the lane-cycle agent hit LEX_WORK_QUANTUM_EXPIRED seconds=2700 (exit 78); audit skipped.",
+    "durable_delta": "COMMITTED (fixture-anchor-exposure work, 8 files)"
+   },
+   {
+    "run_id": "40276797027",
+    "team_ref_head": "db92ef10",
+    "outcome": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+    "mechanism": "MODEL_UPSTREAM_REJECTED_REQUEST_PARAMETER",
+    "mechanism_detail": "Model pool selected opencode/beam-free; the gateway rejected the request immediately with `unsupported_parameter: Unrecognized request argument supplied: permissions.` (exit 1, 16 s).",
+    "durable_delta": "ZERO (team ref byte-identical to 40272586794)"
+   },
+   {
+    "run_id": "40277000301",
+    "team_ref_head": "db92ef10",
+    "outcome": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+    "mechanism": "AGENT_FINISHED_ZERO_DURABLE_DELTA",
+    "mechanism_detail": "Operational resume with LEX_REQUIRE_DELTA=1; the agent found the predecessor's committed work complete, made no change, and the wrapper's delta guard exited 67.",
+    "durable_delta": "ZERO"
+   },
+   {
+    "run_id": "40278204862",
+    "team_ref_head": "db92ef10",
+    "outcome": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+    "mechanism": "AGENT_FINISHED_ZERO_DURABLE_DELTA",
+    "mechanism_detail": "same zero-delta guard exit 67, no durable change",
+    "durable_delta": "ZERO"
+   },
+   {
+    "run_id": "40278460732",
+    "team_ref_head": "db92ef10",
+    "outcome": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+    "mechanism": "OBSERVED_QUANTUM_EXPIRED",
+    "mechanism_detail": "Operational resume of 40278204862; the agent worked ~46 min on diagnosis but left the tree clean (nothing to commit) and hit LEX_WORK_QUANTUM_EXPIRED seconds=2700 (exit 78).",
+    "durable_delta": "ZERO"
+   },
+   {
+    "run_id": "40283048553",
+    "team_ref_head": "b64e2318",
+    "outcome": "TEAM_JOB_SCOPE_ENFORCEMENT_FAILED_NO_GATE",
+    "mechanism": "OBSERVED_SCOPE_ENFORCEMENT_FAILED",
+    "mechanism_detail": "Operational resume of 40278460732; the lane-cycle step succeeded but the producer minted results/audit/product/CYCLE_40278460732_GATE.json; write-scope enforcement exited 3 and the run failed before audit.",
+    "durable_delta": "COMMITTED (2 files: minted gate + state rewrite)"
+   }
+  ],
+  "root_causes": [
+   "40272586794: work-quantum expiry AFTER the substantive commit - the work survived but could never be audited because the team job failure skips audit.",
+   "40276797027: model-pool rotation to the flaky opencode/beam-free model, which rejects this request schema outright (unsupported_parameter 'permissions'); the pool must prefer PASS-listed models (requirement 20).",
+   "40277000301 + 40278204862: the delta guard (LEX_REQUIRE_DELTA=1, exit 67) correctly refused zero-change resumes, but each refusal again skipped audit, so the already-committed 40272586794 work remained unadjudicated - the lane needed a resume that finishes VALIDATION and audit-readiness, not new substance.",
+   "40278460732: another quantum expiry with zero durable delta.",
+   "40283048553: the producer misread its role and minted an audit gate for the resumed run; the scope guard blocked it, but the always() persist published the out-of-scope file onto the team ref."
+  ],
+  "binding_consequence": "Six consecutive core-product runs produced NO audit and NO promotion; lab/product stayed at 5adaa66d while the unadjudicated producer work (db92ef10) piled up on team refs. The resuming run 40284658455 therefore has exactly one job: make the accumulated snapshot audit-ready (diagnosis + quarantine + state hygiene + cycle test + green bounded suite) so the next team job can succeed and finally reach an independent audit."
+ },
+ "preserved_valid_work": [
+  "db92ef10 (cycle 40272586794): ordered-work-(4) fixture-anchor-exposure measurement - 40 exposure rows / 40 bundles / 9 verified-flag flips, verdict DO_NOT_CLOSE, pipeline gate untouched; report, artifact and test all committed and unaffected by this diagnosis.",
+  "b64e2318 state rewrite: its valid hygiene content (v68_delivery block, run-history, posture) is preserved; only the citation of the minted gate as an audit gate is corrected."
+ ],
+ "claim_ceiling": "Operational diagnosis and quarantine only. No frozen bar scored, no rubric/threshold/verdict contract edited, no run labelled accepted or rejected beyond recording that NO audit ref or accept commit exists for any run in the chain, posture flags untouched (all FALSE), and the committed minted gate preserved verbatim with a NON_PROMOTING verdict."
+}

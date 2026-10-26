@@ -324,6 +324,51 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    "40284658455": {
+        "resumed_run_id": "40283048553",
+        "predecessor_run_id": "40278460732",
+        "raw": ORCH / "CYCLE_40283048553_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_40283048553_resume_diagnosis.json",
+        # No report was committed by the failed run; the report of record for
+        # this resume is its own CYCLE_40284658455.md, and the last committed
+        # producer report on the lineage is 40272586794's.
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40272586794.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40284658455.md",
+        "classification": "TEAM_JOB_SCOPE_ENFORCEMENT_FAILED_NO_GATE",
+        # Fourth real failure mode: the lane-cycle step SUCCEEDED and the
+        # team job died at write-scope enforcement because the producer
+        # minted results/audit/product/CYCLE_40278460732_GATE.json (a path
+        # outside the producer allowlist).  Neither the quantum-expiry kind
+        # nor the model-gateway kind describes it; both would misreport.
+        "mechanism_kind": "observed_scope",
+        "failed_job": "team",
+        "quantum_seconds": None,
+        "exit_code": 3,
+        "lane_cycle_step_seconds": 827.0,
+        "changed_files": 2,
+        "changed_paths_include": (
+            "results/audit/product/CYCLE_40278460732_GATE.json",
+            "state/product.json",
+        ),
+        "cycle_test": "product/tests/test_cycle_40284658455.py",
+        "state_block": "cycle_40284658455_operational_resume",
+        # No new counter-content family this cycle: consume the accepted
+        # fixed-path family pins unchanged (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "self_minted_gate": ROOT / "results" / "product" / "incidents"
+                             / "self_minted_gate_40278460732_producer_"
+                               "40283048553.QUARANTINED.json",
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -600,6 +645,50 @@ def check_resumed_diagnosis() -> dict[str, Any]:
             problems.append("log_evidence_quantum_marker")
         if not evidence_path.is_file():
             problems.append("lane_cycle_log_evidence_missing")
+    elif mechanism_kind == "observed_scope":
+        # Fourth real failure mode, observed on run 40283048553: the
+        # lane-cycle agent step SUCCEEDED and the team job died at the
+        # workflow's write-scope enforcement because the producer minted an
+        # auditor-namespace gate file (results/audit/product/
+        # CYCLE_<resumed_run>_GATE.json).  The raw run/jobs snapshot shows
+        # the step conclusions directly; no quantum expired and no model
+        # gateway was involved.  A quantum or gateway wording would
+        # misreport the run, so the scope-enforcement kind is first-class.
+        mechanism = orch.get("mechanism") or {}
+        quantum_seconds = None
+        exit_code = p("exit_code")
+        if mechanism.get("status") != "OBSERVED_SCOPE_ENFORCEMENT_FAILED":
+            problems.append("mechanism_status")
+        if mechanism.get("logs_available") is not True:
+            problems.append("logs_available")
+        if mechanism.get("logs_endpoint_status") != 200:
+            problems.append("logs_endpoint_status")
+        if mechanism.get("quantum_expired") is not False:
+            problems.append("quantum_expired")
+        if mechanism.get("lane_cycle_step_conclusion") != "success":
+            problems.append("lane_cycle_step_conclusion")
+        if orch.get("failed_step") != "Enforce lane write scope":
+            problems.append("failed_step")
+        if mechanism.get("exit_code") != exit_code:
+            problems.append("exit_code")
+        if (orch.get("audit") or {}).get("gate_file_written") is not False:
+            problems.append("gate_file_written")
+        if (orch.get("audit") or {}).get("skipped") is not True:
+            problems.append("audit_not_skipped")
+        # Cross-check the raw snapshot the profile names: the lane-cycle
+        # step must read success and the scope step failure there too.
+        if raw is not None and raw.is_file():
+            raw_doc = _load(raw)
+            team = next((j for j in raw_doc.get("jobs") or []
+                         if j.get("name") == "team"), None)
+            steps = {s.get("name"): s.get("conclusion")
+                     for s in (team or {}).get("steps") or []}
+            if steps.get("Run lane cycle") != "success":
+                problems.append("raw_lane_cycle_not_success")
+            if steps.get("Enforce lane write scope") != "failure":
+                problems.append("raw_scope_step_not_failure")
+        else:
+            problems.append("raw_snapshot_missing")
     else:
         # Raw-free resume: the public run/jobs snapshot is unavailable. The
         # only honest record is that the mechanism is unobserved; asserting a
@@ -648,6 +737,12 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                    "rejection observed in the run's own job logs (no work "
                    "quantum reached), team ref carries zero durable delta "
                    "over its predecessor, run unadjudicated")
+    elif mechanism_kind == "observed_scope":
+        summary = (f"Resumed run {resumed_id}: lane-cycle agent step "
+                   "succeeded, team job failed at write-scope enforcement "
+                   "on a producer-minted auditor-namespace gate file (no "
+                   "work quantum reached, audit skipped), durable delta "
+                   "present, run unadjudicated")
     else:
         summary = (f"Resumed run {resumed_id}: raw run/jobs snapshot "
                    "unavailable (mechanism unobserved), team ref carries zero "
@@ -1026,6 +1121,27 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
             + [str(resume_diag.relative_to(ROOT))]
             + ([str(log_ev_path.relative_to(ROOT))]
                if log_ev_path.is_file() else []))
+    elif mechanism_kind == "observed_scope":
+        c1_claim = (
+            f"Run {resumed_id}'s lane-cycle agent step SUCCEEDED ("
+            f"{p('lane_cycle_step_seconds', 0)} s of a 2700 s quantum) and "
+            f"the producer state validation passed, but the team job died "
+            f"at 'Enforce lane write scope' (exit "
+            f"{p('exit_code', 3)}) because the producer minted "
+            "results/audit/product/"
+            f"CYCLE_{resumed_id}_GATE.json, a path outside the producer "
+            "write scope; audit and integrate were therefore skipped and no "
+            "auditor ever ran for that gate's named run. The minted file is "
+            "preserved verbatim and quarantined as NON-PROMOTING by "
+            "results/product/incidents/"
+            "self_minted_gate_40278460732_producer_40283048553."
+            "QUARANTINED.json. Observed from the run's own job records "
+            "(logs endpoint HTTP 200), not inferred; no work quantum "
+            "expired."
+        )
+        c1_artifacts = (
+            ([str(raw.relative_to(ROOT))] if raw is not None else [])
+            + [str(resume_diag.relative_to(ROOT))])
     elif mechanism_kind == "observed":
         c1_claim = (
             f"Run {resumed_id}'s {who} agent ended on the workflow "
