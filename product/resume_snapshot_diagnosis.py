@@ -27,6 +27,16 @@ Usage
         --raw results/product/orchestration/CYCLE_40193974025_team_step_raw.json \\
         --out results/product/orchestration/CYCLE_40193974025_resume_diagnosis.json
 
+When no public run/jobs snapshot was captured for the resumed run (for example
+an operational resume dispatched straight from a failed run whose logs are not
+reachable from the producer environment), omit ``--raw``: the instrument then
+records ``RAW_SNAPSHOT_UNAVAILABLE`` / ``mechanism_unobserved`` instead of
+inventing a cause, while still proving the durable-delta fact from git refs.
+``--predecessor-ref`` (default ``origin/lab/product``) compares the snapshot
+against the accepted head the failed run was dispatched from, which is the
+right delta baseline for a resume run: comparing against the previous *team*
+ref would count the accepted audit commit as if the failed run had produced it.
+
 Refs must already be available locally (the workflow fetches ``main``,
 ``lab/<lane>`` and the team ref).  The instrument never fetches, so an
 offline reproduction is honest about a missing ref instead of silently
@@ -170,25 +180,60 @@ def _repo_relative(path: Path) -> str:
         return str(path)
 
 
-def run(run_id: str, predecessor_run_id: str, raw_path: Path) -> dict[str, Any]:
-    raw = json.loads(Path(raw_path).read_text(encoding="utf-8"))
-    orchestration = asd.classify(raw)
-    delta = _delta(
-        f"origin/cycle/core/product/{run_id}/team",
-        f"origin/cycle/core/product/{predecessor_run_id}/team",
+def _orchestration_without_raw(raw_path: Path | None) -> dict[str, Any]:
+    """Honest placeholder when no public run/jobs snapshot was captured.
+
+    The missing artefact is recorded as such.  A git-ref delta and the absence
+    of an audit half still prove a great deal, but they cannot name a provider,
+    auth or quantum mechanism, so none is invented.
+    """
+    return {
+        "schema": asd.SCHEMA,
+        "classification": "RAW_SNAPSHOT_UNAVAILABLE",
+        "mechanism_unobserved": True,
+        "raw_snapshot": _repo_relative(raw_path) if raw_path else None,
+        "meaning": (
+            "No committed run/jobs snapshot exists for this failed run in the "
+            "producer checkout (job logs require admin rights). The durable "
+            "delta and the absent audit half are still proven from git refs; "
+            "the provider/auth/timeout mechanism is NOT claimed."
+        ),
+    }
+
+
+def run(
+    run_id: str,
+    predecessor_run_id: str = "",
+    raw_path: Path | None = None,
+    *,
+    predecessor_ref: str | None = None,
+) -> dict[str, Any]:
+    orchestration = (
+        asd.classify(json.loads(Path(raw_path).read_text(encoding="utf-8")))
+        if raw_path is not None
+        else _orchestration_without_raw(None)
     )
+    if predecessor_ref:
+        delta = _delta(f"origin/cycle/core/product/{run_id}/team", predecessor_ref)
+    elif predecessor_run_id:
+        delta = _delta(
+            f"origin/cycle/core/product/{run_id}/team",
+            f"origin/cycle/core/product/{predecessor_run_id}/team",
+        )
+    else:
+        delta = _delta(f"origin/cycle/core/product/{run_id}/team", ACCEPTED_REF)
     accept = _accept_commit(run_id)
     audit = _audit_half(run_id)
     accepted = bool(accept.get("accept_commit")) and bool(
         audit.get("gate_verdict") == "PASS"
         and audit.get("safe_to_integrate") is True
     )
-    return {
+    record: dict[str, Any] = {
         "schema": SCHEMA,
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "run_id": run_id,
         "predecessor_run_id": predecessor_run_id,
-        "raw_snapshot": _repo_relative(Path(raw_path)),
+        "raw_snapshot": _repo_relative(Path(raw_path)) if raw_path else None,
         "orchestration": orchestration,
         "durable_delta": delta,
         "adjudication": {
@@ -213,17 +258,33 @@ def run(run_id: str, predecessor_run_id: str, raw_path: Path) -> dict[str, Any]:
             "makes no product, legal or serve claim."
         ),
     }
+    if raw_path is None:
+        # Only the raw-free mode needs to name the delta baseline; preserving
+        # the historical raw-mode record byte shape keeps accepted cycle tests
+        # reproducible.
+        record["predecessor_ref"] = predecessor_ref or ACCEPTED_REF
+    return record
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--run-id", required=True)
-    ap.add_argument("--predecessor-run-id", required=True)
-    ap.add_argument("--raw", required=True,
-                    help="committed run/jobs snapshot for --run-id")
+    ap.add_argument("--predecessor-run-id", default="",
+                    help="previous cycle's team ref (optional when --predecessor-ref is given)")
+    ap.add_argument("--predecessor-ref", default="",
+                    help="explicit git ref for the durable-delta baseline (default origin/lab/product)")
+    ap.add_argument("--raw", default=None,
+                    help="committed run/jobs snapshot for --run-id; omit when unavailable")
     ap.add_argument("--out", required=True)
     args = ap.parse_args(argv)
-    rec = run(args.run_id, args.predecessor_run_id, Path(args.raw))
+    if not args.predecessor_run_id and not args.predecessor_ref:
+        args.predecessor_ref = ACCEPTED_REF
+    rec = run(
+        args.run_id,
+        args.predecessor_run_id,
+        Path(args.raw) if args.raw else None,
+        predecessor_ref=args.predecessor_ref or None,
+    )
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(rec, indent=2, ensure_ascii=False) + "\n",
