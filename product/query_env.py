@@ -31,8 +31,10 @@ This module makes the runtime explicit and checkable:
   re-probe.  ``product/tests/conftest.py`` calls it so the lane's own suite
   can no longer die on a fresh runner before any product claim is testable -
   the observed instance is ``results/product/orchestration/
-  CYCLE_40263666190_lane_cycle_log_evidence.json`` (run 40262401687 burned its
-  whole quantum on ``ModuleNotFoundError``).  ``ensure()`` is skippable with
+  CYCLE_40263666190_lane_cycle_log_evidence.json`` (run 40262401687's agent hit
+  the dependency failure and exited 0 with an unchanged tree after ~526 s, so
+  the wrapper's delta guard rejected it: ``LEX_ZERO_DELTA_REPAIR``, exit 67,
+  ``quantum_expired=false``).  ``ensure()`` is skippable with
   ``LEX_QUERY_ENV_NO_AUTOBOOTSTRAP=1`` for callers that must observe an
   uninstalled environment.
 
@@ -120,12 +122,17 @@ def requirement_name(module: str) -> str:
 _ENSURE_ATTEMPTED = False
 
 #: Why ``ensure()`` exists, published so callers and reports cite the same fact.
+#: The mechanism sentence is the OBSERVED fact from the committed log evidence:
+#: the agent hit the fresh-runner dependency failures and exited 0 with an
+#: unchanged tree, so the *wrapper's* delta guard rejected it.  No work-quantum
+#: expiry occurred (526 s of a 2700 s quantum; ``quantum_expired=false``).
 ENSURE_REASON = (
     "the core-lane team job installs nothing, so a fresh runner reaches the "
     "vertical slice with no numpy/scikit-learn; observed on run 40262401687, "
-    "whose producer burned its whole quantum on ModuleNotFoundError and exited "
-    "LEX_ZERO_DELTA_REPAIR (evidence: results/product/orchestration/"
-    "CYCLE_40263666190_lane_cycle_log_evidence.json)"
+    "whose agent hit those dependency failures and exited 0 with an unchanged "
+    "tree after ~526 s, so the wrapper's delta guard rejected it "
+    "(LEX_ZERO_DELTA_REPAIR, exit 67; quantum_expired=false; evidence: "
+    "results/product/orchestration/CYCLE_40263666190_lane_cycle_log_evidence.json)"
 )
 
 

@@ -1,12 +1,15 @@
 """Operational resume 40263666190: finish and verify snapshot 40263483436.
 
 Three consecutive attempts on the same tree (f9b0db25, the accepted lab tree
-of cycle 40259640985) failed before any independent gate: 40262401687 burned
-its whole work quantum on the fresh-runner ``ModuleNotFoundError`` (numpy/
-sklearn), then 40263308953 and 40263483436 were both rejected by the model
-gateway on an unrecognized request parameter (``permissions``).  The workflow
-persisted each unchanged tree with ``if: always()``, so the team ref exists
-but proves no work (ZERO_DURABLE_DELTA), and no run was ever adjudicated.
+of cycle 40259640985) failed before any independent gate: 40262401687's agent
+hit the fresh-runner ``ModuleNotFoundError`` (numpy/sklearn) and exited 0 with
+an unchanged tree after ~526 s, so the wrapper's delta guard rejected it
+(``LEX_ZERO_DELTA_REPAIR``, exit 67; ``quantum_expired=false`` - no work
+quantum expired), then 40263308953 and 40263483436 were both rejected by the
+model gateway on an unrecognized request parameter (``permissions``).  The
+workflow persisted each unchanged tree with ``if: always()``, so the team ref
+exists but proves no work (ZERO_DURABLE_DELTA), and no run was ever
+adjudicated.
 
 This test locks the resume's repairs and its evidence:
 
@@ -20,7 +23,9 @@ This test locks the resume's repairs and its evidence:
 * the query runtime self-heals through the test harness (``ensure()``), and
   the legacy-174k neighbors tests skip - never fail - when this lane mounts
   no fractal-map representations;
-* the report and state name the run honestly, fail-closed.
+* the report and state name the *executing* run honestly (the resume chain
+  40263666190 <- 40263483436 <- 40263308953 <- 40262401687 stays recorded as
+  history), fail-closed.
 """
 import importlib.util
 import json
@@ -44,6 +49,14 @@ DIAGNOSIS = ORCH / f"CYCLE_{SNAPSHOT}_resume_diagnosis.json"
 REPORT = ROOT / "reports" / "product" / f"CYCLE_{RUN_ID}.md"
 STATE = ROOT / "state" / "product.json"
 CYCLE_TEST = ROOT / "product" / "tests" / f"test_cycle_{RUN_ID}_resume.py"
+
+# Attribution convention (audit CYCLE_40267501346 R1): the state's current
+# pointer is the EXECUTING run of the current cycle, never a resumed snapshot
+# whose own block is UNADJUDICATED.  The repair of the rejected cycle 40267501346
+# executes as run 40269774540.
+EXECUTING_RUN_ID = "40269774540"
+REPAIRED_RUN_ID = "40267501346"
+CURRENT_REPORT = ROOT / "reports" / "product" / f"CYCLE_{EXECUTING_RUN_ID}.md"
 
 UPSTREAM_SIGNATURE = "unsupported_parameter"
 UPSTREAM_DETAIL = "Unrecognized request argument supplied: permissions."
@@ -303,6 +316,15 @@ def test_dossier_profile_wires_the_third_mechanism_kind():
 
 
 def test_current_report_and_state_are_honest():
+    """Attribution invariant (audit CYCLE_40267501346 R1), fail-closed.
+
+    The state's current-cycle pointer and the producer report-of-record name
+    the EXECUTING run (40269774540, repairing rejected cycle 40267501346); the
+    resumed chain stays recorded as history.  The historical report named for
+    40263666190 carries an authoring-correction header instead of silently
+    posing as that run's own cycle report.
+    """
+    # Historical report keeps its body and gains the correction header.
     report = REPORT.read_text(encoding="utf-8")
     for needle in (
         f"Run:** {RUN_ID}", SNAPSHOT, PREDECESSOR, FIRST_ATTEMPT,
@@ -310,18 +332,46 @@ def test_current_report_and_state_are_honest():
         UPSTREAM_SIGNATURE, "permissions", "OBSERVED_LOGS_AVAILABLE_NO_QUANTUM",
         "human_gate_ready=false", "machine_gate_ready=false",
         "continue_recommended=true", "UNADJUDICATED", "ensure",
+        "AUTHORING CORRECTION", EXECUTING_RUN_ID, REPAIRED_RUN_ID,
     ):
         assert needle in report, needle
     assert "ghs_" not in report
 
+    # The report-of-record names the executing run and the repaired cycle.
+    current = CURRENT_REPORT.read_text(encoding="utf-8")
+    for needle in (
+        f"Run:** {EXECUTING_RUN_ID}", REPAIRED_RUN_ID, RUN_ID, SNAPSHOT,
+        "REVISE", "required fixes", "quantum_expired=false",
+        "human_gate_ready=false", "continue_recommended=true",
+    ):
+        assert needle in current, needle
+    assert "ghs_" not in current
+
     state = _load(STATE)
-    assert state["current_cycle_run_id"] == int(RUN_ID)
+    assert state["current_cycle_run_id"] == int(EXECUTING_RUN_ID)
     assert state["direction_version"] == 68
     assert state["continue_recommended"] is True
     assert state["human_gate_ready"] is False
     assert state["machine_gate_ready"] is False
     assert state["packet_admitted"] is False
     assert state["ready_for_owner_session"] is False
+
+    # The repair block records the rejected cycle and its audit of record.
+    repair = state[f"cycle_{EXECUTING_RUN_ID}_repair_of_{REPAIRED_RUN_ID}"]
+    assert repair["schema"] == "product-cycle-repair/1"
+    assert repair["run_id"] == int(EXECUTING_RUN_ID)
+    assert repair["repaired_run_id"] == int(REPAIRED_RUN_ID)
+    assert repair["direction_version"] == 68
+    assert repair["rejected_audit"]["gate"] == "REVISE"
+    assert repair["rejected_audit"]["required_fixes_count"] == 2
+    assert repair["resumed_chain"] == [int(RUN_ID), int(SNAPSHOT),
+                                       int(PREDECESSOR), int(FIRST_ATTEMPT)]
+    assert set(repair["required_fixes_discharged"]) == {
+        "R1_run_id_attribution", "R2_false_quantum_sentence"}
+    assert repair["posture"]["human_gate_ready"] is False
+    assert repair["posture"]["continue_recommended"] is True
+
+    # The resumed chain stays recorded as history, unchanged in substance.
     block = state[f"cycle_{RUN_ID}_operational_resume"]
     assert block["schema"] == "product-operational-resume/1"
     assert block["snapshot_run_id"] == int(SNAPSHOT)

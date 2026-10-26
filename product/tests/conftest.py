@@ -26,8 +26,10 @@ The second job in this file is the pinned *query* runtime.  ``core-lane.yml``
 never runs ``product/bootstrap_query_env.sh``, so on a fresh runner the suite
 reaches ``product/query/**`` (numpy/sklearn) with nothing installed and dies
 with ``ModuleNotFoundError`` before a single product claim is tested - measured
-on run 40262401687, which burned its whole quantum on that import failure and
-exited ``LEX_ZERO_DELTA_REPAIR`` with zero durable delta (evidence:
+on run 40262401687, whose agent hit that import failure and exited 0 with an
+unchanged tree after ~526 s, so the wrapper's delta guard rejected it
+(``LEX_ZERO_DELTA_REPAIR``, exit 67; ``quantum_expired=false``; no work-quantum
+expiry occurred; evidence:
 ``results/product/orchestration/CYCLE_40263666190_lane_cycle_log_evidence.json``).
 ``audit_readiness.py`` already bootstraps for the *dossier* invocation, but the
 lane wrapper invokes pytest directly, so the harness - not each test - owns the

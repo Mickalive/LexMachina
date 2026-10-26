@@ -261,8 +261,10 @@ PROFILES: dict[str, dict[str, Any]] = {
         "mechanism_chain_note": (
             "The same log-evidence artifact records the two other attempts on "
             "this tree: 40263308953 hit the identical gateway rejection, and "
-            "40262401687 burned its whole work quantum on the missing query "
-            "runtime that this resume repairs."
+            "40262401687's agent hit the missing query runtime, exited 0 with "
+            "an unchanged tree after ~526 s, and was rejected by the wrapper's "
+            "zero-delta guard (LEX_ZERO_DELTA_REPAIR, exit 67; "
+            "quantum_expired=false) - the runtime that this resume repairs."
         ),
         "delta_kind": "zero",
         "failed_job": "team",
