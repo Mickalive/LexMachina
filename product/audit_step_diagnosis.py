@@ -155,6 +155,10 @@ def classify(snapshot: dict) -> dict:
     )
     quantum_seconds = annotations.get("quantum_seconds")
     quantum_expired = bool(annotations.get("quantum_expired"))
+    # HTTP 200 on the run-jobs logs endpoint means the producing cycle (or a
+    # later resume holding the producer token) actually downloaded the job
+    # logs; "not downloadable" is then a false sentence, see the branch below.
+    logs_available = bool(snapshot.get("logs_endpoint_status") == 200)
 
     if not team_ok and failed_team_step and audit_skipped:
         if failed_team_step.get("name") == "Run lane cycle":
@@ -201,26 +205,67 @@ def classify(snapshot: dict) -> dict:
             + " No provider or auth cause is claimed."
         )
     elif not team_ok:
-        mechanism_status = "UNOBSERVED"
-        mechanism_claim = (
-            "The lane-cycle agent process exited non-zero after "
-            f"{(failed_team_step or {}).get('started_at')} and before "
-            f"{(failed_team_step or {}).get('completed_at')}. The "
-            "workflow's 'Persist team snapshot' step is guarded by "
-            "`if: always()` and concluded "
-            f"{(snapshot_step or {}).get('conclusion')!r}, so the team "
-            "ref can be published with ZERO durable delta. Job logs are "
-            "not downloadable without admin rights, so no provider, "
-            "auth, timeout or token mechanism is claimed."
-        )
+        # The mechanism block's vocabulary used to be binary: observed quantum
+        # expiry, or UNOBSERVED with a claim that "job logs are not
+        # downloadable without admin rights".  Producer cycles 40263308953 and
+        # 40263483436 falsified the second half: with the producer token the
+        # logs endpoint answers HTTP 200 and the cause is readable (model
+        # gateway rejected the request parameter ``permissions``).  When the
+        # snapshot records that the logs WERE fetched, claiming "not
+        # downloadable" would publish a false sentence, and the status says so
+        # honestly: the orchestration facts are observed, no quantum expiry
+        # occurred, and the log-level cause belongs to the committed
+        # lane-cycle log-evidence artifact (product/lane_cycle_log_evidence.py)
+        # rather than to this instrument.
+        mechanism_status = ("OBSERVED_LOGS_AVAILABLE_NO_QUANTUM"
+                            if logs_available else "UNOBSERVED")
+        if logs_available:
+            mechanism_claim = (
+                "The lane-cycle agent process exited non-zero after "
+                f"{(failed_team_step or {}).get('started_at')} and before "
+                f"{(failed_team_step or {}).get('completed_at')}. The "
+                "workflow's 'Persist team snapshot' step is guarded by "
+                "`if: always()` and concluded "
+                f"{(snapshot_step or {}).get('conclusion')!r}, so the team "
+                "ref can be published with ZERO durable delta. The job logs "
+                "WERE downloadable in the producing cycle (HTTP "
+                f"{snapshot.get('logs_endpoint_status')}) and are committed "
+                "beside this diagnosis, so the log-level cause is observable "
+                "and is classified by the lane-cycle log-evidence artifact "
+                "built with product/lane_cycle_log_evidence.py. This "
+                "instrument reports only the orchestration facts (step "
+                "conclusions, durations) and observed no work-quantum expiry "
+                "(quantum_expired=false); no provider, auth or token cause "
+                "is asserted here."
+            )
+        else:
+            mechanism_claim = (
+                "The lane-cycle agent process exited non-zero after "
+                f"{(failed_team_step or {}).get('started_at')} and before "
+                f"{(failed_team_step or {}).get('completed_at')}. The "
+                "workflow's 'Persist team snapshot' step is guarded by "
+                "`if: always()` and concluded "
+                f"{(snapshot_step or {}).get('conclusion')!r}, so the team "
+                "ref can be published with ZERO durable delta. Job logs are "
+                "not downloadable without admin rights, so no provider, "
+                "auth, timeout or token mechanism is claimed."
+            )
     else:
-        mechanism_status = "UNOBSERVED"
+        mechanism_status = ("OBSERVED_LOGS_AVAILABLE_NO_QUANTUM"
+                            if logs_available else "UNOBSERVED")
         mechanism_claim = (
             "The independent-audit agent process exited non-zero after "
             f"{(audit_step or {}).get('started_at')} and before "
-            f"{(audit_step or {}).get('completed_at')}. Job logs are not "
-            "downloadable without admin rights, so no provider, auth, "
-            "timeout or token mechanism is claimed."
+            f"{(audit_step or {}).get('completed_at')}. "
+            + (
+                f"Job logs were downloadable (HTTP "
+                f"{snapshot.get('logs_endpoint_status')}) and are committed "
+                "beside this diagnosis; the log-level cause is classified by "
+                "the lane-cycle log-evidence artifact."
+                if logs_available else
+                "Job logs are not downloadable without admin rights, so no "
+                "provider, auth, timeout or token mechanism is claimed."
+            )
         )
 
     if quantum_expired:

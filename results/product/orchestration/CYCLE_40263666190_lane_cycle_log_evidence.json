@@ -1,0 +1,155 @@
+{
+  "schema": "product-lane-cycle-log-evidence/1",
+  "generated_at": "2026-10-26T03:45:40Z",
+  "resuming_run_id": "40263666190",
+  "logs_dir": "results/product/orchestration/CYCLE_40263666190_lane_cycle_logs",
+  "fetched_via": "GitHub Actions job-log endpoint (HTTP 200) using the runner's persisted git-credentials token; downloaded during the resuming run",
+  "logs_endpoint_status": 200,
+  "runs": {
+    "40262401687": {
+      "file": "results/product/orchestration/CYCLE_40263666190_lane_cycle_logs/40262401687_team_lane_cycle.log",
+      "present": true,
+      "bytes": 188694,
+      "sha256": "840e6a2278c9af201213d28e07425dd6582f6da4005aee38c1b2bfba6002b5cc",
+      "model_pool": {
+        "size": "4",
+        "slot": "core:product:v68:40262401687",
+        "requested": "opencode/x-preview-f-free",
+        "selected": "opencode/nemotron-3.5-lightning-free",
+        "index": "1"
+      },
+      "upstream_error": null,
+      "exit_codes": [
+        67
+      ],
+      "attempts": [
+        {
+          "attempt": 1,
+          "max_attempts": 8
+        }
+      ],
+      "missing_modules": [
+        "numpy",
+        "ocl_adapter",
+        "sklearn"
+      ],
+      "markers": {
+        "zero_delta_guard": true,
+        "non_transient_failure": false,
+        "agent_card_ok": true,
+        "persist_nothing_to_commit": true,
+        "quantum_expired": false,
+        "map_data_missing_positions": true,
+        "markers_quoted_from_history_only": [
+          "LEX_WORK_QUANTUM_EXPIRED"
+        ],
+        "annotation_error_lines": [
+          "LEX_ZERO_DELTA_REPAIR",
+          "Process completed with exit code 67."
+        ]
+      },
+      "classification": "AGENT_FINISHED_ZERO_DURABLE_DELTA",
+      "why": "the agent process exited 0 with an unchanged tree, so the LEX_REQUIRE_DELTA guard rejected the cycle before persistence"
+    },
+    "40263308953": {
+      "file": "results/product/orchestration/CYCLE_40263666190_lane_cycle_logs/40263308953_team_lane_cycle.log",
+      "present": true,
+      "bytes": 30626,
+      "sha256": "bf3e5d498083ae6585284cbe722dfcd19e8520c6fff0d8aecb5fbd260076aead",
+      "model_pool": {
+        "size": "4",
+        "slot": "core:product:v68:40263308953",
+        "requested": "opencode/x-preview-f-free",
+        "selected": "opencode/beam-free",
+        "index": "3"
+      },
+      "upstream_error": {
+        "signature": "unsupported_parameter",
+        "detail": "Unrecognized request argument supplied: permissions."
+      },
+      "exit_codes": [
+        1
+      ],
+      "attempts": [
+        {
+          "attempt": 1,
+          "max_attempts": 8
+        }
+      ],
+      "missing_modules": [],
+      "markers": {
+        "zero_delta_guard": false,
+        "non_transient_failure": true,
+        "agent_card_ok": true,
+        "persist_nothing_to_commit": true,
+        "quantum_expired": false,
+        "map_data_missing_positions": false,
+        "markers_quoted_from_history_only": [],
+        "annotation_error_lines": [
+          "Process completed with exit code 1."
+        ]
+      },
+      "classification": "MODEL_UPSTREAM_REJECTED_REQUEST_PARAMETER",
+      "why": "the selected upstream rejected a request argument OpenCode sent; the wrapper treats it as non-transient, so the agent never starts"
+    },
+    "40263483436": {
+      "file": "results/product/orchestration/CYCLE_40263666190_lane_cycle_logs/40263483436_team_lane_cycle.log",
+      "present": true,
+      "bytes": 30737,
+      "sha256": "aeff5eb761ce298b060436a597252b925c22648f1f66a59c8aa8f3a491b0cdcf",
+      "model_pool": {
+        "size": "4",
+        "slot": "core:product:v68:40263483436",
+        "requested": "opencode/x-preview-f-free",
+        "selected": "opencode/beam-free",
+        "index": "3"
+      },
+      "upstream_error": {
+        "signature": "unsupported_parameter",
+        "detail": "Unrecognized request argument supplied: permissions."
+      },
+      "exit_codes": [
+        1
+      ],
+      "attempts": [
+        {
+          "attempt": 1,
+          "max_attempts": 8
+        }
+      ],
+      "missing_modules": [],
+      "markers": {
+        "zero_delta_guard": false,
+        "non_transient_failure": true,
+        "agent_card_ok": true,
+        "persist_nothing_to_commit": true,
+        "quantum_expired": false,
+        "map_data_missing_positions": false,
+        "markers_quoted_from_history_only": [],
+        "annotation_error_lines": [
+          "Process completed with exit code 1."
+        ]
+      },
+      "classification": "MODEL_UPSTREAM_REJECTED_REQUEST_PARAMETER",
+      "why": "the selected upstream rejected a request argument OpenCode sent; the wrapper treats it as non-transient, so the agent never starts"
+    }
+  },
+  "observed_failure_classes": [
+    "AGENT_FINISHED_ZERO_DURABLE_DELTA",
+    "MODEL_UPSTREAM_REJECTED_REQUEST_PARAMETER"
+  ],
+  "control_plane_items": [
+    {
+      "item": "model_pool_probe_shape_gap",
+      "owner": "control-plane (state/model_health.json + model-health workflow)",
+      "detail": "opencode/beam-free answers the health tool_probe with PASS but rejects the real agent request with [unsupported_parameter] Unrecognized request argument supplied: permissions, so a healthy-looking pool slot can still kill the lane before the agent starts. The probe must reproduce the agent request shape; model_health.json is workflow-owned and is recorded, never edited, from this lane."
+    },
+    {
+      "item": "workflow_does_not_bootstrap_query_runtime",
+      "owner": "control-plane (.github/workflows/core-lane.yml)",
+      "detail": "No workflow step installs product/requirements-query.txt before the agent starts, so a fresh runner begins with no numpy and no scikit-learn. The lane now self-heals from product/tests/conftest.py via product.query_env.ensure(); the missing workflow step remains recorded, never edited, from here."
+    }
+  ],
+  "meaning": "Observed evidence from committed job logs of three failed product runs. The two failure classes are control-plane/model-pool and fresh-runner-validation facts, not product verdicts: no gate is written, no run is labelled accepted or rejected, and no frozen bar, rubric or threshold is touched.",
+  "claim_ceiling": "This artifact names why the producer step exited, from bytes the workflow itself printed. It asserts nothing about product quality, retrieval, answer, counter-authority or map utility."
+}

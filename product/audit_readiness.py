@@ -91,6 +91,10 @@ RESUMED_RUN_ID = "40196023042"          # default profile (kept for imports)
 PREDECESSOR_RUN_ID = "40193974025"      # default profile (kept for imports)
 RAW = ORCH / f"CYCLE_{RESUMED_RUN_ID}_run_jobs_raw.json"
 RESUME_DIAG = ORCH / f"CYCLE_{RESUMED_RUN_ID}_resume_diagnosis.json"
+# Default lane-cycle log-evidence artifact; the default profile's mechanism is
+# an annotation-observed quantum expiry and does not consume it.  Profiles with
+# mechanism_kind="observed_log" point at their own artifact.
+LANE_CYCLE_LOG_EVIDENCE = (ORCH / "CYCLE_40263666190_lane_cycle_log_evidence.json")
 INHERITED_REPORT = ROOT / "reports" / "product" / f"CYCLE_{PREDECESSOR_RUN_ID}.md"
 CURRENT_REPORT = ROOT / "reports" / "product" / "CYCLE_40200882831.md"
 DEFAULT_PROFILE_KEY = "40196023042"
@@ -217,6 +221,59 @@ PROFILES: dict[str, dict[str, Any]] = {
         "changed_paths_include": ("product/live_cache_replay.py",),
         "cycle_test": "product/tests/test_cycle_40259640985_resume.py",
         "state_block": "cycle_40259640985_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "replay_summary": ROOT / "results" / "product" / "live_cache_replay"
+                          / "CYCLE_40257275384" / "summary.json",
+        "query_map_diagnosis": ROOT / "results" / "product"
+                               / "query_map_diagnosis"
+                               / "CYCLE_40257275384.json",
+    },
+    "40263666190": {
+        "resumed_run_id": "40263483436",
+        "predecessor_run_id": "40263308953",
+        "raw": ORCH / "CYCLE_40263483436_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_40263483436_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40259640985.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40263666190.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        # Third mechanism kind: the logs endpoint answered HTTP 200, no work
+        # quantum was reached, and the log-level cause is a model-gateway
+        # request rejection classified by the lane-cycle log-evidence
+        # artifact below.  The default kinds (quantum expiry / unobserved)
+        # would both misreport this run.
+        "mechanism_kind": "observed_log",
+        "lane_cycle_log_evidence": ORCH
+                                   / "CYCLE_40263666190_lane_cycle_log_evidence.json",
+        "lane_cycle_classification": "MODEL_UPSTREAM_REJECTED_REQUEST_PARAMETER",
+        "upstream_signature": "unsupported_parameter",
+        "upstream_detail": "Unrecognized request argument supplied: permissions.",
+        "failed_step_seconds": 16.0,
+        "mechanism_chain_note": (
+            "The same log-evidence artifact records the two other attempts on "
+            "this tree: 40263308953 hit the identical gateway rejection, and "
+            "40262401687 burned its whole work quantum on the missing query "
+            "runtime that this resume repairs."
+        ),
+        "delta_kind": "zero",
+        "failed_job": "team",
+        "quantum_seconds": None,
+        "exit_code": 1,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_40263666190_resume.py",
+        "state_block": "cycle_40263666190_operational_resume",
+        # No new counter-content family was measured this cycle; the accepted
+        # pins from the last verified family run are consumed unchanged.
         "content_family": ROOT / "results" / "product" / "counter_content_family"
                           / "CYCLE_40257275384.json",
         "content_family_expected": {
@@ -496,6 +553,51 @@ def check_resumed_diagnosis() -> dict[str, Any]:
             problems.append("exit_code")
         if (orch.get("audit") or {}).get("gate_file_written") is not False:
             problems.append("gate_file_written")
+    elif mechanism_kind == "observed_log":
+        # Third real-world failure mode, observed on runs 40263308953 and
+        # 40263483436: the logs endpoint answered HTTP 200, the committed job
+        # logs show the agent NEVER reached the work quantum, and the log-level
+        # cause (a model-gateway rejection) is classified by the lane-cycle
+        # log-evidence artifact rather than by check-run annotations.  A
+        # dossier that could only say "quantum expiry" or "unobserved" would
+        # misreport this run either way, so the third kind is first-class and
+        # cross-checked against the evidence file it names.
+        mechanism = orch.get("mechanism") or {}
+        quantum_seconds = None
+        exit_code = p("exit_code")
+        if mechanism.get("status") != "OBSERVED_LOGS_AVAILABLE_NO_QUANTUM":
+            problems.append("mechanism_status")
+        if mechanism.get("logs_available") is not True:
+            problems.append("logs_available")
+        if mechanism.get("logs_endpoint_status") != 200:
+            problems.append("logs_endpoint_status")
+        if mechanism.get("quantum_expired") is not False:
+            problems.append("quantum_expired")
+        if (orch.get("audit") or {}).get("gate_file_written") is not False:
+            problems.append("gate_file_written")
+        evidence_path = Path(p("lane_cycle_log_evidence",
+                               LANE_CYCLE_LOG_EVIDENCE))
+        log_ev = _load(evidence_path) if evidence_path.is_file() else {}
+        entry = (log_ev.get("runs") or {}).get(resumed_id) or {}
+        if (entry.get("classification")
+                != p("lane_cycle_classification",
+                     "MODEL_UPSTREAM_REJECTED_REQUEST_PARAMETER")):
+            problems.append("lane_cycle_classification")
+        codes = entry.get("exit_codes") or []
+        if exit_code is not None and exit_code not in codes:
+            problems.append("lane_cycle_exit_codes")
+        want_sig = p("upstream_signature")
+        got_sig = (entry.get("upstream_error") or {}).get("signature")
+        if want_sig and got_sig != want_sig:
+            problems.append("upstream_signature")
+        # The log parser must have separated workflow annotations from text
+        # the agent merely *quoted*; a quantum marker seen only as a quote is
+        # exactly the misclassification this evidence format exists to stop.
+        markers = entry.get("markers") or {}
+        if markers.get("quantum_expired") is not False:
+            problems.append("log_evidence_quantum_marker")
+        if not evidence_path.is_file():
+            problems.append("lane_cycle_log_evidence_missing")
     else:
         # Raw-free resume: the public run/jobs snapshot is unavailable. The
         # only honest record is that the mechanism is unobserved; asserting a
@@ -539,12 +641,21 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                else "lane-cycle (producer)")
         summary = (f"Resumed run {resumed_id}: {who} work-quantum expiry "
                    "observed, durable delta present, run unadjudicated")
+    elif mechanism_kind == "observed_log":
+        summary = (f"Resumed run {resumed_id}: model-gateway request "
+                   "rejection observed in the run's own job logs (no work "
+                   "quantum reached), team ref carries zero durable delta "
+                   "over its predecessor, run unadjudicated")
     else:
         summary = (f"Resumed run {resumed_id}: raw run/jobs snapshot "
                    "unavailable (mechanism unobserved), team ref carries zero "
                    "durable delta over its predecessor, run unadjudicated")
     evidence = ([str(raw.relative_to(ROOT))] if raw is not None else [])
     evidence.append(str(resume_diag.relative_to(ROOT)))
+    if mechanism_kind == "observed_log":
+        ev = Path(p("lane_cycle_log_evidence", LANE_CYCLE_LOG_EVIDENCE))
+        if ev.is_file():
+            evidence.append(str(ev.relative_to(ROOT)))
     return _check(
         "resumed_diagnosis",
         summary,
@@ -889,6 +1000,48 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
     cf_path = Path(p("content_family", CONTENT_FAMILY))
     cf_expected = dict(p("content_family_expected", CONTENT_FAMILY_EXPECTED))
     live_state = _load(STATE)
+
+    # C1 wording follows the observed mechanism kind: the three real failure
+    # modes this dossier has now measured are a work-quantum expiry, an
+    # unobserved stop, and a model-gateway request rejection.  Wording all
+    # three as "work quantum" would misreport the last one.
+    if mechanism_kind == "observed_log":
+        log_ev_path = Path(p("lane_cycle_log_evidence",
+                             LANE_CYCLE_LOG_EVIDENCE))
+        c1_claim = (
+            f"Run {resumed_id}'s lane-cycle agent was rejected by the model "
+            f"gateway on an unrecognized request parameter ("
+            f"{p('upstream_signature', 'unsupported_parameter')!r}: "
+            f"{p('upstream_detail', '')!r}) and exited {p('exit_code', 1)} "
+            f"after {p('failed_step_seconds')} s, before the independent "
+            "audit could run; observed from the run's own job logs "
+            "(logs endpoint HTTP 200), not inferred, and no work quantum "
+            "was reached. "
+            + (p("mechanism_chain_note") or "")
+        ).strip()
+        c1_artifacts = (
+            ([str(raw.relative_to(ROOT))] if raw is not None else [])
+            + [str(resume_diag.relative_to(ROOT))]
+            + ([str(log_ev_path.relative_to(ROOT))]
+               if log_ev_path.is_file() else []))
+    elif mechanism_kind == "observed":
+        c1_claim = (
+            f"Run {resumed_id}'s {who} agent ended on the workflow "
+            f"work quantum ({p('quantum_seconds', 2700)} s, exit "
+            f"{p('exit_code', 78)}) before an independent gate could "
+            "be written; observed from the public check-run "
+            "annotations, not inferred.")
+        c1_artifacts = (
+            ([str(raw.relative_to(ROOT))] if raw is not None else [])
+            + [str(resume_diag.relative_to(ROOT))])
+    else:
+        c1_claim = (
+            "No public run/jobs snapshot for run "
+            f"{resumed_id} was available in the producer checkout, so "
+            "the provider/auth/timeout mechanism is UNOBSERVED and no "
+            "cause is asserted.")
+        c1_artifacts = [str(resume_diag.relative_to(ROOT))]
+
     return {
         "schema": SCHEMA,
         "generated_at": _now(),
@@ -915,22 +1068,9 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
         },
         "claims": [
             {"id": "C1",
-             "claim": (
-                 f"Run {resumed_id}'s {who} agent ended on the workflow "
-                 f"work quantum ({p('quantum_seconds', 2700)} s, exit "
-                 f"{p('exit_code', 78)}) before an independent gate could "
-                 "be written; observed from the public check-run "
-                 "annotations, not inferred."
-                 if mechanism_kind == "observed" else
-                 "No public run/jobs snapshot for run "
-                 f"{resumed_id} was available in the producer checkout, so "
-                 "the provider/auth/timeout mechanism is UNOBSERVED and no "
-                 "cause is asserted."
-             ),
+             "claim": c1_claim,
              "check": "resumed_diagnosis",
-             "artifacts": (
-                 ([str(raw.relative_to(ROOT))] if raw is not None else [])
-                 + [str(resume_diag.relative_to(ROOT))])},
+             "artifacts": c1_artifacts},
             {"id": "C2",
              "claim": (
                  f"Run {resumed_id} persisted an {delta_files}-file durable "

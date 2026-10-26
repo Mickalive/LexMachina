@@ -19,17 +19,59 @@ override while it is being imported, before any test can reach the CLI without
 Tests that want the real repository directories import them explicitly
 (``CANONICAL_DIR_DEFAULT`` / ``SIMULATED_DIR_DEFAULT``), and the evidence scanner
 always reads the repository paths.
+
+Query runtime self-heal
+-----------------------
+The second job in this file is the pinned *query* runtime.  ``core-lane.yml``
+never runs ``product/bootstrap_query_env.sh``, so on a fresh runner the suite
+reaches ``product/query/**`` (numpy/sklearn) with nothing installed and dies
+with ``ModuleNotFoundError`` before a single product claim is tested - measured
+on run 40262401687, which burned its whole quantum on that import failure and
+exited ``LEX_ZERO_DELTA_REPAIR`` with zero durable delta (evidence:
+``results/product/orchestration/CYCLE_40263666190_lane_cycle_log_evidence.json``).
+``audit_readiness.py`` already bootstraps for the *dossier* invocation, but the
+lane wrapper invokes pytest directly, so the harness - not each test - owns the
+fix: pytest imports this conftest before any test module, and
+``query_env.ensure()`` runs the documented one-command bootstrap at most once
+per process and never raises.  Set ``LEX_QUERY_ENV_NO_AUTOBOOTSTRAP=1`` to
+observe an uninstalled environment (the fresh-runner ``-S`` probes do).
 """
 from __future__ import annotations
 
 import atexit
 import os
 import shutil
+import sys
 import tempfile
+import warnings
+from pathlib import Path
 
 _TEST_OUT_ROOT = tempfile.mkdtemp(prefix="lex_human_gate_test_out_")
 os.environ.setdefault("LEX_HUMAN_GATE_OUT_DIR", str(os.path.join(_TEST_OUT_ROOT, "canonical")))
 os.environ.setdefault("LEX_HUMAN_GATE_SIMULATED_OUT_DIR", str(os.path.join(_TEST_OUT_ROOT, "simulated")))
+
+# The product modules (query_env, server, ...) live one directory up; the test
+# modules insert that path themselves at *their* import time, which is after
+# this file runs, so the bootstrap needs it earlier.
+_PRODUCT_DIR = str(Path(__file__).resolve().parents[1])
+if _PRODUCT_DIR not in sys.path:
+    sys.path.insert(0, _PRODUCT_DIR)
+
+try:
+    import query_env  # noqa: E402
+except ImportError:  # pragma: no cover - product tree relocated
+    query_env = None  # type: ignore[assignment]
+
+if query_env is not None:
+    _runtime = query_env.ensure()
+    if not _runtime["ok"]:
+        warnings.warn(
+            "query fast-path runtime incomplete after ensure(): "
+            f"missing={_runtime['missing']} remedy={_runtime['remedy']} "
+            f"ensure={_runtime['ensured']}",
+            RuntimeWarning,
+            stacklevel=1,
+        )
 
 
 @atexit.register

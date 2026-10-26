@@ -25,15 +25,26 @@ This module makes the runtime explicit and checkable:
 * ``PINNED`` - the exact versions this lane measured, recorded beside the
   hashes of every reproducibility claim per the standing numeric rule;
 * ``probe()`` - a stdlib-only import check that returns what is present, what is
-  missing and the single command that fixes it.
+  missing and the single command that fixes it.  ``probe()`` never installs.
+* ``ensure()`` - the explicit, opt-in self-heal: probe, and if a *required*
+  module is missing run the one-command bootstrap **once per process**, then
+  re-probe.  ``product/tests/conftest.py`` calls it so the lane's own suite
+  can no longer die on a fresh runner before any product claim is testable -
+  the observed instance is ``results/product/orchestration/
+  CYCLE_40263666190_lane_cycle_log_evidence.json`` (run 40262401687 burned its
+  whole quantum on ``ModuleNotFoundError``).  ``ensure()`` is skippable with
+  ``LEX_QUERY_ENV_NO_AUTOBOOTSTRAP=1`` for callers that must observe an
+  uninstalled environment.
 
-It never installs anything and never imports the heavy stack at module import
-time: importing this file must stay free (the fast-path import budget depends
-on it).
+Importing this file never installs anything and never imports the heavy stack
+at module import time: importing this file must stay free (the fast-path import
+budget depends on it).  Installation only happens inside an explicit
+``ensure()`` call.
 """
 from __future__ import annotations
 
 import importlib
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -105,6 +116,78 @@ def requirement_name(module: str) -> str:
     return DISTRIBUTION_NAMES.get(module, module)
 
 
+#: One attempt per process: a failed install must not be retried per test.
+_ENSURE_ATTEMPTED = False
+
+#: Why ``ensure()`` exists, published so callers and reports cite the same fact.
+ENSURE_REASON = (
+    "the core-lane team job installs nothing, so a fresh runner reaches the "
+    "vertical slice with no numpy/scikit-learn; observed on run 40262401687, "
+    "whose producer burned its whole quantum on ModuleNotFoundError and exited "
+    "LEX_ZERO_DELTA_REPAIR (evidence: results/product/orchestration/"
+    "CYCLE_40263666190_lane_cycle_log_evidence.json)"
+)
+
+
+def ensure(*, install: bool = True, timeout_s: int = 900) -> dict:
+    """Probe the pinned runtime and self-heal a *missing* required module.
+
+    Returns the post-``probe()`` dict, extended with an ``ensured`` block:
+
+    * ``attempted`` - whether the bootstrap ran in this process;
+    * ``installed_by_ensure`` - the install actually happened and the runtime
+      now probes ok;
+    * ``skipped`` - ``install=False`` or ``LEX_QUERY_ENV_NO_AUTOBOOTSTRAP=1``
+      (callers that must observe an uninstalled environment, e.g. the
+      fresh-runner ``-S`` probes, set the flag);
+    * ``error`` - the bootstrap failed (offline runner, ...).  ``ensure()``
+      never raises: an environment that cannot install itself is reported, so
+      the caller fails with the remedy command instead of a bare
+      ``ModuleNotFoundError``.
+
+    Version *mismatches* are not repaired here - a present-but-different pin is
+    a disclosure (``installed_matches_pin``), not a crash, and silently
+    re-pinning a working environment would change measured numbers behind the
+    caller's back.
+    """
+    global _ENSURE_ATTEMPTED
+    result = probe()
+    block: dict[str, object] = {"attempted": False, "installed_by_ensure": False,
+                                "skipped": None, "error": None,
+                                "reason": ENSURE_REASON}
+    result["ensured"] = block
+    if result["ok"]:
+        block["skipped"] = "already_present"
+        return result
+    if not install:
+        block["skipped"] = "install_disabled"
+        return result
+    if os.environ.get("LEX_QUERY_ENV_NO_AUTOBOOTSTRAP"):
+        block["skipped"] = "LEX_QUERY_ENV_NO_AUTOBOOTSTRAP"
+        return result
+    if _ENSURE_ATTEMPTED:
+        block["skipped"] = "already_attempted"
+        return result
+    _ENSURE_ATTEMPTED = True
+    block["attempted"] = True
+    try:
+        proc = subprocess.run(  # noqa: S603
+            ["bash", str(BOOTSTRAP)], cwd=str(REPO_ROOT), timeout=timeout_s,
+            capture_output=True, text=True, check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        block["error"] = f"{type(exc).__name__}: {exc}"
+        return result
+    if proc.returncode != 0:
+        tail = (proc.stdout + proc.stderr).strip().splitlines()[-3:]
+        block["error"] = f"exit {proc.returncode}: {tail}"
+        return result
+    after = probe()
+    block["installed_by_ensure"] = bool(after["ok"])
+    after["ensured"] = block
+    return after
+
+
 def requirements_pins() -> dict[str, str]:
     """Parse ``numpy>=1.24.0`` style floors out of the requirements file."""
     if not REQUIREMENTS.is_file():
@@ -142,5 +225,6 @@ def pip_freeze() -> dict[str, str]:
 
 
 __all__ = ["REQUIRED", "PINNED", "REMEDY", "REQUIREMENTS", "BOOTSTRAP",
-           "DISTRIBUTION_NAMES", "probe", "installed_version", "requirement_name",
+           "DISTRIBUTION_NAMES", "probe", "ensure", "ENSURE_REASON",
+           "installed_version", "requirement_name",
            "requirements_pins", "pip_freeze"]
