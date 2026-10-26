@@ -46,6 +46,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -57,6 +58,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from product import audit_step_diagnosis as asd  # noqa: E402
+from product import query_env  # noqa: E402
 from product import resume_chain_diagnosis as rcd  # noqa: E402
 
 SCHEMA = "product-resume-snapshot-diagnosis/1"
@@ -180,6 +182,139 @@ def _repo_relative(path: Path) -> str:
         return str(path)
 
 
+CYCLE_TEST_RE = re.compile(r"product/tests/test_cycle_[A-Za-z0-9_]+\.py")
+
+
+def _fresh_runner_probe() -> dict[str, Any]:
+    """Probe the query runtime with ``-S`` to reproduce a fresh runner.
+
+    The core-lane team job installs nothing, so a fresh runner has neither
+    numpy nor scikit-learn.  ``python -S`` skips the user site where the
+    bootstrap installs them, which makes that validation gap reproducible
+    without touching the current environment.
+    """
+    code = (
+        "import json,sys;"
+        "sys.path.insert(0, '.');"
+        "from product import query_env;"
+        "print(json.dumps(query_env.probe()))"
+    )
+    try:
+        proc = subprocess.run(
+            [sys.executable, "-S", "-c", code], cwd=str(REPO_ROOT),
+            capture_output=True, text=True, timeout=60, check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:  # pragma: no cover
+        return {"ok": None, "error": f"{type(exc).__name__}: {exc}"}
+    probe: dict[str, Any] = {}
+    if proc.stdout.strip():
+        try:
+            probe = json.loads(proc.stdout)
+        except json.JSONDecodeError:
+            probe = {}
+    return {
+        "ok": probe.get("ok"),
+        "missing": probe.get("missing"),
+        "exit_code": proc.returncode,
+        "stderr_tail": (proc.stderr or "").strip().splitlines()[-3:],
+        "meaning": (
+            "python -S skips the user site used by bootstrap_query_env.sh; "
+            "missing modules here are the fresh-runner validation gap, not a "
+            "product defect"
+        ),
+    }
+
+
+def _validation_findings(run_id: str, predecessor_run_id: str) -> dict[str, Any]:
+    """Reproduce the validation gaps that can stop a snapshot before its gate.
+
+    This is deliberately narrow and offline.  It does not infer a provider
+    mechanism; it records three checkable things a resume must repair:
+
+    * a ``product/tests/test_cycle_*.py`` path the snapshot's own report claims
+      but the snapshot did not commit;
+    * an audit-readiness dossier produced with its mandatory re-runs skipped;
+    * the pinned query runtime's presence on the machine that consumes the
+      snapshot (the core-lane team job installs nothing, so a fresh runner
+      fails with ModuleNotFoundError before any product claim can be tested).
+    """
+    candidates = [
+        REPO_ROOT / "reports" / "product" / f"CYCLE_{run_id}.md",
+        REPO_ROOT / "reports" / "product" / f"CYCLE_{predecessor_run_id}.md",
+    ]
+    claimed_tests: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for report in candidates:
+        if not report.is_file():
+            continue
+        for rel in sorted(set(CYCLE_TEST_RE.findall(
+                report.read_text(encoding="utf-8", errors="replace")))):
+            if rel in seen:
+                continue
+            seen.add(rel)
+            claimed_tests.append({
+                "path": rel,
+                "claimed_by_report": _repo_relative(report),
+                "present": (REPO_ROOT / rel).is_file(),
+            })
+
+    dossiers = [
+        REPO_ROOT / "results" / "product" / "audit_readiness"
+        / f"CYCLE_{rid}_audit_readiness.json"
+        for rid in (run_id, predecessor_run_id) if rid
+    ]
+    dossier_summary = []
+    for dossier in dossiers:
+        if not dossier.is_file():
+            continue
+        try:
+            data = json.loads(dossier.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            continue
+        dossier_summary.append({
+            "path": _repo_relative(dossier),
+            "overall_status": data.get("overall_status"),
+            "skipped_checks": data.get("skipped_checks") or [],
+            "failed_checks": data.get("failed_checks") or [],
+        })
+
+    fresh = _fresh_runner_probe()
+
+    historical = sorted(
+        _repo_relative(path)
+        for path in (REPO_ROOT / "results" / "product" / "reality_check").glob(
+            "*missing-deps*.json")
+    )
+    probe = query_env.probe()
+    return {
+        "claimed_cycle_tests": claimed_tests,
+        "missing_claimed_cycle_tests": [
+            row["path"] for row in claimed_tests if not row["present"]
+        ],
+        "audit_readiness_dossiers": dossier_summary,
+        "dossiers_with_skipped_mandatory_reruns": [
+            row["path"] for row in dossier_summary if row["skipped_checks"]
+        ],
+        "runtime_preflight": {
+            "ok": probe["ok"],
+            "missing": probe["missing"],
+            "installed": probe["installed"],
+            "pinned": probe["pinned"],
+            "remedy": probe["remedy"],
+            "workflow_gap": probe["workflow_gap"],
+            "fresh_runner_no_site_probe": fresh,
+        },
+        "historical_missing_dependency_artifacts": historical[:5],
+        "meaning": (
+            "These are reproducible validation gaps, not a provider/auth "
+            "mechanism and not a product verdict. Missing deps and a missing "
+            "claimed test make a green snapshot fail its own self-check on a "
+            "fresh runner; they are repaired by the resuming cycle, never by "
+            "weakening a frozen bar."
+        ),
+    }
+
+
 def _orchestration_without_raw(raw_path: Path | None) -> dict[str, Any]:
     """Honest placeholder when no public run/jobs snapshot was captured.
 
@@ -251,6 +386,7 @@ def run(
             ),
         },
         "audit_namespace": _audit_namespace(),
+        "validation_findings": _validation_findings(run_id, predecessor_run_id),
         "claim_ceiling": (
             "This artifact classifies an orchestration outcome and a git-ref "
             "delta. It writes no gate, labels no run accepted or rejected, "

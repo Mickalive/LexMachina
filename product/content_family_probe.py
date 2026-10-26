@@ -165,6 +165,19 @@ def _has_fixed_path_provenance(doc: dict) -> bool:
     return isinstance(cf, dict) and bool(cf)
 
 
+def _display_path(path: Path) -> str:
+    """Repo-relative when possible; absolute for out-of-tree replay output.
+
+    ``live_cache_replay.py --out-dir /tmp/...`` is a supported verification
+    mode, and a probe must not crash merely because the bundle it is asked to
+    inspect lives outside the repository.
+    """
+    try:
+        return str(path.resolve().relative_to(ROOT))
+    except ValueError:
+        return str(path.resolve())
+
+
 def probe_bundle(path: Path) -> dict:
     """Per-bundle histogram of surviving frozen content defects."""
     doc = json.loads(path.read_text(encoding="utf-8"))
@@ -183,7 +196,7 @@ def probe_bundle(path: Path) -> dict:
         if defects:
             defective.append({"decision_id": did, "defects": defects})
     return {
-        "path": str(path.relative_to(ROOT)),
+        "path": _display_path(path),
         "fixed_path_family": _has_fixed_path_provenance(doc),
         "n_decisions": len(rows),
         "n_verified": len(verified_ids),

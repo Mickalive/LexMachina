@@ -81,6 +81,14 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _display_path(path: Path) -> str:
+    """Repo-relative when possible; absolute for supported out-of-tree runs."""
+    try:
+        return str(path.resolve().relative_to(REPO_ROOT))
+    except ValueError:
+        return str(path.resolve())
+
+
 def _iso(ts: float | None) -> str | None:
     if ts is None:
         return None
@@ -411,7 +419,7 @@ def run(
             "independent_cache_probe": cache_delta,
         },
         "bundle": {
-            "path": str(bundle_path.relative_to(REPO_ROOT)),
+            "path": _display_path(bundle_path),
             "sha256": _sha256(bundle_path),
             "validate_errors": validate_bundle(bundle),
             "n_decisions": len(rows),
@@ -521,7 +529,7 @@ def main(argv: list[str] | None = None) -> int:
             f"verified={rec['counter_evidence_span']['n_verified']} "
             f"verified_defective={rec['counter_evidence_span']['n_verified_defective']}"
         )
-        print(f"wrote {out['summary_path'].relative_to(REPO_ROOT)}")
+        print(f"wrote {_display_path(out['summary_path'])}")
     return 0 if rec["verdict"] == "PASS" else 1
 
 

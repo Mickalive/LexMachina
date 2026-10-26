@@ -144,7 +144,13 @@
   "results/product/orchestration/CYCLE_40257275384_snapshot_vs_accepted.json",
   "results/product/counter_content_family/CYCLE_40257275384.json",
   "reports/product/CYCLE_40257275384.md",
-  "product/tests/test_cycle_40257275384.py"
+  "product/tests/test_cycle_40257275384.py",
+  "product/resume_snapshot_diagnosis.py -> results/product/orchestration/CYCLE_40257469937_resume_diagnosis.json",
+  "product/tests/test_cycle_40259640985_resume.py",
+  "product/audit_readiness.py -> results/product/audit_readiness/CYCLE_40259640985_audit_readiness.json",
+  "product/bootstrap_query_env.sh",
+  "reports/product/CYCLE_40259640985.md",
+  "results/product/audit_readiness/CYCLE_40257469937_audit_readiness.json"
  ],
  "evidence_tier": "REPRODUCED",
  "human_gate_ready": false,
@@ -165,7 +171,7 @@
  },
  "lane": "product",
  "machine_gate_ready": false,
- "next_recommendation": "Direction v68 / FAST MVP. The accepted pointer is advanced to CYCLE_40247189361 / 5fb312e4, validated from BOTH halves of requirement 4 (gate PASS/safe on the audit ref 76b68467 and the accept commit on origin/lab/product). v68 ordered work (1)-(3) is closed by accepted evidence: routing landed at 51d306c and was accepted at 40100397058/8b5b08dd; the rejection/incumbent leg landed at e840de1d, was first accepted at 40125024681/22e0d6b3, test-repaired at 40238484716/3de8431d and re-verified at 40247189361/5fb312e4. This cycle finished the interrupted live retrieval from its 26 committed cache files (150 rows, 8 clusters, 150/150 source links, 2 cited decisions, span applied, 5 verified, 0 verified-defective, 71 page assertions, 16/16 replay checks) and published the machine-readable v68 diagnosis. Item (4) pointer hygiene is done and 38764203 is corrected to UNADJUDICATED. (5) live latency/precision remains DEFERRED; live budget stays 8. (6) profile coverage gap remains DISCLOSED and TRANSFERRED to evaluation. NEXT: independent audit of run 40257275384 (UNADJUDICATED here); the local end-to-end path is runnable, but both frozen bars remain unmet, so human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session stay FALSE and continue_recommended stays TRUE.",
+ "next_recommendation": "Direction v68 / FAST MVP. The accepted pointer remains CYCLE_40247189361 / 5fb312e4; both halves of requirement 4 still verify. This cycle diagnosed the failed snapshot 40257469937 (12-file committed delta over 3bea6bb1, no audit ref, UNADJUDICATED), repaired the reproducible validation-class failures (fresh-runner pinned runtime, missing claimed cycle test, out-of-tree replay path), and regenerated a full audit-readiness dossier for run 40259640985 (PASS, 0 failed, 0 skipped). The 150-row replay remains source-linked, 8-cluster, 5-verified and 0-verified-defective with zero network calls. Both frozen bars remain unmet, so human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session stay FALSE and continue_recommended stays TRUE. NEXT: independent audit of run 40259640985; live latency/precision remains DEFERRED and the profile coverage gap remains evaluation-owned.",
  "not_claimed": [
   "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
   "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
@@ -183,7 +189,10 @@
   "No live latency, live answer reliability, legal-usefulness, frozen-bar or serve verdict is measured by the live-cache replay; it is a replay of the interrupted run's committed cache, not a fresh-network run.",
   "No mechanism is asserted for run 40257275384's zero-delta resume: no public run/jobs snapshot was reachable, so it is RAW_SNAPSHOT_UNAVAILABLE / mechanism_unobserved.",
   "No claim that run 38764203 is accepted: its gate file exists only on the cycle lineage and there is no /audit ref for it on origin; the earlier state/run_history ACCEPTED label is corrected to UNADJUDICATED.",
-  "No claim that the 26 cache files alone are the full live retrieval: they are the interrupted run's committed cache delta (15 search + 11 decision envelopes); the replay reads the full tracked cache (1018 keys) with 8 hits and 0 misses."
+  "No claim that the 26 cache files alone are the full live retrieval: they are the interrupted run's committed cache delta (15 search + 11 decision envelopes); the replay reads the full tracked cache (1018 keys) with 8 hits and 0 misses.",
+  "No mechanism is asserted for run 40257469937: no public run/jobs snapshot was reachable; it is UNADJUDICATED, not rejected.",
+  "The fresh-runner dependency gap and the missing claimed cycle test are validation/orchestration facts, not product defects and not frozen-bar results.",
+  "The replay is still a replay of the interrupted run's committed cache, not a fresh-network run; no live latency, answer-quality or legal-usefulness claim is made."
  ],
  "packet_admitted": false,
  "ready_for_owner_session": false,
@@ -409,11 +418,14 @@
   "counter_evidence_span_selection": true,
   "rejection_incumbent_leg": true,
   "page_contract_verified": true,
-  "source": "merged from accepted product cycles through 40247189361",
+  "source": "merged from accepted product cycles through 40247189361 plus resume 40259640985 verification",
   "bge_identity_dedupe": true,
   "content_coverage_disclosure": true,
   "map_integrity_probe": "results/product/map_integrity/CYCLE_40230559317.json",
-  "live_cache_replay": true
+  "live_cache_replay": true,
+  "audit_runtime_preflight": true,
+  "cycle_test_contract": true,
+  "out_of_tree_replay": true
  },
  "cycle_40154120551_operational_resume": {
   "kind": "OPERATIONAL RESUME of run 40152073380 (persisted producer snapshot a1de800)",
@@ -1029,9 +1041,9 @@
   "audit_namespace_written": false,
   "claim_ceiling": "OPERATIONAL-RESUME AND AUDIT-READINESS EVIDENCE ONLY. No live retrieval, legal usefulness, frozen bar, serve verdict, acceptance or human-gate readiness is asserted."
  },
- "current_cycle_run_id": 40257275384,
+ "current_cycle_run_id": 40259640985,
  "last_repair_round": 0,
- "last_updated": "2026-10-26T02:22:12Z",
+ "last_updated": "2026-10-26T02:44:13Z",
  "run_history": [
   {
    "run_id": "40241250741",
@@ -1073,6 +1085,29 @@
    "summary": "Operational resume of 40257275384, which itself resumed the interrupted live retrieval snapshot 40254231396. Raw run/jobs snapshot unavailable (mechanism unobserved); team ref byte-identical to the predecessor (ZERO_DURABLE_DELTA). Completed the interrupted live retrieval from its 26 committed cache files (150 rows, 8 clusters, 150/150 source links, 2 cited decisions, span applied, 5 verified, 0 verified-defective, 71 page assertions, 16/16 checks). Published the v68 ordered-work diagnosis; advanced the accepted pointer to 40247189361/5fb312e4; corrected 38764203 to UNADJUDICATED. This run is UNADJUDICATED.",
    "report": "reports/product/CYCLE_40257275384.md",
    "date": "2026-10-26T02:22:12Z"
+  },
+  {
+   "run_id": "40257469937",
+   "repair_round": 0,
+   "status": "COMMITTED_DELTA_NO_AUDIT",
+   "audit_gate": "NONE_ON_ORIGIN",
+   "summary": "Snapshot 40257469937 committed 12 files over 3bea6bb1 (live-cache replay, query-map diagnosis, v68 before/after probe, report, state) but the team job ended before success and no /audit ref exists. Its own report/artifacts are labelled with the resumed run 40257275384, not its own run id. UNADJUDICATED, not rejected. The resuming cycle 40259640985 diagnosed the delta and repaired the validation-class gaps.",
+   "report": "reports/product/CYCLE_40257275384.md",
+   "diagnosis": "results/product/orchestration/CYCLE_40257469937_resume_diagnosis.json",
+   "date": "2026-10-26T02:44:13Z",
+   "audit_readiness": "results/product/audit_readiness/CYCLE_40257469937_audit_readiness.json",
+   "audit_readiness_status": "PASS",
+   "validation_gaps_repaired_by": "40259640985"
+  },
+  {
+   "run_id": "40259640985",
+   "repair_round": 0,
+   "status": "OPERATIONAL_RESUME_VALIDATION_REPAIR",
+   "audit_gate": "NONE_YET",
+   "summary": "Operational resume of snapshot 40257469937. Preserved the replay/diagnosis bytes, identified the fresh-runner dependency gap, the missing claimed cycle test and the out-of-tree replay path crash, fixed all three, regenerated a full audit-readiness dossier (PASS, 0 failed, 0 skipped) and added the two cycle tests. No frozen bar re-scored; posture stays fail-closed. This run is UNADJUDICATED pending independent audit.",
+   "report": "reports/product/CYCLE_40259640985.md",
+   "diagnosis": "results/product/orchestration/CYCLE_40257469937_resume_diagnosis.json",
+   "date": "2026-10-26T02:44:13Z"
   }
  ],
  "cycle_40247041354_resume": {
@@ -1449,5 +1484,95 @@
    "reason": "this run has neither an independent PASS gate on a cycle audit ref nor an accept commit on origin/lab/product"
   },
   "claim_ceiling": "REPLAY OF AN INTERRUPTED LIVE RETRIEVAL, NOT A FRESH-NETWORK RUN. Every retrieval body was fetched from the public OpenCaseLaw API by the named interrupted run and is re-read from the committed product cache; this run issues no network call (adapter counters + independent cache fingerprint + armed socket trap). The sourced answer and counter-authority pass run the deterministic fixture-mode generative audit, so they prove the wiring and the frozen content filter, not answer quality. No frozen bar, serve verdict, legal-usefulness, latency-budget or human-gate claim is made."
+ },
+ "cycle_40257469937_snapshot_validation": {
+  "snapshot_run_id": 40257469937,
+  "predecessor_run_id": 40257275384,
+  "snapshot_ref": "origin/cycle/core/product/40257469937/team",
+  "snapshot_head": "21a70bd3a30e575dc9fac80840dca177dc4db3fa",
+  "predecessor_head": "3bea6bb17a0f87571b27cfd4cc17473aaf62e246",
+  "durable_delta": {
+   "classification": "COMMITTED_DELTA",
+   "changed_files": 12
+  },
+  "adjudication": "UNADJUDICATED",
+  "audit_ref_present": false,
+  "orchestration_classification": "RAW_SNAPSHOT_UNAVAILABLE",
+  "mechanism_unobserved": true,
+  "diagnosis": "results/product/orchestration/CYCLE_40257469937_resume_diagnosis.json",
+  "validation_gaps_repaired_by": "40259640985",
+  "not_claimed": "No provider/auth/timeout mechanism is asserted for this run. The diagnosis proves the git-ref delta and the absent audit half; the reproducible validation gaps are separate facts, not a product verdict."
+ },
+ "cycle_40259640985_operational_resume": {
+  "schema": "product-operational-resume/1",
+  "mode": "OPERATIONAL RESUME from the persisted producer snapshot of run 40257469937; inherited replay/diagnosis artifacts preserved, validation failures diagnosed and repaired, snapshot made audit-ready",
+  "snapshot_run_id": 40257469937,
+  "predecessor_run_id": 40257275384,
+  "direction_version": 68,
+  "orchestration_of_record": {
+   "classification": "RAW_SNAPSHOT_UNAVAILABLE",
+   "mechanism_unobserved": true,
+   "failed_job": "team",
+   "audit_job": "skipped because needs.team.result != success",
+   "audit_ref_present": false,
+   "meaning": "The team ref exists because the workflow persists it with if: always(); that does not prove the team job succeeded. No public run/jobs snapshot was reachable without GitHub auth, so no provider/auth/timeout cause is asserted."
+  },
+  "validation_failure_of_record": {
+   "classification": "FRESH_RUNNER_RUNTIME_GAP_PLUS_MISSING_CLAIMED_TEST",
+   "observations": [
+    "Fresh runner lacked numpy/sklearn/pytest: `import numpy` -> ModuleNotFoundError; the historical class is recorded in results/product/reality_check/*missing-deps*.json.",
+    "The snapshot report claimed product/tests/test_cycle_40257275384.py but the snapshot commit did not contain it.",
+    "The snapshot audit-readiness artifact was PARTIAL with progressive_smoke and mvp_core_tests skipped, while its report's command implied a full run.",
+    "replay with --out-dir /tmp crashed on Path.relative_to(REPO_ROOT) both in live_cache_replay and content_family_probe."
+   ],
+   "not_a_product_defect": true,
+   "frozen_bars_touched": false
+  },
+  "validation_repairs": {
+   "runtime_bootstrapped": "bash product/bootstrap_query_env.sh",
+   "runtime_pins": {
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "sklearn": "1.9.1",
+    "pytest": "9.1.1"
+   },
+   "missing_cycle_test_added": true,
+   "out_of_tree_replay_supported": true,
+   "audit_readiness_runtime_preflight_added": true,
+   "audit_readiness_cycle_test_check_added": true
+  },
+  "verification": {
+   "bounded_mvp_tests": "170 passed",
+   "cycle_test_40257275384": "5 passed",
+   "cycle_test_40259640985": "4 passed",
+   "replay": {
+    "verdict": "PASS",
+    "checks": "16/16",
+    "n_decisions": 150,
+    "n_clusters": 8,
+    "rows_with_xy": 150,
+    "rows_with_source_link": 150,
+    "n_verified": 5,
+    "n_verified_defective": 0,
+    "network_calls": 0
+   },
+   "audit_readiness_dossier": "results/product/audit_readiness/CYCLE_40259640985_audit_readiness.json",
+   "audit_readiness_status": "PASS",
+   "audit_readiness_failed_checks": [],
+   "audit_readiness_skipped_checks": [],
+   "snapshot_audit_readiness_dossier": "results/product/audit_readiness/CYCLE_40257469937_audit_readiness.json",
+   "snapshot_audit_readiness_status": "PASS",
+   "audit_readiness_checks": "9/9 PASS (current); 9/9 PASS (snapshot)"
+  },
+  "posture": {
+   "human_gate_ready": false,
+   "machine_gate_ready": false,
+   "packet_admitted": false,
+   "ready_for_owner_session": false,
+   "continue_recommended": true,
+   "frozen_bar_scored": false,
+   "serve_verdict_rerun": false
+  },
+  "claim_ceiling": "The local query -> cached/committed OpenCaseLaw retrieval -> query_result_bundle -> sourced deterministic answer -> counter-authority pass -> clickable page path is runnable and reproducible from the snapshot's own cache bytes. This cycle repairs validation wiring and makes the snapshot auditable; it does not measure live latency, answer quality, legal usefulness, any frozen bar, packet admission or human-gate readiness."
  }
 }

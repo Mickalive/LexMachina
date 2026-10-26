@@ -55,6 +55,7 @@ SCHEMA = "product-audit-readiness/1"
 DIRECTION_VERSION = 68
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+from product import query_env  # noqa: E402
 from product.state_contract import accepted_pointer_evidence  # noqa: E402
 
 ORCH = ROOT / "results" / "product" / "orchestration"
@@ -149,6 +150,73 @@ PROFILES: dict[str, dict[str, Any]] = {
         "changed_paths_include": (),
         "cycle_test": "product/tests/test_cycle_40257275384.py",
         "state_block": "cycle_40257275384_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "replay_summary": ROOT / "results" / "product" / "live_cache_replay"
+                          / "CYCLE_40257275384" / "summary.json",
+        "query_map_diagnosis": ROOT / "results" / "product"
+                               / "query_map_diagnosis"
+                               / "CYCLE_40257275384.json",
+    },
+    "40257469937": {
+        "resumed_run_id": "40257469937",
+        "predecessor_run_id": "40257275384",
+        "raw": None,
+        "resume_diag": ORCH / "CYCLE_40257469937_resume_diagnosis.json",
+        "inherited_report": None,
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40257275384.md",
+        "classification": "RAW_SNAPSHOT_UNAVAILABLE",
+        "mechanism_kind": "unobserved",
+        "delta_kind": "committed",
+        "failed_job": "team",
+        "quantum_seconds": None,
+        "exit_code": None,
+        "changed_files": 12,
+        "changed_paths_include": ("product/live_cache_replay.py",),
+        "cycle_test": "product/tests/test_cycle_40257275384.py",
+        "state_block": "cycle_40257469937_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "replay_summary": ROOT / "results" / "product" / "live_cache_replay"
+                          / "CYCLE_40257275384" / "summary.json",
+        "query_map_diagnosis": ROOT / "results" / "product"
+                               / "query_map_diagnosis"
+                               / "CYCLE_40257275384.json",
+    },
+    "40259640985": {
+        "resumed_run_id": "40257469937",
+        "predecessor_run_id": "40257275384",
+        "raw": None,
+        "resume_diag": ORCH / "CYCLE_40257469937_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40257275384.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40259640985.md",
+        "classification": "RAW_SNAPSHOT_UNAVAILABLE",
+        "mechanism_kind": "unobserved",
+        "delta_kind": "committed",
+        "failed_job": "team",
+        "quantum_seconds": None,
+        "exit_code": None,
+        "changed_files": 12,
+        "changed_paths_include": ("product/live_cache_replay.py",),
+        "cycle_test": "product/tests/test_cycle_40259640985_resume.py",
+        "state_block": "cycle_40259640985_operational_resume",
         "content_family": ROOT / "results" / "product" / "counter_content_family"
                           / "CYCLE_40257275384.json",
         "content_family_expected": {
@@ -593,6 +661,86 @@ def check_claim_artifacts() -> dict[str, Any]:
     )
 
 
+def check_runtime_preflight(auto_bootstrap: bool = True) -> dict[str, Any]:
+    """Fail closed on the fresh-runner dependency gap before running re-checks.
+
+    ``core-lane.yml`` installs nothing, so a fresh team or audit runner reaches
+    the slice with no numpy/sklearn/pytest.  The historical failure mode is
+    ``ModuleNotFoundError: No module named 'numpy'`` (see
+    ``results/product/reality_check/*missing-deps*.json``), which looks like a
+    product defect to an auditor.  This check records the probe, applies the
+    lane's own pinned bootstrap when needed, and re-probes.  It never weakens a
+    test or a frozen bar; it only makes the runtime explicit.
+    """
+    before = query_env.probe()
+    pytest_before = query_env.installed_version("pytest")
+    action: dict[str, Any] | None = None
+    after = before
+    pytest_after = pytest_before
+    if (not before["ok"] or pytest_before is None) and auto_bootstrap:
+        action = _run(["bash", "product/bootstrap_query_env.sh"], 600)
+        after = query_env.probe()
+        pytest_after = query_env.installed_version("pytest")
+    ok = bool(after["ok"]) and pytest_after is not None
+    return _check(
+        "runtime_preflight",
+        "Pinned query runtime (numpy/sklearn/pytest) is present, bootstrapped "
+        "with the lane's own free PyPI pins when missing",
+        ok,
+        {
+            "before": {"ok": before["ok"], "missing": before["missing"],
+                       "installed": before["installed"],
+                       "pytest": pytest_before},
+            "after": {"ok": after["ok"], "missing": after["missing"],
+                      "installed": after["installed"],
+                      "pytest": pytest_after},
+            "bootstrap": action,
+            "pins": dict(query_env.PINNED),
+            "remedy": query_env.REMEDY,
+            "workflow_gap": after["workflow_gap"],
+        },
+        ["product/bootstrap_query_env.sh", "product/query_env.py",
+         "product/requirements-query.txt"],
+        (action or {}).get("command"),
+        (action or {}).get("seconds"),
+    )
+
+
+def check_cycle_test(cycle_test: str) -> dict[str, Any]:
+    """Run the cycle test the snapshot's own report claims it added.
+
+    A report that names a test file that was never committed is an
+    audit-readiness defect: the next auditor spends its quantum discovering
+    the path is absent.  This check proves the path exists and the test is
+    green on the snapshot's own bytes.
+    """
+    path = ROOT / cycle_test
+    if not path.is_file():
+        return _check(
+            "cycle_test",
+            f"Cycle test {cycle_test} exists and is green",
+            False,
+            {"path": cycle_test, "present": False},
+            [cycle_test],
+        )
+    cmd = [sys.executable, "-m", "pytest", cycle_test, "-q", "--maxfail=1"]
+    run = _run(cmd, 300)
+    text = run["stdout_tail"] + "\n" + run["stderr_tail"]
+    passed = int((_PASSED_RE.search(text) or [0, 0])[1] or 0)
+    failed = int((_FAILED_RE.search(text) or [0, 0])[1] or 0)
+    errors = int((_ERROR_RE.search(text) or [0, 0])[1] or 0)
+    ok = run["exit_code"] == 0 and passed > 0 and failed == 0 and errors == 0
+    return _check(
+        "cycle_test",
+        f"Cycle test {cycle_test} exists and is green",
+        ok,
+        {"path": cycle_test, "present": True, "passed": passed,
+         "failed": failed, "errors": errors,
+         "timed_out": run["timed_out"]},
+        [cycle_test], run["command"], run["seconds"],
+    )
+
+
 def check_progressive_smoke(run_id: str) -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix="lex_audit_smoke_") as td:
         out = Path(td) / "smoke.json"
@@ -685,7 +833,8 @@ def check_audit_namespace(run_id: str) -> dict[str, Any]:
 
 
 def run(run_id: str, direction_version: int = DIRECTION_VERSION,
-        include_tests: bool = True, include_smoke: bool = True) -> dict[str, Any]:
+        include_tests: bool = True, include_smoke: bool = True,
+        auto_bootstrap: bool = True) -> dict[str, Any]:
     if direction_version != DIRECTION_VERSION:
         raise SystemExit(
             f"this snapshot was dispatched under direction v{DIRECTION_VERSION}; "
@@ -702,12 +851,18 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
     delta_kind = p("delta_kind", "committed")
     resumed = _load(resume_diag)
     checks = [
+        check_runtime_preflight(auto_bootstrap=auto_bootstrap),
         check_state_contract(),
         check_posture(),
         check_resumed_diagnosis(),
         check_claim_artifacts(),
-        check_audit_namespace(run_id),
     ]
+    if include_tests:
+        checks.append(check_cycle_test(str(p("cycle_test", ""))))
+    else:
+        checks.append(_skip("cycle_test",
+                            "Cycle test exists and is green",
+                            "skipped by --skip-tests"))
     if include_smoke:
         checks.append(check_progressive_smoke(run_id))
     else:
@@ -720,6 +875,7 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
         checks.append(_skip("mvp_core_tests",
                             "Bounded MVP core pytest set is green",
                             "skipped by --skip-tests"))
+    checks.append(check_audit_namespace(run_id))
 
     failed = [c["id"] for c in checks if c["status"] == "FAIL"]
     skipped = [c["id"] for c in checks if c["status"] == "SKIP"]
@@ -870,10 +1026,13 @@ def main(argv: list[str] | None = None) -> int:
                     default=DIRECTION_VERSION)
     ap.add_argument("--skip-tests", action="store_true")
     ap.add_argument("--skip-smoke", action="store_true")
+    ap.add_argument("--no-bootstrap", action="store_true",
+                    help="probe the runtime but do not install the pinned pins")
     args = ap.parse_args(argv)
     rec = run(args.run_id, direction_version=args.direction_version,
               include_tests=not args.skip_tests,
-              include_smoke=not args.skip_smoke)
+              include_smoke=not args.skip_smoke,
+              auto_bootstrap=not args.no_bootstrap)
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(rec, indent=2, ensure_ascii=False) + "\n",
