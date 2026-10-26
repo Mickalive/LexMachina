@@ -161,10 +161,24 @@ def test_root_and_lane_state_carry_the_same_run_identity():
     for field in ("accepted_run_id", "direction_version", "github_run"):
         assert root[field] == lane[field], field
     assert root["accepted_run_id"] == 40159747851
-    assert root["github_run"] == "40237863325"
-    assert root["proposed_run_id"] == 40237863325
+    # repair round 2 of rejected cycle 40246705199 (audit R2(iv)) advances the
+    # proposed/pending run identity; the prior identity is preserved verbatim
+    # at proposed_run_id_previous_40237863325 and github_run_advance.
+    assert root["github_run"] == "40246705199"
+    assert root["proposed_run_id"] == 40246705199
+    assert root["proposed_run_id_previous_40237863325"] == 40237863325
     assert root["audit_status"] == "PENDING_INDEPENDENT_AUDIT"
     assert root["evidence_tier"] == "ACCEPTED"
+    blk = root.get("repair_round2_40246705199") or {}
+    assert blk.get("repair_round") == 2
+    assert blk.get("scope_label", "").startswith("OPERATIONAL_")
+    assert blk["committed_artifacts"] == [
+        "results/evaluation/d2_letterhead_pattern_profile/40246705199.json",
+        "reports/evaluation/D2_LETTERHEAD_PATTERN_PROFILE_test_live_profile.md",
+    ]
+    for ref in blk["committed_artifacts"]:
+        assert ref in root["evidence_refs"], ref
+        assert (REPO / ref).is_file(), ref
 
 
 def test_every_evidence_ref_resolves_in_the_worktree():
