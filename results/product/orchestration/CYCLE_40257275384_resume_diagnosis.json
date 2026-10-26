@@ -1,0 +1,48 @@
+{
+  "schema": "product-resume-snapshot-diagnosis/1",
+  "generated_at": "2026-10-26T02:16:45Z",
+  "run_id": "40257275384",
+  "predecessor_run_id": "40254231396",
+  "raw_snapshot": null,
+  "orchestration": {
+    "schema": "product-audit-step-diagnosis/1",
+    "classification": "RAW_SNAPSHOT_UNAVAILABLE",
+    "mechanism_unobserved": true,
+    "raw_snapshot": null,
+    "meaning": "No committed run/jobs snapshot exists for this failed run in the producer checkout (job logs require admin rights). The durable delta and the absent audit half are still proven from git refs; the provider/auth/timeout mechanism is NOT claimed."
+  },
+  "durable_delta": {
+    "snapshot_ref": "origin/cycle/core/product/40257275384/team",
+    "snapshot_head": "3bea6bb17a0f87571b27cfd4cc17473aaf62e246",
+    "predecessor_ref": "origin/cycle/core/product/40254231396/team",
+    "predecessor_head": "3bea6bb17a0f87571b27cfd4cc17473aaf62e246",
+    "classification": "ZERO_DURABLE_DELTA",
+    "changed_files": 0,
+    "changed_paths_sample": [],
+    "meaning": "the team ref points at the predecessor's exact commit: the producer added and changed nothing, and the always-run persist step published that unchanged tree. This is an orchestration outcome, NOT a product defect and NOT a verdict; refs alone cannot distinguish rc-67 zero-delta from a producer death."
+  },
+  "adjudication": {
+    "audit": {
+      "audit_ref": "origin/cycle/core/product/40257275384/audit",
+      "audit_ref_present": false,
+      "gate_file_present": false,
+      "gate_verdict": null
+    },
+    "accept": {
+      "accepted_ref_present": true,
+      "accept_commit": null
+    },
+    "accepted": false,
+    "status": "UNADJUDICATED",
+    "product_defect": false,
+    "verdict_written": false,
+    "why_not_accepted": "requirement 4 needs BOTH an independent PASS gate on the audit ref AND an accept commit on lab/product; at least one half is absent for this run"
+  },
+  "audit_namespace": {
+    "accepted_ref_present": true,
+    "producer_minted_unadjudicated_chain": [],
+    "producer_minted_accepted_baseline_count": 5
+  },
+  "claim_ceiling": "This artifact classifies an orchestration outcome and a git-ref delta. It writes no gate, labels no run accepted or rejected, asserts no cause the committed run/jobs snapshot cannot show, and makes no product, legal or serve claim.",
+  "predecessor_ref": "origin/lab/product"
+}

@@ -131,6 +131,39 @@ PROFILES: dict[str, dict[str, Any]] = {
         "state_block": "cycle_40217792931_operational_resume",
     },
     "40221519475": {"alias_of": "40217792931"},
+    "40257275384": {
+        "resumed_run_id": "40257275384",
+        "predecessor_run_id": "40254231396",
+        "raw": None,
+        "resume_diag": ORCH / "CYCLE_40257275384_resume_diagnosis.json",
+        "inherited_report": None,
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40257275384.md",
+        "classification": "RAW_SNAPSHOT_UNAVAILABLE",
+        "mechanism_kind": "unobserved",
+        "delta_kind": "zero",
+        "failed_job": None,
+        "quantum_seconds": None,
+        "exit_code": None,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_40257275384.py",
+        "state_block": "cycle_40257275384_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "replay_summary": ROOT / "results" / "product" / "live_cache_replay"
+                          / "CYCLE_40257275384" / "summary.json",
+        "query_map_diagnosis": ROOT / "results" / "product"
+                               / "query_map_diagnosis"
+                               / "CYCLE_40257275384.json",
+    },
     "40234815780": {
         "resumed_run_id": "40234815780",
         "predecessor_run_id": "40230559317",
@@ -361,20 +394,18 @@ def check_posture() -> dict[str, Any]:
 
 
 def check_resumed_diagnosis() -> dict[str, Any]:
-    raw = Path(p("raw", RAW))
+    raw = Path(p("raw")) if p("raw") else None
     resume_diag = Path(p("resume_diag", RESUME_DIAG))
     resumed_id = p("resumed_run_id", RESUMED_RUN_ID)
     predecessor = p("predecessor_run_id", PREDECESSOR_RUN_ID)
     classification = p("classification", "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE")
     failed_job = p("failed_job", "audit")
-    quantum_seconds = p("quantum_seconds", 2700)
-    exit_code = p("exit_code", 78)
-    changed_files = p("changed_files", 9)
+    mechanism_kind = p("mechanism_kind", "observed")
+    delta_kind = p("delta_kind", "committed")
     diag = _load(resume_diag)
     orch = diag.get("orchestration") or {}
     delta = diag.get("durable_delta") or {}
     adj = diag.get("adjudication") or {}
-    mechanism = orch.get("mechanism") or {}
     problems = []
     if diag.get("run_id") != resumed_id:
         problems.append("run_id")
@@ -382,41 +413,84 @@ def check_resumed_diagnosis() -> dict[str, Any]:
         problems.append("predecessor_run_id")
     if orch.get("classification") != classification:
         problems.append("classification")
-    if mechanism.get("status") != "OBSERVED_QUANTUM_EXPIRED":
-        problems.append("mechanism_status")
-    if mechanism.get("quantum_expired") is not True:
-        problems.append("quantum_expired")
-    if mechanism.get("quantum_seconds") != quantum_seconds:
-        problems.append("quantum_seconds")
-    if mechanism.get("exit_code") != exit_code:
-        problems.append("exit_code")
-    if (orch.get("audit") or {}).get("gate_file_written") is not False:
-        problems.append("gate_file_written")
-    if delta.get("classification") != "COMMITTED_DELTA":
-        problems.append("durable_delta")
-    if delta.get("changed_files") != changed_files:
-        problems.append("changed_files")
-    paths_sample = delta.get("changed_paths_sample") or []
-    for needle in p("changed_paths_include", ()):
-        if not any(str(needle) in str(s) for s in paths_sample):
-            problems.append(f"changed_paths_include:{needle}")
+
+    if mechanism_kind == "observed":
+        mechanism = orch.get("mechanism") or {}
+        quantum_seconds = p("quantum_seconds", 2700)
+        exit_code = p("exit_code", 78)
+        if mechanism.get("status") != "OBSERVED_QUANTUM_EXPIRED":
+            problems.append("mechanism_status")
+        if mechanism.get("quantum_expired") is not True:
+            problems.append("quantum_expired")
+        if mechanism.get("quantum_seconds") != quantum_seconds:
+            problems.append("quantum_seconds")
+        if mechanism.get("exit_code") != exit_code:
+            problems.append("exit_code")
+        if (orch.get("audit") or {}).get("gate_file_written") is not False:
+            problems.append("gate_file_written")
+    else:
+        # Raw-free resume: the public run/jobs snapshot is unavailable. The
+        # only honest record is that the mechanism is unobserved; asserting a
+        # status would invent a cause the committed evidence cannot show.
+        quantum_seconds = None
+        exit_code = None
+        if orch.get("mechanism_unobserved") is not True:
+            problems.append("mechanism_unobserved")
+        if "mechanism" in orch:
+            problems.append("mechanism_asserted_without_raw")
+        if orch.get("raw_snapshot") is not None:
+            problems.append("raw_snapshot_path_without_file")
+        if raw is not None:
+            problems.append("raw_profile_points_at_missing_snapshot")
+
+    if delta_kind == "zero":
+        changed_files = 0
+        if delta.get("classification") != "ZERO_DURABLE_DELTA":
+            problems.append("durable_delta")
+        if delta.get("changed_files") != 0:
+            problems.append("changed_files")
+        if not delta.get("snapshot_head") or (
+                delta.get("snapshot_head") != delta.get("predecessor_head")):
+            problems.append("snapshot_head_not_equal_predecessor")
+    else:
+        changed_files = p("changed_files", 9)
+        if delta.get("classification") != "COMMITTED_DELTA":
+            problems.append("durable_delta")
+        if delta.get("changed_files") != changed_files:
+            problems.append("changed_files")
+        paths_sample = delta.get("changed_paths_sample") or []
+        for needle in p("changed_paths_include", ()):
+            if not any(str(needle) in str(s) for s in paths_sample):
+                problems.append(f"changed_paths_include:{needle}")
+
     if adj.get("status") != "UNADJUDICATED" or adj.get("accepted") is not False:
         problems.append("adjudication")
-    who = ("independent-audit" if failed_job == "audit"
-           else "lane-cycle (producer)")
+
+    if mechanism_kind == "observed":
+        who = ("independent-audit" if failed_job == "audit"
+               else "lane-cycle (producer)")
+        summary = (f"Resumed run {resumed_id}: {who} work-quantum expiry "
+                   "observed, durable delta present, run unadjudicated")
+    else:
+        summary = (f"Resumed run {resumed_id}: raw run/jobs snapshot "
+                   "unavailable (mechanism unobserved), team ref carries zero "
+                   "durable delta over its predecessor, run unadjudicated")
+    evidence = ([str(raw.relative_to(ROOT))] if raw is not None else [])
+    evidence.append(str(resume_diag.relative_to(ROOT)))
     return _check(
         "resumed_diagnosis",
-        f"Resumed run {resumed_id}: {who} work-quantum expiry observed, "
-        "durable delta present, run unadjudicated",
+        summary,
         not problems,
         {"problems": problems, "failed_job": failed_job,
+         "mechanism_kind": mechanism_kind,
+         "delta_kind": delta_kind,
          "audit_step_seconds": (
              (orch.get("audit") or {}).get("independent_audit_step_seconds")),
          "failed_step_seconds": ((orch.get("team") or {}).get(
              "failed_step_seconds")),
          "changed_files": delta.get("changed_files"),
-         "changed_paths_sample": paths_sample},
-        [str(raw.relative_to(ROOT)), str(resume_diag.relative_to(ROOT))],
+         "changed_paths_sample": delta.get("changed_paths_sample")},
+        evidence,
     )
 
 
@@ -428,11 +502,17 @@ def _row(bundle: dict, decision_id: str) -> dict | None:
 def check_claim_artifacts() -> dict[str, Any]:
     cf_path = Path(p("content_family", CONTENT_FAMILY))
     expected = dict(p("content_family_expected", CONTENT_FAMILY_EXPECTED))
+    before_bundle = Path(p("before_bundle", BEFORE_BUNDLE))
+    after_bundle = Path(p("after_bundle", AFTER_BUNDLE))
+    d2_decision = str(p("d2_decision", D2_DECISION))
+    raw_path = Path(p("raw")) if p("raw") else None
     paths = [
-        cf_path, BEFORE_BUNDLE, AFTER_BUNDLE,
-        Path(p("raw", RAW)), Path(p("resume_diag", RESUME_DIAG)),
+        cf_path, before_bundle, after_bundle,
+        Path(p("resume_diag", RESUME_DIAG)),
         *_report_paths(), STATE,
     ]
+    if raw_path is not None:
+        paths.insert(3, raw_path)
     missing = [str(p.relative_to(ROOT)) for p in paths if not p.is_file()]
     hashes = {str(p.relative_to(ROOT)): _sha256(p)
               for p in paths if p.is_file()}
@@ -474,9 +554,9 @@ def check_claim_artifacts() -> dict[str, Any]:
         }
 
     before = after = None
-    if BEFORE_BUNDLE.is_file() and AFTER_BUNDLE.is_file():
-        before = _row(_load(BEFORE_BUNDLE), D2_DECISION)
-        after = _row(_load(AFTER_BUNDLE), D2_DECISION)
+    if before_bundle.is_file() and after_bundle.is_file():
+        before = _row(_load(before_bundle), d2_decision)
+        after = _row(_load(after_bundle), d2_decision)
         if before is None:
             problems.append("before_row_missing")
         elif before.get("counter_evidence_verified") is not True:
@@ -489,12 +569,12 @@ def check_claim_artifacts() -> dict[str, Any]:
             if after.get("counter_evidence_unevidenced_reason") != "pivot_absent":
                 problems.append("after_row_reason")
         detail["d2_before_after"] = {
-            "decision_id": D2_DECISION,
+            "decision_id": d2_decision,
             "before_verified": (before or {}).get("counter_evidence_verified"),
             "after_verified": (after or {}).get("counter_evidence_verified"),
             "after_reason": (after or {}).get("counter_evidence_unevidenced_reason"),
         }
-        for path, bundle in ((BEFORE_BUNDLE, before), (AFTER_BUNDLE, after)):
+        for path, bundle in ((before_bundle, before), (after_bundle, after)):
             prov = ((_load(path).get("provenance") or {})
                     .get("counter_evidence_span") or {})
             if prov.get("applied") is not True:
@@ -614,10 +694,12 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
     PROFILE.clear()
     PROFILE.update(select_profile(run_id))
     resume_diag = Path(p("resume_diag", RESUME_DIAG))
-    raw = Path(p("raw", RAW))
+    raw = Path(p("raw")) if p("raw") else None
     resumed_id = p("resumed_run_id", RESUMED_RUN_ID)
     predecessor = p("predecessor_run_id", PREDECESSOR_RUN_ID)
     failed_job = p("failed_job", "audit")
+    mechanism_kind = p("mechanism_kind", "observed")
+    delta_kind = p("delta_kind", "committed")
     resumed = _load(resume_diag)
     checks = [
         check_state_contract(),
@@ -643,6 +725,8 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
     skipped = [c["id"] for c in checks if c["status"] == "SKIP"]
     overall = "FAIL" if failed else ("PASS" if not skipped else "PARTIAL")
     who = ("audit" if failed_job == "audit" else "team lane-cycle")
+    before_bundle = Path(p("before_bundle", BEFORE_BUNDLE))
+    after_bundle = Path(p("after_bundle", AFTER_BUNDLE))
     inherited = p("inherited_report", INHERITED_REPORT)
     cycle_test = p("cycle_test", "product/tests/test_cycle_40200882831.py")
     delta_files = ((resumed.get("durable_delta") or {}).get("changed_files"))
@@ -666,8 +750,8 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
                 "classification"),
             "mechanism": ((resumed.get("orchestration") or {}).get("mechanism")
                           or {}).get("status"),
-            "quantum_seconds": p("quantum_seconds", 2700),
-            "exit_code": p("exit_code", 78),
+            "quantum_seconds": p("quantum_seconds"),
+            "exit_code": p("exit_code"),
             "failed_job": failed_job,
             "durable_delta": (resumed.get("durable_delta") or {}).get(
                 "classification"),
@@ -675,25 +759,40 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
         },
         "claims": [
             {"id": "C1",
-             "claim": f"Run {resumed_id}'s {who} agent ended on the workflow "
-                      f"work quantum ({p('quantum_seconds', 2700)} s, exit "
-                      f"{p('exit_code', 78)}) before an independent gate could "
-                      "be written; observed from the public check-run "
-                      "annotations, not inferred.",
+             "claim": (
+                 f"Run {resumed_id}'s {who} agent ended on the workflow "
+                 f"work quantum ({p('quantum_seconds', 2700)} s, exit "
+                 f"{p('exit_code', 78)}) before an independent gate could "
+                 "be written; observed from the public check-run "
+                 "annotations, not inferred."
+                 if mechanism_kind == "observed" else
+                 "No public run/jobs snapshot for run "
+                 f"{resumed_id} was available in the producer checkout, so "
+                 "the provider/auth/timeout mechanism is UNOBSERVED and no "
+                 "cause is asserted."
+             ),
              "check": "resumed_diagnosis",
-             "artifacts": [str(raw.relative_to(ROOT)),
-                           str(resume_diag.relative_to(ROOT))]},
+             "artifacts": (
+                 ([str(raw.relative_to(ROOT))] if raw is not None else [])
+                 + [str(resume_diag.relative_to(ROOT))])},
             {"id": "C2",
-             "claim": f"Run {resumed_id} persisted an {delta_files}-file "
-                      f"durable delta over {predecessor} and is UNADJUDICATED.",
+             "claim": (
+                 f"Run {resumed_id} persisted an {delta_files}-file durable "
+                 f"delta over {predecessor} and is UNADJUDICATED."
+                 if delta_kind != "zero" else
+                 f"Run {resumed_id}'s team ref is byte-identical to its "
+                 f"predecessor {predecessor}'s team ref: the resumed producer "
+                 "added nothing (ZERO_DURABLE_DELTA) and the run is "
+                 "UNADJUDICATED."
+             ),
              "check": "resumed_diagnosis",
              "artifacts": [str(resume_diag.relative_to(ROOT))]},
             {"id": "C3",
              "claim": "The v68 rejection/incumbent leg flips the D2 letterhead "
                       "row from verified to unverified with reason pivot_absent.",
              "check": "claim_artifacts",
-             "artifacts": [str(BEFORE_BUNDLE.relative_to(ROOT)),
-                           str(AFTER_BUNDLE.relative_to(ROOT)),
+             "artifacts": [str(before_bundle.relative_to(ROOT)),
+                           str(after_bundle.relative_to(ROOT)),
                            str(cf_path.relative_to(ROOT))]},
             {"id": "C4",
              "claim": f"The fixed-path family is {cf_expected['n_bundles']} "
