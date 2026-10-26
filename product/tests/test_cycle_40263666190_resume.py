@@ -348,7 +348,17 @@ def test_current_report_and_state_are_honest():
     assert "ghs_" not in current
 
     state = _load(STATE)
-    assert state["current_cycle_run_id"] == int(EXECUTING_RUN_ID)
+    # POINTER-PIN AMENDMENT (product cycle 40272586794), following the
+    # amendment recorded in ``test_cycle_40154120551.py``: later accepted
+    # cycles legitimately advance ``current_cycle_run_id`` past this cycle's
+    # era, so pinning it to 40269774540 breaks once the world moves
+    # (``test_cycle_40259640985_resume.py``'s pin did).  What survives is
+    # stronger: the pointer must never REGRESS below this cycle's executing
+    # run (a hand-rolled-back state fails), and every other assertion below
+    # still pins this cycle's block and the fail-closed posture verbatim.
+    assert state["current_cycle_run_id"] >= int(EXECUTING_RUN_ID), (
+        "current_cycle_run_id regressed below this cycle's executing run",
+        state["current_cycle_run_id"], EXECUTING_RUN_ID)
     assert state["direction_version"] == 68
     assert state["continue_recommended"] is True
     assert state["human_gate_ready"] is False

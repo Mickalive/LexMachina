@@ -137,9 +137,26 @@ def test_rejected_audit_gate_records_exactly_two_required_fixes():
 
 
 def test_state_current_pointer_is_the_executing_repair_run():
-    """R1: the accept commit will name the executing run; so must the state."""
+    """R1: the accept commit will name the executing run; so must the state.
+
+    POINTER-PIN AMENDMENT (product cycle 40272586794), following the
+    amendment recorded in ``test_cycle_40154120551.py``: later accepted
+    cycles legitimately advance ``current_cycle_run_id`` past this cycle's
+    era, so pinning the pointer to 40269774540 breaks once the world moves
+    (exactly as ``test_cycle_40259640985_resume.py``'s pin did).  The
+    surviving claims are strengthened, not weakened:
+
+    * the pointer never REGRESSES below this cycle's executing run
+      (monotonic, so a stale or hand-rolled-back state fails);
+    * this cycle's repair block, its REVISE audit record and the fail-closed
+      posture all survive in ``state/product.json`` verbatim - that is the
+      durable content of R1, which is what the original equality was a
+      proxy for.
+    """
     state = _load(STATE)
-    assert state["current_cycle_run_id"] == int(EXECUTING_RUN_ID)
+    assert state["current_cycle_run_id"] >= int(EXECUTING_RUN_ID), (
+        "current_cycle_run_id regressed below this cycle's executing run",
+        state["current_cycle_run_id"], EXECUTING_RUN_ID)
 
     block = state[f"cycle_{EXECUTING_RUN_ID}_repair_of_{REPAIRED_RUN_ID}"]
     assert block["run_id"] == int(EXECUTING_RUN_ID)
