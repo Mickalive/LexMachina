@@ -104,9 +104,10 @@ def numeric_environment() -> dict:
     return env
 
 
-def load_frozen() -> tuple[dict, dict, list[str]]:
-    hyp = json.loads((REPO_ROOT / HYPOTHESIS_RELPATH).read_text(encoding="utf-8"))
-    freeze = json.loads((REPO_ROOT / FREEZE_RELPATH).read_text(encoding="utf-8"))
+def load_frozen(hypothesis_relpath: str = HYPOTHESIS_RELPATH,
+                freeze_relpath: str = FREEZE_RELPATH) -> tuple[dict, dict, list[str]]:
+    hyp = json.loads((REPO_ROOT / hypothesis_relpath).read_text(encoding="utf-8"))
+    freeze = json.loads((REPO_ROOT / freeze_relpath).read_text(encoding="utf-8"))
     rules = json.loads((REPO_ROOT / RULES_LABEL_RELPATH).read_text(encoding="utf-8"))
     scored = list(((rules.get("rubric") or {}).get("scored_statuses")) or [])
     return hyp, freeze, scored
@@ -434,16 +435,18 @@ def downgraded_row_sweep(mount: Path, bundles: list[dict], scored: list[str]) ->
     }
 
 
-def evaluate(run_id: str) -> dict:
-    hyp, freeze, scored = load_frozen()
-    hpath = REPO_ROOT / HYPOTHESIS_RELPATH
-    fpath = REPO_ROOT / FREEZE_RELPATH
+def evaluate(run_id: str, hypothesis_relpath: str = HYPOTHESIS_RELPATH,
+             freeze_relpath: str = FREEZE_RELPATH) -> dict:
+    hyp, freeze, scored = load_frozen(hypothesis_relpath, freeze_relpath)
+    hpath = REPO_ROOT / hypothesis_relpath
+    fpath = REPO_ROOT / freeze_relpath
     hyp_sha = sha256_file(hpath)
     freeze_sha = sha256_file(fpath)
     mount = Path(hyp["population_FROZEN"]["product_mount"])
     classification_sha = sha256_file(Path(CQ.__file__))
     engine_sha = sha256_file(Path(MF.__file__))
     adapter_sha = sha256_file(Path(FAS.__file__))
+    instrument_sha = sha256_file(Path(__file__))
 
     consistency = {
         "hypothesis_sha_matches_freeze_record":
@@ -543,8 +546,10 @@ def evaluate(run_id: str) -> dict:
         "exit_code": code,
         "falsification_proven": code == EXIT_FALSIFIED,
         "vacuous_reasons": vacuous_reasons,
-        "hypothesis": {"path": HYPOTHESIS_RELPATH, "sha256": hyp_sha},
-        "freeze_record": {"path": FREEZE_RELPATH, "sha256": freeze_sha},
+        "hypothesis": {"path": hypothesis_relpath, "sha256": hyp_sha},
+        "freeze_record": {"path": freeze_relpath, "sha256": freeze_sha},
+        "instrument": {"path": "evaluation/post_repair_family_ca_falsifier.py",
+                       "sha256": instrument_sha},
         "consistency": consistency,
         "product_mount": str(mount),
         "product_mount_head": mount_head(mount),
@@ -736,12 +741,17 @@ def main(argv=None) -> int:
     ap.add_argument("--run-id", default=None)
     ap.add_argument("--out-dir", default=None)
     ap.add_argument("--report-dir", default=None)
+    ap.add_argument("--hypothesis", default=HYPOTHESIS_RELPATH,
+                    help="repo-relative hypothesis path (default: the 40134202991 V1 record)")
+    ap.add_argument("--freeze", default=FREEZE_RELPATH,
+                    help="repo-relative freeze record path (default: the 40134202991 V1 record)")
     args = ap.parse_args(argv)
     run_id = args.run_id or os.environ.get("GITHUB_RUN_ID", "local")
     out_dir = Path(args.out_dir) if args.out_dir else DEFAULT_OUT_DIR
     report_dir = Path(args.report_dir) if args.report_dir else DEFAULT_REPORT_DIR
 
-    rec = evaluate(run_id)
+    rec = evaluate(run_id, hypothesis_relpath=args.hypothesis,
+                   freeze_relpath=args.freeze)
     out_dir.mkdir(parents=True, exist_ok=True)
     out = out_dir / f"{run_id}.json"
     out.write_text(json.dumps(rec, indent=2, sort_keys=True) + "\n", encoding="utf-8")
