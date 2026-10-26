@@ -161,11 +161,13 @@ def test_root_and_lane_state_carry_the_same_run_identity():
     for field in ("accepted_run_id", "direction_version", "github_run"):
         assert root[field] == lane[field], field
     assert root["accepted_run_id"] == 40159747851
-    # repair round 2 of rejected cycle 40246705199 (audit R2(iv)) advances the
-    # proposed/pending run identity; the prior identity is preserved verbatim
-    # at proposed_run_id_previous_40237863325 and github_run_advance.
-    assert root["github_run"] == "40246705199"
-    assert root["proposed_run_id"] == 40246705199
+    # cycle 40258497460 (v68 post-repair family CA falsifier) advances the
+    # proposed/pending run identity; every prior identity is preserved verbatim
+    # at proposed_run_id_previous_40246705199,
+    # proposed_run_id_previous_40237863325 and github_run_advance_40246705199.
+    assert root["github_run"] == "40258497460"
+    assert root["proposed_run_id"] == 40258497460
+    assert root["proposed_run_id_previous_40246705199"] == 40246705199
     assert root["proposed_run_id_previous_40237863325"] == 40237863325
     assert root["audit_status"] == "PENDING_INDEPENDENT_AUDIT"
     assert root["evidence_tier"] == "ACCEPTED"

@@ -276,11 +276,17 @@ def test_population_and_baseline_family_pins_match_historical_mount():
     freeze = json.loads(FREEZE.read_text(encoding="utf-8"))
 
     # 1) Live-mount drift is allowed ONLY as the documented head advance; every
-    #    frozen bundle, baseline-family member and instrument byte must still
-    #    match the live accepted mount.
+    #    frozen bundle, baseline-family member and EVALUATION instrument byte
+    #    must still match. The product's own counter_evidence_span.py is a mount
+    #    identity pin, not an evaluation instrument: when the accepted product
+    #    head advances (here 29a5c4a5 -> 5fb312e4, cycle 40247189361) that product
+    #    file legitimately changes. Part 2 below still verifies the historical
+    #    pin byte-for-byte at the historical commit, so this allowlist does not
+    #    waive any historical evidence.
     live = PRF.verify_pins(hyp, freeze)
     live_failed = [c["input"] for c in live["checks"] if not c["match"]]
-    assert set(live_failed) <= {"mount_head"}, live_failed
+    assert set(live_failed) <= {"mount_head",
+                                "mount:product/query/counter_evidence_span.py"}, live_failed
 
     # 2) The historical head itself is verified against the historical tree,
     #    not waived. All pins must match at the commit the freeze names.
