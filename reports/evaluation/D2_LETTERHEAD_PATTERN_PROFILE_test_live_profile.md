@@ -1,14 +1,14 @@
 # D2 Letterhead Pattern Heterogeneity Profile — test_live_profile
 
 - direction_version: 68 (v67 ordered work item (1), population extension, separate named run — accepted baseline 40062917685 UNMOVED)
-- product mount: `/tmp/lex_accepted/product` head `02b1269d36928644d9be72512b543be00b341ff2`
+- product mount: `/tmp/lex_accepted/product` head `3de8431d46bfe757469720682253e63f0d763c4b`
 - packet-of-record: 39319405429 (labelled; verified rows under frozen predicate: 0)
 - verdict: **LETTERHEAD_PATTERNS_MECHANICALLY_DETECTED** (exit 0)
 - controls: ALL PASS (C3=PASS, C4=PASS, C5=PASS, C6=PASS)
 
 ## Finding
 
-Population-extension profile over 139 named sha256-pinned bundles (136 shipped-slice + 3 packet-of-record 39319405429): 44 D2_letterhead_zone rows collapse into 2 distinct letterhead pattern(s) (P1_OFFSET0_MULTILINE_COURT_HEADER). Slice verified rows 116 (75 defective); packet-of-record verified rows 0 under the frozen predicate (accepted requirement 36/42 expectation: 0 on served bytes - labelled, not an error).
+Population-extension profile over 144 named sha256-pinned bundles (141 shipped-slice + 3 packet-of-record 39319405429): 44 D2_letterhead_zone rows collapse into 2 distinct letterhead pattern(s) (P1_OFFSET0_MULTILINE_COURT_HEADER). Slice verified rows 126 (75 defective); packet-of-record verified rows 0 under the frozen predicate (accepted requirement 36/42 expectation: 0 on served bytes - labelled, not an error).
 
 ## Letterhead pattern inventory
 
