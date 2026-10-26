@@ -1,57 +1,227 @@
 {
- "schema": "lex-evaluation-repair-suite-record/1",
+ "schema": "lex-evaluation-no-pytest-runner/1",
  "run_id": "40239699044",
- "repair_of_cycle": "40237863325",
- "repair_round": 1,
- "direction_version": 68,
- "generated_at_utc": "2026-10-25T22:30:32Z",
- "discharges_required_fix": "3 (4-file targeted set half)",
- "command": "python3 -m pytest -q tests/evaluation/test_state_integrity_gate.py tests/evaluation/test_minimal_ca_falsify_benchmark.py tests/evaluation/test_minimal_ca_benchmark.py tests/evaluation/test_audit_correction_verification.py",
- "tree": {
-  "head_before_repair": "5116e644e5d68401115cc88656e46fa8c3f4a191",
-  "accepted_base": "1617f224eea229379651bbfa3172e526e5d885ae",
-  "state_file_sha256": "c10d06589b8ca5070980aa6ee183d9892d1cf46436831aca1b8223eee024e9c2",
-  "lane_state_file_sha256": "6437382b3951caafe04d6854aaddada62e349dd8ae2dc20ce0ff8b6d4d5437af",
-  "note": "executed on the repaired working tree; the committed snapshot of this tree is the repair commit that carries this record"
- },
- "environment": {
-  "python": "3.12.3",
-  "pytest": "9.1.1",
-  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
-  "numpy": "NOT_IMPORTABLE",
-  "product_mount_present": true,
-  "note": "identical protocol to the auditor's own comparison run: the same 4 files, no PYTHONPATH injection, no product-mount-dependent modules; this repair environment HAS the /tmp/lex_accepted/product mount present, which is why 3 tests that skip in the auditor environment pass here (base 4 failed/31 passed vs the audit's 4 failed/28 passed/3 skipped on the SAME base commit)",
-  "skip_delta_note": "the auditor's base run reported 4 failed / 28 passed / 3 skipped while this environment's base run gives 4 failed / 31 passed / 0 skipped on the SAME accepted-base commit with the SAME 4-file command. The three-test difference is consistent with the mount-dependent skip sites in these files (test_minimal_ca_falsify_benchmark.py:170,173 'V3 product mount absent' and test_minimal_ca_benchmark.py:200,333 'V3 packet mount absent'), which fire only when /tmp/lex_accepted/product is not mounted; it was NOT independently reproduced here and is disclosed rather than explained away."
- },
- "repaired_tree": {
-  "failed": 4,
-  "passed": 31,
-  "skipped": 0,
-  "failed_tests": [
-   "tests/evaluation/test_minimal_ca_benchmark.py::test_hypothesis_rehash_matches_state_pin",
-   "tests/evaluation/test_minimal_ca_benchmark.py::test_state_freeze_commit_is_where_the_hypothesis_landed",
-   "tests/evaluation/test_minimal_ca_benchmark.py::test_state_pytest_claim_names_this_dedicated_test",
-   "tests/evaluation/test_audit_correction_verification.py::test_state_file_has_mandatory_fields"
-  ]
- },
- "accepted_base_tree": {
-  "failed": 4,
-  "passed": 31,
-  "skipped": 0,
-  "failed_tests_identical": true,
-  "worktree": "/tmp/opencode/repair/base (detached 1617f224)",
-  "command_identical": true
- },
- "delta_vs_accepted_base": {
-  "newly_failing": 0,
-  "newly_passing": 0,
-  "tolerated_pre_existing_failures": 4,
-  "verdict": "TARGETED_SET_AT_ACCEPTED_BASE_PARITY"
- },
- "regression_guard_negative_control": {
-  "instrument": "tests/evaluation/test_state_preservation_guard.py",
-  "on_rejected_commit_5116e644_state": "5 failed / 1 passed (the guard bites)",
-  "on_repaired_state": "6 passed"
- },
- "claim_ceiling": "This record proves only that the lane's 4-file targeted set is at accepted-base parity on the repaired tree and that the new state-preservation guard bites on the rejected state. It re-scores no benchmark, moves no frozen bar, lifts no serve verdict and makes no product claim."
+ "generated_at_utc": "2026-10-26T00:03:53Z",
+ "python": "3.12.3",
+ "pytest_available": false,
+ "supported_constructs": [
+  "plain test function with no parameters",
+  "pytest.mark.skipif(condition, reason=...)",
+  "pytest.raises",
+  "module-level `from evaluation import ... as ...`"
+ ],
+ "verdict": "SHIM_FAIL",
+ "n_files": 4,
+ "n_passed": 20,
+ "n_failed": 3,
+ "n_skipped": 3,
+ "n_unsupported": 2,
+ "n_absent": 0,
+ "results": [
+  {
+   "test_file": "tests/evaluation/test_minimal_ca_benchmark.py",
+   "test_file_sha256": "ec2a09ac2db0ed37dcabeeb2483493bc4f1405aa1a74e2999b056bbef1bf7918",
+   "status": "FAIL",
+   "n_passed": 7,
+   "n_failed": 3,
+   "n_skipped": 0,
+   "n_unsupported": 1,
+   "cases": [
+    {
+     "test": "test_committed_record_conforms_to_frozen_expectations",
+     "status": "PASS"
+    },
+    {
+     "test": "test_end_to_end_on_v3_mount_if_present",
+     "status": "UNSUPPORTED",
+     "reason": "test needs fixture(s): ['tmp_path']"
+    },
+    {
+     "test": "test_freeze_first_ordering_hypothesis_before_claim_bearing_record",
+     "status": "PASS"
+    },
+    {
+     "test": "test_frozen_bar_and_verdict_pins_rehash_unchanged",
+     "status": "PASS"
+    },
+    {
+     "test": "test_hypothesis_rehash_matches_state_pin",
+     "status": "FAIL",
+     "error": "KeyError: 'minimal_ca_benchmark'",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 142, in run_file\n    fn()\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_minimal_ca_benchmark.py\", line 120, in test_hypothesis_rehash_matches_state_pin\n    recorded = _state()[\"minimal_ca_benchmark\"][\"hypothesis_sha256\"]\n               ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'minimal_ca_benchmark'\n"
+    },
+    {
+     "test": "test_instrument_sha_disclosure_is_complete_and_unchanged_since_freeze",
+     "status": "PASS"
+    },
+    {
+     "test": "test_output_defaults_point_at_the_committed_tree",
+     "status": "PASS"
+    },
+    {
+     "test": "test_state_evidence_refs_resolve_and_count_matches",
+     "status": "PASS"
+    },
+    {
+     "test": "test_state_freeze_commit_is_where_the_hypothesis_landed",
+     "status": "FAIL",
+     "error": "KeyError: 'minimal_ca_benchmark'",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 142, in run_file\n    fn()\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_minimal_ca_benchmark.py\", line 132, in test_state_freeze_commit_is_where_the_hypothesis_landed\n    recorded = _state()[\"minimal_ca_benchmark\"][\"freeze_commit\"]\n               ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'minimal_ca_benchmark'\n"
+    },
+    {
+     "test": "test_state_pytest_claim_names_this_dedicated_test",
+     "status": "FAIL",
+     "error": "KeyError: 'minimal_ca_benchmark'",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 142, in run_file\n    fn()\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_minimal_ca_benchmark.py\", line 302, in test_state_pytest_claim_names_this_dedicated_test\n    claim = _state()[\"minimal_ca_benchmark\"][\"pytest\"]\n            ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'minimal_ca_benchmark'\n"
+    },
+    {
+     "test": "test_v3_bundle_shas_match_frozen_hypothesis",
+     "status": "PASS"
+    }
+   ]
+  },
+  {
+   "test_file": "tests/evaluation/test_minimal_ca_falsify_benchmark.py",
+   "test_file_sha256": "72b47a0650b54b2ceb440d8004b7656394871bd3df235c5c08a46df2674cb602",
+   "status": "PASS",
+   "n_passed": 8,
+   "n_failed": 0,
+   "n_skipped": 0,
+   "n_unsupported": 0,
+   "cases": [
+    {
+     "test": "test_benchmark_falsifies_product",
+     "status": "PASS"
+    },
+    {
+     "test": "test_committed_record_conforms_to_the_wrapper_contract",
+     "status": "PASS"
+    },
+    {
+     "test": "test_end_to_end_on_v3_mount_if_present",
+     "status": "PASS"
+    },
+    {
+     "test": "test_engine_invoked_and_run_valid",
+     "status": "PASS"
+    },
+    {
+     "test": "test_numeric_environment_disclosed",
+     "status": "PASS"
+    },
+    {
+     "test": "test_output_defaults_point_at_the_committed_tree",
+     "status": "PASS"
+    },
+    {
+     "test": "test_provenance_fields_in_engine_record",
+     "status": "PASS"
+    },
+    {
+     "test": "test_v3_packet_shas_match_committed_record",
+     "status": "PASS"
+    }
+   ]
+  },
+  {
+   "test_file": "tests/evaluation/test_minimal_rc_benchmark.py",
+   "test_file_sha256": "3b9125314c6e1f87dfd11c4f2a47d38d86e24b9ff3b6c8263eda465375809d39",
+   "status": "FAIL",
+   "n_passed": 3,
+   "n_failed": 4,
+   "n_skipped": 3,
+   "n_unsupported": 1,
+   "cases": [
+    {
+     "test": "test_committed_record_conforms_to_frozen_expectations",
+     "status": "SKIPPED",
+     "reason": "missing committed record /home/runner/work/LexMachina/LexMachina/results/evaluation/minimal_rc_benchmark/39499999999.json; will be present after a claim-bearing cycle"
+    },
+    {
+     "test": "test_end_to_end_on_v3_mount_if_present",
+     "status": "UNSUPPORTED",
+     "reason": "test needs fixture(s): ['tmp_path']"
+    },
+    {
+     "test": "test_freeze_first_ordering_hypothesis_before_claim_bearing_record",
+     "status": "SKIPPED",
+     "reason": "git history for 39499999999.json unavailable in this checkout"
+    },
+    {
+     "test": "test_frozen_bar_and_verdict_pins_rehash_unchanged",
+     "status": "PASS"
+    },
+    {
+     "test": "test_hypothesis_rehash_matches_state_pin",
+     "status": "FAIL",
+     "error": "KeyError: 'minimal_rc_benchmark'",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 142, in run_file\n    fn()\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_minimal_rc_benchmark.py\", line 116, in test_hypothesis_rehash_matches_state_pin\n    recorded = _state()[\"minimal_rc_benchmark\"][\"hypothesis_sha256\"]\n               ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'minimal_rc_benchmark'\n"
+    },
+    {
+     "test": "test_instrument_sha_disclosure_is_complete_and_unchanged_since_freeze",
+     "status": "SKIPPED",
+     "reason": "MAPPING_FREE_RECALL_FALSIFIER_HYPOTHESIS_V1 has no top-level instrument_sha256; pre-fix disclosure via git and freeze record shas covered by other guards"
+    },
+    {
+     "test": "test_output_defaults_point_at_the_committed_tree",
+     "status": "PASS"
+    },
+    {
+     "test": "test_state_evidence_refs_resolve_and_count_matches",
+     "status": "PASS"
+    },
+    {
+     "test": "test_state_freeze_commit_is_where_the_hypothesis_landed",
+     "status": "FAIL",
+     "error": "KeyError: 'minimal_rc_benchmark'",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 142, in run_file\n    fn()\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_minimal_rc_benchmark.py\", line 125, in test_state_freeze_commit_is_where_the_hypothesis_landed\n    recorded = _state()[\"minimal_rc_benchmark\"][\"freeze_commit\"]\n               ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'minimal_rc_benchmark'\n"
+    },
+    {
+     "test": "test_state_pytest_claim_names_this_dedicated_test",
+     "status": "FAIL",
+     "error": "KeyError: 'minimal_rc_benchmark'",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 142, in run_file\n    fn()\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_minimal_rc_benchmark.py\", line 256, in test_state_pytest_claim_names_this_dedicated_test\n    claim = _state()[\"minimal_rc_benchmark\"][\"pytest\"]\n            ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'minimal_rc_benchmark'\n"
+    },
+    {
+     "test": "test_state_pytest_claim_names_this_dedicated_test_r4",
+     "status": "FAIL",
+     "error": "KeyError: 'minimal_rc_benchmark'",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 142, in run_file\n    fn()\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_minimal_rc_benchmark.py\", line 278, in test_state_pytest_claim_names_this_dedicated_test_r4\n    claim = _state()[\"minimal_rc_benchmark\"][\"pytest\"]\n            ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'minimal_rc_benchmark'\n"
+    }
+   ]
+  },
+  {
+   "test_file": "tests/evaluation/test_audit_correction_verification.py",
+   "test_file_sha256": "794ba31934973d4f59971a7955c9697b8cf01b1e343a6f2b0e16c08f39c6d7d9",
+   "status": "FAIL",
+   "n_passed": 2,
+   "n_failed": 2,
+   "n_skipped": 0,
+   "n_unsupported": 0,
+   "cases": [
+    {
+     "test": "test_evidence_refs_exist",
+     "status": "PASS"
+    },
+    {
+     "test": "test_frozen_benchmark_tests_pass",
+     "status": "FAIL",
+     "error": "AssertionError: reality benchmark tests FAILED:\n\n/usr/bin/python: No module named pytest\n",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 142, in run_file\n    fn()\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_audit_correction_verification.py\", line 133, in test_frozen_benchmark_tests_pass\n    assert result.returncode == 0, f\"reality benchmark tests FAILED:\\n{result.stdout}\\n{result.stderr}\"\n           ^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: reality benchmark tests FAILED:\n\n/usr/bin/python: No module named pytest\n\n"
+    },
+    {
+     "test": "test_reality_benchmark_assets_exist",
+     "status": "PASS"
+    },
+    {
+     "test": "test_state_file_has_mandatory_fields",
+     "status": "FAIL",
+     "error": "AssertionError: ",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 142, in run_file\n    fn()\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_audit_correction_verification.py\", line 104, in test_state_file_has_mandatory_fields\n    assert state[\"direction_version\"] == 62\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    }
+   ]
+  }
+ ],
+ "what_this_is_not": "NOT pytest. This runner does not discover, collect, fixture-inject, xfail or report the way pytest does. A case needing a fixture, a parametrisation or a construct outside supported_constructs is reported UNSUPPORTED and counted as NOT-RUN, never as passed, so the counts here are an UPPER BOUND on what pytest would execute. A SHIM_PASS does NOT withdraw the standing disclosure that the lane's pytest scope is unexecuted in the producer image and that the snapshot-audit READY verdict is conditional on that absence.",
+ "why_it_exists": "An unexecuted test file is an unverified claim. This converts the lane's pytest-style tests into a measurement in an image where pytest is absent, without pretending the absence is fixed."
 }
