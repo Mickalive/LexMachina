@@ -38,6 +38,7 @@ SCHEMA = "product-audit-step-diagnosis/1"
 TEAM_JOB = "team"
 AUDIT_JOB = "audit"
 AUDIT_STEP = "Independent audit"
+SCOPE_VIOLATION_RE = re.compile(r"auditor crossed scope", re.IGNORECASE)
 QUANTUM_RE = re.compile(r"LEX_WORK_QUANTUM_EXPIRED\s+seconds=(\d+)")
 EXIT_CODE_RE = re.compile(r"exit code\s+(\d+)", re.IGNORECASE)
 
@@ -74,8 +75,8 @@ def _job_annotations(snapshot: dict, job: dict) -> list[dict]:
 
 
 def _failure_annotations(snapshot: dict, team: dict, audit: dict,
-                         audit_step_failed: bool, failed_team_step: dict | None
-                         ) -> dict:
+                         audit_step_failed: bool, audit_failed: bool,
+                         failed_team_step: dict | None) -> dict:
     """Extract the *observable* failure annotations, if the snapshot has them.
 
     GitHub check-run annotations are public even when job logs require admin
@@ -83,10 +84,14 @@ def _failure_annotations(snapshot: dict, team: dict, audit: dict,
     ``LEX_WORK_QUANTUM_EXPIRED seconds=2700`` and exit code 78, so a quantum
     expiry can be stated as observed evidence instead of "mechanism unknown".
     """
-    if audit_step_failed:
-        job_name, job = AUDIT_JOB, audit
-    elif failed_team_step is not None:
+    if failed_team_step is not None:
         job_name, job = TEAM_JOB, team
+    elif audit_step_failed or audit_failed:
+        # The audit job can die AFTER its agent step succeeded: the workflow's
+        # gate-reader step then fails on a write-scope violation or a missing
+        # gate.  The public annotations belong to the audit job in that case
+        # too, so they must not be dropped just because the agent step passed.
+        job_name, job = AUDIT_JOB, audit
     else:
         job_name, job = None, {}
     messages = [
@@ -136,6 +141,8 @@ def classify(snapshot: dict) -> dict:
     team_ok = team.get("conclusion") == "success"
     audit_failed = audit.get("conclusion") == "failure"
     audit_step_failed = bool(audit_step and audit_step.get("conclusion") == "failure")
+    audit_step_ok = bool(audit_step and audit_step.get("conclusion") == "success")
+    gate_failed = bool(gate_step and gate_step.get("conclusion") == "failure")
     gate_skipped = bool(gate_step and gate_step.get("conclusion") == "skipped")
     # The workflow guards "Persist team snapshot" with `if: always()`, so the
     # step conclusion is the FACT about the snapshot, independent of whether
@@ -151,7 +158,12 @@ def classify(snapshot: dict) -> dict:
     )
     audit_skipped = audit.get("conclusion") == "skipped"
     annotations = _failure_annotations(
-        snapshot, team, audit, audit_step_failed, failed_team_step
+        snapshot, team, audit, audit_step_failed, audit_failed,
+        failed_team_step,
+    )
+    scope_violation = any(
+        SCOPE_VIOLATION_RE.search(message)
+        for message in annotations.get("messages") or []
     )
     quantum_seconds = annotations.get("quantum_seconds")
     quantum_expired = bool(annotations.get("quantum_expired"))
@@ -167,6 +179,18 @@ def classify(snapshot: dict) -> dict:
             classification = "TEAM_JOB_FAILED_OTHER_STEP"
     elif team_ok and audit_failed and audit_step_failed and gate_skipped:
         classification = "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE"
+    elif team_ok and audit_failed and audit_step_ok and gate_failed:
+        # Sixth real failure mode, observed on run 40427889739: the independent
+        # auditor finished, but the workflow's gate-reader step failed.  Its
+        # annotation reads "auditor crossed scope:" and the runner reports exit
+        # code 3, so the audit wrote at least one path outside
+        # results/audit/<lane>/ and reports/audit/<lane>/.  The always-run
+        # persist step is skipped, hence no audit ref and no gate exists.  This
+        # is an auditor write-scope failure, not a product rejection.
+        if scope_violation:
+            classification = "AUDIT_JOB_AUDIT_SCOPE_ENFORCEMENT_FAILED_NO_GATE"
+        else:
+            classification = "AUDIT_JOB_GATE_STEP_FAILED_NO_GATE"
     elif team_ok and audit_failed:
         classification = "AUDIT_JOB_FAILED_OTHER_STEP"
     elif team_ok and audit.get("conclusion") == "success":
@@ -204,6 +228,36 @@ def classify(snapshot: dict) -> dict:
             )
             + " No provider or auth cause is claimed."
         )
+    elif team_ok and audit_failed and audit_step_ok and gate_failed:
+        # The audit AGENT succeeded; the workflow's own reader/write-scope
+        # enforcement failed afterwards.  Saying "the independent-audit agent
+        # process exited non-zero" would be false for this class.
+        if scope_violation:
+            mechanism_status = "OBSERVED_AUDIT_SCOPE_ENFORCEMENT_FAILED"
+            mechanism_claim = (
+                "The 'Independent audit' agent step succeeded and the audit "
+                "job then died at 'Enforce audit scope and read gate'. The "
+                "public check-run annotation reads "
+                f"{'auditor crossed scope:'!r} and the runner reports "
+                f"exit code {annotations.get('exit_code')}; the per-path list "
+                "is not exposed in the public annotation and job logs are not "
+                "downloadable here. The 'Persist audit snapshot' step was "
+                "skipped, so no audit ref and no gate exist for this run. This "
+                "is an auditor WRITE-SCOPE failure, not a product rejection "
+                "and not a verdict. No provider, auth or work-quantum cause is "
+                "asserted."
+            )
+        else:
+            mechanism_status = "OBSERVED_AUDIT_GATE_STEP_FAILED"
+            mechanism_claim = (
+                "The 'Independent audit' agent step succeeded and the audit "
+                "job then died at 'Enforce audit scope and read gate' for a "
+                "reason the public snapshot does not name (no scope annotation "
+                "was captured). The persist step was skipped, so no audit ref "
+                "and no gate exist. This is an audit-handoff failure, not a "
+                "product rejection; no provider, auth or work-quantum cause is "
+                "asserted."
+            )
     elif not team_ok:
         # The mechanism block's vocabulary used to be binary: observed quantum
         # expiry, or UNOBSERVED with a claim that "job logs are not
@@ -304,6 +358,28 @@ def classify(snapshot: dict) -> dict:
             "infer a REVISE, BLOCKED verdict or a product regression from a "
             "quantum expiry."
         )
+    elif team_ok and audit_failed and audit_step_ok and gate_failed:
+        control_plane_attention = (
+            "the independent-audit agent finished, but the workflow's "
+            "gate-reader step rejected the audit workspace because at least "
+            "one path was written outside results/audit/<lane>/ and "
+            "reports/audit/<lane>/ (annotation 'auditor crossed scope:', "
+            "runner exit code 3). The gate-reader never read a gate, the "
+            "persist step was skipped, and no audit ref exists. .github/** "
+            "belongs to the control plane and is recorded, never edited from a "
+            "lane. The product-side route-around is "
+            "product/audit_scope_guard.py: the auditor can run it after "
+            "writing its two artifacts and remove every listed path before the "
+            "workflow's own check."
+        )
+        next_action = (
+            "Re-run the independent audit from this persisted snapshot and "
+            "write ONLY results/audit/<lane>/CYCLE_<run>_GATE.json and "
+            "reports/audit/<lane>/CYCLE_<run>.md; run "
+            "product/audit_scope_guard.py --scope audit before handing off. Do "
+            "not infer a REVISE, a BLOCKED verdict or a product regression from "
+            "the auditor's scope failure."
+        )
     elif team_ok:
         control_plane_attention = (
             "re-run the independent audit; no workflow change is identified "
@@ -364,7 +440,11 @@ def classify(snapshot: dict) -> dict:
         },
         "audit": {
             "conclusion": audit.get("conclusion"),
-            "failed_step": AUDIT_STEP if audit_step_failed else None,
+            "failed_step": next(
+                (s.get("name") for s in audit.get("steps") or []
+                 if s.get("conclusion") == "failure"),
+                None,
+            ),
             "independent_audit_step_seconds": audit_step_seconds,
             "gate_step": (gate_step or {}).get("conclusion"),
             "persist_step": (persist_step or {}).get("conclusion"),

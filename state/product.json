@@ -170,7 +170,15 @@
     "results/product/orchestration/CYCLE_40423595480_resume_diagnosis.json",
     "results/product/audit_readiness/CYCLE_40423889401_audit_readiness.json",
     "reports/product/CYCLE_40423889401.md",
-    "results/audit/product/CYCLE_40284658455_GATE.json"
+    "results/audit/product/CYCLE_40284658455_GATE.json",
+    "product/capture_run_snapshot.py",
+    "product/audit_scope_guard.py",
+    "results/product/orchestration/CYCLE_40427889739_run_jobs_raw.json",
+    "results/product/orchestration/CYCLE_40427889739_resume_diagnosis.json",
+    "product/tests/test_cycle_40429931848_resume.py",
+    "results/product/progressive_smoke/CYCLE_40429931848_progressive_smoke.json",
+    "results/product/audit_readiness/CYCLE_40429931848_audit_readiness.json",
+    "reports/product/CYCLE_40429931848.md"
   ],
   "evidence_tier": "REPRODUCED",
   "human_gate_ready": false,
@@ -191,7 +199,7 @@
   },
   "lane": "product",
   "machine_gate_ready": false,
-  "next_recommendation": "Direction v68 / FAST MVP, repair round 1 of rejected cycle 40423889401 (run 40427889739, UNADJUDICATED pending independent audit). WHAT WAS REPAIRED: the single audit required_fix - the audit-readiness dossier results/product/audit_readiness/CYCLE_40423889401_audit_readiness.json was regenerated AFTER the report and state bytes were final, so all 8 claim_artifacts sha256 values match the committed blobs (before: 2 stale / 6 match; after: 8/8; evidence results/product/repair_40427889739/dossier_hash_reconciliation.json); a --verify mode and 4 synthetic-dossier tests now fail closed on a missing or stale hash. NOTHING ELSE WAS CHANGED: the orchestration diagnosis of 40423595480, the accepted-pointer advance to CYCLE_40284658455 / 7be4480e, the prior cycle-test repairs and all product work are consumed unchanged from 40423889401. The accepted query-map vertical slice at 7be4480e remains accepted. NEXT CYCLE: take a fresh executable product question/delta; do not re-dispatch an operational resume of the accepted head. Posture stays FAIL-CLOSED: human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session all FALSE (both frozen bars unmet), owner_decision_required false, continue_recommended TRUE.",
+  "next_recommendation": "Direction v68 / FAST MVP, operational resume of 40427889739 (run 40429931848, UNADJUDICATED pending independent audit). WHAT FAILED: the audit job's 'Independent audit' agent step SUCCEEDED (302 s) and the workflow's 'Enforce audit scope and read gate' step then failed with the public annotation 'auditor crossed scope:' (exit 3); the always-run persist step was skipped, so no audit ref and no gate exist. The producer snapshot is intact: team success, 8-file committed delta over 40423889401. The per-path list is NOT observed (job logs HTTP 403) and no product rejection is inferred. WHAT LANDED: post-agent audit-scope classification, product/audit_scope_guard.py (auditor-side exit-3 pre-handoff check), product/capture_run_snapshot.py, the 40427889739 resume diagnosis, a 9-test cycle, and a PASS 23/23 query-slice smoke (100 decisions / 8 clusters / cited answer). NEXT: an independent audit can re-run from this snapshot after writing ONLY results/audit/product/ and reports/audit/product/; otherwise take a fresh executable product delta. Do not re-dispatch a blind resume of 40427889739. Posture stays FAIL-CLOSED: human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session all FALSE (both frozen bars unmet), owner_decision_required false, continue_recommended TRUE.",
   "not_claimed": [
     "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
     "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
@@ -216,7 +224,11 @@
     "No log-level cause is asserted for run 40423595480's 'Run lane cycle' failure: the job-logs endpoint returned HTTP 403 and only the public step conclusions are observed.",
     "No claim that the accepted-head cycle-test repair changed any product capability, bundle byte, frozen predicate or gate. It repairs validation drift only.",
     "No claim that the 333 team refs at 7be4480e are individually adjudicated; they are a git-ref dispatch observation, not a verdict on any run.",
-    "No frozen bar was scored, no serve verdict re-run and no packet admission changed; both frozen bars remain unmet."
+    "No frozen bar was scored, no serve verdict re-run and no packet admission changed; both frozen bars remain unmet.",
+    "No per-path list is asserted for run 40427889739's audit write-scope failure: the public annotation exposes only 'auditor crossed scope:' and exit code 3, and the job-logs endpoint returned HTTP 403.",
+    "The audit write-scope failure is an auditor/control-plane fact, not a product rejection, a REVISE, a BLOCKED verdict or a product regression.",
+    "No new product capability, live OpenCaseLaw latency, answer-quality or legal-usefulness claim is made by this resume; the query-slice smoke is fixture-mode engineering evidence.",
+    "The prior cycle 40423889401 dossier is preserved, not rewritten. Its state/product.json hash is point-in-time and is expected to differ after this cycle updates state; its other seven hashes remain unchanged."
   ],
   "packet_admitted": false,
   "ready_for_owner_session": false,
@@ -470,7 +482,10 @@
     "fixture_mode_anchor_labels_gate": "closed=false (measured exposure != 0)",
     "accepted_head_resume_guard": true,
     "noop_resume_diagnosis": true,
-    "accepted_head_cycle_test": "product/tests/test_cycle_40284658455.py (repaired to post-acceptance truth)"
+    "accepted_head_cycle_test": "product/tests/test_cycle_40284658455.py (repaired to post-acceptance truth)",
+    "audit_scope_guard": true,
+    "reproducible_run_snapshot_capture": true,
+    "post_agent_audit_scope_diagnosis": true
   },
   "cycle_40154120551_operational_resume": {
     "kind": "OPERATIONAL RESUME of run 40152073380 (persisted producer snapshot a1de800)",
@@ -1086,9 +1101,9 @@
     "audit_namespace_written": false,
     "claim_ceiling": "OPERATIONAL-RESUME AND AUDIT-READINESS EVIDENCE ONLY. No live retrieval, legal usefulness, frozen bar, serve verdict, acceptance or human-gate readiness is asserted."
   },
-  "current_cycle_run_id": 40427889739,
+  "current_cycle_run_id": 40429931848,
   "last_repair_round": 1,
-  "last_updated": "2026-10-27T00:45:39Z",
+  "last_updated": "2026-10-27T01:16:00Z",
   "run_history": [
     {
       "run_id": "40241250741",
@@ -1240,6 +1255,16 @@
       "summary": "Applied the single required fix of CYCLE_40423889401_GATE.json: regenerated the audit-readiness dossier after final report/state bytes so all 8 claim_artifacts hashes match the committed blobs; added a --verify mode and regression test for committed-dossier integrity. No product, diagnosis, pointer or prior test repair was redone.",
       "report": "reports/product/CYCLE_40427889739_REPAIR1.md",
       "date": "2026-10-27T00:45:39Z"
+    },
+    {
+      "run_id": "40429931848",
+      "repair_round": 0,
+      "status": "OPERATIONAL_RESUME_AUDIT_SCOPE_FAILURE_DIAGNOSIS",
+      "audit_gate": "NONE",
+      "summary": "Operational resume of snapshot 40427889739. Its team job succeeded with an 8-file committed delta; its audit job's 'Independent audit' agent step succeeded, then 'Enforce audit scope and read gate' failed with the annotation 'auditor crossed scope:' (exit 3), the persist step was skipped and no audit ref/gate exists. Diagnosed the new post-agent audit-scope failure mode, added audit_scope_guard.py and capture_run_snapshot.py, and verified the query slice (PASS 23/23, 100 decisions / 8 clusters). Logs HTTP 403, so the offending paths are not asserted. UNADJUDICATED, not rejected; posture fail-closed.",
+      "report": "reports/product/CYCLE_40429931848.md",
+      "diagnosis": "results/product/orchestration/CYCLE_40427889739_resume_diagnosis.json",
+      "date": "2026-10-27T01:16:00Z"
     }
   ],
   "cycle_40247041354_resume": {
@@ -2203,5 +2228,83 @@
       "reason": "This repair run has neither an independent PASS gate on a cycle audit ref nor an accept commit."
     },
     "claim_ceiling": "Provenance repair only. This cycle claims only that the rejected cycle's own audit-readiness dossier now hashes the committed bytes and that a --verify instrument exists to re-check it. It makes no new product capability, live-retrieval, legal-usefulness, answer-quality, frozen-bar, serve-verdict, packet-admission or human-gate claim. The accepted query-map vertical slice at 7be4480e remains accepted and unchanged."
+  },
+  "cycle_40429931848_operational_resume": {
+    "schema": "product-cycle-operational-resume/1",
+    "run_id": "40429931848",
+    "kind": "OPERATIONAL RESUME of run 40427889739 (persisted producer snapshot 4b8101f9)",
+    "direction_version": 68,
+    "resumed_run": "40427889739",
+    "predecessor_run_id": "40423889401",
+    "snapshot_head": "4b8101f9a4a7564db2bb2db246978b9d811225bb",
+    "accepted_base": {
+      "accepted_run_id": "CYCLE_40284658455",
+      "accepted_commit": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+      "unchanged_this_cycle": true
+    },
+    "orchestration_failure_of_record": {
+      "run_id": "40427889739",
+      "classification": "AUDIT_JOB_AUDIT_SCOPE_ENFORCEMENT_FAILED_NO_GATE",
+      "mechanism": "OBSERVED_AUDIT_SCOPE_ENFORCEMENT_FAILED",
+      "team_job": "success",
+      "audit_job": "failure",
+      "independent_audit_step": "success",
+      "independent_audit_step_seconds": 302.0,
+      "audit_failed_step": "Enforce audit scope and read gate",
+      "persist_step": "skipped",
+      "exit_code": 3,
+      "annotation": "auditor crossed scope:",
+      "logs_endpoint_status": 403,
+      "offending_paths": "NOT OBSERVED: the public annotation exposes only the scope header and exit code; job logs return HTTP 403",
+      "consequence": "no audit ref, no gate, integrate skipped; the producer tree is intact and the run is UNADJUDICATED, not rejected",
+      "product_defect": false,
+      "verdict_written": false,
+      "gate_minted": false,
+      "control_plane_attention": "the auditor must write only results/audit/product/ and reports/audit/product/; product/audit_scope_guard.py --scope audit exits 3 and lists any out-of-scope path before handoff. .github/** is control-plane scope and is recorded, never edited from this lane."
+    },
+    "durable_delta": {
+      "classification": "COMMITTED_DELTA",
+      "changed_files": 8,
+      "snapshot_head": "4b8101f9a4a7564db2bb2db246978b9d811225bb",
+      "predecessor_head": "c63dd30407ca4b8849e93a158e422944f968672b",
+      "paths": [
+        "product/audit_readiness.py",
+        "product/tests/test_audit_readiness_verify.py",
+        "reports/product/CYCLE_40423889401.md",
+        "reports/product/CYCLE_40427889739_REPAIR1.md",
+        "results/product/audit_readiness/CYCLE_40423889401_audit_readiness.json",
+        "results/product/repair_40427889739/dossier_hash_reconciliation.json",
+        "results/product/repair_40427889739/pre_repair_dossier_hashes.json",
+        "state/product.json"
+      ],
+      "meaning": "the repair1 snapshot can be resumed and audited on its own bytes; the scope failure did not destroy or reject the repair"
+    },
+    "what_changed_this_cycle": [
+      "product/audit_step_diagnosis.py: classify a post-agent gate-reader failure (scope annotation -> AUDIT_JOB_AUDIT_SCOPE_ENFORCEMENT_FAILED_NO_GATE; otherwise AUDIT_JOB_GATE_STEP_FAILED_NO_GATE) without changing existing snapshot classifications",
+      "product/audit_scope_guard.py: pure git-status parser + fail-closed auditor scope check (exit 3, path list)",
+      "product/capture_run_snapshot.py: reproducible public run/jobs + annotations capture with a pure build_snapshot",
+      "product/audit_readiness.py: observed_audit_scope mechanism and the 40429931848 profile",
+      "product/tests/test_cycle_40429931848_resume.py: 9 tests pinning the raw facts, classifier, profile, guard, capture shape and posture",
+      "results/product/progressive_smoke/CYCLE_40429931848_progressive_smoke.json: PASS 23/23 over a real socket in fixture mode"
+    ],
+    "runnable_verification": {
+      "state_contract": "python3 product/state_contract.py --check --direction-version 68 --json -> exit 0",
+      "cycle_test": "python3 -m pytest product/tests/test_cycle_40429931848_resume.py -q -> 9 passed",
+      "prior_repair_preserved": "the 40423889401 repair report and its 8-file dossier are preserved byte-for-byte; a current --verify shows 7/8 because that dossier's state/product.json hash is point-in-time (the state necessarily moved this cycle), not a regression",
+      "query_slice": "python3 product/progressive_smoke.py --run-id 40429931848 -> PASS 23/23; 100 decisions, 8 clusters, cited answer, /query.html 200 text/html",
+      "audit_entry": "python3 product/audit_scope_guard.py --scope audit"
+    },
+    "adjudication": {
+      "status": "UNADJUDICATED",
+      "accepted": false,
+      "product_defect": false,
+      "verdict_written": false,
+      "gate_minted": false,
+      "audit_namespace_written": false,
+      "audit_ref_present": false,
+      "reason": "the independent audit did not complete its scope check and published no gate; neither half of requirement 4 exists for 40427889739 or this resume"
+    },
+    "accepted_this_cycle": false,
+    "claim_ceiling": "Orchestration diagnosis, audit write-scope route-around and re-verification of the shipped query slice on this snapshot only. No live retrieval, legal-usefulness, answer-quality, frozen-bar, serve-verdict, packet-admission or human-gate claim is made. The auditor's unobserved path list is not asserted and the run is not labelled rejected."
   }
 }

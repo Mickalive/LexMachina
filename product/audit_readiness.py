@@ -369,6 +369,48 @@ PROFILES: dict[str, dict[str, Any]] = {
                              / "self_minted_gate_40278460732_producer_"
                                "40283048553.QUARANTINED.json",
     },
+    "40429931848": {
+        # Operational resume dispatched from main after the repair1 snapshot
+        # (run 40427889739) was persisted.  The repair itself was not rejected:
+        # the audit job's agent step SUCCEEDED, then the workflow's own gate
+        # reader failed at write-scope enforcement ("auditor crossed scope",
+        # exit 3), the persist step was skipped, and no audit ref exists.
+        "resumed_run_id": "40427889739",
+        "predecessor_run_id": "40423889401",
+        "raw": ORCH / "CYCLE_40427889739_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40427889739_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40427889739_REPAIR1.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40429931848.md",
+        "classification": "AUDIT_JOB_AUDIT_SCOPE_ENFORCEMENT_FAILED_NO_GATE",
+        "mechanism_kind": "observed_audit_scope",
+        "failed_job": "audit",
+        "exit_code": 3,
+        "audit_failed_step": "Enforce audit scope and read gate",
+        "delta_kind": "committed",
+        "changed_files": 8,
+        "changed_paths_include": (
+            "product/audit_readiness.py",
+            "results/product/repair_40427889739/",
+        ),
+        "cycle_test": "product/tests/test_cycle_40429931848_resume.py",
+        "state_block": "cycle_40429931848_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "replay_summary": ROOT / "results" / "product" / "live_cache_replay"
+                          / "CYCLE_40257275384" / "summary.json",
+        "query_map_diagnosis": ROOT / "results" / "product"
+                               / "query_map_diagnosis"
+                               / "CYCLE_40257275384.json",
+    },
     "40423889401": {
         "resumed_run_id": "40423595480",
         # The snapshot is byte-identical to the accepted head produced by
@@ -726,6 +768,64 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                 problems.append("raw_scope_step_not_failure")
         else:
             problems.append("raw_snapshot_missing")
+    elif mechanism_kind == "observed_audit_scope":
+        # Sixth real failure mode, observed on run 40427889739: the audit
+        # job's "Independent audit" agent step SUCCEEDED, then the workflow's
+        # "Enforce audit scope and read gate" step failed (annotation "auditor
+        # crossed scope:", exit 3).  The always-run persist step was skipped,
+        # so no audit ref and no gate exist.  This is an AUDITOR write-scope
+        # failure, not a product rejection, and it must not be described with
+        # the producer-minted-gate wording of "observed_scope".
+        mechanism = orch.get("mechanism") or {}
+        audit = orch.get("audit") or {}
+        exit_code = p("exit_code")
+        failed_audit_step = p("audit_failed_step",
+                              "Enforce audit scope and read gate")
+        if mechanism.get("status") != "OBSERVED_AUDIT_SCOPE_ENFORCEMENT_FAILED":
+            problems.append("mechanism_status")
+        if mechanism.get("logs_available") is not False:
+            problems.append("logs_available")
+        if mechanism.get("logs_endpoint_status") != 403:
+            problems.append("logs_endpoint_status")
+        if mechanism.get("quantum_expired") is not False:
+            problems.append("quantum_expired")
+        if mechanism.get("exit_code") != exit_code:
+            problems.append("exit_code")
+        if audit.get("failed_step") != failed_audit_step:
+            problems.append("audit_failed_step")
+        if audit.get("gate_step") != "failure":
+            problems.append("gate_step")
+        if audit.get("persist_step") != "skipped":
+            problems.append("persist_step")
+        if audit.get("gate_file_written") is not False:
+            problems.append("gate_file_written")
+        if not audit.get("independent_audit_step_seconds"):
+            problems.append("independent_audit_step_seconds")
+        # Cross-check the raw snapshot the profile names: the agent step must
+        # read success, the gate step failure, and the persist step skipped.
+        # The public annotation must name the scope violation and exit code.
+        if raw is not None and raw.is_file():
+            raw_doc = _load(raw)
+            raw_audit = next((j for j in raw_doc.get("jobs") or []
+                              if j.get("name") == "audit"), None)
+            steps = {s.get("name"): s.get("conclusion")
+                     for s in (raw_audit or {}).get("steps") or []}
+            if steps.get("Independent audit") != "success":
+                problems.append("raw_audit_step_not_success")
+            if steps.get(failed_audit_step) != "failure":
+                problems.append("raw_gate_step_not_failure")
+            if steps.get("Persist audit snapshot") != "skipped":
+                problems.append("raw_persist_step_not_skipped")
+            anns = ((raw_doc.get("annotations") or {})
+                    .get(str((raw_audit or {}).get("id"))) or [])
+            messages = " ".join(str(a.get("message") or "")
+                                for a in anns if isinstance(a, dict))
+            if "auditor crossed scope" not in messages.lower():
+                problems.append("raw_scope_annotation_missing")
+            if f"exit code {exit_code}" not in messages.lower():
+                problems.append("raw_exit_annotation_missing")
+        else:
+            problems.append("raw_snapshot_missing")
     elif mechanism_kind == "observed_steps":
         # Fifth real failure mode, observed on run 40423595480: the public jobs
         # API fixes WHICH step failed (``Run lane cycle``) and that the always-
@@ -824,6 +924,12 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                    "on a producer-minted auditor-namespace gate file (no "
                    "work quantum reached, audit skipped), durable delta "
                    "present, run unadjudicated")
+    elif mechanism_kind == "observed_audit_scope":
+        summary = (f"Resumed run {resumed_id}: independent-audit agent step "
+                   "succeeded, then the audit job failed at write-scope "
+                   "enforcement ('auditor crossed scope', exit 3), the persist "
+                   "step was skipped, no gate/audit ref exists, durable delta "
+                   "present, run unadjudicated")
     elif mechanism_kind == "observed_steps":
         summary = (f"Resumed run {resumed_id}: team job failed at 'Run lane "
                    "cycle' (jobs API observed; logs endpoint HTTP 403, so no "
@@ -840,6 +946,10 @@ def check_resumed_diagnosis() -> dict[str, Any]:
         ev = Path(p("lane_cycle_log_evidence", LANE_CYCLE_LOG_EVIDENCE))
         if ev.is_file():
             evidence.append(str(ev.relative_to(ROOT)))
+    if mechanism_kind == "observed_audit_scope":
+        guard = ROOT / "product" / "audit_scope_guard.py"
+        if guard.is_file():
+            evidence.append(str(guard.relative_to(ROOT)))
     return _check(
         "resumed_diagnosis",
         summary,
@@ -1229,6 +1339,28 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
         c1_artifacts = (
             ([str(raw.relative_to(ROOT))] if raw is not None else [])
             + [str(resume_diag.relative_to(ROOT))])
+    elif mechanism_kind == "observed_audit_scope":
+        orch = resumed.get("orchestration") or {}
+        audit = orch.get("audit") or {}
+        c1_claim = (
+            f"Run {resumed_id}'s 'Independent audit' agent step SUCCEEDED "
+            f"({audit.get('independent_audit_step_seconds')} s), and the "
+            f"audit job then died at "
+            f"'{audit.get('failed_step', 'Enforce audit scope and read gate')}' "
+            f"(exit {p('exit_code', 3)}) with the public check-run annotation "
+            "'auditor crossed scope:'. The per-path list is not exposed in "
+            "the public annotation and job logs are not downloadable here "
+            "(HTTP 403). The always-run 'Persist audit snapshot' step was "
+            "skipped, so no audit ref and no gate exists; the run is "
+            "UNADJUDICATED. This is an AUDITOR write-scope failure, not a "
+            "product rejection. product/audit_scope_guard.py makes the two "
+            "allowed prefixes (results/audit/product/, reports/audit/product/) "
+            "executable before handoff."
+        )
+        c1_artifacts = (
+            ([str(raw.relative_to(ROOT))] if raw is not None else [])
+            + [str(resume_diag.relative_to(ROOT)),
+               "product/audit_scope_guard.py"])
     elif mechanism_kind == "observed_steps":
         orch = resumed.get("orchestration") or {}
         team = orch.get("team") or {}
