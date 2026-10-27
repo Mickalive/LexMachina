@@ -76,6 +76,29 @@ def slot_model(run_id: str, lane: str, direction_version: int,
             "pool_size": len(pool), "selected_model": pool[index]}
 
 
+def _step_seconds(team: dict[str, Any], name: str) -> float | None:
+    """Wall-clock duration of one team step from the public job payload.
+
+    The one datum the earlier streak diagnosis could not see: a session that
+    ran for minutes and a child that died before its first turn are both
+    ``exit code 1``, but only the timestamps separate them.  ``None`` when the
+    payload carries no timestamps for the step.
+    """
+    for step in team.get("steps") or []:
+        if step.get("name") != name:
+            continue
+        started, done = step.get("started_at"), step.get("completed_at")
+        if not started or not done:
+            return None
+        try:
+            fmt = "%Y-%m-%dT%H:%M:%SZ"
+            from datetime import datetime as _dt  # local import, zero cost
+            return round((_dt.strptime(done, fmt) - _dt.strptime(started, fmt)).total_seconds(), 1)
+        except ValueError:
+            return None
+    return None
+
+
 def _annotation_exit(raw: dict[str, Any]) -> int | None:
     """Exit code of the failing team step, from public annotations only."""
     text = []
@@ -133,6 +156,41 @@ def health_blob(head_sha: str) -> tuple[dict[str, Any] | None, str]:
         return None, "MODEL_HEALTH_UNPARSEABLE_AT_HEAD_SHA"
 
 
+def _classification(entries: list[dict[str, Any]]) -> str:
+    """Derive the streak class from observed exit codes and step durations.
+
+    Never hard-coded: a new run with a different exit code must change the
+    published class, otherwise the label outlives its evidence.
+    """
+    def runs_where(pred) -> list[str]:
+        return [e["run_id"] for e in entries if pred(e)]
+
+    fast = runs_where(lambda e: e.get("exit_code_from_annotations") == 1
+                      and (e.get("run_lane_cycle_seconds") or 1e9) < 30)
+    slow1 = runs_where(lambda e: e.get("exit_code_from_annotations") == 1
+                       and (e.get("run_lane_cycle_seconds") or 0) >= 30)
+    zero = runs_where(lambda e: e.get("exit_code_from_annotations") == 67)
+    quantum = runs_where(lambda e: e.get("exit_code_from_annotations") == 78)
+    other = runs_where(lambda e: e.get("exit_code_from_annotations") not in
+                       (1, 67, 78))
+    parts = []
+    if fast:
+        parts.append(f"{len(fast)} pre-session child deaths (exit 1, Run lane "
+                     f"cycle <30s: {', '.join(fast)})")
+    if slow1:
+        parts.append(f"{len(slow1)} post-session child deaths (exit 1, >=30s: "
+                     f"{', '.join(slow1)})")
+    if zero:
+        parts.append(f"{len(zero)} zero-delta repair guards (exit 67: "
+                     f"{', '.join(zero)})")
+    if quantum:
+        parts.append(f"{len(quantum)} work-quantum expiries (exit 78: "
+                     f"{', '.join(quantum)})")
+    if other:
+        parts.append(f"{len(other)} other/unobserved exits: {', '.join(other)}")
+    return ("MIXED_STREAK: " + "; ".join(parts)) if parts else "EMPTY_STREAK"
+
+
 def diagnose(runs: list[str], lane: str, direction_version: int) -> dict[str, Any]:
     entries: list[dict[str, Any]] = []
     for run in runs:
@@ -150,6 +208,8 @@ def diagnose(runs: list[str], lane: str, direction_version: int) -> dict[str, An
             "head_sha": head_sha,
             "team_conclusion": team.get("conclusion"),
             "failed_step": failed_step,
+            "run_lane_cycle_seconds": _step_seconds(team, "Run lane cycle"),
+            "lane_cycle_step_budget": "child session only; excludes stage_control, registry and launcher work done inside the step",
             "persist_step_conclusion": steps.get("Persist team snapshot"),
             "audit_job_conclusion": next(
                 (j.get("conclusion") for j in raw["jobs"]
@@ -211,11 +271,24 @@ def diagnose(runs: list[str], lane: str, direction_version: int) -> dict[str, An
             "exit_code_67_selected_models": exit67_models,
             "exit_code_1_models_all_equal": (
                 len(set(exit1_models)) == 1 if exit1_models else None),
+            "run_lane_cycle_seconds": {
+                e["run_id"]: e.get("run_lane_cycle_seconds") for e in entries},
+            "fastest_failed_step_s": min(
+                (e["run_lane_cycle_seconds"] for e in entries
+                 if e.get("run_lane_cycle_seconds") is not None), default=None),
+            "under_30s_failures": [
+                e["run_id"] for e in entries
+                if e.get("run_lane_cycle_seconds") is not None
+                and e["run_lane_cycle_seconds"] < 30
+                and e.get("failed_step") == "Run lane cycle"],
+            "session_length_note": (
+                "A Run lane cycle step under ~30 s cannot contain a producer "
+                "turn sequence: stage_control (git fetch), registry validation "
+                "and launcher argument resolution alone consume most of it, so "
+                "the child exited before producing any durable work. This is a "
+                "TIMING fact from the public job payload, not a log-level cause."),
         },
-        "classification": (
-            "MIXED_STREAK: model-slot-correlated early child deaths (exit 1, "
-            "no wrapper sentinel) interleaved with one zero-delta repair guard "
-            "(exit 67)"),
+        "classification": _classification(entries),
         "mechanism": {
             "log_level": "UNOBSERVED (logs endpoint HTTP 403 on every run)",
             "exit_67_leg": WRAPPER_EXIT_MEANING[67],
