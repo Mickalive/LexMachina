@@ -148,12 +148,26 @@ LIVE_SLICE_SCHEMA = "product-live-slice/1"
 #: ``CYCLE_39689729561_report_testcount_disclosure.json``; the 39422322667
 #: artifact stays on disk byte-identical and is now named in
 #: ``DISCLOSURE_HISTORY``.
+#: REPOINT RECORD (run 40442150508, operational resume of producer snapshot
+#: 40436981920): the pin has sat on ``CYCLE_39689729561_report_testcount_
+#: disclosure.json`` while later reports of record joined the live-slice
+#: citation sweep, so ``citation_sweep.artifact_report_pairs`` measured 21
+#: against a published 19 (and 16 parsed claims against 12 published) - the
+#: "published claim does not reproduce from the committed tree" defect class,
+#: RED at the accepted base 7be4480e exactly as it is on this snapshot.
+#: This cycle's report of record also cites live-slice artifact
+#: ``20261022T141111Z.json``, which no report had ever cited, so
+#: ``test_every_live_slice_report_cites_its_artifact_s_own_count`` was failing
+#: on a vacuous sweep. The sweep was re-measured over the repaired tree AFTER
+#: that report was final and published under this cycle's run id;
+#: ``CYCLE_39689729561_report_testcount_disclosure.json`` stays on disk
+#: byte-identical and moves to ``DISCLOSURE_PREVIOUS_PIN``.
 DISCLOSURE = (ROOT / "results" / "product" / "regression"
-               / "CYCLE_39689729561_report_testcount_disclosure.json")
+               / "CYCLE_40442150508_report_testcount_disclosure.json")
 #: The previous pin, kept as a readable constant so a reader can diff the two
 #: artifacts instead of trusting prose about them.
 DISCLOSURE_PREVIOUS_PIN = (ROOT / "results" / "product" / "regression"
-                            / "CYCLE_39422322667_report_testcount_disclosure.json")
+                            / "CYCLE_39689729561_report_testcount_disclosure.json")
 #: Every disclosure artifact this pin has ever named, oldest first, each of
 #: which must still exist. A pin move moves a CHECK; it never removes evidence.
 DISCLOSURE_HISTORY = (
@@ -173,6 +187,8 @@ DISCLOSURE_HISTORY = (
     / "CYCLE_39389625385_report_testcount_disclosure.json",
     ROOT / "results" / "product" / "regression"
     / "CYCLE_39422322667_report_testcount_disclosure.json",
+    ROOT / "results" / "product" / "regression"
+    / "CYCLE_39689729561_report_testcount_disclosure.json",
 )
 
 #: The PRE-REPAIR BYTES of the report of record, extracted once from git

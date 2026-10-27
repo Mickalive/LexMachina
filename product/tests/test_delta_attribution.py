@@ -242,12 +242,26 @@ from product import test_delta_attribution as tda  # noqa: E402
 #: (``CYCLE_39852776080_test_delta_attribution.json``) so a file named for a
 #: run holds that run's measurement; no historical artifact is rewritten. The
 #: pin constant itself does NOT move.
+#: PIN REPOINT, run 40442150508 (operational resume of producer snapshot
+#: 40436981920): the previous pin ``CYCLE_39758711075_test_delta_attribution.json``
+#: recorded a working-tree total of 1491 while this tree collects 1767, so
+#: ``test_working_tree_total_still_equals_what_this_tree_collects`` and
+#: cycle_verify's "the attribution artifact's working-tree count still equals
+#: this tree's" were both RED on the accepted base 7be4480e as well as on this
+#: snapshot (measured, not asserted: 5 failed / 29 passed across this module
+#: and its sibling at 7be4480e, identical to this tree before the repair).
+#: The measurement is re-run over the same named base commit 9727a45 - the base
+#: the regression scope ``CYCLE_39144924680_regression_scope.json`` names, so
+#: the cross-check still compares one named commit - and published under this
+#: cycle's own run id. ``CYCLE_39758711075_test_delta_attribution.json`` stays
+#: on disk byte-identical and moves to ATTRIBUTION_PREVIOUS_PIN; nothing is
+#: rewritten and no historical measurement is removed.
 ATTRIBUTION = (ROOT / "results" / "product" / "regression"
-               / "CYCLE_39758711075_test_delta_attribution.json")
+               / "CYCLE_40442150508_test_delta_attribution.json")
 #: The previous pin, kept as a readable constant so a reader can diff the two
 #: artifacts instead of trusting prose about them.
 ATTRIBUTION_PREVIOUS_PIN = (ROOT / "results" / "product" / "regression"
-                             / "CYCLE_39689729561_test_delta_attribution.json")
+                             / "CYCLE_39758711075_test_delta_attribution.json")
 #: Every attribution artifact this pin has ever named, oldest first, each of
 #: which must still exist. A pin move moves a CHECK; it never removes evidence.
 #: The newest entry is the pin this module currently reads.
@@ -341,19 +355,20 @@ def test_head_total_is_corroborated_by_the_full_run_regression_artifact():
 def test_the_previous_pin_artifact_is_preserved_as_history():
     """The re-pointed pin moves a CHECK, never a piece of evidence.
 
-    ``CYCLE_39689729561_test_delta_attribution.json`` is the artifact the pin
-    named before this cycle's move (working-tree total 1373, head eb3fb98).
-    The artifact before it, ``CYCLE_39651573572_test_delta_attribution.json``
-    (working-tree total 1312, head fe30b0da6), the one before that,
+    ``CYCLE_39758711075_test_delta_attribution.json`` is the artifact the pin
+    named before run 40442150508's move (working-tree total 1491, head
+    845171af); the artifact before that,
+    ``CYCLE_39689729561_test_delta_attribution.json`` (working-tree total 1373,
+    head eb3fb98), before that ``CYCLE_39674781875_test_delta_attribution.json``
+    (working-tree total 1361, head dc924cd), before that
+    ``CYCLE_39651573572_test_delta_attribution.json`` (working-tree total 1312,
+    head fe30b0da6), before that
     ``CYCLE_39538762904_test_delta_attribution.json`` (working-tree total 1306,
-    head c3ad235), the one before that,
-    ``CYCLE_39384462218_test_delta_attribution.json`` (working-tree total 1277,
-    head 1ee024c2), the one before that,
-    ``CYCLE_39357593249_test_delta_attribution.json`` (working-tree total 1273,
-    head 53659e6), ``CYCLE_39262796670_test_delta_attribution.json`` (working-tree
-    total 1242, head 3e18eb7) and the oldest,
+    head c3ad235), before that
+    ``CYCLE_39262796670_test_delta_attribution.json`` (working-tree total 1242,
+    head 3e18eb7) and the oldest,
     ``CYCLE_39172315384_test_delta_attribution.json`` (working-tree total 1191,
-    head 2d8768e), are still on disk too: the pin has now moved eight times and
+    head 2d8768e), are still on disk too: the pin has now moved nine times and
     no move may remove a measurement. Repointing ATTRIBUTION must not delete or
     rewrite any of them; the reason the pin moved is recorded at the constant,
     and the old numbers stay readable so a reader can compare the artifacts
@@ -367,21 +382,31 @@ def test_the_previous_pin_artifact_is_preserved_as_history():
     named artifact. Refreshed, not relaxed: the assertions now name the
     artifact the constant actually points at, the whole history chain is still
     walked, and every historical measurement is still required to be on disk
-    and byte-stable.
+    and byte-stable. Run 40442150508 applied the same rule when it moved the
+    pin again: the numbers below were re-read from the artifact the constant
+    points at, not copied from the previous wording.
     """
     assert ATTRIBUTION_PREVIOUS_PIN.exists(), (
         "the historical attribution artifact the previous pin named is gone - "
         "a pin move must never remove evidence")
-    assert ATTRIBUTION_PREVIOUS_PIN.name == "CYCLE_39689729561_test_delta_attribution.json", (
+    assert ATTRIBUTION_PREVIOUS_PIN.name == "CYCLE_39758711075_test_delta_attribution.json", (
         f"the previous pin points at {ATTRIBUTION_PREVIOUS_PIN.name}; this guard's "
         "recorded numbers belong to a different artifact")
     old = json.loads(ATTRIBUTION_PREVIOUS_PIN.read_text(encoding="utf-8"))
-    assert old["head"]["commit"].startswith("eb3fb98"), (
+    assert old["head"]["commit"].startswith("845171af"), (
         f"the historical artifact no longer records the tree it was published "
         f"for (head {old['head']['commit'][:7]})")
-    assert old["working_tree"]["collected_total"] == 1373, (
+    assert old["working_tree"]["collected_total"] == 1491, (
         "the historical artifact's working-tree total was edited; a re-pointed "
         "pin must leave the previous measurement byte-stable")
+    prior_pin = (ROOT / "results" / "product" / "regression"
+                 / "CYCLE_39689729561_test_delta_attribution.json")
+    assert prior_pin.exists(), (
+        "the artifact the pin named BEFORE the previous move is gone; nine pin "
+        "moves must have preserved every historical measurement")
+    prior = json.loads(prior_pin.read_text(encoding="utf-8"))
+    assert prior["head"]["commit"].startswith("eb3fb98")
+    assert prior["working_tree"]["collected_total"] == 1373
     prior_pin = (ROOT / "results" / "product" / "regression"
                  / "CYCLE_39674781875_test_delta_attribution.json")
     assert prior_pin.exists(), (
