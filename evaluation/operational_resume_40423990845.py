@@ -1134,8 +1134,37 @@ def run_post_state_test() -> dict:
     }
 
 
+def ensure_nested_ref_source() -> dict:
+    """Fetch the one historical audit branch a nested state ref points at.
+
+    state/evaluation.json -> github_run_advance_40246705199.required_fixes_source
+    cites results/audit/evaluation/CYCLE_40246705199_GATE.json, which lives only
+    on that cycle's audit branch. Without the branch fetched, the nested-refs
+    guard cannot resolve it and the resume would be blocked by a read-only
+    provenance gap. This fetch is read-only; it edits no state and no audit file.
+    """
+    path = "results/audit/evaluation/CYCLE_40246705199_GATE.json"
+    rc, out, _ = git("log", "--all", "--oneline", "--", path)
+    if out:
+        return {"needed": False, "path": path, "already_resolved": True}
+    ref = "refs/heads/cycle/core/evaluation/40246705199/audit"
+    rc, stdout, stderr = git(
+        "fetch", "--no-tags", "--depth=1", "origin",
+        f"{ref}:refs/remotes/origin/cycle/core/evaluation/40246705199/audit")
+    rc2, out2, _ = git("log", "--all", "--oneline", "--", path)
+    return {
+        "needed": True, "path": path, "ref": ref,
+        "fetch_exit_code": rc, "fetch_stderr": stderr,
+        "resolved_after_fetch": bool(out2),
+        "commit": out2.split(" ")[0] if out2 else None,
+        "why": "read-only provenance source for a historical nested state ref; "
+               "no audit file is written",
+    }
+
+
 def run_commands() -> dict:
     OUT.mkdir(parents=True, exist_ok=True)
+    nested_source = ensure_nested_ref_source()
     specs = [
         ("state_integrity_gate",
          [sys.executable, "-m", "evaluation.state_integrity_gate", "--run-id", RUN_ID,
@@ -1197,6 +1226,7 @@ def run_commands() -> dict:
         "n_commands": len(rows),
         "n_failed": n_failed,
         "commands": rows,
+        "nested_ref_source_fetch": nested_source,
         "preexisting_failure_record": relative(
             OUT / f"pytest_snapshot_audit_verdict_{RUN_ID}.json"),
         "claim_ceiling": "Verification battery only; the stale accepted-base coverage "
@@ -1689,7 +1719,7 @@ def _final_gate_rows() -> list[dict]:
     for name, argv, expected, record_path in specs:
         rc, stdout, stderr, secs = run_cmd(argv)
         observed = load_json(record_path) if record_path.is_file() else {}
-        verdict = observed.get("verdict") or observed.get("overall")
+        verdict = _parse_verdict(name, observed)
         rows.append({
             "name": name, "argv": argv, "exit_code": rc,
             "observed_verdict": verdict, "expected_verdict": expected,

@@ -13,7 +13,7 @@
   },
   "instrument": {
     "path": "evaluation/operational_resume_40423990845.py",
-    "sha256": "f16c5f17c2eb6352f16353daa146fe98734d18e74d1d6a66f3a0e2d58ec9466c"
+    "sha256": "93132690527a396ff6f40815f1c42ee9e2979fbc42fd3cf46d9e3aeef2d0c1c6"
   },
   "test": {
     "path": "tests/evaluation/test_operational_resume_40423990845.py",
@@ -121,6 +121,14 @@
       "change": "corrected record paths/verdict parsing, moved the state assertion test to a post-state batch, added the pre-existing snapshot-audit failure reproduction (here vs execution base), added final write_scope gate, and repaired only the one nonexistent ref this run itself had inserted",
       "instrument_sha256_after": "f16c5f17c2eb6352f16353daa146fe98734d18e74d1d6a66f3a0e2d58ec9466c",
       "test_sha256_after": "3823da3aa2e6872e7761bedc13e5e31845b3d304010cfa391b34b9d530deb134"
+    },
+    {
+      "amendment": 3,
+      "at_utc": "2026-10-27T00:40:00Z",
+      "before_a_clean_audit_ready_execution": true,
+      "why": "two record-shape/orchestration defects remained after amendment 2: final write_scope rows parsed the nested verdict dict as the verdict, and the nested-refs guard could not resolve a historical audit gate (results/audit/evaluation/CYCLE_40246705199_GATE.json) because its audit branch was not fetched. No check, threshold, success rule or scope changed.",
+      "change": "final gate rows now use the same _parse_verdict normalizer as the command battery; a read-only fetch of the 40246705199 audit branch resolves the historical nested ref. The fetch writes no audit file and edits no state.",
+      "instrument_sha256_after": "93132690527a396ff6f40815f1c42ee9e2979fbc42fd3cf46d9e3aeef2d0c1c6"
     }
   ]
 }
