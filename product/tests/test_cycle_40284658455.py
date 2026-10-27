@@ -17,9 +17,14 @@ resume's diagnosis and repairs fail-closed:
 * state attribution is repaired: ``current_cycle_run_id`` names the
   EXECUTING run (40284658455), not the resumed snapshot (40283048553's state
   rewrite had regressed to 40278460732);
-* the accepted pointer still satisfies BOTH halves of requirement 4 and the
+* the accepted pointer satisfies BOTH halves of requirement 4 and the
   posture stays fail-closed (every gate flag FALSE, continue_recommended
-  TRUE) while both frozen bars are unmet;
+  TRUE) while both frozen bars are unmet.  ACCEPTANCE MATERIALIZED AFTER THIS
+  TEST WAS WRITTEN: independent audit run 40284658455 returned gate=PASS and
+  the accept commit 7be4480e landed on origin/lab/product.  The original
+  version of this test asserted that no gate/audit ref existed for the run,
+  which became false the moment it was accepted; the assertions below verify
+  the post-acceptance truth instead of deleting the history;
 * the resume diagnosis and the raw run/jobs snapshot for 40283048553 exist,
   agree with the state, and the audit-readiness instrument knows this
   failure mode as a first-class ``observed_scope`` mechanism kind.
@@ -107,21 +112,43 @@ def test_self_minted_gate_is_preserved_and_quarantined_non_promoting():
     assert "non_promoting" in text or "non-promoting" in text
 
 
-def test_no_gate_exists_for_the_executing_or_resumed_run():
-    for run in (EXECUTING_RUN_ID, RESUMED_RUN_ID, MINTED_GATE_RUN):
-        # 40278460732's file exists only as the quarantined producer mint;
-        # no auditor-authored gate exists for any of the three.
-        audit_refs = _git("ls-remote", "--heads", "origin",
-                          f"refs/heads/cycle/core/product/{run}/audit")
-        assert audit_refs == "", f"unexpected /audit ref for {run}"
-    assert not (ROOT / "results" / "audit" / "product" /
-                f"CYCLE_{EXECUTING_RUN_ID}_GATE.json").exists()
+def test_acceptance_materialized_for_the_executing_run():
+    """The pre-gate snapshot became an accepted cycle; verify the real gate.
+
+    This test originally asserted that no /audit ref or gate file existed for
+    40284658455 (true while the snapshot was UNADJUDICATED).  Independent audit
+    run 40284658455 then returned gate=PASS and the accept commit landed on
+    origin/lab/product, so the absence assertion is superseded by the
+    post-acceptance facts.  The producer-minted gate for 40278460732 remains
+    quarantine-only: it is NOT an auditor gate and is not cited here.
+    """
+    gate_path = (ROOT / "results" / "audit" / "product"
+                 / f"CYCLE_{EXECUTING_RUN_ID}_GATE.json")
+    assert gate_path.is_file(), "the accepted run's gate must be committed"
+    gate = _load(gate_path)
+    assert gate["gate"] == "PASS"
+    assert gate["safe_to_integrate"] is True
+    accept = _git("log", "--all", "--format=%H%x09%s", "--grep="
+                  f"^accept product cycle {EXECUTING_RUN_ID}$")
+    assert any(line.endswith(f"accept product cycle {EXECUTING_RUN_ID}")
+               for line in accept.splitlines())
+    # The quarantined self-minted gate still confers no acceptance.
+    assert MINTED_GATE.is_file()
+    assert _load(QUARANTINE)["verdict"] == "NON_PROMOTING"
 
 
 def test_state_attributes_the_executing_run_not_the_resumed_snapshot():
+    """Attribution invariant, amended for later cycles (pointer-pin class).
+
+    The historical block must still name its own executing run and resumed
+    snapshot.  ``current_cycle_run_id`` legitimately advances with every later
+    cycle, so it may never be pinned backwards to this cycle; the stronger
+    surviving claim is that it does not regress below it.
+    """
     st = _load(STATE)
-    assert st["current_cycle_run_id"] == int(EXECUTING_RUN_ID)
+    assert st["current_cycle_run_id"] >= int(EXECUTING_RUN_ID)
     blk = st["cycle_40284658455_operational_resume"]
+    assert blk["run_id"] == int(EXECUTING_RUN_ID)
     assert blk["resumed_snapshot"]["run_id"] == int(RESUMED_RUN_ID)
     assert "NON_PROMOTING" in blk["quarantine_verdict"]
     # The minted gate is never cited as an audit gate.
@@ -130,17 +157,37 @@ def test_state_attributes_the_executing_run_not_the_resumed_snapshot():
             or "quarantine" in blob.lower())
     diag_ref = blk["diagnosis"]
     assert (ROOT / diag_ref).is_file()
+    # The later acceptance of THIS run is recorded, not used to rewrite the
+    # historical accepted_pointer field of the block.
+    assert blk["acceptance_materialized"]["accepted_run_id"] == "CYCLE_40284658455"
+    assert blk["acceptance_materialized"]["gate"] == "PASS"
 
 
 def test_accepted_pointer_satisfies_both_halves_and_posture_stays_fail_closed():
+    from product.state_contract import accepted_pointer_evidence
+
     st = _load(STATE)
-    assert st["accepted_run_id"] == "CYCLE_40269774540"
-    assert st["accepted_commit"].startswith("5adaa66d")
+    # The pointer legitimately advances as later cycles are accepted; this
+    # test verifies the CONTRACT (both halves resolve) rather than pinning a
+    # literal run id that a future acceptance would make stale.
+    pointer = accepted_pointer_evidence(st, ROOT)
+    assert pointer["problems"] == [], pointer
+    assert int(st["accepted_run_id"].split("_")[1]) >= int(EXECUTING_RUN_ID)
     gate = _load(ROOT / "results" / "audit" / "product"
-                 / "CYCLE_40269774540_GATE.json")
+                 / f"CYCLE_{EXECUTING_RUN_ID}_GATE.json")
     assert gate["gate"] == "PASS" and gate["safe_to_integrate"] is True
-    head = _git("ls-remote", "--heads", "origin", "refs/heads/lab/product")
-    assert head.startswith(st["accepted_commit"]), (head, st["accepted_commit"])
+    # Offline: the accepted commit must be an ancestor of the fetched
+    # accepted branch.  ``ls-remote`` would make this test depend on network
+    # availability in the independent-audit job.
+    ancestor = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", st["accepted_commit"],
+         "origin/lab/product"],
+        cwd=str(ROOT), capture_output=True, text=True, check=False,
+    )
+    assert ancestor.returncode == 0, (
+        st["accepted_commit"], ancestor.stdout, ancestor.stderr)
+    assert (ROOT / "results" / "audit" / "product"
+            / f"CYCLE_{EXECUTING_RUN_ID}_GATE.json").is_file()
     for key, expected in (
         ("continue_recommended", True),
         ("human_gate_ready", False),

@@ -117,6 +117,70 @@ def _delta(snapshot_ref: str, predecessor_ref: str) -> dict[str, Any]:
     return out
 
 
+def _accepted_head_relation(delta: dict[str, Any]) -> dict[str, Any]:
+    """State whether the snapshot is literally the accepted product head.
+
+    Verified on run 40423595480: after cycle 40284658455 was accepted, the
+    scheduler kept dispatching operational resumes whose team ref was the
+    accepted head itself (``7be4480e``).  The always-run persist step then
+    republished that unchanged tree, so the run had no producer delta it could
+    ever add and the next resume could only repeat the no-op.  Recording that
+    relation lets the next cycle choose a fresh question/delta instead of
+    re-dispatching the identical resume (the rc-67 zero-delta failure class).
+    """
+    accepted_head = _rev(ACCEPTED_REF)
+    snapshot_head = delta.get("snapshot_head")
+    if accepted_head is None:
+        out = {
+            "accepted_ref": ACCEPTED_REF,
+            "accepted_head": None,
+            "snapshot_head": snapshot_head,
+            "classification": "ACCEPTED_REF_ABSENT",
+            "is_accepted_head": None,
+        }
+    elif snapshot_head is None:
+        out = {
+            "accepted_ref": ACCEPTED_REF,
+            "accepted_head": accepted_head,
+            "snapshot_head": None,
+            "classification": "SNAPSHOT_REF_ABSENT",
+            "is_accepted_head": None,
+        }
+    elif snapshot_head == accepted_head:
+        out = {
+            "accepted_ref": ACCEPTED_REF,
+            "accepted_head": accepted_head,
+            "snapshot_head": snapshot_head,
+            "classification": "SNAPSHOT_IS_ACCEPTED_HEAD",
+            "is_accepted_head": True,
+        }
+    else:
+        out = {
+            "accepted_ref": ACCEPTED_REF,
+            "accepted_head": accepted_head,
+            "snapshot_head": snapshot_head,
+            "classification": "SNAPSHOT_NOT_ACCEPTED_HEAD",
+            "is_accepted_head": False,
+        }
+    if out["classification"] == "SNAPSHOT_IS_ACCEPTED_HEAD":
+        out["resume_action"] = (
+            "NO_PRODUCER_DELTA_POSSIBLE: the snapshot already IS the accepted "
+            "product head. Do not re-run the identical operational resume; "
+            "choose a fresh executable question/delta for the lane."
+        )
+    elif out["classification"] == "SNAPSHOT_NOT_ACCEPTED_HEAD":
+        out["resume_action"] = (
+            "The snapshot diverges from the accepted head; verify the durable "
+            "delta, finish the lane deliverable and make it audit-ready."
+        )
+    else:
+        out["resume_action"] = (
+            "The relation to the accepted head could not be proven from "
+            "available refs; record REF_ABSENT rather than guessing."
+        )
+    return out
+
+
 def _accept_commit(run_id: str) -> dict[str, Any]:
     if _rev(ACCEPTED_REF) is None:
         return {"accepted_ref_present": False, "accept_commit": None}
@@ -371,6 +435,7 @@ def run(
         "raw_snapshot": _repo_relative(Path(raw_path)) if raw_path else None,
         "orchestration": orchestration,
         "durable_delta": delta,
+        "accepted_head_relation": _accepted_head_relation(delta),
         "adjudication": {
             "audit": audit,
             "accept": accept,

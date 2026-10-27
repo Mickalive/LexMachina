@@ -76,13 +76,19 @@ def test_current_report_and_state_are_honest():
         assert needle in report, needle
 
     state = _load(STATE)
-    assert state["current_cycle_run_id"] == int(RUN_ID)
+    # The executing cycle id advances monotonically; this historical test
+    # must not pin the state to an already-superseded run.
+    assert state["current_cycle_run_id"] >= int(RUN_ID)
     assert state["continue_recommended"] is True
     assert state["human_gate_ready"] is False
     assert state["machine_gate_ready"] is False
     assert state["packet_admitted"] is False
     assert state["ready_for_owner_session"] is False
-    assert state["accepted_run_id"] == "CYCLE_40247189361"
+    # The accepted pointer also advances; a historical resume must not pin
+    # it to the pointer that was current when the test was written.
+    assert state["accepted_run_id"].startswith("CYCLE_")
+    assert int(state["accepted_run_id"].split("_")[-1]) >= int(RUN_ID)
+    assert state["accepted_commit"]
     block = state[f"cycle_{RUN_ID}_operational_resume"]
     assert int(block["snapshot_run_id"]) == int(SNAPSHOT)
     assert block["posture"]["human_gate_ready"] is False

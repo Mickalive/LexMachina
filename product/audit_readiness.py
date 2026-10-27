@@ -369,6 +369,42 @@ PROFILES: dict[str, dict[str, Any]] = {
                              / "self_minted_gate_40278460732_producer_"
                                "40283048553.QUARANTINED.json",
     },
+    "40423889401": {
+        "resumed_run_id": "40423595480",
+        # The snapshot is byte-identical to the accepted head produced by
+        # 40284658455; it is a no-op resume, not a producer failure to repair.
+        "predecessor_run_id": "40284658455",
+        "raw": ORCH / "CYCLE_40423595480_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40423595480_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40284658455.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40423889401.md",
+        # Fifth real failure mode: the team job failed at "Run lane cycle";
+        # the public jobs API fixes the step conclusions but the logs endpoint
+        # returned HTTP 403, so the log-level cause stays UNOBSERVED.  This is
+        # the honest middle ground between an observed cause and no snapshot.
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "mechanism_kind": "observed_steps",
+        "failed_job": "team",
+        "delta_kind": "zero",
+        "cycle_test": "product/tests/test_cycle_40423889401.py",
+        "state_block": "cycle_40423889401_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "replay_summary": ROOT / "results" / "product" / "live_cache_replay"
+                          / "CYCLE_40257275384" / "summary.json",
+        "query_map_diagnosis": ROOT / "results" / "product"
+                               / "query_map_diagnosis"
+                               / "CYCLE_40257275384.json",
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -689,6 +725,50 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                 problems.append("raw_scope_step_not_failure")
         else:
             problems.append("raw_snapshot_missing")
+    elif mechanism_kind == "observed_steps":
+        # Fifth real failure mode, observed on run 40423595480: the public jobs
+        # API fixes WHICH step failed (``Run lane cycle``) and that the always-
+        # run persist step still published the tree, but the logs endpoint
+        # returned HTTP 403 in this environment, so the log-level cause stays
+        # UNOBSERVED.  Neither the quantum kind nor the scope kind describes
+        # it, and the raw-free kind would deny the step facts that WERE
+        # observed.
+        mechanism = orch.get("mechanism") or {}
+        team = orch.get("team") or {}
+        if mechanism.get("status") != "UNOBSERVED":
+            problems.append("mechanism_status")
+        if mechanism.get("logs_available") is not False:
+            problems.append("logs_available")
+        if mechanism.get("logs_endpoint_status") != 403:
+            problems.append("logs_endpoint_status")
+        if mechanism.get("quantum_expired") is not False:
+            problems.append("quantum_expired")
+        if team.get("failed_step") != "Run lane cycle":
+            problems.append("failed_step")
+        if team.get("team_snapshot_persisted") is not True:
+            problems.append("team_snapshot_persisted")
+        if team.get("team_snapshot_persisted_after_failed_team_job") is not True:
+            problems.append("team_snapshot_persisted_after_failure")
+        if team.get("producer_state_validation_step_conclusion") != "skipped":
+            problems.append("producer_state_validation")
+        if (orch.get("audit") or {}).get("conclusion") != "skipped":
+            problems.append("audit_not_skipped")
+        if (orch.get("audit") or {}).get("gate_file_written") is not False:
+            problems.append("gate_file_written")
+        # Cross-check the raw snapshot the profile names: the failed step and
+        # the always-run persist step must agree with the diagnosis.
+        if raw is not None and raw.is_file():
+            raw_doc = _load(raw)
+            raw_team = next((j for j in raw_doc.get("jobs") or []
+                             if j.get("name") == "team"), None)
+            steps = {s.get("name"): s.get("conclusion")
+                     for s in (raw_team or {}).get("steps") or []}
+            if steps.get("Run lane cycle") != "failure":
+                problems.append("raw_lane_cycle_not_failure")
+            if steps.get("Persist team snapshot") != "success":
+                problems.append("raw_persist_step_not_success")
+        else:
+            problems.append("raw_snapshot_missing")
     else:
         # Raw-free resume: the public run/jobs snapshot is unavailable. The
         # only honest record is that the mechanism is unobserved; asserting a
@@ -743,6 +823,12 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                    "on a producer-minted auditor-namespace gate file (no "
                    "work quantum reached, audit skipped), durable delta "
                    "present, run unadjudicated")
+    elif mechanism_kind == "observed_steps":
+        summary = (f"Resumed run {resumed_id}: team job failed at 'Run lane "
+                   "cycle' (jobs API observed; logs endpoint HTTP 403, so no "
+                   "cause is asserted), always-run persist step published a "
+                   "tree byte-identical to the accepted head, zero durable "
+                   "delta, run unadjudicated")
     else:
         summary = (f"Resumed run {resumed_id}: raw run/jobs snapshot "
                    "unavailable (mechanism unobserved), team ref carries zero "
@@ -1138,6 +1224,24 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
             "QUARANTINED.json. Observed from the run's own job records "
             "(logs endpoint HTTP 200), not inferred; no work quantum "
             "expired."
+        )
+        c1_artifacts = (
+            ([str(raw.relative_to(ROOT))] if raw is not None else [])
+            + [str(resume_diag.relative_to(ROOT))])
+    elif mechanism_kind == "observed_steps":
+        orch = resumed.get("orchestration") or {}
+        team = orch.get("team") or {}
+        c1_claim = (
+            f"Run {resumed_id}'s team job failed at "
+            f"'{team.get('failed_step', 'Run lane cycle')}' "
+            f"({team.get('failed_step_seconds')} s after the step started), "
+            "the producer-side state validation and write-scope steps were "
+            "skipped, and the always-run persist step still published the "
+            "tree. The public jobs API records those step conclusions, but "
+            "the job-logs endpoint returned HTTP 403 here, so no provider, "
+            "auth or timeout cause is asserted. The published tree is "
+            "byte-identical to the accepted product head, so the run had "
+            "ZERO_DURABLE_DELTA and an audit could add nothing."
         )
         c1_artifacts = (
             ([str(raw.relative_to(ROOT))] if raw is not None else [])
