@@ -100,6 +100,27 @@ CURRENT_REPORT = ROOT / "reports" / "product" / "CYCLE_40200882831.md"
 DEFAULT_PROFILE_KEY = "40196023042"
 
 PROFILES: dict[str, dict[str, Any]] = {
+    "40500024808": {
+        # Operational resume of 40499737748: team job failed at 'Run lane
+        # cycle' after 16.0 s with exit 1 and no wrapper signature, logs 403,
+        # so the mechanism is the UNOBSERVED/observed_steps kind and the
+        # resumed snapshot equals its predecessor team head (zero delta).
+        "resumed_run_id": "40499737748",
+        "predecessor_run_id": "40493520783",
+        "raw": ORCH / "CYCLE_40499737748_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40499737748_resume_diagnosis.json",
+        "inherited_report": None,
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40500024808.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed_steps",
+        "delta_kind": "zero",
+        "exit_code": 1,
+        "changed_files": 0,
+        "cycle_test": "product/tests/test_cycle_40500024808.py",
+        "state_block": "cycle_40500024808_operational_resume",
+    },
     "40196023042": {
         "resumed_run_id": "40196023042",
         "predecessor_run_id": "40193974025",

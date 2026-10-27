@@ -142,9 +142,12 @@ def test_every_evidence_ref_this_run_added_resolves() -> None:
 
 
 def test_the_state_register_merge_added_without_losing_anything() -> None:
+    # The baseline is the commit this cycle inherited, NOT HEAD: HEAD becomes
+    # this cycle's own commit as soon as the snapshot is persisted, and a
+    # guard that compared against HEAD would silently pass with nothing added.
     before = json.loads(subprocess.run(  # noqa: S603
-        ["git", "show", "HEAD:state/product.json"], cwd=str(ROOT),
-        capture_output=True, text=True, check=True).stdout)
+        ["git", "show", f"{SNAPSHOT_HEAD}:state/product.json"],
+        cwd=str(ROOT), capture_output=True, text=True, check=True).stdout)
     after = _state()
     added = sorted(set(after) - set(before))
     removed = sorted(set(before) - set(after))
