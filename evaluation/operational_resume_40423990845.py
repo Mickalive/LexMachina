@@ -1847,9 +1847,10 @@ def main() -> int:
                                  if final_commands["n_failed"] == 0
                                  else "COMMANDS_INCOMPLETE")
     write_json(OUT / f"commands_{RUN_ID}.json", final_commands)
+    # Report first, then index: the index must pin the final report bytes.
+    write_report(diag, snap, deliverable, replay, item2, final_commands, state_rec2)
     write_audit_index(diag, snap, deliverable, replay, item2, final_commands,
                       state_rec2, REPORT)
-    write_report(diag, snap, deliverable, replay, item2, final_commands, state_rec2)
     print(f"[9/9] commands: {final_commands['verdict']} "
           f"({final_commands['n_failed']} failed of {final_commands['n_commands']})")
 
