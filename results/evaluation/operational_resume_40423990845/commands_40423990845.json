@@ -1,0 +1,282 @@
+{
+  "schema": "lex-evaluation-operational-resume-commands/1",
+  "run_id": "40423990845",
+  "verdict": "COMMANDS_ALL_PASS",
+  "n_commands": 11,
+  "n_failed": 0,
+  "commands": [
+    {
+      "name": "state_integrity_gate",
+      "argv": [
+        "/usr/bin/python3",
+        "-m",
+        "evaluation.state_integrity_gate",
+        "--run-id",
+        "40423990845",
+        "--out",
+        "/home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/state_integrity_gate_40423990845.json"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.03,
+      "expected_verdict": "ALL_CHECKS_PASS",
+      "observed_verdict": "ALL_CHECKS_PASS",
+      "passed": true,
+      "stdout_tail": "{\n \"verdict\": \"ALL_CHECKS_PASS\",\n \"exit_code\": 0,\n \"n_checks\": 11,\n \"n_failed\": 0,\n \"failed_checks\": [],\n \"record\": \"/home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/state_integrity_gate_40423990845.json\"\n}",
+      "stderr_tail": "",
+      "record": "results/evaluation/operational_resume_40423990845/state_integrity_gate_40423990845.json",
+      "record_sha256": "ceeae25a348c499b9a0c57ae04fbd83ef074f4079779fed0814d87945c57fd55"
+    },
+    {
+      "name": "nested_evidence_refs_guard",
+      "argv": [
+        "/usr/bin/python3",
+        "evaluation/nested_evidence_refs_guard.py",
+        "--run-id",
+        "40423990845",
+        "--out-dir",
+        "/home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/nested_refs"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.094,
+      "expected_verdict": "NESTED_REFS_RESOLVED",
+      "observed_verdict": "NESTED_REFS_RESOLVED",
+      "passed": true,
+      "stdout_tail": "{\n \"verdict\": \"NESTED_REFS_RESOLVED\",\n \"n_unresolved\": 0,\n \"resolution_counts\": {\n  \"RESOLVED_WORKTREE\": 472,\n  \"RESOLVED_CROSS_LANE_MOUNT\": 10,\n  \"RESOLVED_BRANCH_HISTORY\": 3,\n  \"DISCLOSED_HISTORICAL_REF\": 2\n },\n \"top_level_unresolved\": 0\n}",
+      "stderr_tail": "",
+      "record": "results/evaluation/operational_resume_40423990845/nested_refs/40423990845_nested_evidence_refs.json",
+      "record_sha256": "5b4b5cd98a124f48f2acc41089a02364887b2e4a4407d6a155c737d3b4ca88f7"
+    },
+    {
+      "name": "write_scope",
+      "argv": [
+        "/usr/bin/python3",
+        "-m",
+        "evaluation.snapshot_audit.write_scope",
+        "--lane",
+        "evaluation",
+        "--out",
+        "/home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/write_scope_40423990845.json"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.036,
+      "expected_verdict": "SCOPE_CLEAN",
+      "observed_verdict": "SCOPE_CLEAN",
+      "passed": true,
+      "stdout_tail": "write scope [evaluation]: SCOPE_CLEAN (29 entries, 0 bad, 0 junk dropped)\nrecord: /home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/write_scope_40423990845.json",
+      "stderr_tail": "",
+      "record": "results/evaluation/operational_resume_40423990845/write_scope_40423990845.json",
+      "record_sha256": "3fae6c9f9b0e8dc6d49327173ccc1fea6cb1d1897d91710d16c50525df897712"
+    },
+    {
+      "name": "lane_suite",
+      "argv": [
+        "/usr/bin/python3",
+        "-m",
+        "evaluation.lane_suite",
+        "--out",
+        "/home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/lane_suite_40423990845.json"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 171.248,
+      "expected_verdict": "SUITE_PASS",
+      "observed_verdict": "SUITE_PASS",
+      "passed": true,
+      "stdout_tail": "  [PASS] offline_verify.json latency claim is self-consistent  pass_a_wall_seconds=0.08 pass_a_mode=offline_replay\n  [PASS] offline_verify.json executed after the freeze  started_at=2026-10-24T16:36:27Z frozen_at=2026-10-16T17:37:01Z\ncached replay vs live latency separation:\n  [PASS] cached replay runs at all  exit=1\n  [PASS] no latency gate is PASS under a cached replay  latency::search_under_budget=None; latency::full_pass_under_budget=None\n  [PASS] a recorded live latency failure survives its own cached replay  live=[] replay=[]\nfalsification matrix (every gate family must be breakable):\n  [PASS] every declared gate family has a breaking fixture  20 families\n  [PASS] fixture breaks reality::truth_phrase\n  [PASS] fixture breaks reality::truth_phrase_absent\n  [PASS] fixture breaks reality::language\n  [PASS] fixture breaks reality::corruption\n  [PASS] fixture breaks reality::latency\n  [PASS] fixture breaks reality::recall_citation\n  [PASS] fixture breaks reality::structural_bundle\n  [PASS] fixture breaks reality::structural_report\n  [PASS] fixture breaks reality::multilingual\n  [PASS] fixture breaks retrieval::authority_recall\n  [PASS] fixture breaks retrieval::norm_retrievable\n  [PASS] fixture breaks retrieval::known_counter_recall\n  [PASS] fixture breaks retrieval::limiting_marker\n  [PASS] fixture breaks retrieval::source_validity\n  [PASS] fixture breaks retrieval::duplicates\n  [PASS] fixture breaks retrieval::transport\n  [PASS] fixture breaks retrieval::per_search_latency\n  [PASS] fixture breaks retrieval::full_pass_latency\n  [PASS] fixture breaks retrieval::cached_replay_latency\n  [PASS] fixture breaks retrieval::reproducibility\ngate entry-point repeat-invariance (stderr captured):\n  [PASS] repeat-invariance run_bar_gates (N=10)  exit_codes=[0] payload_identical=True nonzero_rate=0/10 stderr_nonempty=0\n  [PASS] repeat-invariance label_lineage_sweep (N=10)  exit_codes=[0] payload_identical=True nonzero_rate=0/10 stderr_nonempty=0\n  rate record: /home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/gate_entry_point_repeat_invariance.json\npytest pass over the active lane test files:\n  [SKIP] pytest pass (pytest absent)  pytest is not installed; the stdlib checks above still ran and are authoritative. Install pytest to also run the active lane test files.\n\nlane suite: PASS (88/89 checks, 171.193s)\nreport: /home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/lane_suite_40423990845.json",
+      "stderr_tail": "",
+      "record": "results/evaluation/operational_resume_40423990845/lane_suite_40423990845.json",
+      "record_sha256": "691f37825a92337a95840ed845c58e2ecb3e4092b7636e1351f076334559fa00"
+    },
+    {
+      "name": "pytest_targeted",
+      "argv": [
+        "/usr/bin/python3",
+        "-m",
+        "evaluation.no_pytest_runner",
+        "--run-id",
+        "40423990845",
+        "--test-file",
+        "tests/evaluation/test_minimal_ca_falsify_benchmark.py",
+        "--test-file",
+        "tests/evaluation/test_producer_scope_defaults.py",
+        "--test-file",
+        "tests/evaluation/test_nested_evidence_refs_guard.py",
+        "--test-file",
+        "tests/evaluation/test_state_integrity_gate.py",
+        "--out",
+        "/home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/pytest_targeted_40423990845.json"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.294,
+      "expected_verdict": "SHIM_PASS",
+      "observed_verdict": "SHIM_PASS",
+      "passed": true,
+      "stdout_tail": "pytest available in this image: False\n  PASS          tests/evaluation/test_minimal_ca_falsify_benchmark.py passed=8 failed=0 skipped=0 unsupported=0\n  PASS          tests/evaluation/test_producer_scope_defaults.py passed=4 failed=0 skipped=0 unsupported=0\n  PASS          tests/evaluation/test_nested_evidence_refs_guard.py passed=2 failed=0 skipped=0 unsupported=2\n  PASS          tests/evaluation/test_state_integrity_gate.py passed=2 failed=0 skipped=0 unsupported=10\nverdict: SHIM_PASS (16 passed, 0 failed, 0 skipped, 12 unsupported)\nrecord: /home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/pytest_targeted_40423990845.json",
+      "stderr_tail": "",
+      "record": "results/evaluation/operational_resume_40423990845/pytest_targeted_40423990845.json",
+      "record_sha256": "00d3fab4a6cd05c619c6e2f2ddef51b2d5ca991a26658d307db1bafcd779338a"
+    },
+    {
+      "name": "pytest_multilingual_provenance",
+      "argv": [
+        "/usr/bin/python3",
+        "-m",
+        "evaluation.no_pytest_runner",
+        "--run-id",
+        "40423990845",
+        "--test-file",
+        "tests/evaluation/test_stand_ready_multilingual_probe.py",
+        "--test-file",
+        "tests/evaluation/test_cross_lingual_alignment_v10.py",
+        "--test-file",
+        "tests/evaluation/test_disclosure_provenance_crosscheck.py",
+        "--test-file",
+        "tests/evaluation/test_fast_mvp_retrieval_recall_benchmark.py",
+        "--test-file",
+        "tests/evaluation/test_boilerplate_resistance_real.py",
+        "--test-file",
+        "tests/evaluation/test_nested_evidence_refs_guard.py",
+        "--out",
+        "/home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/pytest_multilingual_provenance_40423990845.json"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.206,
+      "expected_verdict": "SHIM_PASS",
+      "observed_verdict": "SHIM_PASS",
+      "passed": true,
+      "stdout_tail": "Loading real boilerplate resistance results...\n  ✓ sachverhalt_tfidf: 0.9325 (neighbor preservation)\n  ✓ erwaegungen_tfidf: 0.9325 (neighbor preservation)\n  ✓ outcome_tfidf: 0.8917 (neighbor preservation)\n  ✓ full_text_tfidf: 0.9325 (neighbor preservation)\n  ✓ sachverhalt+erwaegungen: 0.9325 (neighbor preservation)\n\n--- Threshold Assertions ---\n  ✓ sachverhalt_tfidf: ABOVE 85% threshold (93.2%)\n  ✓ erwaegungen_tfidf: ABOVE 85% threshold (93.2%)\n  ✓ outcome_tfidf: ABOVE 85% threshold (89.2%)\n  ✓ full_text_tfidf: ABOVE 85% threshold (93.2%)\n  ✓ sachverhalt+erwaegungen: ABOVE 85% threshold (93.2%)\n\n--- Correction Verification ---\n  ✓ CONFIRMED: Boilerplate NOT driving neighbors (min preservation=89.2%)\n\n--- Proxy Misnaming Verification ---\n  v3 'boilerplate_resistance' proxy measured language dominance (cross-lingual failure)\n  Real test measures procedural boilerplate removal effect\n  ✓ CORRECTION CONFIRMED: Systemic challenge is cross-lingual alignment, not boilerplate\n\n============================================================\nPASSED: Boilerplate resistance correction VERIFIED\npytest available in this image: False\n  PASS          tests/evaluation/test_stand_ready_multilingual_probe.py passed=16 failed=0 skipped=0 unsupported=0\n  IMPORT_ERROR  tests/evaluation/test_cross_lingual_alignment_v10.py passed=0 failed=0 skipped=0 unsupported=0\n  PASS          tests/evaluation/test_disclosure_provenance_crosscheck.py passed=0 failed=0 skipped=0 unsupported=0\n  PASS          tests/evaluation/test_fast_mvp_retrieval_recall_benchmark.py passed=7 failed=0 skipped=0 unsupported=0\n  PASS          tests/evaluation/test_boilerplate_resistance_real.py passed=1 failed=0 skipped=0 unsupported=0\n  PASS          tests/evaluation/test_nested_evidence_refs_guard.py passed=2 failed=0 skipped=0 unsupported=2\nverdict: SHIM_PASS (26 passed, 0 failed, 0 skipped, 2 unsupported)\nrecord: /home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/pytest_multilingual_provenance_40423990845.json",
+      "stderr_tail": "",
+      "record": "results/evaluation/operational_resume_40423990845/pytest_multilingual_provenance_40423990845.json",
+      "record_sha256": "26ceb6ef424aef285fec9495f39d9b4c56b788ba17770876824f60e59388d098"
+    },
+    {
+      "name": "pytest_snapshot_audit_preexisting_failure",
+      "argv": [
+        "(composed)",
+        "test_snapshot_audit.py here + at execution base"
+      ],
+      "exit_code": 1,
+      "elapsed_seconds": null,
+      "expected_verdict": "PREEXISTING_FAILURE_REPRODUCED",
+      "observed_verdict": "PREEXISTING_FAILURE_REPRODUCED",
+      "passed": true,
+      "stdout_tail": "",
+      "stderr_tail": "",
+      "record": null,
+      "record_sha256": null,
+      "detail": {
+        "schema": "lex-evaluation-operational-resume-preexisting-failure/1",
+        "run_id": "40423990845",
+        "verdict": "PREEXISTING_FAILURE_REPRODUCED",
+        "same_failure_at_base": true,
+        "test_file": "tests/evaluation/test_snapshot_audit.py",
+        "failure_here": [
+          "test_accepted_base_coverage_is_disclosed_on_the_live_branch"
+        ],
+        "failure_at_execution_base": [
+          "test_accepted_base_coverage_is_disclosed_on_the_live_branch"
+        ],
+        "execution_base_commit": "ea98384e54d31d2e694c418a1d1ce5769fc6c32f",
+        "here": {
+          "record": "results/evaluation/operational_resume_40423990845/pytest_snapshot_audit_40423990845.json",
+          "sha256": "d0272ba0398ddfea12499a1e18b42ca07b499b5f63bb1ea1747afa460fa44e74",
+          "exit_code": 1,
+          "observed_verdict": "SHIM_FAIL",
+          "stdout_tail": "pytest available in this image: False\n  FAIL          tests/evaluation/test_snapshot_audit.py passed=23 failed=1 skipped=0 unsupported=54\nverdict: SHIM_FAIL (23 passed, 1 failed, 0 skipped, 54 unsupported)\nrecord: /home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/pytest_snapshot_audit_40423990845.json"
+        },
+        "base": {
+          "record": "results/evaluation/operational_resume_40423990845/pytest_snapshot_audit_at_ea98384e.json",
+          "sha256": "916968ccf5e753d0f309ac4b3908038e1985eec9b24e77fa962341a067f18303",
+          "exit_code": 1,
+          "failed_tests": [
+            "test_accepted_base_coverage_is_disclosed_on_the_live_branch"
+          ],
+          "stdout_tail": "pytest available in this image: False\n  FAIL          tests/evaluation/test_snapshot_audit.py passed=23 failed=1 skipped=0 unsupported=54\nverdict: SHIM_FAIL (23 passed, 1 failed, 0 skipped, 54 unsupported)\nrecord: /home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/pytest_snapshot_audit_at_ea98384e.json"
+        },
+        "why": "the accepted-base coverage record is from cycle 39043684319 (head 3506f0e4) and is stale against the current accepted base; the identical failure on the untouched base proves this resume did not cause it and this resume does not refresh that audit record",
+        "claim_ceiling": "Pre-existing test-failure provenance only; no coverage record is rewritten and no new claim is made."
+      }
+    },
+    {
+      "name": "pytest_post_state",
+      "argv": "results/evaluation/operational_resume_40423990845/pytest_post_state_40423990845.json",
+      "exit_code": 0,
+      "expected_verdict": "SHIM_PASS",
+      "observed_verdict": "SHIM_PASS",
+      "passed": true,
+      "elapsed_seconds": null,
+      "record": "results/evaluation/operational_resume_40423990845/pytest_post_state_40423990845.json",
+      "record_sha256": "2035eea47820f2cc31933a30e463f8b04c0f0ca43e320e2ab92c9446a33b5e39",
+      "stdout_tail": "pytest available in this image: False\n  PASS          tests/evaluation/test_operational_resume_40423990845.py passed=8 failed=0 skipped=0 unsupported=0\nverdict: SHIM_PASS (8 passed, 0 failed, 0 skipped, 0 unsupported)\nrecord: /home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/pytest_post_state_40423990845.json",
+      "stderr_tail": ""
+    },
+    {
+      "name": "state_integrity_gate",
+      "argv": [
+        "/usr/bin/python3",
+        "-m",
+        "evaluation.state_integrity_gate",
+        "--run-id",
+        "40423990845",
+        "--out",
+        "/home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/state_integrity_gate_40423990845.json"
+      ],
+      "exit_code": 0,
+      "observed_verdict": "ALL_CHECKS_PASS",
+      "expected_verdict": "ALL_CHECKS_PASS",
+      "passed": true,
+      "elapsed_seconds": 0.029,
+      "record": "results/evaluation/operational_resume_40423990845/state_integrity_gate_40423990845.json",
+      "record_sha256": "f118a4c195c3005e14298002bf6542db3d275dff481c03bb83a5a553323646c5",
+      "stdout_tail": "{\n \"verdict\": \"ALL_CHECKS_PASS\",\n \"exit_code\": 0,\n \"n_checks\": 11,\n \"n_failed\": 0,\n \"failed_checks\": [],\n \"record\": \"/home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/state_integrity_gate_40423990845.json\"\n}",
+      "stderr_tail": ""
+    },
+    {
+      "name": "nested_evidence_refs_guard",
+      "argv": [
+        "/usr/bin/python3",
+        "evaluation/nested_evidence_refs_guard.py",
+        "--run-id",
+        "40423990845",
+        "--out-dir",
+        "/home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/nested_refs"
+      ],
+      "exit_code": 0,
+      "observed_verdict": "NESTED_REFS_RESOLVED",
+      "expected_verdict": "NESTED_REFS_RESOLVED",
+      "passed": true,
+      "elapsed_seconds": 0.091,
+      "record": "results/evaluation/operational_resume_40423990845/nested_refs/40423990845_nested_evidence_refs.json",
+      "record_sha256": "3631d568356c5fca93685088989801040fcd5fb06d712860192d4205450ecfff",
+      "stdout_tail": "{\n \"verdict\": \"NESTED_REFS_RESOLVED\",\n \"n_unresolved\": 0,\n \"resolution_counts\": {\n  \"RESOLVED_WORKTREE\": 472,\n  \"RESOLVED_CROSS_LANE_MOUNT\": 10,\n  \"RESOLVED_BRANCH_HISTORY\": 3,\n  \"DISCLOSED_HISTORICAL_REF\": 2\n },\n \"top_level_unresolved\": 0\n}",
+      "stderr_tail": ""
+    },
+    {
+      "name": "write_scope",
+      "argv": [
+        "/usr/bin/python3",
+        "-m",
+        "evaluation.snapshot_audit.write_scope",
+        "--lane",
+        "evaluation",
+        "--out",
+        "/home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/write_scope_40423990845.json"
+      ],
+      "exit_code": 0,
+      "observed_verdict": "SCOPE_CLEAN",
+      "expected_verdict": "SCOPE_CLEAN",
+      "passed": true,
+      "elapsed_seconds": 0.033,
+      "record": "results/evaluation/operational_resume_40423990845/write_scope_40423990845.json",
+      "record_sha256": "dd3c33c43999fb6eb7228973ca7bd812734592a1a3311b2eaa2aa17d5c3d079c",
+      "stdout_tail": "write scope [evaluation]: SCOPE_CLEAN (29 entries, 0 bad, 0 junk dropped)\nrecord: /home/runner/work/LexMachina/LexMachina/results/evaluation/operational_resume_40423990845/write_scope_40423990845.json",
+      "stderr_tail": ""
+    }
+  ],
+  "nested_ref_source_fetch": {
+    "needed": false,
+    "path": "results/audit/evaluation/CYCLE_40246705199_GATE.json",
+    "already_resolved": true
+  },
+  "preexisting_failure_record": "results/evaluation/operational_resume_40423990845/pytest_snapshot_audit_verdict_40423990845.json",
+  "claim_ceiling": "Verification battery only; the stale accepted-base coverage record is disclosed, not rewritten."
+}
