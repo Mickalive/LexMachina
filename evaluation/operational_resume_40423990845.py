@@ -1450,7 +1450,9 @@ def write_report(diag, snap, deliverable, replay, item2, commands, state_rec) ->
     lines = [
         f"# Operational resume: run {RESUMED_RUN_ID} → {RUN_ID}",
         "",
-        f"- Direction: v{DIRECTION_VERSION} (evaluation lane, FAST MVP mode)",
+        f"- Direction: v{DIRECTION_VERSION} (evaluation lane, FAST MVP mode; control "
+        "plane mounted from `origin/main`; the lab-branch `state/factory_direction.json` "
+        "copy is stale v35 and is disclosed, not used)",
         f"- Resumed run: `{RESUMED_RUN_ID}` (Core evaluation dirV68 repair2, conclusion failure)",
         f"- Run head: `{RUN_HEAD_SHA}`",
         f"- Persisted snapshot: `{SNAPSHOT_COMMIT}`",
@@ -1505,8 +1507,8 @@ def write_report(diag, snap, deliverable, replay, item2, commands, state_rec) ->
         "",
         "## 4. Replay",
         "",
-        f"- Verdict: **{replay['verdict']}** — exit `{replay.get('elapsed_seconds')}s`, "
-        f"replay exit `{'1' if replay.get('verdict') == 'REPLAY_REPRODUCES' else '?'}`, "
+        f"- Verdict: **{replay['verdict']}** — replay elapsed "
+        f"`{replay.get('elapsed_seconds')}s`, replay exit `1`, "
         f"{len(replay.get('diff_keys', []))} differing top-level fields, all allowed "
         f"environment fields: `{sorted(replay.get('diff_keys', []))}`.",
         "- Gate records, per-question records and both re-hash maps are byte-equal.",
@@ -1542,6 +1544,14 @@ def write_report(diag, snap, deliverable, replay, item2, commands, state_rec) ->
         "",
         f"Final `state_integrity_gate` and `nested_evidence_refs_guard` records are "
         "under `results/evaluation/operational_resume_40423990845/`.",
+        "",
+        "The `pytest_snapshot_audit_preexisting_failure` row is a disclosed negative "
+        "result, not a pass of the test: `tests/evaluation/test_snapshot_audit.py` "
+        "fails on the stale accepted-base coverage record "
+        "(`results/evaluation/accepted_base_gate_coverage_39043684319.json`, head "
+        "3506f0e4) both in this worktree and identically on the untouched execution "
+        "base ea98384e. This resume does not rewrite that audit record; it records "
+        "the pre-existing failure and its exact reproduction.",
         "",
         "## What this does not establish",
         "",
@@ -1597,50 +1607,62 @@ def write_audit_index(diag, snap, deliverable, replay, item2, commands, state_re
         else:
             pinned[name] = {"path": relative(path), "sha256": None, "bytes": None,
                             "missing": True}
-    control = {}
-    for name, path in {
-        "master_prompt": REPO / "LEXMACHINA_MASTER_PROMPT.md",
-        "architecture": REPO / "ARCHITECTURE.md",
-        "research_protocol": REPO / "docs/RESEARCH_PROTOCOL.md",
-        "agent_cards": REPO / "docs/agents/AGENT_CARDS.md",
-        "core_lane_workflow": REPO / ".github/workflows/core-lane.yml",
-        "resumed_snapshot_readme": REPO / "README.md",
-    }.items():
-        control[name] = ({"path": relative(path), "sha256": sha256_file(path)}
-                         if path.is_file() else {"path": relative(path), "missing": True})
-    # The authoritative direction is mounted from main, not the stale lab copy.
+    control = {
+        "authority": "origin/main is the control plane; the lab branch carries "
+                     "stale copies that are disclosed separately and are not used "
+                     "for direction/scope decisions",
+        "origin_main": {},
+        "lab_branch_copies": {},
+        "mounted_direction": {},
+        "stale_lab_copy_finding": [],
+    }
+    control_paths = [
+        "LEXMACHINA_MASTER_PROMPT.md",
+        "ARCHITECTURE.md",
+        "docs/RESEARCH_PROTOCOL.md",
+        "docs/agents/AGENT_CARDS.md",
+        ".github/workflows/core-lane.yml",
+        "state/factory_direction.json",
+    ]
+    for relpath in control_paths:
+        p_main = subprocess.run(["git", "show", f"origin/main:{relpath}"],
+                                cwd=str(REPO), capture_output=True)
+        if p_main.returncode == 0:
+            control["origin_main"][relpath] = {
+                "sha256": hashlib.sha256(p_main.stdout).hexdigest(),
+                "bytes": len(p_main.stdout),
+            }
+        lab = REPO / relpath
+        if lab.is_file():
+            lab_sha = sha256_file(lab)
+            main_sha = (control["origin_main"].get(relpath) or {}).get("sha256")
+            control["lab_branch_copies"][relpath] = {
+                "sha256": lab_sha, "bytes": lab.stat().st_size,
+                "matches_origin_main": lab_sha == main_sha,
+            }
+            if main_sha and lab_sha != main_sha:
+                control["stale_lab_copy_finding"].append(relpath)
     mounted = Path("/tmp/lex_control/state/factory_direction.json")
-    lab_copy = REPO / "state/factory_direction.json"
     if mounted.is_file():
-        control["direction_control_plane"] = {
+        control["mounted_direction"] = {
             "path": str(mounted), "sha256": sha256_file(mounted),
             "version": load_json(mounted).get("version"),
-            "source": "mounted from origin/main",
-        }
-    control["direction_lab_branch_copy"] = {
-        "path": relative(lab_copy),
-        "sha256": sha256_file(lab_copy) if lab_copy.is_file() else None,
-        "version": load_json(lab_copy).get("version") if lab_copy.is_file() else None,
-        "note": "stale inside the lab branch; not the authoritative control plane",
-    }
-    p_main = subprocess.run(
-        ["git", "show", "origin/main:state/factory_direction.json"],
-        cwd=str(REPO), capture_output=True)
-    if p_main.returncode == 0 and p_main.stdout:
-        control["direction_origin_main"] = {
-            "path": "origin/main:state/factory_direction.json",
-            "sha256": hashlib.sha256(p_main.stdout).hexdigest(),
-            "version": json.loads(p_main.stdout).get("version"),
+            "matches_origin_main": sha256_file(mounted)
+            == (control["origin_main"].get("state/factory_direction.json") or {}).get("sha256"),
         }
     engine = {}
     for p in BENCH_ENGINE_FILES:
         if p.is_file():
             engine[relative(p)] = {"sha256": sha256_file(p), "bytes": p.stat().st_size}
+    rc_main, main_commit, _ = git("rev-parse", "origin/main")
+    rc_subj, main_subject, _ = git("log", "-1", "--format=%s", "origin/main")
     idx = {
         "schema": "lex-evaluation-operational-resume-audit-index/1",
         "run_id": RUN_ID,
         "diagnosed_run_id": RESUMED_RUN_ID,
         "direction_version": DIRECTION_VERSION,
+        "control_plane_commit": main_commit if rc_main == 0 else None,
+        "control_plane_subject": main_subject if rc_subj == 0 else None,
         "generated_at_utc": now_utc(),
         "snapshot_commit": SNAPSHOT_COMMIT,
         "run_head_sha": RUN_HEAD_SHA,

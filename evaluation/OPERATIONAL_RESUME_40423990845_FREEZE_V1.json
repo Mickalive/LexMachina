@@ -13,7 +13,7 @@
   },
   "instrument": {
     "path": "evaluation/operational_resume_40423990845.py",
-    "sha256": "93132690527a396ff6f40815f1c42ee9e2979fbc42fd3cf46d9e3aeef2d0c1c6"
+    "sha256": "d8d651ec07b7d972228378f2ef7fea802a619d613c03d531e4cf54753daf3b84"
   },
   "test": {
     "path": "tests/evaluation/test_operational_resume_40423990845.py",
@@ -21,7 +21,7 @@
   },
   "control_plane": {
     "source": "origin/main, mounted at /tmp/lex_control for this workflow",
-    "origin_main_commit": "4fd41970f7a1c5f9df92548c9c9c11f16f7a0d3b (control-plane head observed at diagnosis time; the run under diagnosis was dispatched at 0c551b49)",
+    "origin_main_commit": "4fd4197009996020940974d3d15e9d10f3bffc96",
     "direction": {
       "path": "origin/main:state/factory_direction.json",
       "sha256": "98e94154664599e511b958e5bb8646b7cbc153506ffb549d2ac45b82078d2692",
@@ -129,6 +129,14 @@
       "why": "two record-shape/orchestration defects remained after amendment 2: final write_scope rows parsed the nested verdict dict as the verdict, and the nested-refs guard could not resolve a historical audit gate (results/audit/evaluation/CYCLE_40246705199_GATE.json) because its audit branch was not fetched. No check, threshold, success rule or scope changed.",
       "change": "final gate rows now use the same _parse_verdict normalizer as the command battery; a read-only fetch of the 40246705199 audit branch resolves the historical nested ref. The fetch writes no audit file and edits no state.",
       "instrument_sha256_after": "93132690527a396ff6f40815f1c42ee9e2979fbc42fd3cf46d9e3aeef2d0c1c6"
+    },
+    {
+      "amendment": 4,
+      "at_utc": "2026-10-27T00:50:00Z",
+      "before_the_final_clean_replay": true,
+      "why": "documentation/provenance corrections only: the freeze control-plane commit was written with an incorrect full SHA (short 4fd41970 was correct); the report wording called the replay elapsed time an exit; the audit index pinned lab-branch stale copies under a control-plane label. No check, threshold, success rule, measurement or scope changed.",
+      "change": "corrected the origin/main full SHA to 4fd4197009996020940974d3d15e9d10f3bffc96; pinned origin/main bytes separately from disclosed stale lab copies in the audit index; corrected report wording and added the pre-existing snapshot-audit failure explanation; added control_plane_commit to the audit index.",
+      "instrument_sha256_after": "d8d651ec07b7d972228378f2ef7fea802a619d613c03d531e4cf54753daf3b84"
     }
   ]
 }
