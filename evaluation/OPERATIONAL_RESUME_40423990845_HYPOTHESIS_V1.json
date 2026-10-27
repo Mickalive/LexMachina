@@ -1,0 +1,85 @@
+{
+  "schema": "lex-evaluation-operational-resume-hypothesis/1",
+  "lane": "evaluation",
+  "run_id": "40423990845",
+  "diagnosed_run_id": "40423855962",
+  "direction_version": 68,
+  "fast_mvp_directive": "build the smallest executable retrieval/counter-authority benchmark that can falsify the product; reuse existing multilingual/provenance tests; do not rerun obsolete universal-174k benchmarks",
+  "mode": "OPERATIONAL_RESUME from the persisted producer snapshot of run 40423855962",
+  "title": "Diagnose the orchestration failure of run 40423855962, verify the persisted evaluation snapshot, and make it audit-ready without restarting the lane",
+  "pre_freeze_reconnaissance_DISCLOSED": [
+    "Read the control plane at /tmp/lex_control (direction v68, evaluation lane directive, master prompt, architecture, research protocol).",
+    "Read the public GitHub REST run object and job/step list for run 40423855962 (unauthenticated, public repository metadata only).",
+    "Recomputed the snapshot branch origin/cycle/core/evaluation/40423855962/team and compared it with origin/lab/evaluation and the accepted cycle 40265377500.",
+    "Read the committed state/model_health.json at the run's head_sha 0c551b49 and at the later control-plane head 4fd41970.",
+    "Read the committed lane state, the last accepted audit gates and the last two cycles' machine records, and ran evaluation.post_repair_family_ca_falsifier.precondition_gate twice as a feasibility check while preparing this freeze.",
+    "NOT executed before this freeze: the official benchmark replay comparison, the command battery records, the state write, the final state-integrity/nested-refs/scope gates."
+  ],
+  "hypotheses_FROZEN": {
+    "H1_failure_class": "Run 40423855962 failed in the 'Run lane cycle' step BEFORE the agent started, because the wrapper's resolve_model_args early-exit saw state/model_health.json at head 0c551b49 with healthy=false and resolved_model=null (status NO_TOOL_CAPABLE_FREE_MODEL) and returned 76 LEX_NO_HEALTHY_FREE_TOOL_MODEL. It is an orchestration/model-health (provider) failure, not a lane-scope validation failure, not a zero-delta repair, not a work-quantum starvation, and not an audit REVISE/BLOCKED.",
+    "H2_snapshot_contains_no_run_work": "The persisted snapshot of run 40423855962 is byte-identical to the accepted origin/lab/evaluation head ea98384e ('accept evaluation cycle 40265377500'); the run's own force-pushed team branch adds no commit and therefore carries no lane work. The snapshot is preserved, not stale.",
+    "H3_lane_deliverable": "The committed FAST-MVP minimal retrieval/counter-authority benchmark artifact of cycle 40265377500 (verdict PRODUCT_FALSIFIED on packet-of-record 39319405429) is internally consistent and replays byte-identically against its recorded product-mount head f9b0db25, but its independent audit gate/report describe a DIFFERENT benchmark (a cached OpenCaseLaw envelope benchmark, BENCHMARK_VALID_NO_FALSIFICATION) and therefore cannot be adopted as an independent audit of the committed minimal falsifier.",
+    "H4_last_clean_accepted_cycle": "Cycle 40258497460 remains the last accepted evaluation cycle whose in-tree PASS gate and machine artifact agree (post-repair family CA falsifier, SOUND_COUNTER_ROW_PRESENT, falsification_proven=false). The accepted_run_id pointer must stay at 40258497460; the structurally accepted 40265377500 is recorded with accepted_as_evidence=false and its audit-artifact mismatch disclosed.",
+    "H5_ordered_item_2": "Ordered work item (2) remains NOT_YET_DISCRIMINATING at the CURRENT accepted product mount 7be4480e (accept product cycle 40284658455): the rejection/incumbent leg is landed but the named frozen 15-member family is regenerated 14/15 (server/served 3 < 4), so the full item-(2) re-measure is NOT executed and no packet is scored.",
+    "H6_no_new_same_question_cycle": "After this operational resume the lane has no discriminating same-question work under v68; continue_recommended must stay false and no frozen benchmark, standing falsification, D2 profile or universal-174k benchmark may be re-run."
+  },
+  "pre_registered_checks_FROZEN": {
+    "diagnosis": [
+      "run 40423855962 conclusion is failure and its team job is the failed job",
+      "the failed step is 'Run lane cycle'; 'Validate active MVP producer state' and 'Enforce lane write scope' are skipped; 'Clean generated junk' and 'Persist team snapshot' succeed",
+      "the audit and integrate jobs are skipped and no refs/heads/cycle/core/evaluation/40423855962/audit exists (no verdict was issued)",
+      "the run head_sha is 0c551b49a1c908d439702d477e192bb784865e1d and its state/factory_direction.json version is 68 (so the supersession guard cannot have fired)",
+      "the agent-card registry at that head is 7 agent files / 7 unique ACTIVE cards (so the registry guard cannot have fired)",
+      "a byte-faithful shell re-execution of the wrapper's resolve_model_args early-exit on state/model_health.json at head 0c551b49 exits 76; the same predicate on the later head 4fd41970 exits 0 with a resolved model",
+      "the run's 'Run lane cycle' step duration is too short for substantive agent work and the step count/order matches a pre-agent wrapper exit"
+    ],
+    "snapshot": [
+      "origin/cycle/core/evaluation/40423855962/team == ea98384e54d31d2e694c418a1d1ce5769fc6c32f",
+      "the snapshot equals origin/lab/evaluation (the accepted base) and its tree diff is empty",
+      "the snapshot commit is 'accept evaluation cycle 40265377500', not a producer commit authored by run 40423855962",
+      "no audit branch exists for run 40423855962"
+    ],
+    "deliverable": [
+      "the last clean accepted cycle 40258497460 has an in-tree PASS gate with safe_to_integrate=true and required_fixes=[], an accept commit 64208e15 reachable from origin/lab/evaluation, and a machine artifact whose verdict/aggregate agree with the gate evidence summary",
+      "the committed minimal retrieval/counter-authority artifact test_40265377500.json exists, has verdict PRODUCT_FALSIFIED, exit 1, 18 gates (11 passed, 4 failed, 3 reported), packet 39319405429 and product mount head f9b0db25",
+      "the same artifact's frozen hypothesis, freeze record and frozen spec pin to the bytes on disk",
+      "the audit gate and report for cycle 40265377500 contain the cached-bundle benchmark markers (BENCHMARK_VALID_NO_FALSIFICATION, run_cached_bundle) and no reference to the committed minimal falsifier, which is the audit-artifact mismatch of H3",
+      "the pending FAST-MVP recall benchmark cycle 40261335674 has committed artifacts and NO in-tree audit gate and NO accept commit; it is not accepted evidence",
+      "ordered item (1)'s correction of record and its machine record are present, and the correction's measurement-unchanged, bundle-sha, span-provenance and incumbent-left-in-place checks hold"
+    ],
+    "replay": [
+      "a fresh replay of evaluation.minimal_retrieval_ca_benchmark against a detached product worktree at f9b0db25 reproduces the committed verdict, exit code, gate ids, gate pass/fail values, gate details, failed-gate ids/details, per-question identity, admissibility, non-vacuity and both pre-run/post-run re-hash maps",
+      "the only excluded fields are run_id, generated_at_utc, output/report paths and the wrapper commit-time digest, each with a stated reason"
+    ],
+    "item_2": [
+      "two independent precondition_gate executions are byte-equal",
+      "H1 rejection/incumbent leg landed is true",
+      "member-for-member regeneration is 14/15 with server/served post-repair multiplicity 3 < frozen 4",
+      "the status is NOT_YET_DISCRIMINATING and no scoring, no packet read, no d2_path_scope_probe re-run and no standing-falsification re-run occur"
+    ],
+    "state": [
+      "both state files remain structurally valid, evidence_refs_n equals len(evidence_refs), every ref resolves, and root/lane parity holds",
+      "the accepted_run_id pointer is unchanged at 40258497460 (H4)",
+      "the previous next_recommendation is preserved verbatim before being replaced",
+      "no file is written into results/audit/evaluation/** or reports/audit/evaluation/** by this producer run"
+    ]
+  },
+  "success_rule_FROZEN": {
+    "diagnosis": "DIAGNOSIS_CONFIRMED only if every diagnosis check passes; otherwise publish DIAGNOSIS_INCOMPLETE with the failing checks named, never a narrative guess.",
+    "snapshot": "SNAPSHOT_PRESERVED_ON_ACCEPTED_BASE only if every snapshot check passes.",
+    "deliverable": "DELIVERABLE_VERIFIED_WITH_AUDIT_MISMATCH only if the clean accepted cycle checks, the artifact checks and the replay all pass and the audit mismatch is positively detected; a replay divergence or a missing pin must be published as REPLAY_DIVERGED / PIN_MISSING, not rounded to a pass.",
+    "item_2": "NOT_YET_DISCRIMINATING only if both executions agree and the member relation is < 15/15; a 15/15 relation would be published as PRECONDITION_MET and the ordered protocol would NOT be executed inside this operational resume.",
+    "overall": "AUDIT_READY only if every phase verdict meets its rule, the final state-integrity gate is ALL_CHECKS_PASS, the nested-refs guard is NESTED_REFS_RESOLVED and the producer write-scope is SCOPE_CLEAN. Any other outcome is published with the failing record rather than suppressed."
+  },
+  "decision_unlocked": "Whether the persisted 40423855962 snapshot is audit-ready as-is, whether the lane must open a new same-question cycle (expected: no), and whether the 40265377500 structural acceptance may be quoted as evidence of the committed minimal falsifier (expected: no).",
+  "not_in_scope": [
+    "no frozen bar, rubric, threshold, predicate, classifier or verdict contract is read, moved or edited",
+    "no serve verdict is re-issued, no packet is admitted, both DO-NOT-SERVE orders stand",
+    "no standing falsification, D2 profile, bypass diagnosis or ordered item-(1) correction is re-derived or re-run",
+    "no universal-174k benchmark is run",
+    "no human-gate session is staged; human_gate_ready and machine_gate_ready stay false; owner_decision_required stays false",
+    "no new same-question cycle; continue_recommended stays false",
+    ".github/** is control-plane scope and is never edited from this lane"
+  ],
+  "claim_ceiling": "Operational-resume diagnosis, snapshot/deliverable verification and in-lane state/audit-pack repair only. No measurement of the product, no frozen-bar result, no packet admission, no serve verdict and no claim that the map helps a jurist."
+}
