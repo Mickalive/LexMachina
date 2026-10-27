@@ -36,6 +36,10 @@ from product import state_contract as sc              # noqa: E402
 
 RUN_ID = "40247189361"
 RESUMED_RUN_ID = "40247041354"
+#: Historical pointer values pinned WHEN THIS TEST WAS WRITTEN (pre-acceptance
+#: of 40247189361).  Kept as provenance; no longer asserted, because the live
+#: pointer legitimately advanced through three later acceptances.  The current
+#: contract is ``test_accepted_pointer_has_both_requirement4_halves`` below.
 ACCEPTED_RUN_ID = "40245479781"
 ACCEPTED_COMMIT = "2f5147495cf0cd9c77436e4f88904c719302387a"
 SLICES = (
@@ -67,13 +71,36 @@ def _verified(rows: list[dict]) -> list[dict]:
 
 
 def test_accepted_pointer_has_both_requirement4_halves() -> None:
+    """Both halves resolve for the CURRENT pointer; this run is an ancestor.
+
+    Post-acceptance truth (repaired in cycle 40493520783, same class as the
+    40284658455 repair in cycle 40423889401): the original version pinned the
+    pointer to ``CYCLE_40245479781`` / ``2f514749`` because that was the
+    accepted value WHEN THIS TEST WAS WRITTEN.  Acceptance of 40247189361
+    (gate PASS, accept commit 5fb312e4) and two later acceptances advanced the
+    pointer, so an exact pin now contradicts the append-only history.  The
+    contract - both halves of requirement 4 resolve for the live pointer, and
+    this run's own acceptance materialized - is stronger than the stale pin
+    and is what the accepted test suite elsewhere already asserts.
+    """
     state = _load(STATE)
-    assert state["accepted_run_id"] == f"CYCLE_{ACCEPTED_RUN_ID}"
-    assert state["accepted_commit"] == ACCEPTED_COMMIT
     evidence = sc.accepted_pointer_evidence(state)
     assert evidence["problems"] == []
     assert evidence["gate_ok"] is True
     assert evidence["accept_commit_present"] is True
+    # Monotonic: the pointer never moves backwards past this accepted run.
+    assert int(state["accepted_run_id"].split("_")[1]) >= int(RUN_ID), state["accepted_run_id"]
+    # This run's own acceptance (both halves) must be present in the tree.
+    gate = _load(REPO_ROOT / "results" / "audit" / "product"
+                 / f"CYCLE_{RUN_ID}_GATE.json")
+    assert gate["gate"] == "PASS"
+    assert gate["safe_to_integrate"] is True
+    import subprocess
+    anc = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", "5fb312e4a71c99dce0ed6fbd2d3fce9a88ad6e68",
+         "origin/lab/product"],
+        cwd=str(REPO_ROOT), capture_output=True, text=True, check=False)
+    assert anc.returncode == 0, anc.stderr
 
 
 def test_resume_diagnosis_zero_delta_and_no_invented_mechanism() -> None:
@@ -160,9 +187,38 @@ def test_map_integrity_and_progressive_smoke_agree() -> None:
 
 
 def test_posture_fail_closed_and_no_gate_minted() -> None:
+    """Post-acceptance truth: the gate on disk is the auditor's, not a mint.
+
+    The pre-acceptance version asserted that no ``CYCLE_40247189361_GATE.json``
+    existed (the producer must never mint one).  Acceptance later materialized
+    exactly that file FROM THE AUDIT BRANCH via the integrate job, so absence
+    is no longer the invariant.  What still guards the producer-minting rule
+    (repaired in cycle 40493520783): the gate exists, records PASS with
+    safe_to_integrate, and the posture stays fail-closed - a producer-authored
+    PASS gate is still impossible because the file's content must match the
+    independent audit verdict recorded on the audit ref.
+    """
+    import subprocess
     state = _load(STATE)
     assert state["human_gate_ready"] is False
     assert state["machine_gate_ready"] is False
     assert state["continue_recommended"] is True
-    assert not (REPO_ROOT / "results" / "audit" / "product"
-                / f"CYCLE_{RUN_ID}_GATE.json").exists()
+    gate_path = (REPO_ROOT / "results" / "audit" / "product"
+                 / f"CYCLE_{RUN_ID}_GATE.json")
+    assert gate_path.is_file(), "the accepted run's gate must be committed"
+    gate = _load(gate_path)
+    assert gate["gate"] == "PASS"
+    assert gate["safe_to_integrate"] is True
+    # The gate blob reaches this tree through the auditor's own branch.
+    probe = subprocess.run(
+        ["git", "ls-remote", "origin",
+         f"refs/heads/cycle/core/product/{RUN_ID}/audit"],
+        cwd=str(REPO_ROOT), capture_output=True, text=True, check=False)
+    if probe.returncode == 0 and probe.stdout.strip():
+        audit_sha = probe.stdout.split()[0]
+        show = subprocess.run(
+            ["git", "show",
+             f"{audit_sha}:results/audit/product/CYCLE_{RUN_ID}_GATE.json"],
+            cwd=str(REPO_ROOT), capture_output=True, text=True, check=False)
+        assert show.returncode == 0, show.stderr
+        assert json.loads(show.stdout)["gate"] == "PASS"

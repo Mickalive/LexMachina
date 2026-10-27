@@ -230,7 +230,13 @@ def test_report_state_and_posture_are_recorded() -> None:
     assert block["accepted_this_cycle"] is False
     assert block["durable_delta"]["changed_files"] == 8
 
-    assert str(st["current_cycle_run_id"]) == EXECUTING_RUN_ID
+    # Monotonic contract, not an exact pin: ``current_cycle_run_id`` advances
+    # with EVERY later producer cycle, so an equality pin here turned red the
+    # moment a subsequent cycle updated state (observed red in cycle
+    # 40493520783's collection).  Same contract as
+    # test_cycle_40259640985_resume.py:81 and test_cycle_40284658455.py:149.
+    assert int(st["current_cycle_run_id"]) >= int(EXECUTING_RUN_ID), (
+        st["current_cycle_run_id"], EXECUTING_RUN_ID)
     assert st["continue_recommended"] is True
     assert st["human_gate_ready"] is False
     assert st["machine_gate_ready"] is False
