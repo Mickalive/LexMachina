@@ -455,6 +455,7 @@ MVP_CORE_TESTS = (
     "product/tests/test_counter_content_rejection_v68.py",
     "product/tests/test_state_contract.py",
     "product/tests/test_progressive_query.py",
+    "product/tests/test_audit_readiness_verify.py",
 )
 
 STATE_TIMEOUT_S = 180
@@ -1346,6 +1347,11 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
                 "python3 product/audit_readiness.py --run-id "
                 f"{run_id} --out /tmp/lex_audit_readiness.json"
             ),
+            "verify_committed_dossier": (
+                "python3 product/audit_readiness.py --verify "
+                "results/product/audit_readiness/"
+                f"CYCLE_{run_id}_audit_readiness.json"
+            ),
             "resumed_run_diagnosis": str(resume_diag.relative_to(ROOT)),
             "inherited_report": (str(Path(inherited).relative_to(ROOT))
                                  if inherited else None),
@@ -1380,10 +1386,56 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
     }
 
 
+def verify_dossier(dossier_path: Path) -> dict[str, Any]:
+    """Re-hash a *committed* dossier's ``claim_artifacts`` against the tree.
+
+    A dossier is generated once and then committed; if the report or state is
+    edited afterwards the recorded hashes silently become stale (the exact
+    defect that rejected cycle 40423889401).  Generation-time hashing cannot
+    catch that, so this mode re-reads the committed dossier and compares every
+    recorded digest with the bytes now on disk.  It fails closed on a missing
+    artifact, a stale hash or a dossier without the claim_artifacts check.
+    """
+    path = Path(dossier_path)
+    if not path.is_file():
+        return {"ok": False, "dossier": str(path), "n_checked": 0,
+                "problems": [{"path": str(path), "problem": "DOSSIER_MISSING"}]}
+    rec = _load(path)
+    check = next((c for c in rec.get("checks") or []
+                  if c.get("id") == "claim_artifacts"), None)
+    if check is None:
+        return {"ok": False, "dossier": str(path), "n_checked": 0,
+                "problems": [{"path": str(path),
+                              "problem": "CLAIM_ARTIFACTS_CHECK_MISSING"}]}
+    recorded = ((check.get("detail") or {}).get("sha256") or {})
+    problems: list[dict[str, Any]] = []
+    for rel, expected in sorted(recorded.items()):
+        candidate = Path(rel)
+        target = candidate if candidate.is_absolute() else ROOT / candidate
+        if not target.is_file():
+            problems.append({"path": rel, "problem": "MISSING"})
+            continue
+        actual = _sha256(target)
+        if actual != expected:
+            problems.append({"path": rel, "problem": "STALE",
+                             "recorded": expected, "actual": actual})
+    return {
+        "ok": not problems,
+        "dossier": str(path),
+        "run_id": rec.get("run_id"),
+        "generated_at": rec.get("generated_at"),
+        "n_checked": len(recorded),
+        "problems": problems,
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--run-id", required=True)
-    ap.add_argument("--out", required=True)
+    ap.add_argument("--run-id")
+    ap.add_argument("--out")
+    ap.add_argument("--verify", metavar="DOSSIER",
+                    help="re-hash a committed dossier's claim artifacts and "
+                         "exit non-zero on a missing/stale artifact")
     ap.add_argument("--direction-version", type=int,
                     default=DIRECTION_VERSION)
     ap.add_argument("--skip-tests", action="store_true")
@@ -1391,6 +1443,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-bootstrap", action="store_true",
                     help="probe the runtime but do not install the pinned pins")
     args = ap.parse_args(argv)
+    if args.verify:
+        if args.run_id or args.out:
+            ap.error("--verify is exclusive with --run-id/--out")
+        verdict = verify_dossier(Path(args.verify))
+        print(json.dumps(verdict, indent=2))
+        return 0 if verdict["ok"] else 1
+    if not args.run_id or not args.out:
+        ap.error("--run-id and --out are required unless --verify is used")
     rec = run(args.run_id, direction_version=args.direction_version,
               include_tests=not args.skip_tests,
               include_smoke=not args.skip_smoke,

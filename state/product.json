@@ -191,7 +191,7 @@
   },
   "lane": "product",
   "machine_gate_ready": false,
-  "next_recommendation": "Direction v68 / FAST MVP, operational resume cycle 40423889401 (UNADJUDICATED pending independent audit). WHAT WAS DIAGNOSED: the resumed snapshot 40423595480 is byte-identical to the accepted product head 7be4480e (origin/lab/product), so its team ref carries ZERO_DURABLE_DELTA and no producer delta was possible; the team job failed at 'Run lane cycle', the logs endpoint returned HTTP 403, so no log-level cause is asserted. The 333 team refs that currently point at 7be4480e are recorded as a control-plane dispatch pathology, not a product defect. WHAT WAS REPAIRED: (a) the accepted pointer advanced to CYCLE_40284658455 / 7be4480e with both halves verified from the audit ref; (b) the accepted head's own cycle test product/tests/test_cycle_40284658455.py had become RED because it still asserted that no gate/audit ref existed for a run that is now accepted - it now verifies the post-acceptance truth and the accepted-pointer contract; (c) product/resume_snapshot_diagnosis.py now records accepted_head_relation= SNAPSHOT_IS_ACCEPTED_HEAD and refuses to recommend an identical resume (NO_PRODUCER_DELTA_POSSIBLE); (d) product/audit_readiness.py models the new 'observed_steps' mechanism (jobs API observed, logs unavailable) and has a 40423889401 profile. ORDERED WORK STATUS (v68, unchanged by this cycle): (1) P0 rejection/incumbent leg LANDED and accepted (v68_delivery); (2) full-family regeneration published (49 bundles / 4900 decisions / 55 verified / 0 verified-defective / 0 false rejects, REPORTED-ONLY); (3) accepted findings consumed; (4) fixture-anchor asymmetry MEASURED DO_NOT_CLOSE (40 exposure rows); (5) live latency/precision DEFERRED (budget 8); (6) frozen-rules profile gap DISCLOSED and evaluation-owned. The next substantive product question remains the direction-level pivot_absent content-sound disagreement between the P0 content leg and the adopted anchor label decision - recorded, NOT decided here. NEXT CYCLE: do NOT re-dispatch an operational resume of the accepted head; choose a fresh executable product question/delta. Posture stays FAIL-CLOSED: human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session all FALSE (both frozen bars unmet), owner_decision_required false, continue_recommended TRUE.",
+  "next_recommendation": "Direction v68 / FAST MVP, repair round 1 of rejected cycle 40423889401 (run 40427889739, UNADJUDICATED pending independent audit). WHAT WAS REPAIRED: the single audit required_fix - the audit-readiness dossier results/product/audit_readiness/CYCLE_40423889401_audit_readiness.json was regenerated AFTER the report and state bytes were final, so all 8 claim_artifacts sha256 values match the committed blobs (before: 2 stale / 6 match; after: 8/8; evidence results/product/repair_40427889739/dossier_hash_reconciliation.json); a --verify mode and 4 synthetic-dossier tests now fail closed on a missing or stale hash. NOTHING ELSE WAS CHANGED: the orchestration diagnosis of 40423595480, the accepted-pointer advance to CYCLE_40284658455 / 7be4480e, the prior cycle-test repairs and all product work are consumed unchanged from 40423889401. The accepted query-map vertical slice at 7be4480e remains accepted. NEXT CYCLE: take a fresh executable product question/delta; do not re-dispatch an operational resume of the accepted head. Posture stays FAIL-CLOSED: human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session all FALSE (both frozen bars unmet), owner_decision_required false, continue_recommended TRUE.",
   "not_claimed": [
     "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
     "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
@@ -243,7 +243,7 @@
       "clusters": 8,
       "counter_authorities": 3,
       "decisions": 154,
-      "fixture_query": "K\u00fcndigung Mietvertrag Mietrecht",
+      "fixture_query": "Kündigung Mietvertrag Mietrecht",
       "map_phase_latency_s": 0.3,
       "top_n": 150
     },
@@ -875,7 +875,7 @@
     "defects_repaired": [
       "BGE identity: court \"bge\" resolved through the raw docket before the citation, so docket-shaped aliases (\"113 II 52\" and \"BGE 113 II 52\") became two map points for one decision. Court \"bge\" now resolves through the canonical citation first; the merge is exported in provenance.identity_merge (method court_docket_or_bge_identity_merge_v2).",
       "Local inspectability: every row now carries content_state in {full_text,regeste,snippet,pointer} and provenance.content_coverage; bundle_summary publishes the same tally. Annotation is applied on the initial, progressive and enriched paths, and refreshed after lazy hydration.",
-      "UI honesty: the page labels reference-only points \"r\u00e9f\u00e9rence seule\", prints a coverage line (local vs total), and the detail panel states that no local excerpt exists while still offering the public source link.",
+      "UI honesty: the page labels reference-only points \"référence seule\", prints a coverage line (local vs total), and the detail panel states that no local excerpt exists while still offering the public source link.",
       "Offline summary honesty: rows_with_source_url is now the true source_url count; rows_with_source_link and rows_with_canonical_url are separate; fixture replay degraded/cache-miss/failure counts are surfaced, with degraded_scope=fixture_replay_only at the summary top level."
     ],
     "measurements": {
@@ -1086,9 +1086,9 @@
     "audit_namespace_written": false,
     "claim_ceiling": "OPERATIONAL-RESUME AND AUDIT-READINESS EVIDENCE ONLY. No live retrieval, legal usefulness, frozen bar, serve verdict, acceptance or human-gate readiness is asserted."
   },
-  "current_cycle_run_id": 40423889401,
-  "last_repair_round": 0,
-  "last_updated": "2026-10-27T00:12:00Z",
+  "current_cycle_run_id": 40427889739,
+  "last_repair_round": 1,
+  "last_updated": "2026-10-27T00:45:39Z",
   "run_history": [
     {
       "run_id": "40241250741",
@@ -1230,6 +1230,16 @@
       "report": "reports/product/CYCLE_40423889401.md",
       "diagnosis": "results/product/orchestration/CYCLE_40423595480_resume_diagnosis.json",
       "date": "2026-10-27T00:12:00Z"
+    },
+    {
+      "run_id": "40427889739",
+      "repair_round": 1,
+      "repaired_run_id": "40423889401",
+      "status": "REPAIRED_PENDING_AUDIT",
+      "audit_gate": "REVISE",
+      "summary": "Applied the single required fix of CYCLE_40423889401_GATE.json: regenerated the audit-readiness dossier after final report/state bytes so all 8 claim_artifacts hashes match the committed blobs; added a --verify mode and regression test for committed-dossier integrity. No product, diagnosis, pointer or prior test repair was redone.",
+      "report": "reports/product/CYCLE_40427889739_REPAIR1.md",
+      "date": "2026-10-27T00:45:39Z"
     }
   ],
   "cycle_40247041354_resume": {
@@ -1479,18 +1489,18 @@
         "Kundigung Mietvertrag Mietrecht",
         "Kundigung Mietvertrag Mietrecht miete loyer bail locazione mietzins",
         "kundigung mietvertrag mietrecht eccezione limite abuso di diritto buona fede restrizione miete loyer bail locazione mietzins",
-        "k\u00fcndigung bger nicht ausgesprochen abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
-        "k\u00fcndigung bger nicht ausgesprochen ausnahme exception eccezione vorbehalt r\u00e9serve riserva einschr\u00e4nkung except\u00e9 fatta eccezione",
-        "k\u00fcndigung bger nicht ausgesprochen minderheit minorit\u00e9 minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
-        "k\u00fcndigung bger nicht ausgesprochen \u00e4ltere rechtsprechung ancienne jurisprudence precedente giurisprudenza fr\u00fcher autrefois in passato fr\u00fcheren rechtsprechung d\u00e9sormais mittlerweile",
-        "k\u00fcndigung bger nicht kann abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
-        "k\u00fcndigung bger nicht kann ausnahme exception eccezione vorbehalt r\u00e9serve riserva einschr\u00e4nkung except\u00e9 fatta eccezione",
-        "k\u00fcndigung bger nicht kann minderheit minorit\u00e9 minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
-        "k\u00fcndigung bger nicht kann \u00e4ltere rechtsprechung ancienne jurisprudence precedente giurisprudenza fr\u00fcher autrefois in passato fr\u00fcheren rechtsprechung d\u00e9sormais mittlerweile",
-        "k\u00fcndigung nicht bger wenn abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
-        "k\u00fcndigung nicht bger wenn ausnahme exception eccezione vorbehalt r\u00e9serve riserva einschr\u00e4nkung except\u00e9 fatta eccezione",
-        "k\u00fcndigung nicht bger wenn minderheit minorit\u00e9 minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
-        "k\u00fcndigung nicht bger wenn \u00e4ltere rechtsprechung ancienne jurisprudence precedente giurisprudenza fr\u00fcher autrefois in passato fr\u00fcheren rechtsprechung d\u00e9sormais mittlerweile"
+        "kündigung bger nicht ausgesprochen abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
+        "kündigung bger nicht ausgesprochen ausnahme exception eccezione vorbehalt réserve riserva einschränkung excepté fatta eccezione",
+        "kündigung bger nicht ausgesprochen minderheit minorité minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
+        "kündigung bger nicht ausgesprochen ältere rechtsprechung ancienne jurisprudence precedente giurisprudenza früher autrefois in passato früheren rechtsprechung désormais mittlerweile",
+        "kündigung bger nicht kann abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
+        "kündigung bger nicht kann ausnahme exception eccezione vorbehalt réserve riserva einschränkung excepté fatta eccezione",
+        "kündigung bger nicht kann minderheit minorité minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
+        "kündigung bger nicht kann ältere rechtsprechung ancienne jurisprudence precedente giurisprudenza früher autrefois in passato früheren rechtsprechung désormais mittlerweile",
+        "kündigung nicht bger wenn abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
+        "kündigung nicht bger wenn ausnahme exception eccezione vorbehalt réserve riserva einschränkung excepté fatta eccezione",
+        "kündigung nicht bger wenn minderheit minorité minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
+        "kündigung nicht bger wenn ältere rechtsprechung ancienne jurisprudence precedente giurisprudenza früher autrefois in passato früheren rechtsprechung désormais mittlerweile"
       ],
       "decision_ids": [
         "bge_138 III 59",
@@ -1959,12 +1969,12 @@
         "rejected_ids": 0,
         "wall_seconds": 141.35
       },
-      "query": "Responsabilit\u00e9 p\u00e9nale de l'entreprise selon l'art. 102 CP subsidiaire ou primaire",
+      "query": "Responsabilité pénale de l'entreprise selon l'art. 102 CP subsidiaire ou primaire",
       "report": "reports/product/CYCLE_38641080245.md",
       "run_id": 38641080245,
       "server": "python product/query_app.py --port 8793 (one command, stdlib ThreadingHTTPServer)"
     },
-    "live_legs_this_run": "results/product/reality_check/summary_ci_38604340726.json (4/4 structural+truth, sequential) \u2014 durable run conclusion=success observed 2026-10-14T21:36:10Z",
+    "live_legs_this_run": "results/product/reality_check/summary_ci_38604340726.json (4/4 structural+truth, sequential) — durable run conclusion=success observed 2026-10-14T21:36:10Z",
     "pre_existing_collection_errors": "18 legacy 174k test modules fail collection with ModuleNotFoundError: sentence_transformers (optional dep, PAUSE'd legacy lane); unchanged by this cycle and not on the query-map path",
     "product_integration_tests": "91 passed (ci_reality_legs 20 + ci_run_evidence 26 + reality_check + audit_seam + query_map_mvp + answer_contract + human_gate_integration 12)",
     "resume_39014141628": "reports/product/CYCLE_39011220761_RESUME.md is this cycle's report (written by run 39014141628). Pre-existing-red follow-up: product/tests/test_cache_non_orphan claim-bundle identity (CORRECTED characterization, audit D2 repair r1: 2841 differing leaves, committed claim bundle 154 rows vs 120 from a fresh frozen-subset replay, all 120 present in the committed set - NOT only cluster label/size/member_ids) and test_audit_seam dead-model agreement fail identically at accepted base 3077b27 in this environment - re-measure in the numeric environment that produced the accepted claim artifact before quoting claim-cache identity again; never weaken content_sha256 or the seam's exclusion to make them pass.",
@@ -2118,6 +2128,80 @@
       "audit_namespace_written": false,
       "reason": "this producer run has neither an independent PASS gate on a cycle audit ref nor an accept commit"
     },
-    "claim_ceiling": "Orchestration diagnosis + validation repair + accepted-pointer correction only. No live retrieval, legal-usefulness, answer-quality, frozen-bar, serve-verdict or human-gate claim is made. The prior snapshot is not labelled rejected; it is a zero-delta no-op resume."
+    "claim_ceiling": "Orchestration diagnosis + validation repair + accepted-pointer correction only. No live retrieval, legal-usefulness, answer-quality, frozen-bar, serve-verdict or human-gate claim is made. The prior snapshot is not labelled rejected; it is a zero-delta no-op resume.",
+    "repair_round_1": {
+      "run_id": "40427889739",
+      "audit_gate": "REVISE",
+      "required_fix": "AUDIT_READINESS_DOSSIER_STALE_HASHES",
+      "disposition": "REPAIRED_PENDING_AUDIT",
+      "dossier": "results/product/audit_readiness/CYCLE_40423889401_audit_readiness.json",
+      "evidence": "results/product/repair_40427889739/dossier_hash_reconciliation.json",
+      "note": "The dossier is regenerated after the final report/state bytes; all 8 claim_artifacts hashes match. No diagnosis, pointer or prior test repair was redone."
+    }
+  },
+  "cycle_40427889739_repair_of_40423889401": {
+    "schema": "product-cycle-repair/1",
+    "run_id": "40427889739",
+    "repaired_run_id": "40423889401",
+    "repair_round": 1,
+    "direction_version": 68,
+    "mode": "PROVENANCE-ONLY repair of the single required_fixes item of rejected cycle 40423889401. The orchestration diagnosis, accepted-pointer advance, prior cycle-test repairs and all product work are consumed unchanged; nothing was re-derived or re-run as product evidence.",
+    "rejected_audit": {
+      "gate_file": "/tmp/lex_prior_audit/results/audit/product/CYCLE_40423889401_GATE.json",
+      "gate_file_scope": "Read from the mounted prior-audit tree. A REVISE gate is not integrated, and the producer never writes results/audit/**.",
+      "sha256": "b2e76aa7d3ed08bda8ddd87565248ebe529387611dbc91d89494c8b4d30f54bc",
+      "gate": "REVISE",
+      "safe_to_integrate": false,
+      "required_fixes_count": 1
+    },
+    "required_fix": {
+      "id": "AUDIT_READINESS_DOSSIER_STALE_HASHES",
+      "summary": "Regenerate results/product/audit_readiness/CYCLE_40423889401_audit_readiness.json with --run-id 40423889401 AFTER the report and state bytes are final (dossier write last) so all 8 claim_artifacts hashes match the committed blobs, and verify with a re-run plus a clean git status after the dossier write.",
+      "before": {
+        "n_checked": 8,
+        "n_stale": 2,
+        "stale_paths": [
+          "reports/product/CYCLE_40423889401.md",
+          "state/product.json"
+        ],
+        "stale_hashes": {
+          "reports/product/CYCLE_40423889401.md": {
+            "recorded": "51591062b8486a0c1203764bf6758acc67a601a0f415dc9f3bcf9c3ceaa15fba",
+            "actual_at_repair_start": "403f504f2e2efda22a1493e83da543186f37ab95389ea603e2b6240be043995a"
+          },
+          "state/product.json": {
+            "recorded": "8c0420c6ef0933c002122b20bcd87f0122d88a5c7f639337be08083363f42382",
+            "actual_at_repair_start": "252d2e071a271b948f2e30502715eb6f7ff1ee32d9e5591d18512c97cd619523"
+          }
+        },
+        "evidence": "results/product/repair_40427889739/pre_repair_dossier_hashes.json"
+      },
+      "applied": "Report and state were finalized first; the dossier was regenerated last with --run-id 40423889401; all 8 recorded hashes were then re-verified against the working-tree bytes with the new --verify mode.",
+      "after": {
+        "n_checked": 8,
+        "n_stale": 0,
+        "evidence": "results/product/repair_40427889739/dossier_hash_reconciliation.json"
+      }
+    },
+    "instrument_added": {
+      "cli": "python3 product/audit_readiness.py --verify <committed-dossier>",
+      "test": "product/tests/test_audit_readiness_verify.py (4 tests, synthetic dossiers only)",
+      "why": "Generation-time hashing cannot catch an artifact edited after the dossier is written. The verify mode fails closed on MISSING/STALE and gives the next auditor a one-command integrity check; the unit tests never read the repository's own dossier, so they are safe to run inside dossier generation."
+    },
+    "posture": {
+      "human_gate_ready": false,
+      "machine_gate_ready": false,
+      "packet_admitted": false,
+      "ready_for_owner_session": false,
+      "continue_recommended": true
+    },
+    "adjudication": {
+      "status": "UNADJUDICATED",
+      "accepted": false,
+      "gate_minted": false,
+      "audit_namespace_written": false,
+      "reason": "This repair run has neither an independent PASS gate on a cycle audit ref nor an accept commit."
+    },
+    "claim_ceiling": "Provenance repair only. This cycle claims only that the rejected cycle's own audit-readiness dossier now hashes the committed bytes and that a --verify instrument exists to re-check it. It makes no new product capability, live-retrieval, legal-usefulness, answer-quality, frozen-bar, serve-verdict, packet-admission or human-gate claim. The accepted query-map vertical slice at 7be4480e remains accepted and unchanged."
   }
 }

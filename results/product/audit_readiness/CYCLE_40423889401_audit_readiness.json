@@ -1,6 +1,6 @@
 {
   "schema": "product-audit-readiness/1",
-  "generated_at": "2026-10-27T00:22:25Z",
+  "generated_at": "2026-10-27T00:48:52Z",
   "run_id": "40423889401",
   "resumed_run_id": "40423595480",
   "predecessor_run_id": "40284658455",
@@ -66,7 +66,7 @@
           "workflow_exit": 0
         },
         "write_scope": {
-          "checked_paths": 10,
+          "checked_paths": 5,
           "ok": true,
           "violations": [],
           "workflow_exit": 0
@@ -85,7 +85,7 @@
         "product/state_contract.py"
       ],
       "command": "/usr/bin/python3 product/state_contract.py --check --direction-version 68 --json",
-      "seconds": 0.052
+      "seconds": 0.05
     },
     {
       "id": "posture",
@@ -177,8 +177,8 @@
           "results/product/orchestration/CYCLE_40423595480_run_jobs_raw.json": "99cd7f8fac6f326b98b10f9e410f8df67c36ddd721f018e02d955f0b6d1ede0a",
           "results/product/orchestration/CYCLE_40423595480_resume_diagnosis.json": "5f56ab0e2fd2ec0cd86eddb6eca81817aee2a4256cdd3d222ba2c8c7cd081b7d",
           "reports/product/CYCLE_40284658455.md": "514169c4e85a0a4af7c089dd4b913382d24d72567d48d9be1197327525174d23",
-          "reports/product/CYCLE_40423889401.md": "51591062b8486a0c1203764bf6758acc67a601a0f415dc9f3bcf9c3ceaa15fba",
-          "state/product.json": "8c0420c6ef0933c002122b20bcd87f0122d88a5c7f639337be08083363f42382"
+          "reports/product/CYCLE_40423889401.md": "869c9b53081486c2d2e2efc53969e461ab21912096f3453b6fce8f5aedf4ffcd",
+          "state/product.json": "82abc874e60d62c702ade5129ae03c0d683a70049b7f5758091d697572d378a9"
         }
       },
       "evidence": [
@@ -211,7 +211,7 @@
         "product/tests/test_cycle_40423889401.py"
       ],
       "command": "/usr/bin/python3 -m pytest product/tests/test_cycle_40423889401.py -q --maxfail=1",
-      "seconds": 2.925
+      "seconds": 2.826
     },
     {
       "id": "progressive_smoke",
@@ -224,20 +224,20 @@
         "checks": "23/23",
         "timings_s": {
           "health_s": 0.001,
-          "server_boot_s": 1.02,
-          "start_s": 0.493,
-          "status_s": 0.004,
-          "expand_s": 0.261,
-          "enrich_s": 0.256,
-          "bundle_s": 0.005,
+          "server_boot_s": 1.019,
+          "start_s": 0.475,
+          "status_s": 0.002,
+          "expand_s": 0.257,
+          "enrich_s": 0.255,
+          "bundle_s": 0.004,
           "static_query.html_s": 0.001,
           "static_static_query.html_s": 0.001
         },
         "mode": "fixture (retrieval replays from the local cache, fixture generation, no network)"
       },
       "evidence": [],
-      "command": "/usr/bin/python3 product/progressive_smoke.py --run-id 40423889401 --out /tmp/lex_audit_smoke_nmmw9zvz/smoke.json",
-      "seconds": 2.973
+      "command": "/usr/bin/python3 product/progressive_smoke.py --run-id 40423889401 --out /tmp/lex_audit_smoke_xqf6qxeg/smoke.json",
+      "seconds": 2.893
     },
     {
       "id": "mvp_core_tests",
@@ -245,7 +245,7 @@
       "status": "PASS",
       "mandatory": true,
       "detail": {
-        "passed": 170,
+        "passed": 174,
         "failed": 0,
         "errors": 0,
         "skipped": 0,
@@ -259,12 +259,13 @@
           "product/tests/test_counter_evidence_span.py",
           "product/tests/test_counter_content_rejection_v68.py",
           "product/tests/test_state_contract.py",
-          "product/tests/test_progressive_query.py"
+          "product/tests/test_progressive_query.py",
+          "product/tests/test_audit_readiness_verify.py"
         ]
       },
       "evidence": [],
-      "command": "/usr/bin/python3 -m pytest product/tests/test_query_map_mvp.py product/tests/test_server_query_api.py product/tests/test_offline_slice.py product/tests/test_progressive_smoke.py product/tests/test_adversarial_retrieval.py product/tests/test_counter_evidence_span.py product/tests/test_counter_content_rejection_v68.py product/tests/test_state_contract.py product/tests/test_progressive_query.py -q --maxfail=1",
-      "seconds": 67.331
+      "command": "/usr/bin/python3 -m pytest product/tests/test_query_map_mvp.py product/tests/test_server_query_api.py product/tests/test_offline_slice.py product/tests/test_progressive_smoke.py product/tests/test_adversarial_retrieval.py product/tests/test_counter_evidence_span.py product/tests/test_counter_content_rejection_v68.py product/tests/test_state_contract.py product/tests/test_progressive_query.py product/tests/test_audit_readiness_verify.py -q --maxfail=1",
+      "seconds": 66.823
     },
     {
       "id": "audit_namespace",
@@ -350,7 +351,8 @@
         "product/tests/test_counter_evidence_span.py",
         "product/tests/test_counter_content_rejection_v68.py",
         "product/tests/test_state_contract.py",
-        "product/tests/test_progressive_query.py"
+        "product/tests/test_progressive_query.py",
+        "product/tests/test_audit_readiness_verify.py"
       ]
     },
     {
@@ -370,6 +372,7 @@
   ],
   "audit_entry_points": {
     "one_command": "python3 product/audit_readiness.py --run-id 40423889401 --out /tmp/lex_audit_readiness.json",
+    "verify_committed_dossier": "python3 product/audit_readiness.py --verify results/product/audit_readiness/CYCLE_40423889401_audit_readiness.json",
     "resumed_run_diagnosis": "results/product/orchestration/CYCLE_40423595480_resume_diagnosis.json",
     "inherited_report": "reports/product/CYCLE_40284658455.md",
     "current_report": "reports/product/CYCLE_40423889401.md",
