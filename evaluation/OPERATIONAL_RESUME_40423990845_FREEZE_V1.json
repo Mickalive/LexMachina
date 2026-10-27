@@ -13,7 +13,7 @@
   },
   "instrument": {
     "path": "evaluation/operational_resume_40423990845.py",
-    "sha256": "6180e47cdbc2187229139ef7cfb3afb5a6388caa70afde90310d7cb307c251f8"
+    "sha256": "f16c5f17c2eb6352f16353daa146fe98734d18e74d1d6a66f3a0e2d58ec9466c"
   },
   "test": {
     "path": "tests/evaluation/test_operational_resume_40423990845.py",
@@ -112,6 +112,15 @@
       "why": "the first execution crashed at build_diagnosis() with TypeError: check() got multiple values for argument name, before writing any phase record, state entry or measurement",
       "change": "renamed the check() positional parameter from name to label; no check, threshold, success rule or scope changed",
       "instrument_sha256_after": "6180e47cdbc2187229139ef7cfb3afb5a6388caa70afde90310d7cb307c251f8"
+    },
+    {
+      "amendment": 2,
+      "at_utc": "2026-10-27T00:32:00Z",
+      "before_any_clean_full_execution": true,
+      "why": "the first full execution produced diagnosis/snapshot/deliverable/replay/item2 phase records but stopped while writing the report: (a) the nested-guard output filename was wrong, (b) write_scope/lane_suite verdict parsing did not handle their record shapes, (c) the post-state state test ran before the state refresh, (d) final gate rows lacked expected_verdict. No check, threshold, success rule or scope changed; the measured phase verdicts were DIAGNOSIS_CONFIRMED, SNAPSHOT_PRESERVED_ON_ACCEPTED_BASE, DELIVERABLE_VERIFIED_WITH_AUDIT_MISMATCH, REPLAY_REPRODUCES, NOT_YET_DISCRIMINATING.",
+      "change": "corrected record paths/verdict parsing, moved the state assertion test to a post-state batch, added the pre-existing snapshot-audit failure reproduction (here vs execution base), added final write_scope gate, and repaired only the one nonexistent ref this run itself had inserted",
+      "instrument_sha256_after": "f16c5f17c2eb6352f16353daa146fe98734d18e74d1d6a66f3a0e2d58ec9466c",
+      "test_sha256_after": "3823da3aa2e6872e7761bedc13e5e31845b3d304010cfa391b34b9d530deb134"
     }
   ]
 }

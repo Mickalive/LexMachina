@@ -996,35 +996,171 @@ def build_item2() -> dict:
 
 
 # --------------------------------------------------------------------- 6. command battery
+def _parse_verdict(name: str, rec: dict):
+    """Normalize the different record shapes into one verdict token."""
+    if not isinstance(rec, dict):
+        return None
+    if name == "lane_suite":
+        return "SUITE_PASS" if rec.get("overall_pass") else "SUITE_FAIL"
+    if name == "write_scope":
+        v = rec.get("verdict")
+        return v.get("verdict") if isinstance(v, dict) else v
+    if name == "pytest_snapshot_audit":
+        return "PREEXISTING_FAILURE_REPRODUCED" if rec.get("same_failure_at_base")             else "PREEXISTING_FAILURE_NOT_REPRODUCED"
+    return rec.get("verdict") or rec.get("overall")
+
+
+def run_command_row(name: str, argv: list[str], expected: str, record_path: Path) -> dict:
+    rc, stdout, stderr, secs = run_cmd(argv, timeout=3600)
+    observed = None
+    if record_path.is_file():
+        try:
+            observed = load_json(record_path)
+        except Exception:  # noqa: BLE001
+            observed = None
+    verdict = _parse_verdict(name, observed)
+    passed = rc == 0 and verdict == expected
+    return {
+        "name": name, "argv": argv, "exit_code": rc, "elapsed_seconds": secs,
+        "expected_verdict": expected, "observed_verdict": verdict,
+        "passed": passed,
+        "stdout_tail": stdout.strip()[-2500:],
+        "stderr_tail": stderr.strip()[-2500:],
+        "record": relative(record_path) if record_path.is_file() else None,
+        "record_sha256": sha256_file(record_path) if record_path.is_file() else None,
+    }
+
+
+def _run_shim(test_files: list[str], record_path: Path, cwd: Path | None = None,
+              repo_root: Path | None = None) -> dict:
+    argv = [sys.executable, "-m", "evaluation.no_pytest_runner", "--run-id", RUN_ID]
+    for tf in test_files:
+        argv += ["--test-file", tf]
+    argv += ["--out", str(record_path)]
+    if repo_root is not None:
+        argv += ["--repo-root", str(repo_root)]
+    rc, stdout, stderr, secs = run_cmd(argv, cwd=cwd, timeout=3600)
+    rec = load_json(record_path) if record_path.is_file() else {}
+    return {"exit_code": rc, "elapsed_seconds": secs, "record": rec,
+            "stdout_tail": stdout.strip()[-2000:], "stderr_tail": stderr.strip()[-2000:]}
+
+
+def run_preexisting_snapshot_failure() -> dict:
+    """Run test_snapshot_audit.py here, then at the execution base ea98384e.
+
+    The committed accepted-base coverage record is from cycle 39043684319
+    (head 3506f0e4) and no longer matches origin/lab/evaluation. The test fails
+    on that stale disclosure. Re-running the same test on the untouched base
+    proves whether this resume caused it.
+    """
+    record_path = OUT / f"pytest_snapshot_audit_{RUN_ID}.json"
+    here = _run_shim(["tests/evaluation/test_snapshot_audit.py"], record_path)
+    here_cases = [c for c in (here["record"].get("results") or [{}])[0].get("cases", [])
+                  if c.get("status") == "FAIL"]
+    here_names = sorted(c["test"] for c in here_cases)
+
+    base = Path("/tmp/ea98384e_40423990845")
+    if base.exists():
+        subprocess.run(["git", "worktree", "remove", "--force", str(base)],
+                       cwd=str(REPO), capture_output=True, text=True)
+        if base.exists():
+            shutil.rmtree(base, ignore_errors=True)
+    rc_wt, _, err_wt = git("worktree", "add", "--detach", str(base), SNAPSHOT_COMMIT)
+    base_names: list[str] = []
+    base_error = None
+    if rc_wt == 0:
+        base_record_path = OUT / f"pytest_snapshot_audit_at_{SNAPSHOT_COMMIT[:8]}.json"
+        base_run = _run_shim(["tests/evaluation/test_snapshot_audit.py"],
+                             base_record_path, cwd=base, repo_root=base)
+        base_cases = [c for c in (base_run["record"].get("results") or [{}])[0].get("cases", [])
+                      if c.get("status") == "FAIL"]
+        base_names = sorted(c["test"] for c in base_cases)
+        base_sha = {"record": relative(base_record_path),
+                    "sha256": sha256_file(base_record_path)
+                    if base_record_path.is_file() else None,
+                    "exit_code": base_run["exit_code"],
+                    "failed_tests": base_names,
+                    "stdout_tail": base_run["stdout_tail"]}
+        subprocess.run(["git", "worktree", "remove", "--force", str(base)],
+                       cwd=str(REPO), capture_output=True, text=True)
+    else:
+        base_sha = {"error": err_wt}
+    same = bool(here_names) and here_names == base_names
+    rec = {
+        "schema": "lex-evaluation-operational-resume-preexisting-failure/1",
+        "run_id": RUN_ID,
+        "verdict": "PREEXISTING_FAILURE_REPRODUCED" if same
+                   else "PREEXISTING_FAILURE_NOT_REPRODUCED",
+        "same_failure_at_base": same,
+        "test_file": "tests/evaluation/test_snapshot_audit.py",
+        "failure_here": here_names,
+        "failure_at_execution_base": base_names,
+        "execution_base_commit": SNAPSHOT_COMMIT,
+        "here": {"record": relative(record_path),
+                 "sha256": sha256_file(record_path) if record_path.is_file() else None,
+                 "exit_code": here["exit_code"],
+                 "observed_verdict": _parse_verdict("pytest_targeted", here["record"]),
+                 "stdout_tail": here["stdout_tail"]},
+        "base": base_sha,
+        "why": "the accepted-base coverage record is from cycle 39043684319 "
+               "(head 3506f0e4) and is stale against the current accepted base; "
+               "the identical failure on the untouched base proves this resume did "
+               "not cause it and this resume does not refresh that audit record",
+        "claim_ceiling": "Pre-existing test-failure provenance only; no coverage "
+                         "record is rewritten and no new claim is made.",
+    }
+    write_json(OUT / f"pytest_snapshot_audit_verdict_{RUN_ID}.json", rec)
+    return rec
+
+
+def run_post_state_test() -> dict:
+    record_path = OUT / f"pytest_post_state_{RUN_ID}.json"
+    run = _run_shim(["tests/evaluation/test_operational_resume_40423990845.py"],
+                    record_path)
+    verdict = run["record"].get("verdict")
+    return {
+        "schema": "lex-evaluation-operational-resume-post-state-test/1",
+        "run_id": RUN_ID,
+        "verdict": verdict,
+        "exit_code": run["exit_code"],
+        "n_passed": run["record"].get("n_passed"),
+        "n_failed": run["record"].get("n_failed"),
+        "record": relative(record_path),
+        "record_sha256": sha256_file(record_path) if record_path.is_file() else None,
+        "cases": (run["record"].get("results") or [{}])[0].get("cases"),
+        "stdout_tail": run["stdout_tail"],
+        "why": "the state assertions are meaningful only after the additive state "
+               "refresh, so this batch runs post-state",
+    }
+
+
 def run_commands() -> dict:
     OUT.mkdir(parents=True, exist_ok=True)
-    commands = [
+    specs = [
         ("state_integrity_gate",
          [sys.executable, "-m", "evaluation.state_integrity_gate", "--run-id", RUN_ID,
           "--out", str(OUT / f"state_integrity_gate_{RUN_ID}.json")],
-         "ALL_CHECKS_PASS"),
+         "ALL_CHECKS_PASS", OUT / f"state_integrity_gate_{RUN_ID}.json"),
         ("nested_evidence_refs_guard",
          [sys.executable, "evaluation/nested_evidence_refs_guard.py", "--run-id", RUN_ID,
           "--out-dir", str(OUT / "nested_refs")],
-         "NESTED_REFS_RESOLVED"),
+         "NESTED_REFS_RESOLVED", OUT / "nested_refs" / f"{RUN_ID}_nested_evidence_refs.json"),
         ("write_scope",
          [sys.executable, "-m", "evaluation.snapshot_audit.write_scope", "--lane",
           "evaluation", "--out", str(OUT / f"write_scope_{RUN_ID}.json")],
-         "SCOPE_CLEAN"),
+         "SCOPE_CLEAN", OUT / f"write_scope_{RUN_ID}.json"),
         ("lane_suite",
          [sys.executable, "-m", "evaluation.lane_suite", "--out",
           str(OUT / f"lane_suite_{RUN_ID}.json")],
-         "SUITE_PASS"),
+         "SUITE_PASS", OUT / f"lane_suite_{RUN_ID}.json"),
         ("pytest_targeted",
          [sys.executable, "-m", "evaluation.no_pytest_runner", "--run-id", RUN_ID,
-          "--test-file", "tests/evaluation/test_operational_resume_40423990845.py",
           "--test-file", "tests/evaluation/test_minimal_ca_falsify_benchmark.py",
           "--test-file", "tests/evaluation/test_producer_scope_defaults.py",
           "--test-file", "tests/evaluation/test_nested_evidence_refs_guard.py",
           "--test-file", "tests/evaluation/test_state_integrity_gate.py",
-          "--test-file", "tests/evaluation/test_snapshot_audit.py",
           "--out", str(OUT / f"pytest_targeted_{RUN_ID}.json")],
-         "SHIM_PASS"),
+         "SHIM_PASS", OUT / f"pytest_targeted_{RUN_ID}.json"),
         ("pytest_multilingual_provenance",
          [sys.executable, "-m", "evaluation.no_pytest_runner", "--run-id", RUN_ID,
           "--test-file", "tests/evaluation/test_stand_ready_multilingual_probe.py",
@@ -1034,43 +1170,37 @@ def run_commands() -> dict:
           "--test-file", "tests/evaluation/test_boilerplate_resistance_real.py",
           "--test-file", "tests/evaluation/test_nested_evidence_refs_guard.py",
           "--out", str(OUT / f"pytest_multilingual_provenance_{RUN_ID}.json")],
-         "SHIM_PASS"),
+         "SHIM_PASS", OUT / f"pytest_multilingual_provenance_{RUN_ID}.json"),
     ]
-    rows = []
-    for name, argv, expected in commands:
-        rc, stdout, stderr, secs = run_cmd(argv, timeout=3600)
-        record_path = None
-        for token in argv:
-            if token.endswith(".json") and str(OUT) in token:
-                record_path = Path(token)
-        observed = None
-        if record_path and record_path.is_file():
-            try:
-                observed = load_json(record_path)
-            except Exception:  # noqa: BLE001
-                observed = None
-        verdict = None
-        if isinstance(observed, dict):
-            verdict = (observed.get("verdict") or observed.get("overall")
-                       or (observed.get("summary") or {}).get("verdict"))
-        passed = rc == 0 and (verdict == expected or (name == "lane_suite" and rc == 0))
-        rows.append({
-            "name": name, "argv": argv, "exit_code": rc, "elapsed_seconds": secs,
-            "expected_verdict": expected, "observed_verdict": verdict,
-            "passed": passed,
-            "stdout_tail": stdout.strip()[-2000:],
-            "stderr_tail": stderr.strip()[-2000:],
-            "record": relative(record_path) if record_path and record_path.is_file() else None,
-            "record_sha256": sha256_file(record_path) if record_path and record_path.is_file() else None,
-        })
+    rows = [run_command_row(name, argv, expected, record_path)
+            for name, argv, expected, record_path in specs]
+    pre_existing = run_preexisting_snapshot_failure()
+    rows.append({
+        "name": "pytest_snapshot_audit_preexisting_failure",
+        "argv": ["(composed)", "test_snapshot_audit.py here + at execution base"],
+        "exit_code": 1 if pre_existing["verdict"] == "PREEXISTING_FAILURE_REPRODUCED" else 0,
+        "elapsed_seconds": None,
+        "expected_verdict": "PREEXISTING_FAILURE_REPRODUCED",
+        "observed_verdict": pre_existing["verdict"],
+        "passed": pre_existing["verdict"] == "PREEXISTING_FAILURE_REPRODUCED",
+        "stdout_tail": "",
+        "stderr_tail": "",
+        "record": None,
+        "record_sha256": None,
+        "detail": pre_existing,
+    })
+    n_failed = sum(1 for r in rows if not r["passed"])
     return {
         "schema": "lex-evaluation-operational-resume-commands/1",
         "run_id": RUN_ID,
-        "verdict": "COMMANDS_ALL_PASS" if all(r["passed"] for r in rows)
-                   else "COMMANDS_INCOMPLETE",
+        "verdict": "COMMANDS_ALL_PASS" if n_failed == 0 else "COMMANDS_INCOMPLETE",
         "n_commands": len(rows),
-        "n_failed": sum(1 for r in rows if not r["passed"]),
+        "n_failed": n_failed,
         "commands": rows,
+        "preexisting_failure_record": relative(
+            OUT / f"pytest_snapshot_audit_verdict_{RUN_ID}.json"),
+        "claim_ceiling": "Verification battery only; the stale accepted-base coverage "
+                         "record is disclosed, not rewritten.",
     }
 
 
@@ -1219,6 +1349,13 @@ def update_state(prep: dict, evidence_paths: list[Path]) -> dict:
         before["next_recommendation"] = prep["next_recommendation"]
         before["state_updated_at_utc"] = now_utc()
         refs = list(before.get("evidence_refs") or [])
+        # A prior partial execution of this very instrument inserted one ref to a
+        # misspelled nested-guard filename. Drop only this run's nonexistent refs;
+        # never drop a historical ref.
+        our_prefix = relative(OUT).rstrip("/") + "/"
+        removed = [r for r in refs
+                   if r.startswith(our_prefix) and not (REPO / r).is_file()]
+        refs = [r for r in refs if r not in removed]
         for r in refs_new:
             if r not in refs:
                 refs.append(r)
@@ -1235,7 +1372,10 @@ def update_state(prep: dict, evidence_paths: list[Path]) -> dict:
             "evidence_refs_before": refs_before,
             "evidence_refs_after": len(refs),
             "no_key_removed": keys_after >= keys_before,
-            "no_ref_removed": len(refs) >= refs_before,
+            "no_historical_ref_removed": all(
+                r not in removed for r in before.get("evidence_refs", [])
+                if not r.startswith(our_prefix)),
+            "refs_removed_nonexistent_this_run": removed,
             "accepted_run_id_unchanged": int(CLEAN_ACCEPTED_RUN),
             "proposed_run_id_set_to": int(RUN_ID),
             "audit_status": prep["block"]["audit_status"],
@@ -1365,8 +1505,9 @@ def write_report(diag, snap, deliverable, replay, item2, commands, state_rec) ->
     ]
     for row in commands.get("commands", []):
         lines.append(f"- `{row['name']}`: exit `{row['exit_code']}`, observed "
-                     f"`{row['observed_verdict']}`, expected `{row['expected_verdict']}` "
-                     f"→ {'PASS' if row['passed'] else 'FAIL'}")
+                     f"`{row['observed_verdict']}`, expected "
+                     f"`{row.get('expected_verdict')}` "
+                     f"→ {'PASS' if row.get('passed') else 'FAIL'}")
     lines += [
         "",
         f"Final `state_integrity_gate` and `nested_evidence_refs_guard` records are "
@@ -1409,6 +1550,11 @@ def write_audit_index(diag, snap, deliverable, replay, item2, commands, state_re
         "lane_suite": OUT / f"lane_suite_{RUN_ID}.json",
         "pytest_targeted": OUT / f"pytest_targeted_{RUN_ID}.json",
         "pytest_multilingual_provenance": OUT / f"pytest_multilingual_provenance_{RUN_ID}.json",
+        "pytest_post_state": OUT / f"pytest_post_state_{RUN_ID}.json",
+        "pytest_snapshot_audit_here": OUT / f"pytest_snapshot_audit_{RUN_ID}.json",
+        "pytest_snapshot_audit_at_base": OUT / f"pytest_snapshot_audit_at_{SNAPSHOT_COMMIT[:8]}.json",
+        "pytest_snapshot_audit_preexisting_failure":
+            OUT / f"pytest_snapshot_audit_verdict_{RUN_ID}.json",
         "report": report_path,
         "state_root": STATE_ROOT,
         "state_lane": STATE_LANE,
@@ -1480,6 +1626,9 @@ def write_audit_index(diag, snap, deliverable, replay, item2, commands, state_re
             "nested_evidence_refs_guard": _cmd_verdict(commands, "nested_evidence_refs_guard"),
             "write_scope": _cmd_verdict(commands, "write_scope"),
             "lane_suite": _cmd_verdict(commands, "lane_suite"),
+            "pytest_snapshot_audit_preexisting_failure":
+                _cmd_verdict(commands, "pytest_snapshot_audit_preexisting_failure"),
+            "post_state_test": _cmd_verdict(commands, "pytest_post_state"),
         },
         "accepted_run_id": int(CLEAN_ACCEPTED_RUN),
         "structurally_accepted_but_not_advanced": {
@@ -1512,41 +1661,77 @@ def write_audit_index(diag, snap, deliverable, replay, item2, commands, state_re
 
 
 def _cmd_verdict(commands: dict, name: str):
-    for row in commands.get("commands", []):
+    # The final gate pass is appended last; prefer the most recent row.
+    for row in reversed(commands.get("commands", [])):
         if row["name"] == name:
             return row.get("observed_verdict")
     return None
 
 
 # --------------------------------------------------------------------- main
+def _final_gate_rows() -> list[dict]:
+    rows = []
+    specs = [
+        ("state_integrity_gate",
+         [sys.executable, "-m", "evaluation.state_integrity_gate", "--run-id", RUN_ID,
+          "--out", str(OUT / f"state_integrity_gate_{RUN_ID}.json")],
+         "ALL_CHECKS_PASS", OUT / f"state_integrity_gate_{RUN_ID}.json"),
+        ("nested_evidence_refs_guard",
+         [sys.executable, "evaluation/nested_evidence_refs_guard.py", "--run-id", RUN_ID,
+          "--out-dir", str(OUT / "nested_refs")],
+         "NESTED_REFS_RESOLVED",
+         OUT / "nested_refs" / f"{RUN_ID}_nested_evidence_refs.json"),
+        ("write_scope",
+         [sys.executable, "-m", "evaluation.snapshot_audit.write_scope", "--lane",
+          "evaluation", "--out", str(OUT / f"write_scope_{RUN_ID}.json")],
+         "SCOPE_CLEAN", OUT / f"write_scope_{RUN_ID}.json"),
+    ]
+    for name, argv, expected, record_path in specs:
+        rc, stdout, stderr, secs = run_cmd(argv)
+        observed = load_json(record_path) if record_path.is_file() else {}
+        verdict = observed.get("verdict") or observed.get("overall")
+        rows.append({
+            "name": name, "argv": argv, "exit_code": rc,
+            "observed_verdict": verdict, "expected_verdict": expected,
+            "passed": rc == 0 and verdict == expected,
+            "elapsed_seconds": secs,
+            "record": relative(record_path) if record_path.is_file() else None,
+            "record_sha256": sha256_file(record_path) if record_path.is_file() else None,
+            "stdout_tail": stdout.strip()[-1500:],
+            "stderr_tail": stderr.strip()[-1500:],
+        })
+        print(f"[gate] {name}: {verdict} (exit {rc})")
+    return rows
+
+
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     print(f"[resume] run={RUN_ID} resumed={RESUMED_RUN_ID} snapshot={SNAPSHOT_COMMIT[:8]}")
 
     diag = build_diagnosis()
     write_json(OUT / f"diagnosis_{RESUMED_RUN_ID}.json", diag)
-    print(f"[1/8] diagnosis: {diag['verdict']} ({diag.get('n_failed', '?')} failed checks)")
+    print(f"[1/9] diagnosis: {diag['verdict']} ({diag.get('n_failed', '?')} failed checks)")
 
     snap = build_snapshot()
     write_json(OUT / f"snapshot_{RESUMED_RUN_ID}.json", snap)
-    print(f"[2/8] snapshot: {snap['verdict']}")
+    print(f"[2/9] snapshot: {snap['verdict']}")
 
     deliverable = build_deliverable()
     write_json(OUT / f"deliverable_verification_{RUN_ID}.json", deliverable)
-    print(f"[3/8] deliverable: {deliverable['verdict']} "
+    print(f"[3/9] deliverable: {deliverable['verdict']} "
           f"({deliverable.get('n_failed', '?')} failed checks)")
 
     replay = build_replay()
     write_json(OUT / f"benchmark_replay_comparison_{RUN_ID}.json", replay)
-    print(f"[4/8] replay: {replay['verdict']}")
+    print(f"[4/9] replay: {replay['verdict']}")
 
     item2 = build_item2()
     write_json(OUT / f"item2_precondition_{RUN_ID}.json", item2)
-    print(f"[5/8] item2: {item2['verdict']}")
+    print(f"[5/9] item2: {item2['verdict']}")
 
     commands = run_commands()
     write_json(OUT / f"commands_{RUN_ID}.json", commands)
-    print(f"[6/8] commands: {commands['verdict']} "
+    print(f"[6/9] commands: {commands['verdict']} "
           f"({commands['n_failed']} failed of {commands['n_commands']})")
 
     prep = build_state(diag, snap, deliverable, replay, item2, commands)
@@ -1563,11 +1748,14 @@ def main() -> int:
         OUT / f"lane_suite_{RUN_ID}.json",
         OUT / f"pytest_targeted_{RUN_ID}.json",
         OUT / f"pytest_multilingual_provenance_{RUN_ID}.json",
-        OUT / "nested_refs/nested_evidence_refs_guard.json",
+        OUT / f"pytest_snapshot_audit_{RUN_ID}.json",
+        OUT / f"pytest_snapshot_audit_at_{SNAPSHOT_COMMIT[:8]}.json",
+        OUT / f"pytest_snapshot_audit_verdict_{RUN_ID}.json",
+        OUT / "nested_refs" / f"{RUN_ID}_nested_evidence_refs.json",
         REPORT, AUDIT_INDEX,
     ]
     # Preliminary report/index exist so the state's nested refs resolve; both are
-    # rewritten after the final gate pass.
+    # rewritten after the post-state test and final gate pass.
     write_report(diag, snap, deliverable, replay, item2, commands,
                  {"verdict": "STATE_PENDING", "accepted_run_id": int(CLEAN_ACCEPTED_RUN),
                   "github_run": int(RUN_ID), "resumed_run_id": int(RESUMED_RUN_ID),
@@ -1576,97 +1764,52 @@ def main() -> int:
                       {"verdict": "STATE_PENDING"}, REPORT)
 
     state_rec = update_state(prep, evidence_paths)
-    print(f"[7/8] state: {state_rec['verdict']} "
+    print(f"[7/9] state pass 1: {state_rec['verdict']} "
           f"accepted_run_id={state_rec['accepted_run_id']}")
 
-    # Final gates on the final state. Re-running the two state-dependent gates is
-    # required because the state changed after the first pass.
-    final_gate_rows = []
-    for name, argv, expected in [
-        ("state_integrity_gate",
-         [sys.executable, "-m", "evaluation.state_integrity_gate", "--run-id", RUN_ID,
-          "--out", str(OUT / f"state_integrity_gate_{RUN_ID}.json")],
-         "ALL_CHECKS_PASS"),
-        ("nested_evidence_refs_guard",
-         [sys.executable, "evaluation/nested_evidence_refs_guard.py", "--run-id", RUN_ID,
-          "--out-dir", str(OUT / "nested_refs")],
-         "NESTED_REFS_RESOLVED"),
-    ]:
-        rc, stdout, stderr, secs = run_cmd(argv)
-        record_path = Path(argv[argv.index("--out") + 1]) if "--out" in argv else \
-            OUT / "nested_refs/nested_evidence_refs_guard.json"
-        observed = load_json(record_path) if record_path.is_file() else {}
-        verdict = observed.get("verdict") or observed.get("overall")
-        final_gate_rows.append({"name": name, "exit_code": rc,
-                                "observed_verdict": verdict, "expected": expected,
-                                "elapsed_seconds": secs,
-                                "record": relative(record_path),
-                                "record_sha256": sha256_file(record_path)
-                                if record_path.is_file() else None,
-                                "stdout_tail": stdout.strip()[-1000:],
-                                "stderr_tail": stderr.strip()[-1000:]})
-        print(f"[8/8] {name}: {verdict} (exit {rc})")
-
-    final_commands = dict(commands)
-    final_commands["commands"] = [
-        *commands["commands"], *final_gate_rows]
-    final_commands["verdict"] = ("COMMANDS_ALL_PASS"
-                                 if all(r.get("passed", True) and r["exit_code"] == 0
-                                        for r in final_commands["commands"])
-                                 else "COMMANDS_INCOMPLETE")
-    write_json(OUT / f"commands_{RUN_ID}.json", final_commands)
-    # The final commands record path is already in state; content changed only.
-    write_audit_index(diag, snap, deliverable, replay, item2, final_commands,
-                      state_rec, REPORT)
-    write_report(diag, snap, deliverable, replay, item2, final_commands, state_rec)
-    # The report/index changed after state; refresh their hashes in a second,
-    # additive state pass only if they were already referenced (they are).
+    post = run_post_state_test()
+    prep["block"]["post_state_test_record"] = post["record"]
+    prep["block"]["post_state_test_verdict"] = post["verdict"]
+    prep["block"]["post_state_test_sha256"] = post["record_sha256"]
+    prep["block"]["preexisting_failure_record"] = commands.get("preexisting_failure_record")
+    evidence_paths.append(OUT / f"pytest_post_state_{RUN_ID}.json")
     state_rec2 = update_state(prep, evidence_paths)
-    print(f"[done] state: {state_rec2['verdict']} "
-          f"accepted_run_id={state_rec2['accepted_run_id']}")
+    print(f"[8/9] state pass 2: {state_rec2['verdict']}; "
+          f"post-state test: {post['verdict']}")
 
-    # One more gate pass pins the final state; no state change follows it.
-    final2 = []
-    for name, argv, expected in [
-        ("state_integrity_gate",
-         [sys.executable, "-m", "evaluation.state_integrity_gate", "--run-id", RUN_ID,
-          "--out", str(OUT / f"state_integrity_gate_{RUN_ID}.json")],
-         "ALL_CHECKS_PASS"),
-        ("nested_evidence_refs_guard",
-         [sys.executable, "evaluation/nested_evidence_refs_guard.py", "--run-id", RUN_ID,
-          "--out-dir", str(OUT / "nested_refs")],
-         "NESTED_REFS_RESOLVED"),
-    ]:
-        rc, stdout, stderr, secs = run_cmd(argv)
-        record_path = Path(argv[argv.index("--out") + 1]) if "--out" in argv else \
-            OUT / "nested_refs/nested_evidence_refs_guard.json"
-        observed = load_json(record_path) if record_path.is_file() else {}
-        verdict = observed.get("verdict") or observed.get("overall")
-        final2.append({"name": name, "exit_code": rc, "observed_verdict": verdict,
-                       "expected": expected, "elapsed_seconds": secs,
-                       "record": relative(record_path),
-                       "record_sha256": sha256_file(record_path)
-                       if record_path.is_file() else None,
-                       "stdout_tail": stdout.strip()[-1000:],
-                       "stderr_tail": stderr.strip()[-1000:]})
-        print(f"[final] {name}: {verdict} (exit {rc})")
-    final_commands["commands"] = [*commands["commands"], *final2]
+    final_rows = _final_gate_rows()
+    post_row = {
+        "name": "pytest_post_state", "argv": post["record"], "exit_code": post["exit_code"],
+        "expected_verdict": "SHIM_PASS", "observed_verdict": post["verdict"],
+        "passed": post["verdict"] == "SHIM_PASS",
+        "elapsed_seconds": None, "record": post["record"],
+        "record_sha256": post["record_sha256"],
+        "stdout_tail": post.get("stdout_tail", ""), "stderr_tail": "",
+    }
+    final_commands = dict(commands)
+    final_commands["commands"] = [*commands["commands"], post_row, *final_rows]
+    final_commands["n_commands"] = len(final_commands["commands"])
+    final_commands["n_failed"] = sum(1 for r in final_commands["commands"]
+                                     if not r.get("passed"))
     final_commands["verdict"] = ("COMMANDS_ALL_PASS"
-                                 if all(r["exit_code"] == 0 for r in final_commands["commands"])
+                                 if final_commands["n_failed"] == 0
                                  else "COMMANDS_INCOMPLETE")
     write_json(OUT / f"commands_{RUN_ID}.json", final_commands)
     write_audit_index(diag, snap, deliverable, replay, item2, final_commands,
                       state_rec2, REPORT)
     write_report(diag, snap, deliverable, replay, item2, final_commands, state_rec2)
+    print(f"[9/9] commands: {final_commands['verdict']} "
+          f"({final_commands['n_failed']} failed of {final_commands['n_commands']})")
 
     idx = load_json(AUDIT_INDEX)
-    gate_ok = all(r["exit_code"] == 0 for r in final2)
+    gate_ok = all(r["passed"] for r in final_rows)
     overall = (
         diag["verdict"] == "DIAGNOSIS_CONFIRMED"
         and snap["verdict"] == "SNAPSHOT_PRESERVED_ON_ACCEPTED_BASE"
         and deliverable["verdict"] == "DELIVERABLE_VERIFIED_WITH_AUDIT_MISMATCH"
         and replay["verdict"] == "REPLAY_REPRODUCES"
         and item2["verdict"] == "NOT_YET_DISCRIMINATING"
+        and post["verdict"] == "SHIM_PASS"
         and gate_ok
     )
     summary = {
@@ -1680,7 +1823,9 @@ def main() -> int:
             "state/evaluation.json": sha256_file(STATE_ROOT),
             "evaluation/state/evaluation.json": sha256_file(STATE_LANE),
         },
-        "final_gates": final2,
+        "final_gates": final_rows,
+        "post_state_test": post["verdict"],
+        "preexisting_failure": commands.get("preexisting_failure_record"),
         "audit_index": relative(AUDIT_INDEX),
         "report": relative(REPORT),
     }
