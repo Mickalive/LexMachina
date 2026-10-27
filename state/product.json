@@ -41,8 +41,8 @@
       "team_id": "frontier-rebuilt-packet-serve-audit"
     }
   },
-  "continue_recommended": false,
-  "cycle_status": "UNADJUDICATED_AUDIT_READY",
+  "continue_recommended": true,
+  "cycle_status": "COMPLETE",
   "direction_version": 68,
   "evidence_refs": [
     "product/tests/test_server_query_api.py::test_the_shipped_server_boots_in_query_mode_without_the_174k_corpus",
@@ -178,10 +178,13 @@
     "product/tests/test_cycle_40429931848_resume.py",
     "results/product/progressive_smoke/CYCLE_40429931848_progressive_smoke.json",
     "results/product/audit_readiness/CYCLE_40429931848_audit_readiness.json",
-    "reports/product/CYCLE_40429931848.md"
+    "reports/product/CYCLE_40429931848.md",
+    "results/product/orchestration/CYCLE_40442150508_run_jobs_raw.json",
+    "results/product/orchestration/CYCLE_40442150508_resume_diagnosis.json",
+    "product/tests/test_cycle_40452133317.py"
   ],
   "evidence_tier": "REPRODUCED",
-  "human_gate_ready": true,
+  "human_gate_ready": false,
   "posture_correction_40143042888": {
     "field": "human_gate_ready",
     "from": true,
@@ -198,7 +201,7 @@
     "not_a_claim": "this correction is fail-closing only. It claims no gate outcome, no serve verdict and no session."
   },
   "lane": "product",
-  "machine_gate_ready": true,
+  "machine_gate_ready": false,
   "next_recommendation": "Direction v68 / FAST MVP, operational resume of 40427889739 (run 40429931848, UNADJUDICATED pending independent audit). WHAT FAILED: the audit job's 'Independent audit' agent step SUCCEEDED (302 s) and the workflow's 'Enforce audit scope and read gate' step then failed with the public annotation 'auditor crossed scope:' (exit 3); the always-run persist step was skipped, so no audit ref and no gate exist. The producer snapshot is intact: team success, 8-file committed delta over 40423889401. The per-path list is NOT observed (job logs HTTP 403) and no product rejection is inferred. WHAT LANDED: post-agent audit-scope classification, product/audit_scope_guard.py (auditor-side exit-3 pre-handoff check), product/capture_run_snapshot.py, the 40427889739 resume diagnosis, a 9-test cycle, and a PASS 23/23 query-slice smoke (100 decisions / 8 clusters / cited answer). NEXT: an independent audit can re-run from this snapshot after writing ONLY results/audit/product/ and reports/audit/product/; otherwise take a fresh executable product delta. Do not re-dispatch a blind resume of 40427889739. Posture stays FAIL-CLOSED: human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session all FALSE (both frozen bars unmet), owner_decision_required false, continue_recommended TRUE.",
   "not_claimed": [
     "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
@@ -1176,7 +1179,7 @@
     "audit_namespace_written": false,
     "claim_ceiling": "OPERATIONAL-RESUME AND AUDIT-READINESS EVIDENCE ONLY. No live retrieval, legal usefulness, frozen bar, serve verdict, acceptance or human-gate readiness is asserted."
   },
-  "current_cycle_run_id": 40429931848,
+  "current_cycle_run_id": 40452133317,
   "last_repair_round": 1,
   "last_updated": "2026-10-27T01:16:00Z",
   "run_history": [
@@ -1350,8 +1353,27 @@
     },
     {
       "run_id": 40442150508,
-      "status": "IN_FLIGHT",
-      "classification": "OPERATIONAL_RESUME_IN_PROGRESS"
+      "repair_round": 0,
+      "status": "UNADJUDICATED",
+      "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+      "mechanism": "OBSERVED_QUANTUM_EXPIRED",
+      "team_job": "success (10/10 steps incl. state validation and write-scope)",
+      "audit_job": "failure at step 5 'Independent audit' after 2704.0 s",
+      "annotation": "LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2221 (exit 78)",
+      "audit_ref_present": false,
+      "gate_file_present": false,
+      "verdict_written": false,
+      "product_defect": false,
+      "resumed_by": 40452133317,
+      "summary": "Team snapshot persisted at 8a98aa5a (14-file committed delta over predecessor 60e3d898 / 40436981920). Audit job hit the 2700 s control-plane work quantum; 'Enforce audit scope and read gate' and 'Persist audit snapshot' were skipped, integrate was skipped, and origin/lab/product did not advance. No gate was written anywhere, so no verdict exists for this run."
+    },
+    {
+      "run_id": 40452133317,
+      "repair_round": 0,
+      "resumed_run": 40442150508,
+      "status": "OPERATIONAL_RESUME_SNAPSHOT_VALIDATION_REPAIR",
+      "audit_gate": "NONE_YET",
+      "summary": "Operational resume of persisted producer snapshot 8a98aa5a: diagnosed the audit-step quantum expiry from public run data, repaired eight reproducible validation defects on the snapshot (posture flags, incomplete attribution artifact, phantom report refs, handoff scope fail-open, uncited live-slice artifact, owner-readiness claim, cycle-status drift, IN_FLIGHT history), published the report of record under this run id."
     }
   ],
   "cycle_40247041354_resume": {
@@ -2402,7 +2424,13 @@
     "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
     "mechanism": "QUANTUM_EXPIRED",
     "adjudication": "UNADJUDICATED",
-    "frontier_mounts_absorbed": []
+    "frontier_mounts_absorbed": [],
+    "frontier_mount_note": "empty at dispatch (the workflow's Mount Frontier step found no team at RUN status); the resume run 40452133317 later mounted the accepted branches read-only at /tmp/lex_accepted/frontier and re-derived this cycle's adoption claims against them - see the 40452133317 block",
+    "snapshot_head": "8a98aa5a411a4f42425ce69b6cd383cdb6a45a13",
+    "predecessor_head": "60e3d8981295f7ba1db865a04a32771fdb7a2eaa",
+    "durable_delta_changed_files": 14,
+    "report_of_record": "reports/product/CYCLE_40442150508.md",
+    "posture_claim_that_was_wrong": "the persisted snapshot said human_gate_ready=true / machine_gate_ready=true / continue_recommended=false / cycle_status=UNADJUDICATED_AUDIT_READY while its own tests and report said all gates false and continue_recommended=true; repaired to fail-closed by run 40452133317"
   },
   "frontier_mounts_absorbed": [],
   "cycle_complete": 40442150508

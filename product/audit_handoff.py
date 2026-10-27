@@ -41,7 +41,15 @@ rejected.  A gate stays exactly what the workflow says it is.
 Checks
 ------
 ``scope``     ``audit_scope_guard.py`` - are the working tree's dirty paths
-              inside the directories the caller's role owns?
+              inside the directories the caller's role owns?  With
+              ``--scope audit`` (the default) the check ALSO fails closed when
+              the checkout is not an audit workspace: a clean producer tree has
+              no dirty path, so a path-only check would certify "audit scope"
+              for a tree that is not an audit workspace at all.  The workspace
+              role is read from the checked-out branch name - the workflow
+              checks the auditor out on ``audit-base`` and later on
+              ``cycle/core/<lane>/<run>/audit`` - and anything else is
+              ``NON_AUDIT_WORKSPACE``, which is a FAIL, never a pass.
 ``state``     ``state_contract.py --check --json`` - lane state, write scope,
               audit-artifact ownership, direction version.
 ``dossier``   ``audit_readiness.py --verify <dossier>`` - every recorded claim
@@ -63,6 +71,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 import time
@@ -102,6 +111,53 @@ def _porcelain(root: Path) -> list[str]:
         if len(line) > 3:
             out.append(line[3:])
     return sorted(out)
+
+
+#: Branches the core-lane workflow checks the independent auditor out on:
+#: ``audit-base`` (job step "Checkout accepted base and mount team") and, at
+#: persist time, ``cycle/core/<lane>/<run>/audit`` (job step
+#: "Persist audit snapshot").  Everything else - ``lab/<lane>``,
+#: ``repair-base``, a team ref, an operational-resume branch - is a producer
+#: workspace, and a detached or unreadable HEAD is *unknown*, which must not
+#: be read as "audit".
+AUDIT_BRANCHES: tuple[str, ...] = ("audit-base",)
+AUDIT_BRANCH_RE = re.compile(r"^cycle/core/[^/]+/[^/]+/audit(-attempt-\d+)?$")
+
+#: Reason recorded on the scope check when the workspace is not an audit one.
+NON_AUDIT_WORKSPACE = "NON_AUDIT_WORKSPACE"
+
+
+def workspace_branch(root: Path) -> str:
+    """Checked-out branch name at ``root``; ``<unavailable>`` instead of raise.
+
+    A check that cannot run is a FAIL everywhere in this module, so the branch
+    read must degrade to an unidentifiable value rather than to ``audit``.
+    """
+    try:
+        proc = subprocess.run(  # noqa: S603
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            cwd=str(root), capture_output=True, text=True, check=False,
+        )
+    except OSError:
+        return "<unavailable>"
+    if proc.returncode != 0:
+        return "<unavailable>"
+    return proc.stdout.strip() or "<unavailable>"
+
+
+def workspace_role(branch: str) -> str:
+    """``audit`` only for the branches the workflow gives the auditor.
+
+    The workflow's own scope check judges *pending writes*, so a clean tree
+    passes it whatever the tree is - which is exactly how a producer snapshot
+    could be handed to an auditor as if it were an audit workspace.  The role
+    is therefore an independent property of the checkout, derived from the
+    branch name the workflow itself creates, and it is fail-closed: an
+    unreadable or detached HEAD is reported as ``non_audit``.
+    """
+    if branch in AUDIT_BRANCHES or AUDIT_BRANCH_RE.match(branch or ""):
+        return "audit"
+    return "non_audit"
 
 
 def _run(args: list[str], cwd: Path, budget: float) -> dict[str, Any]:
@@ -193,7 +249,28 @@ def build(root: Path, *, checks: tuple[str, ...], budget: float,
         entry = spend("scope", [sys.executable,
                                 str(root / "product" / "audit_scope_guard.py"),
                                 "--scope", scope, "--json"])
-        results.append(_finalise(entry))
+        entry = _finalise(entry)
+        if scope == "audit":
+            # Fail closed on the *workspace*, not only on pending writes: a
+            # clean producer tree has no dirty path, so the path-only check
+            # above would hand an auditor a PASS for a producer checkout.
+            branch = workspace_branch(root)
+            role = workspace_role(branch)
+            entry["observed"] = {
+                **(entry.get("observed") or {}),
+                "workspace_branch": branch,
+                "workspace_role": role,
+                "rule": (
+                    "audit scope also requires an audit workspace: the branch "
+                    "must be one the workflow creates for the auditor "
+                    "(audit-base, cycle/core/<lane>/<run>/audit); a producer "
+                    "or unreadable checkout is "
+                    f"{NON_AUDIT_WORKSPACE}, which is a FAIL"),
+            }
+            if role != "audit":
+                entry["status"], entry["ok"] = "FAIL", False
+                entry["reason"] = NON_AUDIT_WORKSPACE
+        results.append(entry)
 
     if "state" in checks:
         entry = spend("state", [sys.executable,

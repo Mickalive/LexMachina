@@ -312,11 +312,17 @@ def test_the_lane_still_recommends_continuing(flag: str):
     assert _state()[flag] is True
 
 
-def test_no_frontier_mount_was_available_to_absorb_this_cycle():
-    """The mount is empty this run; absence must be recorded, not invented."""
-    mount = Path("/tmp/lex_accepted/frontier")
-    entries = sorted(p.name for p in mount.iterdir()) if mount.is_dir() else []
-    assert entries == [], f"unexpected frontier mounts: {entries}"
-    state = _state()
-    block = state[f"cycle_{RUN_ID}_operational_resume"]
+def test_the_dispatch_time_frontier_mount_absence_is_recorded_not_invented():
+    """The mount was empty when this cycle was dispatched; state keeps that fact.
+
+    The live directory is deliberately NOT asserted: the resume run
+    40452133317 later populated ``/tmp/lex_accepted/frontier`` read-only so
+    this cycle's adoption claims could be re-derived against the accepted
+    branches (workflow step "Mount Frontier").  That re-derivation is a
+    recorded decision of THAT run, and a test that pinned the directory to
+    empty would turn an honest follow-up into a false failure.
+    """
+    block = _state()[f"cycle_{RUN_ID}_operational_resume"]
     assert block["frontier_mounts_absorbed"] == []
+    note = block.get("frontier_mount_note", "")
+    assert note.startswith("empty at dispatch"), note
