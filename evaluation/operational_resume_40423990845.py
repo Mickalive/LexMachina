@@ -119,8 +119,8 @@ def brief(obj, n: int = 400) -> str:
     return json.dumps(obj, ensure_ascii=False)[:n]
 
 
-def check(name: str, ok: bool, **detail) -> dict:
-    return {"check": name, "passed": bool(ok), "detail": detail}
+def check(label: str, ok: bool, **detail) -> dict:
+    return {"check": label, "passed": bool(ok), "detail": detail}
 
 
 def now_utc() -> str:
