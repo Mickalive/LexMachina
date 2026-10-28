@@ -32,7 +32,12 @@ def test_state_pointer_and_block():
     assert state["accepted_run_id"] == "CYCLE_40284658455"
     assert state["accepted_commit"] == "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83"
     assert "cycle_40640028819_operational_resume" in state
-    assert state["current_run"] == "40640028819"
+    # current_run is the MOVING latest-resume pointer, advanced by every later
+    # operational resume; the durable delivery record for THIS cycle is its
+    # own state block (asserted above) plus the accepted pointers. Equality of
+    # current_run to this cycle rots on the next resume and is not re-asserted
+    # against live state (rot repair disclosed in CYCLE_40718103891).
+    assert state["current_run"]  # truthy, non-empty
     assert state["continue_recommended"] is True
     assert state["human_gate_ready"] is False
 

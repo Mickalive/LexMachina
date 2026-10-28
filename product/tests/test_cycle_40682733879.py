@@ -33,7 +33,10 @@ def test_state_pointer_and_posture():
     assert state["accepted_run_id"] == "CYCLE_40284658455"
     assert state["accepted_commit"] == "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83"
     assert "cycle_40682733879_operational_resume" in state
-    assert state["current_run"] == "40682733879"
+    # current_run is the MOVING latest-resume pointer; THIS cycle's durable
+    # delivery record is its own state block (above). Equality to this cycle
+    # rots on the next resume (rot repair disclosed in CYCLE_40718103891).
+    assert state["current_run"]  # truthy, non-empty
     assert state["direction_version"] == 68
     assert state["continue_recommended"] is True
     assert state["human_gate_ready"] is False

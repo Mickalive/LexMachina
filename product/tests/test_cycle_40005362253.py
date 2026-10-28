@@ -112,20 +112,22 @@ def test_frontier_decline_numbers_match_the_committed_span_measurement() -> None
 
 
 def test_state_record_is_present_and_fail_closed() -> None:
+    """Live-state invariants only; era scalars/blocks are historical.
+
+    This cycle ran under direction v65 and its era record
+    ``cycle_<run>_direction_v65_ordered_work`` plus the era pointers
+    (current_run, accepted_run_id, direction_version) were superseded by later
+    cycles' state rewrites; they are preserved in this cycle's committed
+    results/ artifacts, not in the live state file. Re-asserting them against
+    live state rots (rot repair disclosed in CYCLE_40718103891). What remains
+    claim-bearing against live state is the fail-closed posture.
+    """
     state = _load(REPO_ROOT / "state" / "product.json")
-    assert state["current_run"] == RUN_ID
-    assert state["accepted_run_id"] == "40000001926"
-    assert state["direction_version"] == 65
+    assert state["current_run"]  # moving pointer: truthy, non-empty only
     assert state["continue_recommended"] is True
     for flag in ("human_gate_ready", "machine_gate_ready",
                  "packet_admitted", "ready_for_owner_session"):
         assert state[flag] is False, flag
-    rec = state[f"cycle_{RUN_ID}_direction_v65_ordered_work"]
-    assert rec["run_id"] == int(RUN_ID)
-    assert "DECLINE" in rec["ordered_item_1_frontier_consumption"]["decision"]
-    assert rec["ordered_item_3_precision_adjudication"]["verdict"].startswith(
-        "BROADER_BUDGET_ADDS_PROPORTIONAL_EVIDENCE")
-    assert rec["ordered_item_4_absent_ids"]["result"].startswith("0/3")
 
 
 def test_verification_sweep_artifact_matches_its_command() -> None:

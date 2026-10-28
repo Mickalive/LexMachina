@@ -37,10 +37,18 @@ against the accepted head the failed run was dispatched from, which is the
 right delta baseline for a resume run: comparing against the previous *team*
 ref would count the accepted audit commit as if the failed run had produced it.
 
-Refs must already be available locally (the workflow fetches ``main``,
-``lab/<lane>`` and the team ref).  The instrument never fetches, so an
-offline reproduction is honest about a missing ref instead of silently
-reaching the network.
+Refs must already be available locally for the default offline contract: the
+instrument never fetches unless the caller explicitly passes
+``--ensure-accepted-ref``.  That opt-in exists because the core-lane workflow's
+repair path fetches only the team/audit refs (``core-lane.yml`` "Validate lane
+and initialize accepted base") and the accepted-peer mount deliberately skips
+the lane's own ``lab/<lane>`` branch, so every repair-round diagnosis recorded
+``ACCEPTED_REF_ABSENT`` even when ``lab/product`` exists on the remote —
+measured on the 40692326715 diagnosis against real remote head ``7be4480e``.
+The fetch, when requested, is read-only into the remote-tracking ref
+(``git fetch origin lab/product:refs/remotes/origin/lab/product``); it never
+touches a local branch and its outcome (ok / failed / skipped) is recorded in
+the artifact instead of being assumed.
 """
 from __future__ import annotations
 
@@ -68,6 +76,34 @@ ACCEPTED_REF = "origin/lab/product"
 def _git(*args: str) -> subprocess.CompletedProcess:
     return subprocess.run(["git", *args], cwd=str(REPO_ROOT),
                           capture_output=True, text=True)
+
+
+def ensure_accepted_ref() -> dict[str, Any]:
+    """Read-only fetch of the accepted-head remote-tracking ref, if asked for.
+
+    Repair-round checkouts do not contain ``origin/lab/product`` (the workflow
+    fetches only the team/audit refs and the peer mount skips the lane's own
+    branch), which made every resume diagnosis report ``ACCEPTED_REF_ABSENT``
+    even when the ref exists on the remote.  This helper records, never
+    assumes: the returned dict always states whether a fetch was attempted and
+    what it observed, and a failed fetch leaves the later classification at
+    ``ACCEPTED_REF_ABSENT`` rather than guessing a head.
+    """
+    before = _rev(ACCEPTED_REF)
+    if before is not None:
+        return {"attempted": False, "reason": "ref_already_present",
+                "accepted_head": before}
+    remote = _git("fetch", "origin",
+                  f"lab/product:refs/remotes/{ACCEPTED_REF}")
+    after = _rev(ACCEPTED_REF)
+    return {
+        "attempted": True,
+        "ok": after is not None,
+        "method": "git-fetch-remote-tracking-only",
+        "fetch_returncode": remote.returncode,
+        "fetch_stderr_tail": (remote.stderr or "").strip().splitlines()[-2:],
+        "accepted_head": after,
+    }
 
 
 def _rev(ref: str) -> str | None:
@@ -117,7 +153,10 @@ def _delta(snapshot_ref: str, predecessor_ref: str) -> dict[str, Any]:
     return out
 
 
-def _accepted_head_relation(delta: dict[str, Any]) -> dict[str, Any]:
+def _accepted_head_relation(
+    delta: dict[str, Any],
+    fetch_record: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """State whether the snapshot is literally the accepted product head.
 
     Verified on run 40423595480: after cycle 40284658455 was accepted, the
@@ -162,6 +201,8 @@ def _accepted_head_relation(delta: dict[str, Any]) -> dict[str, Any]:
             "classification": "SNAPSHOT_NOT_ACCEPTED_HEAD",
             "is_accepted_head": False,
         }
+    if fetch_record is not None:
+        out["accepted_ref_fetch"] = fetch_record
     if out["classification"] == "SNAPSHOT_IS_ACCEPTED_HEAD":
         out["resume_action"] = (
             "NO_PRODUCER_DELTA_POSSIBLE: the snapshot already IS the accepted "
@@ -406,7 +447,13 @@ def run(
     raw_path: Path | None = None,
     *,
     predecessor_ref: str | None = None,
+    ensure_accepted: bool = False,
 ) -> dict[str, Any]:
+    fetch_record: dict[str, Any] | None = None
+    if ensure_accepted:
+        # Must happen before any _rev(ACCEPTED_REF) read so a repair-round
+        # checkout can resolve the accepted head it was never fetch-granted.
+        fetch_record = ensure_accepted_ref()
     orchestration = (
         asd.classify(json.loads(Path(raw_path).read_text(encoding="utf-8")))
         if raw_path is not None
@@ -435,7 +482,7 @@ def run(
         "raw_snapshot": _repo_relative(Path(raw_path)) if raw_path else None,
         "orchestration": orchestration,
         "durable_delta": delta,
-        "accepted_head_relation": _accepted_head_relation(delta),
+        "accepted_head_relation": _accepted_head_relation(delta, fetch_record),
         "adjudication": {
             "audit": audit,
             "accept": accept,
@@ -476,6 +523,10 @@ def main(argv: list[str] | None = None) -> int:
                     help="explicit git ref for the durable-delta baseline (default origin/lab/product)")
     ap.add_argument("--raw", default=None,
                     help="committed run/jobs snapshot for --run-id; omit when unavailable")
+    ap.add_argument("--ensure-accepted-ref", action="store_true",
+                    help="read-only fetch origin/lab/product into the remote-tracking "
+                         "ref when absent (repair-round checkouts lack it); the "
+                         "attempt and outcome are recorded in the artifact")
     ap.add_argument("--out", required=True)
     args = ap.parse_args(argv)
     if not args.predecessor_run_id and not args.predecessor_ref:
@@ -485,6 +536,7 @@ def main(argv: list[str] | None = None) -> int:
         args.predecessor_run_id,
         Path(args.raw) if args.raw else None,
         predecessor_ref=args.predecessor_ref or None,
+        ensure_accepted=args.ensure_accepted_ref,
     )
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
