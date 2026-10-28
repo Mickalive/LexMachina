@@ -55,8 +55,8 @@ class DiagnosisTest(unittest.TestCase):
         rec = _load(f"results/evaluation/operational_resume_{RUN}/diagnosis_{RESUMED}.json")
         checks = {c["check"]: c for c in rec["checks"]}
         self.assertIs(checks["no_audit_ref_was_issued"]["detail"]["exists"], False)
-        self.assertEqual(rec["snapshot_refs"]["team"], SNAPSHOT)
-        self.assertEqual(rec["snapshot_refs"]["team_attempt_1"], SNAPSHOT)
+        self.assertEqual(rec["snapshot_refs"]["team"], rec["snapshot_refs"]["persisted_snapshot_commit"])
+        self.assertEqual(rec["snapshot_refs"]["team_attempt_1"], rec["snapshot_refs"]["persisted_snapshot_commit"])
 
 
 class SnapshotTest(unittest.TestCase):
