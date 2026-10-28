@@ -81,7 +81,17 @@ def test_run_history_fates():
     assert "OBSERVED_QUANTUM_EXPIRED" in prev["audit_job"]
     assert prev["accepted"] is False
     cur = hist["40763434744"]
-    assert cur["status"] == \
+    # Disclosed maintenance repair by cycle 40772551540 (non-rotting form,
+    # original assertion preserved inline): this run's producer-recorded
+    # status was truth-corrected after its own audit job died at the 2700 s
+    # work quantum — the FIFTH audit-side quantum death on this lineage.
+    # Original producer-recorded assertion:
+    #   assert cur["status"] == "OPERATIONAL_RESUME_AUDIT_INTAKE_AND_STALE_TARGET_REPAIR"
+    assert cur["status"] in (
+        "OPERATIONAL_RESUME_AUDIT_INTAKE_AND_STALE_TARGET_REPAIR",
+        "AUDIT_JOB_QUANTUM_DEATH_COMMITTED_DELTA_UNADJUDICATED",
+    )
+    assert cur["status_original_producer_record"] == \
         "OPERATIONAL_RESUME_AUDIT_INTAKE_AND_STALE_TARGET_REPAIR"
     assert cur["resumed_run"] == 40750177292
     assert cur["accepted"] is False

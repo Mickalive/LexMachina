@@ -16,6 +16,13 @@ This module is the single entry point the auditor should run FIRST.  It
 executes the claim-bearing verification set in cost order, measures every
 step, and publishes the measured total against the 2700 s work-quantum
 budget so the next auditor can allocate its own quantum deliberately.
+Its brief and intake additionally carry the WORKSPACE CONTRACT: the audit
+job's CWD is the accepted-base checkout, the producer snapshot is mounted
+at ``/tmp/lex_team``, and no workflow step installs the pinned python
+dependencies, so every command must be ``cd /tmp/lex_team && bash
+product/bootstrap_query_env.sh`` first (five audit-side quantum deaths on
+this lineage are the cost of auditor commands run in the wrong tree or
+against an unbootstrapped environment).
 
 What it runs (default)
 ----------------------
@@ -62,6 +69,15 @@ ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = "product-audit-route/1"
 DIRECTION_VERSION = 68
 QUANTUM_BUDGET_S = 2700  # the workflow's own work quantum for agent steps
+# The core-lane workflow's audit job checks out the ACCEPTED BASE into its own
+# CWD and mounts the producer snapshot as a detached worktree at this path
+# (core-lane.yml "Checkout accepted base and mount team": `git worktree add
+# --detach /tmp/lex_team "origin/$TEAM"`).  Neither that checkout nor any
+# workflow step installs the pinned python dependencies
+# (product/requirements-query.txt), so every command the auditor runs must
+# (a) cd into the producer mount and (b) bootstrap the environment first.
+WORKSPACE_MOUNT = "/tmp/lex_team"
+BOOTSTRAP_CMD = "bash product/bootstrap_query_env.sh"
 
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
@@ -283,6 +299,7 @@ def build_route(run_id: str, verify_only: bool = False,
         "run_id": run_id,
         "direction_version": DIRECTION_VERSION,
         "audit_target": audit_target(run_id),
+        "workspace": workspace_block(),
         "mode": ("bootstrap" if bootstrap
                  else ("verify_only" if verify_only else "full_route")),
         "steps": steps,
@@ -317,6 +334,67 @@ def build_route(run_id: str, verify_only: bool = False,
     return out
 
 
+def workspace_contract() -> str:
+    """The CWD contract every auditor command must obey.
+
+    The audit job's own checkout is the ACCEPTED BASE tree (``origin/lab/
+    product``), not the producer snapshot: ``core-lane.yml`` switches the job
+    workspace to the accepted base and mounts the team ref as a detached
+    worktree at ``/tmp/lex_team``.  Consequences measured on this lineage
+    (five audit-side quantum deaths, runs 40702698815 / 40726216925 /
+    40737328834 / 40750177292 / 40763434744, each ~2704 s exit 78):
+
+    * ``product/audit_route.py`` does NOT exist on the accepted base, so a
+      relative invocation there fails outright;
+    * ``product/audit_readiness.py`` and ``product/state_contract.py`` DO
+      exist on the accepted base, so a relative invocation there silently
+      regenerates ANOTHER tree's claims against this run id;
+    * no workflow step installs numpy/scipy/scikit-learn/pytest, so every
+      pytest and geometry check dies with ``ModuleNotFoundError`` until the
+      producer workspace's own bootstrap has run.
+
+    The brief and the intake therefore prefix every command with
+    ``cd /tmp/lex_team &&`` and lead with the bootstrap step.
+    """
+    return (
+        "WORKSPACE CONTRACT (read first)\n"
+        "-------------------------------\n"
+        f"The audit job's own CWD is the ACCEPTED BASE checkout "
+        f"(origin/lab/product).\nThe producer snapshot under audit is "
+        f"mounted at: {WORKSPACE_MOUNT}\n"
+        "Run EVERY command below as: cd "
+        f"{WORKSPACE_MOUNT} && <command>\n"
+        "Relative commands in the accepted-base tree either fail "
+        "(product/audit_route.py\nis absent there) or silently regenerate "
+        "ANOTHER tree's claims\n(product/audit_readiness.py and "
+        "product/state_contract.py exist on both trees).\n"
+        f"First command (the workflow installs no python deps): "
+        f"cd {WORKSPACE_MOUNT} && {BOOTSTRAP_CMD}\n"
+        "  (pins numpy 2.5.4 / scipy 1.18.1 / scikit-learn 1.9.1 / "
+        "pytest 9.1.1)"
+    )
+
+
+def workspace_block() -> dict[str, Any]:
+    """Machine-readable workspace facts for the route artifact."""
+    root = str(ROOT)
+    return {
+        "producer_workspace_mount": WORKSPACE_MOUNT,
+        "instrument_root": root,
+        "root_is_producer_mount": (
+            root == WORKSPACE_MOUNT or root.startswith(WORKSPACE_MOUNT + "/")
+        ),
+        "bootstrap_command": f"cd {WORKSPACE_MOUNT} && {BOOTSTRAP_CMD}",
+        "workflow_installs_python_deps": False,
+        "contract": (
+            "The audit job CWD is the accepted-base checkout; the producer "
+            f"snapshot is mounted at {WORKSPACE_MOUNT}. Every audit command "
+            "must run with cwd set to that mount, after "
+            f"{BOOTSTRAP_CMD}, or it will fail or measure the wrong tree."
+        ),
+    }
+
+
 def auditor_brief(run_id: str, route: dict[str, Any] | None) -> str:
     target = audit_target(run_id)
     lines = [
@@ -326,6 +404,8 @@ def auditor_brief(run_id: str, route: dict[str, Any] | None) -> str:
         "The producer side is complete; prior audits of this lineage died",
         "at the 2700 s work quantum without consuming the cheap checks",
         "below.",
+        "",
+        workspace_contract(),
         "",
         f"AUDIT TARGET (team ref): {target['audit_target_ref']}",
     ]
@@ -351,17 +431,24 @@ def auditor_brief(run_id: str, route: dict[str, Any] | None) -> str:
         ]
     lines += [
         "",
-        "RUN THIS FIRST (measured cost in parentheses):",
-        "  1. python3 product/state_contract.py --check "
+        "RUN THIS FIRST (measured cost in parentheses; every command runs",
+        f"from the producer mount: cd {WORKSPACE_MOUNT} && …):",
+        f"  0. cd {WORKSPACE_MOUNT} && {BOOTSTRAP_CMD}"
+        "                      (~40 s once; no deps otherwise)",
+        "  1. cd "
+        f"{WORKSPACE_MOUNT} && python3 product/state_contract.py --check "
         f"--direction-version {DIRECTION_VERSION} --json        (~0.1 s)",
-        "  2. python3 product/audit_readiness.py --verify "
+        "  2. cd "
+        f"{WORKSPACE_MOUNT} && python3 product/audit_readiness.py --verify "
         f"results/product/audit_readiness/CYCLE_{run_id}_audit_readiness.json"
         "   (~1 s)",
-        "  3. python3 product/audit_route.py --run-id "
+        "  3. cd "
+        f"{WORKSPACE_MOUNT} && python3 product/audit_route.py --run-id "
         f"{run_id} --out /tmp/route.json          "
         "(full route, ~2-4 min measured)",
         "",
-        "THEN read, in this order (short files first):",
+        "THEN read, in this order (short files first; all under "
+        f"{WORKSPACE_MOUNT}):",
         f"  - {target.get('report_of_record') or f'reports/product/CYCLE_{run_id}.md'}                     (report of record)",
         f"  - {target.get('resumed_diagnosis') or f'results/product/orchestration/CYCLE_{run_id}_resume_diagnosis.json'}",
         "  - the `audit_route` + `next_recommendation` fields of "
@@ -370,7 +457,8 @@ def auditor_brief(run_id: str, route: dict[str, Any] | None) -> str:
         "DO NOT re-derive discharged findings (see route artifact "
         "do_not_re_derive).",
         "Gate path: results/audit/product/CYCLE_<run_id>_GATE.json "
-        "(UPPERCASE).",
+        "(UPPERCASE), written from the audit-job checkout, NOT from "
+        f"{WORKSPACE_MOUNT}.",
         "",
         "The vertical slice stays complete and locally runnable; both "
         "DO-NOT-SERVE",
@@ -386,6 +474,60 @@ def auditor_brief(run_id: str, route: dict[str, Any] | None) -> str:
             f"of {QUANTUM_BUDGET_S}s.",
         ]
     return "\n".join(lines)
+
+
+def _inline_headlines(run_id: str) -> str:
+    """Committed route/dossier headlines, inlined so the intake stands alone.
+
+    Five audit-side quantum deaths have shown that an auditor may never get
+    to step 0.  The intake therefore carries the already-measured route and
+    dossier verdicts inline (read-only from the committed artifacts), so the
+    cheap facts are visible even if no command runs.
+    """
+    ar_dir = ROOT / "results" / "product" / "audit_readiness"
+    chunks: list[str] = ["", "COMMITTED MEASUREMENTS (already run by the producer):", ""]
+    route_path = ar_dir / f"CYCLE_{run_id}_AUDIT_ROUTE.json"
+    if route_path.is_file():
+        try:
+            route = json.loads(route_path.read_text(encoding="utf-8"))
+            chunks.append(
+                f"- route {route_path.relative_to(ROOT)}: "
+                f"status={route.get('overall_status')} "
+                f"total={route.get('total_seconds')}s "
+                f"budget_fraction={route.get('budget_fraction')} "
+                f"failed_steps={route.get('failed_steps')}"
+            )
+            ws = route.get("workspace") or {}
+            if ws:
+                chunks.append(
+                    f"- route workspace: mount={ws.get('producer_workspace_mount')} "
+                    f"root_is_producer_mount={ws.get('root_is_producer_mount')} "
+                    f"instrument_root={ws.get('instrument_root')} "
+                    "(generated on the producer's CI checkout; a rerun from "
+                    f"cd {WORKSPACE_MOUNT} && … reports root_is_producer_mount=True)"
+                )
+        except (OSError, json.JSONDecodeError) as exc:
+            chunks.append(f"- route {route_path.name}: UNREADABLE ({exc})")
+    else:
+        chunks.append(f"- route {route_path.name}: ABSENT (regenerate with "
+                      f"cd {WORKSPACE_MOUNT} && python3 product/audit_route.py "
+                      f"--run-id {run_id} --out {route_path.relative_to(ROOT)})")
+    dossier_path = ar_dir / f"CYCLE_{run_id}_audit_readiness.json"
+    if dossier_path.is_file():
+        try:
+            dossier = json.loads(dossier_path.read_text(encoding="utf-8"))
+            chunks.append(
+                f"- dossier {dossier_path.relative_to(ROOT)}: "
+                f"status={dossier.get('overall_status')} "
+                f"n_checked={len(dossier.get('checks') or [])} "
+                f"failed_checks={dossier.get('failed_checks')} "
+                f"skipped_checks={dossier.get('skipped_checks')}"
+            )
+        except (OSError, json.JSONDecodeError) as exc:
+            chunks.append(f"- dossier {dossier_path.name}: UNREADABLE ({exc})")
+    else:
+        chunks.append(f"- dossier {dossier_path.name}: ABSENT")
+    return "\n".join(chunks)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -414,7 +556,10 @@ def main(argv: list[str] | None = None) -> int:
                 "Machine-readable target:\n\n```json\n"
                 + json.dumps(target, indent=1) + "\n```\n\n"
             )
-            out.write_text(header + brief + "\n", encoding="utf-8")
+            out.write_text(
+                header + brief + _inline_headlines(args.run_id) + "\n",
+                encoding="utf-8",
+            )
             print(json.dumps({"intake_out": str(out), **target}, indent=1))
         else:
             print(brief)
