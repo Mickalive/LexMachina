@@ -48,17 +48,28 @@ def test_state_pointer_and_posture_non_rotting():
 
 
 def test_run_history_covers_the_chain_tail():
+    # Maintenance repair by cycle 40726216925 (disclosed, no claim weakened):
+    # this entry asserted the producer-recorded status against the LIVE state
+    # file, which rots the moment a later resume corrects the run's fate. The
+    # producer wrote "OPERATIONAL_RESUME_..." at 16:18:57Z BEFORE the run died
+    # at the 2700 s quantum; 40726216925 corrected the status and preserved
+    # the original inline. Both the corrected fate and the preserved original
+    # remain claim-bearing, so both are asserted.
     state = json.loads(STATE.read_text(encoding="utf-8"))
     hist = {str(e["run_id"]): e for e in state["run_history"]}
     for rid, expect in (
         ("40702698815", "TEAM_SUCCESS_AUDIT_QUANTUM_DEATH_UNADJUDICATED"),
         ("40717159827", "TEAM_EXIT_1_ZERO_DURABLE_DELTA_UNADJUDICATED"),
         ("40717587477", "TEAM_EXIT_1_ZERO_DURABLE_DELTA_UNADJUDICATED"),
-        ("40718103891", "OPERATIONAL_RESUME_CHAIN_DIAGNOSIS_AND_AUDIT_READINESS"),
+        ("40718103891", "TEAM_JOB_QUANTUM_DEATH_COMMITTED_DELTA_UNADJUDICATED"),
     ):
         assert rid in hist, rid
         assert hist[rid]["status"] == expect
         assert hist[rid]["accepted"] is False
+    entry = hist["40718103891"]
+    assert entry["status_original_producer_record"] == \
+        "OPERATIONAL_RESUME_CHAIN_DIAGNOSIS_AND_AUDIT_READINESS"
+    assert "fate_correction" in entry
 
 
 def test_diagnosed_audit_quantum_death_of_40702698815():

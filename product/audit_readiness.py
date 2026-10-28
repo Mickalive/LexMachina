@@ -827,6 +827,49 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    # Chain-tail registry entry for 40718103891's OWN death (added by cycle
+    # 40726216925).  The key above stays what it was — the profile THAT run's
+    # committed dossier used (resume of 40717587477's exit-1 death).  This
+    # entry is the machine record that 40718103891's own team step then died
+    # at the 2700 s work quantum (exit 78, LEX_WORK_QUANTUM_EXPIRED) AFTER
+    # committing its full 19-file delta 7cf7a11e over predecessor head
+    # 876d1a82; state validation, write scope, audit and gate were all
+    # skipped.  Active profile for the resuming cycle is "40726216925" below.
+    "40726216925": {
+        "resumed_run_id": "40718103891",
+        "predecessor_run_id": "40717587477",
+        "raw": ORCH / "CYCLE_40718103891_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40718103891_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40718103891.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40726216925.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 19,
+        "changed_paths_include": (
+            "reports/product/CYCLE_40718103891.md",
+            "results/product/audit_readiness/"
+            "CYCLE_40718103891_audit_readiness.json",
+            "state/product.json",
+        ),
+        "cycle_test": "product/tests/test_cycle_40726216925.py",
+        "state_block": "cycle_40726216925_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40718103891.json",
+        "content_family_expected": {
+            "n_bundles": 52,
+            "n_decisions": 5200,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
