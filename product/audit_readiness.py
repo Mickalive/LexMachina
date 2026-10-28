@@ -631,6 +631,50 @@ PROFILES: dict[str, dict[str, Any]] = {
         },
     },
     "40666994415": {"alias_of": "40667295410"},
+    "40682733879": {
+        # Operational resume of 40676629031: the team job failed at 'Run
+        # lane cycle' after 2704.0 s with exit code 78.  Check-run annotations
+        # are OBSERVED this cycle and read LEX_WORK_QUANTUM_EXPIRED
+        # seconds=2700 — the FIRST TEAM-side quantum death of this lineage
+        # (the four prior quantum-class deaths were audit-side at 2705 s).
+        # The always-run persist step republished the predecessor
+        # 40667295410's team head 96d79c7e (zero durable delta): the agent
+        # consumed the full quantum without committing.  Countermeasure
+        # adopted: commit-early strategy so a quantum death always leaves a
+        # durable delta.
+        "resumed_run_id": "40676629031",
+        "predecessor_run_id": "40667295410",
+        "raw": ORCH / "CYCLE_40676629031_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40676629031_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40667295410.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40682733879.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_QUANTUM",
+        "failed_job": "team",
+        "mechanism_kind": "observed",
+        "delta_kind": "zero",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 0,
+        "cycle_test": "product/tests/test_cycle_40682733879.py",
+        "state_block": "cycle_40682733879_operational_resume",
+        "zero_delta_reference": (
+            "its predecessor run 40667295410's team head 96d79c7e, which "
+            "is 21 commits ahead of the accepted head 7be4480e"
+        ),
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40682733879.json",
+        "content_family_expected": {
+            "n_bundles": 52,
+            "n_decisions": 5200,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "40676629031": {"alias_of": "40682733879"},
 }
 
 # Active profile; empty means "the module constants above" (the original
