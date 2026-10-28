@@ -128,7 +128,8 @@ def chain_cycle_tests(run_id: str) -> list[str]:
     return picked
 
 
-def build_route(run_id: str, verify_only: bool = False) -> dict[str, Any]:
+def build_route(run_id: str, verify_only: bool = False,
+                bootstrap: bool = False) -> dict[str, Any]:
     dossier = (ROOT / "results" / "product" / "audit_readiness"
                / f"CYCLE_{run_id}_audit_readiness.json")
     steps: list[dict[str, Any]] = []
@@ -169,10 +170,23 @@ def build_route(run_id: str, verify_only: bool = False) -> dict[str, Any]:
         ))
         tests = chain_cycle_tests(run_id)
         if tests:
+            cmd = [sys.executable, "-m", "pytest", *tests, "-q",
+                   "--maxfail=1"]
+            if bootstrap:
+                # First-generation fixpoint break: the cycle test's
+                # conditional route-artifact pin reads the PREVIOUS artifact,
+                # which does not exist (or records the pre-bootstrap FAIL)
+                # during the very invocation that creates the first PASS
+                # artifact.  Bootstrap excludes ONLY that self-referential
+                # test; the immediately following non-bootstrap run verifies
+                # the committed bootstrap artifact through it, and every
+                # later run (incl. the auditor's) runs it in strict PASS
+                # mode.  Disclosed in the artifact's `self_reference` field.
+                cmd += ["-k", "not test_audit_route_artifact_if_present"]
             steps.append(_step(
                 "chain_cycle_tests",
                 "Current chain cycle tests (this run + recent predecessors)",
-                [sys.executable, "-m", "pytest", *tests, "-q", "--maxfail=1"],
+                cmd,
                 600,
             ))
         steps.append(_step(
@@ -187,12 +201,13 @@ def build_route(run_id: str, verify_only: bool = False) -> dict[str, Any]:
     total = round(sum(s.get("seconds") or 0.0 for s in steps), 3)
     passed = sum(1 for s in steps if s.get("status") == "PASS")
     failed = [s["id"] for s in steps if s.get("status") == "FAIL"]
-    return {
+    out: dict[str, Any] = {
         "schema": SCHEMA,
         "generated_at": _now(),
         "run_id": run_id,
         "direction_version": DIRECTION_VERSION,
-        "mode": "verify_only" if verify_only else "full_route",
+        "mode": ("bootstrap" if bootstrap
+                 else ("verify_only" if verify_only else "full_route")),
         "steps": steps,
         "steps_passed": passed,
         "failed_steps": failed,
@@ -200,6 +215,12 @@ def build_route(run_id: str, verify_only: bool = False) -> dict[str, Any]:
         "quantum_budget_s": QUANTUM_BUDGET_S,
         "budget_fraction": round(total / QUANTUM_BUDGET_S, 4),
         "overall_status": "PASS" if not failed else "FAIL",
+        "self_reference": (
+            "chain_cycle_tests in bootstrap mode excludes only "
+            "test_audit_route_artifact_if_present (first-generation "
+            "fixpoint break); the following non-bootstrap run verifies this "
+            "artifact through that test and produces the strict-PASS record."
+        ),
         "contract": (
             "This is a readiness route, never a verdict. It writes no gate, "
             "scores no frozen bar and labels no run accepted/rejected. The "
@@ -216,6 +237,7 @@ def build_route(run_id: str, verify_only: bool = False) -> dict[str, Any]:
             "any Frontier verdict or frozen rubric/bar",
         ],
     }
+    return out
 
 
 def auditor_brief(run_id: str, route: dict[str, Any] | None) -> str:
@@ -269,13 +291,18 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out")
     ap.add_argument("--verify-only", action="store_true")
     ap.add_argument("--for-auditor", action="store_true")
+    ap.add_argument("--bootstrap", action="store_true",
+                    help="first-generation fixpoint break: exclude only the "
+                         "self-referential route-artifact cycle test from "
+                         "chain_cycle_tests (see artifact self_reference)")
     args = ap.parse_args(argv)
 
     if args.for_auditor:
         print(auditor_brief(args.run_id, None))
         return 0
 
-    route = build_route(args.run_id, verify_only=args.verify_only)
+    route = build_route(args.run_id, verify_only=args.verify_only,
+                        bootstrap=args.bootstrap)
     out = Path(args.out) if args.out else (
         ROOT / "results" / "product" / "audit_readiness"
         / f"CYCLE_{args.run_id}_AUDIT_ROUTE.json"

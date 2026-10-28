@@ -33,7 +33,16 @@ def test_state_pointer_and_posture_non_rotting():
     state = json.loads(STATE.read_text(encoding="utf-8"))
     assert state["accepted_run_id"] == "CYCLE_40284658455"
     assert state["accepted_commit"] == ACCEPTED
-    assert state["current_run"] == "40737328834"
+    # current_run is the MOVING latest-resume pointer; THIS cycle's durable
+    # delivery record is its own run_history entry + state block. Equality
+    # to this cycle rots on the next resume. Disclosed maintenance repair by
+    # cycle 40750177292 (the same non-rotting form used in
+    # test_cycle_40682733879.py since CYCLE_40718103891). Original
+    # assertion, preserved inline so no claim is silently weakened:
+    #     assert state["current_run"] == "40737328834"
+    assert state["current_run"]  # truthy, non-empty
+    hist_ids = {str(e.get("run_id")) for e in state.get("run_history") or []}
+    assert "40737328834" in hist_ids
     assert "cycle_40737328834_operational_resume" in state
     assert state["continue_recommended"] is True
     assert state["human_gate_ready"] is False
