@@ -1,0 +1,155 @@
+{
+ "schema": "product-resume-snapshot-diagnosis/1",
+ "generated_at": "2026-10-28T08:41:14Z",
+ "run_id": "40655374513",
+ "predecessor_run_id": "40654856196",
+ "resuming_run_id": "40655643086",
+ "raw_snapshot": "results/product/orchestration/CYCLE_40655374513_run_jobs_raw.json",
+ "raw_snapshot_sha256": "a48f947bd4086b7d896dd76e5b113b1fb0e007cfed808ad092a482394647043b",
+ "orchestration": {
+  "schema": "product-audit-step-diagnosis/1",
+  "generated_at": "2026-10-28T08:41:14Z",
+  "run_id": "40655374513",
+  "run_name": "Core product dirV68 repair0",
+  "run_conclusion": "failure",
+  "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+  "team": {
+   "conclusion": "failure",
+   "team_snapshot_persisted": true,
+   "team_snapshot_step_conclusion": "success",
+   "team_snapshot_persisted_after_failed_team_job": true,
+   "failed_step": "Run lane cycle",
+   "failed_step_seconds": 17.0,
+   "failed_step_window": [
+    "2026-10-28T08:16:13Z",
+    "2026-10-28T08:16:30Z"
+   ],
+   "persist_step_window": [
+    "2026-10-28T08:16:30Z",
+    "2026-10-28T08:16:33Z"
+   ],
+   "producer_state_validation_ran": false,
+   "producer_state_validation_step_conclusion": "skipped",
+   "write_scope_step_ran": false,
+   "write_scope_step_conclusion": "skipped"
+  },
+  "audit": {
+   "conclusion": "skipped",
+   "failed_step": null,
+   "independent_audit_step_seconds": null,
+   "gate_step": null,
+   "persist_step": null,
+   "gate_file_written": false
+  },
+  "integrate": {
+   "conclusion": "skipped",
+   "why_skipped": "audit job did not succeed, so the integrate job is skipped by the workflow condition"
+  },
+  "mechanism": {
+   "status": "UNOBSERVED",
+   "logs_available": false,
+   "logs_endpoint_status": 403,
+   "annotations_available": false,
+   "annotations_endpoint_status": 404,
+   "quantum_expired": false,
+   "quantum_seconds": null,
+   "exit_code": null,
+   "claim": "The lane-cycle agent process failed the 'Run lane cycle' step after 17.0 s (2026-10-28T08:16:13Z -> 2026-10-28T08:16:30Z). The workflow's 'Persist team snapshot' step is guarded by if: always() and concluded success, so the team ref was published with ZERO durable delta. Job logs are not downloadable from this producer environment (HTTP 403) and check-run annotations are not readable (HTTP 404), so no provider, auth, timeout, exit-code or token mechanism is claimed. The 17.0 s failure-at-lane-cycle signature belongs to the same observed_steps failure class already measured on runs 40639812991 (16.0 s, exit 1) and 40499737748 (16.0 s, exit 1); the mechanism class is observed, the log-level cause is UNOBSERVED."
+  }
+ },
+ "chain_context": {
+  "schema": "product-resume-chain-diagnosis/1",
+  "runs": [
+   {
+    "run_id": 40640028819,
+    "team": "success (substantive content-probe + report delta 3a510671)",
+    "audit": "failure at Independent audit step",
+    "audit_step_seconds": 2705.0,
+    "audit_step_window": [
+     "2026-10-28T06:15:25Z",
+     "2026-10-28T07:00:30Z"
+    ],
+    "raw_snapshot": "results/product/orchestration/CYCLE_40640028819_run_jobs_raw.json",
+    "note": "raw snapshot committed this cycle; 2705 s matches the documented ~2700 s work-quantum class; wrapper message UNOBSERVED (logs 403, annotations 404)"
+   },
+   {
+    "run_id": 40647341524,
+    "team": "failure at Run lane cycle (~17 s)",
+    "audit": "skipped",
+    "note": "zero-delta producer death; alias-only successor 40647622447 committed the profile"
+   },
+   {
+    "run_id": 40647622447,
+    "team": "success (audit-readiness alias delta 9226a69d)",
+    "audit": "failure at Independent audit step",
+    "audit_step_seconds": 2705.0,
+    "audit_step_window": [
+     "2026-10-28T07:24:47Z",
+     "2026-10-28T08:09:52Z"
+    ],
+    "raw_snapshot": "results/product/orchestration/CYCLE_40647622447_run_jobs_raw.json",
+    "quantum_signature_match": "2705 s measured against the documented 2704 s LEX_WORK_QUANTUM_EXPIRED signature on run 40633276503; annotations unavailable so the exact wrapper message is UNOBSERVED and the duration match is the evidence"
+   },
+   {
+    "run_id": 40654856196,
+    "team": "failure at Run lane cycle (137.0 s)",
+    "audit": "skipped",
+    "durable_delta": "ZERO_DURABLE_DELTA",
+    "raw_snapshot": "results/product/orchestration/CYCLE_40654856196_run_jobs_raw.json"
+   },
+   {
+    "run_id": 40655374513,
+    "team": "failure at Run lane cycle (17.0 s)",
+    "audit": "skipped",
+    "durable_delta": "ZERO_DURABLE_DELTA",
+    "raw_snapshot": "results/product/orchestration/CYCLE_40655374513_run_jobs_raw.json",
+    "note": "this is the resumed snapshot"
+   }
+  ],
+  "root_stall": "The binding operational stall is AUDIT-SIDE, not producer-side: consecutive independent audits (40633276503 documented LEX_WORK_QUANTUM_EXPIRED at 2704 s; 40640028819 and 40647622447 both failed the Independent audit step at exactly 2705 s) failed at the ~2700 s work-quantum boundary before writing a gate, so the producer lineage 17+ commits ahead of accepted head 7be4480e has never been adjudicated. The subsequent fast zero-delta producer deaths (40647341524, 40654856196, 40655374513) are consistent with the provider-death / early-exit class of factory-wide requirement 20 and with the rc-67 route-around (producer found nothing to add); they are NOT product defects and they are NOT audit verdicts.",
+  "route_around": "Per requirement 10, never re-dispatch an identical repair; each resume must carry a concrete deliverable. This resume's deliverables: raw snapshots + diagnosis for the unpinned dead runs, a fresh content-family re-verification under run id 40655643086, audit-readiness profiles for the new run ids, and the audit-ready dossier. .github/** (including the 2700 s quantum) is control-plane scope and is recorded, not edited."
+ },
+ "durable_delta": {
+  "snapshot_ref": "origin/cycle/core/product/40655374513/team",
+  "snapshot_head": "9226a69d6445ef8d244df15d02b74fc2fbe7f23f",
+  "predecessor_ref": "origin/cycle/core/product/40654856196/team",
+  "predecessor_head": "9226a69d6445ef8d244df15d02b74fc2fbe7f23f",
+  "classification": "ZERO_DURABLE_DELTA",
+  "changed_files": 0,
+  "changed_paths_sample": [],
+  "verified_by": [
+   "git ls-remote origin refs/heads/cycle/core/product/40655374513/team refs/heads/cycle/core/product/40654856196/team (both 9226a69d, fetched this cycle)"
+  ],
+  "meaning": "the team ref points at its predecessor's exact commit: the producer added and changed nothing, and the always-run persist step published that unchanged tree. This is an orchestration outcome, NOT a product defect and NOT a verdict."
+ },
+ "accepted_head_relation": {
+  "accepted_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+  "accepted_run_id": "CYCLE_40284658455",
+  "snapshot_commits_ahead_of_accepted": 19,
+  "verified_by": "git ls-remote origin refs/heads/lab/product -> 7be4480e; git rev-list --count 7be4480e..9226a69d == 19"
+ },
+ "adjudication": {
+  "audit": {
+   "audit_ref": "origin/cycle/core/product/40655374513/audit",
+   "audit_ref_present": false,
+   "gate_file_present": false,
+   "gate_verdict": null
+  },
+  "accept": {
+   "accepted_ref_present": true,
+   "accept_commit": null
+  },
+  "accepted": false,
+  "status": "UNADJUDICATED",
+  "product_defect": false,
+  "verdict_written": false,
+  "why_not_accepted": "requirement 4 needs BOTH an independent PASS gate on the audit ref AND an accept commit on lab/product; the audit ref is absent for this run and lab/product still points at accept 40284658455",
+  "next_action": "resume from the persisted team snapshot (9226a69d), re-verify the v68 lane deliverable on the committed bytes, publish the audit-readiness dossier, and record the unadjudicated chain so the next auditor does not re-derive it"
+ },
+ "lane_deliverable_reverification": {
+  "artifact": "results/product/counter_content_family/CYCLE_40655643086.json",
+  "instrument": "python3 product/content_family_probe.py --run-id 40655643086 --direction-version 68",
+  "claim_ceiling": "REPORTED-ONLY; frozen predicates imported verbatim; no frozen bar scored; no serve verdict run"
+ },
+ "claim_ceiling": "Operational-resume diagnosis only. It classifies orchestration outcomes from committed public run/jobs snapshots, never a gate, never a REVISE/BLOCKED/ACCEPTED verdict, never a product regression. The log-level cause of both fast team-job failures is UNOBSERVED (logs 403, annotations 404)."
+}

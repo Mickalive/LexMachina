@@ -542,6 +542,51 @@ PROFILES: dict[str, dict[str, Any]] = {
     "40639812991": {"alias_of": "40640028819"},
     "40647341524": {"alias_of": "40640028819"},
     "40647622447": {"alias_of": "40640028819"},
+    "40655643086": {
+        # Operational resume of 40655374513: the team job failed at 'Run
+        # lane cycle' after 17.0 s with no readable exit code (annotations
+        # endpoint HTTP 404, logs endpoint HTTP 403), and the always-run
+        # persist step published a tree byte-identical to its predecessor
+        # 40654856196 (zero durable delta).  The predecessor died the same
+        # way after 137.0 s; its predecessor 40647622447 was a producer
+        # success whose independent audit failed the 'Independent audit'
+        # step at exactly 2705 s — the documented ~2700 s work-quantum
+        # signature.  The lineage now sits 19 commits ahead of the accepted
+        # head 7be4480e, so the zero-delta reference is the predecessor,
+        # not the accepted head.
+        "resumed_run_id": "40655374513",
+        "predecessor_run_id": "40654856196",
+        "raw": ORCH / "CYCLE_40655374513_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40655374513_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40640028819.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40655643086.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed_steps",
+        "delta_kind": "zero",
+        "exit_code": None,
+        "changed_files": 0,
+        "cycle_test": "product/tests/test_cycle_40655643086.py",
+        "state_block": "cycle_40655643086_operational_resume",
+        "zero_delta_reference": (
+            "its predecessor run 40654856196's team head 9226a69d, which "
+            "is 19 commits ahead of the accepted head 7be4480e"
+        ),
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40655643086.json",
+        "content_family_expected": {
+            "n_bundles": 52,
+            "n_decisions": 5200,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "40654856196": {"alias_of": "40655643086"},
+    "40655374513": {"alias_of": "40655643086"},
 }
 
 # Active profile; empty means "the module constants above" (the original
