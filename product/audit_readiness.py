@@ -540,6 +540,8 @@ PROFILES: dict[str, dict[str, Any]] = {
         },
     },
     "40639812991": {"alias_of": "40640028819"},
+    "40647341524": {"alias_of": "40640028819"},
+    "40647622447": {"alias_of": "40640028819"},
 }
 
 # Active profile; empty means "the module constants above" (the original
