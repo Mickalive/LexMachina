@@ -675,6 +675,42 @@ PROFILES: dict[str, dict[str, Any]] = {
         },
     },
     "40676629031": {"alias_of": "40682733879"},
+    "40692326715": {
+        # Operational resume of 40692326715: raw run/jobs snapshot unavailable
+        # in this checkout; orchestration mechanism not observed. Team ref
+        # origin/cycle/core/product/40692326715/team carries COMMITTED_DELTA
+        # (9 files) over predecessor 40682733879's head 96d79c7e (including
+        # product/audit_readiness.py, reports/tests for 40682733879, and a
+        # query cache update). No independent audit gate and no accept
+        # commit observed for this run; status UNADJUDICATED.
+        "resumed_run_id": "40692326715",
+        "predecessor_run_id": "40682733879",
+        "raw": None,
+        "resume_diag": ORCH / "CYCLE_40692326715_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40682733879.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40692326715.md",
+        "classification": "RAW_SNAPSHOT_UNAVAILABLE",
+        "failed_job": "unknown",
+        "mechanism_kind": "unobserved",
+        "delta_kind": "committed",
+        "exit_code": None,
+        "changed_files": 9,
+        "cycle_test": "product/tests/test_cycle_40692326715.py",
+        "state_block": "cycle_40692326715_operational_resume",
+        "zero_delta_reference": None,
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40692326715.json",
+        "content_family_expected": {
+            "n_bundles": 52,
+            "n_decisions": 5200,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
