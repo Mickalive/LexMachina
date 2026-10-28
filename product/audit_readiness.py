@@ -924,6 +924,88 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    # Cycle 40747546909: the lane re-dispatched a PRODUCER repair round right
+    # after 40737328834's audit-side quantum death.  The producer correctly
+    # found nothing to add to the already audit-ready snapshot 866ae3cb, so
+    # HEAD was unchanged with an empty working tree and the workflow's rc-67
+    # guard fired ("LEX_ZERO_DELTA_REPAIR", exit 67, OBSERVED via public
+    # annotations); the run failed before state validation, write-scope and
+    # audit, the team ref was persist-published byte-identical to
+    # 40737328834's, and the run is UNADJUDICATED with ZERO durable delta.
+    # Factory-wide requirement 10 binds: rc-67 means "the producer found
+    # nothing to do" — an orchestration/dispatch fact, NOT a product defect.
+    # No report of record was produced under this id (zero-delta); the
+    # operational resume 40750177292 carries the chain record.
+    "40747546909": {
+        "resumed_run_id": "40737328834",
+        "predecessor_run_id": "40726216925",
+        "raw": ORCH / "CYCLE_40737328834_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40737328834_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40737328834.md",
+        "current_report": None,
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 7,
+        "changed_paths_include": (
+            "reports/product/CYCLE_40737328834.md",
+            "results/product/audit_readiness/"
+            "CYCLE_40737328834_audit_readiness.json",
+            "state/product.json",
+        ),
+        "cycle_test": None,
+        "state_block": "cycle_40747546909_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40718103891.json",
+        "content_family_expected": {
+            "n_bundles": 52,
+            "n_decisions": 5200,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    # Active cycle 40750177292: operational resume of the zero-delta
+    # misroute 40747546909.  Resumed run = 40747546909 (rc-67
+    # LEX_ZERO_DELTA_REPAIR, OBSERVED_ZERO_DELTA_REPAIR_GUARD_EXIT_67,
+    # zero durable delta over 40737328834's team head 866ae3cb); the chain
+    # ahead of accepted 7be4480e remains UNADJUDICATED pending the
+    # INDEPENDENT AUDIT of the committed snapshot.  This cycle's binding
+    # deliverable is the single-command bounded audit route
+    # (product/audit_route.py + CYCLE_40750177292_AUDIT_ROUTE.json) built
+    # after three consecutive audit-side quantum deaths.
+    "40750177292": {
+        "resumed_run_id": "40747546909",
+        "predecessor_run_id": "40737328834",
+        "raw": ORCH / "CYCLE_40747546909_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40747546909_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40737328834.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40750177292.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed_zero_delta_guard",
+        "delta_kind": "zero",
+        "exit_code": 67,
+        "cycle_test": "product/tests/test_cycle_40750177292.py",
+        "state_block": "cycle_40750177292_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40718103891.json",
+        "content_family_expected": {
+            "n_bundles": 52,
+            "n_decisions": 5200,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -1347,6 +1429,50 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                 problems.append("raw_persist_step_not_success")
         else:
             problems.append("raw_snapshot_missing")
+    elif mechanism_kind == "observed_zero_delta_guard":
+        # Seventh real failure mode, observed on run 40747546909: the lane
+        # re-dispatched a PRODUCER repair round straight after run
+        # 40737328834's audit-side quantum death; the producer correctly
+        # found nothing to add to an already audit-ready snapshot, so HEAD
+        # stayed unchanged with an empty working tree and the workflow's own
+        # rc-67 guard fired, announced by the public annotations
+        # "Process completed with exit code 67." + "LEX_ZERO_DELTA_REPAIR".
+        # Factory-wide requirement 10 defines the signature: it means "the
+        # producer found nothing to do", NOT a product defect and NOT a
+        # verdict.  The cross-check pins the sentinel text in the raw
+        # annotations so a future UNOBSERVED reclassification cannot pass.
+        mechanism = orch.get("mechanism") or {}
+        team = orch.get("team") or {}
+        exit_code = p("exit_code", 67)
+        if (mechanism.get("status")
+                != "OBSERVED_ZERO_DELTA_REPAIR_GUARD_EXIT_67"):
+            problems.append("mechanism_status")
+        if mechanism.get("quantum_expired") is not False:
+            problems.append("quantum_expired")
+        if mechanism.get("exit_code") != exit_code:
+            problems.append("exit_code")
+        if team.get("failed_step") != "Run lane cycle":
+            problems.append("failed_step")
+        if team.get("team_snapshot_persisted_after_failed_team_job") is not True:
+            problems.append("team_snapshot_persisted_after_failure")
+        if (orch.get("audit") or {}).get("conclusion") != "skipped":
+            problems.append("audit_not_skipped")
+        if (orch.get("audit") or {}).get("gate_file_written") is not False:
+            problems.append("gate_file_written")
+        if raw is not None and raw.is_file():
+            raw_doc = _load(raw)
+            raw_team = next((j for j in raw_doc.get("jobs") or []
+                             if j.get("name") == "team"), None)
+            anns = ((raw_doc.get("annotations") or {})
+                    .get(str((raw_team or {}).get("id"))) or [])
+            messages = " ".join(str(a.get("message") or "")
+                                for a in anns if isinstance(a, dict))
+            if "LEX_ZERO_DELTA_REPAIR" not in messages:
+                problems.append("raw_zero_delta_sentinel_missing")
+            if f"exit code {exit_code}" not in messages.lower():
+                problems.append("raw_exit_annotation_missing")
+        else:
+            problems.append("raw_snapshot_missing")
     else:
         # Raw-free resume: the public run/jobs snapshot is unavailable. The
         # only honest record is that the mechanism is unobserved; asserting a
@@ -1420,6 +1546,12 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                    "cause is asserted), always-run persist step published a "
                    f"tree byte-identical to {zero_ref}, zero durable "
                    "delta, run unadjudicated")
+    elif mechanism_kind == "observed_zero_delta_guard":
+        summary = (f"Resumed run {resumed_id}: rc-67 LEX_ZERO_DELTA_REPAIR "
+                   "guard observed via public annotations (producer found "
+                   "nothing to do — dispatch-routing fact, not a defect); "
+                   "team ref carries zero durable delta over its "
+                   "predecessor, run unadjudicated")
     else:
         summary = (f"Resumed run {resumed_id}: raw run/jobs snapshot "
                    "unavailable (mechanism unobserved), team ref carries zero "
@@ -1747,7 +1879,20 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
         check_claim_artifacts(),
     ]
     if include_tests:
-        checks.append(check_cycle_test(str(p("cycle_test", ""))))
+        # A zero-delta misroute profile (e.g. 40747546909) legitimately has
+        # no cycle test of its own: the run committed nothing.  Passing
+        # str(None) would look for a literal "None.py" and fail the dossier
+        # for the wrong reason, so the absent case is a recorded skip.
+        _cycle_test = p("cycle_test")
+        if _cycle_test:
+            checks.append(check_cycle_test(str(_cycle_test)))
+        else:
+            checks.append(_skip(
+                "cycle_test",
+                "Cycle test exists and is green",
+                "no cycle test is claimed by this profile (zero-delta "
+                "misroute run; the resume cycle's own test covers the "
+                "chain)"))
     else:
         checks.append(_skip("cycle_test",
                             "Cycle test exists and is green",
