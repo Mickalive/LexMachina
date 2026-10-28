@@ -1,0 +1,140 @@
+{
+ "schema": "product-resume-snapshot-diagnosis/1",
+ "generated_at": "2026-10-28T10:02:56Z",
+ "run_id": "40666994415",
+ "predecessor_run_id": "40655643086",
+ "resuming_run_id": "40667295410",
+ "raw_snapshot": "results/product/orchestration/CYCLE_40666994415_run_jobs_raw.json",
+ "raw_snapshot_sha256": "164846949a91cac0c165f4f52046418993578ebc7917be668f3f8fcfee55620c",
+ "orchestration": {
+  "schema": "product-audit-step-diagnosis/1",
+  "generated_at": "2026-10-28T10:02:56Z",
+  "run_id": "40666994415",
+  "run_name": "Core product dirV68 repair0",
+  "run_conclusion": "failure",
+  "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+  "team": {
+   "conclusion": "failure",
+   "team_snapshot_persisted": true,
+   "team_snapshot_step_conclusion": "success",
+   "team_snapshot_persisted_after_failed_team_job": true,
+   "failed_step": "Run lane cycle",
+   "failed_step_seconds": 17.0,
+   "failed_step_window": [
+    "2026-10-28T09:49:14Z",
+    "2026-10-28T09:49:31Z"
+   ],
+   "persist_step_window": [
+    "2026-10-28T09:49:31Z",
+    "2026-10-28T09:49:35Z"
+   ],
+   "producer_state_validation_ran": false,
+   "producer_state_validation_step_conclusion": "skipped",
+   "write_scope_step_ran": false,
+   "write_scope_step_conclusion": "skipped"
+  },
+  "audit": {
+   "conclusion": "skipped",
+   "failed_step": null,
+   "independent_audit_step_seconds": null,
+   "gate_step": null,
+   "persist_step": null,
+   "gate_file_written": false
+  },
+  "integrate": {
+   "conclusion": "skipped",
+   "why_skipped": "audit job did not succeed (was skipped after the team failure), so the integrate job is skipped by the workflow condition"
+  },
+  "mechanism": {
+   "status": "UNOBSERVED",
+   "logs_available": false,
+   "logs_endpoint_status": 403,
+   "annotations_available": false,
+   "annotations_endpoint_status": null,
+   "quantum_expired": false,
+   "quantum_seconds": null,
+   "exit_code": null,
+   "claim": "The lane-cycle agent process failed the 'Run lane cycle' step after 17.0 s (2026-10-28T09:49:14Z -> 2026-10-28T09:49:31Z). The workflow's 'Persist team snapshot' step is guarded by if: always() and concluded success, so the team ref was published with ZERO durable delta. Job logs are not downloadable from this producer environment (HTTP 403) and check-run annotations are not readable (HTTP 404), so no provider, auth, timeout, exit-code or token mechanism is claimed. The fast failure-at-lane-cycle signature belongs to the same observed_steps failure class already measured on runs 40655374513 (17.0 s), 40654856196 (137.0 s), 40639812991 (16.0 s, exit 1) and 40499737748 (16.0 s, exit 1); the mechanism class is observed, the log-level cause is UNOBSERVED."
+  }
+ },
+ "durable_delta": {
+  "schema": "product-resume-durable-delta/1",
+  "classification": "ZERO_DURABLE_DELTA",
+  "snapshot_head": "7d411a699ed4bb55f76071834930c179221ab1b4",
+  "predecessor_head": "7d411a699ed4bb55f76071834930c179221ab1b4",
+  "changed_files": 0,
+  "changed_paths_sample": [],
+  "note": "Run 40666994415's persist step republished the same tree its predecessor run 40655643086's team job had already published (7d411a69)."
+ },
+ "adjudication": {
+  "status": "UNADJUDICATED",
+  "accepted": false,
+  "product_defect": false,
+  "reason": "The producer delta that an audit would have to adjudicate (the lineage head 7d411a69) has now died unaudited twice: run 40655643086's independent audit failed the 'Independent audit' step at exactly 2705 s (the documented ~2700 s work-quantum signature) without writing a gate, and run 40666994415 never reached an audit at all because its own lane-cycle step died in 17.0 s. No gate file exists on any audit ref for this lineage."
+ },
+ "accepted_head_relation": {
+  "accepted_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+  "accepted_run_id": "CYCLE_40284658455",
+  "snapshot_commits_ahead_of_accepted": 20,
+  "both_halves_requirement_4": "verified at resume: results/audit/product/CYCLE_40284658455_GATE.json gate=PASS safe_to_integrate=true, and lab/product history contains 'accept product cycle 40284658455' (7be4480e)"
+ },
+ "chain_context": {
+  "schema": "product-resume-chain-diagnosis/1",
+  "runs": [
+   {
+    "run_id": 40640028819,
+    "team": "success (substantive content-probe + report delta 3a510671)",
+    "audit": "failure at Independent audit step",
+    "audit_step_seconds": 2705.0,
+    "raw_snapshot": "results/product/orchestration/CYCLE_40640028819_run_jobs_raw.json"
+   },
+   {
+    "run_id": 40647341524,
+    "team": "failure at Run lane cycle (~17 s)",
+    "audit": "skipped",
+    "note": "zero-delta producer death; alias profile under 40640028819"
+   },
+   {
+    "run_id": 40647622447,
+    "team": "success (audit-readiness alias delta 9226a69d)",
+    "audit": "failure at Independent audit step",
+    "audit_step_seconds": 2705.0,
+    "raw_snapshot": "results/product/orchestration/CYCLE_40647622447_run_jobs_raw.json"
+   },
+   {
+    "run_id": 40654856196,
+    "team": "failure at Run lane cycle (137.0 s)",
+    "audit": "skipped",
+    "raw_snapshot": "results/product/orchestration/CYCLE_40654856196_run_jobs_raw.json",
+    "durable_delta": "ZERO_DURABLE_DELTA"
+   },
+   {
+    "run_id": 40655374513,
+    "team": "failure at Run lane cycle (17.0 s)",
+    "audit": "skipped",
+    "raw_snapshot": "results/product/orchestration/CYCLE_40655374513_run_jobs_raw.json",
+    "durable_delta": "ZERO_DURABLE_DELTA"
+   },
+   {
+    "run_id": 40655643086,
+    "team": "success (operational-resume delta 7d411a69)",
+    "audit": "failure at Independent audit step",
+    "audit_step_seconds": 2705.0,
+    "audit_step_window": [
+     "2026-10-28T08:55:52Z",
+     "2026-10-28T09:40:57Z"
+    ],
+    "raw_snapshot": "results/product/orchestration/CYCLE_40655643086_run_jobs_raw.json",
+    "note": "FOURTH audit-side death in this chain at the ~2700 s work-quantum boundary; no gate written, integrate skipped, lineage still unadjudicated."
+   },
+   {
+    "run_id": 40666994415,
+    "team": "failure at Run lane cycle (17.0 s)",
+    "audit": "skipped",
+    "raw_snapshot": "results/product/orchestration/CYCLE_40666994415_run_jobs_raw.json",
+    "durable_delta": "ZERO_DURABLE_DELTA"
+   }
+  ],
+  "root_stall": "AUDIT-SIDE: four independent audits of this lineage have now died at the ~2700 s LEX_WORK_QUANTUM_EXPIRED boundary (40633276503 documented at 2704 s; 40640028819, 40647622447 and 40655643086 each failed the 'Independent audit' step at exactly 2705 s) without writing a gate. The fast zero-delta producer deaths (40639812991, 40654856196, 40655374513, 40666994415) are the requirement-20 provider/early-exit class, not product defects. The lane's verification burden is bounded and measured: the committed audit-readiness dossier re-hash (`product/audit_readiness.py --verify`) completes in seconds and the full one-command dossier regeneration (state contract, posture, claim artifacts, cycle test, progressive smoke, MVP core tests) completes in about two minutes on this snapshot; see the audit_cost_measurement entry published with this cycle's dossier."
+ }
+}

@@ -587,6 +587,50 @@ PROFILES: dict[str, dict[str, Any]] = {
     },
     "40654856196": {"alias_of": "40655643086"},
     "40655374513": {"alias_of": "40655643086"},
+    "40667295410": {
+        # Operational resume of 40666994415: the team job failed at 'Run
+        # lane cycle' after 17.0 s with no readable exit code (logs endpoint
+        # HTTP 403, annotations HTTP 404), and the always-run persist step
+        # republished the predecessor 40655643086's team head 7d411a69 (zero
+        # durable delta).  The predecessor was a producer success whose
+        # independent audit failed the 'Independent audit' step at exactly
+        # 2705 s — the FOURTH audit-side ~2700 s work-quantum death in this
+        # chain (with 40633276503 at 2704 s, 40640028819 and 40647622447)
+        # — so the 20-commit lineage ahead of the accepted head 7be4480e
+        # remains unadjudicated and the zero-delta reference is the
+        # predecessor, not the accepted head.
+        "resumed_run_id": "40666994415",
+        "predecessor_run_id": "40655643086",
+        "raw": ORCH / "CYCLE_40666994415_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40666994415_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40655643086.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40667295410.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed_steps",
+        "delta_kind": "zero",
+        "exit_code": None,
+        "changed_files": 0,
+        "cycle_test": "product/tests/test_cycle_40667295410.py",
+        "state_block": "cycle_40667295410_operational_resume",
+        "zero_delta_reference": (
+            "its predecessor run 40655643086's team head 7d411a69, which "
+            "is 20 commits ahead of the accepted head 7be4480e"
+        ),
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40667295410.json",
+        "content_family_expected": {
+            "n_bundles": 52,
+            "n_decisions": 5200,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "40666994415": {"alias_of": "40667295410"},
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -1638,6 +1682,25 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
             "current_report": str(Path(
                 p("current_report", CURRENT_REPORT)).relative_to(ROOT)),
             "current_cycle_test": f"python3 -m pytest {cycle_test} -q",
+            "audit_cost_budget": (
+                "MEASURED, so the ~2700 s audit work-quantum is not spent "
+                "re-deriving what is already machine-checked: (a) the "
+                "sub-second path is `--verify` above — it re-hashes the "
+                "dossier's claim artifacts and completed in 0.061 s for the "
+                "8 artifacts of the predecessor dossier "
+                "CYCLE_40655643086_audit_readiness.json; (b) the full "
+                "one-command regeneration runs the state contract, posture "
+                "check, claim-artifact derivation, cycle test, progressive "
+                "smoke and the bounded MVP core pytest set, and its per-check "
+                "wall times are recorded in this dossier's own `checks[].seconds` "
+                "fields (order of ~2 minutes total on the producing runner); "
+                "(c) do NOT re-run the 153-bundle historical committed sweep — "
+                "those D2=44/D3=31/D4=7 rows are preserved historical evidence "
+                "under results/product/offline_slice/, not this snapshot's "
+                "claim; the claim is the 52-bundle fixed-path family measured "
+                "by product/content_family_probe.py in ~24 s. Prefer (a), then "
+                "regenerate only the specific check whose hash fails."
+            ),
             "not_required": (
                 "Do not re-derive accepted evaluation 40070818687 / "
                 "40068038783 / 40105794124 or the D2 profile 40089391202; "
