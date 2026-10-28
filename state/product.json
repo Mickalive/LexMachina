@@ -77,7 +77,7 @@
     }
   ],
   "current_cycle_run_id": "40667295410",
-  "current_run": "40726216925",
+  "current_run": "40737328834",
   "cycle_38764203_verification": {
     "accepted_by_both_halves": false,
     "adjudication": {
@@ -2679,7 +2679,7 @@
   },
   "lane": "product",
   "last_repair_round": 0,
-  "last_updated": "2026-10-28T16:40:38Z",
+  "last_updated": "2026-10-28T17:40:00Z",
   "machine_gate_ready": false,
   "next_recommendation": "Direction v68 / FAST MVP. OPERATIONAL RESUME 40726216925 of run 40718103891 (persisted snapshot 7cf7a11e). The resumed run is now FULLY DIAGNOSED: its producer committed the complete planned delta (accepted-ref fetch fallback, chain-tail raws+diagnoses, PROFILES registry, moving-pointer rot repairs, fresh 52-bundle content-family probe, report, cycle test, audit-readiness dossier) and the team step then died at the 2700 s work quantum (exit 78), so state validation, write scope, audit and gate never ran and the snapshot is UNADJUDICATED. This cycle independently re-verified the snapshot in a fresh checkout (state contract PASS, 14/14 cycle+resume tests, audit-readiness --verify 8/8, content-family re-derivation 52/5200/55/0 D2-D4=0 false-rejects=0) and published the machine diagnosis + PROFILES entry + corrected run_history so the next dispatch can go straight to INDEPENDENT AUDIT of snapshot 7cf7a11e (dossier results/product/audit_readiness/CYCLE_40718103891_audit_readiness.json, verify-first path <1 s, full regeneration ~2 min) instead of re-running the producer. The binding stall is audit-side cost: seven quantum-class deaths in this lineage. Do NOT re-dispatch a producer resume of 40718103891: there is zero producer work left on this snapshot; the lane needs the AUDIT half of requirement 4 on 7cf7a11e (or an accepted successor). v68 ordered work (1) rejection/incumbent leg and (2) full-family regeneration remain discharged on committed bytes (accepted chain through CYCLE_40284658455 / 7be4480e plus this UNADJUDICATED delta); posture stays fail-closed; continue_recommended=true.",
   "not_claimed": [
@@ -3448,14 +3448,33 @@
       "lane": "product",
       "date": "2026-10-28T16:40:38Z",
       "repair_round": 0,
-      "status": "OPERATIONAL_RESUME_VERIFY_AND_AUDIT_READINESS",
+      "status": "AUDIT_JOB_QUANTUM_DEATH_COMMITTED_DELTA_UNADJUDICATED",
       "resumed_run": 40718103891,
       "accepted": false,
       "accepted_run_id": "CYCLE_40284658455",
       "audit_gate": "NONE_YET",
       "report_of_record": "reports/product/CYCLE_40726216925.md",
       "cycle_test": "product/tests/test_cycle_40726216925.py",
-      "summary": "Operational resume of run 40718103891, whose producer committed its full 19-file delta 7cf7a11e but whose team step then died at the 2700 s work quantum (exit 78), leaving the snapshot UNADJUDICATED with state validation, write scope, audit and gate all skipped. This cycle: (1) machine-traced that death from the committed public raw (OBSERVED_QUANTUM_EXPIRED, COMMITTED_DELTA over 876d1a82, accepted-head relation resolved to 7be4480e via the --ensure-accepted-ref fallback); (2) independently verified the snapshot in a fresh checkout - state contract workflow-validation PASS, cycle test + resume-fetch tests 14/14, audit-readiness --verify 8/8 artifacts, content-family re-derivation 52/5200/55/0 D2=D3=D4=D1=0 0 false rejects; (3) registered the PROFILES entry for this run and the chain record of 40718103891 quantum death; (4) corrected the producer-recorded 40718103891 run_history status to its true fate (original preserved). No product code, filter, frozen bar or posture flag changed; continue_recommended stays true, human_gate_ready stays false."
+      "summary": "Operational resume of run 40718103891, whose producer committed its full 19-file delta 7cf7a11e but whose team step then died at the 2700 s work quantum (exit 78), leaving the snapshot UNADJUDICATED with state validation, write scope, audit and gate all skipped. This cycle: (1) machine-traced that death from the committed public raw (OBSERVED_QUANTUM_EXPIRED, COMMITTED_DELTA over 876d1a82, accepted-head relation resolved to 7be4480e via the --ensure-accepted-ref fallback); (2) independently verified the snapshot in a fresh checkout - state contract workflow-validation PASS, cycle test + resume-fetch tests 14/14, audit-readiness --verify 8/8 artifacts, content-family re-derivation 52/5200/55/0 D2=D3=D4=D1=0 0 false rejects; (3) registered the PROFILES entry for this run and the chain record of 40718103891 quantum death; (4) corrected the producer-recorded 40718103891 run_history status to its true fate (original preserved). No product code, filter, frozen bar or posture flag changed; continue_recommended stays true, human_gate_ready stays false.",
+      "status_original_producer_record": "OPERATIONAL_RESUME_VERIFY_AND_AUDIT_READINESS",
+      "status_correction": "Producer-recorded status was written at 16:40:38Z BEFORE the run's own audit job died; the independent audit's 'Independent audit' step then expired the 2700 s work quantum (exit 78, LEX_WORK_QUANTUM_EXPIRED) at 17:36:22Z with the gate and persist steps skipped, so no audit branch and no gate exist and the run is UNADJUDICATED. Original status preserved inline; corrected by cycle 40737328834 from the committed public raw results/product/orchestration/CYCLE_40726216925_run_jobs_raw.json. results/** stay append-only.",
+      "team_job": "SUCCESS (all steps success including state validation, write scope and persist; 8-file committed delta df6c81fb over predecessor team head 7cf7a11e)",
+      "audit_job": "FAILURE at 'Independent audit' step, 2704.0 s, exit 78, OBSERVED_QUANTUM_EXPIRED; gate step skipped, persist step skipped, no audit ref, no gate file",
+      "integrate_job": "skipped (audit did not succeed)"
+    },
+    {
+      "run_id": "40737328834",
+      "lane": "product",
+      "date": "2026-10-28T17:40:00Z",
+      "repair_round": 0,
+      "status": "OPERATIONAL_RESUME_VERIFY_AND_AUDIT_READINESS",
+      "resumed_run": 40726216925,
+      "accepted": false,
+      "accepted_run_id": "CYCLE_40284658455",
+      "audit_gate": "NONE_YET",
+      "report_of_record": "reports/product/CYCLE_40737328834.md",
+      "cycle_test": "product/tests/test_cycle_40737328834.py",
+      "summary": "Operational resume of run 40726216925, whose producer work was COMPLETE and fully green (team job all-steps success, 8-file committed delta df6c81fb over 7cf7a11e, state validation and write scope passed) but whose independent-audit step then died at the 2700 s work quantum (exit 78, OBSERVED_QUANTUM_EXPIRED) leaving the snapshot UNADJUDICATED with no audit branch and no gate. This cycle: (1) machine-traced that audit death from the committed public raw; (2) re-verified the persisted snapshot (state contract, cycle tests, audit-readiness --verify, dossier regeneration); (3) registered the PROFILES entry for this run and the chain record of 40726216925's audit death; (4) truth-corrected the producer-recorded 40726216925 run_history status (original preserved). No product code, filter, frozen bar or posture flag changed; continue_recommended stays true, human_gate_ready stays false."
     }
   ],
   "state_register_restoration_39651573572": {
@@ -4184,6 +4203,42 @@
       "accepted_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
       "snapshot_head": "7cf7a11ecb46a99eeca93a9a0515c0cbd2342fd0",
       "adjudication": "UNADJUDICATED"
+    },
+    "posture": {
+      "human_gate_ready": false,
+      "machine_gate_ready": false,
+      "ready_for_owner_session": false,
+      "packet_admitted": false,
+      "continue_recommended": true
+    }
+  },
+  "cycle_40737328834_operational_resume": {
+    "run_id": "40737328834",
+    "resumed_run_id": "40726216925",
+    "predecessor_run_id": "40718103891",
+    "mode": "operational_resume",
+    "direction_version": 68,
+    "diagnosis_of_resumed": "results/product/orchestration/CYCLE_40726216925_resume_diagnosis.json",
+    "raw_snapshot": "results/product/orchestration/CYCLE_40726216925_run_jobs_raw.json",
+    "report": "reports/product/CYCLE_40737328834.md",
+    "cycle_test": "product/tests/test_cycle_40737328834.py",
+    "audit_readiness_dossier": "results/product/audit_readiness/CYCLE_40737328834_audit_readiness.json",
+    "resumed_death": {
+      "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+      "mechanism": "OBSERVED_QUANTUM_EXPIRED: public check-run annotation \"LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2796\", exit code 78, after 2704.0 s at the audit job's 'Independent audit' step; the TEAM job was fully green; gate and persist steps skipped; logs endpoint 403 so no log-level cause is asserted beyond the quantum itself",
+      "durable_delta": "COMMITTED_DELTA: 8 files, snapshot head df6c81fb over predecessor 40718103891 team head 7cf7a11e",
+      "adjudication": "UNADJUDICATED (audit failed, integrate skipped)"
+    },
+    "independent_verification_this_cycle": {
+      "state_contract": "product/state_contract.py --check --direction-version 68 -> ok=true",
+      "audit_readiness_verify": "product/audit_readiness.py --verify on the 40726216925 dossier re-hashes its claim artifacts; regenerated under 40737328834",
+      "cycle_tests": "product/tests/test_cycle_40737328834.py + predecessor cycle tests"
+    },
+    "lineage_status": {
+      "accepted_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+      "snapshot_head": "df6c81fb0cf7829cb0b5a19bee121f907685b228",
+      "adjudication": "UNADJUDICATED",
+      "requirement_4": "neither half present for 40726216925: no audit branch/gate and no accept commit; accepted head remains 7be4480e (accept 40284658455)"
     },
     "posture": {
       "human_gate_ready": false,

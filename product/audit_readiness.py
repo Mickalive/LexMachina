@@ -834,7 +834,16 @@ PROFILES: dict[str, dict[str, Any]] = {
     # at the 2700 s work quantum (exit 78, LEX_WORK_QUANTUM_EXPIRED) AFTER
     # committing its full 19-file delta 7cf7a11e over predecessor head
     # 876d1a82; state validation, write scope, audit and gate were all
-    # skipped.  Active profile for the resuming cycle is "40726216925" below.
+    # skipped.  Active profile for the resuming cycle 40726216925 is below.
+    # Chain-tail registry entry for 40726216925's OWN death (added by cycle
+    # 40737328834): its TEAM job was FULLY GREEN (every step success,
+    # including state validation, write scope and persist) and its AUDIT
+    # "Independent audit" step died at the 2700 s work quantum (exit 78,
+    # LEX_WORK_QUANTUM_EXPIRED) after 2704.0 s — the EIGHTH quantum-class
+    # death in this lineage and the SECOND audit-side one (after
+    # 40702698815).  No audit branch and no gate exist; integrate was
+    # skipped.  Active profile for the resuming cycle is "40737328834"
+    # further below.
     "40726216925": {
         "resumed_run_id": "40718103891",
         "predecessor_run_id": "40717587477",
@@ -859,6 +868,51 @@ PROFILES: dict[str, dict[str, Any]] = {
         ),
         "cycle_test": "product/tests/test_cycle_40726216925.py",
         "state_block": "cycle_40726216925_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40718103891.json",
+        "content_family_expected": {
+            "n_bundles": 52,
+            "n_decisions": 5200,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    # Active cycle 40737328834: operational resume of run 40726216925, whose
+    # TEAM job was fully green (every step success, including state
+    # validation, write scope and persist) and whose AUDIT "Independent
+    # audit" step died at the 2700 s work quantum (exit 78,
+    # LEX_WORK_QUANTUM_EXPIRED, OBSERVED via public check-run annotations)
+    # after 2704.0 s; the gate step and the persist step were skipped, no
+    # audit branch or gate exists, and integrate was skipped — the run is
+    # UNADJUDICATED with an 8-file committed delta df6c81fb over predecessor
+    # team head 7cf7a11e.  EIGHTH quantum-class death in this lineage, the
+    # SECOND audit-side one after 40702698815.
+    "40737328834": {
+        "resumed_run_id": "40726216925",
+        "predecessor_run_id": "40718103891",
+        "raw": ORCH / "CYCLE_40726216925_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40726216925_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40726216925.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40737328834.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 8,
+        "changed_paths_include": (
+            "reports/product/CYCLE_40726216925.md",
+            "results/product/audit_readiness/"
+            "CYCLE_40726216925_audit_readiness.json",
+            "state/product.json",
+        ),
+        "cycle_test": "product/tests/test_cycle_40737328834.py",
+        "state_block": "cycle_40737328834_operational_resume",
         "content_family": ROOT / "results" / "product"
                           / "counter_content_family"
                           / "CYCLE_40718103891.json",
