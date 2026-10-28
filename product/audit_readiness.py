@@ -468,6 +468,34 @@ PROFILES: dict[str, dict[str, Any]] = {
                                / "query_map_diagnosis"
                                / "CYCLE_40257275384.json",
     },
+    "40621019854": {
+        "resumed_run_id": "40620804872",
+        "predecessor_run_id": "40606019054",
+        "raw": None,
+        "resume_diag": ORCH / "CYCLE_40620804872_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40284658455.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40621019854.md",
+        "classification": "RAW_SNAPSHOT_UNAVAILABLE",
+        "mechanism_kind": "unobserved",
+        "failed_job": "team",
+        "delta_kind": "committed",
+        "changed_files": 1,
+        "changed_paths_include": ("state/product.json",),
+        "cycle_test": "product/tests/test_cycle_40621019854.py",
+        "state_block": "cycle_40621019854_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40621019854.json",
+        "content_family_expected": {
+            "n_bundles": 50,
+            "n_decisions": 5000,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "40626954469": {"alias_of": "40621019854"},
 }
 
 # Active profile; empty means "the module constants above" (the original
