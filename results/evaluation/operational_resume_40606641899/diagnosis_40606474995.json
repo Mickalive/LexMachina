@@ -1,0 +1,33 @@
+{
+ "schema": "lex-evaluation-operational-resume-diagnosis/1",
+ "executing_run": 40606641899,
+ "resumed_run": 40606474995,
+ "direction_version": 68,
+ "lane": "evaluation",
+ "api_records": [
+  "results/evaluation/operational_resume_40606641899/api/run_40606474995.json",
+  "results/evaluation/operational_resume_40606474995_api_NOT_MOVED_NOTE": null,
+  "results/evaluation/operational_resume_40606641899/api/jobs_40606474995.json",
+  "results/evaluation/operational_resume_40606641899/api/run_40606641899.json",
+  "results/evaluation/operational_resume_40606641899/api/jobs_40606641899.json"
+ ],
+ "observed_facts": [
+  "run 40606474995 'Core evaluation dirV68 repair0', workflow_dispatch, attempt 1, conclusion=failure, created 2026-10-28T00:05:20Z updated 2026-10-28T00:06:53Z, head_sha a020b6cf (origin/main control plane).",
+  "team job failed at step 'Run lane cycle' after ~71 s (00:05:27 -> 00:06:38).",
+  "steps 'Validate active MVP producer state' and 'Enforce lane write scope' were SKIPPED (conditional steps after the cycle body), so the run-agnostic write-scope enforcement did NOT decide the failure; the cycle step itself exited non-zero.",
+  "'Persist team snapshot' (if: always()) force-pushed the snapshot: the team branch refs/heads/cycle/core/evaluation/40606474995/team (and team-attempt-1) equal ea98384e 'accept evaluation cycle 40265377500', i.e. the accepted tip of lab/evaluation - ZERO producer delta persisted.",
+  "audit and integrate jobs: skipped. No verdict was issued by run 40606474995. No /audit ref exists for it.",
+  "the failure is one of a chain of identical fast-fail repair-class dispatches: 40512249949 (repair3, 2026-10-27T13:27:54Z, failure), 40606012368 / 40606161322 / 40606310997 / 40606474995 (all 'Core evaluation dirV68 repair0', 2026-10-28 ~00:01-00:07Z, each failure 1.5-2.4 min apart), all leaving the same zero-delta snapshot, and a resilience job 'Recover failed chain and wake supervisor' succeeded each time.",
+  "by contrast the immediately preceding substantive evaluation cycle 40423990845 produced a 43-file audit-ready package at team commit ee13fa51 whose independent audit returned REVISE with exactly one required fix (state bookkeeping re-measure against accepted base ea98384e) - audit branch cycle/core/evaluation/40423990845/audit commit 12fb3edd."
+ ],
+ "root_cause": "REPAIR_DISPATCH_W_LAND_NO_CONCRETE_WORK_DELTA (zero-delta repair class). The dispatch was a repair-class run against the REVISE consent of cycle 40423990845, but the producer cycle wrote nothing: the persisted snapshot equals the accepted tip, git porcelain was empty, and the agent exited within ~70 s. This matches the standing run-ox-with-retry guard classes (rc 67 LEX_ZERO_DELTA_REPAIR on REPAIR_INTENT, or a fast provider/model death inside the agent step); exact exit code is NOT recoverable from evidence because the job log endpoint returns HTTP 403 unauthenticated and the lane may not re-dispatch an identical repair call. By factory-wide requirement 'can die on provider rotation ... not a verdict', this is an ORCHESTRATION/ORCHESTRATION-VALIDATION failure only - not an audit verdict, not a product defect, not a lane-work failure, and it deleted nothing (the 43-file package of ee13fa51 is intact on the team ref).",
+ "what_was_lost": "Nothing. The full producer work of cycle 40423990845 (ee13fa51) is preserved on refs/heads/cycle/core/evaluation/40423990845/team, and the accepted lab state ea98384e is untouched. What was NOT done until this run is the one required fix of the REVISE gate (state bookkeeping re-measure) plus this diagnosis record.",
+ "corrective_action_by_this_run": [
+  "cycle 40423990845's work is carried forward and its required fix is DISCHARGED here: state/evaluation.json and evaluation/state/evaluation.json re-measured against accepted base ea98384e - true deltas ROOT keys 72->76 and refs 255->277, LANE keys 48->52 and refs 162->184 - with pointer/status keys documented as updated in place (additive_only = nothing removed).",
+  "one disclosed dangling historical ref (results/audit/evaluation/CYCLE_40246705199_GATE.json, a /tmp/lex_prior_audit mount-copy that never existed on any ref, verified git log --all empty) was declared in the nested-refs guard DISCLOSED_KNOWN_UNRESOLVABLE so the historical repair-round-2 provenance text is not charged as a current unresolved ref.",
+  "state pointer identity was advanced additively (github_run/proposed_run_id -> this run) with every prior identity preserved at the *_previous_* keys.",
+  "no benchmark, no frozen bar, no rubric, no verdict contract and no packet bytes were touched."
+ ],
+ "rule_citation": "factory-wide requirement 'THE rc-67 LEX_ZERO_DELTA_REPAIR GUARD ONLY FIRES ON REPAIR ROUNDS ... means the producer found nothing to do ... Route-around: change the QUESTION so the repair has a concrete deliverable, never re-dispatch the identical repair'; requirement 'audit artifact placement' (here N/A - no gate written by a producer); requirement 39 (mount lag).",
+ "claim_ceiling": "Diagnosis of a workflow failure from public GitHub run/job metadata plus ref-identity probes only. It does not claim the exact last agent message or exit code (logs are HTTP 403 unauthenticated), does not classify this as gate=REVISE/BLOCKED/PASS (none was issued), and does not treat the fast failure as a provider-health verdict."
+}

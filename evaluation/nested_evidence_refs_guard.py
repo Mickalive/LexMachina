@@ -45,9 +45,15 @@ MOUNTS = [Path("/tmp/lex_accepted/product"), Path("/tmp/lex_accepted/frontier")]
 # Historical refs the state itself DISCLOSES as known-unresolvable (dangling
 # preserved for provenance, never deleted). Matching is by exact path string.
 DISCLOSED_KNOWN_UNRESOLVABLE = {
-    # none currently claimed at top level; nested disclosure fields carry
-    # these inside evidence_index_defects_inherited_not_charged /
-    # evidence_index_repair_40040574595 blocks which are self-labelling.
+    # run 40606474995: the REVISE gate of rejected cycle 40246705199 was verified
+    # by the producer from the disposable mount /tmp/lex_prior_audit; no committed
+    # copy exists anywhere (`git log --all -- <path>` empty, verified 2026-10-28).
+    # The reachable record of that repair consent is the state repair chain
+    # (repair_round2_40246705199) and the accepted successors
+    # CYCLE_40258497460_GATE.json / CYCLE_40265377500_GATE.json. The mount path
+    # token inside required_fixes_source is a historical provenance pointer,
+    # never deleted and never charged as a current unresolved ref.
+    "results/audit/evaluation/CYCLE_40246705199_GATE.json",
 }
 
 # HISTORICAL disclosure only. These two paths were cited by the producer-authored

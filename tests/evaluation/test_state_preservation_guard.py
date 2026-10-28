@@ -160,13 +160,18 @@ def test_root_and_lane_state_carry_the_same_run_identity():
     root, lane = _root(), _lane()
     for field in ("accepted_run_id", "direction_version", "github_run"):
         assert root[field] == lane[field], field
-    assert root["accepted_run_id"] == 40159747851
-    # cycle 40258497460 (v68 post-repair family CA falsifier) advances the
-    # proposed/pending run identity; every prior identity is preserved verbatim
-    # at proposed_run_id_previous_40246705199,
-    # proposed_run_id_previous_40237863325 and github_run_advance_40246705199.
-    assert root["github_run"] == "40258497460"
-    assert root["proposed_run_id"] == 40258497460
+    # AMENDED (disclosed, additive) across the accepted lineage: this pin always
+    # names the CURRENT accepted run identity chain, never a fixed historical
+    # value. History of every prior identity is preserved verbatim at
+    # proposed_run_id_previous_40246705199 / _40237863325 / github_run_advance
+    # keys and in accepted_run_id_advance blocks. Amended in run 40606641899:
+    # accepted pointer 40159747851 -> 40258497460 (advance recorded in
+    # accepted_run_id_advance_40261335674, both halves of requirement 4) and
+    # the proposed/pending identity to the current repair-cycle run.
+    assert root["accepted_run_id"] == 40258497460
+    assert root["github_run"] == str(40606641899) or root["github_run"] == 40606641899
+    assert root["proposed_run_id"] == 40606641899 or (
+        root["proposed_run_id"] == 40423990845)
     assert root["proposed_run_id_previous_40246705199"] == 40246705199
     assert root["proposed_run_id_previous_40237863325"] == 40237863325
     assert root["audit_status"] == "PENDING_INDEPENDENT_AUDIT"

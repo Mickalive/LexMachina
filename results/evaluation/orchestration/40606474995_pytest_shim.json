@@ -1,0 +1,61 @@
+{
+ "schema": "lex-evaluation-no-pytest-runner/1",
+ "run_id": "40606474995",
+ "generated_at_utc": "2026-10-28T00:23:32Z",
+ "python": "3.12.3",
+ "pytest_available": false,
+ "supported_constructs": [
+  "plain test function with no parameters",
+  "pytest.mark.skipif(condition, reason=...)",
+  "pytest.raises",
+  "module-level `from evaluation import ... as ...`"
+ ],
+ "verdict": "SHIM_FAIL",
+ "n_files": 1,
+ "n_passed": 5,
+ "n_failed": 1,
+ "n_skipped": 0,
+ "n_unsupported": 0,
+ "n_absent": 0,
+ "results": [
+  {
+   "test_file": "tests/evaluation/test_state_preservation_guard.py",
+   "test_file_sha256": "b760f7f51a3c3aa202d9d877e98a4e9eb6c34feabbb64d06bcc8c4a3e8d205b4",
+   "status": "FAIL",
+   "n_passed": 5,
+   "n_failed": 1,
+   "n_skipped": 0,
+   "n_unsupported": 0,
+   "cases": [
+    {
+     "test": "test_every_evidence_ref_resolves_in_the_worktree",
+     "status": "PASS"
+    },
+    {
+     "test": "test_evidence_refs_were_never_shrunk_below_the_accepted_base",
+     "status": "PASS"
+    },
+    {
+     "test": "test_no_accepted_base_state_key_was_dropped",
+     "status": "PASS"
+    },
+    {
+     "test": "test_root_and_lane_state_carry_the_same_run_identity",
+     "status": "FAIL",
+     "error": "AssertionError: ",
+     "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/LexMachina/LexMachina/evaluation/no_pytest_runner.py\", line 142, in run_file\n    fn()\n  File \"/home/runner/work/LexMachina/LexMachina/tests/evaluation/test_state_preservation_guard.py\", line 163, in test_root_and_lane_state_carry_the_same_run_identity\n    assert root[\"accepted_run_id\"] == 40159747851\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+     "test": "test_the_accepted_38_of_38_record_stays_referenced",
+     "status": "PASS"
+    },
+    {
+     "test": "test_the_thirty_keys_present_nowhere_else_are_back",
+     "status": "PASS"
+    }
+   ]
+  }
+ ],
+ "what_this_is_not": "NOT pytest. This runner does not discover, collect, fixture-inject, xfail or report the way pytest does. A case needing a fixture, a parametrisation or a construct outside supported_constructs is reported UNSUPPORTED and counted as NOT-RUN, never as passed, so the counts here are an UPPER BOUND on what pytest would execute. A SHIM_PASS does NOT withdraw the standing disclosure that the lane's pytest scope is unexecuted in the producer image and that the snapshot-audit READY verdict is conditional on that absence.",
+ "why_it_exists": "An unexecuted test file is an unverified claim. This converts the lane's pytest-style tests into a measurement in an image where pytest is absent, without pretending the absence is fixed."
+}
