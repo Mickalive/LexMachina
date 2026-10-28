@@ -5,7 +5,7 @@
   "failure_class": "ORCHESTRATION_PROVIDER_OR_SESSION_EXIT_AT_LANE_CYCLE",
   "verdict": "DIAGNOSIS_INCOMPLETE",
   "n_checks": 20,
-  "n_failed": 8,
+  "n_failed": 12,
   "checks": [
     {
       "check": "run_metadata_is_the_failed_run",
@@ -116,68 +116,47 @@
     },
     {
       "check": "direction_at_head_is_v68",
-      "passed": true,
+      "passed": false,
       "detail": {
-        "version": 68,
+        "version": null,
         "expected": 68,
         "source": "git show a5bae803:state/factory_direction.json"
       }
     },
     {
       "check": "agent_registry_at_head_is_clean",
-      "passed": true,
+      "passed": false,
       "detail": {
-        "n_agent_files": 7,
-        "n_cards": 7,
-        "agent_ids": [
-          "factory_director",
-          "frontier_researcher",
-          "independent_auditor",
-          "lane_researcher",
-          "model_probe",
-          "product_engineer",
-          "results_curator"
-        ],
-        "card_ids": [
-          "factory_director",
-          "frontier_researcher",
-          "independent_auditor",
-          "lane_researcher",
-          "model_probe",
-          "product_engineer",
-          "results_curator"
-        ],
+        "n_agent_files": 0,
+        "n_cards": 0,
+        "agent_ids": [],
+        "card_ids": [],
         "meaning": "the registry guard cannot explain this failure"
       }
     },
     {
       "check": "model_health_at_head_is_healthy_so_pre_agent_health_is_excluded",
-      "passed": true,
+      "passed": false,
       "detail": {
-        "healthy": true,
-        "resolved_model": "opencode/mimo-v2.6-flash-free",
-        "healthy_models": [
-          "opencode/mimo-v2.6-flash-free",
-          "opencode/big-pickle",
-          "opencode/beam-free",
-          "opencode/deepseek-v4.1-flash-free"
-        ],
-        "status": "FREE_MODEL_POOL_ACTIVE",
-        "resolver_exit_code": 0,
-        "resolver_stdout": "opencode/mimo-v2.6-flash-free",
-        "last_checked_run_id": "40614193723",
-        "last_checked_at": "2026-10-28T01:21:28Z"
+        "healthy": null,
+        "resolved_model": null,
+        "healthy_models": null,
+        "status": null,
+        "resolver_exit_code": 76,
+        "resolver_stdout": "",
+        "last_checked_run_id": null,
+        "last_checked_at": null
       }
     },
     {
       "check": "resolver_replay_at_control_plane_head_also_exits_0",
-      "passed": true,
+      "passed": false,
       "detail": {
-        "exit_code": 0,
-        "resolved_model": "opencode/mimo-v2.6-flash-free",
-        "stderr": "",
-        "healthy": true,
-        "status": "FREE_MODEL_POOL_ACTIVE",
+        "exit_code": 76,
+        "resolved_model": "",
+        "stderr": "LEX_NO_HEALTHY_FREE_TOOL_MODEL",
+        "healthy": null,
+        "status": null,
         "file": "results/evaluation/operational_resume_40627549747/model_health_at_31f2f387.json",
         "committed_at": "git show 31f2f38:state/model_health.json"
       }
@@ -208,12 +187,12 @@
       }
     }
   ],
-  "failure_summary": "Run 40627549747 failed at team step 6 'Run lane cycle' in 3426.0s. The head a5bae803 carried a HEALTHY free-model pool (status='FREE_MODEL_POOL_ACTIVE', resolved_model='opencode/mimo-v2.6-flash-free', healthy_models=4); the wrapper's resolve_model_args predicate re-executed on those committed bytes exits 0, so this is NOT the previous pre-agent model-health exit. The direction is v68 and the agent registry is 7/7, so neither the supersession guard nor the card guard fired. 'Clean generated junk' and the always() snapshot persistence succeeded, audit/integrate were skipped, and no /audit ref exists: the run issued NO verdict. The persisted snapshot is 344da4c9, the commit of the previous dispatch (40611594771); 40627549747 added no commit, so its push was a no-op and no producer work was lost. This is an ORCHESTRATION / PROVIDER EXIT AT THE LANE-CYCLE STEP, not a scope-validation failure, not a model-health pre-agent exit, and not a gate REVISE/BLOCKED.",
+  "failure_summary": "Run 40627549747 failed at team step 6 'Run lane cycle' in 3426.0s. The head a5bae803 carried a HEALTHY free-model pool (status=None, resolved_model=None, healthy_models=0); the wrapper's resolve_model_args predicate re-executed on those committed bytes exits 76, so this is NOT the previous pre-agent model-health exit. The direction is v68 and the agent registry is 7/7, so neither the supersession guard nor the card guard fired. 'Clean generated junk' and the always() snapshot persistence succeeded, audit/integrate were skipped, and no /audit ref exists: the run issued NO verdict. The persisted snapshot is 344da4c9, the commit of the previous dispatch (40611594771); 40627549747 added no commit, so its push was a no-op and no producer work was lost. This is an ORCHESTRATION / PROVIDER EXIT AT THE LANE-CYCLE STEP, not a scope-validation failure, not a model-health pre-agent exit, and not a gate REVISE/BLOCKED.",
   "api": {
     "run": "results/evaluation/operational_resume_40627549747/api/run_40627549747_api.json",
     "jobs": "results/evaluation/operational_resume_40627549747/api/jobs_40627549747_api.json",
-    "run_source": "public_unauthenticated_rest_capture",
-    "jobs_source": "public_unauthenticated_rest_capture"
+    "run_source": "committed_envelope_replay",
+    "jobs_source": "committed_envelope_replay"
   },
   "step_durations_seconds": {
     "run_lane_cycle": 3426.0,
@@ -223,20 +202,20 @@
     "run_head": {
       "commit": "a5bae8037ed5fa07cd554b488512dd5e540552dd",
       "record": "results/evaluation/operational_resume_40627549747/model_health_at_a5bae803.json",
-      "healthy": true,
-      "resolved_model": "opencode/mimo-v2.6-flash-free",
-      "status": "FREE_MODEL_POOL_ACTIVE",
-      "last_checked_run_id": "40614193723",
-      "last_checked_at": "2026-10-28T01:21:28Z",
-      "resolver_exit_code": 0
+      "healthy": null,
+      "resolved_model": null,
+      "status": null,
+      "last_checked_run_id": null,
+      "last_checked_at": null,
+      "resolver_exit_code": 76
     },
     "control_plane_head": {
       "commit": "31f2f387861b64ed29cb2b0501ac58f0ed0ecdb3",
       "record": "results/evaluation/operational_resume_40627549747/model_health_at_31f2f387.json",
-      "healthy": true,
-      "resolved_model": "opencode/mimo-v2.6-flash-free",
-      "status": "FREE_MODEL_POOL_ACTIVE",
-      "resolver_exit_code": 0
+      "healthy": null,
+      "resolved_model": null,
+      "status": null,
+      "resolver_exit_code": 76
     }
   },
   "snapshot_refs": {
