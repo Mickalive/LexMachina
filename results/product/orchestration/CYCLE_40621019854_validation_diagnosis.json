@@ -1,0 +1,134 @@
+{
+  "schema": "product-validation-diagnosis/1",
+  "generated_at": "2026-10-28T02:35:29Z",
+  "run_id": "40621019854",
+  "mode": "OPERATIONAL_RESUME",
+  "resumed_run_id": "40620804872",
+  "predecessor_run_id": "40606019054",
+  "snapshot_ref": "origin/cycle/core/product/40620804872/team",
+  "snapshot_head": "1a98ce6530072ee387d958b6c9017caf6e1845e8",
+  "parent_head": "371da82bf21746df50fb8884d79b49e626e23b45",
+  "accepted_head_at_resume": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+  "observations": [
+    {
+      "id": "V1",
+      "finding": "The resumed snapshot carries exactly one committed delta over its parent: state/product.json. No product code, report, cycle test, or run_history entry was added by run 40620804872.",
+      "evidence": "git diff --name-only 371da82b 1a98ce65 -> state/product.json",
+      "reproduce": "git diff --name-only 371da82b 1a98ce65"
+    },
+    {
+      "id": "V2",
+      "finding": "The snapshot moved the accepted pointer BACKWARD, from the then-accepted head CYCLE_40284658455 / 7be4480e to the older CYCLE_40100397058 / 8b5b08dd.",
+      "before": {
+        "accepted_run_id": "CYCLE_40284658455",
+        "accepted_commit": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83"
+      },
+      "after": {
+        "accepted_run_id": "CYCLE_40100397058",
+        "accepted_commit": "8b5b08dd71887436c5a5a28d0c55a42a277872b9"
+      },
+      "ancestry": {
+        "8b5b08dd_is_ancestor_of_7be4480e": true,
+        "commits_between": 62,
+        "7be4480e_is_ancestor_of_snapshot_head": true
+      },
+      "reproduce": "git merge-base --is-ancestor 8b5b08dd 7be4480e; git rev-list --count 8b5b08dd..7be4480e"
+    },
+    {
+      "id": "V3",
+      "finding": "The snapshot has no run_history entry for run 40606019054 or run 40620804872; the newest entry is 40500024808.",
+      "evidence": "state/product.json run_history tail at 1a98ce65",
+      "reproduce": "git show 1a98ce65:state/product.json | python3 -c \"import json,sys; print([r.get('run_id') for r in json.load(sys.stdin)['run_history'][-4:]])\""
+    },
+    {
+      "id": "V4",
+      "finding": "No report of record and no cycle test exist for run 40620804872.",
+      "evidence": "reports/product/CYCLE_40620804872.md and product/tests/test_cycle_40620804872.py are absent",
+      "reproduce": "test -e reports/product/CYCLE_40620804872.md; test -e product/tests/test_cycle_40620804872.py"
+    },
+    {
+      "id": "V5",
+      "finding": "The snapshot fails the lane's own state-register guard: cycle_39965089504_operational_resume is absent from state/product.json.",
+      "command": "python3 product/state_register_restore.py --check",
+      "observed": "FAIL: state/product.json does not carry 'cycle_39965089504_operational_resume' (deleted by 40064639100)",
+      "reproduce": "python3 product/state_register_restore.py --check"
+    },
+    {
+      "id": "V6",
+      "finding": "No audit ref exists for run 40620804872, so its team result was not success and audit/integrate were skipped; the always-run persist step published the partial tree.",
+      "evidence": "git ls-remote origin refs/heads/cycle/core/product/40620804872/audit -> absent",
+      "reproduce": "git ls-remote origin 'refs/heads/cycle/core/product/40620804872/*'"
+    }
+  ],
+  "orchestration": {
+    "classification": "RAW_SNAPSHOT_UNAVAILABLE",
+    "mechanism_unobserved": true,
+    "durable_facts": [
+      "team ref exists at 1a98ce65",
+      "no audit ref exists",
+      "the committed delta is a single partial state file"
+    ],
+    "not_asserted": "No provider, auth, timeout or work-quantum mechanism is asserted. The job-logs endpoint is not readable from this producer environment (HTTP 403 in prior captures), so the cause stays UNOBSERVED rather than invented.",
+    "diagnosis_artifact": "results/product/orchestration/CYCLE_40620804872_resume_diagnosis.json"
+  },
+  "classification": "STATE_POINTER_REGRESSION_PLUS_PARTIAL_COMMIT",
+  "repairs": [
+    {
+      "id": "R1",
+      "repair": "Restored accepted_run_id/accepted_commit to CYCLE_40284658455 / 7be4480e, the latest accepted head verified from BOTH halves of requirement 4.",
+      "half_gate": "results/audit/product/CYCLE_40284658455_GATE.json gate=PASS safe_to_integrate=true required_fixes=[]",
+      "half_accept": "origin/lab/product head 7be4480e = 'accept product cycle 40284658455'"
+    },
+    {
+      "id": "R2",
+      "repair": "Ran product/state_register_restore.py --apply; added 1 missing top-level key (cycle_39965089504_operational_resume) and removed 0. --check now prints PASS."
+    },
+    {
+      "id": "R3",
+      "repair": "Recorded run_history entries for 40606019054, 40620804872 and this run 40621019854, and added the cycle_40621019854_operational_resume state block."
+    },
+    {
+      "id": "R4",
+      "repair": "Published this diagnosis, the report of record, and a cycle test pinning the correction and the verification artifact."
+    }
+  ],
+  "deliverable_verification": {
+    "artifact": "results/product/counter_content_family/CYCLE_40621019854.json",
+    "sha256": "87f9b4f404a4429cacac0f37ff6ef3136852795e2d29ec9182ddbbfd636231e4",
+    "command": "python3 product/content_family_probe.py --run-id 40621019854 --direction-version 68",
+    "fixed_path_family": {
+      "n_bundles": 50,
+      "n_decisions": 5000,
+      "n_verified": 55,
+      "n_verified_defective": 0,
+      "defect_histogram": {
+        "D1_empty_evidence": 0,
+        "D2_letterhead_zone": 0,
+        "D3_markup_residue": 0,
+        "D4_language_marker_mismatch": 0
+      }
+    },
+    "false_reject_count": 0,
+    "confirmed_sound_row": {
+      "decision_id": "bstger_SK.2023.49",
+      "still_verified": true,
+      "defects": []
+    },
+    "accepted_four": {
+      "all_present": true,
+      "all_before_verified": true,
+      "all_after_unevidenced": true
+    },
+    "packet_v3": {
+      "bytes_unchanged": true,
+      "baseline_reproduced": true,
+      "unguarded_reproduced": true,
+      "guarded_reproduced": true,
+      "guarded_yield_not_decreased": true,
+      "guarded_emitted_content_clean": true
+    },
+    "ordered_work_2_success_rule_met": true,
+    "ordered_work_2_full_success_rule_met": true
+  },
+  "claim_ceiling": "This is an operational-resume validation repair and a REPORTED-ONLY re-verification of the v68 lane deliverable on committed bytes. It scores no frozen bar, issues no serve verdict, changes no packet, threshold, rubric or verdict contract, edits nothing frozen, and makes no legal-usefulness claim. The orchestration mechanism is UNOBSERVED; only the git-ref and state facts above are asserted."
+}
