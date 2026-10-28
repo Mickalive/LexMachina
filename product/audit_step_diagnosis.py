@@ -167,6 +167,19 @@ def classify(snapshot: dict) -> dict:
     )
     quantum_seconds = annotations.get("quantum_seconds")
     quantum_expired = bool(annotations.get("quantum_expired"))
+    # Factory-wide requirement 10: the rc-67 LEX_ZERO_DELTA_REPAIR guard
+    # announces itself by public annotation ("Process completed with exit
+    # code 67." + "LEX_ZERO_DELTA_REPAIR").  Observed on run 40747546909,
+    # which was re-dispatched as a producer repair right after run
+    # 40737328834's AUDIT-side quantum death and correctly found nothing to
+    # add to an already audit-ready snapshot.  Classifying it OBSERVED (not
+    # UNOBSERVED) is what lets the resume chain state "the producer found
+    # nothing to do" as evidence rather than as narrative.
+    zero_delta_guard = (
+        annotations.get("exit_code") == 67
+        and any("LEX_ZERO_DELTA_REPAIR" in message
+                for message in annotations.get("messages") or [])
+    )
     # HTTP 200 on the run-jobs logs endpoint means the producing cycle (or a
     # later resume holding the producer token) actually downloaded the job
     # logs; "not downloadable" is then a false sentence, see the branch below.
@@ -227,6 +240,30 @@ def classify(snapshot: dict) -> dict:
                      "then published the tree it had."
             )
             + " No provider or auth cause is claimed."
+        )
+    elif zero_delta_guard:
+        # Observed on run 40747546909: the producer agent completed with no
+        # commit and an empty working tree, the workflow's own rc-67 guard
+        # fired, and the public annotations carry the sentinel.  Factory-wide
+        # requirement 10 defines this signature: rc-67 LEX_ZERO_DELTA_REPAIR
+        # means "the producer found nothing to do" — an orchestration fact,
+        # NOT a product defect and NOT a verdict.  On this lineage the guard
+        # followed an AUDIT-side quantum death (40737328834), so the
+        # zero-delta is a dispatch-routing artifact: the snapshot was already
+        # audit-ready and the correct next dispatch is the independent audit,
+        # not another producer repair round.
+        mechanism_status = "OBSERVED_ZERO_DELTA_REPAIR_GUARD_EXIT_67"
+        mechanism_claim = (
+            "The public check-run annotations read "
+            f"'LEX_ZERO_DELTA_REPAIR' with exit code "
+            f"{annotations.get('exit_code')}. Factory-wide requirement 10 "
+            "defines this signature: the producer agent completed with HEAD "
+            "unchanged and an empty working tree, the workflow's rc-67 guard "
+            "fired, and the run therefore ended before state validation, "
+            "write-scope and audit. This means 'the producer found nothing "
+            "to do' — an orchestration/dispatch fact, NOT a product defect "
+            "and NOT a verdict. No provider, auth, timeout or work-quantum "
+            "mechanism is asserted."
         )
     elif team_ok and audit_failed and audit_step_ok and gate_failed:
         # The audit AGENT succeeded; the workflow's own reader/write-scope
