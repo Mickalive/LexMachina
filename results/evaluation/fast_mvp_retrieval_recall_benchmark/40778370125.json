@@ -1,0 +1,3184 @@
+{
+  "schema": "lex-evaluation-fast-mvp-retrieval-recall-benchmark/1",
+  "run_id": "40778370125",
+  "lane": "evaluation",
+  "direction_version": 68,
+  "generated_at_utc": "2026-10-28T22:23:47Z",
+  "entry_point": "python -m evaluation.fast_mvp_retrieval_recall_benchmark",
+  "frozen_hypothesis": "evaluation/FAST_MVP_RETRIEVAL_RECALL_BENCHMARK_40149704173_HYPOTHESIS_V1.json",
+  "frozen_hypothesis_sha256": "a9fe256cea627c0bbc9ecd8e316f68b00b1911ab4e99bf0c294576b60cafe4f7",
+  "amendments": [
+    {
+      "file": "evaluation/FAST_MVP_RETRIEVAL_RECALL_BENCHMARK_40149704173_HYPOTHESIS_V1_1_AMENDMENT.json",
+      "sha256": "ce1a481d18048af5aadaceff4e00a3e23bf3968f4f30d4e0dcaabef009a50e47"
+    },
+    {
+      "file": "evaluation/FAST_MVP_RETRIEVAL_RECALL_BENCHMARK_40149704173_HYPOTHESIS_V1_2_AMENDMENT.json",
+      "sha256": "13f2eca1de6b85614f69d625f806656756399023fd0e13d147a56c8a4c30e710"
+    }
+  ],
+  "code_fix_after_freeze": [
+    "AUTHORING (between freeze commit a8186ae7 and the first execution): the instrument source was written at all - the freeze pins the hypothesis and its digest, never the code; during that authoring the oracle-ordering expression was corrected to a present-rows-first permutation, corpus docs gained _src_index so a ranked item maps back to its input row independently of duplicate decision_ids, and controls_ok was moved after the last control append. None of these touch a frozen predicate.",
+    "AFTER THE DEBUGGING EXECUTION disclosed in the V1_2 amendment: C7 was split into blocking C7a (source validity) and reported-only C7b (duplicate alnum cores), and the record gained verdict_under_original_v1_c7_blocking plus pre_amendment_debug_run_disclosure so both readings are published. That change is authorised by, and fully described in, evaluation/FAST_MVP_RETRIEVAL_RECALL_BENCHMARK_40149704173_HYPOTHESIS_V1_2_AMENDMENT.json",
+    "REPAIR (run 40153908549, operational resume of producer run 40153096228): the two nested disclosure helpers c3_ok_check / c4_ok_check were DEFINED AFTER their call site, so the committed instrument raised UnboundLocalError at fast_mvp_retrieval_recall_benchmark.py:689 and could not re-derive its own committed record. Reproduced verbatim before the fix: `python -m evaluation.fast_mvp_retrieval_recall_benchmark --run-id 40153908549 --out /tmp/opencode/prefix_commit_40153908549.json --product-root /tmp/lex_accepted/product` -> rc=1, UnboundLocalError on c3_ok_check. The fix only reorders the two def statements above their use. No frozen predicate, k, population, ground-truth set, control definition, success rule, verdict vocabulary or claim ceiling changed; the hypothesis file stays byte-identical to its freeze pin."
+  ],
+  "pre_amendment_debug_run_disclosure": {
+    "executed": true,
+    "command": "/tmp/opencode/venv_eval/bin/python -m evaluation.fast_mvp_retrieval_recall_benchmark --run-id 40149704173 --out /tmp/opencode/dryrun_40149704173.json --product-root /tmp/lex_accepted/product",
+    "output_path": "/tmp/opencode/dryrun_40149704173.json (OUTSIDE the repository; never committed; not a claim-bearing artifact)",
+    "outcome": "NOT_MEASURED_VACUOUS exit 2, 7/8 controls passed; the only failure was C7_source_validity_and_duplicates because gates.unique_ids passed=false for all four questions (citation-field/core alias collisions, published as a known property of this cache by the benchmark of record in reports/evaluation/CYCLE_38945976309.md and reports/evaluation/CYCLE_38951152192.md)",
+    "claim_numbers_observed_then": {
+      "n_discriminating_cells": 10,
+      "n_cells": 24,
+      "input_hits": 17,
+      "product_hits": 15,
+      "present_denominator": 18,
+      "input_retention": 0.9444444444444444,
+      "product_retention": 0.8333333333333334,
+      "losses": [
+        "baseline:business-judgment-rule:de (1.0 -> 0.0; bger_4A_219_2015, bger_4A_603_2014)",
+        "counter:petty-theft-dismissal:fr (1.0 -> 0.667; ge_gerichte_CAPH_107_2004)"
+      ],
+      "language_leg": "fr 4->3 holds=false; de 12->11 holds=false; it 1->1 holds=true",
+      "rule_a": false,
+      "rule_b": false,
+      "rule_c": false
+    },
+    "why_published": "The V1_2 amendment was written after these numbers were known. They are reproduced here so an auditor can verify that the amendment changed only the blocking status of C7 and left every claim-side number and rule untouched."
+  },
+  "freeze_record": "evaluation/FAST_MVP_RETRIEVAL_RECALL_BENCHMARK_40149704173_FREEZE_V1.json",
+  "frozen_spec": "evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
+  "frozen_spec_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+  "accepted_test_file": "tests/evaluation/test_retrieval_benchmark.py",
+  "accepted_protocol_digest": "e1a0b18d23d18bd1aafe54a66329fd0b04cd6f95f794d3d0336e0d867af41b7e",
+  "primary_k": 20,
+  "secondary_k_reported_only": 10,
+  "no_new_thresholds": true,
+  "no_universal_174k_benchmarks": true,
+  "network_calls": 0,
+  "deterministic_offline_only": true,
+  "human_gate_ready": false,
+  "claim_ceiling": "One relative, non-calibrated claim: on these 24 cached OpenCaseLaw cells, with these frozen id sets at k=20, the product reranker does or does not lose ground-truth authorities that its own input order kept. It does not claim absolute retrieval quality, any bar met, serving readiness, human_gate_ready (stays false), jurist utility, calibrated uncertainty, answer correctness, or any property of live network retrieval (network_calls=0). Coverage limitation is part of the claim: a PASS means 'no loss observed on the discriminating cells', never 'retrieval works'. Corpus docs use gates.row_text (title+regeste+snippet), not the product's production full_text pipeline; the corpus is the per-cell OCL response, not the product's unioned deduped pipeline.",
+  "numeric_environment": {
+    "python": "3.12.3",
+    "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+    "executable": "/usr/bin/python3",
+    "sklearn": "1.9.1",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1"
+  },
+  "controls": [
+    {
+      "gate": "C1_frozen_spec_digest",
+      "passed": true,
+      "detail": "frozen.load_frozen() accepted the spec and the on-disk sha matches the pre-execution pin",
+      "measured": {
+        "spec_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+        "expected": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72"
+      }
+    },
+    {
+      "gate": "C2_cache_raw_sha_rehash",
+      "passed": true,
+      "detail": "",
+      "measured": {
+        "n_cells": 24,
+        "offenders": []
+      }
+    },
+    {
+      "gate": "C5_non_vacuity",
+      "passed": true,
+      "detail": "",
+      "measured": {
+        "n_discriminating": 10,
+        "n_cells": 24,
+        "authority_ids": 9,
+        "known_counter_ids": 28,
+        "n_gt_id_cells": 111
+      }
+    },
+    {
+      "gate": "C6_deterministic_rerank",
+      "passed": true,
+      "detail": "",
+      "measured": {
+        "replay_identical": true,
+        "rerank_identical": true
+      }
+    },
+    {
+      "gate": "C7a_source_validity_blocking",
+      "passed": true,
+      "detail": "",
+      "measured": {
+        "source_gates": [
+          "source::rows_valid::rent-default",
+          "source::rows_valid::corporate-criminal-liability",
+          "source::rows_valid::business-judgment-rule",
+          "source::rows_valid::petty-theft-dismissal"
+        ],
+        "offenders": []
+      }
+    },
+    {
+      "gate": "C7b_duplicates_reported_only",
+      "passed": false,
+      "detail": "REPORTED_ONLY (V1_2 amendment): duplicate alnum-core failures are known for this frozen cache (benchmark of record) and do not gate verdict",
+      "measured": {
+        "duplicate_gates": [
+          {
+            "gate": "duplicate::unique_ids::rent-default",
+            "passed": false,
+            "detail": "duplicate alnum-core ids within query responses: [{'query_key': 'baseline:rent-default:fr', 'core': 'gegerichteacjc15112022', 'ids': ['ge_gerichte_C_6552_2022', 'ge_gerichte_ACJC_1511_2022']}, {'query_key': 'baseline:rent-default:fr', 'core': 'vdgerichtejl13022381', 'ids': ['vd_findinfo_HC___2013___801', 'vd_gerichte_JL13.022381']}, {'query_key': 'baseline:rent-default:fr', 'core': 'vdgerichtejl20001744', 'ids': ['vd_findinfo_HC___2020___449', 'vd_gerichte_JL20.001744']}, {'query_key': 'baseline:rent-default:fr', 'core': 'gegerichteacjc1302020', 'ids': ['ge_gerichte_ACJC_130_2020', 'ge_gerichte_C_11712_2019']}]",
+            "measured": {
+              "n_queries_checked": 6,
+              "examples": [
+                {
+                  "query_key": "baseline:rent-default:fr",
+                  "core": "gegerichteacjc15112022",
+                  "ids": [
+                    "ge_gerichte_C_6552_2022",
+                    "ge_gerichte_ACJC_1511_2022"
+                  ]
+                },
+                {
+                  "query_key": "baseline:rent-default:fr",
+                  "core": "vdgerichtejl13022381",
+                  "ids": [
+                    "vd_findinfo_HC___2013___801",
+                    "vd_gerichte_JL13.022381"
+                  ]
+                },
+                {
+                  "query_key": "baseline:rent-default:fr",
+                  "core": "vdgerichtejl20001744",
+                  "ids": [
+                    "vd_findinfo_HC___2020___449",
+                    "vd_gerichte_JL20.001744"
+                  ]
+                },
+                {
+                  "query_key": "baseline:rent-default:fr",
+                  "core": "gegerichteacjc1302020",
+                  "ids": [
+                    "ge_gerichte_ACJC_130_2020",
+                    "ge_gerichte_C_11712_2019"
+                  ]
+                },
+                {
+                  "query_key": "baseline:rent-default:fr",
+                  "core": "vdgerichtejl16046466",
+                  "ids": [
+                    "vd_gerichte_JL16.046466",
+                    "vd_findinfo_HC___2017___404"
+                  ]
+                },
+                {
+                  "query_key": "baseline:rent-default:fr",
+                  "core": "gegerichteacjc9362018",
+                  "ids": [
+                    "ge_gerichte_C_1932_2018",
+                    "ge_gerichte_ACJC_936_2018"
+                  ]
+                },
+                {
+                  "query_key": "baseline:rent-default:fr",
+                  "core": "vdgerichtejl21037906",
+                  "ids": [
+                    "vd_gerichte_JL21.037906",
+                    "vd_findinfo_HC___2022___116"
+                  ]
+                },
+                {
+                  "query_key": "baseline:rent-default:fr",
+                  "core": "vdgerichtejl13007326",
+                  "ids": [
+                    "vd_findinfo_HC___2013___619",
+                    "vd_gerichte_JL13.007326"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "gate": "duplicate::unique_ids::corporate-criminal-liability",
+            "passed": false,
+            "detail": "duplicate alnum-core ids within query responses: [{'query_key': 'baseline:corporate-criminal-liability:fr', 'core': 'gegerichteacpr742021', 'ids': ['ge_gerichte_P_17078_2019', 'ge_gerichte_ACPR_74_2021']}, {'query_key': 'baseline:corporate-criminal-liability:fr', 'core': 'gegerichteacpr8592021', 'ids': ['ge_gerichte_P_13745_2021', 'ge_gerichte_ACPR_859_2021']}, {'query_key': 'baseline:corporate-criminal-liability:fr', 'core': 'gegerichteatas11762011', 'ids': ['ge_gerichte_A_2619_2010', 'ge_gerichte_ATAS_1176_2011']}, {'query_key': 'baseline:corporate-criminal-liability:fr', 'core': 'gegerichteaarp912024', 'ids': ['ge_gerichte_P_3239_2020', 'ge_gerichte_AARP_91_2024']}]",
+            "measured": {
+              "n_queries_checked": 6,
+              "examples": [
+                {
+                  "query_key": "baseline:corporate-criminal-liability:fr",
+                  "core": "gegerichteacpr742021",
+                  "ids": [
+                    "ge_gerichte_P_17078_2019",
+                    "ge_gerichte_ACPR_74_2021"
+                  ]
+                },
+                {
+                  "query_key": "baseline:corporate-criminal-liability:fr",
+                  "core": "gegerichteacpr8592021",
+                  "ids": [
+                    "ge_gerichte_P_13745_2021",
+                    "ge_gerichte_ACPR_859_2021"
+                  ]
+                },
+                {
+                  "query_key": "baseline:corporate-criminal-liability:fr",
+                  "core": "gegerichteatas11762011",
+                  "ids": [
+                    "ge_gerichte_A_2619_2010",
+                    "ge_gerichte_ATAS_1176_2011"
+                  ]
+                },
+                {
+                  "query_key": "baseline:corporate-criminal-liability:fr",
+                  "core": "gegerichteaarp912024",
+                  "ids": [
+                    "ge_gerichte_P_3239_2020",
+                    "ge_gerichte_AARP_91_2024"
+                  ]
+                },
+                {
+                  "query_key": "baseline:corporate-criminal-liability:fr",
+                  "core": "corteedutinnercsuissen5930108e843909del26aprile2011",
+                  "ids": [
+                    "hudoc_ch_59301_08_8439_09",
+                    "ecthr_chamber_59301_08_8439_09_20110426"
+                  ]
+                },
+                {
+                  "query_key": "baseline:corporate-criminal-liability:fr",
+                  "core": "couredhtinnercsuissen5930108et843909du26avril2011",
+                  "ids": [
+                    "hudoc_ch_59301_08_8439_09",
+                    "ecthr_chamber_59301_08_8439_09_20110426"
+                  ]
+                },
+                {
+                  "query_key": "baseline:corporate-criminal-liability:fr",
+                  "core": "egmrtinnercsuissenr5930108und843909vom26april2011",
+                  "ids": [
+                    "hudoc_ch_59301_08_8439_09",
+                    "ecthr_chamber_59301_08_8439_09_20110426"
+                  ]
+                },
+                {
+                  "query_key": "baseline:corporate-criminal-liability:fr",
+                  "core": "gegerichteatas1342005",
+                  "ids": [
+                    "ge_gerichte_A_1288_1998",
+                    "ge_gerichte_ATAS_134_2005"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "gate": "duplicate::unique_ids::business-judgment-rule",
+            "passed": false,
+            "detail": "duplicate alnum-core ids within query responses: [{'query_key': 'baseline:business-judgment-rule:fr', 'core': 'gegerichteata1842022', 'ids': ['ge_gerichte_ATA_184_2022', 'ge_gerichte_A_2005_2021']}, {'query_key': 'baseline:business-judgment-rule:fr', 'core': 'gegerichteata10912020', 'ids': ['ge_gerichte_A_1507_2020', 'ge_gerichte_ATA_1091_2020']}, {'query_key': 'baseline:business-judgment-rule:fr', 'core': 'vdgerichtept15003873', 'ids': ['vd_gerichte_PT15.003873', 'vd_findinfo_HC___2017___1158']}, {'query_key': 'baseline:business-judgment-rule:fr', 'core': 'gegerichtejtapi7612024', 'ids': ['ge_gerichte_JTAPI_761_2024', 'ge_gerichte_A_545_2024']}]",
+            "measured": {
+              "n_queries_checked": 6,
+              "examples": [
+                {
+                  "query_key": "baseline:business-judgment-rule:fr",
+                  "core": "gegerichteata1842022",
+                  "ids": [
+                    "ge_gerichte_ATA_184_2022",
+                    "ge_gerichte_A_2005_2021"
+                  ]
+                },
+                {
+                  "query_key": "baseline:business-judgment-rule:fr",
+                  "core": "gegerichteata10912020",
+                  "ids": [
+                    "ge_gerichte_A_1507_2020",
+                    "ge_gerichte_ATA_1091_2020"
+                  ]
+                },
+                {
+                  "query_key": "baseline:business-judgment-rule:fr",
+                  "core": "vdgerichtept15003873",
+                  "ids": [
+                    "vd_gerichte_PT15.003873",
+                    "vd_findinfo_HC___2017___1158"
+                  ]
+                },
+                {
+                  "query_key": "baseline:business-judgment-rule:fr",
+                  "core": "gegerichtejtapi7612024",
+                  "ids": [
+                    "ge_gerichte_JTAPI_761_2024",
+                    "ge_gerichte_A_545_2024"
+                  ]
+                },
+                {
+                  "query_key": "baseline:business-judgment-rule:fr",
+                  "core": "gegerichteacjc8202018",
+                  "ids": [
+                    "ge_gerichte_ACJC_820_2018",
+                    "ge_gerichte_C_20478_2013"
+                  ]
+                },
+                {
+                  "query_key": "baseline:business-judgment-rule:fr",
+                  "core": "vdgerichtecm15022256",
+                  "ids": [
+                    "vd_gerichte_CM15.022256",
+                    "vd_findinfo_MP___2015___4"
+                  ]
+                },
+                {
+                  "query_key": "baseline:business-judgment-rule:fr",
+                  "core": "gegerichteata6752013",
+                  "ids": [
+                    "ge_gerichte_A_2283_2012",
+                    "ge_gerichte_ATA_675_2013"
+                  ]
+                },
+                {
+                  "query_key": "baseline:business-judgment-rule:fr",
+                  "core": "gegerichteacjc10252024",
+                  "ids": [
+                    "ge_gerichte_C_18881_2021",
+                    "ge_gerichte_ACJC_1025_2024"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "gate": "duplicate::unique_ids::petty-theft-dismissal",
+            "passed": false,
+            "detail": "duplicate alnum-core ids within query responses: [{'query_key': 'baseline:petty-theft-dismissal:fr', 'core': 'gegerichtecaph2082006', 'ids': ['ge_gerichte_CAPH_208_2006', 'ge_gerichte_C_21871_2003']}, {'query_key': 'baseline:petty-theft-dismissal:fr', 'core': 'gegerichtecaph442024', 'ids': ['ge_gerichte_C_20072_2020', 'ge_gerichte_CAPH_44_2024']}, {'query_key': 'baseline:petty-theft-dismissal:fr', 'core': 'gegerichtecaph272018', 'ids': ['ge_gerichte_C_14970_2016', 'ge_gerichte_CAPH_27_2018']}, {'query_key': 'baseline:petty-theft-dismissal:fr', 'core': 'gegerichtecaph1292023', 'ids': ['ge_gerichte_C_14220_2021', 'ge_gerichte_CAPH_129_2023']}]",
+            "measured": {
+              "n_queries_checked": 6,
+              "examples": [
+                {
+                  "query_key": "baseline:petty-theft-dismissal:fr",
+                  "core": "gegerichtecaph2082006",
+                  "ids": [
+                    "ge_gerichte_CAPH_208_2006",
+                    "ge_gerichte_C_21871_2003"
+                  ]
+                },
+                {
+                  "query_key": "baseline:petty-theft-dismissal:fr",
+                  "core": "gegerichtecaph442024",
+                  "ids": [
+                    "ge_gerichte_C_20072_2020",
+                    "ge_gerichte_CAPH_44_2024"
+                  ]
+                },
+                {
+                  "query_key": "baseline:petty-theft-dismissal:fr",
+                  "core": "gegerichtecaph272018",
+                  "ids": [
+                    "ge_gerichte_C_14970_2016",
+                    "ge_gerichte_CAPH_27_2018"
+                  ]
+                },
+                {
+                  "query_key": "baseline:petty-theft-dismissal:fr",
+                  "core": "gegerichtecaph1292023",
+                  "ids": [
+                    "ge_gerichte_C_14220_2021",
+                    "ge_gerichte_CAPH_129_2023"
+                  ]
+                },
+                {
+                  "query_key": "baseline:petty-theft-dismissal:fr",
+                  "core": "gegerichteatas382016",
+                  "ids": [
+                    "ge_gerichte_ATAS_38_2016",
+                    "ge_gerichte_A_3119_2015"
+                  ]
+                },
+                {
+                  "query_key": "baseline:petty-theft-dismissal:fr",
+                  "core": "gegerichtecaph782010",
+                  "ids": [
+                    "ge_gerichte_C_15509_2008",
+                    "ge_gerichte_CAPH_78_2010"
+                  ]
+                },
+                {
+                  "query_key": "baseline:petty-theft-dismissal:fr",
+                  "core": "gegerichtecaph1082008",
+                  "ids": [
+                    "ge_gerichte_C_2212_2007",
+                    "ge_gerichte_CAPH_108_2008"
+                  ]
+                },
+                {
+                  "query_key": "baseline:petty-theft-dismissal:fr",
+                  "core": "gegerichtecaph412015",
+                  "ids": [
+                    "ge_gerichte_C_2431_2013",
+                    "ge_gerichte_CAPH_41_2015"
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "offenders": [
+          {
+            "gate": "duplicate::unique_ids::rent-default",
+            "passed": false,
+            "detail": "duplicate alnum-core ids within query responses: [{'query_key': 'baseline:rent-default:fr', 'core': 'gegerichteacjc15112022', 'ids': ['ge_gerichte_C_6552_2022', 'ge_gerichte_ACJC_1511_2022']}, {'query_key': 'baseline:rent-default:fr', 'core': 'vdgerichtejl13022381', 'ids': ['vd_findinfo_HC___2013___801', 'vd_gerichte_JL13.022381']}, {'query_key': 'baseline:rent-default:fr', 'core': 'vdgerichtejl20001744', 'ids': ['vd_findinfo_HC___2020___449', 'vd_gerichte_JL20.001744']}, {'query_key': 'baseline:rent-default:fr', 'core': 'gegerichteacjc1302020', 'ids': ['ge_gerichte_ACJC_130_2020', 'ge_gerichte_C_11712_2019']}]",
+            "measured": {
+              "n_queries_checked": 6,
+              "examples": [
+                {
+                  "query_key": "baseline:rent-default:fr",
+                  "core": "gegerichteacjc15112022",
+                  "ids": [
+                    "ge_gerichte_C_6552_2022",
+                    "ge_gerichte_ACJC_1511_2022"
+                  ]
+                },
+                {
+                  "query_key": "baseline:rent-default:fr",
+                  "core": "vdgerichtejl13022381",
+                  "ids": [
+                    "vd_findinfo_HC___2013___801",
+                    "vd_gerichte_JL13.022381"
+                  ]
+                },
+                {
+                  "query_key": "baseline:rent-default:fr",
+                  "core": "vdgerichtejl20001744",
+                  "ids": [
+                    "vd_findinfo_HC___2020___449",
+                    "vd_gerichte_JL20.001744"
+                  ]
+                },
+                {
+                  "query_key": "baseline:rent-default:fr",
+                  "core": "gegerichteacjc1302020",
+                  "ids": [
+                    "ge_gerichte_ACJC_130_2020",
+                    "ge_gerichte_C_11712_2019"
+                  ]
+                },
+                {
+                  "query_key": "baseline:rent-default:fr",
+                  "core": "vdgerichtejl16046466",
+                  "ids": [
+                    "vd_gerichte_JL16.046466",
+                    "vd_findinfo_HC___2017___404"
+                  ]
+                },
+                {
+                  "query_key": "baseline:rent-default:fr",
+                  "core": "gegerichteacjc9362018",
+                  "ids": [
+                    "ge_gerichte_C_1932_2018",
+                    "ge_gerichte_ACJC_936_2018"
+                  ]
+                },
+                {
+                  "query_key": "baseline:rent-default:fr",
+                  "core": "vdgerichtejl21037906",
+                  "ids": [
+                    "vd_gerichte_JL21.037906",
+                    "vd_findinfo_HC___2022___116"
+                  ]
+                },
+                {
+                  "query_key": "baseline:rent-default:fr",
+                  "core": "vdgerichtejl13007326",
+                  "ids": [
+                    "vd_findinfo_HC___2013___619",
+                    "vd_gerichte_JL13.007326"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "gate": "duplicate::unique_ids::corporate-criminal-liability",
+            "passed": false,
+            "detail": "duplicate alnum-core ids within query responses: [{'query_key': 'baseline:corporate-criminal-liability:fr', 'core': 'gegerichteacpr742021', 'ids': ['ge_gerichte_P_17078_2019', 'ge_gerichte_ACPR_74_2021']}, {'query_key': 'baseline:corporate-criminal-liability:fr', 'core': 'gegerichteacpr8592021', 'ids': ['ge_gerichte_P_13745_2021', 'ge_gerichte_ACPR_859_2021']}, {'query_key': 'baseline:corporate-criminal-liability:fr', 'core': 'gegerichteatas11762011', 'ids': ['ge_gerichte_A_2619_2010', 'ge_gerichte_ATAS_1176_2011']}, {'query_key': 'baseline:corporate-criminal-liability:fr', 'core': 'gegerichteaarp912024', 'ids': ['ge_gerichte_P_3239_2020', 'ge_gerichte_AARP_91_2024']}]",
+            "measured": {
+              "n_queries_checked": 6,
+              "examples": [
+                {
+                  "query_key": "baseline:corporate-criminal-liability:fr",
+                  "core": "gegerichteacpr742021",
+                  "ids": [
+                    "ge_gerichte_P_17078_2019",
+                    "ge_gerichte_ACPR_74_2021"
+                  ]
+                },
+                {
+                  "query_key": "baseline:corporate-criminal-liability:fr",
+                  "core": "gegerichteacpr8592021",
+                  "ids": [
+                    "ge_gerichte_P_13745_2021",
+                    "ge_gerichte_ACPR_859_2021"
+                  ]
+                },
+                {
+                  "query_key": "baseline:corporate-criminal-liability:fr",
+                  "core": "gegerichteatas11762011",
+                  "ids": [
+                    "ge_gerichte_A_2619_2010",
+                    "ge_gerichte_ATAS_1176_2011"
+                  ]
+                },
+                {
+                  "query_key": "baseline:corporate-criminal-liability:fr",
+                  "core": "gegerichteaarp912024",
+                  "ids": [
+                    "ge_gerichte_P_3239_2020",
+                    "ge_gerichte_AARP_91_2024"
+                  ]
+                },
+                {
+                  "query_key": "baseline:corporate-criminal-liability:fr",
+                  "core": "corteedutinnercsuissen5930108e843909del26aprile2011",
+                  "ids": [
+                    "hudoc_ch_59301_08_8439_09",
+                    "ecthr_chamber_59301_08_8439_09_20110426"
+                  ]
+                },
+                {
+                  "query_key": "baseline:corporate-criminal-liability:fr",
+                  "core": "couredhtinnercsuissen5930108et843909du26avril2011",
+                  "ids": [
+                    "hudoc_ch_59301_08_8439_09",
+                    "ecthr_chamber_59301_08_8439_09_20110426"
+                  ]
+                },
+                {
+                  "query_key": "baseline:corporate-criminal-liability:fr",
+                  "core": "egmrtinnercsuissenr5930108und843909vom26april2011",
+                  "ids": [
+                    "hudoc_ch_59301_08_8439_09",
+                    "ecthr_chamber_59301_08_8439_09_20110426"
+                  ]
+                },
+                {
+                  "query_key": "baseline:corporate-criminal-liability:fr",
+                  "core": "gegerichteatas1342005",
+                  "ids": [
+                    "ge_gerichte_A_1288_1998",
+                    "ge_gerichte_ATAS_134_2005"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "gate": "duplicate::unique_ids::business-judgment-rule",
+            "passed": false,
+            "detail": "duplicate alnum-core ids within query responses: [{'query_key': 'baseline:business-judgment-rule:fr', 'core': 'gegerichteata1842022', 'ids': ['ge_gerichte_ATA_184_2022', 'ge_gerichte_A_2005_2021']}, {'query_key': 'baseline:business-judgment-rule:fr', 'core': 'gegerichteata10912020', 'ids': ['ge_gerichte_A_1507_2020', 'ge_gerichte_ATA_1091_2020']}, {'query_key': 'baseline:business-judgment-rule:fr', 'core': 'vdgerichtept15003873', 'ids': ['vd_gerichte_PT15.003873', 'vd_findinfo_HC___2017___1158']}, {'query_key': 'baseline:business-judgment-rule:fr', 'core': 'gegerichtejtapi7612024', 'ids': ['ge_gerichte_JTAPI_761_2024', 'ge_gerichte_A_545_2024']}]",
+            "measured": {
+              "n_queries_checked": 6,
+              "examples": [
+                {
+                  "query_key": "baseline:business-judgment-rule:fr",
+                  "core": "gegerichteata1842022",
+                  "ids": [
+                    "ge_gerichte_ATA_184_2022",
+                    "ge_gerichte_A_2005_2021"
+                  ]
+                },
+                {
+                  "query_key": "baseline:business-judgment-rule:fr",
+                  "core": "gegerichteata10912020",
+                  "ids": [
+                    "ge_gerichte_A_1507_2020",
+                    "ge_gerichte_ATA_1091_2020"
+                  ]
+                },
+                {
+                  "query_key": "baseline:business-judgment-rule:fr",
+                  "core": "vdgerichtept15003873",
+                  "ids": [
+                    "vd_gerichte_PT15.003873",
+                    "vd_findinfo_HC___2017___1158"
+                  ]
+                },
+                {
+                  "query_key": "baseline:business-judgment-rule:fr",
+                  "core": "gegerichtejtapi7612024",
+                  "ids": [
+                    "ge_gerichte_JTAPI_761_2024",
+                    "ge_gerichte_A_545_2024"
+                  ]
+                },
+                {
+                  "query_key": "baseline:business-judgment-rule:fr",
+                  "core": "gegerichteacjc8202018",
+                  "ids": [
+                    "ge_gerichte_ACJC_820_2018",
+                    "ge_gerichte_C_20478_2013"
+                  ]
+                },
+                {
+                  "query_key": "baseline:business-judgment-rule:fr",
+                  "core": "vdgerichtecm15022256",
+                  "ids": [
+                    "vd_gerichte_CM15.022256",
+                    "vd_findinfo_MP___2015___4"
+                  ]
+                },
+                {
+                  "query_key": "baseline:business-judgment-rule:fr",
+                  "core": "gegerichteata6752013",
+                  "ids": [
+                    "ge_gerichte_A_2283_2012",
+                    "ge_gerichte_ATA_675_2013"
+                  ]
+                },
+                {
+                  "query_key": "baseline:business-judgment-rule:fr",
+                  "core": "gegerichteacjc10252024",
+                  "ids": [
+                    "ge_gerichte_C_18881_2021",
+                    "ge_gerichte_ACJC_1025_2024"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "gate": "duplicate::unique_ids::petty-theft-dismissal",
+            "passed": false,
+            "detail": "duplicate alnum-core ids within query responses: [{'query_key': 'baseline:petty-theft-dismissal:fr', 'core': 'gegerichtecaph2082006', 'ids': ['ge_gerichte_CAPH_208_2006', 'ge_gerichte_C_21871_2003']}, {'query_key': 'baseline:petty-theft-dismissal:fr', 'core': 'gegerichtecaph442024', 'ids': ['ge_gerichte_C_20072_2020', 'ge_gerichte_CAPH_44_2024']}, {'query_key': 'baseline:petty-theft-dismissal:fr', 'core': 'gegerichtecaph272018', 'ids': ['ge_gerichte_C_14970_2016', 'ge_gerichte_CAPH_27_2018']}, {'query_key': 'baseline:petty-theft-dismissal:fr', 'core': 'gegerichtecaph1292023', 'ids': ['ge_gerichte_C_14220_2021', 'ge_gerichte_CAPH_129_2023']}]",
+            "measured": {
+              "n_queries_checked": 6,
+              "examples": [
+                {
+                  "query_key": "baseline:petty-theft-dismissal:fr",
+                  "core": "gegerichtecaph2082006",
+                  "ids": [
+                    "ge_gerichte_CAPH_208_2006",
+                    "ge_gerichte_C_21871_2003"
+                  ]
+                },
+                {
+                  "query_key": "baseline:petty-theft-dismissal:fr",
+                  "core": "gegerichtecaph442024",
+                  "ids": [
+                    "ge_gerichte_C_20072_2020",
+                    "ge_gerichte_CAPH_44_2024"
+                  ]
+                },
+                {
+                  "query_key": "baseline:petty-theft-dismissal:fr",
+                  "core": "gegerichtecaph272018",
+                  "ids": [
+                    "ge_gerichte_C_14970_2016",
+                    "ge_gerichte_CAPH_27_2018"
+                  ]
+                },
+                {
+                  "query_key": "baseline:petty-theft-dismissal:fr",
+                  "core": "gegerichtecaph1292023",
+                  "ids": [
+                    "ge_gerichte_C_14220_2021",
+                    "ge_gerichte_CAPH_129_2023"
+                  ]
+                },
+                {
+                  "query_key": "baseline:petty-theft-dismissal:fr",
+                  "core": "gegerichteatas382016",
+                  "ids": [
+                    "ge_gerichte_ATAS_38_2016",
+                    "ge_gerichte_A_3119_2015"
+                  ]
+                },
+                {
+                  "query_key": "baseline:petty-theft-dismissal:fr",
+                  "core": "gegerichtecaph782010",
+                  "ids": [
+                    "ge_gerichte_C_15509_2008",
+                    "ge_gerichte_CAPH_78_2010"
+                  ]
+                },
+                {
+                  "query_key": "baseline:petty-theft-dismissal:fr",
+                  "core": "gegerichtecaph1082008",
+                  "ids": [
+                    "ge_gerichte_C_2212_2007",
+                    "ge_gerichte_CAPH_108_2008"
+                  ]
+                },
+                {
+                  "query_key": "baseline:petty-theft-dismissal:fr",
+                  "core": "gegerichtecaph412015",
+                  "ids": [
+                    "ge_gerichte_C_2431_2013",
+                    "ge_gerichte_CAPH_41_2015"
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "reported_only": true,
+        "note": "citation-field/core alias collisions; applies to both orderings so cannot favour product in relative claim"
+      }
+    },
+    {
+      "gate": "C7_source_validity_and_duplicates",
+      "passed": true,
+      "detail": "V1_2: split into C7a blocking / C7b reported-only; this entry reflects C7a only",
+      "measured": {
+        "source_gates": [
+          "source::rows_valid::rent-default",
+          "source::rows_valid::corporate-criminal-liability",
+          "source::rows_valid::business-judgment-rule",
+          "source::rows_valid::petty-theft-dismissal"
+        ],
+        "duplicate_gates_reported_only": [
+          "duplicate::unique_ids::rent-default",
+          "duplicate::unique_ids::corporate-criminal-liability",
+          "duplicate::unique_ids::business-judgment-rule",
+          "duplicate::unique_ids::petty-theft-dismissal"
+        ],
+        "offenders_c7a": [],
+        "reported_only": true
+      }
+    },
+    {
+      "gate": "C3_empty_ranking_zeroes_metric",
+      "passed": true,
+      "detail": "",
+      "measured": {
+        "n_discriminating": 10,
+        "offenders": []
+      }
+    },
+    {
+      "gate": "C4_oracle_ordering_reaches_achievable_ceiling",
+      "passed": true,
+      "detail": "",
+      "measured": {
+        "n_discriminating": 10,
+        "offenders": [],
+        "note": "V1_1 amendment: recall is normalised by the FULL frozen gt set, so the achievable ceiling for a partial-coverage corpus is coverage, not 1.0; retention's ceiling is 1.0"
+      }
+    },
+    {
+      "gate": "C4_amendment_applied",
+      "passed": true,
+      "detail": "C4 executed per the pre-execution V1_1 amendment (achievable-ceiling formulation); the V1 hypothesis file is byte-identical to its freeze pin",
+      "measured": {
+        "amendment": "evaluation/FAST_MVP_RETRIEVAL_RECALL_BENCHMARK_40149704173_HYPOTHESIS_V1_1_AMENDMENT.json"
+      }
+    }
+  ],
+  "cells": [
+    {
+      "query_key": "baseline:rent-default:fr",
+      "slug": "rent-default",
+      "channel": "baseline",
+      "language": "fr",
+      "n_rows": 50,
+      "raw_sha256": "0a582a504da7f4a1cef32f248a9611350b537b7e88af241a6e47ec6768b3d445",
+      "gt_ids": [],
+      "discriminating": false,
+      "input": {
+        "n_gt": 0,
+        "n_present": 0,
+        "coverage": null,
+        "hits": 0,
+        "recall": null,
+        "retention": null,
+        "ranks": {}
+      },
+      "product": {
+        "n_gt": 0,
+        "n_present": 0,
+        "coverage": null,
+        "hits": 0,
+        "recall": null,
+        "retention": null,
+        "ranks": {}
+      },
+      "input_k10": {
+        "n_gt": 0,
+        "n_present": 0,
+        "coverage": null,
+        "hits": 0,
+        "recall": null,
+        "retention": null,
+        "ranks": {}
+      },
+      "product_k10": {
+        "n_gt": 0,
+        "n_present": 0,
+        "coverage": null,
+        "hits": 0,
+        "recall": null,
+        "retention": null,
+        "ranks": {}
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": null,
+        "retention": null
+      },
+      "liveness_oracle": {
+        "hits": 0,
+        "recall": null,
+        "retention": null,
+        "coverage": null
+      },
+      "rerank_seconds": 0.02859,
+      "query_variants": [
+        "Sous quelles conditions un bailleur peut-il résilier un bail d'habitation pour retard dans le paiement du loyer selon le droit suisse, et quelles exceptions ou limites jurisprudentielles existent ?",
+        "Sous quelles conditions un bailleur peut-il résilier un bail d'habitation pour retard dans le paiement du loyer selon le droit suisse, et quelles exceptions ou limites jurisprudentielles existent ? miete mietrecht locazione mietvertrag"
+      ],
+      "n_product_returned": 50
+    },
+    {
+      "query_key": "baseline:rent-default:de",
+      "slug": "rent-default",
+      "channel": "baseline",
+      "language": "de",
+      "n_rows": 50,
+      "raw_sha256": "13bcea39c7d334acb2ae0fd62e6b0202a7fbef65009eea0848d10215f68efb6c",
+      "gt_ids": [],
+      "discriminating": false,
+      "input": {
+        "n_gt": 0,
+        "n_present": 0,
+        "coverage": null,
+        "hits": 0,
+        "recall": null,
+        "retention": null,
+        "ranks": {}
+      },
+      "product": {
+        "n_gt": 0,
+        "n_present": 0,
+        "coverage": null,
+        "hits": 0,
+        "recall": null,
+        "retention": null,
+        "ranks": {}
+      },
+      "input_k10": {
+        "n_gt": 0,
+        "n_present": 0,
+        "coverage": null,
+        "hits": 0,
+        "recall": null,
+        "retention": null,
+        "ranks": {}
+      },
+      "product_k10": {
+        "n_gt": 0,
+        "n_present": 0,
+        "coverage": null,
+        "hits": 0,
+        "recall": null,
+        "retention": null,
+        "ranks": {}
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": null,
+        "retention": null
+      },
+      "liveness_oracle": {
+        "hits": 0,
+        "recall": null,
+        "retention": null,
+        "coverage": null
+      },
+      "rerank_seconds": 0.005853,
+      "query_variants": [
+        "Unter welchen Voraussetzungen kann der Vermieter einen Wohnmietvertrag wegen Zahlungsverzug kündigen, und welche Ausnahmen oder Grenzen der Rechtsprechung bestehen nach Schweizer Recht?"
+      ],
+      "n_product_returned": 50
+    },
+    {
+      "query_key": "baseline:rent-default:it",
+      "slug": "rent-default",
+      "channel": "baseline",
+      "language": "it",
+      "n_rows": 50,
+      "raw_sha256": "8ab5223ba3d8592973d5a62a959523f3d0099cc8c65e644248aa875b95ada0fb",
+      "gt_ids": [],
+      "discriminating": false,
+      "input": {
+        "n_gt": 0,
+        "n_present": 0,
+        "coverage": null,
+        "hits": 0,
+        "recall": null,
+        "retention": null,
+        "ranks": {}
+      },
+      "product": {
+        "n_gt": 0,
+        "n_present": 0,
+        "coverage": null,
+        "hits": 0,
+        "recall": null,
+        "retention": null,
+        "ranks": {}
+      },
+      "input_k10": {
+        "n_gt": 0,
+        "n_present": 0,
+        "coverage": null,
+        "hits": 0,
+        "recall": null,
+        "retention": null,
+        "ranks": {}
+      },
+      "product_k10": {
+        "n_gt": 0,
+        "n_present": 0,
+        "coverage": null,
+        "hits": 0,
+        "recall": null,
+        "retention": null,
+        "ranks": {}
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": null,
+        "retention": null
+      },
+      "liveness_oracle": {
+        "hits": 0,
+        "recall": null,
+        "retention": null,
+        "coverage": null
+      },
+      "rerank_seconds": 0.004968,
+      "query_variants": [
+        "In quali condizioni il locatore può risolvere un contratto di locazione per ritardo nel pagamento dell'affitto secondo il diritto svizzero, e quali eccezioni o limiti giurisprudenziali esistono?"
+      ],
+      "n_product_returned": 50
+    },
+    {
+      "query_key": "counter:rent-default:fr",
+      "slug": "rent-default",
+      "channel": "counter",
+      "language": "fr",
+      "n_rows": 30,
+      "raw_sha256": "554e40229fe26f75fc0cfd88702653048e8fff37f78b887474687e45df602e22",
+      "gt_ids": [
+        "bge_BGE_117_II_415",
+        "bger_4A_332_2025",
+        "bs_appellationsgericht_AG.2014.783",
+        "gr_gerichte_PKG_2010_20",
+        "gr_gerichte_PZ_2006_125",
+        "lu_gerichte_11_05_126",
+        "so_gerichte_ZKREK.2004.338",
+        "zh_mietgericht_MB170006-L",
+        "zh_obergericht_NL100149"
+      ],
+      "discriminating": true,
+      "input": {
+        "n_gt": 9,
+        "n_present": 1,
+        "coverage": 0.1111111111111111,
+        "hits": 1,
+        "recall": 0.1111111111111111,
+        "retention": 1.0,
+        "ranks": {
+          "bge_BGE_117_II_415": 17,
+          "bger_4A_332_2025": null,
+          "bs_appellationsgericht_AG.2014.783": null,
+          "gr_gerichte_PKG_2010_20": null,
+          "gr_gerichte_PZ_2006_125": null,
+          "lu_gerichte_11_05_126": null,
+          "so_gerichte_ZKREK.2004.338": null,
+          "zh_mietgericht_MB170006-L": null,
+          "zh_obergericht_NL100149": null
+        }
+      },
+      "product": {
+        "n_gt": 9,
+        "n_present": 1,
+        "coverage": 0.1111111111111111,
+        "hits": 1,
+        "recall": 0.1111111111111111,
+        "retention": 1.0,
+        "ranks": {
+          "bge_BGE_117_II_415": 19,
+          "bger_4A_332_2025": null,
+          "bs_appellationsgericht_AG.2014.783": null,
+          "gr_gerichte_PKG_2010_20": null,
+          "gr_gerichte_PZ_2006_125": null,
+          "lu_gerichte_11_05_126": null,
+          "so_gerichte_ZKREK.2004.338": null,
+          "zh_mietgericht_MB170006-L": null,
+          "zh_obergericht_NL100149": null
+        }
+      },
+      "input_k10": {
+        "n_gt": 9,
+        "n_present": 1,
+        "coverage": 0.1111111111111111,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": 0.0,
+        "ranks": {
+          "bge_BGE_117_II_415": 17,
+          "bger_4A_332_2025": null,
+          "bs_appellationsgericht_AG.2014.783": null,
+          "gr_gerichte_PKG_2010_20": null,
+          "gr_gerichte_PZ_2006_125": null,
+          "lu_gerichte_11_05_126": null,
+          "so_gerichte_ZKREK.2004.338": null,
+          "zh_mietgericht_MB170006-L": null,
+          "zh_obergericht_NL100149": null
+        }
+      },
+      "product_k10": {
+        "n_gt": 9,
+        "n_present": 1,
+        "coverage": 0.1111111111111111,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": 0.0,
+        "ranks": {
+          "bge_BGE_117_II_415": 19,
+          "bger_4A_332_2025": null,
+          "bs_appellationsgericht_AG.2014.783": null,
+          "gr_gerichte_PKG_2010_20": null,
+          "gr_gerichte_PZ_2006_125": null,
+          "lu_gerichte_11_05_126": null,
+          "so_gerichte_ZKREK.2004.338": null,
+          "zh_mietgericht_MB170006-L": null,
+          "zh_obergericht_NL100149": null
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": 0.0
+      },
+      "liveness_oracle": {
+        "hits": 1,
+        "recall": 0.1111111111111111,
+        "retention": 1.0,
+        "coverage": 0.1111111111111111
+      },
+      "rerank_seconds": 0.004061,
+      "query_variants": [
+        "Art. 257d al. 2 CO résiliation abusive exception limite reprise du loyer impayé",
+        "Art. 257d al. 2 CO résiliation abusive exception limite reprise du loyer impayé miete mietrecht bail locazione mietvertrag"
+      ],
+      "n_product_returned": 30,
+      "lost_by_product_k20": [
+        "bger_4A_332_2025",
+        "bs_appellationsgericht_AG.2014.783",
+        "gr_gerichte_PKG_2010_20",
+        "gr_gerichte_PZ_2006_125",
+        "lu_gerichte_11_05_126",
+        "so_gerichte_ZKREK.2004.338",
+        "zh_mietgericht_MB170006-L",
+        "zh_obergericht_NL100149"
+      ],
+      "kept_by_input_k20": [
+        "bge_BGE_117_II_415"
+      ],
+      "loss_vs_input": []
+    },
+    {
+      "query_key": "counter:rent-default:de",
+      "slug": "rent-default",
+      "channel": "counter",
+      "language": "de",
+      "n_rows": 30,
+      "raw_sha256": "725ecdd450fe341d283fb5aa9078c4e39991e97f817011c9ba4d53e3418a1832",
+      "gt_ids": [
+        "bge_BGE_117_II_415",
+        "bger_4A_332_2025",
+        "bs_appellationsgericht_AG.2014.783",
+        "gr_gerichte_PKG_2010_20",
+        "gr_gerichte_PZ_2006_125",
+        "lu_gerichte_11_05_126",
+        "so_gerichte_ZKREK.2004.338",
+        "zh_mietgericht_MB170006-L",
+        "zh_obergericht_NL100149"
+      ],
+      "discriminating": true,
+      "input": {
+        "n_gt": 9,
+        "n_present": 1,
+        "coverage": 0.1111111111111111,
+        "hits": 1,
+        "recall": 0.1111111111111111,
+        "retention": 1.0,
+        "ranks": {
+          "bge_BGE_117_II_415": null,
+          "bger_4A_332_2025": null,
+          "bs_appellationsgericht_AG.2014.783": null,
+          "gr_gerichte_PKG_2010_20": null,
+          "gr_gerichte_PZ_2006_125": null,
+          "lu_gerichte_11_05_126": null,
+          "so_gerichte_ZKREK.2004.338": null,
+          "zh_mietgericht_MB170006-L": 4,
+          "zh_obergericht_NL100149": null
+        }
+      },
+      "product": {
+        "n_gt": 9,
+        "n_present": 1,
+        "coverage": 0.1111111111111111,
+        "hits": 1,
+        "recall": 0.1111111111111111,
+        "retention": 1.0,
+        "ranks": {
+          "bge_BGE_117_II_415": null,
+          "bger_4A_332_2025": null,
+          "bs_appellationsgericht_AG.2014.783": null,
+          "gr_gerichte_PKG_2010_20": null,
+          "gr_gerichte_PZ_2006_125": null,
+          "lu_gerichte_11_05_126": null,
+          "so_gerichte_ZKREK.2004.338": null,
+          "zh_mietgericht_MB170006-L": 17,
+          "zh_obergericht_NL100149": null
+        }
+      },
+      "input_k10": {
+        "n_gt": 9,
+        "n_present": 1,
+        "coverage": 0.1111111111111111,
+        "hits": 1,
+        "recall": 0.1111111111111111,
+        "retention": 1.0,
+        "ranks": {
+          "bge_BGE_117_II_415": null,
+          "bger_4A_332_2025": null,
+          "bs_appellationsgericht_AG.2014.783": null,
+          "gr_gerichte_PKG_2010_20": null,
+          "gr_gerichte_PZ_2006_125": null,
+          "lu_gerichte_11_05_126": null,
+          "so_gerichte_ZKREK.2004.338": null,
+          "zh_mietgericht_MB170006-L": 4,
+          "zh_obergericht_NL100149": null
+        }
+      },
+      "product_k10": {
+        "n_gt": 9,
+        "n_present": 1,
+        "coverage": 0.1111111111111111,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": 0.0,
+        "ranks": {
+          "bge_BGE_117_II_415": null,
+          "bger_4A_332_2025": null,
+          "bs_appellationsgericht_AG.2014.783": null,
+          "gr_gerichte_PKG_2010_20": null,
+          "gr_gerichte_PZ_2006_125": null,
+          "lu_gerichte_11_05_126": null,
+          "so_gerichte_ZKREK.2004.338": null,
+          "zh_mietgericht_MB170006-L": 17,
+          "zh_obergericht_NL100149": null
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": 0.0
+      },
+      "liveness_oracle": {
+        "hits": 1,
+        "recall": 0.1111111111111111,
+        "retention": 1.0,
+        "coverage": 0.1111111111111111
+      },
+      "rerank_seconds": 0.003575,
+      "query_variants": [
+        "Art. 257d OR Kündigung Rechtsmissbrauch Ausnahme Grenze Mietzinsrückstand",
+        "Art. 257d OR Kündigung Rechtsmissbrauch Ausnahme Grenze Mietzinsrückstand arbeit licenciement dismissal congé disdetta"
+      ],
+      "n_product_returned": 30,
+      "lost_by_product_k20": [
+        "bge_BGE_117_II_415",
+        "bger_4A_332_2025",
+        "bs_appellationsgericht_AG.2014.783",
+        "gr_gerichte_PKG_2010_20",
+        "gr_gerichte_PZ_2006_125",
+        "lu_gerichte_11_05_126",
+        "so_gerichte_ZKREK.2004.338",
+        "zh_obergericht_NL100149"
+      ],
+      "kept_by_input_k20": [
+        "zh_mietgericht_MB170006-L"
+      ],
+      "loss_vs_input": []
+    },
+    {
+      "query_key": "counter:rent-default:it",
+      "slug": "rent-default",
+      "channel": "counter",
+      "language": "it",
+      "n_rows": 30,
+      "raw_sha256": "fca85e8e3c600dd30961a30fe59045f01d9182200e2b8f04fe62ed9d22309c37",
+      "gt_ids": [
+        "bge_BGE_117_II_415",
+        "bger_4A_332_2025",
+        "bs_appellationsgericht_AG.2014.783",
+        "gr_gerichte_PKG_2010_20",
+        "gr_gerichte_PZ_2006_125",
+        "lu_gerichte_11_05_126",
+        "so_gerichte_ZKREK.2004.338",
+        "zh_mietgericht_MB170006-L",
+        "zh_obergericht_NL100149"
+      ],
+      "discriminating": false,
+      "input": {
+        "n_gt": 9,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_117_II_415": null,
+          "bger_4A_332_2025": null,
+          "bs_appellationsgericht_AG.2014.783": null,
+          "gr_gerichte_PKG_2010_20": null,
+          "gr_gerichte_PZ_2006_125": null,
+          "lu_gerichte_11_05_126": null,
+          "so_gerichte_ZKREK.2004.338": null,
+          "zh_mietgericht_MB170006-L": null,
+          "zh_obergericht_NL100149": null
+        }
+      },
+      "product": {
+        "n_gt": 9,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_117_II_415": null,
+          "bger_4A_332_2025": null,
+          "bs_appellationsgericht_AG.2014.783": null,
+          "gr_gerichte_PKG_2010_20": null,
+          "gr_gerichte_PZ_2006_125": null,
+          "lu_gerichte_11_05_126": null,
+          "so_gerichte_ZKREK.2004.338": null,
+          "zh_mietgericht_MB170006-L": null,
+          "zh_obergericht_NL100149": null
+        }
+      },
+      "input_k10": {
+        "n_gt": 9,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_117_II_415": null,
+          "bger_4A_332_2025": null,
+          "bs_appellationsgericht_AG.2014.783": null,
+          "gr_gerichte_PKG_2010_20": null,
+          "gr_gerichte_PZ_2006_125": null,
+          "lu_gerichte_11_05_126": null,
+          "so_gerichte_ZKREK.2004.338": null,
+          "zh_mietgericht_MB170006-L": null,
+          "zh_obergericht_NL100149": null
+        }
+      },
+      "product_k10": {
+        "n_gt": 9,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_117_II_415": null,
+          "bger_4A_332_2025": null,
+          "bs_appellationsgericht_AG.2014.783": null,
+          "gr_gerichte_PKG_2010_20": null,
+          "gr_gerichte_PZ_2006_125": null,
+          "lu_gerichte_11_05_126": null,
+          "so_gerichte_ZKREK.2004.338": null,
+          "zh_mietgericht_MB170006-L": null,
+          "zh_obergericht_NL100149": null
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null
+      },
+      "liveness_oracle": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "coverage": 0.0
+      },
+      "rerank_seconds": 0.003522,
+      "query_variants": [
+        "art. 257d CO risoluzione abuso eccezione limite ritardo affitto arretrato"
+      ],
+      "n_product_returned": 30
+    },
+    {
+      "query_key": "baseline:corporate-criminal-liability:fr",
+      "slug": "corporate-criminal-liability",
+      "channel": "baseline",
+      "language": "fr",
+      "n_rows": 50,
+      "raw_sha256": "0410b87dd40c1af60e8daae133472b06a4df2bf3bd330acbc904adbd63d00cbd",
+      "gt_ids": [
+        "bge_BGE_142_IV_333",
+        "bger_6B_124_2016"
+      ],
+      "discriminating": false,
+      "input": {
+        "n_gt": 2,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_142_IV_333": null,
+          "bger_6B_124_2016": null
+        }
+      },
+      "product": {
+        "n_gt": 2,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_142_IV_333": null,
+          "bger_6B_124_2016": null
+        }
+      },
+      "input_k10": {
+        "n_gt": 2,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_142_IV_333": null,
+          "bger_6B_124_2016": null
+        }
+      },
+      "product_k10": {
+        "n_gt": 2,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_142_IV_333": null,
+          "bger_6B_124_2016": null
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null
+      },
+      "liveness_oracle": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "coverage": 0.0
+      },
+      "rerank_seconds": 0.005206,
+      "query_variants": [
+        "La responsabilité pénale de l'entreprise selon l'art. 102 CP est-elle subsidiaire ou primaire, et pour quelles infractions ? Quelles exigences d'organisation doivent être prouvées ?"
+      ],
+      "n_product_returned": 50
+    },
+    {
+      "query_key": "baseline:corporate-criminal-liability:de",
+      "slug": "corporate-criminal-liability",
+      "channel": "baseline",
+      "language": "de",
+      "n_rows": 50,
+      "raw_sha256": "01b28b7df621d0a1e01fa125a9459714ed2290717d5717255c5f126903a36342",
+      "gt_ids": [
+        "bge_BGE_142_IV_333",
+        "bger_6B_124_2016"
+      ],
+      "discriminating": true,
+      "input": {
+        "n_gt": 2,
+        "n_present": 2,
+        "coverage": 1.0,
+        "hits": 2,
+        "recall": 1.0,
+        "retention": 1.0,
+        "ranks": {
+          "bge_BGE_142_IV_333": 17,
+          "bger_6B_124_2016": 19
+        }
+      },
+      "product": {
+        "n_gt": 2,
+        "n_present": 2,
+        "coverage": 1.0,
+        "hits": 2,
+        "recall": 1.0,
+        "retention": 1.0,
+        "ranks": {
+          "bge_BGE_142_IV_333": 1,
+          "bger_6B_124_2016": 0
+        }
+      },
+      "input_k10": {
+        "n_gt": 2,
+        "n_present": 2,
+        "coverage": 1.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": 0.0,
+        "ranks": {
+          "bge_BGE_142_IV_333": 17,
+          "bger_6B_124_2016": 19
+        }
+      },
+      "product_k10": {
+        "n_gt": 2,
+        "n_present": 2,
+        "coverage": 1.0,
+        "hits": 2,
+        "recall": 1.0,
+        "retention": 1.0,
+        "ranks": {
+          "bge_BGE_142_IV_333": 1,
+          "bger_6B_124_2016": 0
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": 0.0
+      },
+      "liveness_oracle": {
+        "hits": 2,
+        "recall": 1.0,
+        "retention": 1.0,
+        "coverage": 1.0
+      },
+      "rerank_seconds": 0.00478,
+      "query_variants": [
+        "Ist die Verantwortlichkeit des Unternehmens nach Art. 102 StGB subsidiär oder primär, und für welche Straftaten? Welche Organisationspflichten müssen nachgewiesen werden?"
+      ],
+      "n_product_returned": 50,
+      "lost_by_product_k20": [],
+      "kept_by_input_k20": [
+        "bge_BGE_142_IV_333",
+        "bger_6B_124_2016"
+      ],
+      "loss_vs_input": []
+    },
+    {
+      "query_key": "baseline:corporate-criminal-liability:it",
+      "slug": "corporate-criminal-liability",
+      "channel": "baseline",
+      "language": "it",
+      "n_rows": 50,
+      "raw_sha256": "458a0a355c4e947a5fd36139672fc1b78249d20e6620862b71aea3adb6f64575",
+      "gt_ids": [
+        "bge_BGE_142_IV_333",
+        "bger_6B_124_2016"
+      ],
+      "discriminating": false,
+      "input": {
+        "n_gt": 2,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_142_IV_333": null,
+          "bger_6B_124_2016": null
+        }
+      },
+      "product": {
+        "n_gt": 2,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_142_IV_333": null,
+          "bger_6B_124_2016": null
+        }
+      },
+      "input_k10": {
+        "n_gt": 2,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_142_IV_333": null,
+          "bger_6B_124_2016": null
+        }
+      },
+      "product_k10": {
+        "n_gt": 2,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_142_IV_333": null,
+          "bger_6B_124_2016": null
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null
+      },
+      "liveness_oracle": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "coverage": 0.0
+      },
+      "rerank_seconds": 0.005235,
+      "query_variants": [
+        "La responsabilità penale dell'impresa ex art. 102 CP è sussidiaria o primaria, e per quali reati? Quali esigenze organizzative devono essere provate?"
+      ],
+      "n_product_returned": 50
+    },
+    {
+      "query_key": "counter:corporate-criminal-liability:fr",
+      "slug": "corporate-criminal-liability",
+      "channel": "counter",
+      "language": "fr",
+      "n_rows": 30,
+      "raw_sha256": "d359dbbc2d238ebc4a2b2b0af4585a8623686e8e0d83412e8bf07d06ffc54466",
+      "gt_ids": [
+        "bge_BGE_146_IV_68",
+        "bger_6B_7_2014",
+        "bstger_BG.2016.5",
+        "so_gerichte_BKBES.2026.74",
+        "so_gerichte_STBER.2011.32",
+        "zh_obergericht_UE220221"
+      ],
+      "discriminating": false,
+      "input": {
+        "n_gt": 6,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_146_IV_68": null,
+          "bger_6B_7_2014": null,
+          "bstger_BG.2016.5": null,
+          "so_gerichte_BKBES.2026.74": null,
+          "so_gerichte_STBER.2011.32": null,
+          "zh_obergericht_UE220221": null
+        }
+      },
+      "product": {
+        "n_gt": 6,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_146_IV_68": null,
+          "bger_6B_7_2014": null,
+          "bstger_BG.2016.5": null,
+          "so_gerichte_BKBES.2026.74": null,
+          "so_gerichte_STBER.2011.32": null,
+          "zh_obergericht_UE220221": null
+        }
+      },
+      "input_k10": {
+        "n_gt": 6,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_146_IV_68": null,
+          "bger_6B_7_2014": null,
+          "bstger_BG.2016.5": null,
+          "so_gerichte_BKBES.2026.74": null,
+          "so_gerichte_STBER.2011.32": null,
+          "zh_obergericht_UE220221": null
+        }
+      },
+      "product_k10": {
+        "n_gt": 6,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_146_IV_68": null,
+          "bger_6B_7_2014": null,
+          "bstger_BG.2016.5": null,
+          "so_gerichte_BKBES.2026.74": null,
+          "so_gerichte_STBER.2011.32": null,
+          "zh_obergericht_UE220221": null
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null
+      },
+      "liveness_oracle": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "coverage": 0.0
+      },
+      "rerank_seconds": 0.004085,
+      "query_variants": [
+        "Art. 102 CP responsabilité primaire subsidiaire exception limite jurisprudence organisation"
+      ],
+      "n_product_returned": 30
+    },
+    {
+      "query_key": "counter:corporate-criminal-liability:de",
+      "slug": "corporate-criminal-liability",
+      "channel": "counter",
+      "language": "de",
+      "n_rows": 30,
+      "raw_sha256": "15488af0c0b6c0b112dcf7205db9584208875e134639d10cc9f6c9022ecf6ff4",
+      "gt_ids": [
+        "bge_BGE_146_IV_68",
+        "bger_6B_7_2014",
+        "bstger_BG.2016.5",
+        "so_gerichte_BKBES.2026.74",
+        "so_gerichte_STBER.2011.32",
+        "zh_obergericht_UE220221"
+      ],
+      "discriminating": true,
+      "input": {
+        "n_gt": 6,
+        "n_present": 3,
+        "coverage": 0.5,
+        "hits": 3,
+        "recall": 0.5,
+        "retention": 1.0,
+        "ranks": {
+          "bge_BGE_146_IV_68": 12,
+          "bger_6B_7_2014": null,
+          "bstger_BG.2016.5": null,
+          "so_gerichte_BKBES.2026.74": 7,
+          "so_gerichte_STBER.2011.32": 0,
+          "zh_obergericht_UE220221": null
+        }
+      },
+      "product": {
+        "n_gt": 6,
+        "n_present": 3,
+        "coverage": 0.5,
+        "hits": 3,
+        "recall": 0.5,
+        "retention": 1.0,
+        "ranks": {
+          "bge_BGE_146_IV_68": 13,
+          "bger_6B_7_2014": null,
+          "bstger_BG.2016.5": null,
+          "so_gerichte_BKBES.2026.74": 6,
+          "so_gerichte_STBER.2011.32": 19,
+          "zh_obergericht_UE220221": null
+        }
+      },
+      "input_k10": {
+        "n_gt": 6,
+        "n_present": 3,
+        "coverage": 0.5,
+        "hits": 2,
+        "recall": 0.3333333333333333,
+        "retention": 0.6666666666666666,
+        "ranks": {
+          "bge_BGE_146_IV_68": 12,
+          "bger_6B_7_2014": null,
+          "bstger_BG.2016.5": null,
+          "so_gerichte_BKBES.2026.74": 7,
+          "so_gerichte_STBER.2011.32": 0,
+          "zh_obergericht_UE220221": null
+        }
+      },
+      "product_k10": {
+        "n_gt": 6,
+        "n_present": 3,
+        "coverage": 0.5,
+        "hits": 1,
+        "recall": 0.16666666666666666,
+        "retention": 0.3333333333333333,
+        "ranks": {
+          "bge_BGE_146_IV_68": 13,
+          "bger_6B_7_2014": null,
+          "bstger_BG.2016.5": null,
+          "so_gerichte_BKBES.2026.74": 6,
+          "so_gerichte_STBER.2011.32": 19,
+          "zh_obergericht_UE220221": null
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": 0.0
+      },
+      "liveness_oracle": {
+        "hits": 3,
+        "recall": 0.5,
+        "retention": 1.0,
+        "coverage": 0.5
+      },
+      "rerank_seconds": 0.00347,
+      "query_variants": [
+        "Art. 102 StGB primäre subsidiäre Verantwortlichkeit Ausnahme Grenze Rechtsprechung Organisationsmangel"
+      ],
+      "n_product_returned": 30,
+      "lost_by_product_k20": [
+        "bger_6B_7_2014",
+        "bstger_BG.2016.5",
+        "zh_obergericht_UE220221"
+      ],
+      "kept_by_input_k20": [
+        "bge_BGE_146_IV_68",
+        "so_gerichte_BKBES.2026.74",
+        "so_gerichte_STBER.2011.32"
+      ],
+      "loss_vs_input": []
+    },
+    {
+      "query_key": "counter:corporate-criminal-liability:it",
+      "slug": "corporate-criminal-liability",
+      "channel": "counter",
+      "language": "it",
+      "n_rows": 30,
+      "raw_sha256": "8002521d078ccbd8c094bceac2de24ebbcfd0eb72ce124c1dfaf66d1caf6bf14",
+      "gt_ids": [
+        "bge_BGE_146_IV_68",
+        "bger_6B_7_2014",
+        "bstger_BG.2016.5",
+        "so_gerichte_BKBES.2026.74",
+        "so_gerichte_STBER.2011.32",
+        "zh_obergericht_UE220221"
+      ],
+      "discriminating": false,
+      "input": {
+        "n_gt": 6,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_146_IV_68": null,
+          "bger_6B_7_2014": null,
+          "bstger_BG.2016.5": null,
+          "so_gerichte_BKBES.2026.74": null,
+          "so_gerichte_STBER.2011.32": null,
+          "zh_obergericht_UE220221": null
+        }
+      },
+      "product": {
+        "n_gt": 6,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_146_IV_68": null,
+          "bger_6B_7_2014": null,
+          "bstger_BG.2016.5": null,
+          "so_gerichte_BKBES.2026.74": null,
+          "so_gerichte_STBER.2011.32": null,
+          "zh_obergericht_UE220221": null
+        }
+      },
+      "input_k10": {
+        "n_gt": 6,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_146_IV_68": null,
+          "bger_6B_7_2014": null,
+          "bstger_BG.2016.5": null,
+          "so_gerichte_BKBES.2026.74": null,
+          "so_gerichte_STBER.2011.32": null,
+          "zh_obergericht_UE220221": null
+        }
+      },
+      "product_k10": {
+        "n_gt": 6,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_146_IV_68": null,
+          "bger_6B_7_2014": null,
+          "bstger_BG.2016.5": null,
+          "so_gerichte_BKBES.2026.74": null,
+          "so_gerichte_STBER.2011.32": null,
+          "zh_obergericht_UE220221": null
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null
+      },
+      "liveness_oracle": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "coverage": 0.0
+      },
+      "rerank_seconds": 0.00406,
+      "query_variants": [
+        "art. 102 CP responsabilità primaria sussidiaria eccezione limite giurisprudenza organizzazione"
+      ],
+      "n_product_returned": 30
+    },
+    {
+      "query_key": "baseline:business-judgment-rule:fr",
+      "slug": "business-judgment-rule",
+      "channel": "baseline",
+      "language": "fr",
+      "n_rows": 50,
+      "raw_sha256": "88de08f508ad774aa5916b73301e22a0cb3dc90b42dfe726e0f6894e10e7019a",
+      "gt_ids": [
+        "bger_4A_219_2015",
+        "bger_4A_259_2016",
+        "bger_4A_603_2014",
+        "bger_4A_626_2013",
+        "bger_4A_62_2024"
+      ],
+      "discriminating": false,
+      "input": {
+        "n_gt": 5,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bger_4A_219_2015": null,
+          "bger_4A_259_2016": null,
+          "bger_4A_603_2014": null,
+          "bger_4A_626_2013": null,
+          "bger_4A_62_2024": null
+        }
+      },
+      "product": {
+        "n_gt": 5,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bger_4A_219_2015": null,
+          "bger_4A_259_2016": null,
+          "bger_4A_603_2014": null,
+          "bger_4A_626_2013": null,
+          "bger_4A_62_2024": null
+        }
+      },
+      "input_k10": {
+        "n_gt": 5,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bger_4A_219_2015": null,
+          "bger_4A_259_2016": null,
+          "bger_4A_603_2014": null,
+          "bger_4A_626_2013": null,
+          "bger_4A_62_2024": null
+        }
+      },
+      "product_k10": {
+        "n_gt": 5,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bger_4A_219_2015": null,
+          "bger_4A_259_2016": null,
+          "bger_4A_603_2014": null,
+          "bger_4A_626_2013": null,
+          "bger_4A_62_2024": null
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null
+      },
+      "liveness_oracle": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "coverage": 0.0
+      },
+      "rerank_seconds": 0.005561,
+      "query_variants": [
+        "Dans quelles conditions le juge suisse s'abstient-il de revoir une décision commerciale d'un conseil d'administration au titre de la business judgment rule, et quelles exceptions ou limites ressortent de la jurisprudence ?"
+      ],
+      "n_product_returned": 50
+    },
+    {
+      "query_key": "baseline:business-judgment-rule:de",
+      "slug": "business-judgment-rule",
+      "channel": "baseline",
+      "language": "de",
+      "n_rows": 50,
+      "raw_sha256": "c6773821fd83dae8627fb119d34bebc4f23d9f45ad382cb9e875802985e593fb",
+      "gt_ids": [
+        "bger_4A_219_2015",
+        "bger_4A_259_2016",
+        "bger_4A_603_2014",
+        "bger_4A_626_2013",
+        "bger_4A_62_2024"
+      ],
+      "discriminating": true,
+      "input": {
+        "n_gt": 5,
+        "n_present": 2,
+        "coverage": 0.4,
+        "hits": 2,
+        "recall": 0.4,
+        "retention": 1.0,
+        "ranks": {
+          "bger_4A_219_2015": 10,
+          "bger_4A_259_2016": null,
+          "bger_4A_603_2014": 8,
+          "bger_4A_626_2013": null,
+          "bger_4A_62_2024": null
+        }
+      },
+      "product": {
+        "n_gt": 5,
+        "n_present": 2,
+        "coverage": 0.4,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": 0.0,
+        "ranks": {
+          "bger_4A_219_2015": 49,
+          "bger_4A_259_2016": null,
+          "bger_4A_603_2014": 48,
+          "bger_4A_626_2013": null,
+          "bger_4A_62_2024": null
+        }
+      },
+      "input_k10": {
+        "n_gt": 5,
+        "n_present": 2,
+        "coverage": 0.4,
+        "hits": 1,
+        "recall": 0.2,
+        "retention": 0.5,
+        "ranks": {
+          "bger_4A_219_2015": 10,
+          "bger_4A_259_2016": null,
+          "bger_4A_603_2014": 8,
+          "bger_4A_626_2013": null,
+          "bger_4A_62_2024": null
+        }
+      },
+      "product_k10": {
+        "n_gt": 5,
+        "n_present": 2,
+        "coverage": 0.4,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": 0.0,
+        "ranks": {
+          "bger_4A_219_2015": 49,
+          "bger_4A_259_2016": null,
+          "bger_4A_603_2014": 48,
+          "bger_4A_626_2013": null,
+          "bger_4A_62_2024": null
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": 0.0
+      },
+      "liveness_oracle": {
+        "hits": 2,
+        "recall": 0.4,
+        "retention": 1.0,
+        "coverage": 0.4
+      },
+      "rerank_seconds": 0.004907,
+      "query_variants": [
+        "Unter welchen Bedingungen enthält sich der Schweizer Richter der Überprüfung eines Geschäftsentscheids des Verwaltungsrats aufgrund der Business Judgment Rule, und welche Ausnahmen oder Grenzen ergeben sich aus der Rechtsprechung?"
+      ],
+      "n_product_returned": 50,
+      "lost_by_product_k20": [
+        "bger_4A_219_2015",
+        "bger_4A_259_2016",
+        "bger_4A_603_2014",
+        "bger_4A_626_2013",
+        "bger_4A_62_2024"
+      ],
+      "kept_by_input_k20": [
+        "bger_4A_219_2015",
+        "bger_4A_603_2014"
+      ],
+      "loss_vs_input": [
+        "bger_4A_219_2015",
+        "bger_4A_603_2014"
+      ]
+    },
+    {
+      "query_key": "baseline:business-judgment-rule:it",
+      "slug": "business-judgment-rule",
+      "channel": "baseline",
+      "language": "it",
+      "n_rows": 50,
+      "raw_sha256": "656431f9be38f19a0152506dc978431334daf7d4bca1d068fc1bdd9bbed4d543",
+      "gt_ids": [
+        "bger_4A_219_2015",
+        "bger_4A_259_2016",
+        "bger_4A_603_2014",
+        "bger_4A_626_2013",
+        "bger_4A_62_2024"
+      ],
+      "discriminating": false,
+      "input": {
+        "n_gt": 5,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bger_4A_219_2015": null,
+          "bger_4A_259_2016": null,
+          "bger_4A_603_2014": null,
+          "bger_4A_626_2013": null,
+          "bger_4A_62_2024": null
+        }
+      },
+      "product": {
+        "n_gt": 5,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bger_4A_219_2015": null,
+          "bger_4A_259_2016": null,
+          "bger_4A_603_2014": null,
+          "bger_4A_626_2013": null,
+          "bger_4A_62_2024": null
+        }
+      },
+      "input_k10": {
+        "n_gt": 5,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bger_4A_219_2015": null,
+          "bger_4A_259_2016": null,
+          "bger_4A_603_2014": null,
+          "bger_4A_626_2013": null,
+          "bger_4A_62_2024": null
+        }
+      },
+      "product_k10": {
+        "n_gt": 5,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bger_4A_219_2015": null,
+          "bger_4A_259_2016": null,
+          "bger_4A_603_2014": null,
+          "bger_4A_626_2013": null,
+          "bger_4A_62_2024": null
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null
+      },
+      "liveness_oracle": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "coverage": 0.0
+      },
+      "rerank_seconds": 0.005382,
+      "query_variants": [
+        "In quali condizioni il giudice svizzero si astiene dal riesaminare una decisione commerciale del consiglio di amministrazione in applicazione della business judgment rule, e quali eccezioni o limiti discendono dalla giurisprudenza?"
+      ],
+      "n_product_returned": 50
+    },
+    {
+      "query_key": "counter:business-judgment-rule:fr",
+      "slug": "business-judgment-rule",
+      "channel": "counter",
+      "language": "fr",
+      "n_rows": 30,
+      "raw_sha256": "7c39dcb7e273fa0e359931da9a07ecec294c952deb5db8295001cb46823dc3f4",
+      "gt_ids": [
+        "bge_BGE_139_III_24",
+        "bger_4A_130_2023",
+        "bger_4A_642_2016",
+        "zh_handelsgericht_HG120149"
+      ],
+      "discriminating": false,
+      "input": {
+        "n_gt": 4,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_139_III_24": null,
+          "bger_4A_130_2023": null,
+          "bger_4A_642_2016": null,
+          "zh_handelsgericht_HG120149": null
+        }
+      },
+      "product": {
+        "n_gt": 4,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_139_III_24": null,
+          "bger_4A_130_2023": null,
+          "bger_4A_642_2016": null,
+          "zh_handelsgericht_HG120149": null
+        }
+      },
+      "input_k10": {
+        "n_gt": 4,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_139_III_24": null,
+          "bger_4A_130_2023": null,
+          "bger_4A_642_2016": null,
+          "zh_handelsgericht_HG120149": null
+        }
+      },
+      "product_k10": {
+        "n_gt": 4,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_139_III_24": null,
+          "bger_4A_130_2023": null,
+          "bger_4A_642_2016": null,
+          "zh_handelsgericht_HG120149": null
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null
+      },
+      "liveness_oracle": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "coverage": 0.0
+      },
+      "rerank_seconds": 0.004246,
+      "query_variants": [
+        "business judgment rule exception limite responsabilité conseil d'administration information conflit d'intérêts"
+      ],
+      "n_product_returned": 30
+    },
+    {
+      "query_key": "counter:business-judgment-rule:de",
+      "slug": "business-judgment-rule",
+      "channel": "counter",
+      "language": "de",
+      "n_rows": 30,
+      "raw_sha256": "7bc4b41b3dd903c95f984568f546a3dbbe7056d2bec7e1fe6550d28940bbfa47",
+      "gt_ids": [
+        "bge_BGE_139_III_24",
+        "bger_4A_130_2023",
+        "bger_4A_642_2016",
+        "zh_handelsgericht_HG120149"
+      ],
+      "discriminating": true,
+      "input": {
+        "n_gt": 4,
+        "n_present": 1,
+        "coverage": 0.25,
+        "hits": 1,
+        "recall": 0.25,
+        "retention": 1.0,
+        "ranks": {
+          "bge_BGE_139_III_24": null,
+          "bger_4A_130_2023": null,
+          "bger_4A_642_2016": null,
+          "zh_handelsgericht_HG120149": 0
+        }
+      },
+      "product": {
+        "n_gt": 4,
+        "n_present": 1,
+        "coverage": 0.25,
+        "hits": 1,
+        "recall": 0.25,
+        "retention": 1.0,
+        "ranks": {
+          "bge_BGE_139_III_24": null,
+          "bger_4A_130_2023": null,
+          "bger_4A_642_2016": null,
+          "zh_handelsgericht_HG120149": 0
+        }
+      },
+      "input_k10": {
+        "n_gt": 4,
+        "n_present": 1,
+        "coverage": 0.25,
+        "hits": 1,
+        "recall": 0.25,
+        "retention": 1.0,
+        "ranks": {
+          "bge_BGE_139_III_24": null,
+          "bger_4A_130_2023": null,
+          "bger_4A_642_2016": null,
+          "zh_handelsgericht_HG120149": 0
+        }
+      },
+      "product_k10": {
+        "n_gt": 4,
+        "n_present": 1,
+        "coverage": 0.25,
+        "hits": 1,
+        "recall": 0.25,
+        "retention": 1.0,
+        "ranks": {
+          "bge_BGE_139_III_24": null,
+          "bger_4A_130_2023": null,
+          "bger_4A_642_2016": null,
+          "zh_handelsgericht_HG120149": 0
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": 0.0
+      },
+      "liveness_oracle": {
+        "hits": 1,
+        "recall": 0.25,
+        "retention": 1.0,
+        "coverage": 0.25
+      },
+      "rerank_seconds": 0.003417,
+      "query_variants": [
+        "Business Judgment Rule Ausnahme Grenze Verwaltungsrat Informationspflicht Interessenkonflikt Haftung",
+        "Business Judgment Rule Ausnahme Grenze Verwaltungsrat Informationspflicht Interessenkonflikt Haftung responsabilité responsabilità liability schadenersatz dommages"
+      ],
+      "n_product_returned": 30,
+      "lost_by_product_k20": [
+        "bge_BGE_139_III_24",
+        "bger_4A_130_2023",
+        "bger_4A_642_2016"
+      ],
+      "kept_by_input_k20": [
+        "zh_handelsgericht_HG120149"
+      ],
+      "loss_vs_input": []
+    },
+    {
+      "query_key": "counter:business-judgment-rule:it",
+      "slug": "business-judgment-rule",
+      "channel": "counter",
+      "language": "it",
+      "n_rows": 30,
+      "raw_sha256": "58fc13fe5f3c4befa4afc438994c09e385b60ed71856ad274c9bddb9ff570039",
+      "gt_ids": [
+        "bge_BGE_139_III_24",
+        "bger_4A_130_2023",
+        "bger_4A_642_2016",
+        "zh_handelsgericht_HG120149"
+      ],
+      "discriminating": false,
+      "input": {
+        "n_gt": 4,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_139_III_24": null,
+          "bger_4A_130_2023": null,
+          "bger_4A_642_2016": null,
+          "zh_handelsgericht_HG120149": null
+        }
+      },
+      "product": {
+        "n_gt": 4,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_139_III_24": null,
+          "bger_4A_130_2023": null,
+          "bger_4A_642_2016": null,
+          "zh_handelsgericht_HG120149": null
+        }
+      },
+      "input_k10": {
+        "n_gt": 4,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_139_III_24": null,
+          "bger_4A_130_2023": null,
+          "bger_4A_642_2016": null,
+          "zh_handelsgericht_HG120149": null
+        }
+      },
+      "product_k10": {
+        "n_gt": 4,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bge_BGE_139_III_24": null,
+          "bger_4A_130_2023": null,
+          "bger_4A_642_2016": null,
+          "zh_handelsgericht_HG120149": null
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null
+      },
+      "liveness_oracle": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "coverage": 0.0
+      },
+      "rerank_seconds": 0.003961,
+      "query_variants": [
+        "business judgment rule eccezione limite consiglio di amministrazione informazioni conflitto di interessi responsabilità"
+      ],
+      "n_product_returned": 30
+    },
+    {
+      "query_key": "baseline:petty-theft-dismissal:fr",
+      "slug": "petty-theft-dismissal",
+      "channel": "baseline",
+      "language": "fr",
+      "n_rows": 50,
+      "raw_sha256": "547bfa2213c8ed1bac9d01fbfdaf011fa8995a16e9e67a2e00b871788fc32500",
+      "gt_ids": [
+        "bger_4A_177_2017",
+        "bger_4A_228_2015"
+      ],
+      "discriminating": false,
+      "input": {
+        "n_gt": 2,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bger_4A_177_2017": null,
+          "bger_4A_228_2015": null
+        }
+      },
+      "product": {
+        "n_gt": 2,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bger_4A_177_2017": null,
+          "bger_4A_228_2015": null
+        }
+      },
+      "input_k10": {
+        "n_gt": 2,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bger_4A_177_2017": null,
+          "bger_4A_228_2015": null
+        }
+      },
+      "product_k10": {
+        "n_gt": 2,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bger_4A_177_2017": null,
+          "bger_4A_228_2015": null
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null
+      },
+      "liveness_oracle": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "coverage": 0.0
+      },
+      "rerank_seconds": 0.005101,
+      "query_variants": [
+        "Un vol de faible valeur commis par un employé justifie-t-il un licenciement immédiat selon l'art. 337 CO ? Quelles circonstances font varier la réponse ?",
+        "Un vol de faible valeur commis par un employé justifie-t-il un licenciement immédiat selon l'art. 337 CO ? Quelles circonstances font varier la réponse ? kündigung arbeit dismissal congé"
+      ],
+      "n_product_returned": 50
+    },
+    {
+      "query_key": "baseline:petty-theft-dismissal:de",
+      "slug": "petty-theft-dismissal",
+      "channel": "baseline",
+      "language": "de",
+      "n_rows": 50,
+      "raw_sha256": "088551fc1dadeae68760d6d14a2ffc29f7bc1a5740f417a448ccd67e7d9d0080",
+      "gt_ids": [
+        "bger_4A_177_2017",
+        "bger_4A_228_2015"
+      ],
+      "discriminating": true,
+      "input": {
+        "n_gt": 2,
+        "n_present": 1,
+        "coverage": 0.5,
+        "hits": 1,
+        "recall": 0.5,
+        "retention": 1.0,
+        "ranks": {
+          "bger_4A_177_2017": 1,
+          "bger_4A_228_2015": null
+        }
+      },
+      "product": {
+        "n_gt": 2,
+        "n_present": 1,
+        "coverage": 0.5,
+        "hits": 1,
+        "recall": 0.5,
+        "retention": 1.0,
+        "ranks": {
+          "bger_4A_177_2017": 7,
+          "bger_4A_228_2015": null
+        }
+      },
+      "input_k10": {
+        "n_gt": 2,
+        "n_present": 1,
+        "coverage": 0.5,
+        "hits": 1,
+        "recall": 0.5,
+        "retention": 1.0,
+        "ranks": {
+          "bger_4A_177_2017": 1,
+          "bger_4A_228_2015": null
+        }
+      },
+      "product_k10": {
+        "n_gt": 2,
+        "n_present": 1,
+        "coverage": 0.5,
+        "hits": 1,
+        "recall": 0.5,
+        "retention": 1.0,
+        "ranks": {
+          "bger_4A_177_2017": 7,
+          "bger_4A_228_2015": null
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": 0.0
+      },
+      "liveness_oracle": {
+        "hits": 1,
+        "recall": 0.5,
+        "retention": 1.0,
+        "coverage": 0.5
+      },
+      "rerank_seconds": 0.005004,
+      "query_variants": [
+        "Rechtfertigt ein geringfügiger Diebstahl durch einen Arbeitnehmer die fristlose Kündigung nach Art. 337 OR? Welche Umstände verändern die Antwort?",
+        "Rechtfertigt ein geringfügiger Diebstahl durch einen Arbeitnehmer die fristlose Kündigung nach Art. 337 OR? Welche Umstände verändern die Antwort? arbeit licenciement dismissal congé disdetta"
+      ],
+      "n_product_returned": 50,
+      "lost_by_product_k20": [
+        "bger_4A_228_2015"
+      ],
+      "kept_by_input_k20": [
+        "bger_4A_177_2017"
+      ],
+      "loss_vs_input": []
+    },
+    {
+      "query_key": "baseline:petty-theft-dismissal:it",
+      "slug": "petty-theft-dismissal",
+      "channel": "baseline",
+      "language": "it",
+      "n_rows": 50,
+      "raw_sha256": "4a5e663816b8a299361931f27a2caff28226d978100d872ae119c8b84320e5dc",
+      "gt_ids": [
+        "bger_4A_177_2017",
+        "bger_4A_228_2015"
+      ],
+      "discriminating": false,
+      "input": {
+        "n_gt": 2,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bger_4A_177_2017": null,
+          "bger_4A_228_2015": null
+        }
+      },
+      "product": {
+        "n_gt": 2,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bger_4A_177_2017": null,
+          "bger_4A_228_2015": null
+        }
+      },
+      "input_k10": {
+        "n_gt": 2,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bger_4A_177_2017": null,
+          "bger_4A_228_2015": null
+        }
+      },
+      "product_k10": {
+        "n_gt": 2,
+        "n_present": 0,
+        "coverage": 0.0,
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "ranks": {
+          "bger_4A_177_2017": null,
+          "bger_4A_228_2015": null
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null
+      },
+      "liveness_oracle": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": null,
+        "coverage": 0.0
+      },
+      "rerank_seconds": 0.00415,
+      "query_variants": [
+        "Un furto di lieve entità commesso da un dipendente giustifica il licenziamento immediato ex art. 337 CO? Quali circostanze modificano la risposta?"
+      ],
+      "n_product_returned": 50
+    },
+    {
+      "query_key": "counter:petty-theft-dismissal:fr",
+      "slug": "petty-theft-dismissal",
+      "channel": "counter",
+      "language": "fr",
+      "n_rows": 30,
+      "raw_sha256": "b12bcee815ec092a5e0335729e062fdc77911b7851e3d66d31555c7f04bb87b8",
+      "gt_ids": [
+        "ar_gerichte_KG_ARGVP_2005_3462",
+        "bge_BGE_121_III_467",
+        "bge_BGE_124_III_25",
+        "bge_BGE_130_III_28",
+        "bge_BGE_138_I_113",
+        "ch_vb_JAAC_68.7__",
+        "ge_gerichte_ATAS_1103_2006",
+        "ge_gerichte_CAPH_107_2004",
+        "so_gerichte_ZZ.1990.7"
+      ],
+      "discriminating": true,
+      "input": {
+        "n_gt": 9,
+        "n_present": 3,
+        "coverage": 0.3333333333333333,
+        "hits": 3,
+        "recall": 0.3333333333333333,
+        "retention": 1.0,
+        "ranks": {
+          "ar_gerichte_KG_ARGVP_2005_3462": null,
+          "bge_BGE_121_III_467": null,
+          "bge_BGE_124_III_25": 6,
+          "bge_BGE_130_III_28": 2,
+          "bge_BGE_138_I_113": null,
+          "ch_vb_JAAC_68.7__": null,
+          "ge_gerichte_ATAS_1103_2006": null,
+          "ge_gerichte_CAPH_107_2004": 16,
+          "so_gerichte_ZZ.1990.7": null
+        }
+      },
+      "product": {
+        "n_gt": 9,
+        "n_present": 3,
+        "coverage": 0.3333333333333333,
+        "hits": 2,
+        "recall": 0.2222222222222222,
+        "retention": 0.6666666666666666,
+        "ranks": {
+          "ar_gerichte_KG_ARGVP_2005_3462": null,
+          "bge_BGE_121_III_467": null,
+          "bge_BGE_124_III_25": 1,
+          "bge_BGE_130_III_28": 4,
+          "bge_BGE_138_I_113": null,
+          "ch_vb_JAAC_68.7__": null,
+          "ge_gerichte_ATAS_1103_2006": null,
+          "ge_gerichte_CAPH_107_2004": 23,
+          "so_gerichte_ZZ.1990.7": null
+        }
+      },
+      "input_k10": {
+        "n_gt": 9,
+        "n_present": 3,
+        "coverage": 0.3333333333333333,
+        "hits": 2,
+        "recall": 0.2222222222222222,
+        "retention": 0.6666666666666666,
+        "ranks": {
+          "ar_gerichte_KG_ARGVP_2005_3462": null,
+          "bge_BGE_121_III_467": null,
+          "bge_BGE_124_III_25": 6,
+          "bge_BGE_130_III_28": 2,
+          "bge_BGE_138_I_113": null,
+          "ch_vb_JAAC_68.7__": null,
+          "ge_gerichte_ATAS_1103_2006": null,
+          "ge_gerichte_CAPH_107_2004": 16,
+          "so_gerichte_ZZ.1990.7": null
+        }
+      },
+      "product_k10": {
+        "n_gt": 9,
+        "n_present": 3,
+        "coverage": 0.3333333333333333,
+        "hits": 2,
+        "recall": 0.2222222222222222,
+        "retention": 0.6666666666666666,
+        "ranks": {
+          "ar_gerichte_KG_ARGVP_2005_3462": null,
+          "bge_BGE_121_III_467": null,
+          "bge_BGE_124_III_25": 1,
+          "bge_BGE_130_III_28": 4,
+          "bge_BGE_138_I_113": null,
+          "ch_vb_JAAC_68.7__": null,
+          "ge_gerichte_ATAS_1103_2006": null,
+          "ge_gerichte_CAPH_107_2004": 23,
+          "so_gerichte_ZZ.1990.7": null
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": 0.0
+      },
+      "liveness_oracle": {
+        "hits": 3,
+        "recall": 0.3333333333333333,
+        "retention": 1.0,
+        "coverage": 0.3333333333333333
+      },
+      "rerank_seconds": 0.004255,
+      "query_variants": [
+        "art. 337 CO licenciement immédiat vol de faible valeur exception proportionnalité limite",
+        "art. 337 CO licenciement immédiat vol de faible valeur exception proportionnalité limite kündigung arbeit dismissal congé"
+      ],
+      "n_product_returned": 30,
+      "lost_by_product_k20": [
+        "ar_gerichte_KG_ARGVP_2005_3462",
+        "bge_BGE_121_III_467",
+        "bge_BGE_138_I_113",
+        "ch_vb_JAAC_68.7__",
+        "ge_gerichte_ATAS_1103_2006",
+        "ge_gerichte_CAPH_107_2004",
+        "so_gerichte_ZZ.1990.7"
+      ],
+      "kept_by_input_k20": [
+        "bge_BGE_124_III_25",
+        "bge_BGE_130_III_28",
+        "ge_gerichte_CAPH_107_2004"
+      ],
+      "loss_vs_input": [
+        "ge_gerichte_CAPH_107_2004"
+      ]
+    },
+    {
+      "query_key": "counter:petty-theft-dismissal:de",
+      "slug": "petty-theft-dismissal",
+      "channel": "counter",
+      "language": "de",
+      "n_rows": 30,
+      "raw_sha256": "28462a506ae0da7d5e9fd9664ac889a623151e43f544fd71915a93d9440df1f8",
+      "gt_ids": [
+        "ar_gerichte_KG_ARGVP_2005_3462",
+        "bge_BGE_121_III_467",
+        "bge_BGE_124_III_25",
+        "bge_BGE_130_III_28",
+        "bge_BGE_138_I_113",
+        "ch_vb_JAAC_68.7__",
+        "ge_gerichte_ATAS_1103_2006",
+        "ge_gerichte_CAPH_107_2004",
+        "so_gerichte_ZZ.1990.7"
+      ],
+      "discriminating": true,
+      "input": {
+        "n_gt": 9,
+        "n_present": 3,
+        "coverage": 0.3333333333333333,
+        "hits": 2,
+        "recall": 0.2222222222222222,
+        "retention": 0.6666666666666666,
+        "ranks": {
+          "ar_gerichte_KG_ARGVP_2005_3462": null,
+          "bge_BGE_121_III_467": 5,
+          "bge_BGE_124_III_25": null,
+          "bge_BGE_130_III_28": null,
+          "bge_BGE_138_I_113": 4,
+          "ch_vb_JAAC_68.7__": null,
+          "ge_gerichte_ATAS_1103_2006": null,
+          "ge_gerichte_CAPH_107_2004": null,
+          "so_gerichte_ZZ.1990.7": 20
+        }
+      },
+      "product": {
+        "n_gt": 9,
+        "n_present": 3,
+        "coverage": 0.3333333333333333,
+        "hits": 3,
+        "recall": 0.3333333333333333,
+        "retention": 1.0,
+        "ranks": {
+          "ar_gerichte_KG_ARGVP_2005_3462": null,
+          "bge_BGE_121_III_467": 7,
+          "bge_BGE_124_III_25": null,
+          "bge_BGE_130_III_28": null,
+          "bge_BGE_138_I_113": 14,
+          "ch_vb_JAAC_68.7__": null,
+          "ge_gerichte_ATAS_1103_2006": null,
+          "ge_gerichte_CAPH_107_2004": null,
+          "so_gerichte_ZZ.1990.7": 2
+        }
+      },
+      "input_k10": {
+        "n_gt": 9,
+        "n_present": 3,
+        "coverage": 0.3333333333333333,
+        "hits": 2,
+        "recall": 0.2222222222222222,
+        "retention": 0.6666666666666666,
+        "ranks": {
+          "ar_gerichte_KG_ARGVP_2005_3462": null,
+          "bge_BGE_121_III_467": 5,
+          "bge_BGE_124_III_25": null,
+          "bge_BGE_130_III_28": null,
+          "bge_BGE_138_I_113": 4,
+          "ch_vb_JAAC_68.7__": null,
+          "ge_gerichte_ATAS_1103_2006": null,
+          "ge_gerichte_CAPH_107_2004": null,
+          "so_gerichte_ZZ.1990.7": 20
+        }
+      },
+      "product_k10": {
+        "n_gt": 9,
+        "n_present": 3,
+        "coverage": 0.3333333333333333,
+        "hits": 2,
+        "recall": 0.2222222222222222,
+        "retention": 0.6666666666666666,
+        "ranks": {
+          "ar_gerichte_KG_ARGVP_2005_3462": null,
+          "bge_BGE_121_III_467": 7,
+          "bge_BGE_124_III_25": null,
+          "bge_BGE_130_III_28": null,
+          "bge_BGE_138_I_113": 14,
+          "ch_vb_JAAC_68.7__": null,
+          "ge_gerichte_ATAS_1103_2006": null,
+          "ge_gerichte_CAPH_107_2004": null,
+          "so_gerichte_ZZ.1990.7": 2
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": 0.0
+      },
+      "liveness_oracle": {
+        "hits": 3,
+        "recall": 0.3333333333333333,
+        "retention": 1.0,
+        "coverage": 0.3333333333333333
+      },
+      "rerank_seconds": 0.003845,
+      "query_variants": [
+        "Art. 337 OR fristlose Kündigung geringfügiger Diebstahl Ausnahme Verhältnismäßigkeit Grenze",
+        "Art. 337 OR fristlose Kündigung geringfügiger Diebstahl Ausnahme Verhältnismäßigkeit Grenze arbeit licenciement dismissal congé disdetta"
+      ],
+      "n_product_returned": 30,
+      "lost_by_product_k20": [
+        "ar_gerichte_KG_ARGVP_2005_3462",
+        "bge_BGE_124_III_25",
+        "bge_BGE_130_III_28",
+        "ch_vb_JAAC_68.7__",
+        "ge_gerichte_ATAS_1103_2006",
+        "ge_gerichte_CAPH_107_2004"
+      ],
+      "kept_by_input_k20": [
+        "bge_BGE_121_III_467",
+        "bge_BGE_138_I_113"
+      ],
+      "loss_vs_input": []
+    },
+    {
+      "query_key": "counter:petty-theft-dismissal:it",
+      "slug": "petty-theft-dismissal",
+      "channel": "counter",
+      "language": "it",
+      "n_rows": 30,
+      "raw_sha256": "58ccdaada628530e8235b6c74734943af73b0ec930ca3c8d828f2f62e6c48131",
+      "gt_ids": [
+        "ar_gerichte_KG_ARGVP_2005_3462",
+        "bge_BGE_121_III_467",
+        "bge_BGE_124_III_25",
+        "bge_BGE_130_III_28",
+        "bge_BGE_138_I_113",
+        "ch_vb_JAAC_68.7__",
+        "ge_gerichte_ATAS_1103_2006",
+        "ge_gerichte_CAPH_107_2004",
+        "so_gerichte_ZZ.1990.7"
+      ],
+      "discriminating": true,
+      "input": {
+        "n_gt": 9,
+        "n_present": 1,
+        "coverage": 0.1111111111111111,
+        "hits": 1,
+        "recall": 0.1111111111111111,
+        "retention": 1.0,
+        "ranks": {
+          "ar_gerichte_KG_ARGVP_2005_3462": null,
+          "bge_BGE_121_III_467": null,
+          "bge_BGE_124_III_25": null,
+          "bge_BGE_130_III_28": 2,
+          "bge_BGE_138_I_113": null,
+          "ch_vb_JAAC_68.7__": null,
+          "ge_gerichte_ATAS_1103_2006": null,
+          "ge_gerichte_CAPH_107_2004": null,
+          "so_gerichte_ZZ.1990.7": null
+        }
+      },
+      "product": {
+        "n_gt": 9,
+        "n_present": 1,
+        "coverage": 0.1111111111111111,
+        "hits": 1,
+        "recall": 0.1111111111111111,
+        "retention": 1.0,
+        "ranks": {
+          "ar_gerichte_KG_ARGVP_2005_3462": null,
+          "bge_BGE_121_III_467": null,
+          "bge_BGE_124_III_25": null,
+          "bge_BGE_130_III_28": 9,
+          "bge_BGE_138_I_113": null,
+          "ch_vb_JAAC_68.7__": null,
+          "ge_gerichte_ATAS_1103_2006": null,
+          "ge_gerichte_CAPH_107_2004": null,
+          "so_gerichte_ZZ.1990.7": null
+        }
+      },
+      "input_k10": {
+        "n_gt": 9,
+        "n_present": 1,
+        "coverage": 0.1111111111111111,
+        "hits": 1,
+        "recall": 0.1111111111111111,
+        "retention": 1.0,
+        "ranks": {
+          "ar_gerichte_KG_ARGVP_2005_3462": null,
+          "bge_BGE_121_III_467": null,
+          "bge_BGE_124_III_25": null,
+          "bge_BGE_130_III_28": 2,
+          "bge_BGE_138_I_113": null,
+          "ch_vb_JAAC_68.7__": null,
+          "ge_gerichte_ATAS_1103_2006": null,
+          "ge_gerichte_CAPH_107_2004": null,
+          "so_gerichte_ZZ.1990.7": null
+        }
+      },
+      "product_k10": {
+        "n_gt": 9,
+        "n_present": 1,
+        "coverage": 0.1111111111111111,
+        "hits": 1,
+        "recall": 0.1111111111111111,
+        "retention": 1.0,
+        "ranks": {
+          "ar_gerichte_KG_ARGVP_2005_3462": null,
+          "bge_BGE_121_III_467": null,
+          "bge_BGE_124_III_25": null,
+          "bge_BGE_130_III_28": 9,
+          "bge_BGE_138_I_113": null,
+          "ch_vb_JAAC_68.7__": null,
+          "ge_gerichte_ATAS_1103_2006": null,
+          "ge_gerichte_CAPH_107_2004": null,
+          "so_gerichte_ZZ.1990.7": null
+        }
+      },
+      "liveness_empty": {
+        "hits": 0,
+        "recall": 0.0,
+        "retention": 0.0
+      },
+      "liveness_oracle": {
+        "hits": 1,
+        "recall": 0.1111111111111111,
+        "retention": 1.0,
+        "coverage": 0.1111111111111111
+      },
+      "rerank_seconds": 0.003693,
+      "query_variants": [
+        "art. 337 CO licenziamento immediato lieve entità eccezione proporzionalità limite"
+      ],
+      "n_product_returned": 30,
+      "lost_by_product_k20": [
+        "ar_gerichte_KG_ARGVP_2005_3462",
+        "bge_BGE_121_III_467",
+        "bge_BGE_124_III_25",
+        "bge_BGE_138_I_113",
+        "ch_vb_JAAC_68.7__",
+        "ge_gerichte_ATAS_1103_2006",
+        "ge_gerichte_CAPH_107_2004",
+        "so_gerichte_ZZ.1990.7"
+      ],
+      "kept_by_input_k20": [
+        "bge_BGE_130_III_28"
+      ],
+      "loss_vs_input": []
+    }
+  ],
+  "claim": {
+    "rule": "(a) every discriminating cell product_retention@20 >= input_retention@20; (b) micro-aggregate product_hits@20 >= input_hits@20 over discriminating cells; (c) no language with input_hits@20 > 0 has product_hits@20 < input_hits@20",
+    "n_discriminating_cells": 10,
+    "n_cells_not_measured": 14,
+    "losses_by_cell": [
+      {
+        "query_key": "baseline:business-judgment-rule:de",
+        "input_retention": 1.0,
+        "product_retention": 0.0,
+        "loss_vs_input": [
+          "bger_4A_219_2015",
+          "bger_4A_603_2014"
+        ],
+        "lost_by_product_k20": [
+          "bger_4A_219_2015",
+          "bger_4A_259_2016",
+          "bger_4A_603_2014",
+          "bger_4A_626_2013",
+          "bger_4A_62_2024"
+        ]
+      },
+      {
+        "query_key": "counter:petty-theft-dismissal:fr",
+        "input_retention": 1.0,
+        "product_retention": 0.6666666666666666,
+        "loss_vs_input": [
+          "ge_gerichte_CAPH_107_2004"
+        ],
+        "lost_by_product_k20": [
+          "ar_gerichte_KG_ARGVP_2005_3462",
+          "bge_BGE_121_III_467",
+          "bge_BGE_138_I_113",
+          "ch_vb_JAAC_68.7__",
+          "ge_gerichte_ATAS_1103_2006",
+          "ge_gerichte_CAPH_107_2004",
+          "so_gerichte_ZZ.1990.7"
+        ]
+      }
+    ],
+    "aggregate": {
+      "all": {
+        "input_hits": 17,
+        "product_hits": 15,
+        "present_denominator": 18,
+        "input_retention": 0.9444444444444444,
+        "product_retention": 0.8333333333333334
+      },
+      "baseline": {
+        "input_hits": 5,
+        "product_hits": 3,
+        "n_cells": 3
+      },
+      "counter": {
+        "input_hits": 12,
+        "product_hits": 12,
+        "n_cells": 7
+      }
+    },
+    "language_leg": [
+      {
+        "language": "fr",
+        "n_cells": 2,
+        "input_hits": 4,
+        "product_hits": 3,
+        "holds": false
+      },
+      {
+        "language": "de",
+        "n_cells": 7,
+        "input_hits": 12,
+        "product_hits": 11,
+        "holds": false
+      },
+      {
+        "language": "it",
+        "n_cells": 1,
+        "input_hits": 1,
+        "product_hits": 1,
+        "holds": true
+      }
+    ],
+    "rule_a_no_cell_loss": false,
+    "rule_b_aggregate": false,
+    "rule_c_language": false
+  },
+  "rehash_before_execution": {
+    "hypothesis_sha256": "a9fe256cea627c0bbc9ecd8e316f68b00b1911ab4e99bf0c294576b60cafe4f7",
+    "spec_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "hypothesis_matches_freeze_pin": true,
+    "spec_matches_pin": true,
+    "freeze_record_present": true
+  },
+  "rehash_after_execution": {
+    "spec_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "hypothesis_sha256": "a9fe256cea627c0bbc9ecd8e316f68b00b1911ab4e99bf0c294576b60cafe4f7",
+    "spec_unchanged": true,
+    "hypothesis_unchanged": true
+  },
+  "has_v1_1_amendment": true,
+  "has_v1_2_amendment": true,
+  "product_mount": "/tmp/lex_accepted/product",
+  "product_mount_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+  "product_import_error": null,
+  "replay": {
+    "n_cells": 24,
+    "statuses": [
+      200
+    ]
+  },
+  "rerank_latency_reported_only": {
+    "cells": 24,
+    "mean_seconds": 0.005455,
+    "max_seconds": 0.02859,
+    "total_seconds": 0.130925,
+    "threshold_applied": false,
+    "note": "no rerank latency budget exists in the frozen spec; inventing one would be a new bar. Published for the lane's latency requirement."
+  },
+  "verdict_under_original_v1_c7_blocking": {
+    "verdict": "NOT_MEASURED_VACUOUS",
+    "exit_code": 2,
+    "note": "C7b duplicate collisions would have blocked under original V1; disclosed per V1_2 amendment"
+  },
+  "verdict": "PRODUCT_FALSIFIED_RECALL_LOSS",
+  "exit_code": 1,
+  "failed_controls": [],
+  "n_controls": 10,
+  "n_controls_passed": 9,
+  "no_174k_benchmark_rerun": true
+}
