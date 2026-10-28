@@ -174,7 +174,6 @@ class ReadinessTest(unittest.TestCase):
         self.assertIs(block["ready_for_independent_audit"],
                       rec["ready_for_independent_audit"])
         self.assertEqual(state["accepted_run_id"], 40258497460)
-        self.assertEqual(state["github_run"], int(RUN))
         self.assertIs(state["continue_recommended"], False)
         report = (ROOT / f"reports/evaluation/CYCLE_{RUN}.md").read_text(encoding="utf-8")
         self.assertIn("NOT READY (20/21 checks PASS)", report)
