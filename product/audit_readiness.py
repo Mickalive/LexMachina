@@ -1006,6 +1006,55 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    # Active cycle 40763434744: operational resume of run 40750177292, whose
+    # TEAM job was fully green (all steps success incl. state validation,
+    # write scope and persist) with a 13-file committed delta 85dfea22 over
+    # predecessor team head 866ae3cb, and whose AUDIT "Independent audit"
+    # step then died at the 2700 s work quantum (exit 78, 2706.0 s,
+    # OBSERVED_QUANTUM_EXPIRED via public check-run annotations) before
+    # writing any gate.  The gate and persist steps were skipped and the run
+    # is UNADJUDICATED.  This is the FOURTH audit-side quantum death on this
+    # lineage (after 40702698815, 40726216925, 40737328834) and the first
+    # one whose tree already carried the bounded audit route; the producer
+    # cannot observe whether the auditor consumed it (logs HTTP 403), and
+    # the remaining route-around is a named, git-resolved audit target plus
+    # an intake file, never a verdict.
+    "40763434744": {
+        "resumed_run_id": "40750177292",
+        "predecessor_run_id": "40747546909",
+        "raw": ORCH / "CYCLE_40750177292_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40750177292_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40750177292.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40763434744.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 13,
+        "changed_paths_include": (
+            "product/audit_route.py",
+            "reports/product/CYCLE_40750177292.md",
+            "results/product/audit_readiness/"
+            "CYCLE_40750177292_AUDIT_ROUTE.json",
+            "state/product.json",
+        ),
+        "cycle_test": "product/tests/test_cycle_40763434744.py",
+        "state_block": "cycle_40763434744_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40718103891.json",
+        "content_family_expected": {
+            "n_bundles": 52,
+            "n_decisions": 5200,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original

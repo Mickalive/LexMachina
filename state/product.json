@@ -30,7 +30,9 @@
     "source": "merged from accepted product cycles through 40247189361 plus resume 40259640985 verification",
     "sourced_answer": true,
     "bounded_audit_route": "product/audit_route.py (measured per-step wall times vs 2700s budget; CYCLE_40750177292_AUDIT_ROUTE.json)",
-    "rc67_guard_observed_classification": "OBSERVED_ZERO_DELTA_REPAIR_GUARD_EXIT_67 (audit_step_diagnosis.py)"
+    "rc67_guard_observed_classification": "OBSERVED_ZERO_DELTA_REPAIR_GUARD_EXIT_67 (audit_step_diagnosis.py)",
+    "git_resolved_audit_target": "product/audit_route.py::audit_target (team ref + accepted head + resumed predecessor in the brief and route artifact)",
+    "audit_intake_markdown": "product/audit_route.py --intake-out (writes a compact intake, never a gate)"
   },
   "continue_recommended": true,
   "control_plane_hardening_items": [
@@ -79,7 +81,7 @@
     }
   ],
   "current_cycle_run_id": "40667295410",
-  "current_run": "40750177292",
+  "current_run": "40763434744",
   "cycle_38764203_verification": {
     "accepted_by_both_halves": false,
     "adjudication": {
@@ -2681,9 +2683,9 @@
   },
   "lane": "product",
   "last_repair_round": 0,
-  "last_updated": "2026-10-28T19:30:00Z",
+  "last_updated": "2026-10-28T20:33:48Z",
   "machine_gate_ready": false,
-  "next_recommendation": "Direction v68 / FAST MVP. OPERATIONAL RESUME 40750177292 of the rc-67 zero-delta misroute 40747546909 (persisted snapshot 866ae3cb). Both resumed runs are now FULLY DIAGNOSED from committed public raws: 40737328834 = TEAM SUCCESS + AUDIT Independent-step quantum death (2707.0 s, exit 78, 3rd audit-side instance on this lineage) with a 7-file committed delta over df6c81fb; 40747546909 = the workflow re-dispatched a PRODUCER repair round after that audit death and the producer correctly found nothing to do (rc-67 LEX_ZERO_DELTA_REPAIR, requirement 10 — NOT a defect), leaving the team ref byte-identical. The producer side of snapshot 866ae3cb is COMPLETE; the binding stall is that the INDEPENDENT AUDIT has died at the 2700 s quantum three times without consuming the existing bounded verification. This cycle ships the fix the lane owns: product/audit_route.py — a single-command bounded audit route (state contract ~0.1 s, dossier verify ~1 s, full regeneration ~2 min, chain cycle tests, full-suite collection disclosure only) with measured per-step wall times against the 2700 s budget, committed as CYCLE_40750177292_AUDIT_ROUTE.json and pinned in state.audit_route. NEXT DISPATCH MUST BE THE INDEPENDENT AUDIT of snapshot 866ae3cb; the auditor should run `python3 product/audit_route.py --for-auditor --run-id <its-run-id>` first and must NOT re-derive discharged findings (evaluations 40070818687 / 40068038783 / 40105794124, D2 profile 40089391202, the 153-bundle sweep, any Frontier verdict). Do NOT re-dispatch a producer resume of an audit-ready snapshot — that is the rc-67 misroute class. Gate path: results/audit/product/CYCLE_<run_id>_GATE.json (UPPERCASE). Posture unchanged fail-closed: human_gate_ready=false, both DO-NOT-SERVE orders stand, no owner session while either frozen bar is unmet, continue_recommended=true.",
+  "next_recommendation": "Direction v68 / FAST MVP. OPERATIONAL RESUME 40763434744 of run 40750177292, whose TEAM job was fully green with a 13-file committed delta 85dfea22 over 866ae3cb and whose AUDIT 'Independent audit' step then died at the 2700 s work quantum (2706.0 s, exit 78, OBSERVED_QUANTUM_EXPIRED) with no gate - the FOURTH audit-side quantum death on this lineage. This cycle machine-traced that failure from the committed public raw; corrected the stale audit-target claim that named the resumed predecessor 866ae3cb instead of the producer's head 85dfea22; extended product/audit_route.py to resolve the audit target from git (team ref + accepted head + resumed predecessor) and to emit a compact committed intake; and re-verified the product vertical slice on fresh offline bytes (PASS: 100 decisions, 8 clusters, 100 source links, sourced answer ready, geometry preserved, page contract 70 assertions). The producer side is complete. NEXT DISPATCH MUST BE THE INDEPENDENT AUDIT of the persisted team snapshot for 40763434744; start with `python3 product/audit_route.py --for-auditor --run-id 40763434744` (prints the git-resolved target) and then `python3 product/audit_readiness.py --verify results/product/audit_readiness/CYCLE_40763434744_audit_readiness.json` (sub-second), then the full route if needed. Do NOT run the full 1899-test suite and do NOT re-derive discharged findings (evaluations 40070818687 / 40068038783 / 40105794124, D2 profile 40089391202, the 153-bundle sweep, any Frontier verdict). Gate path: results/audit/product/CYCLE_<run_id>_GATE.json (UPPERCASE). Posture unchanged fail-closed: human_gate_ready=false, both DO-NOT-SERVE orders stand, no owner session while either frozen bar is unmet, continue_recommended=true.",
   "not_claimed": [
     "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
     "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
@@ -3502,14 +3504,37 @@
       "lane": "product",
       "date": "2026-10-28T19:10:00Z",
       "repair_round": 0,
-      "status": "OPERATIONAL_RESUME_CHAIN_DIAGNOSIS_AND_BOUNDED_AUDIT_ROUTE",
+      "status": "AUDIT_JOB_QUANTUM_DEATH_COMMITTED_DELTA_UNADJUDICATED",
       "resumed_run": 40747546909,
       "accepted": false,
       "accepted_run_id": "CYCLE_40284658455",
       "audit_gate": "NONE_YET",
       "report_of_record": "reports/product/CYCLE_40750177292.md",
       "cycle_test": "product/tests/test_cycle_40750177292.py",
-      "summary": "Operational resume of the rc-67 zero-delta misroute 40747546909. Deltas: (1) machine-traced chain diagnosis — 40737328834 = TEAM SUCCESS + AUDIT Independent-step quantum death (2707.0 s, exit 78, 3rd audit-side instance), committed delta 866ae3cb over df6c81fb; 40747546909 = rc-67 LEX_ZERO_DELTA_REPAIR zero-durable-delta producer re-dispatch misroute (requirement 10: producer found nothing to do, NOT a defect); (2) instrument upgrade OBSERVED_ZERO_DELTA_REPAIR_GUARD_EXIT_67 (was UNOBSERVED) with raw-annotation cross-checks in check_resumed_diagnosis; (3) product/audit_route.py — the single-command bounded audit route with measured per-step wall times against the 2700 s quantum budget, built after THREE consecutive audit-side quantum deaths that never consumed the existing ~1 s verify-first path; (4) PROFILES entries for 40747546909 and this run; (5) state truth-repair of the producer-recorded 40737328834 status (original preserved). No product code, filter, frozen bar or posture flag changed; continue_recommended stays true, human_gate_ready stays false; both DO-NOT-SERVE orders stand."
+      "summary": "Operational resume of the rc-67 zero-delta misroute 40747546909. Deltas: (1) machine-traced chain diagnosis — 40737328834 = TEAM SUCCESS + AUDIT Independent-step quantum death (2707.0 s, exit 78, 3rd audit-side instance), committed delta 866ae3cb over df6c81fb; 40747546909 = rc-67 LEX_ZERO_DELTA_REPAIR zero-durable-delta producer re-dispatch misroute (requirement 10: producer found nothing to do, NOT a defect); (2) instrument upgrade OBSERVED_ZERO_DELTA_REPAIR_GUARD_EXIT_67 (was UNOBSERVED) with raw-annotation cross-checks in check_resumed_diagnosis; (3) product/audit_route.py — the single-command bounded audit route with measured per-step wall times against the 2700 s quantum budget, built after THREE consecutive audit-side quantum deaths that never consumed the existing ~1 s verify-first path; (4) PROFILES entries for 40747546909 and this run; (5) state truth-repair of the producer-recorded 40737328834 status (original preserved). No product code, filter, frozen bar or posture flag changed; continue_recommended stays true, human_gate_ready stays false; both DO-NOT-SERVE orders stand.",
+      "status_original_producer_record": "OPERATIONAL_RESUME_CHAIN_DIAGNOSIS_AND_BOUNDED_AUDIT_ROUTE",
+      "status_correction": "Producer-recorded status was written at 2026-10-28T19:10:00Z BEFORE the run's own audit job finished. The team job was fully green (13-file committed delta 85dfea22 over predecessor team head 866ae3cb, state validation + write scope + persist all success). The audit job's 'Independent audit' step then expired the workflow's 2700 s work quantum (exit 78, LEX_WORK_QUANTUM_EXPIRED, 2706.0 s) with the gate and persist steps skipped, so no audit branch and no gate exist and the run is UNADJUDICATED. This is the FOURTH audit-side quantum death on this lineage (after 40702698815, 40726216925, 40737328834) and the first one whose tree already carried product/audit_route.py. Original status preserved inline; corrected by operational resume 40763434744 from the committed public raw results/product/orchestration/CYCLE_40750177292_run_jobs_raw.json and its machine diagnosis. results/** stay append-only.",
+      "team_job": "SUCCESS (all steps success including state validation, write scope and persist; 13-file committed delta 85dfea22 over predecessor team head 866ae3cb)",
+      "audit_job": "FAILURE at 'Independent audit' step, 2706.0 s, exit 78, OBSERVED_QUANTUM_EXPIRED; gate step skipped, persist step skipped, no audit ref, no gate file",
+      "integrate_job": "skipped (audit did not succeed)",
+      "outcome": "UNADJUDICATED; correct next dispatch is the INDEPENDENT AUDIT of the persisted team snapshot"
+    },
+    {
+      "run_id": "40763434744",
+      "lane": "product",
+      "date": "2026-10-28T20:33:48Z",
+      "repair_round": 0,
+      "status": "OPERATIONAL_RESUME_AUDIT_INTAKE_AND_STALE_TARGET_REPAIR",
+      "resumed_run": 40750177292,
+      "accepted": false,
+      "accepted_run_id": "CYCLE_40284658455",
+      "audit_gate": "NONE_YET",
+      "report_of_record": "reports/product/CYCLE_40763434744.md",
+      "cycle_test": "product/tests/test_cycle_40763434744.py",
+      "summary": "Operational resume of run 40750177292. Machine-traced its orchestration failure from the committed public run/jobs raw: TEAM SUCCESS with a 13-file committed delta 85dfea22 over 866ae3cb, then AUDIT 'Independent audit' quantum death at 2706.0 s, exit 78 (OBSERVED_QUANTUM_EXPIRED), gate/persist skipped, no gate, run UNADJUDICATED. Found and corrected a stale-target claim in that cycle's own report/state: the dispatch line named the resumed predecessor 866ae3cb as the audit target instead of the producer's committed head 85dfea22. Extended product/audit_route.py to resolve and publish the audit target from git (team ref + accepted head + resumed predecessor) and to emit a compact audit intake, so the stale-target class cannot recur in the brief. Re-verified the product vertical slice on fresh bytes (offline slice PASS: 100 decisions, 8 clusters, 100 source links, answer ready, geometry preserved, page contract 70 assertions) and re-sealed the audit-readiness dossier. No content filter, frozen bar, packet or posture flag changed.",
+      "team_job": "SUCCESS (resumed run 40750177292)",
+      "audit_job": "FAILURE at 'Independent audit' 2706.0 s exit 78 OBSERVED_QUANTUM_EXPIRED, no gate",
+      "integrate_job": "skipped (audit did not succeed)"
     }
   ],
   "state_register_restoration_39651573572": {
@@ -4325,9 +4350,11 @@
     "binding_deliverable": "product/audit_route.py: single-command bounded audit route with measured per-step wall times vs the 2700 s work-quantum budget, after three consecutive audit-side quantum deaths (40702698815, 40726216925, 40737328834) that never consumed the existing verify-first path",
     "lineage_status": {
       "accepted_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
-      "snapshot_head": "866ae3cb125b619c07b3dbb63c44b674d314848e",
+      "snapshot_head": "85dfea227c77bc7ac3e91ae452c067ae18ad5c73",
       "adjudication": "UNADJUDICATED",
-      "requirement_4": "neither half present for 40737328834/40747546909: no audit branch/gate and no accept commit; accepted head remains 7be4480e (accept 40284658455)"
+      "requirement_4": "neither half present for 40737328834/40747546909: no audit branch/gate and no accept commit; accepted head remains 7be4480e (accept 40284658455)",
+      "snapshot_head_original_producer_record": "866ae3cb125b619c07b3dbb63c44b674d314848e",
+      "snapshot_head_correction": "The producer-recorded value 866ae3cb was the RESUMED predecessor head, not this cycle's own committed team head. The cycle's committed delta is 85dfea22 over 866ae3cb (13 files, verified from the team refs by operational resume 40763434744). Corrected here; original preserved inline."
     },
     "posture": {
       "human_gate_ready": false,
@@ -4335,18 +4362,92 @@
       "ready_for_owner_session": false,
       "packet_admitted": false,
       "continue_recommended": true
+    },
+    "own_audit_outcome": {
+      "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+      "mechanism": "OBSERVED_QUANTUM_EXPIRED",
+      "independent_audit_step_seconds": 2706.0,
+      "exit_code": 78,
+      "gate_file_written": false,
+      "instance_on_lineage": "4th audit-side quantum death (after 40702698815, 40726216925, 40737328834)",
+      "raw": "results/product/orchestration/CYCLE_40750177292_run_jobs_raw.json",
+      "diagnosis": "results/product/orchestration/CYCLE_40750177292_resume_diagnosis.json"
     }
   },
   "audit_route": {
     "instrument": "product/audit_route.py",
-    "artifact": "results/product/audit_readiness/CYCLE_40750177292_AUDIT_ROUTE.json",
+    "artifact": "results/product/audit_readiness/CYCLE_40763434744_AUDIT_ROUTE.json",
+    "intake_artifact": "results/product/audit_readiness/CYCLE_40763434744_AUDIT_INTAKE.md",
     "quantum_budget_s": 2700,
     "commands": [
-      "python3 product/audit_route.py --for-auditor --run-id 40750177292",
-      "python3 product/state_contract.py --check --direction-version 68 --json",
-      "python3 product/audit_readiness.py --verify results/product/audit_readiness/CYCLE_40750177292_audit_readiness.json",
-      "python3 product/audit_route.py --run-id 40750177292 --out /tmp/route.json"
+      "python3 product/audit_route.py --for-auditor --run-id 40763434744",
+      "python3 product/audit_route.py --intake-out results/product/audit_readiness/CYCLE_40763434744_AUDIT_INTAKE.md --run-id 40763434744",
+      "python3 product/audit_readiness.py --verify results/product/audit_readiness/CYCLE_40763434744_audit_readiness.json",
+      "python3 product/audit_route.py --run-id 40763434744 --out /tmp/route.json"
     ],
-    "why": "Three consecutive independent audits died at the 2700 s work quantum (40702698815, 40726216925, 40737328834) without consuming the ~1 s verify-first path; this route makes the bounded sequence executable and measured."
+    "audit_target_resolution": "product/audit_route.py resolves origin/cycle/core/product/<run_id>/team and origin/lab/product from git and prints both, plus the resumed predecessor head, in the brief and the route artifact. Prose is never the source of the audit target.",
+    "why": "Four consecutive independent audits of this lineage died at the 2700 s work quantum (40702698815, 40726216925, 40737328834, 40750177292) before writing a gate. The revision adds a git-resolved audit target and a committed intake so the next audit cannot start on the wrong tree or spend its quantum re-deriving claims."
+  },
+  "cycle_40763434744_operational_resume": {
+    "run_id": "40763434744",
+    "resumed_run_id": "40750177292",
+    "predecessor_run_id": "40747546909",
+    "mode": "operational_resume",
+    "direction_version": 68,
+    "diagnosis_of_resumed": "results/product/orchestration/CYCLE_40750177292_resume_diagnosis.json",
+    "raw_snapshot": "results/product/orchestration/CYCLE_40750177292_run_jobs_raw.json",
+    "report": "reports/product/CYCLE_40763434744.md",
+    "cycle_test": "product/tests/test_cycle_40763434744.py",
+    "audit_readiness_dossier": "results/product/audit_readiness/CYCLE_40763434744_audit_readiness.json",
+    "audit_route": "results/product/audit_readiness/CYCLE_40763434744_AUDIT_ROUTE.json",
+    "audit_intake": "results/product/audit_readiness/CYCLE_40763434744_AUDIT_INTAKE.md",
+    "resumed_failure": {
+      "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+      "team_job": "SUCCESS (all steps; 13-file committed delta 85dfea22 over 866ae3cb)",
+      "mechanism": "OBSERVED_QUANTUM_EXPIRED (2706.0 s, exit 78)",
+      "gate_file_written": false,
+      "durable_delta": "COMMITTED_DELTA (13 files)",
+      "adjudication": "UNADJUDICATED"
+    },
+    "stale_target_defect": {
+      "status": "CORRECTED",
+      "resumed_report": "reports/product/CYCLE_40750177292.md",
+      "wrong_target_named": "866ae3cb (the resumed predecessor head)",
+      "correct_target": "85dfea22 (the producer cycle's own committed team head)",
+      "correction_section": "Section 7 of the report of that cycle, appended by this resume",
+      "route_around": "product/audit_route.py --for-auditor now resolves the team ref, the accepted head and the resumed predecessor from git and prints all three; --intake-out writes the same target into a committed Markdown intake"
+    },
+    "product_verification": {
+      "command": "python3 product/offline_slice.py --slug rent-default --verify",
+      "verdict": "PASS",
+      "decisions": 100,
+      "clusters": 8,
+      "rows_with_source_link": 100,
+      "rows_with_xy": 100,
+      "answer_status": "ready",
+      "cited_decision_ids": 4,
+      "geometry_preserved_by_enrich": true,
+      "page_contract_assertions": 70,
+      "network": "none",
+      "bundle": "results/product/offline_slice/20261028T203203Z/rent-default.bundle.json",
+      "claim_ceiling": "offline cached-fixture vertical-slice verification only; no live latency, legal-usefulness, frozen-bar or serve claim"
+    },
+    "lineage_status": {
+      "accepted_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+      "accepted_run_id": "CYCLE_40284658455",
+      "adjudication": "UNADJUDICATED",
+      "requirement_4": "no audit gate and no accept commit exist for 40750177292, so the accepted head remains 7be4480e (accept 40284658455)",
+      "audit_target": "resolved from origin/cycle/core/product/40763434744/team by product/audit_route.py --for-auditor"
+    },
+    "posture": {
+      "human_gate_ready": false,
+      "machine_gate_ready": false,
+      "ready_for_owner_session": false,
+      "packet_admitted": false,
+      "continue_recommended": true,
+      "owner_decision_required": false
+    },
+    "resumed_snapshot_head": "85dfea227c77bc7ac3e91ae452c067ae18ad5c73",
+    "resumed_snapshot_head_note": "The persisted producer snapshot of run 40750177292 (team ref), i.e. the tree this resume started from. It is NOT the audit target of this cycle: this cycle commits its own delta on top of it, and audit_route resolves the current team ref."
   }
 }

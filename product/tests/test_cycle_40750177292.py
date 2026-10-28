@@ -41,7 +41,13 @@ def test_state_pointer_and_posture_non_rotting():
     state = json.loads(STATE.read_text(encoding="utf-8"))
     assert state["accepted_run_id"] == "CYCLE_40284658455"
     assert state["accepted_commit"] == ACCEPTED
-    assert state["current_run"] == "40750177292"
+    # current_run is the MOVING latest-resume pointer. The original pin
+    #     assert state["current_run"] == "40750177292"
+    # was correct when recorded but rots on every later resume; this is the
+    # chain's standard non-rotting maintenance repair (same form used since
+    # CYCLE_40718103891 in test_cycle_40682733879.py). This cycle's own
+    # durable record is NOT current_run; it is the cycle block asserted below.
+    assert state["current_run"]  # truthy, non-empty
     assert "cycle_40750177292_operational_resume" in state
     assert "cycle_40747546909_operational_resume" in state
     assert state["continue_recommended"] is True
@@ -92,7 +98,15 @@ def test_run_history_fates():
     assert "LEX_ZERO_DELTA_REPAIR" in rc67["summary"]
     assert "requirement 10" in rc67["summary"]
     cur = hist["40750177292"]
+    # The producer-recorded status below was written before this run's own
+    # audit job died; operational resume 40763434744 truth-corrected it from
+    # the committed public raw and preserved the original inline. A historical
+    # test may not keep asserting the pre-death claim.
+    #     assert cur["status"] == \
+    #         "OPERATIONAL_RESUME_CHAIN_DIAGNOSIS_AND_BOUNDED_AUDIT_ROUTE"
     assert cur["status"] == \
+        "AUDIT_JOB_QUANTUM_DEATH_COMMITTED_DELTA_UNADJUDICATED"
+    assert cur["status_original_producer_record"] == \
         "OPERATIONAL_RESUME_CHAIN_DIAGNOSIS_AND_BOUNDED_AUDIT_ROUTE"
     assert cur["resumed_run"] == 40747546909
     assert cur["accepted"] is False
