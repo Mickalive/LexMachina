@@ -325,7 +325,127 @@ CLAIM_39689729561 = (
     "carried."
 )
 
+#: Keys whose live value is a per-cycle POINTER, not a claim-bearing record:
+#: they may only ever move FORWARD, never backward past the preserved bytes.
+#: This is the same rule the lane's own historical guards enforce on
+#: ``current_run`` (F3 of rejected cycle 39764730877: a guard that demands
+#: ``current_run == historical value`` makes the state unadvanceable).
+POINTER_KEYS = frozenset({"current_run"})
+
+#: THIRD wholesale replacement, caught and restored by run 40606019054.
+#: Accepted cycle 40064639100 (commit 0ed7930bd, 2026-10-24) replaced
+#: state/product.json wholesale again (1422 lines -> 83) and dropped:
+#: the four historical vertical-slice delivery records the committed guards
+#: read directly (cycles 39674781875, 39689729561, 39758711075 and
+#: 39764730877), the top-level ``vertical_slice_status`` and
+#: ``requirement_13_supersession_conditions_met`` records, the transient
+#: ``current_run`` pointer, and 13 register records including
+#: ``mvp_test_files``, ``served_slice_20261021T214006Z`` and
+#: ``cache_rewrite_attribution_39674781875`` plus the 12 register records
+#: accepted at 39660515863's register (adversarial_retrieval_works ...
+#: relations_present).  ``product/tests/test_state_register_retention.py``
+#: and every guard that reads those records were RED on the live tree after
+#: that replacement.  The bytes that still carried them are preserved here:
+#: results/product/state_register/PRODUCT_STATE_f92e69932_state_product.json
+RECORD_40606019054 = {
+    "run_id": "40606019054",
+    "deleting_run": "40064639100",
+    "defect": (
+        "accepted cycle 40064639100 (commit 0ed7930bd, 2026-10-24) replaced "
+        "state/product.json wholesale (1422 lines -> 83) for the third time and "
+        "dropped the four historical vertical-slice delivery records the "
+        "committed guards read directly (cycles 39674781875, 39689729561, "
+        "39758711075 and 39764730877), the top-level vertical_slice_status and "
+        "requirement_13_supersession_conditions_met records, the current_run "
+        "pointer, and the register records mvp_test_files, "
+        "served_slice_20261021T214006Z and cache_rewrite_attribution_39674781875 "
+        "plus the 12 register records accepted at 39660515863's register. "
+        "product/tests/test_state_register_retention.py and nine further guards "
+        "that read those records were RED on the live tree from that commit/"
+        "replacement chain onwards."),
+    "restored": [
+        "verification (merged into the 20-key live register from the preserved "
+        "bytes; the 12 keys accepted at bcb1217 are byte-identical to the "
+        "pinned baseline "
+        "product/data/state_register_baseline/verification_bcb1217.json)",
+        "cycle_39674781875_vertical_slice_delivery (byte-exact)",
+        "cycle_39689729561_vertical_slice_delivery (byte-exact)",
+        "cycle_39758711075_vertical_slice_delivery (byte-exact)",
+        "cycle_39764730877_vertical_slice_delivery (byte-exact)",
+        "vertical_slice_status (byte-exact)",
+        "requirement_13_supersession_conditions_met (byte-exact)",
+        "current_run (POINTER: restored, and a pointer may only move forward, "
+        "never backward past the preserved value)",
+    ],
+    "preserved_bytes": {
+        "artifact":
+        "results/product/state_register/PRODUCT_STATE_f92e69932_state_product.json",
+        "sha256": "{sha256}",
+        "source_commit": "f92e69932",
+        "source_run": "f92e69932 (the last live state that still carried the "
+                      "deleted records, named for that commit and never for "
+                      "a run id)",
+        "note": ("the deleted bytes are preserved verbatim; nothing was "
+                 "removed and each guard-read record is restored byte-exact "
+                 "from these bytes, re-derived and hashed in the provenance "
+                 "file beside it"),
+    },
+    "not_restored_into_the_live_state": (
+        "the other ~30 per-cycle pointer and claim blocks in the preserved "
+        "bytes (accepted_commit, audit_artifact, state_updated_at, ...) are "
+        "NOT written back: their current values would be stale or "
+        "contradictory. They stay readable byte-for-byte in the preserved "
+        "artifact."),
+    "live_state_precedence": (
+        "for every key the live state already carries, the live value wins; "
+        "this restoration only ADDS the labeled keys and disclosure records, "
+        "except where a merged dict grows with the preserved sub-records."),
+    "claim_ceiling": (
+        "This is a restoration of deleted lane state, not a new measurement "
+        "and not a legal claim. It scores no frozen bar, changes no threshold "
+        "and changes no product behaviour."),
+}
+
+CLAIM_40606019054 = (
+    "RESTORED BY RUN 40606019054: accepted cycle 40064639100 (commit 0ed7930bd, "
+    "2026-10-24) replaced state/product.json wholesale for the third time and "
+    "dropped the four historical vertical-slice delivery records the committed "
+    "guards read directly (cycles 39674781875, 39689729561, 39758711075 and "
+    "39764730877), the top-level vertical_slice_status and "
+    "requirement_13_supersession_conditions_met records, the current_run "
+    "pointer, and the register records mvp_test_files, "
+    "served_slice_20261021T214006Z and cache_rewrite_attribution_39674781875 "
+    "plus the 12 register records accepted in 39660515863's register. They are "
+    "restored merged from "
+    "results/product/state_register/PRODUCT_STATE_f92e69932_state_product.json "
+    "(sha256 {sha256}); the deleted bytes are preserved there and nothing was "
+    "deleted. The live state keeps its own value for every key it already "
+    "carried."
+)
+
 RESTORATIONS = (
+    _restoration(
+        record_key="state_register_restoration_40606019054",
+        deleting_run="40064639100",
+        restoring_run="40606019054",
+        artifact="PRODUCT_STATE_f92e69932_state_product.json",
+        source_commit="f92e69932",
+        source_run="f92e69932",
+        restored_keys=(
+            "verification",
+            "cycle_39674781875_vertical_slice_delivery",
+            "cycle_39689729561_vertical_slice_delivery",
+            "cycle_39758711075_vertical_slice_delivery",
+            "cycle_39764730877_vertical_slice_delivery",
+            "cycle_39965089504_operational_resume",
+            "vertical_slice_status",
+            "requirement_13_supersession_conditions_met",
+            "current_run",
+        ),
+        record=RECORD_40606019054,
+        claim_key="state_register_deleted_by_40064639100",
+        claim=CLAIM_40606019054,
+    ),
     _restoration(
         record_key="state_register_restoration_39651573572",
         deleting_run="39543057762",
@@ -403,6 +523,14 @@ CLAIM_BEARING_REGISTER_KEYS = (
     "verified_on",
 )
 
+#: Inside the ``verification`` register, pointer keys that may only move
+#: FORWARD (never backward past the preserved value).  The live 'at' value at
+#: the old replaced-era snapshot (2026-10-18) is OLDER than the value the
+#: post-39660515863 registers carry (2026-10-23); restoring from a later
+#: preserved snapshot must move the register forward, exactly like
+#: ``current_run`` at the top level (F3 of rejected cycle 39764730877).
+FORWARD_ONLY_REGISTER_KEYS = ("at",)
+
 
 def sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -464,6 +592,18 @@ def _merge_into_live(state: dict[str, Any], source_state: dict[str, Any],
         if isinstance(preserved, dict) and isinstance(live, dict):
             merged = dict(preserved)
             merged.update(live)  # the live value wins for every key it carries
+            for pointer_key in FORWARD_ONLY_REGISTER_KEYS:
+                if pointer_key in merged and pointer_key not in live and \
+                        str(merged[pointer_key]) != str(preserved[pointer_key]):
+                    merged[pointer_key] = preserved[pointer_key]
+                elif pointer_key in live and pointer_key in preserved and \
+                        str(live[pointer_key]) < str(preserved[pointer_key]):
+                    # the live pointer predates the preserved bytes: restoring
+                    # from later bytes must move the pointer forward, or the
+                    # restore itself would silently revert it to the older
+                    # replaced-era value
+                    merged[pointer_key] = preserved[pointer_key]
+                    changed.append(f"{key}.{pointer_key}")
             if merged != live:
                 state[key] = merged
                 changed.append(key)
@@ -592,6 +732,22 @@ def check() -> list[str]:
                         problems.append(f"{key!r} lost the record {sub_key!r}")
                     elif live[sub_key] != value:
                         problems.append(f"{key!r} edited the record {sub_key!r} in place")
+            elif key in POINTER_KEYS:
+                # A per-cycle pointer may only move forward: the live value
+                # must still be LE the preserved one is never acceptable.
+                preserved_n, live_n = None, None
+                try:
+                    preserved_n = int(str(preserved))
+                    live_n = int(str(live))
+                except (TypeError, ValueError):
+                    problems.append(
+                        f"{key!r} is a pointer but its live value {live!r} is "
+                        f"not comparable to the preserved {preserved!r}")
+                if live_n is not None and preserved_n is not None \
+                        and live_n < preserved_n:
+                    problems.append(
+                        f"the pointer {key!r} moved BACKWARD past the preserved "
+                        f"value {preserved!r} (live {live!r})")
             elif live != preserved:
                 problems.append(f"{key!r} differs from the preserved bytes")
 
