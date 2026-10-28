@@ -1,0 +1,147 @@
+{
+  "schema": "product-resume-snapshot-diagnosis/1",
+  "generated_at": "2026-10-28T11:55:30Z",
+  "run_id": "40676629031",
+  "predecessor_run_id": "40667295410",
+  "resuming_run_id": "40682733879",
+  "raw_snapshot": "results/product/orchestration/CYCLE_40676629031_run_jobs_raw.json",
+  "raw_snapshot_sha256": "27b3e9ca65193bee40c317178991888f68efab90ebe3715432d2bd8739583216",
+  "orchestration": {
+    "schema": "product-audit-step-diagnosis/1",
+    "generated_at": "2026-10-28T11:55:30Z",
+    "run_id": "40676629031",
+    "run_name": "Core product dirV68 repair0",
+    "run_conclusion": "failure",
+    "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_QUANTUM",
+    "team": {
+      "conclusion": "failure",
+      "team_snapshot_persisted": true,
+      "team_snapshot_step_conclusion": "success",
+      "team_snapshot_persisted_after_failed_team_job": true,
+      "failed_step": "Run lane cycle",
+      "failed_step_seconds": 2704.0,
+      "failed_step_window": [
+        "2026-10-28T11:02:38Z",
+        "2026-10-28T11:47:42Z"
+      ],
+      "producer_state_validation_ran": false,
+      "producer_state_validation_step_conclusion": "skipped",
+      "write_scope_step_ran": false,
+      "write_scope_step_conclusion": "skipped"
+    },
+    "audit": {
+      "conclusion": "skipped",
+      "failed_step": null,
+      "independent_audit_step_seconds": null,
+      "gate_file_written": false
+    },
+    "integrate": {
+      "conclusion": "skipped",
+      "why_skipped": "audit job was skipped after the team failure, so integrate is skipped by the workflow condition"
+    },
+    "mechanism": {
+      "status": "OBSERVED",
+      "logs_available": false,
+      "logs_endpoint_status": 403,
+      "annotations_available": true,
+      "annotations_endpoint_status": 200,
+      "quantum_expired": true,
+      "quantum_seconds": 2700,
+      "exit_code": 78,
+      "quantum_clean_exit": true,
+      "annotation_messages": [
+        "Process completed with exit code 78.",
+        "Agent quantum ended cleanly; workflow must snapshot and resume rather than hang.",
+        "LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2519",
+        "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+      ],
+      "claim": "The lane-cycle agent process failed the 'Run lane cycle' step after 2704 s (2026-10-28T11:02:38Z -> 2026-10-28T11:47:42Z) with exit code 78. Check-run annotations are OBSERVED this cycle and read: 'LEX_WORK_QUANTUM_EXPIRED seconds=2700', 'Agent quantum ended cleanly; workflow must snapshot and resume rather than hang', and 'Process completed with exit code 78'. This is the documented rc-78 LEX_WORK_QUANTUM_EXPIRED class (factory-wide requirement 10/20 family): the producer agent ran the full ~2700 s work quantum and was terminated cleanly by the workflow's quantum watchdog. This is the FIRST TEAM-side quantum death of this lineage; all four prior quantum-class deaths (40633276503, 40640028819, 40647622447, 40655643086) were AUDIT-side 'Independent audit' step deaths at 2705 s. The quantum itself is control-plane scope (.github/**) and is recorded, not edited."
+    }
+  },
+  "durable_delta": {
+    "schema": "product-resume-durable-delta/1",
+    "classification": "ZERO_DURABLE_DELTA",
+    "snapshot_head": "96d79c7e42e745f59252ca8711ce58637df06073",
+    "predecessor_head": "96d79c7e42e745f59252ca8711ce58637df06073",
+    "commits_after_predecessor_commit": 0,
+    "changed_files": 0,
+    "changed_paths_sample": [],
+    "note": "Run 40676629031's persist step republished the same tree its predecessor run 40667295410's team job had already published (96d79c7e). The producer agent consumed the full 2700 s quantum without committing any durable artifact: the snapshot head equals the predecessor commit and the branch has zero commits after it. The likely failure mode is a producer that spent the quantum on re-derivation/verification and never reached a commit before the watchdog fired. Countermeasure adopted by the resuming cycle: commit the orchestration diagnosis FIRST, then verification artifacts, then dossier/state/report — never batch all writes behind a final commit at the end of the quantum."
+  },
+  "adjudication": {
+    "status": "UNADJUDICATED",
+    "accepted": false,
+    "product_defect": false,
+    "reason": "The producer lineage head 96d79c7e (cycle 40667295410) has now died unaudited five times: four audit-side quantum deaths at 2705 s (40633276503 documented, 40640028819, 40647622447, 40655643086) and, on the resumed run 40676629031, a TEAM-side quantum death at 2704 s (rc 78) that never reached an audit at all. No gate file exists on any audit ref for this lineage. The rc-78 quantum death is NOT a product defect and NOT an audit verdict (factory-wide requirement 20); it is the workflow's clean-stop-and-resume path, which this operational-resume run exercises."
+  },
+  "accepted_head_relation": {
+    "accepted_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+    "accepted_run_id": "CYCLE_40284658455",
+    "snapshot_commits_ahead_of_accepted": 21,
+    "both_halves_requirement_4": "verified at resume: results/audit/product/CYCLE_40284658455_GATE.json gate=PASS safe_to_integrate=true required_fixes=[], and lab/product history contains 'accept product cycle 40284658455' (7be4480e)"
+  },
+  "chain_context": {
+    "schema": "product-resume-chain-diagnosis/1",
+    "runs": [
+      {
+        "run_id": 40640028819,
+        "team": "success (substantive probe + report, 3a510671)",
+        "audit": "failure at Independent audit step after 2705 s (quantum-class)",
+        "raw_snapshot": "results/product/orchestration/CYCLE_40640028819_run_jobs_raw.json"
+      },
+      {
+        "run_id": 40647341524,
+        "team": "failure at Run lane cycle (~17 s)",
+        "audit": "skipped",
+        "note": "fast zero-delta producer death; alias profile under 40640028819"
+      },
+      {
+        "run_id": 40647622447,
+        "team": "success (audit-readiness alias delta 9226a69d)",
+        "audit": "failure at Independent audit step after 2705 s (quantum-class)",
+        "raw_snapshot": "results/product/orchestration/CYCLE_40647622447_run_jobs_raw.json"
+      },
+      {
+        "run_id": 40654856196,
+        "team": "failure at Run lane cycle (137.0 s)",
+        "audit": "skipped",
+        "raw_snapshot": "results/product/orchestration/CYCLE_40654856196_run_jobs_raw.json",
+        "durable_delta": "ZERO_DURABLE_DELTA"
+      },
+      {
+        "run_id": 40655374513,
+        "team": "failure at Run lane cycle (17.0 s)",
+        "audit": "skipped",
+        "raw_snapshot": "results/product/orchestration/CYCLE_40655374513_run_jobs_raw.json",
+        "durable_delta": "ZERO_DURABLE_DELTA"
+      },
+      {
+        "run_id": 40655643086,
+        "team": "success (operational-resume delta 7d411a69)",
+        "audit": "failure at Independent audit step after 2705 s (FOURTH audit-side quantum death)",
+        "raw_snapshot": "results/product/orchestration/CYCLE_40655643086_run_jobs_raw.json"
+      },
+      {
+        "run_id": 40666994415,
+        "team": "failure at Run lane cycle (17.0 s)",
+        "audit": "skipped",
+        "raw_snapshot": "results/product/orchestration/CYCLE_40666994415_run_jobs_raw.json",
+        "durable_delta": "ZERO_DURABLE_DELTA"
+      },
+      {
+        "run_id": 40667295410,
+        "team": "success (operational-resume delta 96d79c7e: audit readiness + content family probe + report)",
+        "audit": "not reached / pending at time of this snapshot"
+      },
+      {
+        "run_id": 40676629031,
+        "team": "failure at Run lane cycle (2704 s, rc 78 LEX_WORK_QUANTUM_EXPIRED) — FIRST TEAM-side quantum death",
+        "audit": "skipped",
+        "raw_snapshot": "results/product/orchestration/CYCLE_40676629031_run_jobs_raw.json",
+        "durable_delta": "ZERO_DURABLE_DELTA",
+        "annotations_observed": true
+      }
+    ],
+    "root_stall": "The binding stall is now BOTH-side quantum-class: five consecutive runs of this lineage died at the ~2700 s work-quantum boundary (four audit-side 'Independent audit' deaths at 2705 s, one TEAM-side 'Run lane cycle' death at 2704 s with rc 78). The fast zero-delta producer deaths (40647341524, 40654856196, 40655374513, 40666994415) are a separate observed_steps class (requirement 20 family) and remain UNOBSERVED at log level. The 2700 s quantum is control-plane scope (.github/**) and is recorded, not edited. The lane's mitigation is to (a) commit early and often so a quantum death always leaves a durable delta, and (b) keep the audit-cost budget sub-second-to-minutes via the audit-readiness dossier so an independent audit can verify inside the quantum."
+  }
+}
