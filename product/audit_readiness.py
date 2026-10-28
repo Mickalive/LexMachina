@@ -496,6 +496,50 @@ PROFILES: dict[str, dict[str, Any]] = {
         },
     },
     "40626954469": {"alias_of": "40621019854"},
+    "40640028819": {
+        # Operational resume of 40639812991: the team job failed at 'Run
+        # lane cycle' after 16.0 s with exit 1 and no wrapper signature
+        # (the same observed_steps signature measured on 40499737748),
+        # logs endpoint 403, and the always-run persist step published a
+        # tree byte-identical to its predecessor 40639072630 (zero durable
+        # delta).  The predecessor was itself a zero-delta rc-67 repair
+        # after 40633276503's audit died at LEX_WORK_QUANTUM_EXPIRED.
+        # The lineage sits 17 operational-resume commits ahead of the
+        # accepted head 7be4480e, so the zero-delta reference is the
+        # predecessor, not the accepted head.
+        "resumed_run_id": "40639812991",
+        "predecessor_run_id": "40639072630",
+        "raw": ORCH / "CYCLE_40639812991_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40639812991_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40621019854.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40640028819.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed_steps",
+        "delta_kind": "zero",
+        "exit_code": 1,
+        "changed_files": 0,
+        "cycle_test": "product/tests/test_cycle_40640028819.py",
+        "state_block": "cycle_40640028819_operational_resume",
+        "zero_delta_reference": (
+            "its predecessor run 40639072630's team head 741e3989, which "
+            "is 17 operational-resume commits ahead of the accepted head "
+            "7be4480e"
+        ),
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40640028819.json",
+        "content_family_expected": {
+            "n_bundles": 52,
+            "n_decisions": 5200,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "40639812991": {"alias_of": "40640028819"},
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -980,10 +1024,17 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                    "step was skipped, no gate/audit ref exists, durable delta "
                    "present, run unadjudicated")
     elif mechanism_kind == "observed_steps":
+        # The zero-delta tree is byte-identical to the PREDECESSOR's team
+        # head.  For most historical profiles that predecessor was the
+        # accepted head, but an operational-resume lineage can sit ahead of
+        # the accepted head, and a summary that says otherwise would not
+        # reproduce.  Profiles override ``zero_delta_reference``; the default
+        # keeps the original wording byte-for-byte.
+        zero_ref = p("zero_delta_reference", "the accepted head")
         summary = (f"Resumed run {resumed_id}: team job failed at 'Run lane "
                    "cycle' (jobs API observed; logs endpoint HTTP 403, so no "
                    "cause is asserted), always-run persist step published a "
-                   "tree byte-identical to the accepted head, zero durable "
+                   f"tree byte-identical to {zero_ref}, zero durable "
                    "delta, run unadjudicated")
     else:
         summary = (f"Resumed run {resumed_id}: raw run/jobs snapshot "
@@ -1413,6 +1464,7 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
     elif mechanism_kind == "observed_steps":
         orch = resumed.get("orchestration") or {}
         team = orch.get("team") or {}
+        zero_ref_c1 = p("zero_delta_reference", "the accepted product head")
         c1_claim = (
             f"Run {resumed_id}'s team job failed at "
             f"'{team.get('failed_step', 'Run lane cycle')}' "
@@ -1422,7 +1474,7 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
             "tree. The public jobs API records those step conclusions, but "
             "the job-logs endpoint returned HTTP 403 here, so no provider, "
             "auth or timeout cause is asserted. The published tree is "
-            "byte-identical to the accepted product head, so the run had "
+            f"byte-identical to {zero_ref_c1}, so the run had "
             "ZERO_DURABLE_DELTA and an audit could add nothing."
         )
         c1_artifacts = (
