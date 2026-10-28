@@ -711,6 +711,122 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    # Chain-tail registry (cycle 40718103891). These three runs are NOT
+    # dossier targets; they are the machine-classified chain the resumed
+    # snapshot must be auditable against. 40702698815's TEAM job SUCCEEDED
+    # (committed 7-file delta 876d1a82) and its AUDIT "Independent audit"
+    # step died at the 2700 s work quantum (exit 78, no gate) — the fifth
+    # audit-quantum instance and the first with a committed public raw.
+    # 40717159827 and 40717587477 are exit-1/16-17 s zero-delta team deaths
+    # (observed_steps kind: which step failed is observed; the log-level
+    # cause is UNOBSERVED and no provider mechanism is claimed — the
+    # requirement-20 provider/early-exit class, not a product defect).
+    "40702698815": {
+        "resumed_run_id": "40702698815",
+        "predecessor_run_id": "40692326715",
+        "raw": ORCH / "CYCLE_40702698815_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40702698815_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40692326715.md",
+        "current_report": None,
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 7,
+        "cycle_test": "product/tests/test_cycle_40718103891.py",
+        "state_block": "cycle_40702698815_operational_resume",
+        "zero_delta_reference": None,
+        "content_family": None,
+        "content_family_expected": None,
+    },
+    "40717159827": {
+        "resumed_run_id": "40717159827",
+        "predecessor_run_id": "40702698815",
+        "raw": ORCH / "CYCLE_40717159827_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40717159827_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40692326715.md",
+        "current_report": None,
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed_steps",
+        "delta_kind": "zero",
+        "quantum_seconds": None,
+        "exit_code": 1,
+        "changed_files": 0,
+        "cycle_test": "product/tests/test_cycle_40718103891.py",
+        "state_block": "cycle_40717159827_operational_resume",
+        "zero_delta_reference": (
+            "its predecessor run 40702698815's team head 876d1a82, which "
+            "is 25 commits ahead of the accepted head 7be4480e"
+        ),
+        "content_family": None,
+        "content_family_expected": None,
+    },
+    "40717587477": {
+        "resumed_run_id": "40717587477",
+        "predecessor_run_id": "40717159827",
+        "raw": ORCH / "CYCLE_40717587477_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40717587477_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40692326715.md",
+        "current_report": None,
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed_steps",
+        "delta_kind": "zero",
+        "quantum_seconds": None,
+        "exit_code": 1,
+        "changed_files": 0,
+        "cycle_test": "product/tests/test_cycle_40718103891.py",
+        "state_block": "cycle_40717587477_operational_resume",
+        "zero_delta_reference": (
+            "its predecessor run 40717159827's team head 876d1a82, which "
+            "is 25 commits ahead of the accepted head 7be4480e"
+        ),
+        "content_family": None,
+        "content_family_expected": None,
+    },
+    # Active cycle 40718103891: operational resume of the exit-1 zero-delta
+    # death 40717587477. The dossier's resumed-diagnosis check validates the
+    # RESUMED run's death (40717587477) exactly as observed_steps requires;
+    # this cycle's own committed delta is registered in state/report/test.
+    "40718103891": {
+        "resumed_run_id": "40717587477",
+        "predecessor_run_id": "40717159827",
+        "raw": ORCH / "CYCLE_40717587477_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40717587477_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40692326715.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40718103891.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed_steps",
+        "delta_kind": "zero",
+        "quantum_seconds": None,
+        "exit_code": 1,
+        "changed_files": 0,
+        "zero_delta_reference": (
+            "its predecessor run 40717159827's team head 876d1a82, which "
+            "is 25 commits ahead of the accepted head 7be4480e"
+        ),
+        "cycle_test": "product/tests/test_cycle_40718103891.py",
+        "state_block": "cycle_40718103891_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40718103891.json",
+        "content_family_expected": {
+            "n_bundles": 52,
+            "n_decisions": 5200,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
