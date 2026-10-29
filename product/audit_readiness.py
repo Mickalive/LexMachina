@@ -1100,6 +1100,49 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    # Active cycle 40783679367: a fresh producer re-dispatch of the completed
+    # producer snapshot after the fifth audit quantum death.  Its TEAM job was
+    # fully green and persisted a 25-file committed delta c73d9d84 over
+    # d1f2356a, but the delta is CACHE_REFRESH only (22 fetched_at-only cache
+    # envelopes + 3 upstream citation_count drifts, 0 product code/test/
+    # report/state/artifact, 0 manifest-covered); see
+    # results/product/orchestration/CYCLE_40783679367_delta_substance.json.
+    # Its AUDIT "Independent audit" step then died at the 2700 s work quantum
+    # (2705.0 s, exit 78, OBSERVED_QUANTUM_EXPIRED via public check-run
+    # annotations) before writing any gate.  This is the SIXTH audit-side
+    # quantum death on this lineage.  The product repair this cycle is the
+    # read-only delta-substance instrument, which makes cache churn
+    # mechanically distinguishable from product work.
+    "40783679367": {
+        "resumed_run_id": "40783679367",
+        "predecessor_run_id": "40772551540",
+        "raw": ORCH / "CYCLE_40783679367_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40783679367_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40772551540.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40783679367.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 25,
+        "changed_paths_include": ("results/product/query_cache/",),
+        "cycle_test": "product/tests/test_cycle_40783679367.py",
+        "state_block": "cycle_40783679367_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40783679367.json",
+        "content_family_expected": {
+            "n_bundles": 55,
+            "n_decisions": 5500,
+            "n_verified": 64,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
