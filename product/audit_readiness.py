@@ -1241,6 +1241,52 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    # Operational resume of 40803969886 by 40808627073: the resumed run's
+    # TEAM job consumed its entire 2700 s work quantum inside "Run lane
+    # cycle" (2705.0 s, exit 78, OBSERVED_QUANTUM_EXPIRED pid=2504) and its
+    # final commit (ec4e71cc) deleted the unaccepted route/dossier drafts
+    # as a fixpoint break 5 s before the cut, so the published snapshot
+    # carries the prior report/intake PASS headlines without the files.
+    # Net committed delta over the predecessor team head is 15 files
+    # (measured 4011b01d..ec4e71cc). The inherited deliverable was
+    # verified in place (state contract 0, 26 chain tests, fresh offline
+    # slice 20261029T030434Z, 60-bundle content family, smoke 23/23).
+    "40808627073": {
+        "resumed_run_id": "40803969886",
+        "predecessor_run_id": "40799296211",
+        "raw": ORCH / "CYCLE_40803969886_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40803969886_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40803969886.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40808627073.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 15,
+        "changed_paths_include": (
+            "product/tests/test_cycle_40803969886.py",
+            "reports/product/CYCLE_40803969886.md",
+            "results/product/orchestration/"
+            "CYCLE_40799296211_resume_diagnosis.json",
+            "state/product.json",
+        ),
+        "cycle_test": "product/tests/test_cycle_40808627073.py",
+        "state_block": "cycle_40808627073_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40808627073.json",
+        "content_family_expected": {
+            "n_bundles": 60,
+            "n_decisions": 6000,
+            "n_verified": 73,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original

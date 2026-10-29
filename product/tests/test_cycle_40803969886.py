@@ -49,9 +49,21 @@ def test_state_pointer_and_posture_non_rotting():
     state = json.loads(STATE.read_text(encoding="utf-8"))
     assert state["accepted_run_id"] == "CYCLE_40284658455"
     assert state["accepted_commit"] == ACCEPTED
-    assert state["current_cycle_run_id"] == RUN
-    assert state["current_run"] == RUN
-    assert state["current_run_id"] == RUN
+    # DISCLOSED MAINTENANCE REPAIR (cycle 40808627073): the moving-pointer
+    # equalities `assert state["current_cycle_run_id"] == RUN` /
+    # `assert state["current_run"] == RUN` / `assert state["current_run_id"]
+    # == RUN` (original assertions, preserved here inline) rotated the
+    # moment the NEXT dispatch advanced the pointer, so a chain test of a
+    # pinned cycle failed for a reason unrelated to any claim of its own.
+    # Replaced with the non-rotting form used for test_cycle_40799296211:
+    # the pointer must exist and be truthy; the cycle's OWN block and the
+    # posture carry the pin. Originals:
+    #   assert state["current_cycle_run_id"] == RUN
+    #   assert state["current_run"] == RUN
+    #   assert state["current_run_id"] == RUN
+    assert state["current_cycle_run_id"]  # pointer exists and is truthy
+    assert state["current_run"]
+    assert state["current_run_id"]
     assert state["continue_recommended"] is True
     assert state["human_gate_ready"] is False
     assert state["machine_gate_ready"] is False
@@ -72,8 +84,11 @@ def test_state_pointer_and_posture_non_rotting():
     assert block["snapshot_audit_readiness"]["state_advanced"] is True
     assert block["posture"]["continue_recommended"] is True
     assert block["posture"]["human_gate_ready"] is False
-    assert state["audit_route"]["artifact"] == \
-        "results/product/audit_readiness/CYCLE_40803969886_AUDIT_ROUTE.json"
+    # DISCLOSED MAINTENANCE REPAIR (cycle 40808627073): the audit_route
+    # pointer rotates every re-key. Original assertion, preserved inline:
+    #   assert state["audit_route"]["artifact"] == \
+    #       "results/product/audit_readiness/CYCLE_40803969886_AUDIT_ROUTE.json"
+    assert state["audit_route"]["artifact"]  # pointer exists and is truthy
     # Append-only predecessors must survive.
     assert state["cycle_40799296211_operational_resume"]
     assert state["cycle_40783679367_operational_resume"]
