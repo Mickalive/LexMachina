@@ -386,3 +386,38 @@ def test_fixture_mode_offline_slice_downgrades_the_known_letterhead_row():
     assert len(bundle["decisions"]) == 100
     assert all(d.get("cluster_id") is not None for d in bundle["decisions"])
     assert all(d.get("canonical_url") for d in bundle["decisions"])
+
+
+# --------------------------------------------------------------------------- #
+# 5. no content-level "court word" supplement (repair of cycle 40832905362)
+# --------------------------------------------------------------------------- #
+
+def test_substantive_quote_mentioning_the_court_is_not_falsely_rejected():
+    """A filter may not invent a defect class beyond the frozen D1-D4 set.
+
+    Cycle 40832905362 briefly added a token heuristic that treated any evidence
+    containing a letterhead-ish substring (``gericht``, ``court``, ``tribunal``,
+    ``bge`` ...) as D2 regardless of offset.  That both duplicated the frozen
+    offset-based D2 class (the predicate returned the same defect twice) and
+    would falsely reject ordinary substantive sentences that merely discuss the
+    court.  This test pins the closed predicate set on the exact shape that
+    heuristic mis-scored.
+    """
+    quote = ("Das Gericht hat erwogen, dass die Kundigung des Mietvertrags "
+             "nach Art. 271 OR unwirksam ist und die Mieterin nicht zum "
+             "Ausziehen verpflichtet werden kann.")
+    row = {
+        "decision_id": "SYN_SUBSTANTIVE_COURT_WORD",
+        "language": "de",
+        "snippet": "",
+        "regeste": "",
+        # grounded in full_text well outside the frozen letterhead zone
+        "full_text": ("Pad. " * 200) + quote + " Fortsetzung des Urteils.",
+    }
+    assert ces.ground_evidence(quote, row)[1] >= ces.LETTERHEAD_ZONE_OFFSET_MAX
+    assert ces.frozen_content_defects(quote, row) == []
+    assert ces.passes_content_filter(quote, row) == (True, "")
+    # the same sentence grounded at offset 0 is still the frozen D2 defect,
+    # exactly once (the old supplement made it fire twice)
+    head_row = dict(row, full_text=quote + " " + ("Pad. " * 200))
+    assert ces.frozen_content_defects(quote, head_row) == ["D2_letterhead_zone"]

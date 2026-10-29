@@ -1367,6 +1367,58 @@ PROFILES: dict[str, dict[str, Any]] = {
             ORCH / "CYCLE_40814271020_resume_diagnosis.json",
         ),
     },
+    # Active cycle 40840720468: operational resume of run 40832905362.  The
+    # resumed TEAM job was fully green and persisted a one-file delta
+    # (product/query/counter_evidence_span.py) adding an over-broad
+    # _LEADHEAD_INDICATORS token supplement inside frozen_content_defects.
+    # That supplement duplicated the frozen offset-based D2 class and would
+    # falsely reject substantive evidence that merely discusses the court.
+    # Its AUDIT "Independent audit" step then died at the 2700 s work quantum
+    # (2705.0 s, exit 78, OBSERVED_QUANTUM_EXPIRED via public check-run
+    # annotations) before writing any gate, so the run remains UNADJUDICATED.
+    # This cycle removes the supplement, adds the anti-regression test and
+    # re-verifies the inherited 7393042a P0 fix (content rejection applied
+    # regardless of span-record presence) over the committed family.
+    "40840720468": {
+        "resumed_run_id": "40832905362",
+        "predecessor_run_id": "40828117614",
+        "raw": ORCH / "CYCLE_40832905362_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40832905362_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40823586491.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40840720468.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 1,
+        "changed_paths_include": (
+            "product/query/counter_evidence_span.py",
+        ),
+        "cycle_test": "product/tests/test_cycle_40840720468.py",
+        "state_block": "cycle_40840720468_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40840720468.json",
+        "content_family_expected": {
+            "n_bundles": 63,
+            "n_decisions": 6300,
+            "n_verified": 82,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "extra_claim_artifacts": (
+            ORCH / "CYCLE_40828117614_run_jobs_raw.json",
+            ORCH / "CYCLE_40828117614_audit_step_diagnosis.json",
+            ORCH / "CYCLE_40828117614_delta_substance.json",
+            ORCH / "CYCLE_40832905362_run_jobs_raw.json",
+            ORCH / "CYCLE_40832905362_audit_step_diagnosis.json",
+            ORCH / "CYCLE_40832905362_delta_substance.json",
+        ),
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
