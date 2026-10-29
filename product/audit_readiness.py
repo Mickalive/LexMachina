@@ -1419,6 +1419,69 @@ PROFILES: dict[str, dict[str, Any]] = {
             ORCH / "CYCLE_40832905362_delta_substance.json",
         ),
     },
+    # Active cycle 40858799166: operational resume of the persisted snapshot
+    # of run 40858206250.  That run was a re-dispatch after its predecessor
+    # 40850096631's AUDIT job died at the 2700 s work quantum; the producer
+    # found nothing to add to the already audit-ready snapshot, so HEAD stayed
+    # at 50591be7 with an empty working tree and the workflow's own rc-67
+    # guard fired (public annotations "Process completed with exit code 67."
+    # + "LEX_ZERO_DELTA_REPAIR").  Per factory requirement 10 that signature
+    # means "the producer found nothing to do", NOT a product defect and NOT
+    # a verdict; state validation/write scope and the audit job were skipped,
+    # the persist step republished the identical tree, and the run is
+    # UNADJUDICATED with no gate.
+    #
+    # The inherited 50591be7 snapshot did contain one substantive defect: its
+    # stage-2 surface abstention branch set counter_evidence_verified=False
+    # UNCONDITIONALLY, so a content-sound confirmed incumbent would have been
+    # falsely rejected whenever its span record was absent.  This cycle scopes
+    # that leg to DEFECTIVE incumbent evidence (mirroring stage 1), sweeps any
+    # uniterated defective rows, and pins the behaviour in
+    # product/tests/test_counter_incumbent_rejection_v68.py.  Measured on the
+    # four flagship legs the old unconditional write flipped zero rows, so the
+    # repair changes no published count; it removes an over-broad rule.
+    "40858799166": {
+        "resumed_run_id": "40858206250",
+        "predecessor_run_id": "40850096631",
+        "raw": ORCH / "CYCLE_40858206250_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40858206250_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40840720468.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40858799166.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed_zero_delta_guard",
+        "delta_kind": "zero",
+        "quantum_seconds": None,
+        "exit_code": 67,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_40858799166.py",
+        "state_block": "cycle_40858799166_operational_resume",
+        "zero_delta_reference": (
+            "its predecessor run 40850096631's team head 50591be7, which is "
+            "the same unadjudicated snapshot that run inherited"
+        ),
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40858799166.json",
+        "content_family_expected": {
+            "n_bundles": 67,
+            "n_decisions": 6700,
+            "n_verified": 91,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "extra_claim_artifacts": (
+            ORCH / "CYCLE_40850096631_run_jobs_raw.json",
+            ORCH / "CYCLE_40850096631_audit_step_diagnosis.json",
+            ORCH / "CYCLE_40850096631_delta_substance.json",
+            ORCH / "CYCLE_40858206250_run_jobs_raw.json",
+            ORCH / "CYCLE_40858206250_audit_step_diagnosis.json",
+            ORCH / "CYCLE_40858206250_delta_substance.json",
+        ),
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
