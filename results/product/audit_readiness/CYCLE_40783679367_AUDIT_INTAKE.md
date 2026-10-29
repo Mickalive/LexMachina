@@ -8,7 +8,7 @@ Machine-readable target:
  "audit_target_head": "c73d9d848018e56d2d2ec3a5d53f9791688ae376",
  "audit_target_head_source": "team_ref",
  "team_ref_present": true,
- "local_head_at_generation": "c73d9d848018e56d2d2ec3a5d53f9791688ae376",
+ "local_head_at_generation": "49978ad73c86fc434ef6be66676c74a260963a20",
  "accepted_ref": "origin/lab/product",
  "accepted_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
  "state_accepted_commit": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
@@ -61,6 +61,6 @@ The vertical slice stays complete and locally runnable; both DO-NOT-SERVE
 orders stand; no owner session is staged while either frozen bar is unmet.
 COMMITTED MEASUREMENTS (already run by the producer):
 
-- route results/product/audit_readiness/CYCLE_40783679367_AUDIT_ROUTE.json: status=PASS total=98.777s budget_fraction=0.0366 failed_steps=[]
+- route results/product/audit_readiness/CYCLE_40783679367_AUDIT_ROUTE.json: status=PASS total=98.241s budget_fraction=0.0364 failed_steps=[]
 - route workspace: mount=/tmp/lex_team root_is_producer_mount=False instrument_root=/home/runner/work/LexMachina/LexMachina (generated on the producer's CI checkout; a rerun from cd /tmp/lex_team && … reports root_is_producer_mount=True)
 - dossier results/product/audit_readiness/CYCLE_40783679367_audit_readiness.json: status=PASS n_checked=9 failed_checks=[] skipped_checks=[]
