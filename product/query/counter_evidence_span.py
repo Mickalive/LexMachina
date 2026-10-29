@@ -820,9 +820,11 @@ def _content_rejection_sweep(out: dict) -> list[dict[str, Any]]:
     for d in out.get("decisions") or []:
         if d.get("counter_evidence_verified") is not True:
             continue
-        if d.get("counter_evidence_span"):
-            continue  # handled by the span-selection loop above
         ev = str(d.get("counter_evidence") or "")
+        # Content filter applies regardless of whether a counter_evidence_span
+        # record exists: the span-selection loop may have abstained or the row
+        # may not have been iterated by _iter_candidates.  Defective incumbent
+        # counter evidence must not remain verified (direction v68 P0).
         ok, cf_reason = passes_content_filter(ev, d)
         if ok:
             continue
