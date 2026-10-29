@@ -1194,6 +1194,53 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    # Active cycle 40803969886: operational resume of run 40799296211.
+    # The resumed run's TEAM job consumed its entire 2700 s agent work
+    # quantum inside "Run lane cycle" (2704.0 s, exit 78,
+    # OBSERVED_QUANTUM_EXPIRED via public annotations, pid 2513); MVP-state
+    # validation and write scope were skipped but the always-run persist step
+    # published the complete committed snapshot at 4011b01d, and the audit
+    # job never ran.  This is a TEAM-side quantum death (the series now
+    # alternates: 40791850481 died audit-side, 40799296211 team-side).  The
+    # inherited deliverable was verified in place (state contract, prior
+    # cycle test 13/13, audit-route verify, fresh offline slice, 58-bundle
+    # content family, progressive smoke) rather than restarted.
+    "40803969886": {
+        "resumed_run_id": "40799296211",
+        "predecessor_run_id": "40791850481",
+        "raw": ORCH / "CYCLE_40799296211_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40799296211_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40799296211.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40803969886.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 18,
+        "changed_paths_include": (
+            "product/tests/test_cycle_40799296211.py",
+            "reports/product/CYCLE_40799296211.md",
+            "results/product/orchestration/"
+            "CYCLE_40791850481_resume_diagnosis.json",
+            "state/product.json",
+        ),
+        "cycle_test": "product/tests/test_cycle_40803969886.py",
+        "state_block": "cycle_40803969886_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40803969886.json",
+        "content_family_expected": {
+            "n_bundles": 59,
+            "n_decisions": 5900,
+            "n_verified": 70,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
