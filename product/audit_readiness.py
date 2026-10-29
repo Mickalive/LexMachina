@@ -1482,6 +1482,61 @@ PROFILES: dict[str, dict[str, Any]] = {
             ORCH / "CYCLE_40858206250_delta_substance.json",
         ),
     },
+    # Active cycle 40863791646: operational resume of the persisted snapshot
+    # of run 40858799166.  That run's lane-cycle agent step wrote a durable
+    # 27-file delta at 0023cfa9, then the agent process exited 1 after
+    # 2164.0 s.  The public check-run annotations carry the workflow
+    # wrapper's own provider/network sentinels (LEX_NETWORK_STALL,
+    # LEX_MODEL_AUTH_FAILURE quarantining big-pickle, LEX_MODEL_ROTATE to
+    # beam-free) and the always-run persist step committed the written tree
+    # even though state validation and write scope were skipped.  This is a
+    # provider/network-class agent death AFTER the work was written: not a
+    # product defect, not a work-quantum expiry and not a verdict.  No audit
+    # ref and no gate exist, so 40858799166 remains UNADJUDICATED; this
+    # resume re-verifies the snapshot and re-keys the audit-readiness surface
+    # to 40863791646.
+    "40863791646": {
+        "resumed_run_id": "40858799166",
+        "predecessor_run_id": "40858206250",
+        "raw": ORCH / "CYCLE_40858799166_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40858799166_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40858799166.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40863791646.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed_provider_network",
+        "delta_kind": "committed",
+        "quantum_seconds": None,
+        "exit_code": 1,
+        "changed_files": 27,
+        "changed_paths_include": (
+            "product/query/counter_evidence_span.py",
+            "product/tests/test_counter_incumbent_rejection_v68.py",
+            "reports/product/CYCLE_40858799166.md",
+        ),
+        "cycle_test": "product/tests/test_cycle_40863791646.py",
+        "state_block": "cycle_40863791646_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40863791646.json",
+        "content_family_expected": {
+            "n_bundles": 67,
+            "n_decisions": 6700,
+            "n_verified": 91,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "extra_claim_artifacts": (
+            ORCH / "CYCLE_40858799166_run_jobs_raw.json",
+            ORCH / "CYCLE_40858799166_audit_step_diagnosis.json",
+            ORCH / "CYCLE_40858799166_delta_substance.json",
+            ORCH / "CYCLE_40858799166_resume_diagnosis.json",
+            ORCH / "CYCLE_40858206250_resume_diagnosis.json",
+            ORCH / "CYCLE_40850096631_audit_step_diagnosis.json",
+        ),
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
