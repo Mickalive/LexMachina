@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pins the operational resume of run 40791850481.
+"""Pins the operational resume of run 40791850481 by run 40799296211.
 
 Run 40791850481 was repair round 0 of the unadjudicated cycle 40783679367.
 Its TEAM job was fully green and its own delta over the repair base
@@ -9,11 +9,11 @@ prior run).  Its AUDIT "Independent audit" step then died at the 2700 s work
 quantum (2705.0 s, exit 78, ``OBSERVED_QUANTUM_EXPIRED`` via public
 check-run annotations) before writing any gate.
 
-The validation defect this cycle repairs is run-id addressability: the
-snapshot labelled every artifact with the repaired cycle id ``40783679367``
-while the workflow refs are keyed by ``40791850481``, so ``audit_route.py
---run-id 40791850481`` named a report and a dossier that did not exist.  This
-module pins the diagnosis, the repair and the new self-label guard.
+The validation defect this cycle repairs is run-id addressability.  The
+resumed snapshot labelled every artifact with the repaired cycle id
+``40783679367`` while the audit job for run ``40799296211`` is keyed by the
+current dispatching run id, so the current run writes its own report, test
+dossier, route and intake and points the diagnosis at the resumed run.
 """
 from __future__ import annotations
 
@@ -26,16 +26,17 @@ ROOT = Path(__file__).resolve().parents[2]
 STATE = ROOT / "state" / "product.json"
 ORCH = ROOT / "results" / "product" / "orchestration"
 AR = ROOT / "results" / "product" / "audit_readiness"
-REPORT = ROOT / "reports" / "product" / "CYCLE_40791850481.md"
+REPORT = ROOT / "reports" / "product" / "CYCLE_40799296211.md"
 PREV_REPORT = ROOT / "reports" / "product" / "CYCLE_40783679367.md"
 DIAG = ORCH / "CYCLE_40791850481_resume_diagnosis.json"
 RAW = ORCH / "CYCLE_40791850481_run_jobs_raw.json"
-DELTA = ORCH / "CYCLE_40791850481_delta_substance.json"
-DOSSIER = AR / "CYCLE_40791850481_audit_readiness.json"
-ROUTE = AR / "CYCLE_40791850481_AUDIT_ROUTE.json"
-INTAKE = AR / "CYCLE_40791850481_AUDIT_INTAKE.md"
+RESUMED_DELTA = ORCH / "CYCLE_40791850481_delta_substance.json"
+DELTA = ORCH / "CYCLE_40799296211_delta_substance.json"
+DOSSIER = AR / "CYCLE_40799296211_audit_readiness.json"
+ROUTE = AR / "CYCLE_40799296211_AUDIT_ROUTE.json"
+INTAKE = AR / "CYCLE_40799296211_AUDIT_INTAKE.md"
 CONTENT_FAMILY = (ROOT / "results" / "product" / "counter_content_family"
-                  / "CYCLE_40791850481.json")
+                  / "CYCLE_40799296211.json")
 RENT = (ROOT / "results" / "product" / "offline_slice"
         / "20261029T012410Z" / "rent-default.bundle.json")
 BIZ = (ROOT / "results" / "product" / "offline_slice"
@@ -43,7 +44,8 @@ BIZ = (ROOT / "results" / "product" / "offline_slice"
 ACCEPTED = "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83"
 SNAPSHOT = "7af0eb1bdcff8a7234e935db8035436466450b5c"
 BASE = "c73d9d848018e56d2d2ec3a5d53f9791688ae376"
-RUN = "40791850481"
+RUN = "40799296211"
+RESUME = "40791850481"
 
 
 def test_state_pointer_and_posture_non_rotting():
@@ -51,7 +53,7 @@ def test_state_pointer_and_posture_non_rotting():
     assert state["accepted_run_id"] == "CYCLE_40284658455"
     assert state["accepted_commit"] == ACCEPTED
     assert state["current_run"]
-    assert state["cycle_40791850481_operational_resume"]
+    assert state["cycle_40799296211_operational_resume"]
     assert state["current_cycle_run_id"] == RUN
     assert state["current_run"] == RUN
     assert state["continue_recommended"] is True
@@ -61,8 +63,8 @@ def test_state_pointer_and_posture_non_rotting():
     assert state["packet_admitted"] is False
     assert state["owner_decision_required"] is False
     assert state["direction_version"] == 68
-    block = state["cycle_40791850481_operational_resume"]
-    assert block["resumed_run_id"] == "40783679367"
+    block = state["cycle_40799296211_operational_resume"]
+    assert block["resumed_run_id"] == RESUME
     assert block["diagnosis_of_resumed"] == \
         "results/product/orchestration/CYCLE_40791850481_resume_diagnosis.json"
     assert block["resumed_failure"]["classification"] == \
@@ -74,7 +76,7 @@ def test_state_pointer_and_posture_non_rotting():
     assert block["validation_defect"]["product_defect"] is False
     assert block["snapshot_audit_readiness"]["state_advanced"] is True
     assert state["audit_route"]["artifact"] == \
-        "results/product/audit_readiness/CYCLE_40791850481_AUDIT_ROUTE.json"
+        "results/product/audit_readiness/CYCLE_40799296211_AUDIT_ROUTE.json"
     # The repaired cycle's append-only block must survive.
     assert state["cycle_40783679367_operational_resume"]
 
@@ -85,13 +87,13 @@ def test_run_history_entry_and_append_only_predecessor():
     cur = hist[RUN]
     assert cur["status"] == \
         "AUDIT_JOB_QUANTUM_DEATH_SUBSTANTIVE_DELTA_LABEL_REPAIRED_UNADJUDICATED"
-    assert cur["resumed_run"] == "40783679367"
+    assert cur["resumed_run"] == RESUME
     assert cur["accepted"] is False
     assert cur["accepted_commit"] == ACCEPTED
     assert cur["report_of_record"] == \
-        "reports/product/CYCLE_40791850481.md"
+        "reports/product/CYCLE_40799296211.md"
     assert cur["cycle_test"] == \
-        "product/tests/test_cycle_40791850481.py"
+        "product/tests/test_cycle_40799296211.py"
     assert cur["team_job"].startswith("SUCCESS")
     assert "17-file" in cur["team_job"]
     assert "2705.0 s" in cur["audit_job"]
@@ -101,7 +103,7 @@ def test_run_history_entry_and_append_only_predecessor():
 
 def test_diagnosed_audit_quantum_death():
     diag = json.loads(DIAG.read_text(encoding="utf-8"))
-    assert diag["run_id"] == RUN
+    assert diag["run_id"] == RESUME
     assert diag["predecessor_run_id"] == "40783679367"
     orch = diag["orchestration"]
     assert orch["classification"] == \
@@ -136,7 +138,7 @@ def test_diagnosed_audit_quantum_death():
 
 def test_raw_snapshot_is_the_committed_public_record():
     raw = json.loads(RAW.read_text(encoding="utf-8"))
-    assert raw["run"]["id"] == int(RUN)
+    assert raw["run"]["id"] == int(RESUME)
     team = next(j for j in raw["jobs"] if j["name"] == "team")
     assert team["conclusion"] == "success"
     audit = next(j for j in raw["jobs"] if j["name"] == "audit")
@@ -151,9 +153,9 @@ def test_raw_snapshot_is_the_committed_public_record():
     assert any("exit code 78" in m for m in msgs)
 
 
-def test_delta_substance_artifact_is_this_runs_own_delta():
-    doc = json.loads(DELTA.read_text(encoding="utf-8"))
-    assert doc["run_id"] == RUN
+def test_resumed_runs_delta_substance_artifact():
+    doc = json.loads(RESUMED_DELTA.read_text(encoding="utf-8"))
+    assert doc["run_id"] == RESUME
     assert doc["head"]["sha"] == SNAPSHOT
     assert doc["base"]["sha"] == BASE
     assert doc["changed_files"] == 17
@@ -169,7 +171,7 @@ def test_profile_registered_and_cross_validated():
     from product.audit_readiness import PROFILES, select_profile
     assert RUN in PROFILES
     prof = select_profile(RUN)
-    assert prof["resumed_run_id"] == RUN
+    assert prof["resumed_run_id"] == RESUME
     assert prof["predecessor_run_id"] == "40783679367"
     assert prof["failed_job"] == "audit"
     assert prof["mechanism_kind"] == "observed"
@@ -177,7 +179,7 @@ def test_profile_registered_and_cross_validated():
     assert prof["changed_files"] == 17
     assert prof["exit_code"] == 78
     assert prof["quantum_seconds"] == 2700
-    assert prof["state_block"] == "cycle_40791850481_operational_resume"
+    assert prof["state_block"] == "cycle_40799296211_operational_resume"
 
 
 def test_self_label_guard_blocks_an_unaddressable_run():
@@ -202,13 +204,13 @@ def test_self_label_guard_blocks_an_unaddressable_run():
     assert "SNAPSHOT SELF-LABEL GUARD" in brief
     assert "ABSENT" in brief
     assert aligned["artifact_paths"]["report"] == \
-        "reports/product/CYCLE_40791850481.md"
+        "reports/product/CYCLE_40799296211.md"
 
 
 def test_report_and_claims_match_the_committed_artifacts():
     assert REPORT.is_file()
     text = " ".join(REPORT.read_text(encoding="utf-8").split())
-    for needle in (RUN, "40783679367", SNAPSHOT[:8], BASE[:8], ACCEPTED[:8],
+    for needle in (RUN, RESUME, "40783679367", SNAPSHOT[:8], BASE[:8], ACCEPTED[:8],
                    "2705.0 s", "exit code 78", "LEX_WORK_QUANTUM_EXPIRED",
                    "pid=2495", "17 files", "SUBSTANTIVE", "UNADJUDICATED",
                    "self_label_status", "ABSENT", "PASS",

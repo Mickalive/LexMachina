@@ -1143,8 +1143,9 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
-    # Active cycle 40791850481: repair round 0 of the unadjudicated cycle
-    # 40783679367.  The TEAM job was fully green and its own delta over the
+    # Active cycle 40799296211: operational resume of run 40791850481
+    # (itself repair round 0 of the unadjudicated cycle 40783679367).  The
+    # resumed TEAM job was fully green and its own delta over the
     # repair base c73d9d84 is SUBSTANTIVE (17 files: audit_route/delta
     # instrument, two test modules, report, dossier/route/intake, two offline
     # slice bundles, the 58-bundle content family, raw/diagnosis and state) --
@@ -1154,10 +1155,10 @@ PROFILES: dict[str, dict[str, Any]] = {
     # exit 78, OBSERVED_QUANTUM_EXPIRED via public check-run annotations)
     # before writing any gate.  Validation defect repaired by this resume: the
     # snapshot labelled every artifact with the repaired cycle id 40783679367,
-    # so `audit_route.py --run-id 40791850481` named files that did not exist;
-    # this profile plus the new state block/report/cycle test/artifacts make
-    # the snapshot addressable by its own run id.
-    "40791850481": {
+    # so `audit_route.py` keyed to the dispatching run id named files that
+    # did not exist.  The CURRENT run is 40799296211; this profile keys the
+    # dossier to that id while keeping the resumed run as 40791850481.
+    "40799296211": {
         "resumed_run_id": "40791850481",
         "predecessor_run_id": "40783679367",
         "raw": ORCH / "CYCLE_40791850481_run_jobs_raw.json",
@@ -1165,7 +1166,7 @@ PROFILES: dict[str, dict[str, Any]] = {
         "inherited_report": ROOT / "reports" / "product"
                             / "CYCLE_40783679367.md",
         "current_report": ROOT / "reports" / "product"
-                          / "CYCLE_40791850481.md",
+                          / "CYCLE_40799296211.md",
         "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
         "failed_job": "audit",
         "mechanism_kind": "observed",
@@ -1180,11 +1181,11 @@ PROFILES: dict[str, dict[str, Any]] = {
             "CYCLE_40783679367_resume_diagnosis.json",
             "state/product.json",
         ),
-        "cycle_test": "product/tests/test_cycle_40791850481.py",
-        "state_block": "cycle_40791850481_operational_resume",
+        "cycle_test": "product/tests/test_cycle_40799296211.py",
+        "state_block": "cycle_40799296211_operational_resume",
         "content_family": ROOT / "results" / "product"
                           / "counter_content_family"
-                          / "CYCLE_40791850481.json",
+                          / "CYCLE_40799296211.json",
         "content_family_expected": {
             "n_bundles": 58,
             "n_decisions": 5800,
