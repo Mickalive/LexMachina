@@ -1329,6 +1329,44 @@ PROFILES: dict[str, dict[str, Any]] = {
             ORCH / "CYCLE_40820694435_audit_step_diagnosis.json",
         ),
     },
+    "40823586491": {
+        "resumed_run_id": "40820909501",
+        "predecessor_run_id": "40820694435",
+        "raw": ORCH / "CYCLE_40820909501_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40820909501_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40820909501.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40823586491.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed_provider_network",
+        "delta_kind": "committed",
+        "quantum_seconds": None,
+        "exit_code": 1,
+        "changed_files": 19,
+        "changed_paths_include": ("reports/product/CYCLE_40820909501.md",),
+        "cycle_test": "product/tests/test_cycle_40823586491.py",
+        "state_block": "cycle_40823586491_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40823586491.json",
+        "content_family_expected": {
+            "n_bundles": 61,
+            "n_decisions": 6100,
+            "n_verified": 76,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "extra_claim_artifacts": (
+            ORCH / "CYCLE_40820909501_run_jobs_raw.json",
+            ORCH / "CYCLE_40820909501_audit_step_diagnosis.json",
+            ORCH / "CYCLE_40820909501_delta_substance.json",
+            ORCH / "CYCLE_40820694435_resume_diagnosis.json",
+            ORCH / "CYCLE_40820694435_audit_step_diagnosis.json",
+            ORCH / "CYCLE_40814271020_resume_diagnosis.json",
+        ),
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -1752,6 +1790,70 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                 problems.append("raw_persist_step_not_success")
         else:
             problems.append("raw_snapshot_missing")
+    elif mechanism_kind == "observed_provider_network":
+        # Eighth real failure mode, observed on run 40820909501: the lane-cycle
+        # agent step ran 1534 s, wrote the durable deliverable into the tree,
+        # and then exited 1.  The public check-run annotations carry the
+        # workflow wrapper's own provider/network sentinels during that step
+        # (LEX_MODEL_AUTH_FAILURE quarantining big-pickle, LEX_MODEL_ROTATE to
+        # beam-free, LEX_NETWORK_STALL).  The always-run persist step then
+        # committed the written tree with the generic message even though
+        # state validation and write scope were skipped.  This is an OBSERVED
+        # provider/network-class agent death AFTER the durable work was
+        # written — not a product defect and not a work-quantum expiry.
+        mechanism = orch.get("mechanism") or {}
+        team = orch.get("team") or {}
+        exit_code = p("exit_code", 1)
+        if (mechanism.get("status")
+                != "OBSERVED_PROVIDER_NETWORK_ANNOTATIONS"):
+            problems.append("mechanism_status")
+        if mechanism.get("logs_available") is not False:
+            problems.append("logs_available")
+        if mechanism.get("logs_endpoint_status") != 403:
+            problems.append("logs_endpoint_status")
+        if mechanism.get("quantum_expired") is not False:
+            problems.append("quantum_expired")
+        if mechanism.get("exit_code") != exit_code:
+            problems.append("exit_code")
+        if not mechanism.get("provider_network_annotations"):
+            problems.append("provider_network_annotations_empty")
+        if team.get("failed_step") != "Run lane cycle":
+            problems.append("failed_step")
+        if team.get("team_snapshot_persisted") is not True:
+            problems.append("team_snapshot_persisted")
+        if team.get("team_snapshot_persisted_after_failed_team_job") is not True:
+            problems.append("team_snapshot_persisted_after_failure")
+        if team.get("producer_state_validation_step_conclusion") != "skipped":
+            problems.append("producer_state_validation")
+        if (orch.get("audit") or {}).get("conclusion") != "skipped":
+            problems.append("audit_not_skipped")
+        if (orch.get("audit") or {}).get("gate_file_written") is not False:
+            problems.append("gate_file_written")
+        # Cross-check the raw snapshot: the step facts AND the provider/network
+        # annotation sentinels must be present, so a future UNOBSERVED
+        # reclassification cannot pass.
+        if raw is not None and raw.is_file():
+            raw_doc = _load(raw)
+            raw_team = next((j for j in raw_doc.get("jobs") or []
+                             if j.get("name") == "team"), None)
+            steps = {s.get("name"): s.get("conclusion")
+                     for s in (raw_team or {}).get("steps") or []}
+            if steps.get("Run lane cycle") != "failure":
+                problems.append("raw_lane_cycle_not_failure")
+            if steps.get("Persist team snapshot") != "success":
+                problems.append("raw_persist_step_not_success")
+            anns = ((raw_doc.get("annotations") or {})
+                    .get(str((raw_team or {}).get("id"))) or [])
+            messages = " ".join(str(a.get("message") or "")
+                                for a in anns if isinstance(a, dict))
+            for sentinel in ("LEX_MODEL_AUTH_FAILURE", "LEX_MODEL_ROTATE",
+                             "LEX_NETWORK_STALL"):
+                if sentinel not in messages:
+                    problems.append(f"raw_annotation_missing:{sentinel}")
+            if f"exit code {exit_code}" not in messages.lower():
+                problems.append("raw_exit_annotation_missing")
+        else:
+            problems.append("raw_snapshot_missing")
     elif mechanism_kind == "observed_zero_delta_guard":
         # Seventh real failure mode, observed on run 40747546909: the lane
         # re-dispatched a PRODUCER repair round straight after run
@@ -1875,6 +1977,14 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                    "nothing to do — dispatch-routing fact, not a defect); "
                    "team ref carries zero durable delta over its "
                    "predecessor, run unadjudicated")
+    elif mechanism_kind == "observed_provider_network":
+        summary = (f"Resumed run {resumed_id}: provider/network-class agent "
+                   "death observed via public annotations "
+                   "(LEX_MODEL_AUTH_FAILURE / LEX_MODEL_ROTATE / "
+                   "LEX_NETWORK_STALL) after the durable work was written; "
+                   "always-run persist step committed the tree, state "
+                   "validation and write scope skipped, no gate, run "
+                   "unadjudicated")
     else:
         summary = (f"Resumed run {resumed_id}: raw run/jobs snapshot "
                    "unavailable (mechanism unobserved), team ref carries zero "

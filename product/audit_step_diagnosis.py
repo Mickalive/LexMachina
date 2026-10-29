@@ -41,6 +41,17 @@ AUDIT_STEP = "Independent audit"
 SCOPE_VIOLATION_RE = re.compile(r"auditor crossed scope", re.IGNORECASE)
 QUANTUM_RE = re.compile(r"LEX_WORK_QUANTUM_EXPIRED\s+seconds=(\d+)")
 EXIT_CODE_RE = re.compile(r"exit code\s+(\d+)", re.IGNORECASE)
+# The workflow's own agent wrapper announces provider/network trouble with
+# these public annotation sentinels (observed on run 40820909501: a model
+# auth failure that quarantined big-pickle, a model rotation to beam-free,
+# and a LEX_NETWORK_STALL, immediately before the agent step exited 1 after
+# the durable work had already been written to the tree).  They are evidence
+# of a provider/network-class death — NOT of a product defect and NOT of a
+# work-quantum expiry — and are classified as OBSERVED rather than UNOBSERVED.
+PROVIDER_NETWORK_MARKER_RE = re.compile(
+    r"LEX_MODEL_AUTH_FAILURE|LEX_MODEL_ROTATE|LEX_NETWORK_STALL"
+    r"|LEX_MODEL_QUARANTINE|LEX_PROVIDER"
+)
 
 
 def _step(job: dict, name: str) -> dict | None:
@@ -102,6 +113,7 @@ def _failure_annotations(snapshot: dict, team: dict, audit: dict,
     quantum_seconds = None
     exit_code = None
     quantum_message = None
+    provider_network_messages = []
     for message in messages:
         m = QUANTUM_RE.search(message)
         if m:
@@ -110,6 +122,8 @@ def _failure_annotations(snapshot: dict, team: dict, audit: dict,
         e = EXIT_CODE_RE.search(message)
         if e and exit_code is None:
             exit_code = int(e.group(1))
+        if PROVIDER_NETWORK_MARKER_RE.search(message):
+            provider_network_messages.append(message.strip())
     return {
         "source": (
             "github_actions_check_run_annotations" if messages else "none"
@@ -120,6 +134,7 @@ def _failure_annotations(snapshot: dict, team: dict, audit: dict,
         "quantum_expired": quantum_seconds is not None,
         "quantum_seconds": quantum_seconds,
         "quantum_message": quantum_message,
+        "provider_network_annotations": provider_network_messages,
         "messages": messages,
     }
 
@@ -264,6 +279,39 @@ def classify(snapshot: dict) -> dict:
             "to do' — an orchestration/dispatch fact, NOT a product defect "
             "and NOT a verdict. No provider, auth, timeout or work-quantum "
             "mechanism is asserted."
+        )
+    elif (not quantum_expired and not zero_delta_guard
+          and annotations.get("provider_network_annotations")):
+        # Observed on run 40820909501: the agent step ran 1534 s, wrote the
+        # durable deliverable into the tree, and then exited 1.  The public
+        # annotations carry the wrapper's own provider/network sentinels
+        # (LEX_MODEL_AUTH_FAILURE quarantining big-pickle, LEX_MODEL_ROTATE
+        # to beam-free, LEX_NETWORK_STALL).  The always-run persist step then
+        # committed the written tree with the generic message.  Classifying
+        # this OBSERVED (not UNOBSERVED) is what lets the resume chain state
+        # "the deliverable was written and the death was provider/network
+        # class" as evidence rather than narrative.  No work-quantum expiry
+        # and no product defect is claimed.
+        mechanism_status = "OBSERVED_PROVIDER_NETWORK_ANNOTATIONS"
+        provider_msgs = annotations.get("provider_network_annotations") or []
+        mechanism_claim = (
+            "The lane-cycle agent process exited non-zero with exit code "
+            f"{annotations.get('exit_code')} after "
+            f"{(failed_team_step or {}).get('started_at')} and before "
+            f"{(failed_team_step or {}).get('completed_at')}. The public "
+            "check-run annotations record the workflow wrapper's own "
+            "provider/network sentinels during that step: "
+            + "; ".join(repr(m) for m in provider_msgs)
+            + ". The workflow's 'Persist team snapshot' step is guarded by "
+            "`if: always()` and concluded "
+            f"{(snapshot_step or {}).get('conclusion')!r}, so the tree the "
+            "agent had already written was committed and published even "
+            "though state validation and write scope were skipped. This is "
+            "an OBSERVED provider/network-class agent death AFTER the "
+            "durable work was written — NOT a product defect, NOT a "
+            "work-quantum expiry, and NOT a verdict. Job logs remain "
+            "non-downloadable without admin rights, so no deeper "
+            "provider/auth cause is asserted beyond the annotations."
         )
     elif team_ok and audit_failed and audit_step_ok and gate_failed:
         # The audit AGENT succeeded; the workflow's own reader/write-scope
@@ -508,6 +556,9 @@ def classify(snapshot: dict) -> dict:
             "quantum_expired": quantum_expired,
             "quantum_seconds": quantum_seconds,
             "exit_code": annotations.get("exit_code"),
+            "provider_network_annotations": annotations.get(
+                "provider_network_annotations"
+            ),
             "claim": mechanism_claim,
         },
         "observed_failure": annotations,

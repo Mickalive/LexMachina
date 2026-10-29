@@ -92,8 +92,13 @@ def test_state_pointer_and_posture_non_rotting():
         is False
     assert block["posture"]["continue_recommended"] is True
     assert block["posture"]["human_gate_ready"] is False
-    assert state["audit_route"]["artifact"] == \
-        "results/product/audit_readiness/CYCLE_40820909501_AUDIT_ROUTE.json"
+    # DISCLOSED MAINTENANCE REPAIR (cycle 40823586491): the audit_route
+    # pointer rotates by design; the original equality is preserved here:
+    #   assert state["audit_route"]["artifact"] == \
+    #       "results/product/audit_readiness/CYCLE_40820909501_AUDIT_ROUTE.json"
+    # Non-rotting form in force (the run-id-keyed artifact itself is pinned
+    # by test_audit_route_artifact_if_present below):
+    assert state["audit_route"]["artifact"]  # pointer exists and is truthy
     # Append-only predecessors must survive.
     assert state["cycle_40808627073_operational_resume"]
     assert state["cycle_40803969886_operational_resume"]
