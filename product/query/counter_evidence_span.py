@@ -744,6 +744,9 @@ def apply_surface_span_confirmation(
                 "counter_status_unchanged": d.get("counter_status"),
                 "counter_evidence_verified_unchanged": d.get("counter_evidence_verified"),
             })
+            # v68 P0: when the span seam abstains, the defective incumbent
+            # counter_evidence must not remain verified.
+            d["counter_evidence_verified"] = False
             continue
         n_selected += 1
         selected_ids.append(did)
