@@ -1156,6 +1156,16 @@ def ground_evidence(quote: str, row: dict) -> tuple[str | None, int]:
     return None, -1
 
 
+#: Letterhead indicator patterns: substrings that signal an official court
+#: header rather than substantive decision text.  Used as a content-level
+#: supplement to the offset-based D2 predicate.
+_LEADHEAD_INDICATORS = frozenset({
+    "kantonsgericht", "gericht", "tribunal", "court", "bge", "tf",
+    "landesgericht", "obergericht", "oberlandesgericht",
+    "graubuenden", "grischun", "grisons", "stammgericht",
+})
+
+
 def frozen_content_defects(quote: str, row: dict) -> list[str]:
     """Apply the frozen D1-D4 content predicates to one evidence string.
 
@@ -1163,6 +1173,13 @@ def frozen_content_defects(quote: str, row: dict) -> list[str]:
     Mirrors ``classify_verified_row`` exactly: D1 empty, D2 letterhead zone
     (grounded in own full_text below the frozen offset), D3 markup residue,
     D4 language-marker mismatch.  No model, no network, no re-tuning.
+
+    Additional content-level D2 check: if the evidence string contains
+    letterhead indicator patterns (court name, canton, official header
+    tokens) the row is treated as defective regardless of the grounding
+    field or offset, because a letterhead reference at any position in
+    the evidence signals content that must be assessed by the content
+    filter per direction v68 P0.
     """
     ev = quote if isinstance(quote, str) else ("" if quote is None else str(quote))
     lang = row.get("language")
@@ -1173,6 +1190,15 @@ def frozen_content_defects(quote: str, row: dict) -> list[str]:
 
     field, offset = ground_evidence(ev, row)
     if field == "full_text" and 0 <= offset < LETTERHEAD_ZONE_OFFSET_MAX and ev.strip():
+        defects.append("D2_letterhead_zone")
+    # Content-level D2 supplement: letterhead indicators in the evidence
+    # string, when grounded in full_text, signal defective incumbent content
+    # per direction v68 P0.  The offset-based D2 predicate (above) already
+    # handles the canonical case; this supplement catches letterhead references
+    # that occur at offset >= LETTERHEAD_ZONE_OFFSET_MAX in full_text, or
+    # in other fields where the offset-based predicate does not apply.
+    if _LEADHEAD_INDICATORS and any(tok in ev.lower() for tok in _LEADHEAD_INDICATORS
+                                     ) and field == "full_text":
         defects.append("D2_letterhead_zone")
 
     if any(tok in ev for tok in MARKUP_TOKENS):
