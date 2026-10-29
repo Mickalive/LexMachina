@@ -1,0 +1,181 @@
+{
+  "schema": "product-resume-snapshot-diagnosis/1",
+  "generated_at": "2026-10-29T05:05:36Z",
+  "run_id": "40820694435",
+  "predecessor_run_id": "40814271020",
+  "raw_snapshot": "results/product/orchestration/CYCLE_40820694435_run_jobs_raw.json",
+  "orchestration": {
+    "schema": "product-audit-step-diagnosis/1",
+    "generated_at": "20261029T050536Z",
+    "run_id": "40820694435",
+    "run_name": "Core product dirV68 repair0",
+    "run_conclusion": "failure",
+    "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+    "team": {
+      "conclusion": "failure",
+      "team_snapshot_persisted": true,
+      "team_snapshot_step_conclusion": "success",
+      "team_snapshot_persisted_after_failed_team_job": true,
+      "failed_step": "Run lane cycle",
+      "failed_step_seconds": 16.0,
+      "producer_state_validation_ran": false,
+      "producer_state_validation_step_conclusion": "skipped",
+      "write_scope_step_ran": false,
+      "write_scope_step_conclusion": "skipped"
+    },
+    "audit": {
+      "conclusion": "skipped",
+      "failed_step": null,
+      "independent_audit_step_seconds": null,
+      "gate_step": null,
+      "persist_step": null,
+      "gate_file_written": false
+    },
+    "integrate": {
+      "conclusion": "skipped",
+      "why_skipped": "audit job did not succeed, so the integrate job is skipped by the workflow condition"
+    },
+    "mechanism": {
+      "status": "UNOBSERVED",
+      "logs_available": false,
+      "logs_endpoint_status": 403,
+      "annotations_available": true,
+      "quantum_expired": false,
+      "quantum_seconds": null,
+      "exit_code": 1,
+      "claim": "The lane-cycle agent process exited non-zero after 2026-10-29T05:00:13Z and before 2026-10-29T05:00:29Z. The workflow's 'Persist team snapshot' step is guarded by `if: always()` and concluded 'success', so the team ref can be published with ZERO durable delta. Job logs are not downloadable without admin rights, so no provider, auth, timeout or token mechanism is claimed."
+    },
+    "observed_failure": {
+      "source": "github_actions_check_run_annotations",
+      "annotations_available": true,
+      "job": "team",
+      "exit_code": 1,
+      "quantum_expired": false,
+      "quantum_seconds": null,
+      "quantum_message": null,
+      "messages": [
+        "Process completed with exit code 1.",
+        "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+      ]
+    },
+    "adjudication": {
+      "product_defect": false,
+      "verdict_written": false,
+      "team_work_preserved": true,
+      "requires_product_repair": false,
+      "control_plane_attention": "resume from the persisted snapshot and verify whether it carries a durable delta; `if: always()` can publish a failed producer's unchanged tree, which the producer-side scope and validation steps never get to reject",
+      "next_action": "Resume from the persisted team snapshot, prove whether it has a durable delta against its predecessor, re-verify the lane deliverable and make the snapshot audit-ready; do not infer a REVISE, a BLOCKED verdict or a product regression from a failed producer step."
+    },
+    "claim_ceiling": "This artifact classifies an orchestration failure from a public run/jobs snapshot. It asserts no cause it could not observe, writes no audit gate, treats no run as accepted or rejected, and makes no product, legal or serve claim."
+  },
+  "durable_delta": {
+    "snapshot_ref": "origin/cycle/core/product/40820694435/team",
+    "snapshot_head": "bed9a21827b1f2d9ffb14d98cc5d19fe382590cb",
+    "predecessor_ref": "refs/remotes/origin/cycle/core/product/40814271020/team",
+    "predecessor_head": "bed9a21827b1f2d9ffb14d98cc5d19fe382590cb",
+    "classification": "ZERO_DURABLE_DELTA",
+    "changed_files": 0,
+    "changed_paths_sample": [],
+    "meaning": "the team ref points at the predecessor's exact commit: the producer added and changed nothing, and the always-run persist step published that unchanged tree. This is an orchestration outcome, NOT a product defect and NOT a verdict; refs alone cannot distinguish rc-67 zero-delta from a producer death."
+  },
+  "accepted_head_relation": {
+    "accepted_ref": "origin/lab/product",
+    "accepted_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+    "snapshot_head": "bed9a21827b1f2d9ffb14d98cc5d19fe382590cb",
+    "classification": "SNAPSHOT_NOT_ACCEPTED_HEAD",
+    "is_accepted_head": false,
+    "resume_action": "The snapshot diverges from the accepted head; verify the durable delta, finish the lane deliverable and make it audit-ready."
+  },
+  "adjudication": {
+    "audit": {
+      "audit_ref": "origin/cycle/core/product/40820694435/audit",
+      "audit_ref_present": false,
+      "gate_file_present": false,
+      "gate_verdict": null
+    },
+    "accept": {
+      "accepted_ref_present": true,
+      "accept_commit": null
+    },
+    "accepted": false,
+    "status": "UNADJUDICATED",
+    "product_defect": false,
+    "verdict_written": false,
+    "why_not_accepted": "requirement 4 needs BOTH an independent PASS gate on the audit ref AND an accept commit on lab/product; at least one half is absent for this run"
+  },
+  "audit_namespace": {
+    "accepted_ref_present": true,
+    "producer_minted_unadjudicated_chain": [],
+    "producer_minted_accepted_baseline_count": 6
+  },
+  "validation_findings": {
+    "claimed_cycle_tests": [],
+    "missing_claimed_cycle_tests": [],
+    "audit_readiness_dossiers": [],
+    "dossiers_with_skipped_mandatory_reruns": [],
+    "runtime_preflight": {
+      "ok": true,
+      "missing": [],
+      "installed": {
+        "numpy": "2.5.4",
+        "sklearn": "1.9.1"
+      },
+      "pinned": {
+        "numpy": "2.5.4",
+        "scipy": "1.18.1",
+        "sklearn": "1.9.1",
+        "pytest": "9.1.1"
+      },
+      "remedy": "bash product/bootstrap_query_env.sh",
+      "workflow_gap": "no step of .github/workflows/core-lane.yml installs product/requirements-query.txt, so a fresh runner has none of these; recorded as a control-plane item, never edited from this lane",
+      "fresh_runner_no_site_probe": {
+        "ok": false,
+        "missing": [
+          "numpy",
+          "sklearn"
+        ],
+        "exit_code": 0,
+        "stderr_tail": [],
+        "meaning": "python -S skips the user site used by bootstrap_query_env.sh; missing modules here are the fresh-runner validation gap, not a product defect"
+      }
+    },
+    "historical_missing_dependency_artifacts": [
+      "results/product/reality_check/business-judgment-rule_live_ci-38604340726_20261014T172312Z.attempt1-missing-deps.json",
+      "results/product/reality_check/corporate-criminal-liability_live_ci-38604340726_20261014T172312Z.attempt1-missing-deps.json",
+      "results/product/reality_check/petty-theft-dismissal_live_ci-38604340726_20261014T172312Z.attempt1-missing-deps.json",
+      "results/product/reality_check/rent-default_live_ci-38604340726_20261014T172312Z.attempt1-missing-deps.json",
+      "results/product/reality_check/summary_ci_38604340726.attempt1-missing-deps.json"
+    ],
+    "meaning": "These are reproducible validation gaps, not a provider/auth mechanism and not a product verdict. Missing deps and a missing claimed test make a green snapshot fail its own self-check on a fresh runner; they are repaired by the resuming cycle, never by weakening a frozen bar."
+  },
+  "claim_ceiling": "This artifact classifies an orchestration outcome and a git-ref delta. It writes no gate, labels no run accepted or rejected, asserts no cause the committed run/jobs snapshot cannot show, and makes no product, legal or serve claim.",
+  "predecessor_context": {
+    "run_id": "40814271020",
+    "resume_diagnosis": "results/product/orchestration/CYCLE_40814271020_resume_diagnosis.json",
+    "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+    "audit_failed_step": "Independent audit",
+    "audit_step_seconds": 2705.0,
+    "quantum_seconds": 2700,
+    "exit_code": 78,
+    "gate_file_written": false,
+    "durable_delta": {
+      "classification": "CACHE_REFRESH",
+      "changed_files": 22,
+      "product_work": false
+    },
+    "meaning": "The direct resume target is 40820694435, but its persisted snapshot is byte-identical to 40814271020's: the earlier run's team job only refreshed 22 query-cache envelopes and its audit job was stopped by the 2700 s work quantum before writing a gate. Neither run changed the v68 deliverable."
+  },
+  "chain_findings": [
+    {
+      "id": "CF-1",
+      "finding": "40814271020's 22-file committed delta is CACHE_REFRESH (product_work=false). A count-based zero-delta guard cannot distinguish it from product work.",
+      "disposition": "Preserved as cache evidence; not counted as this cycle's product work. The resuming cycle supplies a substantive diagnosis/report/test/state delta."
+    },
+    {
+      "id": "CF-2",
+      "finding": "40820694435's 'Run lane cycle' step failed after 16.0 s with exit code 1, not the wrapper's rc-67 zero-delta sentinel; logs are HTTP 403, so the cause is UNOBSERVED. The if:always() persist step published the unchanged tree.",
+      "disposition": "Classified as TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE / UNOBSERVED with ZERO_DURABLE_DELTA. No provider, auth, timeout or token mechanism is claimed."
+    }
+  ],
+  "chain_meaning": "40820694435 added nothing; the inherited deliverable remains 40808627073's verified snapshot, re-verified in place by 40820909501 rather than restarted."
+}

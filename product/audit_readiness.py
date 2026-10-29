@@ -1287,6 +1287,48 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    # 2026-10-29: resume of 40820694435 (team job failed in "Run lane cycle"
+    # after 16 s, exit 1, no gate) from the snapshot published by 40814271020
+    # (team green with a 22-file cache refresh; audit job died in the 2700 s
+    # work quantum, exit 78, no gate).  The inherited v68 deliverable is
+    # 40808627073's; this cycle re-verifies it and publishes the audit chain.
+    "40820909501": {
+        "resumed_run_id": "40820694435",
+        "predecessor_run_id": "40814271020",
+        "raw": ORCH / "CYCLE_40820694435_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40820694435_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40808627073.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40820909501.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed_steps",
+        "delta_kind": "zero",
+        "quantum_seconds": None,
+        "exit_code": 1,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_40820909501.py",
+        "state_block": "cycle_40820909501_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40820909501.json",
+        "content_family_expected": {
+            "n_bundles": 61,
+            "n_decisions": 6100,
+            "n_verified": 76,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "extra_claim_artifacts": (
+            ORCH / "CYCLE_40814271020_run_jobs_raw.json",
+            ORCH / "CYCLE_40814271020_audit_step_diagnosis.json",
+            ORCH / "CYCLE_40814271020_resume_diagnosis.json",
+            ORCH / "CYCLE_40814271020_delta_substance.json",
+            ORCH / "CYCLE_40820694435_audit_step_diagnosis.json",
+        ),
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -1883,6 +1925,13 @@ def check_claim_artifacts() -> dict[str, Any]:
     ]
     if raw_path is not None:
         paths.insert(3, raw_path)
+    # Profiles may pin extra chain artifacts (e.g. the predecessor audit
+    # quantum-death diagnosis) so the dossier hashes them instead of merely
+    # citing them from prose.
+    for extra in p("extra_claim_artifacts", ()):
+        extra_path = Path(extra)
+        if extra_path not in paths:
+            paths.append(extra_path)
     missing = [str(p.relative_to(ROOT)) for p in paths if not p.is_file()]
     hashes = {str(p.relative_to(ROOT)): _sha256(p)
               for p in paths if p.is_file()}
