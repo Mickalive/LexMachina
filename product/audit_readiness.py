@@ -1143,6 +1143,56 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    # Active cycle 40791850481: repair round 0 of the unadjudicated cycle
+    # 40783679367.  The TEAM job was fully green and its own delta over the
+    # repair base c73d9d84 is SUBSTANTIVE (17 files: audit_route/delta
+    # instrument, two test modules, report, dossier/route/intake, two offline
+    # slice bundles, the 58-bundle content family, raw/diagnosis and state) --
+    # this is the completed 40783679367-cycle deliverable, not a cache
+    # refresh (the 25-file CACHE_REFRESH belongs to the PRIOR run).  Its AUDIT
+    # "Independent audit" step then died at the 2700 s work quantum (2705.0 s,
+    # exit 78, OBSERVED_QUANTUM_EXPIRED via public check-run annotations)
+    # before writing any gate.  Validation defect repaired by this resume: the
+    # snapshot labelled every artifact with the repaired cycle id 40783679367,
+    # so `audit_route.py --run-id 40791850481` named files that did not exist;
+    # this profile plus the new state block/report/cycle test/artifacts make
+    # the snapshot addressable by its own run id.
+    "40791850481": {
+        "resumed_run_id": "40791850481",
+        "predecessor_run_id": "40783679367",
+        "raw": ORCH / "CYCLE_40791850481_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40791850481_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40783679367.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40791850481.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 17,
+        "changed_paths_include": (
+            "product/audit_readiness.py",
+            "reports/product/CYCLE_40783679367.md",
+            "results/product/orchestration/"
+            "CYCLE_40783679367_resume_diagnosis.json",
+            "state/product.json",
+        ),
+        "cycle_test": "product/tests/test_cycle_40791850481.py",
+        "state_block": "cycle_40791850481_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40791850481.json",
+        "content_family_expected": {
+            "n_bundles": 58,
+            "n_decisions": 5800,
+            "n_verified": 67,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original

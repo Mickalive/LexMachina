@@ -122,6 +122,7 @@ def audit_target(run_id: str) -> dict[str, Any]:
     state_accepted: str | None = None
     resumed_diagnosis: str | None = None
     report: str | None = None
+    block: dict[str, Any] = {}
     try:
         state = json.loads(state_path.read_text(encoding="utf-8"))
         state_accepted = state.get("accepted_commit")
@@ -130,10 +131,42 @@ def audit_target(run_id: str) -> dict[str, Any]:
         resumed_head = (block.get("resumed_snapshot_head")
                         or (block.get("lineage_status") or {}).get(
                             "snapshot_head") or None)
-        resumed_diagnosis = block.get("diagnosis_of_resumed") or None
+        resumed_diagnosis = (block.get("diagnosis_of_resumed")
+                             or block.get("diagnosis") or None)
         report = block.get("report") or None
     except (OSError, json.JSONDecodeError):
         pass
+
+    # Run-id addressability: the audit job is handed ONE run id and its gate
+    # path is derived from it, but this lineage has repeatedly produced
+    # snapshots whose report/dossier/route were named for the *repaired*
+    # cycle while the workflow ref was keyed by the *dispatching* run.  On run
+    # 40791850481 that mismatch made `--for-auditor` name a report and a
+    # dossier that did not exist in the snapshot.  The guard below publishes
+    # the mismatch as machine-readable fact and the brief refuses to present
+    # an absent path as readable.
+    artifact_paths = {
+        "report": (report or f"reports/product/CYCLE_{run_id}.md"),
+        "diagnosis": (resumed_diagnosis
+                      or f"results/product/orchestration/"
+                         f"CYCLE_{run_id}_resume_diagnosis.json"),
+        "dossier": (f"results/product/audit_readiness/"
+                    f"CYCLE_{run_id}_audit_readiness.json"),
+        "route": (f"results/product/audit_readiness/"
+                  f"CYCLE_{run_id}_AUDIT_ROUTE.json"),
+        "intake": (f"results/product/audit_readiness/"
+                   f"CYCLE_{run_id}_AUDIT_INTAKE.md"),
+    }
+    artifact_present = {
+        key: (ROOT / rel).is_file() for key, rel in artifact_paths.items()
+    }
+    missing_artifacts = [key for key, ok in artifact_present.items() if not ok]
+    if not block:
+        self_label_status = "MISSING_CYCLE_BLOCK"
+    elif missing_artifacts:
+        self_label_status = "MISSING_ARTIFACTS"
+    else:
+        self_label_status = "ALIGNED"
     return {
         "audit_target_ref": team_ref,
         # A target is PUBLISHED only when its immutable ref resolves.  The
@@ -153,6 +186,19 @@ def audit_target(run_id: str) -> dict[str, Any]:
         "resumed_snapshot_head": resumed_head,
         "resumed_diagnosis": resumed_diagnosis,
         "report_of_record": report,
+        "cycle_block_key": f"cycle_{run_id}_operational_resume",
+        "cycle_block_present": bool(block),
+        "self_label_status": self_label_status,
+        "artifact_paths": artifact_paths,
+        "artifact_present": artifact_present,
+        "missing_artifacts": missing_artifacts,
+        "self_label_verdict": (
+            "ALIGNED: the snapshot's committed state block and the "
+            "run-id-named report/diagnosis/dossier/route/intake all resolve"
+            if self_label_status == "ALIGNED" else
+            "NOT_ADDRESSABLE_BY_RUN_ID: a run-id-keyed audit would start "
+            "from an absent artifact; repair before dispatch"
+        ),
         # The guard is deliberately conservative: a difference is only a
         # WARNING (a resumed run can legitimately have a committed delta),
         # but the brief must never let prose name the resumed head as the
@@ -225,6 +271,32 @@ def build_route(run_id: str, verify_only: bool = False,
     dossier = (ROOT / "results" / "product" / "audit_readiness"
                / f"CYCLE_{run_id}_audit_readiness.json")
     steps: list[dict[str, Any]] = []
+    target = audit_target(run_id)
+    # `route` is the artifact THIS invocation writes, so it cannot exist while
+    # the check runs. Exclude only that in-progress artifact from the step's
+    # verdict; every other required artifact must already resolve. The
+    # committed route artifact still publishes the unexcluded target block.
+    in_progress = [] if target["artifact_present"].get("route") else ["route"]
+    self_label_missing = [m for m in target["missing_artifacts"]
+                          if m not in in_progress]
+    steps.append({
+        "id": "snapshot_self_label",
+        "title": "Snapshot is addressable by the run id the audit job is given",
+        "status": "PASS" if not self_label_missing else "FAIL",
+        "command": None,
+        "exit_code": None,
+        "timed_out": False,
+        "seconds": 0.0,
+        "stdout_tail": json.dumps({
+            "self_label_status": target["self_label_status"],
+            "cycle_block_key": target["cycle_block_key"],
+            "cycle_block_present": target["cycle_block_present"],
+            "missing_artifacts": target["missing_artifacts"],
+            "excluded_in_progress": in_progress,
+            "artifact_paths": target["artifact_paths"],
+        }, indent=1),
+        "stderr_tail": "",
+    })
 
     steps.append(_step(
         "state_contract",
@@ -298,7 +370,18 @@ def build_route(run_id: str, verify_only: bool = False,
         "generated_at": _now(),
         "run_id": run_id,
         "direction_version": DIRECTION_VERSION,
-        "audit_target": audit_target(run_id),
+        "audit_target": target,
+        "snapshot_self_label": {
+            "status": (
+                "ALIGNED_AFTER_WRITE"
+                if (target["self_label_status"] != "ALIGNED"
+                    and set(target["missing_artifacts"]) == {"route"})
+                else target["self_label_status"]
+            ),
+            "cycle_block_key": target["cycle_block_key"],
+            "missing_artifacts": target["missing_artifacts"],
+            "excluded_in_progress": in_progress,
+        },
         "workspace": workspace_block(),
         "mode": ("bootstrap" if bootstrap
                  else ("verify_only" if verify_only else "full_route")),
@@ -407,6 +490,24 @@ def auditor_brief(run_id: str, route: dict[str, Any] | None) -> str:
         "",
         workspace_contract(),
         "",
+    ]
+    if target.get("self_label_status") != "ALIGNED":
+        lines += [
+            "SNAPSHOT SELF-LABEL GUARD — DO NOT START FROM A MISSING PATH",
+            "-" * 60,
+            f"status={target.get('self_label_status')}",
+            f"cycle block: {target.get('cycle_block_key')} "
+            f"(present={target.get('cycle_block_present')})",
+            f"missing artifacts: {', '.join(target.get('missing_artifacts') or [])}",
+            "The producer snapshot is NOT addressable by this run id. An",
+            "auditor that reads the paths implied by this id would spend its",
+            "quantum on absent files or on another cycle's artifacts. Record",
+            "this as an audit-readiness defect (not a product rejection) and",
+            "require the producer to repair the run-id labels before a gate",
+            "is written.",
+            "",
+        ]
+    lines += [
         f"AUDIT TARGET (team ref): {target['audit_target_ref']}",
     ]
     if target.get("audit_target_head"):
@@ -448,9 +549,17 @@ def auditor_brief(run_id: str, route: dict[str, Any] | None) -> str:
         "(full route, ~2-4 min measured)",
         "",
         "THEN read, in this order (short files first; all under "
-        f"{WORKSPACE_MOUNT}):",
-        f"  - {target.get('report_of_record') or f'reports/product/CYCLE_{run_id}.md'}                     (report of record)",
-        f"  - {target.get('resumed_diagnosis') or f'results/product/orchestration/CYCLE_{run_id}_resume_diagnosis.json'}",
+        f"{WORKSPACE_MOUNT}; ABSENT is stated, never implied readable):",
+    ]
+    for key, label in (
+        ("report", "report of record"),
+        ("diagnosis", "run diagnosis"),
+        ("dossier", "committed audit-readiness dossier"),
+    ):
+        rel = target["artifact_paths"].get(key)
+        ok = target["artifact_present"].get(key)
+        lines.append(f"  - {rel}  ({label}; {'PRESENT' if ok else 'ABSENT'})")
+    lines += [
         "  - the `audit_route` + `next_recommendation` fields of "
         "state/product.json",
         "",
