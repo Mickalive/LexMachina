@@ -192,10 +192,25 @@ def run(*, run_id: str, out: Path | None = None) -> dict[str, Any]:
     )}
     accepts = {run: _accept_commit(run) for run in gates}
 
-    routing_bundle = _json_at(
-        accepts[ROUTING_ACCEPT_RUN]["accept_commit"], ROUTING_BUNDLE)
-    fresh_bundle = _json_at(
-        accepts[LATEST_ACCEPT_RUN]["accept_commit"], FRESH_BUNDLE)
+    # Load routing bundle: try git ref first, fall back to on-disk committed bundle
+    routing_accept_commit = accepts[ROUTING_ACCEPT_RUN].get("accept_commit")
+    if routing_accept_commit:
+        routing_bundle = _json_at(routing_accept_commit, ROUTING_BUNDLE)
+    else:
+        routing_bundle = None
+    if routing_bundle is None and ROUTING_BUNDLE_PATH.is_file():
+        with open(ROUTING_BUNDLE_PATH, 'r') as f:
+            routing_bundle = json.load(f)
+
+    # Load fresh bundle: try git ref first, fall back to on-disk fresh bundle
+    fresh_accept_commit = accepts[LATEST_ACCEPT_RUN].get("accept_commit")
+    if fresh_accept_commit:
+        fresh_bundle = _json_at(fresh_accept_commit, FRESH_BUNDLE)
+    else:
+        fresh_bundle = None
+    if fresh_bundle is None and FRESH_BUNDLE_PATH.is_file():
+        with open(FRESH_BUNDLE_PATH, 'r') as f:
+            fresh_bundle = json.load(f)
     routing_span = _span(routing_bundle)
     fresh_span = _span(fresh_bundle)
     routing_gr = _row(routing_bundle, "gr_gerichte_ERZ 2010 25")
