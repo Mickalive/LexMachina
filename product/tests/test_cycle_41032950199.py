@@ -54,8 +54,17 @@ def test_state_pointer_posture_and_cycle_block():
     state = _json(STATE)
     assert state["accepted_run_id"] == "CYCLE_40284658455"
     assert state["accepted_commit"] == ACCEPTED
-    for key in ("current_cycle_run_id", "current_run", "current_run_id"):
-        assert state[key] == RUN, key
+    # DISCLOSED MAINTENANCE REPAIR (cycle 41042330328): the state pointer
+    # advances to the next operational-resume run, so pinning it to this
+    # historical run id made this cycle test fail for a non-product reason.
+    # The original assertion was:
+    #     for key in ("current_cycle_run_id", "current_run", "current_run_id"):
+    #         assert state[key] == RUN, key
+    current = state["current_cycle_run_id"]
+    assert current.isdigit()
+    assert state["current_run"] == current
+    assert state["current_run_id"] == current
+    assert state[f"cycle_{current}_operational_resume"]
     assert state["direction_version"] == 68
     assert state["cycle_status"] == "COMPLETE"
     assert state["continue_recommended"] is True
@@ -97,7 +106,7 @@ def test_state_pointer_posture_and_cycle_block():
     assert block["posture"]["human_gate_ready"] is False
     assert block["posture"]["do_not_serve_orders"] == "IN_FORCE"
     assert state["audit_route"]["artifact"] == \
-        f"results/product/audit_readiness/CYCLE_{RUN}_AUDIT_ROUTE.json"
+        f"results/product/audit_readiness/CYCLE_{current}_AUDIT_ROUTE.json"
     assert state["cycle_41015062553_operational_resume"]
     assert (ROOT / "reports" / "product" / "CYCLE_41015062553.md").is_file()
 
