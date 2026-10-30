@@ -764,13 +764,16 @@ def apply_surface_span_confirmation(
             # downgraded to explicitly-unevidenced; a content-sound incumbent
             # is NOT downgraded (the success rule forbids falsely rejecting a
             # confirmed substantive span).  The frozen label is never written.
-            incumbent_fails, incumbent_defects, incumbent_grounded = (
-                _incumbent_content_failure(d)
+            incumbent_state, incumbent_defects, incumbent_grounded = (
+                _incumbent_content_state(d)
             )
+            incumbent_downgraded = False
+            incumbent_fails = incumbent_state == "fails"
             if incumbent_fails:
                 was_verified = d.get("counter_evidence_verified") is True
-                _downgrade_incumbent(d, sel.reason_code)
                 if was_verified:
+                    _downgrade_incumbent(d, sel.reason_code)
+                    incumbent_downgraded = True
                     downgrades.append({
                         "decision_id": did,
                         "leg": "surface_abstention",
@@ -784,7 +787,7 @@ def apply_surface_span_confirmation(
                         "defects": incumbent_defects,
                         "incumbent_grounded_in": incumbent_grounded,
                     })
-            else:
+            elif incumbent_state == "sound":
                 retained.append({
                     "decision_id": did,
                     "leg": "surface_abstention_content_sound_incumbent",
@@ -811,7 +814,8 @@ def apply_surface_span_confirmation(
                     "counter_evidence_verified"],
                 "counter_evidence_verified_after": d.get(
                     "counter_evidence_verified"),
-                "incumbent_downgraded": incumbent_fails,
+                "incumbent_state": incumbent_state,
+                "incumbent_downgraded": incumbent_downgraded,
             })
             continue
         n_selected += 1
@@ -889,23 +893,39 @@ def _iter_candidates(decisions: Iterable[dict]) -> Iterable[dict]:
             yield d
 
 
+def _incumbent_content_state(
+    row: dict,
+) -> tuple[str, list[str], str | None]:
+    """Classify the row's INCUMBENT counter evidence as absent/fails/sound.
+
+    An absent incumbent (empty/whitespace evidence) is NOT a content failure:
+    there is nothing verified to reject, and inventing a downgrade record would
+    be a claim the frozen predicates do not support.  A non-empty quote fails
+    when it violates a frozen D1-D4 predicate OR is not grounded byte-verbatim
+    in any of the row's own text fields.
+    """
+    evidence = str(row.get("counter_evidence") or "")
+    if not evidence.strip():
+        return "absent", [], None
+    defects = frozen_content_defects(evidence, row)
+    grounded, _offset = ground_evidence(evidence, row)
+    if defects or grounded is None:
+        return "fails", defects, grounded
+    return "sound", [], grounded
+
+
 def _incumbent_content_failure(
     row: dict,
 ) -> tuple[bool, list[str], str | None]:
-    """Frozen D1-D4 verdict on the row's INCUMBENT counter evidence.
+    """Backward-compatible ``(fails, defects, grounded_in)`` view.
 
-    Returns ``(fails, defects, grounded_in)``.  ``fails`` is true when the
-    incumbent quote violates a frozen content predicate OR is non-empty but not
-    grounded byte-verbatim in any of the row's own text fields.  An absent
-    incumbent (empty/whitespace evidence) does NOT fail this test: there is
-    nothing verified to reject, and inventing a downgrade record would be a
-    claim the content predicates do not support.
+    ``fails`` is true only for a non-empty incumbent that violates a frozen
+    content predicate or is ungrounded.  An absent incumbent returns
+    ``(False, [], None)``; use :func:`_incumbent_content_state` when the caller
+    must distinguish absent from content-sound.
     """
-    evidence = str(row.get("counter_evidence") or "")
-    defects = frozen_content_defects(evidence, row)
-    grounded, _offset = ground_evidence(evidence, row)
-    fails = bool(defects) or (bool(evidence.strip()) and grounded is None)
-    return fails, defects, grounded
+    state, defects, grounded = _incumbent_content_state(row)
+    return state == "fails", defects, grounded
 
 
 def _downgrade_incumbent(row: dict, reason_code: str) -> None:
@@ -1083,18 +1103,13 @@ def apply_verified_span_selection(
             # published instead (the frozen label gate's abstention is a
             # different axis from content soundness; on the live path the
             # accepted anchor seam still owns label-driven clearing).
-            incumbent_ev = str(d.get("counter_evidence") or "")
-            incumbent_defects = frozen_content_defects(incumbent_ev, d)
-            incumbent_grounded, _off = ground_evidence(incumbent_ev, d)
-            content_fail = bool(incumbent_defects) or (
-                bool(incumbent_ev.strip()) and incumbent_grounded is None
+            incumbent_state, incumbent_defects, incumbent_grounded = (
+                _incumbent_content_state(d)
             )
-            if content_fail:
+            if incumbent_state == "fails":
                 was_verified = d.get("counter_evidence_verified") is True
-                d["counter_evidence_verified"] = False
-                d["counter_evidence_unevidenced"] = True
-                d["counter_evidence_unevidenced_reason"] = sel.reason_code
                 if was_verified:
+                    _downgrade_incumbent(d, sel.reason_code)
                     downgrades.append({
                         "decision_id": str(d.get("decision_id") or ""),
                         "leg": "seam_abstention",
@@ -1108,7 +1123,7 @@ def apply_verified_span_selection(
                         "defects": incumbent_defects,
                         "incumbent_grounded_in": incumbent_grounded,
                     })
-            else:
+            elif incumbent_state == "sound":
                 retained.append({
                     "decision_id": str(d.get("decision_id") or ""),
                     "leg": "seam_abstention_content_sound_incumbent",

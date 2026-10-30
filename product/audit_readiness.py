@@ -1708,6 +1708,69 @@ PROFILES: dict[str, dict[str, Any]] = {
                   / "20261030T052106Z_bundle.json",
         ),
     },
+    "41032950199": {
+        # Operational resume of the persisted 41023710274 snapshot.  That
+        # run's TEAM job was fully green (state validation and write scope
+        # passed; snapshot persisted at 4796618e and its 86-file delta is
+        # SUBSTANTIVE) and its AUDIT 'Independent audit' step was then
+        # stopped by the workflow's own 2700 s work quantum (2705.0 s, exit
+        # 78, pid=2516) before writing a gate; gate/persist were skipped, no
+        # audit ref exists and the run is UNADJUDICATED.  This cycle captures
+        # the failure, repairs the absent-vs-defective incumbent distinction
+        # in the v68 rejection leg, re-verifies four fresh flagship slices,
+        # the served path and the 80-bundle content family, and re-keys the
+        # audit surface to 41032950199.
+        "resumed_run_id": "41023710274",
+        "predecessor_run_id": "41015062553",
+        "raw": ORCH / "CYCLE_41023710274_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_41023710274_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_41015062553.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41032950199.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 86,
+        "changed_paths_include": (
+            "results/product/offline_slice/",
+            "results/product/query_cache/",
+        ),
+        "cycle_test": "product/tests/test_cycle_41032950199.py",
+        "state_block": "cycle_41032950199_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_41032950199.json",
+        "content_family_expected": {
+            "n_bundles": 80,
+            "n_decisions": 8000,
+            "n_verified": 127,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "extra_claim_artifacts": (
+            ORCH / "CYCLE_41023710274_run_jobs_raw.json",
+            ORCH / "CYCLE_41023710274_audit_step_diagnosis.json",
+            ORCH / "CYCLE_41023710274_delta_substance.json",
+            ORCH / "CYCLE_41023710274_resume_diagnosis.json",
+            ROOT / "results" / "product" / "offline_slice"
+                  / "20261030T093031Z-rent-default" / "summary.json",
+            ROOT / "results" / "product" / "offline_slice"
+                  / "20261030T093031Z-petty-theft-dismissal" / "summary.json",
+            ROOT / "results" / "product" / "offline_slice"
+                  / "20261030T093031Z-corporate-criminal-liability"
+                  / "summary.json",
+            ROOT / "results" / "product" / "offline_slice"
+                  / "20261030T093031Z-business-judgment-rule" / "summary.json",
+            ROOT / "results" / "product" / "server_slice"
+                  / "41032950199" / "summary.json",
+            ROOT / "results" / "product" / "progressive_smoke"
+                  / "CYCLE_41032950199_progressive_smoke.json",
+        ),
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original

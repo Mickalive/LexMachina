@@ -122,6 +122,37 @@ def test_stage2_abstention_retains_a_content_sound_verified_incumbent():
     assert retained["defects"] == []
 
 
+def test_stage2_absent_incumbent_is_neither_downgraded_nor_retained():
+    """No evidence is not defective evidence: leave the row untouched.
+
+    The fresh surface population contains unverified rows with an empty
+    incumbent.  Treating the frozen D1 empty predicate as a rejection made
+    every such abstention claim ``incumbent_downgraded=True`` and wrote a
+    ``counter_evidence_unevidenced`` reason even though the row never claimed
+    verified evidence.  This pins the absent-vs-defective distinction.
+    """
+    doc, entry, row = _first_abstention()
+    row["counter_evidence"] = ""
+    row["counter_evidence_verified"] = False
+    row.pop("counter_evidence_unevidenced", None)
+    row.pop("counter_evidence_unevidenced_reason", None)
+    out = ces.apply_surface_span_confirmation(doc)
+    after = _row(out, entry["decision_id"])
+    assert after.get("counter_evidence_verified") is False
+    assert after.get("counter_evidence_unevidenced") is None
+    assert after.get("counter_evidence_unevidenced_reason") is None
+    prov = _prov(out)
+    assert entry["decision_id"] not in set(prov["downgraded_ids"])
+    assert entry["decision_id"] not in {
+        r["decision_id"] for r in prov["retained_content_sound"]}
+    record = next(r for r in prov["abstained"]
+                  if r["decision_id"] == entry["decision_id"])
+    assert record["incumbent_state"] == "absent"
+    assert record["incumbent_downgraded"] is False
+    assert ces._incumbent_content_failure({"counter_evidence": ""}) == (
+        False, [], None)
+
+
 def test_stage2_sweep_downgrades_an_uniterated_defective_incumbent():
     """A verified row with no surface signal is still covered (no gate needed)."""
     doc = _load()
