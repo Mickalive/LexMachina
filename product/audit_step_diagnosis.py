@@ -39,6 +39,13 @@ TEAM_JOB = "team"
 AUDIT_JOB = "audit"
 AUDIT_STEP = "Independent audit"
 SCOPE_VIOLATION_RE = re.compile(r"auditor crossed scope", re.IGNORECASE)
+# The producer-side counterpart, observed on run 41004755021: the lane-cycle
+# agent step succeeded, then "Enforce lane write scope" failed with exit code 3
+# and the public annotation "lane crossed protected scope:".  This is a
+# producer write-scope failure, not a provider death, and must not be described
+# as "the lane-cycle agent process exited non-zero".
+LANE_SCOPE_VIOLATION_RE = re.compile(
+    r"lane crossed (?:protected )?scope", re.IGNORECASE)
 QUANTUM_RE = re.compile(r"LEX_WORK_QUANTUM_EXPIRED\s+seconds=(\d+)")
 EXIT_CODE_RE = re.compile(r"exit code\s+(\d+)", re.IGNORECASE)
 # The workflow's own agent wrapper announces provider/network trouble with
@@ -180,6 +187,10 @@ def classify(snapshot: dict) -> dict:
         SCOPE_VIOLATION_RE.search(message)
         for message in annotations.get("messages") or []
     )
+    lane_scope_violation = any(
+        LANE_SCOPE_VIOLATION_RE.search(message)
+        for message in annotations.get("messages") or []
+    )
     quantum_seconds = annotations.get("quantum_seconds")
     quantum_expired = bool(annotations.get("quantum_expired"))
     # Factory-wide requirement 10: the rc-67 LEX_ZERO_DELTA_REPAIR guard
@@ -203,6 +214,9 @@ def classify(snapshot: dict) -> dict:
     if not team_ok and failed_team_step and audit_skipped:
         if failed_team_step.get("name") == "Run lane cycle":
             classification = "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE"
+        elif (failed_team_step.get("name") == "Enforce lane write scope"
+              and lane_scope_violation):
+            classification = "TEAM_JOB_SCOPE_ENFORCEMENT_FAILED_NO_GATE"
         else:
             classification = "TEAM_JOB_FAILED_OTHER_STEP"
     elif team_ok and audit_failed and audit_step_failed and gate_skipped:
@@ -343,6 +357,30 @@ def classify(snapshot: dict) -> dict:
                 "product rejection; no provider, auth or work-quantum cause is "
                 "asserted."
             )
+    elif (not team_ok and failed_team_step
+          and failed_team_step.get("name") == "Enforce lane write scope"
+          and lane_scope_violation):
+        # Observed on run 41004755021: the lane-cycle agent step SUCCEEDED and
+        # the team job then died at the workflow's producer write-scope
+        # enforcement because the tree carried an auditor-namespace gate file
+        # (results/audit/product/CYCLE_<run>_GATE.json).  The public
+        # annotation reads "lane crossed protected scope:" and the runner
+        # reports exit code 3.  Saying "the lane-cycle agent exited non-zero"
+        # would be false for this class, so it is first-class.
+        mechanism_status = "OBSERVED_TEAM_SCOPE_ENFORCEMENT_FAILED"
+        mechanism_claim = (
+            "The lane-cycle agent step succeeded and the team job then died "
+            "at 'Enforce lane write scope'. The public check-run annotation "
+            "reads 'lane crossed protected scope:' and the runner reports "
+            f"exit code {annotations.get('exit_code')}; the per-path list is "
+            "not exposed in the public annotation and job logs are not "
+            "downloadable here. The 'Persist team snapshot' step is guarded "
+            "by `if: always()` and concluded "
+            f"{(snapshot_step or {}).get('conclusion')!r}, so the rejected "
+            "tree can still be published to the team ref. This is a producer "
+            "WRITE-SCOPE failure, NOT a product defect, NOT a provider/auth "
+            "death, NOT a work-quantum expiry and NOT a verdict."
+        )
     elif not team_ok:
         # The mechanism block's vocabulary used to be binary: observed quantum
         # expiry, or UNOBSERVED with a claim that "job logs are not
@@ -464,6 +502,27 @@ def classify(snapshot: dict) -> dict:
             "product/audit_scope_guard.py --scope audit before handing off. Do "
             "not infer a REVISE, a BLOCKED verdict or a product regression from "
             "the auditor's scope failure."
+        )
+    elif (not team_ok and failed_team_step
+          and failed_team_step.get("name") == "Enforce lane write scope"):
+        control_plane_attention = (
+            "the lane-cycle agent finished, but the workflow's write-scope "
+            "step rejected at least one path outside product/, tests/product/, "
+            "results/product/, reports/product/, state/product.json or "
+            "data/product/ (annotation 'lane crossed protected scope:', "
+            "runner exit code 3). Because 'Persist team snapshot' runs under "
+            "`if: always()`, the rejected tree can still be published to the "
+            "team ref. .github/** belongs to the control plane and is "
+            "recorded, never edited from a lane. The product-side "
+            "route-around is product/audit_scope_guard.py --scope producer."
+        )
+        next_action = (
+            "Resume from the persisted snapshot, identify the out-of-scope "
+            "paths from the committed delta (audit-namespace writes are the "
+            "observed class), disown them explicitly in the report/state, and "
+            "make the snapshot audit-ready; do not infer a REVISE, a BLOCKED "
+            "verdict or a product regression from a producer write-scope "
+            "failure."
         )
     elif team_ok:
         control_plane_attention = (

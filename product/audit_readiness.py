@@ -1644,6 +1644,70 @@ PROFILES: dict[str, dict[str, Any]] = {
                   / "CYCLE_40997039714_progressive_smoke.json",
         ),
     },
+    "41015062553": {
+        # Operational resume of the persisted 41006386119 snapshot.  That
+        # run's TEAM job was fully green (state validation and write scope
+        # passed; snapshot persisted at 1148dbdb) and its AUDIT
+        # 'Independent audit' step was then stopped by the workflow's own
+        # 2700 s work quantum (2704.0 s, exit 78, pid=2495) before writing a
+        # gate; gate/persist were skipped, no audit ref exists and the run is
+        # UNADJUDICATED.  The predecessor producer run 41004755021 crossed
+        # producer write scope by minting an auditor-namespace PASS for
+        # 40997039714; the tree was persisted by `if: always()` anyway.  This
+        # cycle disowns that artifact in place, retracts the false state block
+        # that cited it, repairs the producer-scope classification, re-verifies
+        # the inherited deliverable and re-keys the audit surface.
+        "resumed_run_id": "41006386119",
+        "predecessor_run_id": "41004755021",
+        "raw": ORCH / "CYCLE_41006386119_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_41006386119_resume_diagnosis.json",
+        "inherited_report": None,
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41015062553.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 22,
+        "changed_paths_include": (
+            "product/query_map_diagnosis.py",
+            "results/product/live_slice/20261030T051448Z_bundle.json",
+            "results/product/live_slice/20261030T052106Z_bundle.json",
+        ),
+        "cycle_test": "product/tests/test_cycle_41015062553.py",
+        "state_block": "cycle_41015062553_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_41015062553.json",
+        "content_family_expected": {
+            "n_bundles": 71,
+            "n_decisions": 7100,
+            "n_verified": 103,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "extra_claim_artifacts": (
+            ORCH / "CYCLE_41006386119_run_jobs_raw.json",
+            ORCH / "CYCLE_41006386119_audit_step_diagnosis.json",
+            ORCH / "CYCLE_41006386119_delta_substance.json",
+            ORCH / "CYCLE_41004755021_run_jobs_raw.json",
+            ORCH / "CYCLE_41004755021_audit_step_diagnosis.json",
+            ORCH / "CYCLE_41004755021_delta_substance.json",
+            ORCH / "CYCLE_41004755021_resume_diagnosis.json",
+            ROOT / "reports" / "product" / "incidents"
+                  / "self_minted_gate_40997039714.DISOWNED.json",
+            ROOT / "results" / "product" / "offline_slice"
+                  / "20261030T061500Z" / "summary.json",
+            ROOT / "results" / "product" / "progressive_smoke"
+                  / "CYCLE_41015062553_progressive_smoke.json",
+            ROOT / "results" / "product" / "live_slice"
+                  / "20261030T051448Z_bundle.json",
+            ROOT / "results" / "product" / "live_slice"
+                  / "20261030T052106Z_bundle.json",
+        ),
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
