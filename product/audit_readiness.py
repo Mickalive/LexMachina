@@ -1586,6 +1586,64 @@ PROFILES: dict[str, dict[str, Any]] = {
             ORCH / "CYCLE_40977042308_delta_substance.json",
         ),
     },
+    "40997039714": {
+        # Operational resume of the persisted 40990419541 snapshot.  That
+        # run's TEAM job was fully green (state validation and write scope
+        # both passed; snapshot persisted at e8e6eb94) and its AUDIT
+        # 'Independent audit' step was then stopped by the workflow's own
+        # 2700 s work quantum (2704.0 s, exit 78, pid=2499) before writing a
+        # gate; gate and persist steps were skipped, no audit ref exists and
+        # the run is UNADJUDICATED.  This cycle preserves and re-verifies the
+        # snapshot, records the observed failure from the public run/jobs
+        # snapshot, corrects the predecessor report's duplicated 40863791646
+        # chain-table row via a run_history correction (the historical report
+        # file is not rewritten) and re-keys the audit surface to 40997039714.
+        "resumed_run_id": "40990419541",
+        "predecessor_run_id": "40985854750",
+        "raw": ORCH / "CYCLE_40990419541_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40990419541_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40990419541.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40997039714.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 14,
+        "changed_paths_include": (
+            "product/audit_readiness.py",
+            "product/tests/test_cycle_40990419541.py",
+            "reports/product/CYCLE_40990419541.md",
+            "results/product/counter_content_family/CYCLE_40990419541.json",
+            "results/product/orchestration/CYCLE_40985854750_resume_diagnosis.json",
+            "state/product.json",
+        ),
+        "cycle_test": "product/tests/test_cycle_40997039714.py",
+        "state_block": "cycle_40997039714_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40997039714.json",
+        "content_family_expected": {
+            "n_bundles": 69,
+            "n_decisions": 6900,
+            "n_verified": 97,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "extra_claim_artifacts": (
+            ORCH / "CYCLE_40990419541_run_jobs_raw.json",
+            ORCH / "CYCLE_40990419541_audit_step_diagnosis.json",
+            ORCH / "CYCLE_40990419541_delta_substance.json",
+            ORCH / "CYCLE_40990419541_resume_diagnosis.json",
+            ROOT / "results" / "product" / "offline_slice"
+                  / "20261030T033523Z" / "summary.json",
+            ROOT / "results" / "product" / "progressive_smoke"
+                  / "CYCLE_40997039714_progressive_smoke.json",
+        ),
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
