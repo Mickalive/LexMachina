@@ -1537,6 +1537,55 @@ PROFILES: dict[str, dict[str, Any]] = {
             ORCH / "CYCLE_40850096631_audit_step_diagnosis.json",
         ),
     },
+    "40990419541": {
+        # Operational resume of the persisted 40985854750 snapshot.  That
+        # run's lane-cycle (producer) agent was stopped by the workflow's
+        # own 2700 s work quantum (exit 78, pid=2501) AFTER writing a
+        # 90-file SUBSTANTIVE delta; state validation and write scope were
+        # skipped, the always-run persist step published the tree, and the
+        # audit job never ran.  No gate exists and the run is UNADJUDICATED.
+        "resumed_run_id": "40985854750",
+        "predecessor_run_id": "40977042308",
+        "raw": ORCH / "CYCLE_40985854750_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_40985854750_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40863791646.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_40990419541.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 90,
+        "changed_paths_include": (
+            "results/product/live_slice/20261030T013827Z.json",
+            "results/product/live_slice_stages/STAGE_DISCLOSURE_AMENDMENT.json",
+            "results/product/offline_slice/20261030T014313Z/rent-default.bundle.json",
+            "results/product/orchestration/CYCLE_40977042308_resume_diagnosis.json",
+        ),
+        "cycle_test": "product/tests/test_cycle_40990419541.py",
+        "state_block": "cycle_40990419541_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_40990419541.json",
+        "content_family_expected": {
+            "n_bundles": 69,
+            "n_decisions": 6900,
+            "n_verified": 97,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "extra_claim_artifacts": (
+            ORCH / "CYCLE_40985854750_run_jobs_raw.json",
+            ORCH / "CYCLE_40985854750_audit_step_diagnosis.json",
+            ORCH / "CYCLE_40985854750_delta_substance.json",
+            ORCH / "CYCLE_40985854750_resume_diagnosis.json",
+            ORCH / "CYCLE_40977042308_resume_diagnosis.json",
+            ORCH / "CYCLE_40977042308_delta_substance.json",
+        ),
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
