@@ -1,0 +1,106 @@
+{
+  "schema": "lex-evaluation-audit-index/1",
+  "lane": "evaluation",
+  "run_id": 41180176470,
+  "direction_version": 68,
+  "generated_at_utc": "2026-10-31T07:36:06Z",
+  "purpose": "Scope the independent auditor to THIS run's delta. THREE audits in this chain (41161273401, 41165748723, 41174962048) expired at the 2700 s work quantum while re-deriving closed chain history; every item below resolves in seconds and no item requires re-running a frozen benchmark.",
+  "producer_workspace_hint": "the team snapshot of this run is cycle/core/evaluation/41180176470/team (persist step force-pushes it after the producer exits); the resumed snapshot is cycle/core/evaluation/41174962048/team at e918671c",
+  "delta_this_run": [
+    {
+      "path": "results/evaluation/orchestration/CYCLE_41174962048_audit_quantum_expiry.json",
+      "what": "decisive rc-78 audit-quantum diagnosis of 41174962048; also records that the producer's validate/scope/persist steps all succeeded",
+      "read_time": "<1 min"
+    },
+    {
+      "path": "results/evaluation/orchestration/41174962048_audit_annotations.json",
+      "what": "primary audit annotation evidence (HTTP 200 capture)",
+      "read_time": "<1 min"
+    },
+    {
+      "path": "results/evaluation/orchestration/41174962048_jobs.json",
+      "what": "step timestamps proving the 2704 s audit duration and the producer's green post-steps",
+      "read_time": "<1 min"
+    },
+    {
+      "path": "results/evaluation/orchestration/41180176470_snapshot_scope.json",
+      "what": "independent re-verification of the producer delta 1580bf9e..e918671c against the lane scope pattern",
+      "read_time": "<1 min"
+    },
+    {
+      "path": "results/evaluation/orchestration/41180176470_validate_step_replay.json",
+      "what": "replay of the producer-state validation predicate at the final tree",
+      "read_time": "<1 min"
+    },
+    {
+      "path": "results/evaluation/operational_resume/41180176470_claim_verification.json",
+      "what": "independent re-verification of every load-bearing claim of 41174962048",
+      "read_time": "2 min"
+    },
+    {
+      "path": "results/evaluation/operational_resume/41180176470_item2_currency.json",
+      "what": "item-(2) currency check at the unchanged product head",
+      "read_time": "<1 min"
+    },
+    {
+      "path": "results/evaluation/operational_resume/41180176470_multilingual_supplement.json",
+      "what": "fresh multilingual/provenance supplement",
+      "read_time": "<1 min"
+    },
+    {
+      "path": "results/evaluation/operational_resume/41180176470.json",
+      "what": "the cycle record",
+      "read_time": "3 min"
+    },
+    {
+      "path": "reports/evaluation/AUDIT_BRIEF_41180176470.md",
+      "what": "one-page audit brief with exact checks",
+      "read_time": "<1 min"
+    },
+    {
+      "path": "reports/evaluation/OPERATIONAL_RESUME_41180176470_AUDIT_READY.md",
+      "what": "human-readable audit-ready report",
+      "read_time": "3 min"
+    }
+  ],
+  "reproduced_not_rederived": [
+    {
+      "path": "results/evaluation/operational_resume/41174962048.json",
+      "what": "persisted producer deliverable of 41174962048 - verified by claim check, NOT re-executed (item-(5))"
+    },
+    {
+      "path": "results/evaluation/operational_resume/41174962048_item2_currency.json",
+      "what": "committed item-2 currency record - re-checked, protocol NOT executed"
+    }
+  ],
+  "standing_records_do_not_rerun": [
+    "results/evaluation/minimal_retrieval_ca_benchmark/40182692670.json (PRODUCT_FALSIFIED, packet-of-record 39319405429 - item (3) benchmark of record)",
+    "evaluation/d2_path_scope_probe.py (accepted path-scope diagnosis)",
+    "results/evaluation/d2_letterhead_pattern_profile/40246705199.json (accepted D2 profile)",
+    "results/audit/evaluation/CYCLE_40265377500_GATE.json (accepted pointer gate - do NOT re-audit)"
+  ],
+  "fast_fail_checks_for_the_auditor": [
+    "jq -e '.direction_version==68 and .cycle_status!=\"INITIALIZED\"' state/evaluation.json  # the workflow's own validate predicate",
+    "jq -e '.failure_class==\"AUDIT_WORK_QUANTUM_EXPIRED_rc78\" and .exit_code==78 and .failure_is_validation_failure==false and .producer_validation_passed==true' results/evaluation/orchestration/CYCLE_41174962048_audit_quantum_expiry.json",
+    "jq -e '.verdict==\"SCOPE_CLEAN\" and (.out_of_scope_paths|length)==0' results/evaluation/orchestration/41180176470_snapshot_scope.json",
+    "jq -e '.verdict==\"PRIOR_CLAIMS_VERIFIED\" and .n_failed==0' results/evaluation/operational_resume/41180176470_claim_verification.json",
+    "jq -e '.accepted_pointer.verified==true and .item2.head_unchanged==true and .item2.protocol_executed_this_run==false' results/evaluation/operational_resume/41180176470.json",
+    "test ! -e results/audit/evaluation/CYCLE_41180176470_GATE.json  # the producer minted no gate for its own run",
+    "jq -e '.gate==\"PASS\" or .gate==\"REVISE\" or .gate==\"BLOCKED\"' results/audit/evaluation/CYCLE_41180176470_GATE.json  # the auditor's own output, UPPERCASE _GATE.json at the checkout root"
+  ],
+  "do_not_rederive": [
+    "Do not re-run the frozen minimal retrieval/counter-authority benchmark.",
+    "Do not re-derive the 41171918973 / 41171827286 / 41165748723 chain.",
+    "Do not re-audit accepted cycle 40265377500.",
+    "Do not re-score packet-of-record 39319405429 or d2_path_scope_probe.",
+    "Do not run any universal-174k benchmark."
+  ],
+  "claim_ceiling": "Operational resume and audit-readiness only. It proves (a) run 41174962048's producer job succeeded while only its independent audit job died to the 2700 s work quantum with rc 78 (FACT, from the annotations API), (b) the producer delta is in scope and the producer-state predicate still passes, (c) every load-bearing claim of the persisted 41174962048 record still matches its primary artifact and its freeze-pinned bytes, (d) the accepted multilingual/provenance suite passes 2/2, and (e) both halves of requirement 4 still verify accepted pointer 40265377500. It scores no frozen bar, packet, standing falsification, d2_path_scope_probe or 174k benchmark and issues no serve verdict.",
+  "posture_flags": {
+    "human_gate_ready": false,
+    "machine_gate_ready": false,
+    "ready_for_owner_session": false,
+    "owner_decision_required": false,
+    "packet_admitted": false
+  }
+}
