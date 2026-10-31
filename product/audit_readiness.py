@@ -576,6 +576,47 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    "41176811677": {
+        "resumed_run_id": "41176811677",
+        "predecessor_run_id": "41172922015",
+        "raw": ORCH / "CYCLE_41176811677_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41176811677_resume_diagnosis.json",
+        # The resumed run 41176811677 committed no report (its lane-cycle step
+        # died at the work quantum).  The last producer report on the resume
+        # lineage is the predecessor's, and this resume's report is its own.
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_41172922015.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41179957652.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        # Tenth observed instance, and the FIRST producer-side work-quantum
+        # expiry on this lineage: the lane-cycle step ran 2705 s of a 2700 s
+        # quantum and the public check-run annotation carries the literal
+        # branch LEX_WORK_QUANTUM_EXPIRED seconds=2700 with exit code 78.
+        # This is mechanism_kind="observed" (annotation-observed quantum
+        # expiry), not "observed_step_failure": the 403 logs endpoint does not
+        # matter because the quantum is stated by the annotation itself.
+        "mechanism_kind": "observed",
+        "delta_kind": "zero",
+        "failed_job": "team",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_41179957652.py",
+        "state_block": "cycle_41179957652_operational_resume",
+        # Ordered-work consumption only: the accepted fixed-path family pins
+        # are read REPORTED-ONLY; nothing is re-measured this cycle.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original

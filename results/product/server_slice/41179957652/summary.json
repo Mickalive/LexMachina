@@ -1,0 +1,150 @@
+{
+  "artifact_dir": "results/product/server_slice/41179957652",
+  "checks": [
+    {
+      "claim": "the non-loopback trap is armed and provably blocks an outbound connect",
+      "definition_source": "product/server_slice.py::install_loopback_guard",
+      "observed": {
+        "probe": "blocked before any packet left the machine"
+      },
+      "status": "PASS"
+    },
+    {
+      "claim": "the shipped server answers /api/health in fixture mode",
+      "definition_source": "product/query_app.py Handler /api/health",
+      "observed": {
+        "fixture_mode": true,
+        "http": 200,
+        "pipeline": "progressive-jobs"
+      },
+      "status": "PASS"
+    },
+    {
+      "claim": "GET / serves the shipped query.html byte-for-byte",
+      "definition_source": "product/static/query.html",
+      "observed": {
+        "http": 200,
+        "served_bytes": 46443,
+        "shipped_bytes": 46443
+      },
+      "status": "PASS"
+    },
+    {
+      "claim": "the first page is a valid complete map bundle, not a placeholder",
+      "definition_source": "product/query/bundle.py::validate_bundle + product/query_app.py /api/query/start",
+      "observed": {
+        "answer_status": "pending",
+        "http": 200,
+        "n_clusters": 8,
+        "n_decisions": 100,
+        "phase": "map_ready",
+        "rows_with_cluster_id": 100,
+        "rows_with_source_url": 100,
+        "rows_with_xy": 100,
+        "run_id": "93cbad4c0716",
+        "validate_bundle": []
+      },
+      "status": "PASS"
+    },
+    {
+      "claim": "expansion finished and moved or dropped no rendered point",
+      "definition_source": "product/query_app.py::_expand_task + product/query/progressive.py",
+      "observed": {
+        "expand_job": "done",
+        "expand_job_s": 0.2,
+        "geometry_preserved": true,
+        "http": 200,
+        "moved_or_missing": [],
+        "n_after": 100,
+        "n_before": 100,
+        "points_moved": 0
+      },
+      "status": "PASS"
+    },
+    {
+      "claim": "the served run ends with a sourced answer that cites retrieved decisions",
+      "definition_source": "product/query/answer.py + product/query_app.py::_enrich_task",
+      "observed": {
+        "answer_status": "ready",
+        "cited_decision_ids": [
+          "bge_BGE_123_III_124",
+          "sz_gerichte_ZK1_2023_26"
+        ],
+        "http": 200,
+        "method": "generative_audit_llm_v2",
+        "n_cited": 2,
+        "phase": "complete",
+        "validate_bundle": []
+      },
+      "status": "PASS"
+    },
+    {
+      "claim": "enrichment preserved the geometry the map had already rendered",
+      "definition_source": "product/server_slice.py::_preserved",
+      "observed": {
+        "geometry_preserved": true,
+        "moved_or_missing": [],
+        "n_final": 100,
+        "n_first_page": 100
+      },
+      "status": "PASS"
+    },
+    {
+      "claim": "/api/query/bundle round-trips the identical bundle on a reload",
+      "definition_source": "product/query_app.py /api/query/bundle",
+      "observed": {
+        "first_http": 200,
+        "identical": true,
+        "second_http": 200
+      },
+      "status": "PASS"
+    },
+    {
+      "claim": "both counter definitions are published, broad beside narrow",
+      "definition_source": "product/query/counter_status.py (RF1 single source of truth)",
+      "observed": {
+        "counter_authorities": 1,
+        "counter_status_bearing_rows": 3,
+        "status_counts": {
+          "clusters": 8,
+          "counter_authorities": 1,
+          "counter_status_bearing_rows": 3,
+          "decisions": 100
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "claim": "the shipped page renders the served bundle under its DOM contract",
+      "definition_source": "product/verify_query_page.js on the served bundle",
+      "observed": "PASS 71 assertions",
+      "status": "PASS"
+    }
+  ],
+  "claim_ceiling": "WIRING EVIDENCE for the served fixture path only: shipped HTTP handler -> query_result_bundle -> shipped page, run on this machine with the fixture retrieval/generation providers and every non-loopback connect trapped. It scores no frozen bar, measures no live OpenCaseLaw latency, evaluates no answer quality and makes no legal-usefulness or human-gate claim.",
+  "counts": {
+    "counter_authorities": 1,
+    "counter_status_bearing_rows": 3,
+    "n_cited": 2,
+    "n_clusters_final": 8,
+    "n_clusters_first_page": 8,
+    "n_final": 100,
+    "n_first_page": 100,
+    "page_contract_assertions": 71,
+    "rows_with_source_url": 100
+  },
+  "failures": [],
+  "mode": "fixture",
+  "query": "Kündigung Mietvertrag Mietrecht",
+  "schema": "product-server-slice/1",
+  "timing_s": {
+    "enrich_accept_http_s": 0.003,
+    "enrich_job_s": 0.569,
+    "expand_job_s": 0.291,
+    "page_contract_s": 0.419,
+    "start_http_s": 0.37,
+    "total_s": 1.691
+  },
+  "top_n": 100,
+  "verdict": "PASS"
+}

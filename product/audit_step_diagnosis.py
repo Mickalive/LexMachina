@@ -57,16 +57,40 @@ def _seconds_between(start: str | None, end: str | None) -> float | None:
 def _job_annotations(snapshot: dict, job: dict) -> list[dict]:
     """Return the check-run annotations for ``job`` from a committed snapshot.
 
-    Two layouts are accepted because the raw snapshots were captured by hand:
-    ``snapshot["annotations"][<job id>]`` (what the workflow-adjacent fetcher
-    writes) and a job-local ``job["annotations"]`` list.  Anything else is
-    treated as "not captured", never guessed.
+    Three layouts are accepted because the raw snapshots were captured by
+    different code paths:
+
+    * ``snapshot["annotations"][<job id>]`` - a job-keyed mapping;
+    * a FLAT ``snapshot["annotations"]`` list - what
+      ``orchestration_evidence.observe_raw_snapshot`` actually writes (each
+      entry carries ``job``/``job_id``).  Until cycle 41179957652 this layout
+      was silently unreadable, so a run whose public annotation carried
+      ``LEX_WORK_QUANTUM_EXPIRED seconds=2700`` and exit code 78 was classified
+      as mechanism ``UNOBSERVED``.  That is a reader defect, not missing
+      evidence: the annotations were committed beside the steps all along.
+    * a job-local ``job["annotations"]`` list.
+
+    Anything else is treated as "not captured", never guessed.  Flat entries
+    are attributed ONLY by an exact job id or job name; an entry that names no
+    job is excluded rather than attributed to whichever job is being classified.
     """
     ann = snapshot.get("annotations")
     if isinstance(ann, dict):
         for key in (str(job.get("id")), job.get("id")):
             if key in ann and isinstance(ann[key], list):
                 return ann[key]
+    if isinstance(ann, list):
+        job_id = job.get("id")
+        job_name = job.get("name")
+        matched = [
+            a for a in ann
+            if isinstance(a, dict) and (
+                (job_id is not None and a.get("job_id") == job_id)
+                or (job_name is not None and a.get("job") == job_name)
+            )
+        ]
+        if matched:
+            return matched
     job_ann = job.get("annotations")
     if isinstance(job_ann, list):
         return job_ann
