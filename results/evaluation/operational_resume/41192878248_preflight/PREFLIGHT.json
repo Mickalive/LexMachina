@@ -1,0 +1,63 @@
+{
+  "schema": "lex-evaluation-operational-resume-preflight/1",
+  "run_id": 41192878248,
+  "attempt": 1,
+  "generated_at_utc": "2026-10-31T10:47:48Z",
+  "classification": "HARNESS_PREFLIGHT_FAILURE_PRESERVED_NOT_CLAIM_BEARING",
+  "reason": "The first execution of the verifier after freeze V1 failed its own adversarial checks; the failed artifacts are preserved here and were NOT accepted. The verifier and self-check were corrected, and freeze V2 was committed before the final claim-bearing execution.",
+  "observed_failures": {
+    "claim_verification": {
+      "verdict": "PRIOR_CLAIMS_NOT_VERIFIED",
+      "n_checks": 92,
+      "n_failed": 6,
+      "failed_claims": [
+        "prior_diag_failed_run",
+        "prior_diag_exit_code",
+        "prior_diag_quantum_seconds",
+        "prior_record_embeds_same_diag_annotation",
+        "benchmark_of_record_packet",
+        "benchmark_of_record_failed_gate_set"
+      ]
+    },
+    "self_check": {
+      "verdict": "SHIM_FAIL",
+      "n_passed": 10,
+      "n_failed": 1,
+      "failed_tests": [
+        "test_current_producer_is_non_measurement_failure",
+        "test_inherited_claims_verified",
+        "test_predecessor_audit_is_rc78_quantum_not_validation",
+        "test_prior_inconsistency_and_benchmark_pins"
+      ]
+    },
+    "nested_refs": {
+      "verdict": "UNRESOLVED_REFS_PRESENT",
+      "n_disclosure_errors": 1,
+      "disclosure_errors": [
+        {
+          "index": 1,
+          "path": "reports/audit/evaluation/CYCLE_40153908549.md",
+          "error": "disclosure points at a resolving path; it must not suppress a live ref"
+        }
+      ]
+    },
+    "producer_diagnosis": {
+      "exit_code": null,
+      "note": "regex bug: '(\\\\d+)' did not match the annotation; exit code was recorded as None"
+    },
+    "predecessor_diagnosis": {
+      "exit_code": null,
+      "annotation_quantum_seconds_declared": null,
+      "note": "same regex bug"
+    }
+  },
+  "corrections_before_final_run": [
+    "fixed the exit-code and quantum-seconds extraction regexes",
+    "loaded the committed 41184425270 diagnosis (not the fresh 41187766812 diagnosis) when verifying the inherited record's own claims",
+    "used packets_measured and the failed-gate 'gate' field names from the benchmark of record",
+    "moved a stale formal known-unresolvable disclosure whose path now resolves through fetched branch history, without deleting provenance",
+    "preserved these preflight artifacts; no claim-bearing verdict from attempt 1 was carried forward"
+  ],
+  "not_a_measurement": true,
+  "claim_ceiling": "Harness preflight evidence only. It makes no measurement, quality, bar, serve or jurist claim."
+}

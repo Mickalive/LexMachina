@@ -1,0 +1,63 @@
+{
+  "schema": "lex-evaluation-audit-index/1",
+  "lane": "evaluation",
+  "run_id": 41192878248,
+  "direction_version": 68,
+  "generated_at_utc": "2026-10-31T10:52:54Z",
+  "purpose": "Scope the independent auditor to THIS run's delta. The audit quantum has already expired in this chain (41161273401, 41165748723, 41174962048, 41184425270, 41187766812), and this producer's lane cycle died before writing any delta. The auditor should not re-derive closed history.",
+  "headline": "run 41192878248 is a NON-MEASUREMENT PRODUCER-START failure (exit 1 after 16 s); its team ref contains the predecessor 41187766812 snapshot 326f0e53, whose only failure was the independent audit job's 2700 s quantum expiry under rc 78",
+  "start_here": [
+    "reports/evaluation/OPERATIONAL_RESUME_41192878248_AUDIT_READY.md",
+    "reports/evaluation/AUDIT_BRIEF_41192878248.md"
+  ],
+  "primary_evidence": {
+    "current_run": [
+      "results/evaluation/orchestration/41192878248_run_record.json",
+      "results/evaluation/orchestration/41192878248_jobs.json",
+      "results/evaluation/orchestration/41192878248_team_annotations.json"
+    ],
+    "predecessor_run": [
+      "results/evaluation/orchestration/41187766812_run_record.json",
+      "results/evaluation/orchestration/41187766812_jobs.json",
+      "results/evaluation/orchestration/41187766812_audit_annotations.json",
+      "results/evaluation/orchestration/41187766812_team_annotations.json"
+    ],
+    "diagnoses": [
+      "results/evaluation/orchestration/CYCLE_41192878248_producer_start_failure.json",
+      "results/evaluation/orchestration/CYCLE_41187766812_audit_quantum_expiry.json",
+      "results/evaluation/orchestration/CYCLE_41184425270_audit_quantum_expiry.json"
+    ]
+  },
+  "verification_artifacts": {
+    "snapshot_scope": "results/evaluation/orchestration/41192878248_snapshot_scope.json",
+    "validate_replay": "results/evaluation/orchestration/41192878248_validate_step_replay.json",
+    "claim_verification": "results/evaluation/operational_resume/41192878248_claim_verification.json",
+    "item2_currency": "results/evaluation/operational_resume/41192878248_item2_currency.json",
+    "multilingual": "results/evaluation/operational_resume/41192878248_multilingual_supplement.json",
+    "accepted_pointer": "results/evaluation/operational_resume/41187766812.json"
+  },
+  "gate_artifacts": {
+    "state_integrity": "results/evaluation/orchestration/41192878248_state_integrity_gate.json",
+    "lane_suite": "results/evaluation/orchestration/41192878248_lane_suite.json",
+    "write_scope": "results/evaluation/orchestration/41192878248_write_scope.json",
+    "nested_refs": "results/evaluation/orchestration/41192878248_nested_evidence_refs.json",
+    "self_check": "results/evaluation/orchestration/41192878248_self_check_pytest_shim.json"
+  },
+  "do_not_redo": [
+    "do not re-run the rc-78 audit job or the failed lane cycle",
+    "do not re-execute the standing falsifier or score packet-of-record 39319405429",
+    "do not re-derive the item-(2) precondition at unchanged head 7be4480e",
+    "do not re-run the universal-174k benchmark",
+    "do not mint an audit gate from this index or the producer ref"
+  ],
+  "verdicts": {
+    "current_run": "NON_MEASUREMENT_PRODUCER_START_FAILURE",
+    "predecessor_audit": "AUDIT_WORK_QUANTUM_EXPIRED_rc78",
+    "snapshot_scope": "SCOPE_CLEAN",
+    "claims": "PRIOR_CLAIMS_NOT_VERIFIED",
+    "item2": "NOT_YET_DISCRIMINATING (ordered item (2) protocol not executed: member-for-member regeneration of the named frozen family is 14/15; no synthetic stand-in is substituted, d2_path_scope_probe is not re-run as the ordered re-measure, packet-of-record 39319405429 is not scored and the standing falsification is not re-run)",
+    "multilingual": "PASS"
+  },
+  "posture": "PENDING_INDEPENDENT_AUDIT; accepted_as_evidence=false; no audit gate",
+  "not_a_measurement": true
+}

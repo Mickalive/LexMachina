@@ -155,4 +155,4 @@ def test_prior_inconsistency_and_benchmark_pins():
     assert inc["classification"] == "REPORT_ONLY_PRIOR_INSTRUMENT_ARTIFACT_INCONSISTENCY"
     bench = _load(REPO_ROOT / "results/evaluation/minimal_retrieval_ca_benchmark/40182692670.json")
     assert bench["verdict"] == "PRODUCT_FALSIFIED"
-    assert bench["packets"] == ["39319405429"]
+    assert bench["packets_measured"] == ["39319405429"]

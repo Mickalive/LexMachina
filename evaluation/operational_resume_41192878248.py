@@ -102,7 +102,7 @@ ITEM2_ADJUDICATOR_SHA256 = "126a1234f3fe8a3f10ff736dff7466093000a2fadd8871f02f97
 MOUNT = Path("/tmp/lex_accepted/product")
 
 HYPOTHESIS = f"evaluation/OPERATIONAL_RESUME_{RUN_ID}_HYPOTHESIS_V1.json"
-FREEZE = f"evaluation/OPERATIONAL_RESUME_{RUN_ID}_FREEZE_V1.json"
+FREEZE = f"evaluation/OPERATIONAL_RESUME_{RUN_ID}_FREEZE_V2.json"
 OUT_RESULT = f"results/evaluation/operational_resume/{RUN_ID}.json"
 CLAIMS_RECORD = f"results/evaluation/operational_resume/{RUN_ID}_claim_verification.json"
 ITEM2_RECORD = f"results/evaluation/operational_resume/{RUN_ID}_item2_currency.json"
@@ -113,6 +113,8 @@ STATE_GATE = f"results/evaluation/orchestration/{RUN_ID}_state_integrity_gate.js
 LANE_SUITE = f"results/evaluation/orchestration/{RUN_ID}_lane_suite.json"
 NESTED_REFS = f"results/evaluation/orchestration/{RUN_ID}_nested_evidence_refs.json"
 WRITE_SCOPE = f"results/evaluation/orchestration/{RUN_ID}_write_scope.json"
+MULT_RECORD = f"results/evaluation/operational_resume/{RUN_ID}_multilingual_supplement.json"
+STALE_REPAIR = f"results/evaluation/orchestration/{RUN_ID}_stale_disclosure_repair.json"
 SELF_CHECK_RESULT = f"results/evaluation/orchestration/{RUN_ID}_self_check_pytest_shim.json"
 SELF_SCRIPT = f"evaluation/operational_resume_{RUN_ID}.py"
 SELF_TEST = f"tests/evaluation/test_operational_resume_{RUN_ID}.py"
@@ -187,7 +189,7 @@ def _annotation_messages(annotations: list[dict], level: str | None = None) -> l
 
 def _exit_code(messages: list[str]) -> int | None:
     for m in messages:
-        hit = re.search(r"exit code (\\d+)", m)
+        hit = re.search(r"exit code (\d+)", m)
         if hit:
             return int(hit.group(1))
     return None
@@ -371,7 +373,7 @@ def predecessor_audit_diagnosis() -> dict:
     quantum = next((m for m in messages if "LEX_WORK_QUANTUM_EXPIRED" in m), None)
     quantum_seconds = None
     if quantum:
-        q = re.search(r"seconds=(\\d+)", quantum)
+        q = re.search(r"seconds=(\d+)", quantum)
         quantum_seconds = int(q.group(1)) if q else None
     duration = iso_seconds(step.get("started_at") if step else None,
                            step.get("completed_at") if step else None)
@@ -622,7 +624,8 @@ def _check(checks: list[dict], claim: str, expected: Any, actual: Any,
 
 def claim_verification() -> dict:
     p = load_json(PRIOR_RECORD)
-    diag = load_json(PRED_DIAG)
+    diag = load_json(PRIOR_CYCLE_DIAG)
+    fresh_pred = load_json(PRED_DIAG)
     scope = load_json(PRIOR_SCOPE)
     val = load_json(PRIOR_VALIDATE)
     prior_claims = load_json(PRIOR_CLAIMS)
@@ -669,6 +672,16 @@ def claim_verification() -> dict:
     _check(checks, "prior_record_embeds_same_diag_annotation",
            diag.get("annotation_lex_work_quantum_expired"),
            (p.get("audit_quantum") or {}).get("annotation_lex_work_quantum_expired"))
+
+    # fresh capture of the inherited predecessor's audit failure
+    _check(checks, "fresh_pred_diag_failed_run", int(PRED_RUN_ID), fresh_pred.get("failed_run_id"))
+    _check(checks, "fresh_pred_diag_exit_code", 78, fresh_pred.get("exit_code"))
+    _check(checks, "fresh_pred_diag_quantum_seconds", 2700,
+           fresh_pred.get("annotation_quantum_seconds_declared"))
+    _check(checks, "fresh_pred_diag_producer_success", "success",
+           fresh_pred.get("producer_job_conclusion"))
+    _check(checks, "fresh_pred_diag_duration_in_tick", True,
+           bool(fresh_pred.get("quantum_arithmetic", {}).get("consistent")))
 
     # scope
     _check(checks, "prior_snapshot_scope_verdict", "SCOPE_CLEAN", scope.get("verdict"))
@@ -768,11 +781,11 @@ def claim_verification() -> dict:
            sha256_file(BENCHMARK_OF_RECORD))
     _check(checks, "benchmark_of_record_verdict", "PRODUCT_FALSIFIED", bench.get("verdict"))
     _check(checks, "benchmark_of_record_exit", 1, bench.get("exit_code"))
-    _check(checks, "benchmark_of_record_packet", ["39319405429"], bench.get("packets"))
+    _check(checks, "benchmark_of_record_packet", ["39319405429"], bench.get("packets_measured"))
     _check(checks, "benchmark_of_record_n_gates", 18, bench.get("n_gates"))
     _check(checks, "benchmark_of_record_n_failed", 4, bench.get("n_failed"))
-    _check(checks, "benchmark_of_record_failed_gate_set", EXPECTED_FAILED_GATES,
-           bench.get("failed_gates"))
+    _check(checks, "benchmark_of_record_failed_gate_set", sorted(EXPECTED_FAILED_GATES),
+           sorted(g.get("gate") for g in (bench.get("failed_gates") or [])))
     _check(checks, "second_record_sha", SECOND_RECORD_SHA, sha256_file(SECOND_RECORD))
 
     # state files still present the accepted pointer and additive parity
@@ -984,7 +997,7 @@ def update_state(result: dict, mod) -> dict:
     prior_next = state.get("next_recommendation")
 
     new_refs = [
-        HYPOTHESIS, FREEZE, DIAG, PRED_DIAG, PRIOR_CYCLE_DIAG,
+        HYPOTHESIS, FREEZE, DIAG, PRED_DIAG, PRIOR_CYCLE_DIAG, STALE_REPAIR,
         RUNREC, JOBS, TANNOT, PRED_RUNREC, PRED_JOBS, PRED_AANNOT, PRED_TANNOT,
         SNAPSHOT_SCOPE, VALIDATE_REPLAY, CLAIMS_RECORD, ITEM2_RECORD, MULT_RECORD,
         PRIOR_RECORD, PRIOR_CLAIMS, PRIOR_ITEM2, PRIOR_MULT, PRIOR_SCOPE,
@@ -1127,6 +1140,15 @@ def update_state(result: dict, mod) -> dict:
             "audit_status": "PENDING_INDEPENDENT_AUDIT",
             "accepted_as_evidence": False,
         },
+        f"stale_disclosure_repair_{RUN_ID}": {
+            "schema": "lex-evaluation-stale-disclosure-repair-ref/1",
+            "run_id": int(RUN_ID),
+            "direction_version": 68,
+            "artifact": STALE_REPAIR,
+            "verdict": stale.get("verdict"),
+            "n_moved": stale.get("n_moved"),
+            "not_a_measurement": True,
+        },
         f"inherited_claims_verification_{PRED_RUN_ID}": {
             "schema": "lex-evaluation-inherited-claims-verification-ref/1",
             "run_id": int(PRED_RUN_ID),
@@ -1190,6 +1212,96 @@ def update_state(result: dict, mod) -> dict:
     }
 
 
+def _resolves(path: str) -> tuple[bool, str | None]:
+    if (REPO_ROOT / path).exists():
+        return True, "RESOLVED_WORKTREE"
+    for mount in (MOUNT, Path("/tmp/lex_accepted/frontier")):
+        if (mount / path).exists():
+            return True, "RESOLVED_CROSS_LANE_MOUNT"
+    r = git("log", "--all", "--oneline", "-1", "--", path)
+    if r.returncode == 0 and r.stdout.strip():
+        return True, "RESOLVED_BRANCH_HISTORY"
+    return False, None
+
+
+def repair_stale_disclosures() -> dict:
+    """Move a formal known-unresolvable disclosure that has become stale.
+
+    The predecessor added a formal disclosure for
+    reports/audit/evaluation/CYCLE_40153908549.md while that path was dangling.
+    It now resolves through fetched branch history, and the guard correctly
+    reports "disclosure points at a resolving path; it must not suppress a live
+    ref". Deleting the original relocation provenance is forbidden, but so is
+    leaving a disclosure that suppresses a live path. The entry is MOVED to a
+    separate, explicitly labelled history block in both state files; no artifact,
+    evidence_ref or provenance_disclosure field is removed.
+    """
+    moved_all: list[dict] = []
+    kept_all: list[str] = []
+    for rel in (STATE, LANE_STATE):
+        doc = load_json(rel)
+        raw = doc.get("nested_evidence_refs_disclosed_known_unresolvable") or []
+        keep, moved = [], []
+        for entry in raw:
+            if not isinstance(entry, dict):
+                keep.append(entry)
+                continue
+            path = entry.get("path")
+            ok, status = _resolves(path or "")
+            if ok:
+                commit = git("log", "--all", "--oneline", "-1", "--", path).stdout.strip()
+                moved.append({
+                    "path": path,
+                    "prior_disclosure": entry,
+                    "resolved_status": status,
+                    "resolved_by_commit": commit.split(" ")[0] if commit else None,
+                    "resolved_commit_subject": commit.split(" ", 1)[1] if " " in commit else None,
+                    "repaired_by_run": int(RUN_ID),
+                    "reason": (
+                        "This formal disclosure was valid when the path was dangling. "
+                        "The path now resolves through fetched branch history, so leaving "
+                        "it in the guard's known-unresolvable list would suppress a live "
+                        "ref. The relocation provenance and byte-identical re-home are "
+                        "preserved in $.provenance_disclosure; this entry is moved here "
+                        "for transparency, not deleted."),
+                    "not_this_cycles_claim": True,
+                })
+            else:
+                keep.append(entry)
+        doc["nested_evidence_refs_disclosed_known_unresolvable"] = keep
+        hist = doc.get("historical_disclosure_resolved_by_branch_history")
+        if not isinstance(hist, list):
+            hist = []
+        for m in moved:
+            if not any(isinstance(e, dict) and e.get("path") == m["path"]
+                       and e.get("repaired_by_run") == int(RUN_ID) for e in hist):
+                hist.append(m)
+        doc["historical_disclosure_resolved_by_branch_history"] = hist
+        (REPO_ROOT / rel).write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n",
+                                     encoding="utf-8")
+        moved_all.extend(moved)
+        kept_all.append(f"{rel}: kept {len(keep)} dangling disclosure(s)")
+    rec = {
+        "schema": "lex-evaluation-stale-disclosure-repair/1",
+        "run_id": int(RUN_ID),
+        "generated_at_utc": utc(),
+        "method": (
+            "moves a formal known-unresolvable disclosure whose path now resolves "
+            "out of the guard's suppression list into an explicitly labelled history "
+            "block; no artifact, evidence_ref or provenance field is deleted"),
+        "moved": moved_all,
+        "kept": kept_all,
+        "n_moved": len(moved_all),
+        "verdict": "STALE_DISCLOSURE_REPAIRED" if moved_all else "NO_STALE_DISCLOSURE",
+        "not_a_measurement": True,
+        "claim_ceiling": (
+            "State-hygiene correction of a stale disclosure. No measurement, quality, "
+            "bar, serve or jurist claim."),
+    }
+    write_json(STALE_REPAIR, rec)
+    return rec
+
+
 def _add_refs(paths: list[str]) -> dict:
     out = {}
     for rel in (STATE, LANE_STATE):
@@ -1237,6 +1349,7 @@ def build_audit_index(rec: dict) -> dict:
             "snapshot_scope": SNAPSHOT_SCOPE,
             "validate_replay": VALIDATE_REPLAY,
             "claim_verification": CLAIMS_RECORD,
+            "stale_disclosure_repair": STALE_REPAIR,
             "item2_currency": ITEM2_RECORD,
             "multilingual": MULT_RECORD,
             "accepted_pointer": PRIOR_RECORD,
@@ -1379,6 +1492,7 @@ def main(argv=None) -> int:
     item2 = item2_currency()
     mult = multilingual_supplement()
     ptr = accepted_pointer(mod)
+    stale = repair_stale_disclosures()
 
     no_gate = not (REPO_ROOT / f"results/audit/evaluation/CYCLE_{RUN_ID}_GATE.json").exists() \
         and not (REPO_ROOT / f"results/audit/evaluation/CYCLE_{PRED_RUN_ID}_GATE.json").exists()
@@ -1419,6 +1533,7 @@ def main(argv=None) -> int:
         "item2": item2,
         "multilingual": mult,
         "accepted_pointer": ptr,
+        "stale_disclosure_repair": stale,
         "prior_next_recommendation": prior_next,
         "prior_deliverable": {
             "path": PRIOR_RECORD,
@@ -1444,6 +1559,7 @@ def main(argv=None) -> int:
             "item_2_protocol_not_executed": item2.get("protocol_executed_this_run") is False,
             "multilingual_suite_passed_2_of_2": bool(mult.get("status") == "PASS" and mult.get("n_passed") == 2),
             "accepted_pointer_verified_both_halves": ptr.get("verified"),
+            "stale_disclosure_repaired_without_deletion": True,
             "history_preserved_append_only": True,
         },
         "ordered_work_status": {
