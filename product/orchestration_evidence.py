@@ -76,6 +76,20 @@ DEFAULT_OUT_DIR = REPO_ROOT / "results" / "product" / "orchestration"
 #: when that script is absent from the checkout being examined.
 DEFAULT_WRAPPER_QUANTUM_SECONDS = 2700
 
+#: The only two workflow steps whose EXIT CODE is produced by
+#: ``run-ox-with-retry.sh``.  Their duration is the arithmetic input for the
+#: wrapper's own branches (the quantum needs 2700 s, the retry loop needs one
+#: 90 s sleep per extra attempt).  Any other failing step -- ``Enforce lane
+#: write scope``, ``Enforce audit scope and read gate`` -- is the WORKFLOW's
+#: own shell, so no wrapper duration exists for it and passing one would make
+#: the arithmetic exclusions speak about a step that never ran the wrapper.
+WRAPPER_AGENT_STEPS = ("run lane cycle", "independent audit")
+
+#: Schema of the verbatim run/jobs snapshot written by ``--write-raw``.  Kept
+#: byte-identical to the snapshots earlier resumes committed by hand so that
+#: ``audit_readiness``'s raw cross-check reads every one of them the same way.
+RAW_SNAPSHOT_SCHEMA = "github-actions-run-jobs-snapshot/1"
+
 #: Classes this module can name.  Anything else is reported as UNCLASSIFIED
 #: rather than folded into a neighbouring class by resemblance.
 CLASSES = (
@@ -439,6 +453,65 @@ def observe_annotations(run_id: int | str, repo: str = DEFAULT_REPO,
     return rows
 
 
+def observe_logs_endpoint(run_id: int | str, repo: str = DEFAULT_REPO,
+                          fetch: Callable = http_fetch) -> int | None:
+    """HTTP status of the run-log endpoint for one run.  ``None`` = no answer.
+
+    The job-log endpoint is the ONLY source that names opencode's innermost
+    error, and it is admin-only (403 for this reader).  Recording the status
+    instead of assuming it is what lets a diagnosis say "log-level cause
+    UNOBSERVED" as a measured fact rather than as a story.
+    """
+    try:
+        status, _ = fetch(
+            f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/logs")
+        return status
+    except Exception:  # pragma: no cover - network resilience, never fatal
+        return None
+
+
+def observe_raw_snapshot(run_id: int | str, repo: str = DEFAULT_REPO,
+                         lane: str = "product",
+                         fetch: Callable = http_fetch) -> dict:
+    """Verbatim ``github-actions-run-jobs-snapshot/1`` record for one run (network).
+
+    Earlier operational resumes committed this file by hand, which is exactly
+    the kind of one-off that later readers cannot reproduce.  The shape is kept
+    byte-compatible with those committed snapshots (``schema``, ``run``,
+    ``jobs``, ``logs_endpoint_status``) because ``audit_readiness``'s raw
+    cross-check reads ``jobs[].steps[]`` out of it; the public check-run
+    ``annotations`` are added as an extra key so the observed exit code lives
+    beside the steps that produced it.
+    """
+    run_url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}"
+    status, run_payload = fetch(run_url)
+    if status != 200 or not isinstance(run_payload, dict):
+        raise RuntimeError(f"GitHub API returned HTTP {status} for run {run_id}")
+    jobs_url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/jobs?per_page=100"
+    j_status, jobs_payload = fetch(jobs_url)
+    if j_status != 200 or not isinstance(jobs_payload, dict):
+        raise RuntimeError(f"GitHub API returned HTTP {j_status} for jobs of run {run_id}")
+    # Job logs are admin-only; record the MEASURED status rather than asserting it.
+    logs_status = observe_logs_endpoint(run_id, repo=repo, fetch=fetch)
+    from datetime import datetime, timezone
+    return {
+        "schema": RAW_SNAPSHOT_SCHEMA,
+        "fetched_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "fetched_from": run_url,
+        "fetched_via": (f"GitHub REST actions API (unauthenticated public read) by the "
+                        f"product lane using product/orchestration_evidence.py --write-raw"),
+        "artifact_note": (
+            f"Raw run/jobs snapshot of run {run_id} (lane {lane}). The jobs, steps and "
+            "timestamps are verbatim REST payloads; `annotations` are the public check-run "
+            "annotations that carry the wrapper's exit code; `logs_endpoint_status` is the "
+            "measured HTTP status of the admin-only job-log endpoint for this reader."),
+        "logs_endpoint_status": logs_status,
+        "annotations": observe_annotations(run_id, repo=repo, fetch=fetch),
+        "run": run_payload,
+        "jobs": jobs_payload.get("jobs") or [],
+    }
+
+
 def parse_exit_code(annotations: list[dict]) -> dict:
     """Pull the wrapper's exit code out of the annotations.  Pure function.
 
@@ -643,7 +716,30 @@ def diagnose(*, annotations: list[dict], steps: list[dict], quantum_s: int,
     agent_step = next(
         (s for s in steps if (s.get("job") or "").lower() == "audit"
          and "independent audit" in (s.get("step") or "").lower()), None)
-    duration = agent_step.get("duration_s") if agent_step else None
+    audit_duration = agent_step.get("duration_s") if agent_step else None
+
+    # The observed exit code belongs to the step that FAILED, not to whichever
+    # audit step happens to exist.  Earlier revisions always fed the AUDIT
+    # agent step's duration into the arithmetic exclusions, so for a TEAM-job
+    # failure (the commonest class: runs 41149776023, 41159162128) the input
+    # came out null and the quantum/retry exclusions silently never fired,
+    # leaving the exit-code comparison as the only evidence.  Select the failing
+    # step when it is a step the wrapper runs; otherwise there is no wrapper
+    # duration to publish, which is the honest answer rather than a borrowed one.
+    failing = next(
+        (s for s in steps if s.get("conclusion") in ("failure", "cancelled")), None)
+    failing_name = (failing or {}).get("step") or ""
+    if failing is not None and failing_name.lower() in WRAPPER_AGENT_STEPS:
+        duration = failing.get("duration_s")
+        duration_source = (f"failed step {failing_name!r} in the "
+                           f"{(failing.get('job') or '')!r} job")
+    else:
+        duration = audit_duration
+        if agent_step is not None:
+            duration_source = "audit agent step (no wrapper agent step failed)"
+        else:
+            duration_source = ("no step run by run-ox-with-retry.sh failed in the "
+                               "record, so no wrapper duration exists")
     candidates = wrapper_exit_candidates(exit_info["exit_code"], step_duration_s=duration,
                                          quantum_s=quantum_s,
                                          retry=read_wrapper_retry_params())
@@ -685,7 +781,12 @@ def diagnose(*, annotations: list[dict], steps: list[dict], quantum_s: int,
         "annotations": annotations,
         "exit_code": exit_info["exit_code"],
         "exit_code_evidence": exit_info["evidence"],
-        "audit_agent_step_duration_s": duration,
+        "audit_agent_step_duration_s": audit_duration,
+        "failing_step": failing_name or None,
+        "failing_step_duration_s": (failing.get("duration_s") if failing is not None
+                                    else None),
+        "step_duration_used_s": duration,
+        "step_duration_source": duration_source,
         "preflight": preflight,
         "candidates": candidates,
     }
@@ -854,7 +955,23 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--write", action="store_true", help="write the artifact (default: dry run)")
     ap.add_argument("--no-annotations", action="store_true",
                     help="skip the public check-run annotation fetch (exit code becomes unknown)")
+    ap.add_argument("--write-raw", action="store_true",
+                    help="also write CYCLE_<id>_team_step_raw.json (verbatim run/jobs snapshot)")
+    ap.add_argument("--force-raw", action="store_true",
+                    help="overwrite an existing raw snapshot (append-only by default)")
     args = ap.parse_args(argv)
+
+    if args.write_raw:
+        raw_out = Path(args.out_dir) / f"CYCLE_{args.run_id}_team_step_raw.json"
+        if raw_out.is_file() and not args.force_raw:
+            print(f"refusing to overwrite existing {raw_out} (use --force-raw)",
+                  file=sys.stderr)
+            return 3
+        raw = observe_raw_snapshot(args.run_id, lane=args.lane)
+        raw_out.parent.mkdir(parents=True, exist_ok=True)
+        raw_out.write_text(json.dumps(raw, indent=2, sort_keys=True) + "\n",
+                           encoding="utf-8")
+        print(f"wrote {raw_out}", file=sys.stderr)
 
     ann = None if args.no_annotations else observe_annotations(args.run_id)
     report = build_report(args.run_id, lane=args.lane, annotations=ann)

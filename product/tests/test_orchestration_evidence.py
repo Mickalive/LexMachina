@@ -525,6 +525,92 @@ def test_diagnosis_rules_out_preflight_exits_only_when_the_replay_passes():
     assert diag["candidates"]["claim_ceiling"].startswith("This narrows")
 
 
+def test_team_job_failure_uses_the_lane_cycle_step_duration_not_a_borrowed_one():
+    """Run class 41149776023 / 41159162128: the failing step is ``Run lane cycle``.
+
+    The first revision of ``diagnose`` always borrowed the AUDIT agent step's
+    duration, which does not exist in a team-job failure, so the arithmetic
+    exclusions (a 17 s step cannot outrun a 2700 s watchdog and cannot contain a
+    90 s retry sleep) silently never fired for the commonest failure class.
+    Those exclusions are the only evidence that survives when the log-level
+    cause is unreadable, so they must be fed the FAILING step's duration.
+    """
+    anns = [_ann("team", "failure", "Process completed with exit code 1.")]
+    steps = [
+        _step("team", "Run lane cycle", "failure", 17.0, number=8),
+        _step("team", "Validate active MVP producer state", "skipped", None, number=9),
+    ]
+    diag = oe.diagnose(annotations=anns, steps=steps, quantum_s=2700,
+                       preflight={"all_pass": True, "would_exit": None},
+                       annotations_collected=True)
+    assert diag["failing_step"] == "Run lane cycle"
+    assert diag["failing_step_duration_s"] == 17.0
+    assert diag["step_duration_used_s"] == 17.0
+    assert "Run lane cycle" in diag["step_duration_source"]
+    quantum = next(c for c in diag["candidates"]["named_branches"] if c["rc"] == 78)
+    retry = next(c for c in diag["candidates"]["named_branches"] if c["rc"] == 75)
+    assert quantum["ruled_out"] is True
+    assert any("2700" in e for e in quantum["ruled_out_evidence"])
+    assert retry["ruled_out"] is True
+    assert diag["candidates"]["surviving_named_branches"] == []
+
+
+def test_audit_agent_failure_still_uses_the_audit_step_duration():
+    """Regression guard: the audit path keeps its arithmetic, now also attributed."""
+    anns = [_ann("audit", "failure", "Process completed with exit code 78.")]
+    steps = [_step("audit", AUDIT_AGENT, "failure", 3299.0)]
+    diag = oe.diagnose(annotations=anns, steps=steps, quantum_s=2700,
+                       preflight={"all_pass": True, "would_exit": None},
+                       annotations_collected=True)
+    assert diag["audit_agent_step_duration_s"] == 3299.0
+    assert diag["failing_step"] == AUDIT_AGENT
+    assert diag["step_duration_used_s"] == 3299.0
+    quantum = next(c for c in diag["candidates"]["named_branches"] if c["rc"] == 78)
+    assert quantum["ruled_out"] is False  # 3299 s outran the 2700 s budget
+
+
+def test_a_non_wrapper_failing_step_publishes_no_wrapper_duration():
+    """``Enforce lane write scope`` is the workflow's own shell, not the wrapper."""
+    steps = [
+        _step("team", "Run lane cycle", "success", 300.0, number=8),
+        _step("team", "Enforce lane write scope", "failure", 2.0, number=9),
+    ]
+    diag = oe.diagnose(annotations=[_ann("team", "failure", "something else")],
+                       steps=steps, quantum_s=2700,
+                       preflight={"all_pass": True, "would_exit": None},
+                       annotations_collected=True)
+    assert diag["failing_step"] == "Enforce lane write scope"
+    assert diag["step_duration_used_s"] is None
+    assert diag["audit_agent_step_duration_s"] is None
+    assert "no step run by run-ox-with-retry.sh failed" in diag["step_duration_source"]
+    assert diag["exit_code"] is None  # never invented
+
+
+def test_observe_raw_snapshot_records_a_measured_logs_status_and_verbatim_jobs():
+    def fake_fetch(url: str):
+        if url.endswith("/jobs?per_page=100"):
+            return 200, {"jobs": [{
+                "id": 7, "name": "team", "conclusion": "failure",
+                "steps": [{"number": 8, "name": "Run lane cycle", "status": "completed",
+                           "conclusion": "failure",
+                           "started_at": "2026-10-31T00:00:00Z",
+                           "completed_at": "2026-10-31T00:00:17Z"}]}]}
+        if url.endswith("/logs"):
+            return 403, {}
+        if "/check-runs/" in url:
+            return 200, [{"annotation_level": "failure", "start_line": 1, "end_line": 1,
+                          "message": "Process completed with exit code 1."}]
+        return 200, {"id": 41159162128, "conclusion": "failure", "head_sha": "abc"}
+
+    raw = oe.observe_raw_snapshot("41159162128", fetch=fake_fetch)
+    assert raw["schema"] == oe.RAW_SNAPSHOT_SCHEMA
+    assert raw["logs_endpoint_status"] == 403
+    assert raw["run"]["id"] == 41159162128
+    assert raw["run"]["conclusion"] == "failure"
+    assert raw["jobs"][0]["steps"][0]["name"] == "Run lane cycle"
+    assert "exit code 1." in raw["annotations"][0]["message"]
+
+
 def test_diagnosis_marks_uncollected_annotations_as_uncollected_not_as_zero():
     diag = oe.diagnose(annotations=[], steps=[], quantum_s=2700,
                        preflight={"all_pass": True, "would_exit": None},

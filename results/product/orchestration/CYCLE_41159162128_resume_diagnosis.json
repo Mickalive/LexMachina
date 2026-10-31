@@ -1,0 +1,94 @@
+{
+ "schema": "product-resume-diagnosis/2",
+ "run_id": "41159162128",
+ "resumed_by_run_id": "41159331087",
+ "predecessor_run_id": "41152471808",
+ "direction_version": 68,
+ "generated_at": "2026-10-31T03:05:00Z",
+ "mode": "OPERATIONAL RESUME from persisted producer snapshot of run 41159162128 (this file diagnoses 41159162128; it is committed by the resuming run 41159331087).",
+ "orchestration": {
+  "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+  "failed_job": "team",
+  "failed_step": "Run lane cycle",
+  "failed_step_seconds": 17.0,
+  "team_job_conclusion": "failure",
+  "team_job_seconds": 111.0,
+  "audit_job_conclusion": "skipped",
+  "integrate_job_conclusion": "skipped",
+  "producer_state_validation_conclusion": "skipped",
+  "write_scope_enforcement_conclusion": "skipped",
+  "raw_snapshot": "results/product/orchestration/CYCLE_41159162128_team_step_raw.json",
+  "mechanism": {
+   "status": "OBSERVED_LANE_CYCLE_STEP_FAILED",
+   "logs_available": false,
+   "logs_endpoint_status": 403,
+   "logs_note": "The public GitHub logs endpoint returned HTTP 403 for this unauthenticated reader ('Must have admin rights to Repository'), so the log-level cause of the agent failure is UNOBSERVED and none is asserted.",
+   "quantum_expired": false,
+   "quantum_seconds": 2700,
+   "lane_cycle_step_seconds": 17.0,
+   "lane_cycle_step_conclusion": "failure",
+   "exit_code": 1,
+   "workflow_version_note": "The run used the control-plane workflow at head f1e796cd (same as this resume and as the predecessor's team job). Its team job failed at the 'Run lane cycle' step, so the downstream 'Validate active MVP producer state' and 'Enforce lane write scope' steps were both skipped."
+  },
+  "team": {
+   "job_id": 124412626107,
+   "started_at": "2026-10-31T02:15:35Z",
+   "completed_at": "2026-10-31T02:17:26Z",
+   "seconds": 111.0
+  },
+  "audit": {
+   "ran": false,
+   "skipped": true,
+   "gate_file_written": false,
+   "reason": "needs.team.result == 'success' was false, so the audit job and the downstream integrate job were both skipped"
+  }
+ },
+ "durable_delta": {
+  "classification": "ZERO_DURABLE_DELTA",
+  "changed_files": 0,
+  "snapshot_head": "f7bc77a00d7a548f753b7466199d1fa72c834337",
+  "predecessor_head": "f7bc77a00d7a548f753b7466199d1fa72c834337",
+  "predecessor_team_ref": "cycle/core/product/41152471808/team (the accepted snapshot lineage; lab/product is at this same commit)",
+  "team_ref": "cycle/core/product/41159162128/team",
+  "team_ref_attempt": "cycle/core/product/41159162128/team-attempt-1",
+  "note": "Both the persistent team ref and its attempt ref point at f7bc77a0, which is byte-identical to the accepted snapshot lineage and to origin/lab/product. The failed lane-cycle step left no committed change, so the producer snapshot added nothing durable."
+ },
+ "adjudication": {
+  "status": "UNADJUDICATED",
+  "accepted": false,
+  "audit_ref_exists": false,
+  "reason": "the lane-cycle step failed 17 s in, before producer-state validation and write-scope enforcement; no independent audit ran and no gate was written for 41159162128"
+ },
+ "preserved_valid_work": [
+  "The accepted product head 7be4480e and everything below it is untouched; the failed snapshot f7bc77a0 is its descendant carrying only the predecessor resume's own instrumentation, with no new producer delta.",
+  "The accepted audit gate results/audit/product/CYCLE_40284658455_GATE.json (PASS, safe_to_integrate=true, required_fixes=[]) and its accept commit 7be4480e are preserved.",
+  "No producer-owned file from the failed run exists to preserve; the team branch carries none."
+ ],
+ "observed_facts": [
+  {
+   "fact": "team job conclusion=failure; step 'Run lane cycle' conclusion=failure; exit code 1 (from the public check-run annotation 'Process completed with exit code 1.')",
+   "source": "GitHub REST actions jobs snapshot + check-run annotations, artifact raw_snapshot"
+  },
+  {
+   "fact": "'Run lane cycle' ran 17.0 s, far below the 2700 s wrapper work quantum, so a quantum-expiry narrative is false",
+   "source": "job step timestamps in raw_snapshot"
+  },
+  {
+   "fact": "'Validate active MVP producer state' and 'Enforce lane write scope' are both skipped, and the audit/integrate jobs are skipped",
+   "source": "job step + job conclusions in raw_snapshot"
+  },
+  {
+   "fact": "team ref f7bc77a0 equals the accepted snapshot lineage head f7bc77a0 (lab/product is also at f7bc77a0)",
+   "source": "git ls-remote origin cycle/core/product/41159162128/team and origin/lab/product"
+  },
+  {
+   "fact": "logs endpoint HTTP 403 for this reader; no log-level cause is asserted",
+   "source": "raw_snapshot.logs_endpoint_status"
+  }
+ ],
+ "failure_chain_diagnosis": {
+  "chain": "7be4480e (accepted 40284658455) -> f7bc77a0 (resume 41152471808: team green, audit died on LEX_WORK_QUANTUM_EXPIRED at 2705 s of a 2700 s budget, no gate) -> 41159162128 (fresh v68 cycle off f7bc77a0; lane-cycle step failed in 17 s, zero delta) -> (this resume) 41159331087",
+  "binding_consequence": "The accepted snapshot f7bc77a0 has never been independently audited (its auditor died of quantum expiry in 41152471808). The failed run produced no durable delta and no audit, so lab/product remains at f7bc77a0 and the snapshot stays unadjudicated. This resume records the failure and repairs the instrument that had been feeding the wrong step's duration into the wrapper-exit arithmetic, so the next cycle can reach an independent audit."
+ },
+ "claim_ceiling": "Operational diagnosis only. No frozen bar scored, no rubric/threshold/verdict contract edited, no run labelled accepted or rejected, and no live-retrieval or legal-usefulness claim is made."
+}

@@ -409,6 +409,49 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    "41159331087": {
+        "resumed_run_id": "41159162128",
+        "predecessor_run_id": "41152471808",
+        "raw": ORCH / "CYCLE_41159162128_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41159162128_resume_diagnosis.json",
+        # The resumed run 41159162128 committed no report (it died 17 s in), and
+        # the predecessor 41152471808's own report is the record of the audit-
+        # quantum death that left the snapshot unadjudicated.  Both are inherited;
+        # this resume's report is CYCLE_41159331087.md.
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_41152471808.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41159331087.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        # Sixth real failure mode, same shape as the fifth (41149776023) but with
+        # an OBSERVED exit code: the LANE-CYCLE STEP failed 17 s in with exit
+        # code 1, the logs endpoint is HTTP 403 for the reader, no work quantum
+        # was reached, and the team ref is byte-identical to the accepted
+        # snapshot.  Exit code 1 is not one of the wrapper's own named codes, so
+        # it is reported as a generic passthrough with the innermost cause
+        # UNOBSERVED; no model defect is asserted.
+        "mechanism_kind": "observed_step_failure",
+        "delta_kind": "zero",
+        "failed_job": "team",
+        "quantum_seconds": 2700,
+        "exit_code": 1,
+        "lane_cycle_step_seconds": 17.0,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_41159331087.py",
+        "state_block": "cycle_41159331087_operational_resume",
+        # No new counter-content family was measured this cycle: consume the
+        # accepted fixed-path family pins unchanged (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -828,12 +871,22 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                    "work quantum reached, audit skipped), durable delta "
                    "present, run unadjudicated")
     elif mechanism_kind == "observed_step_failure":
+        # Derive the numbers from the profile instead of hard-coding the
+        # 41149776023 values: a summary that always says "1670 s" would
+        # misreport every later step failure, and this run's step failed at
+        # 17 s with an observed exit code of 1.
+        step_s = p("lane_cycle_step_seconds")
+        exit_code = p("exit_code")
+        step_clause = (f"after {step_s} s of a {p('quantum_seconds', 2700)} s quantum"
+                       if step_s is not None else "before its work quantum expired")
+        exit_clause = (f", exit code {exit_code} observed in the public check-run "
+                       "annotation" if exit_code is not None else "")
         summary = (f"Resumed run {resumed_id}: lane-cycle agent step FAILED "
-                   "after 1670 s of a 2700 s quantum, producer-state "
-                   "validation and write-scope enforcement were skipped, the "
-                   "logs endpoint answered HTTP 403 (log-level cause "
-                   "unobserved), the team ref carries zero durable delta over "
-                   "the accepted base, and the run is unadjudicated")
+                   f"{step_clause}{exit_clause}, producer-state validation and "
+                   "write-scope enforcement were skipped, the logs endpoint "
+                   "answered HTTP 403 (log-level cause unobserved), the team ref "
+                   "carries zero durable delta over the accepted base, and the "
+                   "run is unadjudicated")
     else:
         summary = (f"Resumed run {resumed_id}: raw run/jobs snapshot "
                    "unavailable (mechanism unobserved), team ref carries zero "

@@ -166,7 +166,13 @@
     "results/product/orchestration/CYCLE_41149776023_resume_diagnosis.json",
     "results/product/orchestration/CYCLE_41149776023_team_step_raw.json",
     "product/tests/test_cycle_41152471808.py",
-    "results/audit/product/CYCLE_40284658455_GATE.json"
+    "results/audit/product/CYCLE_40284658455_GATE.json",
+    "results/product/orchestration/CYCLE_41159162128_team_step_raw.json",
+    "results/product/orchestration/CYCLE_41159162128_resume_diagnosis.json",
+    "results/product/orchestration/CYCLE_41159162128_orchestration.json",
+    "results/product/orchestration/CYCLE_41152471808_orchestration.json",
+    "product/tests/test_cycle_41159331087.py",
+    "results/product/audit_readiness/CYCLE_41159331087_audit_readiness.json"
   ],
   "evidence_tier": "REPRODUCED",
   "human_gate_ready": false,
@@ -187,7 +193,7 @@
   },
   "lane": "product",
   "machine_gate_ready": false,
-  "next_recommendation": "Direction v68 / FAST MVP, operational-resume cycle 41152471808 (resume of failed run 41149776023; UNADJUDICATED pending independent audit). WHAT THIS CYCLE DID: (a) diagnosed the failed fresh v68 cycle from the public run/jobs snapshot - the 'Run lane cycle' step failed after 1670 s of a 2700 s quantum, state validation and write-scope enforcement were skipped, audit/integrate were never reached, the logs endpoint returned HTTP 403 (log-level cause UNOBSERVED), and the team ref 7be4480e is byte-identical to the accepted base (ZERO durable delta); (b) repaired the accepted snapshot's stale self-referential evidence: the accepted pointer lagged at CYCLE_40269774540 / 5adaa66d while the audit ref and the accept commit for 40284658455 / 7be4480e both verify, and product/tests/test_cycle_40284658455.py failed on the post-acceptance tree because it still asserted its own run had no gate and that the pointer was the predecessor; the pointer is advanced and the test now asserts the durable both-halves invariant (gate PASS + accept commit contained in the accepted branch history) instead of a literal moving head; (c) added the fifth first-class audit-readiness mechanism kind observed_step_failure and the 41152471808 profile so this failure mode is modelled rather than misreported; (d) pinned it with product/tests/test_cycle_41152471808.py. The vertical slice remains runnable (fixture-mode cached OpenCaseLaw retrieval -> query_result_bundle -> sourced answer -> counter-authority pass -> clickable map) and the bounded MVP suite is green. ORDERED WORK STATUS unchanged (items (1)-(3) accepted; item (4) fixture-anchor asymmetry MEASURED_DO_NOT_CLOSE; item (5) live latency DEFERRED; item (6) profile gap DISCLOSED and evaluation-owned). The direction-level pivot_absent content-sound disagreement between the P0 content leg (keeps incumbent verified) and the adopted anchor label decision (abstains it) is still recorded, NOT decided. Posture stays FAIL-CLOSED: human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session all FALSE (both frozen bars unmet); owner_decision_required stays false; continue_recommended stays TRUE until a locally runnable end-to-end path can be marked human_gate_ready.",
+  "next_recommendation": "Direction v68 / FAST MVP, operational-resume cycle 41159331087 (resume of failed run 41159162128; UNADJUDICATED pending independent audit). WHAT THIS CYCLE DID: (a) diagnosed the failed fresh v68 cycle from the public run/jobs snapshot and the public check-run annotation - the 'Run lane cycle' step failed after 17 s with observed exit code 1, state validation and write-scope enforcement were skipped, audit/integrate were never reached, the logs endpoint returned HTTP 403 (log-level cause UNOBSERVED), and the team refs are byte-identical to the accepted snapshot f7bc77a0 (ZERO durable delta); exit 1 is not one of the wrapper's named exits, so no model defect is asserted. (b) Recorded why the accepted snapshot has never been audited: the predecessor 41152471808's audit job died on LEX_WORK_QUANTUM_EXPIRED at 2705 s of a 2700 s budget (measured, not narrated). (c) Repaired the orchestration instrument so the wrapper-exit diagnosis uses the FAILING step's duration (previously it borrowed the audit agent step's, so the quantum/retry arithmetic exclusions never fired for team-job failures) and added a reusable --write-raw snapshot writer. (d) Added the 41159331087 audit-readiness profile, made the observed_step_failure summary derive its numbers from the profile, and pinned everything with product/tests/test_cycle_41159331087.py. The vertical slice remains runnable (fixture-mode cached OpenCaseLaw retrieval -> query_result_bundle -> sourced answer -> counter-authority pass -> clickable map) and the bounded MVP suite is green. ORDERED WORK STATUS unchanged. Posture stays FAIL-CLOSED: continue_recommended=true, human_gate_ready=false, and the accepted pointer stays CYCLE_40284658455 / 7be4480e until an independent audit of the snapshot chain lands.",
   "not_claimed": [
     "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
     "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
@@ -208,7 +214,9 @@
     "No claim that the 26 cache files alone are the full live retrieval: they are the interrupted run's committed cache delta (15 search + 11 decision envelopes); the replay reads the full tracked cache (1018 keys) with 8 hits and 0 misses.",
     "No mechanism is asserted for run 40257469937: no public run/jobs snapshot was reachable; it is UNADJUDICATED, not rejected.",
     "The fresh-runner dependency gap and the missing claimed cycle test are validation/orchestration facts, not product defects and not frozen-bar results.",
-    "The replay is still a replay of the interrupted run's committed cache, not a fresh-network run; no live latency, answer-quality or legal-usefulness claim is made."
+    "The replay is still a replay of the interrupted run's committed cache, not a fresh-network run; no live latency, answer-quality or legal-usefulness claim is made.",
+    "No log-level cause is asserted for run 41159162128: the logs endpoint answered HTTP 403, the observed exit code 1 is a generic passthrough of opencode's own rc, and every named wrapper branch is ruled out; no model defect may be inferred from it (the slot correlation is INCONCLUSIVE because fast exit-1 failures spanned beam-free, big-pickle and nemotron slots).",
+    "No independent audit of the accepted snapshot f7bc77a0 exists: its auditor (run 41152471808) died of LEX_WORK_QUANTUM_EXPIRED at 2705 s of a 2700 s budget, so no gate was written and the snapshot chain stays UNADJUDICATED."
   ],
   "packet_admitted": false,
   "ready_for_owner_session": false,
@@ -235,7 +243,7 @@
       "clusters": 8,
       "counter_authorities": 3,
       "decisions": 154,
-      "fixture_query": "K\u00fcndigung Mietvertrag Mietrecht",
+      "fixture_query": "Kündigung Mietvertrag Mietrecht",
       "map_phase_latency_s": 0.3,
       "top_n": 150
     },
@@ -862,7 +870,7 @@
     "defects_repaired": [
       "BGE identity: court \"bge\" resolved through the raw docket before the citation, so docket-shaped aliases (\"113 II 52\" and \"BGE 113 II 52\") became two map points for one decision. Court \"bge\" now resolves through the canonical citation first; the merge is exported in provenance.identity_merge (method court_docket_or_bge_identity_merge_v2).",
       "Local inspectability: every row now carries content_state in {full_text,regeste,snippet,pointer} and provenance.content_coverage; bundle_summary publishes the same tally. Annotation is applied on the initial, progressive and enriched paths, and refreshed after lazy hydration.",
-      "UI honesty: the page labels reference-only points \"r\u00e9f\u00e9rence seule\", prints a coverage line (local vs total), and the detail panel states that no local excerpt exists while still offering the public source link.",
+      "UI honesty: the page labels reference-only points \"référence seule\", prints a coverage line (local vs total), and the detail panel states that no local excerpt exists while still offering the public source link.",
       "Offline summary honesty: rows_with_source_url is now the true source_url count; rows_with_source_link and rows_with_canonical_url are separate; fixture replay degraded/cache-miss/failure counts are surfaced, with degraded_scope=fixture_replay_only at the summary top level."
     ],
     "measurements": {
@@ -1073,9 +1081,9 @@
     "audit_namespace_written": false,
     "claim_ceiling": "OPERATIONAL-RESUME AND AUDIT-READINESS EVIDENCE ONLY. No live retrieval, legal usefulness, frozen bar, serve verdict, acceptance or human-gate readiness is asserted."
   },
-  "current_cycle_run_id": 41152471808,
+  "current_cycle_run_id": 41159331087,
   "last_repair_round": 0,
-  "last_updated": "2026-10-31T00:59:38Z",
+  "last_updated": "2026-10-31T03:20:00Z",
   "run_history": [
     {
       "run_id": "40241250741",
@@ -1215,6 +1223,22 @@
       "audit_gate": "NONE_YET",
       "summary": "Operational resume of the persisted producer snapshot of failed run 41149776023 (this run). Diagnosed the failure from the public run/jobs snapshot; repaired the accepted snapshot's stale self-referential evidence: (a) the accepted pointer lagged at CYCLE_40269774540 / 5adaa66d although 40284658455 / 7be4480e passed audit and was integrated, and (b) the post-acceptance tree made product/tests/test_cycle_40284658455.py fail because it still asserted its own run had no gate and that the accepted pointer was the predecessor. Advanced the pointer, repaired the cycle test to assert the durable invariant (gate PASS + accept commit contained in the accepted branch history), added the fifth audit-readiness mechanism kind (observed_step_failure) and the 41152471808 dossier profile, and committed the failure diagnosis. No frozen bar scored; posture stays fail-closed; UNADJUDICATED pending audit.",
       "date": "2026-10-31T00:59:38Z"
+    },
+    {
+      "run_id": 41159162128,
+      "repair_round": 0,
+      "status": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_ZERO_DURABLE_DELTA",
+      "audit_gate": "NONE",
+      "summary": "Fresh v68 product cycle dispatched at 2026-10-31T02:15:35Z off the accepted snapshot f7bc77a0. The team job failed at the 'Run lane cycle' step after 17 s with an OBSERVED exit code 1 (public check-run annotation); 'Validate active MVP producer state' and 'Enforce lane write scope' were skipped and audit/integrate were not reached. Exit 1 is not one of run-ox-with-retry.sh's named exits, so it is a generic passthrough with the innermost cause UNOBSERVED (logs endpoint HTTP 403) and NO model defect asserted. Both team refs point at f7bc77a0, byte-identical to the accepted snapshot lineage, so the run added ZERO durable delta. UNADJUDICATED.",
+      "date": "2026-10-31T02:18:00Z"
+    },
+    {
+      "run_id": 41159331087,
+      "repair_round": 0,
+      "status": "OPERATIONAL_RESUME_AUDIT_READINESS_REPAIR",
+      "audit_gate": "NONE_YET",
+      "summary": "Operational resume of the persisted producer snapshot of failed run 41159162128 (this run). (a) Diagnosed the failure from the public run/jobs snapshot plus the public check-run annotation (exit code 1) and recorded that the predecessor 41152471808's audit died on LEX_WORK_QUANTUM_EXPIRED (2705 s of a 2700 s budget, measured from its step timestamps), which is why the accepted snapshot f7bc77a0 has never been independently audited. (b) Repaired product/orchestration_evidence.py: the wrapper-exit diagnosis now uses the FAILING step's duration instead of borrowing the audit agent step's (which does not exist in a team-job failure), so the quantum/retry arithmetic exclusions fire for the commonest failure class; added observe_raw_snapshot() with a reusable --write-raw flag so raw run/jobs snapshots are no longer committed by hand. (c) Added the 41159331087 audit-readiness profile and made the observed_step_failure summary derive its numbers from the profile instead of hard-coding the 41149776023 values. (d) Pinned all of it with product/tests/test_cycle_41159331087.py. No frozen bar scored; posture stays fail-closed; the accepted pointer stays CYCLE_40284658455 / 7be4480e; UNADJUDICATED pending independent audit.",
+      "date": "2026-10-31T03:20:00Z"
     }
   ],
   "cycle_40247041354_resume": {
@@ -1464,18 +1488,18 @@
         "Kundigung Mietvertrag Mietrecht",
         "Kundigung Mietvertrag Mietrecht miete loyer bail locazione mietzins",
         "kundigung mietvertrag mietrecht eccezione limite abuso di diritto buona fede restrizione miete loyer bail locazione mietzins",
-        "k\u00fcndigung bger nicht ausgesprochen abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
-        "k\u00fcndigung bger nicht ausgesprochen ausnahme exception eccezione vorbehalt r\u00e9serve riserva einschr\u00e4nkung except\u00e9 fatta eccezione",
-        "k\u00fcndigung bger nicht ausgesprochen minderheit minorit\u00e9 minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
-        "k\u00fcndigung bger nicht ausgesprochen \u00e4ltere rechtsprechung ancienne jurisprudence precedente giurisprudenza fr\u00fcher autrefois in passato fr\u00fcheren rechtsprechung d\u00e9sormais mittlerweile",
-        "k\u00fcndigung bger nicht kann abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
-        "k\u00fcndigung bger nicht kann ausnahme exception eccezione vorbehalt r\u00e9serve riserva einschr\u00e4nkung except\u00e9 fatta eccezione",
-        "k\u00fcndigung bger nicht kann minderheit minorit\u00e9 minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
-        "k\u00fcndigung bger nicht kann \u00e4ltere rechtsprechung ancienne jurisprudence precedente giurisprudenza fr\u00fcher autrefois in passato fr\u00fcheren rechtsprechung d\u00e9sormais mittlerweile",
-        "k\u00fcndigung nicht bger wenn abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
-        "k\u00fcndigung nicht bger wenn ausnahme exception eccezione vorbehalt r\u00e9serve riserva einschr\u00e4nkung except\u00e9 fatta eccezione",
-        "k\u00fcndigung nicht bger wenn minderheit minorit\u00e9 minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
-        "k\u00fcndigung nicht bger wenn \u00e4ltere rechtsprechung ancienne jurisprudence precedente giurisprudenza fr\u00fcher autrefois in passato fr\u00fcheren rechtsprechung d\u00e9sormais mittlerweile"
+        "kündigung bger nicht ausgesprochen abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
+        "kündigung bger nicht ausgesprochen ausnahme exception eccezione vorbehalt réserve riserva einschränkung excepté fatta eccezione",
+        "kündigung bger nicht ausgesprochen minderheit minorité minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
+        "kündigung bger nicht ausgesprochen ältere rechtsprechung ancienne jurisprudence precedente giurisprudenza früher autrefois in passato früheren rechtsprechung désormais mittlerweile",
+        "kündigung bger nicht kann abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
+        "kündigung bger nicht kann ausnahme exception eccezione vorbehalt réserve riserva einschränkung excepté fatta eccezione",
+        "kündigung bger nicht kann minderheit minorité minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
+        "kündigung bger nicht kann ältere rechtsprechung ancienne jurisprudence precedente giurisprudenza früher autrefois in passato früheren rechtsprechung désormais mittlerweile",
+        "kündigung nicht bger wenn abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
+        "kündigung nicht bger wenn ausnahme exception eccezione vorbehalt réserve riserva einschränkung excepté fatta eccezione",
+        "kündigung nicht bger wenn minderheit minorité minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
+        "kündigung nicht bger wenn ältere rechtsprechung ancienne jurisprudence precedente giurisprudenza früher autrefois in passato früheren rechtsprechung désormais mittlerweile"
       ],
       "decision_ids": [
         "bge_138 III 59",
@@ -1944,12 +1968,12 @@
         "rejected_ids": 0,
         "wall_seconds": 141.35
       },
-      "query": "Responsabilit\u00e9 p\u00e9nale de l'entreprise selon l'art. 102 CP subsidiaire ou primaire",
+      "query": "Responsabilité pénale de l'entreprise selon l'art. 102 CP subsidiaire ou primaire",
       "report": "reports/product/CYCLE_38641080245.md",
       "run_id": 38641080245,
       "server": "python product/query_app.py --port 8793 (one command, stdlib ThreadingHTTPServer)"
     },
-    "live_legs_this_run": "results/product/reality_check/summary_ci_38604340726.json (4/4 structural+truth, sequential) \u2014 durable run conclusion=success observed 2026-10-14T21:36:10Z",
+    "live_legs_this_run": "results/product/reality_check/summary_ci_38604340726.json (4/4 structural+truth, sequential) — durable run conclusion=success observed 2026-10-14T21:36:10Z",
     "pre_existing_collection_errors": "18 legacy 174k test modules fail collection with ModuleNotFoundError: sentence_transformers (optional dep, PAUSE'd legacy lane); unchanged by this cycle and not on the query-map path",
     "product_integration_tests": "91 passed (ci_reality_legs 20 + ci_run_evidence 26 + reality_check + audit_seam + query_map_mvp + answer_contract + human_gate_integration 12)",
     "resume_39014141628": "reports/product/CYCLE_39011220761_RESUME.md is this cycle's report (written by run 39014141628). Pre-existing-red follow-up: product/tests/test_cache_non_orphan claim-bundle identity (CORRECTED characterization, audit D2 repair r1: 2841 differing leaves, committed claim bundle 154 rows vs 120 from a fresh frozen-subset replay, all 120 present in the committed set - NOT only cluster label/size/member_ids) and test_audit_seam dead-model agreement fail identically at accepted base 3077b27 in this environment - re-measure in the numeric environment that produced the accepted claim artifact before quoting claim-cache identity again; never weaken content_sha256 or the seam's exclusion to make them pass.",
@@ -2024,5 +2048,36 @@
     ],
     "not_a_claim": "No frozen bar, rubric, threshold, verdict contract, serve verdict or packet-admission flag was touched; no run is relabelled; the D2/D3/D4 content findings and both DO-NOT-SERVE orders stand.",
     "date": "2026-10-31T00:59:38Z"
+  },
+  "cycle_41159331087_operational_resume": {
+    "run_id": 41159331087,
+    "repair_round": 0,
+    "direction_version": 68,
+    "mode": "OPERATIONAL RESUME from persisted producer snapshot of run 41159162128 (fresh v68 producer cycle that failed 17 s into its lane-cycle step)",
+    "resumed_snapshot": {
+      "run_id": 41159162128,
+      "team_ref_head": "f7bc77a00d7a548f753b7466199d1fa72c834337",
+      "accepted_base_head": "f7bc77a00d7a548f753b7466199d1fa72c834337",
+      "failure": "team job failed at 'Run lane cycle' after 17 s with observed exit code 1; state validation and write-scope enforcement skipped; audit/integrate skipped; zero durable delta over the accepted snapshot"
+    },
+    "diagnosis": "results/product/orchestration/CYCLE_41159162128_resume_diagnosis.json",
+    "raw_snapshot": "results/product/orchestration/CYCLE_41159162128_team_step_raw.json",
+    "orchestration_evidence": [
+      "results/product/orchestration/CYCLE_41159162128_orchestration.json",
+      "results/product/orchestration/CYCLE_41152471808_orchestration.json"
+    ],
+    "mechanism_kind": "observed_step_failure",
+    "exit_code": 1,
+    "exit_code_ceiling": "Exit 1 is not one of run-ox-with-retry.sh's named exits: every named branch is ruled out by the public exit code AND by arithmetic (17 s cannot outrun a 2700 s quantum nor contain a 90 s retry sleep), and the wrapper preflight replays clean locally, so the surviving statement is that a generic passthrough is possible. The innermost cause is UNOBSERVED (logs endpoint HTTP 403) and no model defect is asserted.",
+    "diagnosis_scope": "The run/jobs snapshot and the check-run annotations are public and prove the step conclusions, the timings and the exit code. The logs endpoint answered HTTP 403, so the log-level cause is UNOBSERVED and none is asserted.",
+    "predecessor_audit_gap": "Run 41152471808's audit job died at 'Independent audit' with exit code 78 after 2705 s of a 2700 s quantum, so the accepted snapshot f7bc77a0 has STILL never been independently audicated; this resume stays fail-closed instead of promoting it.",
+    "repairs": [
+      "product/orchestration_evidence.py: diagnose() now selects the FAILING wrapper step's duration (with audit_agent_step_duration_s kept for compatibility) instead of borrowing the audit agent step's, which does not exist in a team-job failure; new fields failing_step, failing_step_duration_s, step_duration_used_s, step_duration_source",
+      "product/orchestration_evidence.py: added observe_raw_snapshot() and a --write-raw / --force-raw CLI flag so github-actions-run-jobs-snapshot/1 files are produced by the instrument rather than by hand",
+      "product/audit_readiness.py: added the 41159331087 profile (observed_step_failure, exit code 1, 17.0 s lane-cycle step, zero delta) and made the mechanism summary derive its numbers from the profile instead of hard-coding the 41149776023 values",
+      "product/tests/test_orchestration_evidence.py: four new tests covering the team-job duration fix, the audit-path regression, the non-wrapper failing-step contract and observe_raw_snapshot's measured logs status"
+    ],
+    "claim_ceiling": "Operational diagnosis and instrument repair only. No frozen bar scored, no run adjudicated, no gate minted (.github/** and results/audit/** untouched), and no claim about the quality of the failed run's work.",
+    "continue_recommended": true
   }
 }

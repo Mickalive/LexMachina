@@ -104,9 +104,24 @@ def test_diagnosis_records_zero_delta_and_unadjudicated_status():
 def test_state_advances_the_pointer_and_attributes_the_executing_run():
     st = _load(STATE)
     assert st["direction_version"] == 68
-    assert st["current_cycle_run_id"] == int(EXECUTING_RUN_ID)
-    assert st["accepted_run_id"] == f"CYCLE_{PREDECESSOR_RUN_ID}"
-    assert st["accepted_commit"] == ACCEPTED_HEAD
+    # SUPERSEDED ASSERTION, preserved in git history: this test once required
+    # current_cycle_run_id == 41152471808.  Every later operational resume
+    # legitimately moves that pointer forward, so pinning it made a historical
+    # cycle test fail on every subsequent cycle - the exact defect class this
+    # cycle repaired in product/tests/test_cycle_40284658455.py.  What must stay
+    # true is THIS cycle's historical attribution block: it names itself as the
+    # executing run and 41149776023 as the snapshot it diagnosed, and its two
+    # committed evidence files still exist on the tree.
+    block = st["cycle_41152471808_operational_resume"]
+    assert block["run_id"] == int(EXECUTING_RUN_ID)
+    assert block["resumed_snapshot"]["run_id"] == int(RESUMED_RUN_ID)
+    assert (ROOT / block["diagnosis"]).is_file()
+    assert (ROOT / block["raw_snapshot"]).is_file()
+    # The accepted pointer is a moving target for the same reason: a later
+    # accept supersedes it.  When it still names the run THIS cycle accepted,
+    # its commit must be the accept commit whose containment is verified below.
+    if st["accepted_run_id"] == f"CYCLE_{PREDECESSOR_RUN_ID}":
+        assert st["accepted_commit"] == ACCEPTED_HEAD
     from product.state_contract import accepted_pointer_evidence
     ev = accepted_pointer_evidence(st, ROOT)
     assert not ev["problems"], ev
