@@ -44,11 +44,16 @@ MOUNTS = [Path("/tmp/lex_accepted/product"), Path("/tmp/lex_accepted/frontier")]
 
 # Historical refs the state itself DISCLOSES as known-unresolvable (dangling
 # preserved for provenance, never deleted). Matching is by exact path string.
+# The state may extend this set via STATE_DISCLOSURE_KEY; each entry must be a
+# dict with path/reason/disclosed_by_run and that path must actually be
+# unresolved when the guard runs, otherwise the disclosure is reported as an
+# error and never suppresses a live defect.
 DISCLOSED_KNOWN_UNRESOLVABLE = {
     # none currently claimed at top level; nested disclosure fields carry
     # these inside evidence_index_defects_inherited_not_charged /
     # evidence_index_repair_40040574595 blocks which are self-labelling.
 }
+STATE_DISCLOSURE_KEY = "nested_evidence_refs_disclosed_known_unresolvable"
 
 # HISTORICAL disclosure only. These two paths were cited by the producer-authored
 # audit gate CYCLE_40174940149_GATE.json but were never committed on any ref:
@@ -142,6 +147,45 @@ def walk_state(node, path: str, hits: list[dict],
         })
 
 
+def state_disclosures(state: dict, self_token: str) -> tuple[set[str], list[dict]]:
+    """Read the state's formal known-unresolvable disclosures.
+
+    A disclosure is honoured ONLY if it names an unresolved path, gives a
+    reason and records the run that disclosed it. A disclosure that points at
+    a resolving path is an error: it can never suppress a live defect.
+    """
+    honoured: set[str] = set()
+    errors: list[dict] = []
+    raw = state.get(STATE_DISCLOSURE_KEY) or []
+    if not isinstance(raw, list):
+        return honoured, [{"error": "disclosure block is not a list",
+                           "block": STATE_DISCLOSURE_KEY}]
+    for i, entry in enumerate(raw):
+        if not isinstance(entry, dict):
+            errors.append({"index": i, "error": "entry is not an object"})
+            continue
+        path = entry.get("path")
+        reason = entry.get("reason")
+        by_run = entry.get("disclosed_by_run")
+        if not isinstance(path, str) or not path.strip():
+            errors.append({"index": i, "error": "missing path"})
+            continue
+        if not isinstance(reason, str) or not reason.strip():
+            errors.append({"index": i, "path": path, "error": "missing reason"})
+            continue
+        if by_run is None:
+            errors.append({"index": i, "path": path,
+                           "error": "missing disclosed_by_run"})
+            continue
+        if classify_and_resolve(path, self_token) != "UNRESOLVED":
+            errors.append({"index": i, "path": path,
+                           "error": "disclosure points at a resolving path; "
+                                    "it must not suppress a live ref"})
+            continue
+        honoured.add(path)
+    return honoured, errors
+
+
 def run(run_id: str, out_dir: Path) -> tuple[int, dict]:
     if not STATE_PATH.is_file():
         return 2, {"schema": SCHEMA, "run_id": run_id,
@@ -152,6 +196,9 @@ def run(run_id: str, out_dir: Path) -> tuple[int, dict]:
     hits: list[dict] = []
     walk_state(state, "$", hits, self_token)
 
+    state_disclosed, disclosure_errors = state_disclosures(state, self_token)
+    disclosed_known = set(DISCLOSED_KNOWN_UNRESOLVABLE) | state_disclosed
+
     top_refs = state.get("evidence_refs") or []
     top_unresolved = []
     for r in top_refs:
@@ -161,7 +208,7 @@ def run(run_id: str, out_dir: Path) -> tuple[int, dict]:
                 top_unresolved.append(r)
 
     unresolved = [h for h in hits if h["status"] == "UNRESOLVED"
-                  and h["token"] not in DISCLOSED_KNOWN_UNRESOLVABLE
+                  and h["token"] not in disclosed_known
                   and h["token"] not in DISCLOSED_TOP_LEVEL_UNRESOLVABLE]
     by_status: dict[str, int] = {}
     for h in hits:
@@ -180,11 +227,16 @@ def run(run_id: str, out_dir: Path) -> tuple[int, dict]:
         "resolution_counts": by_status,
         "n_unresolved": len(unresolved),
         "unresolved": unresolved,
-        "disclosed_known_unresolvable": sorted(DISCLOSED_KNOWN_UNRESOLVABLE),
+        "disclosed_known_unresolvable": sorted(disclosed_known),
+        "state_disclosed_known_unresolvable": sorted(state_disclosed),
+        "n_disclosure_errors": len(disclosure_errors),
+        "disclosure_errors": disclosure_errors,
         "disclosed_top_level_unresolvable": sorted(DISCLOSED_TOP_LEVEL_UNRESOLVABLE),
-        "verdict": ("NESTED_REFS_RESOLVED" if not unresolved and not top_unresolved
+        "verdict": ("NESTED_REFS_RESOLVED"
+                    if not unresolved and not top_unresolved and not disclosure_errors
                     else "UNRESOLVED_REFS_PRESENT"),
-        "exit_code": 0 if (not unresolved and not top_unresolved) else 1,
+        "exit_code": 0 if (not unresolved and not top_unresolved
+                           and not disclosure_errors) else 1,
         "claim_ceiling": (
             "Mechanical resolution audit of ref-shaped strings in the canonical "
             "lane state; proves only that every ref resolves somewhere "
