@@ -1,14 +1,20 @@
 {
   "schema": "product-audit-readiness/1",
-  "generated_at": "2026-10-26T07:49:48Z",
+  "generated_at": "2026-10-31T08:31:51Z",
   "run_id": "40284658455",
   "resumed_run_id": "40283048553",
   "predecessor_run_id": "40278460732",
   "profile": "40283048553",
   "direction_version": 68,
-  "overall_status": "PASS",
-  "failed_checks": [],
-  "skipped_checks": [],
+  "overall_status": "FAIL",
+  "failed_checks": [
+    "audit_namespace"
+  ],
+  "skipped_checks": [
+    "cycle_test",
+    "progressive_smoke",
+    "mvp_core_tests"
+  ],
   "checks": [
     {
       "id": "runtime_preflight",
@@ -66,7 +72,7 @@
           "workflow_exit": 0
         },
         "write_scope": {
-          "checked_paths": 8,
+          "checked_paths": 5,
           "ok": true,
           "violations": [],
           "workflow_exit": 0
@@ -85,7 +91,7 @@
         "product/state_contract.py"
       ],
       "command": "/usr/bin/python3 product/state_contract.py --check --direction-version 68 --json",
-      "seconds": 0.044
+      "seconds": 0.051
     },
     {
       "id": "posture",
@@ -95,15 +101,15 @@
       "detail": {
         "mismatches": {},
         "accepted_pointer": {
-          "accepted_run_id": "CYCLE_40269774540",
-          "accepted_commit": "5adaa66d4ad2b9702cd023bfd49d743667f9e638",
+          "accepted_run_id": "CYCLE_40284658455",
+          "accepted_commit": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
           "problems": [],
-          "gate": "results/audit/product/CYCLE_40269774540_GATE.json",
+          "gate": "results/audit/product/CYCLE_40284658455_GATE.json",
           "gate_present": true,
           "gate_ok": true,
           "accept_commit_present": true,
           "accept_log_sample": [
-            "5adaa66d4 accept product cycle 40269774540"
+            "7be4480e accept product cycle 40284658455"
           ]
         }
       },
@@ -181,7 +187,7 @@
           "results/product/orchestration/CYCLE_40283048553_resume_diagnosis.json": "ef2e493e196d4a48615cbe916ba05e7349be02a9ed17df2efe5a16ec3de3b46d",
           "reports/product/CYCLE_40272586794.md": "7c98057b672543d814054a5d51f3f6ee9f5aebb9a0fe8a5c2981121c10dedd98",
           "reports/product/CYCLE_40284658455.md": "514169c4e85a0a4af7c089dd4b913382d24d72567d48d9be1197327525174d23",
-          "state/product.json": "ea8d7d53bdda4f97372c87c6ee80cd89fe8ce9fb9f6e51960b53653ab0a12b42"
+          "state/product.json": "48768242331e199c6a514e0b6a33d5e01aa89337d2640935aae9495a107c66f8"
         }
       },
       "evidence": [
@@ -199,84 +205,42 @@
     },
     {
       "id": "cycle_test",
-      "title": "Cycle test product/tests/test_cycle_40284658455.py exists and is green",
-      "status": "PASS",
-      "mandatory": true,
-      "detail": {
-        "path": "product/tests/test_cycle_40284658455.py",
-        "present": true,
-        "passed": 8,
-        "failed": 0,
-        "errors": 0,
-        "timed_out": false
-      },
-      "evidence": [
-        "product/tests/test_cycle_40284658455.py"
-      ],
-      "command": "/usr/bin/python3 -m pytest product/tests/test_cycle_40284658455.py -q --maxfail=1",
-      "seconds": 2.198
+      "title": "Cycle test exists and is green",
+      "status": "SKIP",
+      "mandatory": false,
+      "detail": "skipped by --skip-tests",
+      "evidence": [],
+      "command": null,
+      "seconds": null
     },
     {
       "id": "progressive_smoke",
-      "title": "Shipped progressive API answers over a real socket (fixture mode)",
-      "status": "PASS",
-      "mandatory": true,
-      "detail": {
-        "problems": [],
-        "verdict": "PASS",
-        "checks": "23/23",
-        "timings_s": {
-          "health_s": 0.0,
-          "server_boot_s": 0.817,
-          "start_s": 0.36,
-          "status_s": 0.01,
-          "expand_s": 0.259,
-          "enrich_s": 0.254,
-          "bundle_s": 0.004,
-          "static_query.html_s": 0.001,
-          "static_static_query.html_s": 0.001
-        },
-        "mode": "fixture (retrieval replays from the local cache, fixture generation, no network)"
-      },
+      "title": "Shipped progressive API answers over a real socket",
+      "status": "SKIP",
+      "mandatory": false,
+      "detail": "skipped by --skip-smoke",
       "evidence": [],
-      "command": "/usr/bin/python3 product/progressive_smoke.py --run-id 40284658455 --out /tmp/lex_audit_smoke_q5x8ojkx/smoke.json",
-      "seconds": 2.417
+      "command": null,
+      "seconds": null
     },
     {
       "id": "mvp_core_tests",
       "title": "Bounded MVP core pytest set is green",
-      "status": "PASS",
-      "mandatory": true,
-      "detail": {
-        "passed": 170,
-        "failed": 0,
-        "errors": 0,
-        "skipped": 0,
-        "timed_out": false,
-        "files": [
-          "product/tests/test_query_map_mvp.py",
-          "product/tests/test_server_query_api.py",
-          "product/tests/test_offline_slice.py",
-          "product/tests/test_progressive_smoke.py",
-          "product/tests/test_adversarial_retrieval.py",
-          "product/tests/test_counter_evidence_span.py",
-          "product/tests/test_counter_content_rejection_v68.py",
-          "product/tests/test_state_contract.py",
-          "product/tests/test_progressive_query.py"
-        ]
-      },
+      "status": "SKIP",
+      "mandatory": false,
+      "detail": "skipped by --skip-tests",
       "evidence": [],
-      "command": "/usr/bin/python3 -m pytest product/tests/test_query_map_mvp.py product/tests/test_server_query_api.py product/tests/test_offline_slice.py product/tests/test_progressive_smoke.py product/tests/test_adversarial_retrieval.py product/tests/test_counter_evidence_span.py product/tests/test_counter_content_rejection_v68.py product/tests/test_state_contract.py product/tests/test_progressive_query.py -q --maxfail=1",
-      "seconds": 52.013
+      "command": null,
+      "seconds": null
     },
     {
       "id": "audit_namespace",
       "title": "Producer wrote no auditor-namespace path and minted no gate",
-      "status": "PASS",
+      "status": "FAIL",
       "mandatory": true,
       "detail": {
-        "gate_exists": false,
-        "report_exists": false,
+        "gate_exists": true,
+        "report_exists": true,
         "pending_audit_paths": []
       },
       "evidence": [
@@ -358,7 +322,7 @@
     },
     {
       "id": "C7",
-      "claim": "Posture is fail-closed and the accepted pointer (CYCLE_40269774540 / 5adaa66d4) satisfies BOTH halves of requirement 4: a committed PASS/safe gate and an accept commit.",
+      "claim": "Posture is fail-closed and the accepted pointer (CYCLE_40284658455 / 7be4480ed) satisfies BOTH halves of requirement 4: a committed PASS/safe gate and an accept commit.",
       "check": "posture",
       "artifacts": [
         "state/product.json"
