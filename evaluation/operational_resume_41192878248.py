@@ -102,7 +102,7 @@ ITEM2_ADJUDICATOR_SHA256 = "126a1234f3fe8a3f10ff736dff7466093000a2fadd8871f02f97
 MOUNT = Path("/tmp/lex_accepted/product")
 
 HYPOTHESIS = f"evaluation/OPERATIONAL_RESUME_{RUN_ID}_HYPOTHESIS_V1.json"
-FREEZE = f"evaluation/OPERATIONAL_RESUME_{RUN_ID}_FREEZE_V2.json"
+FREEZE = f"evaluation/OPERATIONAL_RESUME_{RUN_ID}_FREEZE_V3.json"
 OUT_RESULT = f"results/evaluation/operational_resume/{RUN_ID}.json"
 CLAIMS_RECORD = f"results/evaluation/operational_resume/{RUN_ID}_claim_verification.json"
 ITEM2_RECORD = f"results/evaluation/operational_resume/{RUN_ID}_item2_currency.json"
@@ -1145,8 +1145,8 @@ def update_state(result: dict, mod) -> dict:
             "run_id": int(RUN_ID),
             "direction_version": 68,
             "artifact": STALE_REPAIR,
-            "verdict": stale.get("verdict"),
-            "n_moved": stale.get("n_moved"),
+            "verdict": (result.get("stale_disclosure_repair") or {}).get("verdict"),
+            "n_moved": (result.get("stale_disclosure_repair") or {}).get("n_moved"),
             "not_a_measurement": True,
         },
         f"inherited_claims_verification_{PRED_RUN_ID}": {
