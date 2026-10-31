@@ -154,7 +154,13 @@ def test_resume_diagnosis_records_zero_delta_and_unadjudicated_status():
 def test_state_pointer_stays_on_the_accepted_snapshot_and_records_both_runs():
     st = _load(STATE)
     assert st["direction_version"] == 68
-    assert st["current_cycle_run_id"] == int(EXECUTING_RUN_ID)
+    # SUPERSEDED ASSERTION, preserved in git history: this test once required
+    # current_cycle_run_id == 41159331087.  Every later operational resume
+    # legitimately moves that pointer forward (the exact stale-pin defect
+    # repaired in test_cycle_41152471808.py), so the durable invariant is this
+    # cycle's own historical attribution block, asserted at the end of this
+    # test.  The authoring run died of quantum expiry before it could make this
+    # repair; resume 41163295014 did.
     assert st["accepted_run_id"] == f"CYCLE_{ACCEPTED_RUN_ID}"
     assert st["accepted_commit"] == ACCEPTED_HEAD
     from product.state_contract import accepted_pointer_evidence
@@ -168,6 +174,16 @@ def test_state_pointer_stays_on_the_accepted_snapshot_and_records_both_runs():
     assert hist[PREDECESSOR_RUN_ID]["status"] == (
         "OPERATIONAL_RESUME_AUDIT_READINESS_REPAIR")
     assert hist[PREDECESSOR_RUN_ID]["audit_gate"] == "NONE_YET"
+    # Corrected additively by resume 41163295014: THIS run's own history entry
+    # recorded the intended outcome, not the observed one.  Its team job died
+    # after 2704 s on LEX_WORK_QUANTUM_EXPIRED (exit 78); the working tree was
+    # committed by the workflow's if: always() snapshot step.
+    own = hist[EXECUTING_RUN_ID]
+    assert own["status_before_correction"] == (
+        "OPERATIONAL_RESUME_AUDIT_READINESS_REPAIR")
+    assert own["status"] == "OPERATIONAL_RESUME_QUANTUM_EXPIRED_DELTA_PERSISTED"
+    assert own["exit_code"] == 78
+    assert own["failed_step_seconds"] == 2704.0
     assert hist[RESUMED_RUN_ID]["status"].startswith(
         "TEAM_JOB_LANE_CYCLE_STEP_FAILED")
     assert hist[EXECUTING_RUN_ID]["audit_gate"] == "NONE_YET"

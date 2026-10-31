@@ -452,6 +452,51 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    "41162767461": {
+        "resumed_run_id": "41162767461",
+        "predecessor_run_id": "41159331087",
+        "raw": ORCH / "CYCLE_41162767461_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41162767461_resume_diagnosis.json",
+        # The predecessor snapshot 41159331087 never wrote its own report: its
+        # lane-cycle step died of quantum expiry at 2704 s and the workflow's
+        # if: always() snapshot step committed the working tree.  This resume
+        # restores that report of record (under its own run id, with an
+        # authoring-correction header) and writes its own report.
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_41159331087.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41163295014.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        # Seventh observed instance, same step-failure shape as 41149776023
+        # and 41159162128 but with the wrapper's OWN zero-delta branch: the
+        # lane-cycle step failed after 301 s and the public check-run
+        # annotation carries exit code 67 AND the literal branch name
+        # LEX_ZERO_DELTA_REPAIR.  The agent committed nothing (team ref is
+        # byte-identical to the predecessor snapshot), the logs endpoint is
+        # HTTP 403, and no innermost model cause is asserted.
+        "mechanism_kind": "observed_step_failure",
+        "delta_kind": "zero",
+        "failed_job": "team",
+        "quantum_seconds": 2700,
+        "exit_code": 67,
+        "exit_code_meaning": "LEX_ZERO_DELTA_REPAIR",
+        "lane_cycle_step_seconds": 301.0,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_41163295014.py",
+        "state_block": "cycle_41163295014_operational_resume",
+        # No new counter-content family was measured this cycle: consume the
+        # accepted fixed-path family pins unchanged (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -795,6 +840,14 @@ def check_resumed_diagnosis() -> dict[str, Any]:
             problems.append("failed_step")
         if mechanism.get("exit_code") != exit_code:
             problems.append("exit_code")
+        # When the public annotation also NAMES the wrapper branch (67 =
+        # LEX_ZERO_DELTA_REPAIR), the profile may pin that name.  A dossier
+        # that recorded only the number would leave the most important fact -
+        # the agent committed nothing - to prose.
+        if p("exit_code_meaning") is not None and (
+                mechanism.get("exit_code_meaning")
+                != p("exit_code_meaning")):
+            problems.append("exit_code_meaning")
         if (orch.get("audit") or {}).get("gate_file_written") is not False:
             problems.append("gate_file_written")
         if (orch.get("audit") or {}).get("skipped") is not True:
@@ -881,6 +934,8 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                        if step_s is not None else "before its work quantum expired")
         exit_clause = (f", exit code {exit_code} observed in the public check-run "
                        "annotation" if exit_code is not None else "")
+        if p("exit_code_meaning") is not None:
+            exit_clause += f" ({p('exit_code_meaning')})"
         summary = (f"Resumed run {resumed_id}: lane-cycle agent step FAILED "
                    f"{step_clause}{exit_clause}, producer-state validation and "
                    "write-scope enforcement were skipped, the logs endpoint "
