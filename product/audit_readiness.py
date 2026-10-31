@@ -709,6 +709,80 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    "41193662357": {
+        # First profile in this chain whose PRODUCER job fully succeeded and
+        # whose AUDIT job then expired: the team job and both producer gates
+        # passed, 15 files were committed over 98ca6621, and the independent
+        # audit ran 2704.0 s of the 2700 s quantum before the wrapper returned
+        # exit 78 (public annotation "LEX_WORK_QUANTUM_EXPIRED seconds=2700").
+        # The durable delta is COMMITTED, not zero, so the run is a resumable
+        # snapshot rather than a dead producer step.
+        "resumed_run_id": "41193662357",
+        "predecessor_run_id": "41193519633",
+        "raw": ORCH / "CYCLE_41193662357_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41193662357_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_41188877123.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41193662357.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "failed_job": "audit",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 15,
+        "changed_paths_include": ("product/audit_readiness.py",
+                                  "reports/product/CYCLE_41193662357.md"),
+        "cycle_test": "product/tests/test_cycle_41193662357.py",
+        "state_block": "cycle_41193662357_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "41199556067": {
+        # Self-dossier for the run that resumes 41193662357.  Every previous
+        # audit in this chain looked for a dossier about the run whose snapshot
+        # it was auditing, found only a dossier about the run that snapshot had
+        # resumed, and burned the 2700 s quantum re-deriving the work.  This
+        # profile makes `--run-id 41199556067` publish the audited run's own
+        # report, cycle test and bounded plan while still cross-checking the
+        # resumed run's diagnosis.
+        "resumed_run_id": "41193662357",
+        "predecessor_run_id": "41193519633",
+        "raw": ORCH / "CYCLE_41193662357_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41193662357_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_41193662357.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41199556067.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "failed_job": "audit",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 15,
+        "changed_paths_include": ("product/audit_readiness.py",
+                                  "reports/product/CYCLE_41193662357.md"),
+        "cycle_test": "product/tests/test_cycle_41199556067.py",
+        "state_block": "cycle_41199556067_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
     # No profile for 41193345044 on purpose: it is the predecessor in this
     # chain, not a dossier subject.  select_profile() fails closed on unknown
     # ids, and aliasing it here would publish 41193519633's claims under

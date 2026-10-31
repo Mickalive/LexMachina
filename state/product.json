@@ -194,7 +194,15 @@
     "product/tests/test_cycle_41179957652.py",
     "reports/product/CYCLE_41179957652.md",
     "results/product/audit_readiness/CYCLE_41176811677_audit_readiness.json",
-    "product/audit_step_diagnosis.py"
+    "product/audit_step_diagnosis.py",
+    "results/product/orchestration/CYCLE_41193662357_team_step_raw.json",
+    "results/product/orchestration/CYCLE_41193662357_orchestration.json",
+    "results/product/orchestration/CYCLE_41193662357_resume_diagnosis.json",
+    "results/product/server_slice/41199556067/summary.json",
+    "results/product/audit_readiness/CYCLE_41193662357_audit_readiness.json",
+    "results/product/audit_readiness/CYCLE_41199556067_audit_readiness.json",
+    "product/tests/test_cycle_41199556067.py",
+    "reports/product/CYCLE_41199556067.md"
   ],
   "evidence_tier": "REPRODUCED",
   "human_gate_ready": false,
@@ -215,7 +223,7 @@
   },
   "lane": "product",
   "machine_gate_ready": false,
-  "next_recommendation": "Direction v68 / FAST MVP, operational-resume cycle 41193662357 (resume of run 41193519633; UNADJUDICATED pending independent audit). WHAT THIS CYCLE DID: (a) diagnosed BOTH operationally failed runs of the chain from their public run/jobs snapshots - 41193345044 and 41193519633 each failed at 'Run lane cycle' after 16.0 s of a 2700 s work quantum with the generic exit code 1 (no wrapper branch name), leaving 'Validate active MVP producer state', 'Enforce lane write scope', audit and integrate skipped and both team refs byte-identical to predecessor 98ca6621 (ZERO_DURABLE_DELTA, UNADJUDICATED); the wrapper's named branches rc 67/75/78 and the pre-opencode preflight exits 64/65/66/76/77 are arithmetically ruled out and a local preflight replay passes, so exit 1 is only a generic passthrough; (b) re-probed the job-log endpoint WITH the runner's own persisted git-credentials token and still got HTTP 403 'Must have admin rights to Repository.', so the log-level cause stays UNOBSERVED and no cause is asserted - the only OBSERVED mechanism with this exact signature in this lane is run 40263308953's model-gateway request rejection (results/product/orchestration/CYCLE_40263666190_lane_cycle_log_evidence.json) and it is cited as PRECEDENT, never as the attribution for these two runs; (c) re-verified the lane deliverable with a fresh SERVED vertical slice at this head (results/product/server_slice/41193662357: PASS 10/10, 100 decisions, 8 clusters, 2 cited, 1 counter-authority, 100/100 source links, 71 page assertions, 2.665 s, fixture mode, every non-loopback connect trapped); (d) made snapshot 98ca6621 audit-ready: new audit-readiness profile 41193519633, dossier results/product/audit_readiness/CYCLE_41193519633_audit_readiness.json now carrying a measured bounded_plan (per-check command durations, total, margin against the 2700 s audit quantum) so the auditor can bound its work instead of rediscovering the quantum by timing out, plus product/tests/test_cycle_41193662357.py; (e) state-pointer hygiene with the accepted pointer unchanged at CYCLE_40284658455 / 7be4480e. WHAT IS NEXT: dispatch the INDEPENDENT AUDIT of this snapshot with the dossier's bounded_plan + audit_entry_points as its start (read the two committed diagnosis artifacts, run the listed commands in order, write the gate); do NOT re-derive accepted evaluation 40070818687 / 40068038783 / 40105794124, the D2 profile 40089391202 or the v68 full-family slice. If the lane-cycle exit-1 pathology recurs before an audit can run, record it as the control-plane item it is (wrapper non-retry of generic exit 1 + admin-only job logs) - not as a product defect. Posture stays FAIL-CLOSED: human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false, continue_recommended=true.",
+  "next_recommendation": "Direction v68 / FAST MVP, operational-resume cycle 41199556067 (resume of run 41193662357; UNADJUDICATED pending independent audit). WHAT THIS CYCLE DID: (a) diagnosed the FIRST fully successful producer in this chain - 41193662357's team job succeeded (state validation and write-scope success) and committed a 15-file delta 98ca6621 -> a8d2804c (COMMITTED_DELTA), but its audit job ran 'Independent audit' for 2704.0 s of the 2700 s quantum and exited 78 with the public annotation LEX_WORK_QUANTUM_EXPIRED seconds=2700; the gate reader and audit persist were skipped, so no /audit ref and no gate exist and the run is UNADJUDICATED, not rejected (results/product/orchestration/CYCLE_41193662357_resume_diagnosis.json); the job logs endpoint still answers HTTP 403, so opencode's innermost cause stays UNOBSERVED and is not asserted; (b) found and repaired the recurring product-side cause of the audit timeouts: prior resumes published a dossier only for the PARENT run, while the auditor looks up the CHILD run, so the audit re-derived the work until the quantum expired; product/audit_readiness.py now has profiles for 41193662357 AND the executing run 41199556067, and each dossier publishes that run's own report, cycle test, entry points and a measured bounded_plan; (c) re-verified the lane deliverable with a fresh SERVED vertical slice at this head (results/product/server_slice/41199556067: PASS 10/10, 100 decisions, 8 clusters, 2 cited, 1 counter-authority, 100/100 source links, 71 page assertions, 1.81 s, fixture mode, every non-loopback connect trapped); (d) repaired test_cycle_41193662357.py so it no longer pins the moving current_cycle_run_id literal, and added test_cycle_41199556067.py; (e) state-pointer hygiene with the accepted pointer unchanged at CYCLE_40284658455 / 7be4480e. WHAT IS NEXT: dispatch the INDEPENDENT AUDIT of snapshot a8d2804c starting from results/product/audit_readiness/CYCLE_41193662357_audit_readiness.json (and, for this run, CYCLE_41199556067_audit_readiness.json): read the two committed diagnosis artifacts, run the listed PASS checks in plan order, and write the gate. Do NOT re-derive accepted evaluation 40070818687 / 40068038783 / 40105794124, the D2 profile 40089391202 or the v68 full-family slice. Posture stays FAIL-CLOSED: human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false, continue_recommended=true.",
   "not_claimed": [
     "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
     "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
@@ -437,6 +445,18 @@
       "requested_action": "Dispatch repairs only after mounting the prior audit directory (/tmp/lex_prior_audit) containing the gate verdict and required_fixes.",
       "owner_action_required": false,
       "route_to": "control-plane"
+    },
+    {
+      "id": "audit-dossier-for-audited-run-not-parent",
+      "recorded_by": "product cycle 41199556067 (operational resume of 41193662357)",
+      "gap": "The independent audit keeps hitting the 2700 s work quantum: run 41193662357's audit step failed at 2704.0 s with exit 78 (LEX_WORK_QUANTUM_EXPIRED) and the gate reader/persist were skipped, so a fully successful producer snapshot stays UNADJUDICATED. Product-side cause found and repaired here: previous resumes published an audit-readiness dossier only for the run they RESUMED, while the auditor needs the dossier for the run whose snapshot it is auditing, so each audit rediscovered the work. Control-plane-side gap remaining: the audit prompt/job does not require the auditor to start from the dossier for its own run id, and an over-quantum audit still produces no partial snapshot or gate.",
+      "why_a_lane_cannot_fix_it": ".github/** and .opencode/** are control-plane scope; the lane can only publish the per-run dossier and bound the plan.",
+      "intended_upstream_fix_for_the_control_plane_maintainer": [
+        "have the audit job mount/inspect results/product/audit_readiness/CYCLE_<audited-run>_audit_readiness.json first and forbid re-deriving checks whose dossier status is PASS",
+        "persist a partial audit snapshot with if: always() so a quantum-expired audit leaves a bounded work record instead of nothing",
+        "fail the audit job fast (or split it) when the dossier's bounded_plan total is unavailable or exceeds the quantum, rather than discovering it by timing out"
+      ],
+      "route_around_used": "profiles + dossiers for BOTH the audited run 41193662357 and the executing run 41199556067, each with audit_entry_points and a measured bounded_plan against the 2700 s quantum; the historical cycle test was repaired so a later resume cannot redden it."
     }
   ],
   "evidence_ref_counts_40143042888": {
@@ -1123,9 +1143,9 @@
     "audit_namespace_written": false,
     "claim_ceiling": "OPERATIONAL-RESUME AND AUDIT-READINESS EVIDENCE ONLY. No live retrieval, legal usefulness, frozen bar, serve verdict, acceptance or human-gate readiness is asserted."
   },
-  "current_cycle_run_id": 41193662357,
+  "current_cycle_run_id": 41199556067,
   "last_repair_round": 0,
-  "last_updated": "2026-10-31T11:14:00Z",
+  "last_updated": "2026-10-31T12:24:00Z",
   "run_history": [
     {
       "run_id": "40241250741",
@@ -1443,6 +1463,26 @@
         "results/product/orchestration/CYCLE_41193519633_orchestration.json",
         "results/product/orchestration/CYCLE_41193519633_resume_diagnosis.json"
       ]
+    },
+    {
+      "run_id": "41193662357",
+      "status": "TEAM_JOB_SUCCESS_AUDIT_JOB_QUANTUM_EXPIRED_NO_GATE",
+      "direction_version": 68,
+      "team_job": "success",
+      "producer_state_validation": "success",
+      "write_scope": "success",
+      "audit_job": "failure",
+      "failed_step": "Independent audit",
+      "failed_step_seconds": 2704.0,
+      "exit_code": 78,
+      "snapshot_commit": "a8d2804cda18afc5e676394bb66c8c484063538e",
+      "predecessor_commit": "98ca66217b4058dfa5bfd888c7421036b34dbcf5",
+      "durable_delta": "COMMITTED_DELTA",
+      "changed_files": 15,
+      "audit_gate": "NONE",
+      "adjudication": "UNADJUDICATED",
+      "summary": "first fully successful producer in this chain (team success, state validation success, write-scope success, 15-file committed delta over 98ca6621); its audit agent consumed the full 2700 s quantum (2704.0 s, exit 78, LEX_WORK_QUANTUM_EXPIRED) so the gate reader and audit persist never ran; work preserved, no verdict",
+      "diagnosis": "results/product/orchestration/CYCLE_41193662357_resume_diagnosis.json"
     }
   ],
   "cycle_40247041354_resume": {
@@ -2838,5 +2878,96 @@
       "causally_verified_claim": "no gate or ref for run 41194527376 is observable from this workspace",
       "claim_ceiling": "This entry is an observed-workspace fact (absence), not a verdict on run 41194527376."
     }
+  },
+  "cycle_41199556067_operational_resume": {
+    "run_id": 41199556067,
+    "repair_round": 0,
+    "direction_version": 68,
+    "mode": "OPERATIONAL RESUME from the persisted producer snapshot of run 41193662357 (team ref a8d2804c): the FIRST run in this chain whose team job fully succeeded with a committed delta, but whose audit job expired the 2700 s work quantum before writing a gate",
+    "resumed_snapshot": {
+      "run_id": 41193662357,
+      "team_ref": "origin/cycle/core/product/41193662357/team",
+      "team_ref_head": "a8d2804cda18afc5e676394bb66c8c484063538e",
+      "predecessor_run_id": 41193519633,
+      "predecessor_head": "98ca66217b4058dfa5bfd888c7421036b34dbcf5",
+      "team_job": "success",
+      "producer_state_validation": "success",
+      "write_scope": "success",
+      "audit_job": "failure",
+      "durable_delta": "COMMITTED_DELTA",
+      "changed_files": 15,
+      "failure": "audit job step 'Independent audit' ran 2704.0 s of the 2700 s wrapper work quantum; public check-run annotations carry exit code 78 and the literal branch LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2449; 'Enforce audit scope and read gate' and 'Persist audit snapshot' were skipped, so no /audit ref and no gate exist",
+      "why_unaudited": "the independent-audit agent consumed the whole quantum before writing anything; this is an orchestration/quantum expiry, not a product defect and not a rejection of the preserved 15-file delta"
+    },
+    "diagnosis": "results/product/orchestration/CYCLE_41193662357_resume_diagnosis.json",
+    "raw_snapshot": "results/product/orchestration/CYCLE_41193662357_team_step_raw.json",
+    "orchestration_evidence": [
+      "results/product/orchestration/CYCLE_41193662357_orchestration.json",
+      "results/product/orchestration/CYCLE_41193662357_team_step_raw.json",
+      "results/product/orchestration/CYCLE_41193662357_resume_diagnosis.json"
+    ],
+    "mechanism_kind": "observed",
+    "exit_code": 78,
+    "exit_code_meaning": "LEX_WORK_QUANTUM_EXPIRED",
+    "diagnosis_scope": "The public run/jobs snapshot and check-run annotations prove the team success, the audit step failure at 2704.0 s, the wrapper's quantum branch (2700 s, exit 78) and that the gate reader and audit persist were skipped. Job logs answer HTTP 403 ('Must have admin rights to Repository.'), so opencode's innermost provider cause stays UNOBSERVED and is not asserted.",
+    "audit_readiness_repair": {
+      "defect": "each prior resume published a dossier only for the run it resumed (the parent), but an auditor looks up the dossier for the run whose snapshot it is auditing (the child). Run 41193662357 therefore had no profile, so the audit re-derived the work from scratch and the 2700 s quantum expired again.",
+      "repair": "product/audit_readiness.py now has PROFILES for BOTH the audited run 41193662357 and the executing run 41199556067; each dossier publishes the audited run's own report, cycle test, entry points and a measured bounded_plan against the 2700 s quantum.",
+      "profiles_added": [
+        "41193662357",
+        "41199556067"
+      ],
+      "dossiers": [
+        "results/product/audit_readiness/CYCLE_41193662357_audit_readiness.json",
+        "results/product/audit_readiness/CYCLE_41199556067_audit_readiness.json"
+      ],
+      "self_dossier_rule": "the executing run publishes its own profile and dossier so the audit of THIS run resolves THIS run's report and cycle test, not the resumed run's",
+      "fail_closed_rule": "select_profile() still refuses unknown run ids, so one run's claims can never be published under another run's id",
+      "repaired_historical_test": "product/tests/test_cycle_41193662357.py no longer pins the moving current_cycle_run_id literal; it asserts its own attributed state block plus monotonic advancement, so a later resume cannot turn a historical cycle test red."
+    },
+    "lane_deliverable": {
+      "status": "VERIFIED_AT_THIS_HEAD",
+      "component": "served vertical slice: question -> query_result_bundle -> sourced answer -> counter-authority pass -> clickable source-linked map",
+      "artifact": "results/product/server_slice/41199556067/summary.json",
+      "served_slice": "results/product/server_slice/41199556067",
+      "verdict": "PASS",
+      "checks": "10/10",
+      "mode": "fixture",
+      "query": "K\u00fcndigung Mietvertrag Mietrecht",
+      "counts": {
+        "n_first_page": 100,
+        "n_final": 100,
+        "n_clusters_final": 8,
+        "n_cited": 2,
+        "counter_authorities": 1,
+        "counter_status_bearing_rows": 3,
+        "rows_with_source_url": 100,
+        "page_contract_assertions": 71
+      },
+      "total_s": 1.267,
+      "claim_ceiling": "fixture-mode served wiring evidence only; no live OpenCaseLaw latency, answer quality, legal usefulness, frozen bar, serve verdict or human-gate claim",
+      "ordered_work_note": "Direction v68 ordered work (1) rejection/incumbent leg and (2) full-family regeneration stay consumed REPORTED-ONLY as accepted evidence (v68_delivery.status=LANDED); this cycle re-measures neither and writes no bundle bytes."
+    },
+    "report": "reports/product/CYCLE_41199556067.md",
+    "cycle_test": "product/tests/test_cycle_41199556067.py",
+    "accepted_pointer": {
+      "accepted_run_id": "CYCLE_40284658455",
+      "accepted_commit": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+      "both_halves_verified_this_cycle": true,
+      "half_1": "results/audit/product/CYCLE_40284658455_GATE.json (gate PASS, safe_to_integrate=true, required_fixes=[])",
+      "half_2": "commit 7be4480e 'accept product cycle 40284658455' is in the resumed snapshot's ancestry (git log --all --grep)"
+    },
+    "bundle_bytes_written": false,
+    "frozen_bar_scored": false,
+    "posture_unchanged": true,
+    "adjudication": {
+      "status": "UNADJUDICATED",
+      "accepted": false,
+      "product_defect": false,
+      "gate_minted": false,
+      "audit_namespace_written": false,
+      "reason": "no independent PASS gate on a cycle audit ref and no accept commit on origin/lab/product for this snapshot chain"
+    },
+    "claim_ceiling": "OPERATIONAL RESUME DIAGNOSIS OF RUN 41193662357, AN AUDIT-READINESS PROFILE/DOSSIER REPAIR AND A FRESH SERVED-SLICE VERIFICATION. The v68 deliverable is consumed as accepted evidence and is not re-measured. No live retrieval, answer quality, legal usefulness, frozen bar, serve verdict, packet admission or human-gate claim is made."
   }
 }

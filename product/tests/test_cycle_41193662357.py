@@ -179,7 +179,14 @@ def test_state_records_the_run_and_keeps_the_pointer_and_posture():
     st = _load(STATE)
     assert st["direction_version"] == 68            # workflow validation input
     assert st["cycle_status"] == "COMPLETE"         # != INITIALIZED
-    assert st["current_cycle_run_id"] == int(EXECUTING_RUN_ID)
+    # Do not pin the moving head: a later resume legitimately advances
+    # current_cycle_run_id.  The durable invariant is that THIS run's own
+    # block is still present and attributed, and that the pointer has only
+    # advanced (never rewound to a superseded run).
+    assert isinstance(st["current_cycle_run_id"], int)
+    assert st["current_cycle_run_id"] >= int(EXECUTING_RUN_ID)
+    assert st[f"cycle_{EXECUTING_RUN_ID}_operational_resume"]["run_id"] == int(
+        EXECUTING_RUN_ID)
     assert st["accepted_run_id"] == f"CYCLE_{ACCEPTED_RUN_ID}"
     assert st["accepted_commit"] == ACCEPTED_HEAD
     assert st["continue_recommended"] is True

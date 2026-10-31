@@ -1,0 +1,493 @@
+{
+  "schema": "product-audit-readiness/1",
+  "generated_at": "2026-10-31T12:24:40Z",
+  "run_id": "41193662357",
+  "resumed_run_id": "41193662357",
+  "predecessor_run_id": "41193519633",
+  "profile": "41193662357",
+  "direction_version": 68,
+  "overall_status": "PASS",
+  "failed_checks": [],
+  "skipped_checks": [],
+  "checks": [
+    {
+      "id": "runtime_preflight",
+      "title": "Pinned query runtime (numpy/sklearn/pytest) is present, bootstrapped with the lane's own free PyPI pins when missing",
+      "status": "PASS",
+      "mandatory": true,
+      "detail": {
+        "before": {
+          "ok": true,
+          "missing": [],
+          "installed": {
+            "numpy": "2.5.4",
+            "sklearn": "1.9.1"
+          },
+          "pytest": "9.1.1"
+        },
+        "after": {
+          "ok": true,
+          "missing": [],
+          "installed": {
+            "numpy": "2.5.4",
+            "sklearn": "1.9.1"
+          },
+          "pytest": "9.1.1"
+        },
+        "bootstrap": null,
+        "pins": {
+          "numpy": "2.5.4",
+          "scipy": "1.18.1",
+          "sklearn": "1.9.1",
+          "pytest": "9.1.1"
+        },
+        "remedy": "bash product/bootstrap_query_env.sh",
+        "workflow_gap": "no step of .github/workflows/core-lane.yml installs product/requirements-query.txt, so a fresh runner has none of these; recorded as a control-plane item, never edited from this lane"
+      },
+      "evidence": [
+        "product/bootstrap_query_env.sh",
+        "product/query_env.py",
+        "product/requirements-query.txt"
+      ],
+      "command": null,
+      "seconds": null
+    },
+    {
+      "id": "state_contract",
+      "title": "Canonical state satisfies the workflow contract and lane scope",
+      "status": "PASS",
+      "mandatory": true,
+      "detail": {
+        "timed_out": false,
+        "stderr_tail": "",
+        "workflow_validation": {
+          "ok": true,
+          "message": "/home/runner/work/LexMachina/LexMachina/state/product.json: direction_version=68, cycle_status='COMPLETE' -> workflow step passes",
+          "workflow_exit": 0
+        },
+        "write_scope": {
+          "checked_paths": 13,
+          "ok": true,
+          "violations": [],
+          "workflow_exit": 0
+        },
+        "audit_artifact_ownership": {
+          "ok": true,
+          "producer_wrote_audit_paths": []
+        },
+        "shadow_state": {
+          "ok": true,
+          "findings": []
+        }
+      },
+      "evidence": [
+        "state/product.json",
+        "product/state_contract.py"
+      ],
+      "command": "/usr/bin/python3 product/state_contract.py --check --direction-version 68 --json",
+      "seconds": 0.051
+    },
+    {
+      "id": "posture",
+      "title": "Fail-closed posture and an accepted pointer that still satisfies both halves of requirement 4",
+      "status": "PASS",
+      "mandatory": true,
+      "detail": {
+        "mismatches": {},
+        "accepted_pointer": {
+          "accepted_run_id": "CYCLE_40284658455",
+          "accepted_commit": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+          "problems": [],
+          "gate": "results/audit/product/CYCLE_40284658455_GATE.json",
+          "gate_present": true,
+          "gate_ok": true,
+          "accept_commit_present": true,
+          "accept_log_sample": [
+            "7be4480e accept product cycle 40284658455"
+          ]
+        }
+      },
+      "evidence": [
+        "state/product.json"
+      ],
+      "command": null,
+      "seconds": null
+    },
+    {
+      "id": "resumed_diagnosis",
+      "title": "Resumed run 41193662357: independent-audit work-quantum expiry observed, durable delta present, run unadjudicated",
+      "status": "PASS",
+      "mandatory": true,
+      "detail": {
+        "problems": [],
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "audit_step_seconds": 2704.0,
+        "failed_step_seconds": null,
+        "changed_files": 15,
+        "changed_paths_sample": [
+          "product/audit_readiness.py",
+          "product/tests/test_cycle_41193662357.py",
+          "reports/product/CYCLE_41193662357.md",
+          "results/product/audit_readiness/CYCLE_41193519633_audit_readiness.json",
+          "results/product/orchestration/CYCLE_41193345044_orchestration.json",
+          "results/product/orchestration/CYCLE_41193345044_resume_diagnosis.json",
+          "results/product/orchestration/CYCLE_41193345044_team_step_raw.json",
+          "results/product/orchestration/CYCLE_41193519633_orchestration.json",
+          "results/product/orchestration/CYCLE_41193519633_resume_diagnosis.json",
+          "results/product/orchestration/CYCLE_41193519633_team_step_raw.json",
+          "results/product/orchestration/CYCLE_41193662357_log_access_probe.json",
+          "results/product/server_slice/41193662357/first_page.bundle.json",
+          "results/product/server_slice/41193662357/served.bundle.json",
+          "results/product/server_slice/41193662357/summary.json",
+          "state/product.json"
+        ]
+      },
+      "evidence": [
+        "results/product/orchestration/CYCLE_41193662357_team_step_raw.json",
+        "results/product/orchestration/CYCLE_41193662357_resume_diagnosis.json"
+      ],
+      "command": null,
+      "seconds": null
+    },
+    {
+      "id": "claim_artifacts",
+      "title": "Claim-bearing artifacts exist, hash, and re-derive the v68 before/after D2 rejection",
+      "status": "PASS",
+      "mandatory": true,
+      "detail": {
+        "missing": [],
+        "problems": [],
+        "content_family": {
+          "path": "results/product/counter_content_family/CYCLE_40257275384.json",
+          "expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0
+          },
+          "n_bundles": 49,
+          "n_decisions": 4900,
+          "n_verified": 55,
+          "n_verified_defective": 0,
+          "defect_histogram": {
+            "D1_empty_evidence": 0,
+            "D2_letterhead_zone": 0,
+            "D3_markup_residue": 0,
+            "D4_language_marker_mismatch": 0
+          },
+          "false_reject_count": 0
+        },
+        "d2_before_after": {
+          "decision_id": "gr_gerichte_ERZ 2010 25",
+          "before_verified": true,
+          "after_verified": false,
+          "after_reason": "pivot_absent"
+        },
+        "sha256": {
+          "results/product/counter_content_family/CYCLE_40257275384.json": "eaab4d0637c537a74e08cee37aff781b4fddea0294fa817c74e23e64e9a81feb",
+          "results/product/offline_slice/20261024T142517Z/rent-default.bundle.json": "6eee1149b3c0ec23124746af482e15d9298c2120ee25de4bc4dd7e1cf7d93fa9",
+          "results/product/offline_slice/20261025T070356Z/rent-default.bundle.json": "f060fa2914605eebf4b7121f91463df28bc5ef7f97a346dd995fa68d7152c76e",
+          "results/product/orchestration/CYCLE_41193662357_team_step_raw.json": "2a7751d76517ec8d312ef9a6af115dfcff64565fc2ba30c0a6c363302f182c08",
+          "results/product/orchestration/CYCLE_41193662357_resume_diagnosis.json": "8fd50ff46f446ba2a91a7ab12996b4679becc9131127f9d9aeb1a1f59109424d",
+          "reports/product/CYCLE_41188877123.md": "f8319d6bc58c8bfa4a66c09c8ad315fc5947fcc3cbc70f1067caf575d45a8d03",
+          "reports/product/CYCLE_41193662357.md": "c151e91512adbaaed9e2c5054d118d17c164694faf959613edd15bdf9fc042c6",
+          "state/product.json": "d7dec96e4e201265b73a1787ec99cc1fd381d1180e07d64d073e27e9dacaa1e7"
+        }
+      },
+      "evidence": [
+        "results/product/counter_content_family/CYCLE_40257275384.json",
+        "results/product/offline_slice/20261024T142517Z/rent-default.bundle.json",
+        "results/product/offline_slice/20261025T070356Z/rent-default.bundle.json",
+        "results/product/orchestration/CYCLE_41193662357_team_step_raw.json",
+        "results/product/orchestration/CYCLE_41193662357_resume_diagnosis.json",
+        "reports/product/CYCLE_41188877123.md",
+        "reports/product/CYCLE_41193662357.md",
+        "state/product.json"
+      ],
+      "command": null,
+      "seconds": null
+    },
+    {
+      "id": "cycle_test",
+      "title": "Cycle test product/tests/test_cycle_41193662357.py exists and is green",
+      "status": "PASS",
+      "mandatory": true,
+      "detail": {
+        "path": "product/tests/test_cycle_41193662357.py",
+        "present": true,
+        "passed": 16,
+        "failed": 0,
+        "errors": 0,
+        "timed_out": false
+      },
+      "evidence": [
+        "product/tests/test_cycle_41193662357.py"
+      ],
+      "command": "/usr/bin/python3 -m pytest product/tests/test_cycle_41193662357.py -q --maxfail=1",
+      "seconds": 1.485
+    },
+    {
+      "id": "progressive_smoke",
+      "title": "Shipped progressive API answers over a real socket (fixture mode)",
+      "status": "PASS",
+      "mandatory": true,
+      "detail": {
+        "problems": [],
+        "verdict": "PASS",
+        "checks": "23/23",
+        "timings_s": {
+          "health_s": 0.001,
+          "server_boot_s": 1.02,
+          "start_s": 0.463,
+          "status_s": 0.001,
+          "expand_s": 0.265,
+          "enrich_s": 0.256,
+          "bundle_s": 0.005,
+          "static_query.html_s": 0.001,
+          "static_static_query.html_s": 0.001
+        },
+        "mode": "fixture (retrieval replays from the local cache, fixture generation, no network)"
+      },
+      "evidence": [],
+      "command": "/usr/bin/python3 product/progressive_smoke.py --run-id 41193662357 --out /tmp/lex_audit_smoke_kngcaqm7/smoke.json",
+      "seconds": 2.912
+    },
+    {
+      "id": "mvp_core_tests",
+      "title": "Bounded MVP core pytest set is green",
+      "status": "PASS",
+      "mandatory": true,
+      "detail": {
+        "passed": 170,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "timed_out": false,
+        "files": [
+          "product/tests/test_query_map_mvp.py",
+          "product/tests/test_server_query_api.py",
+          "product/tests/test_offline_slice.py",
+          "product/tests/test_progressive_smoke.py",
+          "product/tests/test_adversarial_retrieval.py",
+          "product/tests/test_counter_evidence_span.py",
+          "product/tests/test_counter_content_rejection_v68.py",
+          "product/tests/test_state_contract.py",
+          "product/tests/test_progressive_query.py"
+        ]
+      },
+      "evidence": [],
+      "command": "/usr/bin/python3 -m pytest product/tests/test_query_map_mvp.py product/tests/test_server_query_api.py product/tests/test_offline_slice.py product/tests/test_progressive_smoke.py product/tests/test_adversarial_retrieval.py product/tests/test_counter_evidence_span.py product/tests/test_counter_content_rejection_v68.py product/tests/test_state_contract.py product/tests/test_progressive_query.py -q --maxfail=1",
+      "seconds": 67.572
+    },
+    {
+      "id": "audit_namespace",
+      "title": "Producer wrote no auditor-namespace path and minted no gate",
+      "status": "PASS",
+      "mandatory": true,
+      "detail": {
+        "gate_exists": false,
+        "report_exists": false,
+        "accepted_run_id": "CYCLE_40284658455",
+        "checked_run_ids": [
+          "41193662357"
+        ],
+        "suspect_paths": [],
+        "pending_audit_paths": []
+      },
+      "evidence": [
+        "results/audit/product/CYCLE_41193662357_GATE.json",
+        "reports/audit/product/CYCLE_41193662357.md"
+      ],
+      "command": null,
+      "seconds": null
+    }
+  ],
+  "resumed_run": {
+    "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+    "mechanism": "OBSERVED_QUANTUM_EXPIRED",
+    "quantum_seconds": 2700,
+    "exit_code": 78,
+    "failed_job": "audit",
+    "durable_delta": "COMMITTED_DELTA",
+    "adjudication": "UNADJUDICATED"
+  },
+  "claims": [
+    {
+      "id": "C1",
+      "claim": "Run 41193662357's audit agent ended on the workflow work quantum (2700 s, exit 78) before an independent gate could be written; observed from the public check-run annotations, not inferred.",
+      "check": "resumed_diagnosis",
+      "artifacts": [
+        "results/product/orchestration/CYCLE_41193662357_team_step_raw.json",
+        "results/product/orchestration/CYCLE_41193662357_resume_diagnosis.json"
+      ]
+    },
+    {
+      "id": "C2",
+      "claim": "Run 41193662357 persisted an 15-file durable delta over 41193519633 and is UNADJUDICATED.",
+      "check": "resumed_diagnosis",
+      "artifacts": [
+        "results/product/orchestration/CYCLE_41193662357_resume_diagnosis.json"
+      ]
+    },
+    {
+      "id": "C3",
+      "claim": "The v68 rejection/incumbent leg flips the D2 letterhead row from verified to unverified with reason pivot_absent.",
+      "check": "claim_artifacts",
+      "artifacts": [
+        "results/product/offline_slice/20261024T142517Z/rent-default.bundle.json",
+        "results/product/offline_slice/20261025T070356Z/rent-default.bundle.json",
+        "results/product/counter_content_family/CYCLE_40257275384.json"
+      ]
+    },
+    {
+      "id": "C4",
+      "claim": "The fixed-path family is 49 bundles / 4900 decisions / 55 verified rows / 0 verified-and-defective, with the sound row retained and 0 false rejects (REPORTED-ONLY measurement).",
+      "check": "claim_artifacts",
+      "artifacts": [
+        "results/product/counter_content_family/CYCLE_40257275384.json"
+      ]
+    },
+    {
+      "id": "C5",
+      "claim": "The shipped progressive query slice still answers over a real socket in fixture mode within the local budgets.",
+      "check": "progressive_smoke",
+      "artifacts": [
+        "re-run to a temp path (no repository mutation)"
+      ]
+    },
+    {
+      "id": "C6",
+      "claim": "The bounded MVP core pytest set is green.",
+      "check": "mvp_core_tests",
+      "artifacts": [
+        "product/tests/test_query_map_mvp.py",
+        "product/tests/test_server_query_api.py",
+        "product/tests/test_offline_slice.py",
+        "product/tests/test_progressive_smoke.py",
+        "product/tests/test_adversarial_retrieval.py",
+        "product/tests/test_counter_evidence_span.py",
+        "product/tests/test_counter_content_rejection_v68.py",
+        "product/tests/test_state_contract.py",
+        "product/tests/test_progressive_query.py"
+      ]
+    },
+    {
+      "id": "C7",
+      "claim": "Posture is fail-closed and the accepted pointer (CYCLE_40284658455 / 7be4480ed) satisfies BOTH halves of requirement 4: a committed PASS/safe gate and an accept commit.",
+      "check": "posture",
+      "artifacts": [
+        "state/product.json"
+      ]
+    },
+    {
+      "id": "C8",
+      "claim": "This run minted no audit gate and wrote no auditor-namespace path.",
+      "check": "audit_namespace",
+      "artifacts": []
+    }
+  ],
+  "audit_entry_points": {
+    "one_command": "python3 product/audit_readiness.py --run-id 41193662357 --out /tmp/lex_audit_readiness.json",
+    "resumed_run_diagnosis": "results/product/orchestration/CYCLE_41193662357_resume_diagnosis.json",
+    "inherited_report": "reports/product/CYCLE_41188877123.md",
+    "current_report": "reports/product/CYCLE_41193662357.md",
+    "current_cycle_test": "python3 -m pytest product/tests/test_cycle_41193662357.py -q",
+    "not_required": "Do not re-derive accepted evaluation 40070818687 / 40068038783 / 40105794124 or the D2 profile 40089391202; they are consumed findings cited by the lane. Historical cycle tests that assert predecessor git refs are not part of this snapshot's claim set and may report REF_ABSENT in the audit worktree, which fetches only the accepted base and the current team ref."
+  },
+  "bounded_plan": {
+    "purpose": "Run the commands below in this order, read the two committed diagnosis artifacts, then write the gate. The durations are measured here so the plan fits the audit work quantum with margin instead of being discovered by a timeout.",
+    "audit_work_quantum_s": 2700,
+    "measured_seconds_total": 72.02,
+    "measured_seconds_margin_s": 2627.98,
+    "within_quantum": true,
+    "largest_single_step": {
+      "id": "mvp_core_tests",
+      "measured_seconds": 67.572
+    },
+    "steps": [
+      {
+        "id": "mvp_core_tests",
+        "status": "PASS",
+        "command": "/usr/bin/python3 -m pytest product/tests/test_query_map_mvp.py product/tests/test_server_query_api.py product/tests/test_offline_slice.py product/tests/test_progressive_smoke.py product/tests/test_adversarial_retrieval.py product/tests/test_counter_evidence_span.py product/tests/test_counter_content_rejection_v68.py product/tests/test_state_contract.py product/tests/test_progressive_query.py -q --maxfail=1",
+        "measured_seconds": 67.572
+      },
+      {
+        "id": "progressive_smoke",
+        "status": "PASS",
+        "command": "/usr/bin/python3 product/progressive_smoke.py --run-id 41193662357 --out /tmp/lex_audit_smoke_kngcaqm7/smoke.json",
+        "measured_seconds": 2.912
+      },
+      {
+        "id": "cycle_test",
+        "status": "PASS",
+        "command": "/usr/bin/python3 -m pytest product/tests/test_cycle_41193662357.py -q --maxfail=1",
+        "measured_seconds": 1.485
+      },
+      {
+        "id": "state_contract",
+        "status": "PASS",
+        "command": "/usr/bin/python3 product/state_contract.py --check --direction-version 68 --json",
+        "measured_seconds": 0.051
+      },
+      {
+        "id": "runtime_preflight",
+        "status": "PASS",
+        "command": null,
+        "measured_seconds": null
+      },
+      {
+        "id": "posture",
+        "status": "PASS",
+        "command": null,
+        "measured_seconds": null
+      },
+      {
+        "id": "resumed_diagnosis",
+        "status": "PASS",
+        "command": null,
+        "measured_seconds": null
+      },
+      {
+        "id": "claim_artifacts",
+        "status": "PASS",
+        "command": null,
+        "measured_seconds": null
+      },
+      {
+        "id": "audit_namespace",
+        "status": "PASS",
+        "command": null,
+        "measured_seconds": null
+      }
+    ],
+    "measured_step_count": 4,
+    "unmeasured_steps": [
+      "runtime_preflight",
+      "posture",
+      "resumed_diagnosis",
+      "claim_artifacts",
+      "audit_namespace"
+    ],
+    "skipped_steps": [],
+    "first_reads": [
+      "results/product/orchestration/CYCLE_41193662357_resume_diagnosis.json",
+      "results/product/orchestration/CYCLE_41193662357_team_step_raw.json",
+      "reports/product/CYCLE_41193662357.md"
+    ],
+    "not_required": "Do not re-derive accepted evaluation 40070818687 / 40068038783 / 40105794124 or the D2 profile 40089391202, and do not regenerate the offline/server slice family: those are consumed accepted findings pinned REPORTED-ONLY by the profile.",
+    "timing_claim_ceiling": "Observations of one host for one dossier generation run. They are not a cross-machine guarantee and they score no bar."
+  },
+  "posture": {
+    "audit_write_scope": "producer wrote only product-owned paths",
+    "gate_minted": false,
+    "frozen_bar_scored": false,
+    "serve_verdict_rerun": false,
+    "run_label": "UNADJUDICATED",
+    "human_gate_ready": false,
+    "machine_gate_ready": false
+  },
+  "claim_ceiling": "A bounded audit-readiness dossier, not an audit. It re-derives or hashes the snapshot's published claims and records the exact commands; it writes no gate, scores no frozen bar, re-runs no serve verdict, and labels no run accepted or rejected."
+}
