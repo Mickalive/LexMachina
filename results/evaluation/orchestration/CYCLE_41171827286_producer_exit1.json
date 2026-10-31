@@ -1,0 +1,54 @@
+{
+  "schema": "lex-evaluation-producer-death-diagnosis/1",
+  "run_id": 41171918973,
+  "failed_run_id": 41171827286,
+  "direction_version": 68,
+  "generated_at_utc": "2026-10-31T05:56:14Z",
+  "failure_class": "PRODUCER_SESSION_DIED_EXIT_1_WITHOUT_TRANSIENT_SIGNATURE",
+  "failure_is_orchestration_not_measurement": true,
+  "failure_is_validation_failure": false,
+  "failure_is_zero_delta_guard": false,
+  "failure_is_quantum_expiry": false,
+  "failed_job": "team",
+  "failed_job_id": 124451241325,
+  "failed_job_step": "Run lane cycle",
+  "failed_step_number": 6,
+  "failed_step_started_at": "2026-10-31T05:15:50Z",
+  "failed_step_completed_at": "2026-10-31T05:16:06Z",
+  "failed_step_duration_seconds": 16,
+  "exit_code": 1,
+  "exit_code_source": "check-run annotation 'Process completed with exit code 1.'",
+  "downstream": {
+    "validate_active_mvp_producer_state": "skipped",
+    "enforce_lane_write_scope": "skipped",
+    "persist_team_snapshot": "success",
+    "audit_job": "skipped",
+    "integrate_job": "skipped"
+  },
+  "annotations_verbatim": [
+    "Process completed with exit code 1.",
+    "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+  ],
+  "guard_exclusion_checks": {
+    "rc_64_65_66_registry_guard_excluded": true,
+    "rc_76_model_health_guard_excluded": true,
+    "rc_67_zero_delta_guard_excluded": true,
+    "rc_78_quantum_expiry_excluded": true,
+    "wrapper_error_annotations_absent": true
+  },
+  "exclusion_logic": "run-ox-with-retry.sh exits 64/65/66 (registry), 76 (model health), 67 (zero-delta repair; requires Ox rc=0) or 78 (2700 s quantum) via distinct ::error::/::warning:: annotations or step durations; none appear and the step lasted ~16 s, so the only remaining wrapper path is line 112 'exit $rc' after a non-transient Ox child failure.",
+  "mechanism_attribution": "INFERENCE (hedged): an immediate non-transient Ox/OpenCode agent-session failure — the provider/auth/config class of factory-wide requirement 20. Step logs are 403-unauthenticated so no log line was read; the attribution rests on the exit code, the step timing and the absent guard annotations only.",
+  "zero_delta_proof": {
+    "team_ref_41171827286": "6d73946d279032d8d10c82f6dfa21793595c3887",
+    "team_ref_41165748723": "6d73946d279032d8d10c82f6dfa21793595c3887",
+    "identical": true,
+    "meaning": "the persisted producer snapshot of the failed run carries ZERO delta over the snapshot it resumed; all valid completed work lives in 6d73946d and is preserved append-only"
+  },
+  "evidence_artifacts": [
+    "results/evaluation/orchestration/41171827286_jobs.json",
+    "results/evaluation/orchestration/41171827286_run_record.json",
+    "results/evaluation/orchestration/41171827286_team_annotations.json"
+  ],
+  "verdict_consistent_with_all_evidence": true,
+  "claim_ceiling": "Public GitHub Actions metadata diagnosis of an orchestration guard. It is not a measurement, not a producer validation failure and not an audit verdict; the mechanism attribution is an inference."
+}

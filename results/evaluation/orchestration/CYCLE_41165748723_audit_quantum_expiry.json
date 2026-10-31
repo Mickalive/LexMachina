@@ -1,0 +1,56 @@
+{
+  "schema": "lex-evaluation-orchestration-resume-diagnosis/1",
+  "lane": "evaluation",
+  "run_id": 41171918973,
+  "failed_run_id": 41165748723,
+  "direction_version": 68,
+  "generated_at_utc": "2026-10-31T05:56:14Z",
+  "mode": "OPERATIONAL RESUME diagnosis of run 41165748723's audit failure, recorded by run 41171918973",
+  "failure_class": "WORK_QUANTUM_EXPIRED",
+  "not_a_measurement_failure": true,
+  "exit_code": 78,
+  "quantum_seconds": 2700,
+  "failed_step": "Independent audit",
+  "failed_step_started_at": "2026-10-31T04:29:46Z",
+  "failed_step_completed_at": "2026-10-31T05:14:50Z",
+  "evidence_artifacts": [
+    "results/evaluation/orchestration/41165748723_jobs.json",
+    "results/evaluation/orchestration/41165748723_audit_annotations.json"
+  ],
+  "evidence_annotations_verbatim": [
+    "Process completed with exit code 78.",
+    "Agent quantum ended cleanly; workflow must snapshot and resume rather than hang.",
+    "LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2248"
+  ],
+  "producer_validation_verdict": {
+    "validate_active_mvp_producer_state": "success",
+    "enforce_lane_write_scope": "success",
+    "persist_team_snapshot": "success",
+    "run_lane_cycle": "success"
+  },
+  "downstream": {
+    "audit_scope_step": "skipped",
+    "audit_persist_step": "skipped",
+    "integrate_job": "skipped"
+  },
+  "snapshot": {
+    "team_ref": "origin/cycle/core/evaluation/41165748723/team",
+    "commit": "6d73946d279032d8d10c82f6dfa21793595c3887",
+    "commit_subject": "evaluation cycle 41165748723 repair 0",
+    "resumed_by_this_run": true,
+    "also_persisted_identically_by_failed_run_41171827286": true
+  },
+  "acceptance_state": {
+    "audit_gate_for_41165748723": "NONE (audit job died before gate write)",
+    "accept_commit_for_41165748723": "NONE",
+    "origin_lab_evaluation_head_at_resume": "ea98384e54d31d2e694c418a1d1ce5769fc6c32f",
+    "origin_lab_evaluation_head_subject": "accept evaluation cycle 40265377500",
+    "disposition": "NON_PROMOTING_PENDING_INDEPENDENT_AUDIT; preserved append-only"
+  },
+  "second_occurrence_in_chain": {
+    "first": "41161273401 audit job, exit 78 (CYCLE_41161273401_audit_quantum_expiry.json)",
+    "second": "41165748723 audit job, exit 78 (this record)",
+    "pattern": "two consecutive independent-audit jobs exceeded the 2700 s wrapper quantum while auditing this lane's operational-resume deliverables; the producer work is valid in both cases and the failure is orchestration scope/timing, not evidence quality"
+  },
+  "claim_ceiling": "Public GitHub Actions metadata diagnosis of an orchestration guard. It is not a measurement, not a producer validation failure and not an audit verdict."
+}
