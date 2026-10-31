@@ -172,7 +172,13 @@
     "results/product/orchestration/CYCLE_41159162128_orchestration.json",
     "results/product/orchestration/CYCLE_41152471808_orchestration.json",
     "product/tests/test_cycle_41159331087.py",
-    "results/product/audit_readiness/CYCLE_41159331087_audit_readiness.json"
+    "results/product/audit_readiness/CYCLE_41159331087_audit_readiness.json",
+    "results/product/orchestration/CYCLE_41168007766_team_step_raw.json",
+    "results/product/orchestration/CYCLE_41168007766_orchestration.json",
+    "results/product/orchestration/CYCLE_41168007766_resume_diagnosis.json",
+    "product/tests/test_cycle_41168174298.py",
+    "reports/product/CYCLE_41168174298.md",
+    "results/product/audit_readiness/CYCLE_41168007766_audit_readiness.json"
   ],
   "evidence_tier": "REPRODUCED",
   "human_gate_ready": false,
@@ -193,7 +199,7 @@
   },
   "lane": "product",
   "machine_gate_ready": false,
-  "next_recommendation": "Direction v68 / FAST MVP, operational-resume cycle 41163295014 (resume of run 41162767461; UNADJUDICATED pending independent audit). WHAT THIS CYCLE DID: (a) diagnosed 41162767461 from the public run/jobs snapshot and check-run annotations: 'Run lane cycle' failed after 301 s with exit 67 LEX_ZERO_DELTA_REPAIR, state validation and scope enforcement were skipped, audit/integrate were never reached, the logs endpoint returned HTTP 403 (innermost cause UNOBSERVED), and both team refs equal the predecessor snapshot 665a4205 (ZERO durable delta). (b) Corrected the persisted chain: 41159331087 itself died at 2704 s on LEX_WORK_QUANTUM_EXPIRED (exit 78) after its 11-file delta was committed by the workflow's if: always() snapshot step; its producer-state validation never ran and its report of record was never written. run_history is corrected additively (old status preserved) and the false 'lab/product is at f7bc77a0' parenthetical is superseded in the restored report (origin/lab/product is 7be4480e). (c) Restored the missing reports/product/CYCLE_41159331087.md, which was the sole measured FAIL (claim_artifacts) in the snapshot's audit-readiness dossier, and pinned the repair with product/tests/test_cycle_41163295014.py. (d) Extended audit_readiness.py so observed_step_failure can pin and cross-check exit_code_meaning, added the 41162767461 profile, and wrote the dossier results/product/audit_readiness/CYCLE_41162767461_audit_readiness.json. (e) Verified the vertical slice offline: 170 bounded MVP tests, 59 orchestration/cycle tests, progressive smoke and claim-artifact hashes via the dossier. The vertical slice (fixture-mode cached OpenCaseLaw retrieval -> query_result_bundle -> sourced deterministic answer -> counter-authority pass -> clickable map) remains runnable, and the v68 rejection/incumbent leg is consumed as accepted evidence, not re-derived. ORDERED WORK STATUS unchanged. Posture stays FAIL-CLOSED: continue_recommended=true, human_gate_ready=false, and the accepted pointer stays CYCLE_40284658455 / 7be4480e until an independent audit of this snapshot chain lands. NEXT: the independent audit of snapshot 665a4205 plus this resume; a further producer cycle that only re-diagnoses this chain is zero delta.",
+  "next_recommendation": "Direction v68 / FAST MVP, operational-resume cycle 41168174298 (resume of run 41168007766; UNADJUDICATED pending independent audit). WHAT THIS CYCLE DID: (a) diagnosed 41168007766 from the public run/jobs snapshot and check-run annotation: 'Run lane cycle' failed after 16 s with the GENERIC exit code 1 (no wrapper branch named), 'Validate active MVP producer state' and 'Enforce lane write scope' were skipped, audit/integrate were never reached, the logs endpoint returned HTTP 403 (innermost cause UNOBSERVED), and both team refs equal the predecessor snapshot cf441eb3 (ZERO durable delta). (b) Preserved the valid 41163295014 audit-readiness delta unchanged; no predecessor artifact was rewritten. (c) Re-verified the lane deliverable as ACCEPTED evidence rather than re-deriving it: state v68_delivery.status=LANDED and the accepted fixed-path family CYCLE_40257275384 reads 49 bundles / 4900 decisions / 55 verified / 0 verified-defective / false_reject_count=0, all-zero D1-D4 histogram, the sound row bstger_SK.2023.49 still verified, and ordered_work_2_full_success_rule.met=true. (d) Added the 41168007766 audit-readiness profile (generic exit 1 deliberately carries NO exit_code_meaning), the cycle test product/tests/test_cycle_41168174298.py, this report, and the dossier results/product/audit_readiness/CYCLE_41168007766_audit_readiness.json (9/9 PASS). ORDERED WORK STATUS unchanged: the v68 rejection/incumbent leg and full-family regeneration are discharged with accepted evidence; the only transferred item is the evaluation-lane profile freeze decision (item 6), which product never re-derives. Posture stays FAIL-CLOSED: continue_recommended=true, human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false; the accepted pointer stays CYCLE_40284658455 / 7be4480e until an independent audit of this snapshot chain lands. NEXT: the independent audit of snapshot cf441eb3 plus this resume. A further producer cycle that only re-diagnoses this chain is zero delta; if the audit lands PASS, the next product delta must be a concrete capability advance, not another resume.",
   "not_claimed": [
     "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
     "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
@@ -395,6 +401,18 @@
       "finding": "the workflow's 'Clean generated junk' step does not cover zero-byte server*.log files at the repository root, and 'Enforce lane write scope' is skipped whenever the producer step fails, so out-of-scope root files land in the team ref (observed: 4 such files in commit d4e8a86).",
       "scope": ".github/** is control-plane scope and is recorded, never edited from a lane",
       "route_around": "product-owned code writes its server logs under results/ or a temp dir; the lane additionally re-checks root-level junk before committing"
+    },
+    {
+      "id": "CP-AGENT-PERMISSIONS-KEY",
+      "recorded_by": "product cycle 41168174298 (operational resume of 41168007766)",
+      "gap": "origin/main's .opencode/agents/product_engineer.md still carries an unsupported top-level `permissions:` array beside the supported `permission:` block. Run 40276797027 recorded the gateway rejecting exactly this: 'unsupported_parameter: Unrecognized request argument supplied: permissions.' (exit 1 after ~16 s). Run 41168007766 failed at 'Run lane cycle' after 16.0 s with the same generic exit 1 signature; its logs endpoint is HTTP 403, so this is a RESEMBLANCE, not an observation, and the resume diagnosis does not assert it as the cause.",
+      "why_a_lane_cannot_fix_it": "Agent definitions are control-plane scope; the wrapper re-stages origin/main's .opencode/agents into the workspace and the lane's write scope excludes them.",
+      "intended_upstream_fix_for_the_control_plane_maintainer": [
+        "remove the unsupported `permissions:` array from every .opencode/agents/*.md (or move subagent permissions under the supported schema), keeping the `permission:` block",
+        "add a registry/agent-config lint that fails fast on unknown top-level keys so the next run does not spend a dispatch discovering it",
+        "surface the opencode stderr on a generic exit 1 (the wrapper currently only annotates the numeric code, and the job logs endpoint is admin-only, so a 16 s generic death is undiagnosable from outside)"
+      ],
+      "route_around_used": "the current run's model accepted the config and produced this durable delta; the item is recorded for the control plane, not retried from the lane."
     }
   ],
   "evidence_ref_counts_40143042888": {
@@ -1081,9 +1099,9 @@
     "audit_namespace_written": false,
     "claim_ceiling": "OPERATIONAL-RESUME AND AUDIT-READINESS EVIDENCE ONLY. No live retrieval, legal usefulness, frozen bar, serve verdict, acceptance or human-gate readiness is asserted."
   },
-  "current_cycle_run_id": 41163295014,
+  "current_cycle_run_id": 41168174298,
   "last_repair_round": 0,
-  "last_updated": "2026-10-31T03:16:54Z",
+  "last_updated": "2026-10-31T04:26:00Z",
   "run_history": [
     {
       "run_id": "40241250741",
@@ -1259,6 +1277,27 @@
       "failed_step_seconds": 301.0,
       "summary": "Fresh v68 product cycle dispatched at 2026-10-31T03:04:38Z off snapshot 665a4205. The team job failed at 'Run lane cycle' after 301 s of a 2700 s wrapper work quantum; the public check-run annotation carries exit code 67 AND the literal branch name LEX_ZERO_DELTA_REPAIR; 'Validate active MVP producer state' and 'Enforce lane write scope' were skipped and audit/integrate were not reached. Both team refs point at 665a4205, byte-identical to the predecessor snapshot, so the run added ZERO durable delta. The logs endpoint returned HTTP 403, so the innermost cause is UNOBSERVED and no model defect is asserted. UNADJUDICATED.",
       "date": "2026-10-31T03:16:54Z"
+    },
+    {
+      "run_id": 41163295014,
+      "repair_round": 0,
+      "status": "OPERATIONAL_RESUME_AUDIT_READINESS_REPAIR",
+      "audit_gate": "NONE",
+      "summary": "Operational resume of the persisted producer snapshot of run 41162767461 (this run). Diagnosed 41162767461 from the public run/jobs snapshot and check-run annotations (301 s, exit 67 LEX_ZERO_DELTA_REPAIR, validation/scope skipped, HTTP 403 logs, zero durable delta); restored the missing reports/product/CYCLE_41159331087.md that was the sole measured FAIL in the snapshot's audit-readiness dossier; corrected run_history additively; extended audit_readiness.py with the 41162767461 profile; verified 170 bounded MVP tests, 67 orchestration/cycle tests and a 9/9 PASS dossier. No frozen bar scored; posture fail-closed; UNADJUDICATED pending independent audit.",
+      "date": "2026-10-31T03:30:51Z"
+    },
+    {
+      "run_id": 41168007766,
+      "repair_round": 0,
+      "status": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_ZERO_DURABLE_DELTA",
+      "audit_gate": "NONE",
+      "exit_code": 1,
+      "exit_code_meaning": null,
+      "failing_step": "Run lane cycle",
+      "failed_step_seconds": 16.0,
+      "snapshot_commit": "cf441eb33351d951036ddf6728e79aa63424ed9a",
+      "summary": "Fresh v68 product cycle dispatched at 2026-10-31T04:18:13Z off snapshot cf441eb3 (the persisted delta of run 41163295014). The team job failed at 'Run lane cycle' after 16 s; the public check-run annotation carries the GENERIC exit code 1 (no wrapper branch name). 'Validate active MVP producer state' and 'Enforce lane write scope' were skipped and audit/integrate were not reached. Both team refs point at cf441eb3, byte-identical to the predecessor snapshot, so the run added ZERO durable delta. The logs endpoint returned HTTP 403, so the innermost cause is UNOBSERVED and no model defect is asserted. UNADJUDICATED.",
+      "date": "2026-10-31T04:26:00Z"
     }
   ],
   "cycle_40247041354_resume": {
@@ -2178,5 +2217,85 @@
       "reason": "no independent PASS gate on a cycle audit ref and no accept commit on origin/lab/product for this snapshot chain"
     },
     "claim_ceiling": "Operational resume diagnosis and audit-readiness repair only. The vertical slice is verified offline; no live latency, answer quality, legal usefulness, frozen bar, serve verdict, packet admission or human-gate claim is made."
+  },
+  "cycle_41168174298_operational_resume": {
+    "run_id": 41168174298,
+    "repair_round": 0,
+    "direction_version": 68,
+    "mode": "OPERATIONAL RESUME from the persisted producer snapshot of run 41168007766 (which is byte-identical to the audit-readiness delta of run 41163295014)",
+    "resumed_snapshot": {
+      "run_id": 41168007766,
+      "team_ref_head": "cf441eb33351d951036ddf6728e79aa63424ed9a",
+      "predecessor_snapshot_run_id": 41163295014,
+      "predecessor_snapshot_head": "cf441eb33351d951036ddf6728e79aa63424ed9a",
+      "failure": "team job failed at 'Run lane cycle' after 16 s with observed generic exit code 1; state validation and write-scope enforcement skipped; audit/integrate skipped; zero durable delta over snapshot cf441eb3"
+    },
+    "chain_diagnosed": [
+      41152471808,
+      41159162128,
+      41159331087,
+      41162767461,
+      41163295014,
+      41168007766
+    ],
+    "diagnosis": "results/product/orchestration/CYCLE_41168007766_resume_diagnosis.json",
+    "raw_snapshot": "results/product/orchestration/CYCLE_41168007766_team_step_raw.json",
+    "orchestration_evidence": [
+      "results/product/orchestration/CYCLE_41168007766_orchestration.json"
+    ],
+    "mechanism_kind": "observed_step_failure",
+    "exit_code": 1,
+    "exit_code_meaning": null,
+    "diagnosis_scope": "The public run/jobs snapshot and the check-run annotation prove the step conclusion, the 16 s duration and the generic exit code 1. Exit 1 is not one of run-ox-with-retry.sh's named codes, so it is a generic passthrough (or restore_overlay||exit 1); the logs endpoint answered HTTP 403, so the innermost log-level cause is UNOBSERVED and none is asserted. The 16 s duration resembles the recorded model-gateway rejection of run 40276797027 but that is not used as the classification.",
+    "lane_deliverable": {
+      "status": "ACCEPTED_EVIDENCE_CONSUMED",
+      "component": "counter_evidence_span rejection/incumbent leg (direction v68 P0)",
+      "state_pointer": "v68_delivery.status=LANDED",
+      "accepted_fixed_path_family": "results/product/counter_content_family/CYCLE_40257275384.json",
+      "pins": {
+        "n_bundles": 49,
+        "n_decisions": 4900,
+        "n_verified": 55,
+        "n_verified_defective": 0,
+        "false_reject_count": 0,
+        "defect_histogram_all_zero": true,
+        "confirmed_sound_row_still_verified": "bstger_SK.2023.49",
+        "ordered_work_2_full_success_rule_met": true
+      },
+      "note": "Consumed REPORTED-ONLY. This resume does not re-measure the family, edit a frozen predicate, re-run a serve verdict or re-derive a profile."
+    },
+    "report": "reports/product/CYCLE_41168174298.md",
+    "cycle_test": "product/tests/test_cycle_41168174298.py",
+    "audit_readiness_profile": "41168007766",
+    "audit_readiness_dossier": "results/product/audit_readiness/CYCLE_41168007766_audit_readiness.json",
+    "verification": {
+      "runtime_pins": {
+        "numpy": "2.5.4",
+        "scipy": "1.18.1",
+        "sklearn": "1.9.1",
+        "pytest": "9.1.1"
+      },
+      "network": "none (offline/fixture path)",
+      "audit_readiness_status": "PASS (see dossier)",
+      "audit_readiness_checks": "9/9 PASS, failed_checks=[]"
+    },
+    "accepted_pointer": {
+      "accepted_run_id": "CYCLE_40284658455",
+      "accepted_commit": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+      "both_halves_verified_this_cycle": true,
+      "half_1": "results/audit/product/CYCLE_40284658455_GATE.json (gate PASS, safe_to_integrate=true, required_fixes=[])",
+      "half_2": "origin/lab/product head 7be4480e is the 'accept product cycle 40284658455' commit"
+    },
+    "bundle_bytes_written": false,
+    "frozen_bar_scored": false,
+    "posture_unchanged": true,
+    "adjudication": {
+      "status": "UNADJUDICATED",
+      "accepted": false,
+      "gate_minted": false,
+      "audit_namespace_written": false,
+      "reason": "no independent PASS gate on a cycle audit ref and no accept commit on origin/lab/product for this snapshot chain"
+    },
+    "claim_ceiling": "Operational resume diagnosis and audit-readiness verification only. The v68 deliverable is consumed as accepted evidence; no live latency, answer quality, legal usefulness, frozen bar, serve verdict, packet admission or human-gate claim is made."
   }
 }

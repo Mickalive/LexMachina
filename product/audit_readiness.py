@@ -497,6 +497,46 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    "41168007766": {
+        "resumed_run_id": "41168007766",
+        "predecessor_run_id": "41163295014",
+        "raw": ORCH / "CYCLE_41168007766_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41168007766_resume_diagnosis.json",
+        # The predecessor snapshot 41163295014 wrote its own report of record
+        # (reports/product/CYCLE_41163295014.md), so there is NO inherited
+        # report to hash; explicitly None prevents the shared default from
+        # pulling an unrelated legacy report into this cycle's claim set.
+        "inherited_report": None,
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41168174298.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        # Eighth observed instance of the same step-failure shape. Unlike the
+        # 41162767461 profile, the public annotation carries the GENERIC exit
+        # code 1 (no wrapper branch name): the step ran 16 s, the logs endpoint
+        # is HTTP 403, and no innermost cause is asserted. exit_code_meaning is
+        # deliberately omitted so the dossier cannot imply a named branch.
+        "mechanism_kind": "observed_step_failure",
+        "delta_kind": "zero",
+        "failed_job": "team",
+        "quantum_seconds": 2700,
+        "exit_code": 1,
+        "lane_cycle_step_seconds": 16.0,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_41168174298.py",
+        "state_block": "cycle_41168174298_operational_resume",
+        # No new counter-content family was measured this cycle: consume the
+        # accepted fixed-path family pins unchanged (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
