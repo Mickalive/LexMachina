@@ -369,6 +369,46 @@ PROFILES: dict[str, dict[str, Any]] = {
                              / "self_minted_gate_40278460732_producer_"
                                "40283048553.QUARANTINED.json",
     },
+    "41152471808": {
+        "resumed_run_id": "41149776023",
+        "predecessor_run_id": "40284658455",
+        "raw": ORCH / "CYCLE_41149776023_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41149776023_resume_diagnosis.json",
+        # The failed run committed no report.  The report of record inherited by
+        # this resume is the accepted producer report on the lineage; this
+        # resume's own report is CYCLE_41152471808.md.
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40284658455.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41152471808.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        # Fifth real failure mode: the LANE-CYCLE STEP ITSELF failed (not the
+        # audit job, not write-scope enforcement, not a model-gateway
+        # rejection).  The jobs snapshot is public, the step conclusions are
+        # observable, the logs endpoint answers HTTP 403, no work quantum was
+        # reached, and the team ref is byte-identical to the accepted base.
+        "mechanism_kind": "observed_step_failure",
+        "delta_kind": "zero",
+        "failed_job": "team",
+        "quantum_seconds": 2700,
+        "exit_code": None,
+        "lane_cycle_step_seconds": 1670.0,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_41152471808.py",
+        "state_block": "cycle_41152471808_operational_resume",
+        # No new counter-content family was measured this cycle: consume the
+        # accepted fixed-path family pins unchanged (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -689,6 +729,50 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                 problems.append("raw_scope_step_not_failure")
         else:
             problems.append("raw_snapshot_missing")
+    elif mechanism_kind == "observed_step_failure":
+        # Fifth real failure mode, observed on run 41149776023: the LANE-CYCLE
+        # STEP itself failed (not the audit job, not write-scope enforcement,
+        # not a model-gateway rejection).  The public jobs snapshot shows the
+        # step conclusion and timestamps; the logs endpoint is HTTP 403 for the
+        # reader, so the log-level cause is UNOBSERVED and no cause is asserted.
+        # A quantum-expiry or scope wording would misreport the run.
+        mechanism = orch.get("mechanism") or {}
+        exit_code = p("exit_code")
+        if mechanism.get("status") != "OBSERVED_LANE_CYCLE_STEP_FAILED":
+            problems.append("mechanism_status")
+        if mechanism.get("logs_available") is not False:
+            problems.append("logs_available")
+        if mechanism.get("logs_endpoint_status") != 403:
+            problems.append("logs_endpoint_status")
+        if mechanism.get("quantum_expired") is not False:
+            problems.append("quantum_expired")
+        if mechanism.get("lane_cycle_step_conclusion") != "failure":
+            problems.append("lane_cycle_step_conclusion")
+        if orch.get("failed_step") != "Run lane cycle":
+            problems.append("failed_step")
+        if mechanism.get("exit_code") != exit_code:
+            problems.append("exit_code")
+        if (orch.get("audit") or {}).get("gate_file_written") is not False:
+            problems.append("gate_file_written")
+        if (orch.get("audit") or {}).get("skipped") is not True:
+            problems.append("audit_not_skipped")
+        # Cross-check the raw snapshot the profile names: the lane-cycle step
+        # must read failure there and the two downstream producer steps must
+        # read skipped.
+        if raw is not None and raw.is_file():
+            raw_doc = _load(raw)
+            team = next((j for j in raw_doc.get("jobs") or []
+                         if j.get("name") == "team"), None)
+            steps = {s.get("name"): s.get("conclusion")
+                     for s in (team or {}).get("steps") or []}
+            if steps.get("Run lane cycle") != "failure":
+                problems.append("raw_lane_cycle_not_failure")
+            if steps.get("Validate active MVP producer state") != "skipped":
+                problems.append("raw_state_validation_not_skipped")
+            if steps.get("Enforce lane write scope") != "skipped":
+                problems.append("raw_scope_step_not_skipped")
+        else:
+            problems.append("raw_snapshot_missing")
     else:
         # Raw-free resume: the public run/jobs snapshot is unavailable. The
         # only honest record is that the mechanism is unobserved; asserting a
@@ -743,6 +827,13 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                    "on a producer-minted auditor-namespace gate file (no "
                    "work quantum reached, audit skipped), durable delta "
                    "present, run unadjudicated")
+    elif mechanism_kind == "observed_step_failure":
+        summary = (f"Resumed run {resumed_id}: lane-cycle agent step FAILED "
+                   "after 1670 s of a 2700 s quantum, producer-state "
+                   "validation and write-scope enforcement were skipped, the "
+                   "logs endpoint answered HTTP 403 (log-level cause "
+                   "unobserved), the team ref carries zero durable delta over "
+                   "the accepted base, and the run is unadjudicated")
     else:
         summary = (f"Resumed run {resumed_id}: raw run/jobs snapshot "
                    "unavailable (mechanism unobserved), team ref carries zero "
@@ -1138,6 +1229,20 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
             "QUARANTINED.json. Observed from the run's own job records "
             "(logs endpoint HTTP 200), not inferred; no work quantum "
             "expired."
+        )
+        c1_artifacts = (
+            ([str(raw.relative_to(ROOT))] if raw is not None else [])
+            + [str(resume_diag.relative_to(ROOT))])
+    elif mechanism_kind == "observed_step_failure":
+        c1_claim = (
+            f"Run {resumed_id}'s lane-cycle agent step FAILED after "
+            f"{p('lane_cycle_step_seconds', 0)} s of a 2700 s work quantum; "
+            "'Validate active MVP producer state' and 'Enforce lane write "
+            "scope' were skipped, no audit ran, and the team ref is "
+            "byte-identical to the accepted base (ZERO_DURABLE_DELTA). The "
+            "public jobs snapshot shows the step conclusions and timestamps; "
+            "the logs endpoint answered HTTP 403, so the log-level cause is "
+            "UNOBSERVED and no cause is asserted."
         )
         c1_artifacts = (
             ([str(raw.relative_to(ROOT))] if raw is not None else [])
