@@ -788,6 +788,26 @@ def build_audit_index(rec: dict) -> dict:
     return idx
 
 
+def _verdict(x: Any, key: str = "verdict") -> Any:
+    """Flatten instrument payloads whose 'verdict' is itself a nested record."""
+    if isinstance(x, dict):
+        v = x.get(key)
+        if isinstance(v, dict):
+            return v.get("verdict") or v.get("schema")
+        if v is not None:
+            return v
+        if "overall_pass" in x:
+            return "PASS" if x.get("overall_pass") else "FAIL"
+    return x
+
+
+def _ws_n_bad(rec: dict) -> Any:
+    v = (rec.get("write_scope") or {}).get("verdict")
+    if isinstance(v, dict):
+        return v.get("n_bad")
+    return "n/a"
+
+
 def write_report(rec: dict, report_dir: Path) -> Path:
     idx = rec.get("audit_index") or {}
     lines = [
@@ -875,11 +895,18 @@ def write_report(rec: dict, report_dir: Path) -> Path:
         f"* accepted pointer (both halves of requirement 4): "
         f"{'VERIFIED' if (rec.get('accepted_pointer') or {}).get('verified') else 'NOT VERIFIED'} "
         f"— {EXPECTED_ACCEPTED_RUN} / `{EXPECTED_ACCEPTED_COMMIT[:8]}`",
-        f"* state-integrity gate: `{(rec.get('state_gate') or {}).get('verdict')}`",
-        f"* lane suite: `{(rec.get('lane_suite') or {}).get('overall_pass')}`",
-        f"* live write scope: `{(rec.get('write_scope') or {}).get('verdict')}`",
-        f"* nested evidence refs: `{(rec.get('nested_refs') or {}).get('verdict')}`",
-        f"* no-pytest self-check: `{(rec.get('self_check') or {}).get('verdict')}`",
+        f"* state-integrity gate: `{_verdict(rec.get('state_gate'))}` "
+        f"({(rec.get('state_gate') or {}).get('n_passed')}/"
+        f"{(rec.get('state_gate') or {}).get('n_checks')} checks)",
+        f"* lane suite: `{_verdict(rec.get('lane_suite'))}` "
+        f"({(rec.get('lane_suite') or {}).get('n_passed')}/"
+        f"{(rec.get('lane_suite') or {}).get('n_checks')} checks)",
+        f"* live write scope: `{_verdict(rec.get('write_scope'))}` "
+        f"(n_bad={_ws_n_bad(rec)})",
+        f"* nested evidence refs: `{_verdict(rec.get('nested_refs'))}`",
+        f"* no-pytest self-check: `{_verdict(rec.get('self_check'))}` "
+        f"({(rec.get('self_check') or {}).get('n_passed')} passed, "
+        f"{(rec.get('self_check') or {}).get('n_failed')} failed)",
         "",
         "## 6. Audit index",
         "",
