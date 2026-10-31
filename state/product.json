@@ -215,7 +215,7 @@
   },
   "lane": "product",
   "machine_gate_ready": false,
-  "next_recommendation": "Direction v68 / FAST MVP, operational-resume cycle 41179957652 (resume of run 41176811677; UNADJUDICATED pending independent audit). WHAT THIS CYCLE DID: (a) diagnosed 41176811677 from the public run/jobs snapshot and check-run annotation - 'Run lane cycle' ran 2705.0 s of a 2700 s work quantum, the annotation carries LEX_WORK_QUANTUM_EXPIRED seconds=2700 and exit code 78, validation and write-scope steps were skipped, audit/integrate were never reached, and both team refs equal f2c9cf72 (ZERO durable delta); (b) found and repaired an annotation-reader defect - observe_raw_snapshot writes annotations as a flat list but audit_step_diagnosis._job_annotations only read a job-keyed mapping, so the same committed snapshot classified as UNOBSERVED with exit_code=null before the repair and as OBSERVED_QUANTUM_EXPIRED/78 after it; the reader now attributes only by exact job id or name and never guesses; (c) re-verified the lane deliverable at this head with a fresh SERVED vertical slice (results/product/server_slice/41179957652, PASS 10/10: 100 -> 100 decisions, 8 clusters, 2 cited, 1 counter-authority, 3 counter-status-bearing rows, 100/100 source links, 71 page assertions, 1.691 s total, fixture mode, every non-loopback connect trapped); (d) added the 41176811677 audit-readiness profile (mechanism_kind=observed, exit 78, zero delta) and generated its dossier; (e) added product/tests/test_cycle_41179957652.py and appended the 41176811677 run_history entry plus the cycle_41179957652_operational_resume block (additive: no historical run_history entry rewritten, no evidence ref deleted). WHY THE SNAPSHOT IS STILL UNADJUDICATED: both producer and audit have now died at the same 2700 s quantum on this lineage (41152471808, 41159331087, 41168174298 audit, and now 41176811677), so the snapshot is unaudited because the audit step keeps exhausting its own quantum, not because the tree is broken. WHAT IS NEXT: dispatch an INDEPENDENT AUDIT of f2c9cf72 with a bounded, checkable plan (the committed results/product/audit_readiness/CYCLE_41176811677_audit_readiness.json plus this report are the entry point; do not re-derive accepted evaluation 40070818687/40068038783/40105794124 or D2 profile 40089391202). Direction v68 ordered work (5) stays DEFERRED (live budget 8 unchanged) and (6) stays transferred to the evaluation lane; the v68 deliverable is consumed as accepted evidence and is not re-measured. Posture stays FAIL-CLOSED: human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false, continue_recommended=true.",
+  "next_recommendation": "Direction v68 / FAST MVP, operational-resume cycle 41188877123 (resume of run 41188733592; UNADJUDICATED pending independent audit). WHAT THIS CYCLE DID: (a) diagnosed 41188733592 from the public run/jobs snapshot - 'Run lane cycle' failed after 17.0 s with generic exit 1, validation/write-scope/audit/integrate skipped, both team refs at 980f880b (ZERO durable delta), logs HTTP 403 so the innermost cause is UNOBSERVED; (b) diagnosed why snapshot 980f880b is unaudited - predecessor 41184474509's audit job died at 2705 s of a 2700 s quantum (LEX_WORK_QUANTUM_EXPIRED, exit 78, gate reader skipped), while its team committed an artifact-only delta; (c) found and repaired a real audit-instrument defect - check_audit_namespace counted the ACCEPTED run's committed gate as a producer mint when the dossier was regenerated with --run-id equal to the accepted run, which is the sole reason the 41184474509 snapshot carries overall_status=FAIL; the check now excludes the accepted pointer and still fails closed on every non-accepted checked id and every pending audit path; (d) re-verified the lane deliverable with a fresh SERVED vertical slice (results/product/server_slice/41188877123, PASS 10/10: 100 -> 100 decisions, 8 clusters, 2 cited, 1 counter-authority, 3 counter-status-bearing rows, 100/100 source links, 71 page assertions, 1.688 s, fixture mode, every non-loopback connect trapped); (e) added profile 41188733592 and a fresh audit-readiness dossier, the cycle test test_cycle_41188877123.py, additive run_history entries for 41184474509 and 41188733592, and this block. WHY STILL UNADJUDICATED: both halves of requirement 4 are absent for the 4118 chain - there is no PASS gate on any 4118 audit ref and no accept commit on lab/product. WHAT IS NEXT: dispatch an INDEPENDENT AUDIT of 980f880b with a bounded plan - start from results/product/audit_readiness/CYCLE_41188733592_audit_readiness.json and reports/product/CYCLE_41188877123.md, do NOT re-derive accepted evaluation 40070818687/40068038783/40105794124 or the D2 profile 40089391202, and do not re-run the v68 family. Posture stays FAIL-CLOSED: human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false, continue_recommended=true.",
   "not_claimed": [
     "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
     "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
@@ -1115,9 +1115,9 @@
     "audit_namespace_written": false,
     "claim_ceiling": "OPERATIONAL-RESUME AND AUDIT-READINESS EVIDENCE ONLY. No live retrieval, legal usefulness, frozen bar, serve verdict, acceptance or human-gate readiness is asserted."
   },
-  "current_cycle_run_id": 41179957652,
+  "current_cycle_run_id": 41188877123,
   "last_repair_round": 0,
-  "last_updated": "2026-10-31T07:24:58Z",
+  "last_updated": "2026-10-31T09:40:00Z",
   "run_history": [
     {
       "run_id": "40241250741",
@@ -1362,6 +1362,45 @@
       "report": "reports/product/CYCLE_41179957652.md",
       "raw_snapshot": "results/product/orchestration/CYCLE_41176811677_team_step_raw.json",
       "diagnosis": "results/product/orchestration/CYCLE_41176811677_resume_diagnosis.json"
+    },
+    {
+      "run_id": 41184474509,
+      "repair_round": 0,
+      "status": "TEAM_JOB_SUCCESS_AUDIT_JOB_QUANTUM_EXPIRED_NO_GATE",
+      "exit_code": 78,
+      "exit_code_meaning": "LEX_WORK_QUANTUM_EXPIRED",
+      "failed_job": "audit",
+      "failed_step": "Independent audit",
+      "failed_step_seconds": 2705.0,
+      "quantum_seconds": 2700,
+      "snapshot_commit": "980f880b60e9417f87343f3287db6265f9970949",
+      "audit_gate": "NONE",
+      "summary": "Fresh v68 product cycle dispatched off the 9f9e3f48 snapshot. Its TEAM job concluded success and the workflow's always() persist step committed the working tree as 980f880b (an artifact-only delta: a regenerated audit-readiness dossier plus query-cache metadata, with no report, state update or code/test change). The AUDIT job then died at 'Independent audit' after 2705.0 s of a 2700 s work quantum; the public annotation carries LEX_WORK_QUANTUM_EXPIRED seconds=2700 and exit code 78, the gate reader and audit-snapshot persist steps were skipped, no /audit ref and no gate file exist, and integrate was skipped. The committed dossier records overall_status FAIL only because the instrument's audit_namespace check treated the ACCEPTED run's committed gate as a producer mint (repaired this cycle). UNADJUDICATED.",
+      "evidence": [
+        "results/product/orchestration/CYCLE_41184474509_orchestration.json",
+        "results/product/orchestration/CYCLE_41184474509_team_step_raw.json"
+      ],
+      "date": "2026-10-31T09:34:00Z"
+    },
+    {
+      "run_id": 41188733592,
+      "repair_round": 0,
+      "status": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_ZERO_DURABLE_DELTA",
+      "exit_code": 1,
+      "exit_code_meaning": null,
+      "failed_job": "team",
+      "failed_step": "Run lane cycle",
+      "failed_step_seconds": 17.0,
+      "quantum_seconds": 2700,
+      "snapshot_commit": "980f880b60e9417f87343f3287db6265f9970949",
+      "audit_gate": "NONE",
+      "summary": "Operational-resume subject for this cycle. The lane-cycle step failed after 17 s with the wrapper's generic passthrough exit code 1 (no named branch in the public annotation); 'Validate active MVP producer state' and 'Enforce lane write scope' were skipped, audit/integrate were skipped, and the always() persist step left both team refs at 980f880b, byte-identical to predecessor 41184474509 - ZERO_DURABLE_DELTA. The logs endpoint answered HTTP 403, so the innermost cause is UNOBSERVED and no model defect is asserted. UNADJUDICATED.",
+      "evidence": [
+        "results/product/orchestration/CYCLE_41188733592_orchestration.json",
+        "results/product/orchestration/CYCLE_41188733592_team_step_raw.json",
+        "results/product/orchestration/CYCLE_41188733592_resume_diagnosis.json"
+      ],
+      "date": "2026-10-31T09:35:00Z"
     }
   ],
   "cycle_40247041354_resume": {
@@ -2547,5 +2586,102 @@
       "reason": "no independent PASS gate on a cycle audit ref and no accept commit on origin/lab/product for this snapshot chain"
     },
     "claim_ceiling": "OPERATIONAL RESUME DIAGNOSIS, ONE ANNOTATION-READER REPAIR AND A FRESH SERVED-SLICE VERIFICATION. The v68 deliverable is consumed as accepted evidence and is not re-measured. No live retrieval, answer quality, legal usefulness, frozen bar, serve verdict, packet admission or human-gate claim is made."
+  },
+  "cycle_41188877123_operational_resume": {
+    "run_id": 41188877123,
+    "repair_round": 0,
+    "direction_version": 68,
+    "mode": "OPERATIONAL RESUME from the persisted producer snapshot of run 41188733592 (team ref 980f880b, byte-identical to predecessor 41184474509)",
+    "resumed_snapshot": {
+      "run_id": 41188733592,
+      "team_ref": "origin/cycle/core/product/41188733592/team",
+      "team_ref_head": "980f880b60e9417f87343f3287db6265f9970949",
+      "predecessor_snapshot_run_id": 41184474509,
+      "predecessor_snapshot_head": "980f880b60e9417f87343f3287db6265f9970949",
+      "failure": "team job failed at 'Run lane cycle' after 17.0 s of a 2700 s work quantum; public annotation carries GENERIC exit code 1 (no wrapper branch name); state validation and write-scope enforcement skipped; audit/integrate skipped; zero durable delta over snapshot 980f880b",
+      "why_unaudited": "the predecessor 41184474509 DID commit snapshot 980f880b, but its audit job died at 'Independent audit' after 2705.0 s of a 2700 s quantum (LEX_WORK_QUANTUM_EXPIRED, exit 78); the gate reader and audit-snapshot persist steps were skipped, so no gate exists"
+    },
+    "diagnosis": "results/product/orchestration/CYCLE_41188733592_resume_diagnosis.json",
+    "raw_snapshot": "results/product/orchestration/CYCLE_41188733592_team_step_raw.json",
+    "orchestration_evidence": [
+      "results/product/orchestration/CYCLE_41188733592_orchestration.json",
+      "results/product/orchestration/CYCLE_41184474509_orchestration.json"
+    ],
+    "mechanism_kind": "observed_step_failure",
+    "exit_code": 1,
+    "exit_code_meaning": null,
+    "diagnosis_scope": "The public run/jobs snapshot proves the step conclusion, the 17.0 s duration, the generic exit code 1 and that validation/write-scope/audit/integrate were skipped; the wrapper's arithmetic rules out LEX_WORK_QUANTUM_EXPIRED (needs 2700 s) and LEX_ZERO_DELTA_REPAIR (needs exit 67). The logs endpoint answered HTTP 403, so the innermost cause is UNOBSERVED and none is asserted. The predecessor 41184474509's audit-side quantum expiry is separately observed from its own annotation.",
+    "instrument_repair": {
+      "path": "product/audit_readiness.py",
+      "defect": "check_audit_namespace(run_id) treated the ACCEPTED run's committed results/audit/product/CYCLE_<accepted>_GATE.json as a producer-minted gate whenever the dossier was regenerated with --run-id equal to the accepted run id, so the 41184474509 snapshot committed a false overall_status=FAIL with failed_checks=['audit_namespace']",
+      "before": {
+        "overall_status": "FAIL",
+        "failed_checks": [
+          "audit_namespace"
+        ]
+      },
+      "after": {
+        "overall_status": "PASS",
+        "failed_checks": [],
+        "expected_on_this_snapshot": true
+      },
+      "rule": "the accepted pointer's gate/report is auditor-owned evidence in the base and is never counted as a producer mint; every non-accepted checked run id and every pending audit path still fails closed",
+      "new_test": "product/tests/test_cycle_41188877123.py::test_audit_namespace_ignores_the_accepted_gate_but_flags_a_resumed_gate"
+    },
+    "lane_deliverable": {
+      "status": "VERIFIED_AT_THIS_HEAD",
+      "component": "served vertical slice: question -> query_result_bundle -> sourced answer -> counter-authority pass -> clickable source-linked map",
+      "artifact": "results/product/server_slice/41188877123/summary.json",
+      "served_slice": "results/product/server_slice/41188877123",
+      "verdict": "PASS",
+      "checks": "10/10",
+      "mode": "fixture",
+      "query": "Kündigung Mietvertrag Mietrecht",
+      "counts": {
+        "n_first_page": 100,
+        "n_final": 100,
+        "n_clusters_final": 8,
+        "n_cited": 2,
+        "counter_authorities": 1,
+        "counter_status_bearing_rows": 3,
+        "rows_with_source_url": 100,
+        "page_contract_assertions": 71
+      },
+      "total_s": 1.688,
+      "claim_ceiling": "fixture-mode served wiring evidence only; no live OpenCaseLaw latency, answer quality, legal usefulness, frozen bar, serve verdict or human-gate claim",
+      "ordered_work_note": "Direction v68 ordered work (1) rejection/incumbent leg and (2) full-family regeneration remain consumed REPORTED-ONLY as accepted evidence (v68_delivery.status=LANDED); this cycle re-measures neither and writes no bundle bytes."
+    },
+    "report": "reports/product/CYCLE_41188877123.md",
+    "cycle_test": "product/tests/test_cycle_41188877123.py",
+    "audit_readiness_profile": "41188733592",
+    "audit_readiness_dossier": "results/product/audit_readiness/CYCLE_41188733592_audit_readiness.json",
+    "verification": {
+      "runtime_pins": {
+        "numpy": "2.5.4",
+        "scipy": "1.18.1",
+        "sklearn": "1.9.1",
+        "pytest": "9.1.1"
+      },
+      "network": "offline/fixture for the slice; GitHub REST read-only for the public run/jobs snapshots"
+    },
+    "accepted_pointer": {
+      "accepted_run_id": "CYCLE_40284658455",
+      "accepted_commit": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+      "both_halves_verified_this_cycle": true,
+      "half_1": "results/audit/product/CYCLE_40284658455_GATE.json (gate PASS, safe_to_integrate=true, required_fixes=[]) read from origin/lab/product",
+      "half_2": "origin/lab/product head 7be4480e is the 'accept product cycle 40284658455' commit"
+    },
+    "bundle_bytes_written": false,
+    "frozen_bar_scored": false,
+    "posture_unchanged": true,
+    "adjudication": {
+      "status": "UNADJUDICATED",
+      "accepted": false,
+      "product_defect": false,
+      "gate_minted": false,
+      "audit_namespace_written": false,
+      "reason": "no independent PASS gate on a cycle audit ref and no accept commit on origin/lab/product for this snapshot chain"
+    },
+    "claim_ceiling": "OPERATIONAL RESUME DIAGNOSIS, ONE AUDIT-INSTRUMENT REPAIR AND A FRESH SERVED-SLICE VERIFICATION. The v68 deliverable is consumed as accepted evidence and is not re-measured. No live retrieval, answer quality, legal usefulness, frozen bar, serve verdict, packet admission or human-gate claim is made."
   }
 }

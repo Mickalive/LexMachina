@@ -56,7 +56,10 @@ DIRECTION_VERSION = 68
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 from product import query_env  # noqa: E402
-from product.state_contract import accepted_pointer_evidence  # noqa: E402
+from product.state_contract import (  # noqa: E402
+    accepted_pointer_evidence,
+    load_state,
+)
 
 ORCH = ROOT / "results" / "product" / "orchestration"
 CONTENT_FAMILY = (ROOT / "results" / "product" / "counter_content_family"
@@ -617,6 +620,49 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    "41188733592": {
+        "resumed_run_id": "41188733592",
+        "predecessor_run_id": "41184474509",
+        "raw": ORCH / "CYCLE_41188733592_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41188733592_resume_diagnosis.json",
+        # Neither 41184474509 nor 41188733592 committed a report.  The last
+        # producer report on the lineage is 41179957652's, and this resume's
+        # report is its own.
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_41179957652.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41188877123.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        # Eleventh observed instance of the generic immediate step failure: the
+        # lane-cycle step ran 17 s of a 2700 s quantum and exited 1 with no
+        # wrapper branch name in the public annotation.  The logs endpoint is
+        # HTTP 403, so the innermost cause stays UNOBSERVED and none is
+        # asserted.  The predecessor 41184474509 DID commit a delta (its
+        # audit-readiness artifact only) but its audit job then died at
+        # LEX_WORK_QUANTUM_EXPIRED 2705 s / exit 78 with the gate reader
+        # skipped, which is why the snapshot is unaudited rather than rejected.
+        "mechanism_kind": "observed_step_failure",
+        "delta_kind": "zero",
+        "failed_job": "team",
+        "quantum_seconds": 2700,
+        "exit_code": 1,
+        "lane_cycle_step_seconds": 17.0,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_41188877123.py",
+        "state_block": "cycle_41188877123_operational_resume",
+        # Ordered-work consumption only: the accepted fixed-path family pins
+        # are read REPORTED-ONLY; nothing is re-measured this cycle.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -945,8 +991,17 @@ def check_resumed_diagnosis() -> dict[str, Any]:
         # reader, so the log-level cause is UNOBSERVED and no cause is asserted.
         # A quantum-expiry or scope wording would misreport the run.
         mechanism = orch.get("mechanism") or {}
+        team = orch.get("team") or {}
         exit_code = p("exit_code")
-        if mechanism.get("status") != "OBSERVED_LANE_CYCLE_STEP_FAILED":
+        # Two honest encodings exist for this failure mode.  The enriched
+        # resume artfacts say OBSERVED_LANE_CYCLE_STEP_FAILED because the STEP
+        # conclusion is observed; the raw audit-step instrument (whose own
+        # frozen contract keeps log-level mechanism UNOBSERVED on HTTP 403)
+        # emits UNOBSERVED.  Both must carry the same canonical facts, so the
+        # check reads the step fact from the team block when the artifact uses
+        # the raw encoding instead of requiring a hand-authored alias.
+        status = mechanism.get("status")
+        if status not in ("OBSERVED_LANE_CYCLE_STEP_FAILED", "UNOBSERVED"):
             problems.append("mechanism_status")
         if mechanism.get("logs_available") is not False:
             problems.append("logs_available")
@@ -954,9 +1009,15 @@ def check_resumed_diagnosis() -> dict[str, Any]:
             problems.append("logs_endpoint_status")
         if mechanism.get("quantum_expired") is not False:
             problems.append("quantum_expired")
-        if mechanism.get("lane_cycle_step_conclusion") != "failure":
+        failed_step = orch.get("failed_step") or team.get("failed_step")
+        step_conclusion = mechanism.get("lane_cycle_step_conclusion")
+        if failed_step == "Run lane cycle" and status == "UNOBSERVED":
+            # The raw team block is the canonical record of the step
+            # conclusion; a failed step is always selected there.
+            step_conclusion = "failure"
+        if step_conclusion != "failure":
             problems.append("lane_cycle_step_conclusion")
-        if orch.get("failed_step") != "Run lane cycle":
+        if failed_step != "Run lane cycle":
             problems.append("failed_step")
         if mechanism.get("exit_code") != exit_code:
             problems.append("exit_code")
@@ -968,9 +1029,13 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                 mechanism.get("exit_code_meaning")
                 != p("exit_code_meaning")):
             problems.append("exit_code_meaning")
-        if (orch.get("audit") or {}).get("gate_file_written") is not False:
+        audit = orch.get("audit") or {}
+        if audit.get("gate_file_written") is not False:
             problems.append("gate_file_written")
-        if (orch.get("audit") or {}).get("skipped") is not True:
+        audit_skipped = audit.get("skipped")
+        if audit_skipped is None:
+            audit_skipped = audit.get("conclusion") == "skipped"
+        if audit_skipped is not True:
             problems.append("audit_not_skipped")
         # Cross-check the raw snapshot the profile names: the lane-cycle step
         # must read failure there and the two downstream producer steps must
@@ -1337,10 +1402,38 @@ def check_mvp_tests() -> dict[str, Any]:
     )
 
 
-def check_audit_namespace(run_id: str) -> dict[str, Any]:
-    gate = ROOT / "results" / "audit" / "product" / f"CYCLE_{run_id}_GATE.json"
-    report = (ROOT / "reports" / "audit" / "product"
-              / f"CYCLE_{run_id}.md")
+def audit_namespace_ids(run_id: str, resumed_run_id: str | None,
+                        accepted_run_id: str | None) -> list[str]:
+    """Run ids whose audit artifacts could only have been minted by a producer.
+
+    The accepted pointer is deliberately excluded: its committed
+    ``results/audit/product/CYCLE_<accepted>_GATE.json`` is auditor-owned
+    evidence in the base snapshot, not something this producer wrote.  Before
+    this helper existed, regenerating the dossier for an *accepted* run
+    (``--run-id 40284658455`` while the profile resumed ``40283048553``)
+    reported a false ``audit_namespace`` FAIL purely because the accepted gate
+    was present in the tree.  That false FAIL is the only reason the
+    41184474509 snapshot committed a FAIL dossier.
+    """
+    accepted = str(accepted_run_id or "").removeprefix("CYCLE_")
+    ids: list[str] = []
+    for rid in (str(run_id or ""), str(resumed_run_id or "")):
+        if rid and rid != accepted and rid not in ids:
+            ids.append(rid)
+    return ids
+
+
+def check_audit_namespace(run_id: str,
+                          resumed_run_id: str | None = None) -> dict[str, Any]:
+    try:
+        accepted_run = str(load_state().get("accepted_run_id") or "")
+    except Exception:  # pragma: no cover - state_contract check reports this
+        accepted_run = ""
+    checked = audit_namespace_ids(run_id, resumed_run_id, accepted_run)
+    gates = {rid: (ROOT / "results" / "audit" / "product"
+                   / f"CYCLE_{rid}_GATE.json") for rid in checked}
+    reports = {rid: (ROOT / "reports" / "audit" / "product"
+                     / f"CYCLE_{rid}.md") for rid in checked}
     pending = subprocess.run(
         ["git", "status", "--porcelain", "-uall"], cwd=str(ROOT),
         capture_output=True, text=True, check=False,
@@ -1348,14 +1441,28 @@ def check_audit_namespace(run_id: str) -> dict[str, Any]:
     producer_audit = [line[3:] for line in pending
                       if line[3:].startswith(("results/audit/product/",
                                               "reports/audit/product/"))]
-    ok = not gate.exists() and not report.exists() and not producer_audit
+    suspects = [str(p.relative_to(ROOT))
+                for p in list(gates.values()) + list(reports.values())
+                if p.exists()]
+    ok = not suspects and not producer_audit
+    primary_gate = (ROOT / "results" / "audit" / "product"
+                    / f"CYCLE_{run_id}_GATE.json")
+    primary_report = (ROOT / "reports" / "audit" / "product"
+                      / f"CYCLE_{run_id}.md")
     return _check(
         "audit_namespace",
         "Producer wrote no auditor-namespace path and minted no gate",
         ok,
-        {"gate_exists": gate.exists(), "report_exists": report.exists(),
+        {"gate_exists": primary_gate.exists(),
+         "report_exists": primary_report.exists(),
+         "accepted_run_id": accepted_run,
+         "checked_run_ids": checked,
+         "suspect_paths": suspects,
          "pending_audit_paths": producer_audit},
-        [str(gate.relative_to(ROOT)), str(report.relative_to(ROOT))],
+        list(suspects) + [
+            str(primary_gate.relative_to(ROOT)),
+            str(primary_report.relative_to(ROOT)),
+        ],
     )
 
 
@@ -1402,7 +1509,7 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
         checks.append(_skip("mvp_core_tests",
                             "Bounded MVP core pytest set is green",
                             "skipped by --skip-tests"))
-    checks.append(check_audit_namespace(run_id))
+    checks.append(check_audit_namespace(run_id, resumed_id))
 
     failed = [c["id"] for c in checks if c["status"] == "FAIL"]
     skipped = [c["id"] for c in checks if c["status"] == "SKIP"]
