@@ -3,24 +3,24 @@
     {
       "check": "evidence_refs_n_matches",
       "expected": {
-        "evidence_refs_n": 374
+        "evidence_refs_n": 420
       },
       "file": "state/evaluation.json",
       "observed": {
-        "evidence_refs_n": 374,
-        "len_evidence_refs": 374
+        "evidence_refs_n": 420,
+        "len_evidence_refs": 420
       },
       "passed": true
     },
     {
       "check": "evidence_refs_n_matches",
       "expected": {
-        "evidence_refs_n": 281
+        "evidence_refs_n": 327
       },
       "file": "evaluation/state/evaluation.json",
       "observed": {
-        "evidence_refs_n": 281,
-        "len_evidence_refs": 281
+        "evidence_refs_n": 327,
+        "len_evidence_refs": 327
       },
       "passed": true
     },
@@ -29,20 +29,24 @@
       "expected": "every ref is an existing file in the committed tree (directories do not count, matching the lane's test_evidence_refs_exist contract)",
       "file": "state/evaluation.json",
       "observed": {
-        "n_refs": 374,
-        "non_file_refs": []
+        "n_refs": 420,
+        "non_file_refs": [
+          "results/evaluation/orchestration/41192962507_self_check_pytest_shim.json"
+        ]
       },
-      "passed": true
+      "passed": false
     },
     {
       "check": "evidence_refs_resolve",
       "expected": "every ref is an existing file in the committed tree (directories do not count, matching the lane's test_evidence_refs_exist contract)",
       "file": "evaluation/state/evaluation.json",
       "observed": {
-        "n_refs": 281,
-        "non_file_refs": []
+        "n_refs": 327,
+        "non_file_refs": [
+          "results/evaluation/orchestration/41192962507_self_check_pytest_shim.json"
+        ]
       },
-      "passed": true
+      "passed": false
     },
     {
       "check": "evidence_refs_canonical_indent",
@@ -125,6 +129,41 @@
             "block": "persisted_artifact_disposition_41184425270",
             "claim_bearing_run": "41184425270",
             "in_failing_scope": true
+          },
+          {
+            "audit_disclosure_present": true,
+            "audit_gate_in_tree": false,
+            "block": "operational_resume_41192878248",
+            "claim_bearing_run": "41192878248",
+            "in_failing_scope": true
+          },
+          {
+            "audit_disclosure_present": true,
+            "audit_gate_in_tree": false,
+            "block": "orchestration_failure_diagnosis_41192878248",
+            "claim_bearing_run": "41192878248",
+            "in_failing_scope": true
+          },
+          {
+            "audit_disclosure_present": true,
+            "audit_gate_in_tree": false,
+            "block": "orchestration_failure_diagnosis_41187766812_ref",
+            "claim_bearing_run": "41187766812",
+            "in_failing_scope": true
+          },
+          {
+            "audit_disclosure_present": true,
+            "audit_gate_in_tree": false,
+            "block": "inherited_claims_verification_41187766812",
+            "claim_bearing_run": "41187766812",
+            "in_failing_scope": true
+          },
+          {
+            "audit_disclosure_present": true,
+            "audit_gate_in_tree": false,
+            "block": "operational_resume_41192962507",
+            "claim_bearing_run": "41192962507",
+            "in_failing_scope": true
           }
         ]
       },
@@ -165,6 +204,13 @@
             "block": "fast_mvp_retrieval_recall_benchmark_40261335674",
             "claim_bearing_run": "40261335674",
             "in_failing_scope": true
+          },
+          {
+            "audit_disclosure_present": true,
+            "audit_gate_in_tree": false,
+            "block": "operational_resume_41192962507",
+            "claim_bearing_run": "41192962507",
+            "in_failing_scope": true
           }
         ]
       },
@@ -203,15 +249,18 @@
     }
   ],
   "claim_ceiling": "This gate establishes exactly one thing: whether the lane's two state files and their claim-bearing blocks are internally consistent and free of the six defect classes named by audit CYCLE_39751745107. It does NOT re-score, move or re-derive any frozen absolute LABEL_SOUND / GEOMETRY_SOUND bar (REPORTED-ONLY, unmet on the v3 bytes); it does NOT lift any DO-NOT-SERVE order; it does NOT certify packet admission; it does NOT audit any measurement's numbers; it does NOT claim the map helps a jurist; it runs no universal-174k benchmark.",
-  "exit_code": 0,
-  "failed_checks": [],
-  "generated_at_utc": "2026-10-31T09:41:57Z",
+  "exit_code": 1,
+  "failed_checks": [
+    "evidence_refs_resolve@state/evaluation.json",
+    "evidence_refs_resolve@evaluation/state/evaluation.json"
+  ],
+  "generated_at_utc": "2026-10-31T11:59:36Z",
   "n_checks": 11,
-  "n_failed": 0,
-  "n_passed": 11,
-  "run_id": "41187766812",
+  "n_failed": 2,
+  "n_passed": 9,
+  "run_id": "41192962507",
   "schema": "lex-evaluation-state-integrity-gate/1",
   "spec_path": "evaluation/STATE_INTEGRITY_GATE_SPEC_V1.json",
   "spec_sha256": "c82387766e4ab08c007fb4139f05639591b9b4bc036e2ecc47c7d599884eb668",
-  "verdict": "ALL_CHECKS_PASS"
+  "verdict": "AT_LEAST_ONE_CHECK_FAILED"
 }
