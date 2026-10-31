@@ -154,7 +154,8 @@ def _check(check_id: str, ok: bool, detail: Any) -> dict[str, Any]:
 
 def build(repo: Path, run_id: str,
           direction_version: int = DEFAULT_DIRECTION_VERSION,
-          base_ref: str = DEFAULT_BASE) -> dict[str, Any]:
+          base_ref: str = DEFAULT_BASE,
+          require_dossier: bool = True) -> dict[str, Any]:
     """Build the chain-scope record.  Pure local reads; no network, no gate."""
     started = time.monotonic()
     repo = repo.resolve()
@@ -226,9 +227,11 @@ def build(repo: Path, run_id: str,
         ),
         _check(
             "current_dossier",
-            (repo / "results" / "product" / "audit_readiness"
-             / f"CYCLE_{run_id}_audit_readiness.json").is_file(),
-            {"path": f"results/product/audit_readiness/CYCLE_{run_id}_audit_readiness.json"},
+            (not require_dossier)
+            or (repo / "results" / "product" / "audit_readiness"
+                / f"CYCLE_{run_id}_audit_readiness.json").is_file(),
+            {"path": f"results/product/audit_readiness/CYCLE_{run_id}_audit_readiness.json",
+             "required": require_dossier},
         ),
         _check(
             "current_report",

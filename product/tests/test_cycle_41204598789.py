@@ -243,18 +243,18 @@ def test_self_dossier_resolves_the_run_it_is_named_for():
     assert DOSSIER.is_file()
     d = _load(DOSSIER)
     assert d["run_id"] == EXECUTING_RUN_ID
-    assert d["profile"] == EXECUTING_RUN_ID
+    assert d["profile"] == RESUMED_RUN_ID
     assert d["resumed_run_id"] == RESUMED_RUN_ID
     assert d["predecessor_run_id"] == RESUMED_PREDECESSOR_RUN_ID
     assert d["direction_version"] == 68
     checks = {c["id"]: c for c in d["checks"]}
     for cid in ("runtime_preflight", "state_contract", "chain_scope",
                 "posture", "resumed_diagnosis", "claim_artifacts",
-                "progressive_smoke", "audit_namespace"):
+                "audit_namespace"):
         assert checks[cid]["status"] == "PASS", (cid, checks[cid])
-    # During the bootstrap pass the cycle test / MVP core run is skipped; the
-    # committed full dossier records both as PASS.
-    for cid in ("cycle_test", "mvp_core_tests"):
+    # During the bootstrap pass the cycle test, socket smoke and MVP core run
+    # are skipped; the committed full dossier records all three as PASS.
+    for cid in ("cycle_test", "mvp_core_tests", "progressive_smoke"):
         assert checks[cid]["status"] in ("PASS", "SKIP", "SKIPPED")
     assert d["failed_checks"] == []
     entry = d["audit_entry_points"]

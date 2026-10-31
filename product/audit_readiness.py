@@ -1007,7 +1007,8 @@ def check_chain_scope(run_id: str) -> dict[str, Any]:
     """
     try:
         from product import audit_chain
-        rec = audit_chain.build(ROOT, str(run_id), DIRECTION_VERSION)
+        rec = audit_chain.build(ROOT, str(run_id), DIRECTION_VERSION,
+                                require_dossier=False)
     except Exception as exc:  # pragma: no cover - defensive
         return _check("chain_scope",
                       "Snapshot is a bounded current-run delta over the accepted base",
@@ -1030,8 +1031,9 @@ def check_chain_scope(run_id: str) -> dict[str, Any]:
             f"python3 product/audit_chain.py --verify --run-id {run_id}"),
         "note": (
             "Exact commit SHAs/counts are intentionally omitted because this "
-            "dossier is committed after generation; run the fast verifier on "
-            "the final HEAD for the authoritative inventory."),
+            "dossier is committed after generation. Dossier presence is also "
+            "excluded here so bootstrap can publish this file; the full "
+            "verifier enforces it on the final HEAD."),
     }
     return _check(
         "chain_scope",
