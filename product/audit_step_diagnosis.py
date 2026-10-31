@@ -67,6 +67,15 @@ def _job_annotations(snapshot: dict, job: dict) -> list[dict]:
         for key in (str(job.get("id")), job.get("id")):
             if key in ann and isinstance(ann[key], list):
                 return ann[key]
+    if isinstance(ann, list):
+        # The committed orchestrator snapshot stores a flat list of public
+        # check-run annotations, each carrying its own `job` name.  Filter on
+        # that label instead of discarding the evidence wholesale.
+        labelled = [a for a in ann
+                    if isinstance(a, dict)
+                    and a.get("job") == job.get("name")]
+        if labelled:
+            return labelled
     job_ann = job.get("annotations")
     if isinstance(job_ann, list):
         return job_ann

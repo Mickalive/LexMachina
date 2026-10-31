@@ -56,7 +56,10 @@ DIRECTION_VERSION = 68
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 from product import query_env  # noqa: E402
-from product.state_contract import accepted_pointer_evidence  # noqa: E402
+from product.state_contract import (  # noqa: E402
+    accepted_pointer_evidence,
+    load_state,
+)
 
 ORCH = ROOT / "results" / "product" / "orchestration"
 CONTENT_FAMILY = (ROOT / "results" / "product" / "counter_content_family"
@@ -369,6 +372,459 @@ PROFILES: dict[str, dict[str, Any]] = {
                              / "self_minted_gate_40278460732_producer_"
                                "40283048553.QUARANTINED.json",
     },
+    "41152471808": {
+        "resumed_run_id": "41149776023",
+        "predecessor_run_id": "40284658455",
+        "raw": ORCH / "CYCLE_41149776023_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41149776023_resume_diagnosis.json",
+        # The failed run committed no report.  The report of record inherited by
+        # this resume is the accepted producer report on the lineage; this
+        # resume's own report is CYCLE_41152471808.md.
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40284658455.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41152471808.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        # Fifth real failure mode: the LANE-CYCLE STEP ITSELF failed (not the
+        # audit job, not write-scope enforcement, not a model-gateway
+        # rejection).  The jobs snapshot is public, the step conclusions are
+        # observable, the logs endpoint answers HTTP 403, no work quantum was
+        # reached, and the team ref is byte-identical to the accepted base.
+        "mechanism_kind": "observed_step_failure",
+        "delta_kind": "zero",
+        "failed_job": "team",
+        "quantum_seconds": 2700,
+        "exit_code": None,
+        "lane_cycle_step_seconds": 1670.0,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_41152471808.py",
+        "state_block": "cycle_41152471808_operational_resume",
+        # No new counter-content family was measured this cycle: consume the
+        # accepted fixed-path family pins unchanged (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "41159331087": {
+        "resumed_run_id": "41159162128",
+        "predecessor_run_id": "41152471808",
+        "raw": ORCH / "CYCLE_41159162128_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41159162128_resume_diagnosis.json",
+        # The resumed run 41159162128 committed no report (it died 17 s in), and
+        # the predecessor 41152471808's own report is the record of the audit-
+        # quantum death that left the snapshot unadjudicated.  Both are inherited;
+        # this resume's report is CYCLE_41159331087.md.
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_41152471808.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41159331087.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        # Sixth real failure mode, same shape as the fifth (41149776023) but with
+        # an OBSERVED exit code: the LANE-CYCLE STEP failed 17 s in with exit
+        # code 1, the logs endpoint is HTTP 403 for the reader, no work quantum
+        # was reached, and the team ref is byte-identical to the accepted
+        # snapshot.  Exit code 1 is not one of the wrapper's own named codes, so
+        # it is reported as a generic passthrough with the innermost cause
+        # UNOBSERVED; no model defect is asserted.
+        "mechanism_kind": "observed_step_failure",
+        "delta_kind": "zero",
+        "failed_job": "team",
+        "quantum_seconds": 2700,
+        "exit_code": 1,
+        "lane_cycle_step_seconds": 17.0,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_41159331087.py",
+        "state_block": "cycle_41159331087_operational_resume",
+        # No new counter-content family was measured this cycle: consume the
+        # accepted fixed-path family pins unchanged (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "41162767461": {
+        "resumed_run_id": "41162767461",
+        "predecessor_run_id": "41159331087",
+        "raw": ORCH / "CYCLE_41162767461_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41162767461_resume_diagnosis.json",
+        # The predecessor snapshot 41159331087 never wrote its own report: its
+        # lane-cycle step died of quantum expiry at 2704 s and the workflow's
+        # if: always() snapshot step committed the working tree.  This resume
+        # restores that report of record (under its own run id, with an
+        # authoring-correction header) and writes its own report.
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_41159331087.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41163295014.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        # Seventh observed instance, same step-failure shape as 41149776023
+        # and 41159162128 but with the wrapper's OWN zero-delta branch: the
+        # lane-cycle step failed after 301 s and the public check-run
+        # annotation carries exit code 67 AND the literal branch name
+        # LEX_ZERO_DELTA_REPAIR.  The agent committed nothing (team ref is
+        # byte-identical to the predecessor snapshot), the logs endpoint is
+        # HTTP 403, and no innermost model cause is asserted.
+        "mechanism_kind": "observed_step_failure",
+        "delta_kind": "zero",
+        "failed_job": "team",
+        "quantum_seconds": 2700,
+        "exit_code": 67,
+        "exit_code_meaning": "LEX_ZERO_DELTA_REPAIR",
+        "lane_cycle_step_seconds": 301.0,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_41163295014.py",
+        "state_block": "cycle_41163295014_operational_resume",
+        # No new counter-content family was measured this cycle: consume the
+        # accepted fixed-path family pins unchanged (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "41168007766": {
+        "resumed_run_id": "41168007766",
+        "predecessor_run_id": "41163295014",
+        "raw": ORCH / "CYCLE_41168007766_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41168007766_resume_diagnosis.json",
+        # The predecessor snapshot 41163295014 wrote its own report of record
+        # (reports/product/CYCLE_41163295014.md), so there is NO inherited
+        # report to hash; explicitly None prevents the shared default from
+        # pulling an unrelated legacy report into this cycle's claim set.
+        "inherited_report": None,
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41168174298.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        # Eighth observed instance of the same step-failure shape. Unlike the
+        # 41162767461 profile, the public annotation carries the GENERIC exit
+        # code 1 (no wrapper branch name): the step ran 16 s, the logs endpoint
+        # is HTTP 403, and no innermost cause is asserted. exit_code_meaning is
+        # deliberately omitted so the dossier cannot imply a named branch.
+        "mechanism_kind": "observed_step_failure",
+        "delta_kind": "zero",
+        "failed_job": "team",
+        "quantum_seconds": 2700,
+        "exit_code": 1,
+        "lane_cycle_step_seconds": 16.0,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_41168174298.py",
+        "state_block": "cycle_41168174298_operational_resume",
+        # No new counter-content family was measured this cycle: consume the
+        # accepted fixed-path family pins unchanged (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "41172772289": {
+        "resumed_run_id": "41172772289",
+        "predecessor_run_id": "41168174298",
+        "raw": ORCH / "CYCLE_41172772289_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41172772289_resume_diagnosis.json",
+        # The predecessor 41168174298 wrote its own report of record, so this
+        # profile inherits no report; None keeps the shared default from
+        # pulling an unrelated legacy report into this run's claim set.
+        "inherited_report": None,
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41172922015.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        # Ninth observed instance of the same step-failure shape, and the same
+        # generic exit 1 as 41168007766 / 41159162128: 16 s, no wrapper branch
+        # name in the public annotation, logs endpoint HTTP 403, so the
+        # innermost cause is UNOBSERVED. exit_code_meaning is deliberately
+        # omitted so the dossier cannot imply a named branch.
+        "mechanism_kind": "observed_step_failure",
+        "delta_kind": "zero",
+        "failed_job": "team",
+        "quantum_seconds": 2700,
+        "exit_code": 1,
+        "lane_cycle_step_seconds": 16.0,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_41172922015.py",
+        "state_block": "cycle_41172922015_operational_resume",
+        # Ordered-work consumption only: the accepted fixed-path family pins
+        # are read REPORTED-ONLY; nothing is re-measured this cycle.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "41176811677": {
+        "resumed_run_id": "41176811677",
+        "predecessor_run_id": "41172922015",
+        "raw": ORCH / "CYCLE_41176811677_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41176811677_resume_diagnosis.json",
+        # The resumed run 41176811677 committed no report (its lane-cycle step
+        # died at the work quantum).  The last producer report on the resume
+        # lineage is the predecessor's, and this resume's report is its own.
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_41172922015.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41179957652.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        # Tenth observed instance, and the FIRST producer-side work-quantum
+        # expiry on this lineage: the lane-cycle step ran 2705 s of a 2700 s
+        # quantum and the public check-run annotation carries the literal
+        # branch LEX_WORK_QUANTUM_EXPIRED seconds=2700 with exit code 78.
+        # This is mechanism_kind="observed" (annotation-observed quantum
+        # expiry), not "observed_step_failure": the 403 logs endpoint does not
+        # matter because the quantum is stated by the annotation itself.
+        "mechanism_kind": "observed",
+        "delta_kind": "zero",
+        "failed_job": "team",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_41179957652.py",
+        "state_block": "cycle_41179957652_operational_resume",
+        # Ordered-work consumption only: the accepted fixed-path family pins
+        # are read REPORTED-ONLY; nothing is re-measured this cycle.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "41188733592": {
+        "resumed_run_id": "41188733592",
+        "predecessor_run_id": "41184474509",
+        "raw": ORCH / "CYCLE_41188733592_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41188733592_resume_diagnosis.json",
+        # Neither 41184474509 nor 41188733592 committed a report.  The last
+        # producer report on the lineage is 41179957652's, and this resume's
+        # report is its own.
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_41179957652.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41188877123.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        # Eleventh observed instance of the generic immediate step failure: the
+        # lane-cycle step ran 17 s of a 2700 s quantum and exited 1 with no
+        # wrapper branch name in the public annotation.  The logs endpoint is
+        # HTTP 403, so the innermost cause stays UNOBSERVED and none is
+        # asserted.  The predecessor 41184474509 DID commit a delta (its
+        # audit-readiness artifact only) but its audit job then died at
+        # LEX_WORK_QUANTUM_EXPIRED 2705 s / exit 78 with the gate reader
+        # skipped, which is why the snapshot is unaudited rather than rejected.
+        "mechanism_kind": "observed_step_failure",
+        "delta_kind": "zero",
+        "failed_job": "team",
+        "quantum_seconds": 2700,
+        "exit_code": 1,
+        "lane_cycle_step_seconds": 17.0,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_41188877123.py",
+        "state_block": "cycle_41188877123_operational_resume",
+        # Ordered-work consumption only: the accepted fixed-path family pins
+        # are read REPORTED-ONLY; nothing is re-measured this cycle.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "41193519633": {
+        "resumed_run_id": "41193519633",
+        "predecessor_run_id": "41193345044",
+        "raw": ORCH / "CYCLE_41193519633_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41193519633_resume_diagnosis.json",
+        # Neither 41193345044 nor 41193519633 committed anything (both team
+        # refs are 98ca6621), so the last producer report on the lineage is
+        # 41188877123's, and this resume's report is its own.
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_41188877123.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41193662357.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        # Twelfth and thirteenth observed instances of the same immediate
+        # lane-cycle step failure: both runs' lane-cycle step ran 16.0 s of a
+        # 2700 s quantum and exited 1 with no wrapper branch name in the
+        # public annotation, then state validation, write-scope enforcement,
+        # audit and integrate were all skipped.  The logs endpoint answered
+        # HTTP 403 "Must have admin rights to Repository." to this reader
+        # (re-probed this cycle), so the log-level cause stays UNOBSERVED and
+        # no cause is asserted.  The only OBSERVED mechanism with this exact
+        # signature in this lane remains run 40263308953's model-gateway
+        # request rejection (CYCLE_40263666190_lane_cycle_log_evidence.json);
+        # it is a cited precedent, NOT an attribution for these two runs.
+        "mechanism_kind": "observed_step_failure",
+        "delta_kind": "zero",
+        "failed_job": "team",
+        "quantum_seconds": 2700,
+        "exit_code": 1,
+        "lane_cycle_step_seconds": 16.0,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_41193662357.py",
+        "state_block": "cycle_41193662357_operational_resume",
+        # Ordered-work consumption only: the accepted fixed-path family pins
+        # are read REPORTED-ONLY; nothing is re-measured this cycle.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "41193662357": {
+        # First profile in this chain whose PRODUCER job fully succeeded and
+        # whose AUDIT job then expired: the team job and both producer gates
+        # passed, 15 files were committed over 98ca6621, and the independent
+        # audit ran 2704.0 s of the 2700 s quantum before the wrapper returned
+        # exit 78 (public annotation "LEX_WORK_QUANTUM_EXPIRED seconds=2700").
+        # The durable delta is COMMITTED, not zero, so the run is a resumable
+        # snapshot rather than a dead producer step.
+        "resumed_run_id": "41193662357",
+        "predecessor_run_id": "41193519633",
+        "raw": ORCH / "CYCLE_41193662357_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41193662357_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_41188877123.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41193662357.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "failed_job": "audit",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 15,
+        "changed_paths_include": ("product/audit_readiness.py",
+                                  "reports/product/CYCLE_41193662357.md"),
+        "cycle_test": "product/tests/test_cycle_41193662357.py",
+        "state_block": "cycle_41193662357_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "41199556067": {
+        # Self-dossier for the run that resumes 41193662357.  Every previous
+        # audit in this chain looked for a dossier about the run whose snapshot
+        # it was auditing, found only a dossier about the run that snapshot had
+        # resumed, and burned the 2700 s quantum re-deriving the work.  This
+        # profile makes `--run-id 41199556067` publish the audited run's own
+        # report, cycle test and bounded plan while still cross-checking the
+        # resumed run's diagnosis.
+        "resumed_run_id": "41193662357",
+        "predecessor_run_id": "41193519633",
+        "raw": ORCH / "CYCLE_41193662357_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41193662357_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_41193662357.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41199556067.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "failed_job": "audit",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 15,
+        "changed_paths_include": ("product/audit_readiness.py",
+                                  "reports/product/CYCLE_41193662357.md"),
+        "cycle_test": "product/tests/test_cycle_41199556067.py",
+        "state_block": "cycle_41199556067_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "41204598789": {
+        # Self-dossier for the run that resumes 41199556067.  That resume's
+        # audit AGAIN expired the 2700 s quantum (2704.0 s, exit 78) because
+        # the persisted team ref had accumulated 10 unaccepted commits and
+        # 103 changed files over the accepted base (see
+        # results/product/orchestration/CYCLE_41199556067_*).  This cycle
+        # re-bases the snapshot on the accepted base and carries only the
+        # current delta, so the audit scope is one run's work.  Chain scope is
+        # checked dynamically by product/audit_chain.py, not asserted here.
+        "resumed_run_id": "41199556067",
+        "predecessor_run_id": "41193662357",
+        "raw": ORCH / "CYCLE_41199556067_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41199556067_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_41199556067.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41204598789.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "failed_job": "audit",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 13,
+        "changed_paths_include": ("product/audit_readiness.py",
+                                  "reports/product/CYCLE_41199556067.md"),
+        "cycle_test": "product/tests/test_cycle_41204598789.py",
+        "state_block": "cycle_41204598789_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    # No profile for 41193345044 on purpose: it is the predecessor in this
+    # chain, not a dossier subject.  select_profile() fails closed on unknown
+    # ids, and aliasing it here would publish 41193519633's claims under
+    # 41193345044's id - the exact defect the fail-closed rule exists to stop.
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -540,6 +996,52 @@ def check_state_contract() -> dict[str, Any]:
                   " ".join(cmd), seconds)
 
 
+def check_chain_scope(run_id: str) -> dict[str, Any]:
+    """Dynamic audit-scope check: the snapshot must be one run's clean delta.
+
+    The record deliberately omits commit SHAs and exact commit counts: this
+    dossier is generated before its own artifact commit, and a later artifact
+    commit must not make the published claim false.  The auditor re-runs
+    ``product/audit_chain.py --verify`` for the authoritative, HEAD-specific
+    inventory.
+    """
+    try:
+        from product import audit_chain
+        rec = audit_chain.build(ROOT, str(run_id), DIRECTION_VERSION)
+    except Exception as exc:  # pragma: no cover - defensive
+        return _check("chain_scope",
+                      "Snapshot is a bounded current-run delta over the accepted base",
+                      False, {"error": f"{type(exc).__name__}: {exc}"},
+                      ["product/audit_chain.py"])
+    snap = rec.get("snapshot") or {}
+    carried = snap.get("carried_unadjudicated_commits")
+    detail = {
+        "scope_classification": rec.get("scope_classification"),
+        "all_commits_attributed_to_current_cycle": carried == 0,
+        "carried_unadjudicated_commits": carried,
+        "changed_paths_all_in_product_scope": (
+            rec.get("overall_status") == "PASS"),
+        "audit_namespace_paths": [
+            p for p in (snap.get("changed_paths") or [])
+            if str(p).startswith(("results/audit/product/",
+                                  "reports/audit/product/"))],
+        "failed_checks": rec.get("failed_checks") or [],
+        "fast_verifier": (
+            f"python3 product/audit_chain.py --verify --run-id {run_id}"),
+        "note": (
+            "Exact commit SHAs/counts are intentionally omitted because this "
+            "dossier is committed after generation; run the fast verifier on "
+            "the final HEAD for the authoritative inventory."),
+    }
+    return _check(
+        "chain_scope",
+        "Snapshot is a bounded current-run delta over the accepted base, not "
+        "an accumulated unadjudicated chain",
+        rec.get("overall_status") == "PASS", detail,
+        ["product/audit_chain.py", "state/product.json"],
+        detail["fast_verifier"], rec.get("measured_seconds"))
+
+
 def check_posture() -> dict[str, Any]:
     st = _load(STATE)
     expected = {
@@ -689,6 +1191,77 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                 problems.append("raw_scope_step_not_failure")
         else:
             problems.append("raw_snapshot_missing")
+    elif mechanism_kind == "observed_step_failure":
+        # Fifth real failure mode, observed on run 41149776023: the LANE-CYCLE
+        # STEP itself failed (not the audit job, not write-scope enforcement,
+        # not a model-gateway rejection).  The public jobs snapshot shows the
+        # step conclusion and timestamps; the logs endpoint is HTTP 403 for the
+        # reader, so the log-level cause is UNOBSERVED and no cause is asserted.
+        # A quantum-expiry or scope wording would misreport the run.
+        mechanism = orch.get("mechanism") or {}
+        team = orch.get("team") or {}
+        exit_code = p("exit_code")
+        # Two honest encodings exist for this failure mode.  The enriched
+        # resume artfacts say OBSERVED_LANE_CYCLE_STEP_FAILED because the STEP
+        # conclusion is observed; the raw audit-step instrument (whose own
+        # frozen contract keeps log-level mechanism UNOBSERVED on HTTP 403)
+        # emits UNOBSERVED.  Both must carry the same canonical facts, so the
+        # check reads the step fact from the team block when the artifact uses
+        # the raw encoding instead of requiring a hand-authored alias.
+        status = mechanism.get("status")
+        if status not in ("OBSERVED_LANE_CYCLE_STEP_FAILED", "UNOBSERVED"):
+            problems.append("mechanism_status")
+        if mechanism.get("logs_available") is not False:
+            problems.append("logs_available")
+        if mechanism.get("logs_endpoint_status") != 403:
+            problems.append("logs_endpoint_status")
+        if mechanism.get("quantum_expired") is not False:
+            problems.append("quantum_expired")
+        failed_step = orch.get("failed_step") or team.get("failed_step")
+        step_conclusion = mechanism.get("lane_cycle_step_conclusion")
+        if failed_step == "Run lane cycle" and status == "UNOBSERVED":
+            # The raw team block is the canonical record of the step
+            # conclusion; a failed step is always selected there.
+            step_conclusion = "failure"
+        if step_conclusion != "failure":
+            problems.append("lane_cycle_step_conclusion")
+        if failed_step != "Run lane cycle":
+            problems.append("failed_step")
+        if mechanism.get("exit_code") != exit_code:
+            problems.append("exit_code")
+        # When the public annotation also NAMES the wrapper branch (67 =
+        # LEX_ZERO_DELTA_REPAIR), the profile may pin that name.  A dossier
+        # that recorded only the number would leave the most important fact -
+        # the agent committed nothing - to prose.
+        if p("exit_code_meaning") is not None and (
+                mechanism.get("exit_code_meaning")
+                != p("exit_code_meaning")):
+            problems.append("exit_code_meaning")
+        audit = orch.get("audit") or {}
+        if audit.get("gate_file_written") is not False:
+            problems.append("gate_file_written")
+        audit_skipped = audit.get("skipped")
+        if audit_skipped is None:
+            audit_skipped = audit.get("conclusion") == "skipped"
+        if audit_skipped is not True:
+            problems.append("audit_not_skipped")
+        # Cross-check the raw snapshot the profile names: the lane-cycle step
+        # must read failure there and the two downstream producer steps must
+        # read skipped.
+        if raw is not None and raw.is_file():
+            raw_doc = _load(raw)
+            team = next((j for j in raw_doc.get("jobs") or []
+                         if j.get("name") == "team"), None)
+            steps = {s.get("name"): s.get("conclusion")
+                     for s in (team or {}).get("steps") or []}
+            if steps.get("Run lane cycle") != "failure":
+                problems.append("raw_lane_cycle_not_failure")
+            if steps.get("Validate active MVP producer state") != "skipped":
+                problems.append("raw_state_validation_not_skipped")
+            if steps.get("Enforce lane write scope") != "skipped":
+                problems.append("raw_scope_step_not_skipped")
+        else:
+            problems.append("raw_snapshot_missing")
     else:
         # Raw-free resume: the public run/jobs snapshot is unavailable. The
         # only honest record is that the mechanism is unobserved; asserting a
@@ -743,6 +1316,25 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                    "on a producer-minted auditor-namespace gate file (no "
                    "work quantum reached, audit skipped), durable delta "
                    "present, run unadjudicated")
+    elif mechanism_kind == "observed_step_failure":
+        # Derive the numbers from the profile instead of hard-coding the
+        # 41149776023 values: a summary that always says "1670 s" would
+        # misreport every later step failure, and this run's step failed at
+        # 17 s with an observed exit code of 1.
+        step_s = p("lane_cycle_step_seconds")
+        exit_code = p("exit_code")
+        step_clause = (f"after {step_s} s of a {p('quantum_seconds', 2700)} s quantum"
+                       if step_s is not None else "before its work quantum expired")
+        exit_clause = (f", exit code {exit_code} observed in the public check-run "
+                       "annotation" if exit_code is not None else "")
+        if p("exit_code_meaning") is not None:
+            exit_clause += f" ({p('exit_code_meaning')})"
+        summary = (f"Resumed run {resumed_id}: lane-cycle agent step FAILED "
+                   f"{step_clause}{exit_clause}, producer-state validation and "
+                   "write-scope enforcement were skipped, the logs endpoint "
+                   "answered HTTP 403 (log-level cause unobserved), the team ref "
+                   "carries zero durable delta over the accepted base, and the "
+                   "run is unadjudicated")
     else:
         summary = (f"Resumed run {resumed_id}: raw run/jobs snapshot "
                    "unavailable (mechanism unobserved), team ref carries zero "
@@ -1018,10 +1610,38 @@ def check_mvp_tests() -> dict[str, Any]:
     )
 
 
-def check_audit_namespace(run_id: str) -> dict[str, Any]:
-    gate = ROOT / "results" / "audit" / "product" / f"CYCLE_{run_id}_GATE.json"
-    report = (ROOT / "reports" / "audit" / "product"
-              / f"CYCLE_{run_id}.md")
+def audit_namespace_ids(run_id: str, resumed_run_id: str | None,
+                        accepted_run_id: str | None) -> list[str]:
+    """Run ids whose audit artifacts could only have been minted by a producer.
+
+    The accepted pointer is deliberately excluded: its committed
+    ``results/audit/product/CYCLE_<accepted>_GATE.json`` is auditor-owned
+    evidence in the base snapshot, not something this producer wrote.  Before
+    this helper existed, regenerating the dossier for an *accepted* run
+    (``--run-id 40284658455`` while the profile resumed ``40283048553``)
+    reported a false ``audit_namespace`` FAIL purely because the accepted gate
+    was present in the tree.  That false FAIL is the only reason the
+    41184474509 snapshot committed a FAIL dossier.
+    """
+    accepted = str(accepted_run_id or "").removeprefix("CYCLE_")
+    ids: list[str] = []
+    for rid in (str(run_id or ""), str(resumed_run_id or "")):
+        if rid and rid != accepted and rid not in ids:
+            ids.append(rid)
+    return ids
+
+
+def check_audit_namespace(run_id: str,
+                          resumed_run_id: str | None = None) -> dict[str, Any]:
+    try:
+        accepted_run = str(load_state().get("accepted_run_id") or "")
+    except Exception:  # pragma: no cover - state_contract check reports this
+        accepted_run = ""
+    checked = audit_namespace_ids(run_id, resumed_run_id, accepted_run)
+    gates = {rid: (ROOT / "results" / "audit" / "product"
+                   / f"CYCLE_{rid}_GATE.json") for rid in checked}
+    reports = {rid: (ROOT / "reports" / "audit" / "product"
+                     / f"CYCLE_{rid}.md") for rid in checked}
     pending = subprocess.run(
         ["git", "status", "--porcelain", "-uall"], cwd=str(ROOT),
         capture_output=True, text=True, check=False,
@@ -1029,15 +1649,101 @@ def check_audit_namespace(run_id: str) -> dict[str, Any]:
     producer_audit = [line[3:] for line in pending
                       if line[3:].startswith(("results/audit/product/",
                                               "reports/audit/product/"))]
-    ok = not gate.exists() and not report.exists() and not producer_audit
+    suspects = [str(p.relative_to(ROOT))
+                for p in list(gates.values()) + list(reports.values())
+                if p.exists()]
+    ok = not suspects and not producer_audit
+    primary_gate = (ROOT / "results" / "audit" / "product"
+                    / f"CYCLE_{run_id}_GATE.json")
+    primary_report = (ROOT / "reports" / "audit" / "product"
+                      / f"CYCLE_{run_id}.md")
     return _check(
         "audit_namespace",
         "Producer wrote no auditor-namespace path and minted no gate",
         ok,
-        {"gate_exists": gate.exists(), "report_exists": report.exists(),
+        {"gate_exists": primary_gate.exists(),
+         "report_exists": primary_report.exists(),
+         "accepted_run_id": accepted_run,
+         "checked_run_ids": checked,
+         "suspect_paths": suspects,
          "pending_audit_paths": producer_audit},
-        [str(gate.relative_to(ROOT)), str(report.relative_to(ROOT))],
+        list(suspects) + [
+            str(primary_gate.relative_to(ROOT)),
+            str(primary_report.relative_to(ROOT)),
+        ],
     )
+
+
+def bounded_plan_for(checks: list[dict[str, Any]], resumed_id: str,
+                     resume_diag: Path | None = None,
+                     current_report: Path | None = None) -> dict[str, Any]:
+    """Measured, ordered work list handed to the independent auditor.
+
+    Why this exists: the audit job runs under the wrapper's 2700 s work
+    quantum, and two product audits in this chain already died at 2705 s
+    (``LEX_WORK_QUANTUM_EXPIRED``, exit 78) with the gate reader skipped, so
+    the work was never adjudicated.  An auditor that starts without a budget
+    discovers the budget by dying inside it.
+
+    Each entry carries the duration **this run measured** for the same
+    command, so a plan can be bounded before it is executed.  Durations are
+    observations on this machine: they are a planning input, never a claim
+    about another host, and no step, bar or check is added, removed or
+    weakened by publishing them.
+    """
+    timed = [c for c in checks
+             if isinstance(c.get("seconds"), (int, float))]
+    unmeasured = [c for c in checks
+                  if not isinstance(c.get("seconds"), (int, float))]
+    # measured steps first, longest first (the expensive ones bound the plan);
+    # unmeasured steps keep their natural order so nothing silently disappears.
+    ordered = sorted(timed, key=lambda c: -float(c["seconds"])) + unmeasured
+    total = round(sum(float(c["seconds"]) for c in timed), 3)
+    skipped = [c["id"] for c in checks if c.get("status") == "SKIP"]
+    largest = ({"id": max(timed, key=lambda c: float(c["seconds"]))["id"],
+                "measured_seconds": max(float(c["seconds"]) for c in timed)}
+               if timed else None)
+    budget_s = 2700
+    return {
+        "purpose": (
+            "Run the commands below in this order, read the two committed "
+            "diagnosis artifacts, then write the gate. The durations are "
+            "measured here so the plan fits the audit work quantum with "
+            "margin instead of being discovered by a timeout."
+        ),
+        "audit_work_quantum_s": budget_s,
+        "measured_seconds_total": total,
+        "measured_seconds_margin_s": round(budget_s - total, 3),
+        "within_quantum": bool(total < budget_s),
+        "largest_single_step": largest,
+        "steps": [
+            {"id": c["id"], "status": c["status"],
+             "command": c.get("command"),
+             "measured_seconds": (float(c["seconds"])
+                                  if isinstance(c.get("seconds"),
+                                                (int, float)) else None)}
+            for c in ordered
+        ],
+        "measured_step_count": len(timed),
+        "unmeasured_steps": [c["id"] for c in unmeasured],
+        "skipped_steps": skipped,
+        "first_reads": [
+            str(resume_diag.relative_to(ROOT)) if resume_diag else None,
+            f"results/product/orchestration/CYCLE_{resumed_id}"
+            "_team_step_raw.json",
+            str(current_report.relative_to(ROOT)) if current_report else None,
+        ],
+        "not_required": (
+            "Do not re-derive accepted evaluation 40070818687 / 40068038783 / "
+            "40105794124 or the D2 profile 40089391202, and do not regenerate "
+            "the offline/server slice family: those are consumed accepted "
+            "findings pinned REPORTED-ONLY by the profile."
+        ),
+        "timing_claim_ceiling": (
+            "Observations of one host for one dossier generation run. They "
+            "are not a cross-machine guarantee and they score no bar."
+        ),
+    }
 
 
 def run(run_id: str, direction_version: int = DIRECTION_VERSION,
@@ -1061,6 +1767,7 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
     checks = [
         check_runtime_preflight(auto_bootstrap=auto_bootstrap),
         check_state_contract(),
+        check_chain_scope(str(run_id)),
         check_posture(),
         check_resumed_diagnosis(),
         check_claim_artifacts(),
@@ -1083,7 +1790,7 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
         checks.append(_skip("mvp_core_tests",
                             "Bounded MVP core pytest set is green",
                             "skipped by --skip-tests"))
-    checks.append(check_audit_namespace(run_id))
+    checks.append(check_audit_namespace(run_id, resumed_id))
 
     failed = [c["id"] for c in checks if c["status"] == "FAIL"]
     skipped = [c["id"] for c in checks if c["status"] == "SKIP"]
@@ -1142,6 +1849,20 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
         c1_artifacts = (
             ([str(raw.relative_to(ROOT))] if raw is not None else [])
             + [str(resume_diag.relative_to(ROOT))])
+    elif mechanism_kind == "observed_step_failure":
+        c1_claim = (
+            f"Run {resumed_id}'s lane-cycle agent step FAILED after "
+            f"{p('lane_cycle_step_seconds', 0)} s of a 2700 s work quantum; "
+            "'Validate active MVP producer state' and 'Enforce lane write "
+            "scope' were skipped, no audit ran, and the team ref is "
+            "byte-identical to the accepted base (ZERO_DURABLE_DELTA). The "
+            "public jobs snapshot shows the step conclusions and timestamps; "
+            "the logs endpoint answered HTTP 403, so the log-level cause is "
+            "UNOBSERVED and no cause is asserted."
+        )
+        c1_artifacts = (
+            ([str(raw.relative_to(ROOT))] if raw is not None else [])
+            + [str(resume_diag.relative_to(ROOT))])
     elif mechanism_kind == "observed":
         c1_claim = (
             f"Run {resumed_id}'s {who} agent ended on the workflow "
@@ -1159,6 +1880,11 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
             "the provider/auth/timeout mechanism is UNOBSERVED and no "
             "cause is asserted.")
         c1_artifacts = [str(resume_diag.relative_to(ROOT))]
+
+    bounded = bounded_plan_for(
+        checks, str(resumed_id),
+        resume_diag if resume_diag.is_file() else None,
+        Path(p("current_report", CURRENT_REPORT)))
 
     return {
         "schema": SCHEMA,
@@ -1238,6 +1964,11 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
              "check": "audit_namespace", "artifacts": []},
         ],
         "audit_entry_points": {
+            "start_here": "product/AUDIT_START_HERE.md",
+            "fast_scope_verify_seconds": (
+                "python3 product/audit_chain.py --verify --run-id "
+                f"{run_id}"
+            ),
             "one_command": (
                 "python3 product/audit_readiness.py --run-id "
                 f"{run_id} --out /tmp/lex_audit_readiness.json"
@@ -1258,6 +1989,7 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
                 "current team ref."
             ),
         },
+        "bounded_plan": bounded,
         "posture": {
             "audit_write_scope": "producer wrote only product-owned paths",
             "gate_minted": False,
