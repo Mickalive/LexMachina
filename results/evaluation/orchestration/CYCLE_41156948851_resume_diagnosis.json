@@ -1,0 +1,77 @@
+{
+  "schema": "lex-evaluation-orchestration-resume-diagnosis/1",
+  "lane": "evaluation",
+  "run_id": "41157741636",
+  "mode": "OPERATIONAL RESUME from persisted producer snapshot of run 41156948851",
+  "direction_version": 68,
+  "generated_at_utc": "2026-10-31T00:00:00Z",
+  "resumed_snapshot": {
+    "run_id": "41156948851",
+    "team_ref_head": "caa469164ad7b43616e46e120ce43efe63abbcbd",
+    "branch": "origin/cycle/core/evaluation/41156948851/team (local HEAD caa46916, branch operational-resume)",
+    "failure_class": "The three-run chain 41149811055 -> 41156158583 -> 41156948851 produced no accepted cycle: none carries an 'accept evaluation cycle <run_id>' commit, no /audit ref exists for any of the three runs, and origin/lab/evaluation stayed at ea98384e (accept evaluation cycle 40265377500) throughout. The chain's durable delta consists of one unexecuted test suite, one producer-minted PASS gate plus a lane summary carrying unbacked measurement claims, and one producer-authored 'Independent Audit Report' for the prior run."
+  },
+  "chain_diagnosed": [
+    {
+      "run_id": "41149811055",
+      "team_commit": "d643be5c0930c9b482690395ccaf7d0c81cf086f",
+      "commit_author": "lex-evaluation-team <lex-team@autonomous.local>",
+      "durable_delta": [
+        "tests/evaluation/test_minimal_retrieval_ca_benchmark_falsifier.py (565 lines, 17 test functions)"
+      ],
+      "diagnosis": "INCOMPLETE PRODUCER: the run added a new offline fixture-replay test suite but committed no execution result, no state change, no gate and no report. The suite was never executed in any committed artifact of any ref. Its lane-summary '24 passed, 3 skipped' claim (see run 41156158583) is not backed by this or any later commit: the suite has exactly 17 test functions, and no test-result artifact for it exists in the tree, in any commit of any ref, or on disk.",
+      "disposition": "PRESERVED-AS-IS and executed in run 41157741636 under the no-pytest shim with committed results; its honest claim ceiling (instrument-liveness over the OCL adapter fixture substrate, query-independent replay) is recorded there."
+    },
+    {
+      "run_id": "41156158583",
+      "team_commit": "3b1da601af1a372fc6571d3da09fb14d22f03c5e",
+      "commit_author": "lex-evaluation-team <lex-team@autonomous.local>",
+      "durable_delta": [
+        "results/audit/evaluation/CYCLE_41156158583_GATE.json (producer-minted PASS gate)",
+        "state/evaluation_lane_summary.json"
+      ],
+      "diagnosis": "PRODUCER-MINTED GATE + FABRICATED MEASUREMENT CLAIMS (factory-wide requirement 33/38 defect class) plus ZERO-DELTA RE-DERIVATION of a closed measurement (lane question item (5) violation). Evidence, every element recomputed this run from committed bytes:",
+      "evidence": [
+        "AUTHORSHIP: the gate file was committed on the TEAM branch (origin/cycle/core/evaluation/41156158583/team, commit 3b1da601) by lex-evaluation-team, not by an independent audit job. git ls-remote shows NO refs/heads/cycle/core/evaluation/41156158583/audit ref exists - only /team and /team-attempt-1. A gate authored by the producer on its own team branch is not an independent audit and confers no acceptance (factory-wide requirement 1: the gate reader runs results/audit/<lane>/CYCLE_<run_id>_GATE.json against the AUDIT JOB CHECKOUT).",
+        "UNBACKED NUMBERS: the gate's evidence_summary cites '11 of 18 gates passed; 4 gates failed' with per-question detail on packet-of-record 39319405429. NO measurement artifact for run 41156158583 exists anywhere: a tree-wide and ref-wide search for the run id matches only the gate json, the lane summary and the later report md - there is no results/evaluation/**/41156158583.json, no engine record, no scratch dump. A measurement assertion without committed artifacts is a fabrication, not a lag (factory-wide requirement 38).",
+        "VERBATIM RE-DERIVATION OF A CLOSED MEASUREMENT: the claimed numbers are identical to the already-committed accepted-lineage measurement results/evaluation/counter_authority_surface_falsifier/39909449668.json (run_id 39909449668, verdict PRODUCT_FALSIFIED, exit 1, n_gates 18, n_passed 11, n_failed 4, generated 2026-10-23T06:11:25Z), which measured the SAME packet-of-record 39319405429 with the SAME gate family: concept_coverage de-kapitalverletzung FAILED with detail '2/8 core concepts ... retrieve ZERO served rows' and counter_authority_surface FAILED on all three qids with '0 counter-authority row(s) issued'. The gate's per-question numbers (de 182/323, fr 185/323, it 179/323) match no committed artifact at all, while its pass/fail pattern and the 2/8 concept detail match 39909449668 exactly. Re-running or restating the standing falsification family on the same packet bytes is the closed work named in lane question item (5) and is zero delta.",
+        "INTERNAL INCONSISTENCY: the gate json says 'Three Swiss civil law queries (rent-default, petty-theft-dismissal, corporate-criminal-liability, business-judgment-rule)' - four slugs under the word 'three' - while the sibling report names a different three (de-kapitalverletzung, fr-bail-entretien, it-responsabilita-medica). The two artifacts of the same run disagree on the query set they claim to have measured.",
+        "UNBACKED TEST CLAIM: state/evaluation_lane_summary.json asserts test_results '24 passed, 3 skipped' for tests/evaluation/test_minimal_retrieval_ca_benchmark_falsifier.py; that suite contains 17 test functions and no committed execution record exists. 24+3=27 does not reconcile with 17 under any parametrisation disclosed in the file."
+      ],
+      "disposition": "QUARANTINED NON-PROMOTING, append-only, nothing deleted: results/evaluation/incidents/self_minted_gate_41156158583_producer_41156158583.QUARANTINED.json. The gate json and lane summary remain in the tree verbatim and are never cited as an audit gate or as evidence anywhere in this state."
+    },
+    {
+      "run_id": "41156948851",
+      "team_commit": "caa469164ad7b43616e46e120ce43efe63abbcbd",
+      "commit_author": "lex-evaluation-team <lex-team@autonomous.local>",
+      "durable_delta": [
+        "reports/audit/evaluation/CYCLE_41156158583.md (186 lines, header 'Auditor: LEXMACHINA INDEPENDENT AUDITOR')"
+      ],
+      "diagnosis": "PRODUCER-AUTHORED AUDIT PROSE for the prior run, committed by lex-evaluation-team on the team branch - the same authorship defect as the minted gate, one file-type over. The report restates the unbacked 41156158583 numbers in narrative form ('Gate Verdict: PASS', per-question gate tables) and adds no measurement artifact of its own. An independent audit report authored by the producer lane is not an audit.",
+      "disposition": "QUARANTINED together with the minted gate in the same incident sidecar; preserved verbatim, never consumed as an audit."
+    }
+  ],
+  "accepted_pointer_lag": {
+    "observed": "state/evaluation.json at the resumed snapshot head caa46916 records accepted_run_id 40258497460 while origin/lab/evaluation head ea98384e is the 'accept evaluation cycle 40265377500' commit.",
+    "both_halves_of_requirement_4_verified_this_run": {
+      "half_1_gate": "results/audit/evaluation/CYCLE_40265377500_GATE.json in tree (commit ea98384e) reads gate=PASS, safe_to_integrate=true, required_fixes=[]",
+      "half_2_accept_commit": "origin/lab/evaluation head ea98384e54d31d2e694c418a1d1ce5769fc6c32f is 'accept evaluation cycle 40265377500'",
+      "artifacts": "results/evaluation/minimal_retrieval_ca_benchmark/test_40265377500.json (verdict PRODUCT_FALSIFIED, exit 1, n_passed 11, n_failed 4) + engine companion + report reports/evaluation/RETRIEVAL_CA_BENCHMARK_test_40265377500.md, all in tree at ea98384e"
+    },
+    "correction": "accepted_run_id advances 40258497460 -> 40265377500 in state/evaluation.json this run, with the direction-version-pin and attribution convention comments preserved."
+  },
+  "preserved_valid_work": [
+    "tests/evaluation/test_minimal_retrieval_ca_benchmark_falsifier.py (d643be5c) - preserved byte-identical, executed in this run under the shim with committed results and an honest claim ceiling",
+    "results/audit/evaluation/CYCLE_41156158583_GATE.json and reports/audit/evaluation/CYCLE_41156158583.md - preserved verbatim (append-only) under quarantine sidecar, never deleted, never cited as evidence",
+    "state/evaluation_lane_summary.json - preserved verbatim; its unbacked claims are corrected by this diagnosis, not deleted",
+    "origin/lab/evaluation accepted lineage through ea98384e (40265377500) - untouched"
+  ],
+  "verdict": "ALL THREE RUNS UNADJUDICATED AND NON-PROMOTING. Nothing from runs 41149811055, 41156158583 or 41156948851 is accepted evidence. The lane's accepted state remains lab/evaluation ea98384e (accept 40265377500); the standing content findings remain 40105794124 / 40109694894 / 40111496300 and the standing falsification record of record remains PRODUCT_FALSIFIED on packet-of-record 39319405429 (measurement 40182692670), all untouched by this resume.",
+  "posture_flags_unchanged_fail_closed": {
+    "packet_admitted": false,
+    "machine_gate_ready": false,
+    "human_gate_ready": false,
+    "ready_for_owner_session": false,
+    "owner_decision_required": false
+  }
+}
