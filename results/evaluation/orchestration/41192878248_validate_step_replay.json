@@ -1,0 +1,29 @@
+{
+  "schema": "lex-evaluation-validate-step-replay/1",
+  "run_id": 41192878248,
+  "generated_at_utc": "2026-10-31T11:12:02Z",
+  "workflow_step": "Validate active MVP producer state",
+  "workflow_source": ".github/workflows/core-lane.yml (jq -e predicate)",
+  "state_path": "state/evaluation.json",
+  "jq_expression": "(.direction_version // -1) == $dirv and (.cycle_status // \"INITIALIZED\") != \"INITIALIZED\"",
+  "direction_version_in_state": 68,
+  "cycle_status_in_state": "COMPLETE",
+  "github_run_in_state_at_replay": 41187766812,
+  "this_run_advanced_state": false,
+  "state_update_block_for_this_run_present": false,
+  "exit_code": 0,
+  "would_pass": true,
+  "final_tree": true,
+  "stdout_tail": "true\n",
+  "stderr_tail": "",
+  "vacuity_observation": {
+    "predicate_checks_only": [
+      "direction_version == 68",
+      "cycle_status != INITIALIZED"
+    ],
+    "this_producer_updated_state": false,
+    "passes_without_state_advance": true,
+    "disclosure": "the workflow predicate passed although run 41192878248 never advanced state/evaluation.json: it was SKIPPED in the failed producer job, github_run remained 41187766812 and no state_update_41192878248 block existed before this resume. This is the same observed control-plane weakness recorded by the predecessor (a skipped producer-state step cannot be distinguished from a vacuous pass by the snapshot alone). Recorded, not edited; this resume repairs the state pointer additively."
+  },
+  "not_a_measurement": true
+}
