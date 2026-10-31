@@ -663,6 +663,56 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    "41193519633": {
+        "resumed_run_id": "41193519633",
+        "predecessor_run_id": "41193345044",
+        "raw": ORCH / "CYCLE_41193519633_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_41193519633_resume_diagnosis.json",
+        # Neither 41193345044 nor 41193519633 committed anything (both team
+        # refs are 98ca6621), so the last producer report on the lineage is
+        # 41188877123's, and this resume's report is its own.
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_41188877123.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_41193662357.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        # Twelfth and thirteenth observed instances of the same immediate
+        # lane-cycle step failure: both runs' lane-cycle step ran 16.0 s of a
+        # 2700 s quantum and exited 1 with no wrapper branch name in the
+        # public annotation, then state validation, write-scope enforcement,
+        # audit and integrate were all skipped.  The logs endpoint answered
+        # HTTP 403 "Must have admin rights to Repository." to this reader
+        # (re-probed this cycle), so the log-level cause stays UNOBSERVED and
+        # no cause is asserted.  The only OBSERVED mechanism with this exact
+        # signature in this lane remains run 40263308953's model-gateway
+        # request rejection (CYCLE_40263666190_lane_cycle_log_evidence.json);
+        # it is a cited precedent, NOT an attribution for these two runs.
+        "mechanism_kind": "observed_step_failure",
+        "delta_kind": "zero",
+        "failed_job": "team",
+        "quantum_seconds": 2700,
+        "exit_code": 1,
+        "lane_cycle_step_seconds": 16.0,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_41193662357.py",
+        "state_block": "cycle_41193662357_operational_resume",
+        # Ordered-work consumption only: the accepted fixed-path family pins
+        # are read REPORTED-ONLY; nothing is re-measured this cycle.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    # No profile for 41193345044 on purpose: it is the predecessor in this
+    # chain, not a dossier subject.  select_profile() fails closed on unknown
+    # ids, and aliasing it here would publish 41193519633's claims under
+    # 41193345044's id - the exact defect the fail-closed rule exists to stop.
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -1466,6 +1516,78 @@ def check_audit_namespace(run_id: str,
     )
 
 
+def bounded_plan_for(checks: list[dict[str, Any]], resumed_id: str,
+                     resume_diag: Path | None = None,
+                     current_report: Path | None = None) -> dict[str, Any]:
+    """Measured, ordered work list handed to the independent auditor.
+
+    Why this exists: the audit job runs under the wrapper's 2700 s work
+    quantum, and two product audits in this chain already died at 2705 s
+    (``LEX_WORK_QUANTUM_EXPIRED``, exit 78) with the gate reader skipped, so
+    the work was never adjudicated.  An auditor that starts without a budget
+    discovers the budget by dying inside it.
+
+    Each entry carries the duration **this run measured** for the same
+    command, so a plan can be bounded before it is executed.  Durations are
+    observations on this machine: they are a planning input, never a claim
+    about another host, and no step, bar or check is added, removed or
+    weakened by publishing them.
+    """
+    timed = [c for c in checks
+             if isinstance(c.get("seconds"), (int, float))]
+    unmeasured = [c for c in checks
+                  if not isinstance(c.get("seconds"), (int, float))]
+    # measured steps first, longest first (the expensive ones bound the plan);
+    # unmeasured steps keep their natural order so nothing silently disappears.
+    ordered = sorted(timed, key=lambda c: -float(c["seconds"])) + unmeasured
+    total = round(sum(float(c["seconds"]) for c in timed), 3)
+    skipped = [c["id"] for c in checks if c.get("status") == "SKIP"]
+    largest = ({"id": max(timed, key=lambda c: float(c["seconds"]))["id"],
+                "measured_seconds": max(float(c["seconds"]) for c in timed)}
+               if timed else None)
+    budget_s = 2700
+    return {
+        "purpose": (
+            "Run the commands below in this order, read the two committed "
+            "diagnosis artifacts, then write the gate. The durations are "
+            "measured here so the plan fits the audit work quantum with "
+            "margin instead of being discovered by a timeout."
+        ),
+        "audit_work_quantum_s": budget_s,
+        "measured_seconds_total": total,
+        "measured_seconds_margin_s": round(budget_s - total, 3),
+        "within_quantum": bool(total < budget_s),
+        "largest_single_step": largest,
+        "steps": [
+            {"id": c["id"], "status": c["status"],
+             "command": c.get("command"),
+             "measured_seconds": (float(c["seconds"])
+                                  if isinstance(c.get("seconds"),
+                                                (int, float)) else None)}
+            for c in ordered
+        ],
+        "measured_step_count": len(timed),
+        "unmeasured_steps": [c["id"] for c in unmeasured],
+        "skipped_steps": skipped,
+        "first_reads": [
+            str(resume_diag.relative_to(ROOT)) if resume_diag else None,
+            f"results/product/orchestration/CYCLE_{resumed_id}"
+            "_team_step_raw.json",
+            str(current_report.relative_to(ROOT)) if current_report else None,
+        ],
+        "not_required": (
+            "Do not re-derive accepted evaluation 40070818687 / 40068038783 / "
+            "40105794124 or the D2 profile 40089391202, and do not regenerate "
+            "the offline/server slice family: those are consumed accepted "
+            "findings pinned REPORTED-ONLY by the profile."
+        ),
+        "timing_claim_ceiling": (
+            "Observations of one host for one dossier generation run. They "
+            "are not a cross-machine guarantee and they score no bar."
+        ),
+    }
+
+
 def run(run_id: str, direction_version: int = DIRECTION_VERSION,
         include_tests: bool = True, include_smoke: bool = True,
         auto_bootstrap: bool = True) -> dict[str, Any]:
@@ -1600,6 +1722,11 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
             "cause is asserted.")
         c1_artifacts = [str(resume_diag.relative_to(ROOT))]
 
+    bounded = bounded_plan_for(
+        checks, str(resumed_id),
+        resume_diag if resume_diag.is_file() else None,
+        Path(p("current_report", CURRENT_REPORT)))
+
     return {
         "schema": SCHEMA,
         "generated_at": _now(),
@@ -1698,6 +1825,7 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
                 "current team ref."
             ),
         },
+        "bounded_plan": bounded,
         "posture": {
             "audit_write_scope": "producer wrote only product-owned paths",
             "gate_minted": False,

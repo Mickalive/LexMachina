@@ -215,7 +215,7 @@
   },
   "lane": "product",
   "machine_gate_ready": false,
-  "next_recommendation": "Direction v68 / FAST MVP, operational-resume cycle 41188877123 (resume of run 41188733592; UNADJUDICATED pending independent audit). WHAT THIS CYCLE DID: (a) diagnosed 41188733592 from the public run/jobs snapshot - 'Run lane cycle' failed after 17.0 s with generic exit 1, validation/write-scope/audit/integrate skipped, both team refs at 980f880b (ZERO durable delta), logs HTTP 403 so the innermost cause is UNOBSERVED; (b) diagnosed why snapshot 980f880b is unaudited - predecessor 41184474509's audit job died at 2705 s of a 2700 s quantum (LEX_WORK_QUANTUM_EXPIRED, exit 78, gate reader skipped), while its team committed an artifact-only delta; (c) found and repaired a real audit-instrument defect - check_audit_namespace counted the ACCEPTED run's committed gate as a producer mint when the dossier was regenerated with --run-id equal to the accepted run, which is the sole reason the 41184474509 snapshot carries overall_status=FAIL; the check now excludes the accepted pointer and still fails closed on every non-accepted checked id and every pending audit path; (d) re-verified the lane deliverable with a fresh SERVED vertical slice (results/product/server_slice/41188877123, PASS 10/10: 100 -> 100 decisions, 8 clusters, 2 cited, 1 counter-authority, 3 counter-status-bearing rows, 100/100 source links, 71 page assertions, 1.688 s, fixture mode, every non-loopback connect trapped); (e) added profile 41188733592 and a fresh audit-readiness dossier, the cycle test test_cycle_41188877123.py, additive run_history entries for 41184474509 and 41188733592, and this block. WHY STILL UNADJUDICATED: both halves of requirement 4 are absent for the 4118 chain - there is no PASS gate on any 4118 audit ref and no accept commit on lab/product. WHAT IS NEXT: dispatch an INDEPENDENT AUDIT of 980f880b with a bounded plan - start from results/product/audit_readiness/CYCLE_41188733592_audit_readiness.json and reports/product/CYCLE_41188877123.md, do NOT re-derive accepted evaluation 40070818687/40068038783/40105794124 or the D2 profile 40089391202, and do not re-run the v68 family. Posture stays FAIL-CLOSED: human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false, continue_recommended=true.",
+  "next_recommendation": "Direction v68 / FAST MVP, operational-resume cycle 41193662357 (resume of run 41193519633; UNADJUDICATED pending independent audit). WHAT THIS CYCLE DID: (a) diagnosed BOTH operationally failed runs of the chain from their public run/jobs snapshots - 41193345044 and 41193519633 each failed at 'Run lane cycle' after 16.0 s of a 2700 s work quantum with the generic exit code 1 (no wrapper branch name), leaving 'Validate active MVP producer state', 'Enforce lane write scope', audit and integrate skipped and both team refs byte-identical to predecessor 98ca6621 (ZERO_DURABLE_DELTA, UNADJUDICATED); the wrapper's named branches rc 67/75/78 and the pre-opencode preflight exits 64/65/66/76/77 are arithmetically ruled out and a local preflight replay passes, so exit 1 is only a generic passthrough; (b) re-probed the job-log endpoint WITH the runner's own persisted git-credentials token and still got HTTP 403 'Must have admin rights to Repository.', so the log-level cause stays UNOBSERVED and no cause is asserted - the only OBSERVED mechanism with this exact signature in this lane is run 40263308953's model-gateway request rejection (results/product/orchestration/CYCLE_40263666190_lane_cycle_log_evidence.json) and it is cited as PRECEDENT, never as the attribution for these two runs; (c) re-verified the lane deliverable with a fresh SERVED vertical slice at this head (results/product/server_slice/41193662357: PASS 10/10, 100 decisions, 8 clusters, 2 cited, 1 counter-authority, 100/100 source links, 71 page assertions, 2.665 s, fixture mode, every non-loopback connect trapped); (d) made snapshot 98ca6621 audit-ready: new audit-readiness profile 41193519633, dossier results/product/audit_readiness/CYCLE_41193519633_audit_readiness.json now carrying a measured bounded_plan (per-check command durations, total, margin against the 2700 s audit quantum) so the auditor can bound its work instead of rediscovering the quantum by timing out, plus product/tests/test_cycle_41193662357.py; (e) state-pointer hygiene with the accepted pointer unchanged at CYCLE_40284658455 / 7be4480e. WHAT IS NEXT: dispatch the INDEPENDENT AUDIT of this snapshot with the dossier's bounded_plan + audit_entry_points as its start (read the two committed diagnosis artifacts, run the listed commands in order, write the gate); do NOT re-derive accepted evaluation 40070818687 / 40068038783 / 40105794124, the D2 profile 40089391202 or the v68 full-family slice. If the lane-cycle exit-1 pathology recurs before an audit can run, record it as the control-plane item it is (wrapper non-retry of generic exit 1 + admin-only job logs) - not as a product defect. Posture stays FAIL-CLOSED: human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false, continue_recommended=true.",
   "not_claimed": [
     "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
     "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
@@ -265,7 +265,7 @@
       "clusters": 8,
       "counter_authorities": 3,
       "decisions": 154,
-      "fixture_query": "Kündigung Mietvertrag Mietrecht",
+      "fixture_query": "K\u00fcndigung Mietvertrag Mietrecht",
       "map_phase_latency_s": 0.3,
       "top_n": 150
     },
@@ -429,6 +429,14 @@
         "surface the opencode stderr on a generic exit 1 (the wrapper currently only annotates the numeric code, and the job logs endpoint is admin-only, so a 16 s generic death is undiagnosable from outside)"
       ],
       "route_around_used": "the current run's model accepted the config and produced this durable delta; the item is recorded for the control plane, not retried from the lane."
+    },
+    {
+      "id": "repair_dispatch_without_observable_prior_audit",
+      "cycle": "41193662357",
+      "issue": "A repair-round dispatch arrived naming run 41194527376 with no /tmp/lex_prior_audit mount, no audit gate, no ref and no attached self-declaration; workflow env for this workspace says REPAIR_FROM='' REPAIR_ROUND=0 for run 41193662357.",
+      "requested_action": "Dispatch repairs only after mounting the prior audit directory (/tmp/lex_prior_audit) containing the gate verdict and required_fixes.",
+      "owner_action_required": false,
+      "route_to": "control-plane"
     }
   ],
   "evidence_ref_counts_40143042888": {
@@ -904,7 +912,7 @@
     "defects_repaired": [
       "BGE identity: court \"bge\" resolved through the raw docket before the citation, so docket-shaped aliases (\"113 II 52\" and \"BGE 113 II 52\") became two map points for one decision. Court \"bge\" now resolves through the canonical citation first; the merge is exported in provenance.identity_merge (method court_docket_or_bge_identity_merge_v2).",
       "Local inspectability: every row now carries content_state in {full_text,regeste,snippet,pointer} and provenance.content_coverage; bundle_summary publishes the same tally. Annotation is applied on the initial, progressive and enriched paths, and refreshed after lazy hydration.",
-      "UI honesty: the page labels reference-only points \"référence seule\", prints a coverage line (local vs total), and the detail panel states that no local excerpt exists while still offering the public source link.",
+      "UI honesty: the page labels reference-only points \"r\u00e9f\u00e9rence seule\", prints a coverage line (local vs total), and the detail panel states that no local excerpt exists while still offering the public source link.",
       "Offline summary honesty: rows_with_source_url is now the true source_url count; rows_with_source_link and rows_with_canonical_url are separate; fixture replay degraded/cache-miss/failure counts are surfaced, with degraded_scope=fixture_replay_only at the summary top level."
     ],
     "measurements": {
@@ -1115,9 +1123,9 @@
     "audit_namespace_written": false,
     "claim_ceiling": "OPERATIONAL-RESUME AND AUDIT-READINESS EVIDENCE ONLY. No live retrieval, legal usefulness, frozen bar, serve verdict, acceptance or human-gate readiness is asserted."
   },
-  "current_cycle_run_id": 41188877123,
+  "current_cycle_run_id": 41193662357,
   "last_repair_round": 0,
-  "last_updated": "2026-10-31T09:40:00Z",
+  "last_updated": "2026-10-31T11:14:00Z",
   "run_history": [
     {
       "run_id": "40241250741",
@@ -1401,6 +1409,40 @@
         "results/product/orchestration/CYCLE_41188733592_resume_diagnosis.json"
       ],
       "date": "2026-10-31T09:35:00Z"
+    },
+    {
+      "run_id": 41193345044,
+      "status": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_ZERO_DURABLE_DELTA",
+      "audit_gate": "NONE",
+      "exit_code": 1,
+      "exit_code_meaning": null,
+      "failing_step": "Run lane cycle",
+      "failed_step_seconds": 16.0,
+      "snapshot_commit": "98ca66217b4058dfa5bfd888c7421036b34dbcf5",
+      "date": "2026-10-31T10:29:00Z",
+      "summary": "Dispatched off snapshot 98ca6621 (the persisted delta of run 41188877123). The team job failed at 'Run lane cycle' after 16.0 s of a 2700 s work quantum with the GENERIC exit code 1; 'Validate active MVP producer state' and 'Enforce lane write scope' were skipped, audit/integrate were skipped, and both team refs stayed at 98ca6621: ZERO_DURABLE_DELTA. Wrapper named branches and the pre-opencode preflight exits are ruled out; the logs endpoint answers HTTP 403, so the innermost cause is UNOBSERVED. Diagnosed this cycle by cycle 41193662357. UNADJUDICATED.",
+      "evidence": [
+        "results/product/orchestration/CYCLE_41193345044_team_step_raw.json",
+        "results/product/orchestration/CYCLE_41193345044_orchestration.json",
+        "results/product/orchestration/CYCLE_41193345044_resume_diagnosis.json"
+      ]
+    },
+    {
+      "run_id": 41193519633,
+      "status": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_ZERO_DURABLE_DELTA",
+      "audit_gate": "NONE",
+      "exit_code": 1,
+      "exit_code_meaning": null,
+      "failing_step": "Run lane cycle",
+      "failed_step_seconds": 16.0,
+      "snapshot_commit": "98ca66217b4058dfa5bfd888c7421036b34dbcf5",
+      "date": "2026-10-31T10:39:53Z",
+      "summary": "Operational-resume subject for cycle 41193662357. The team job failed at 'Run lane cycle' after 16.0 s with the generic exit code 1 (no named branch in the public annotation); state validation, write-scope enforcement, audit and integrate were skipped; the always() persist step published both team refs at 98ca6621, byte-identical to predecessor 41193345044: ZERO_DURABLE DELTA. A log fetch attempt with the runner's own persisted credentials still returned HTTP 403 'Must have admin rights to Repository.', so the mechanism stays UNOBSERVED and no cause is asserted. UNADJUDICATED.",
+      "evidence": [
+        "results/product/orchestration/CYCLE_41193519633_team_step_raw.json",
+        "results/product/orchestration/CYCLE_41193519633_orchestration.json",
+        "results/product/orchestration/CYCLE_41193519633_resume_diagnosis.json"
+      ]
     }
   ],
   "cycle_40247041354_resume": {
@@ -1650,18 +1692,18 @@
         "Kundigung Mietvertrag Mietrecht",
         "Kundigung Mietvertrag Mietrecht miete loyer bail locazione mietzins",
         "kundigung mietvertrag mietrecht eccezione limite abuso di diritto buona fede restrizione miete loyer bail locazione mietzins",
-        "kündigung bger nicht ausgesprochen abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
-        "kündigung bger nicht ausgesprochen ausnahme exception eccezione vorbehalt réserve riserva einschränkung excepté fatta eccezione",
-        "kündigung bger nicht ausgesprochen minderheit minorité minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
-        "kündigung bger nicht ausgesprochen ältere rechtsprechung ancienne jurisprudence precedente giurisprudenza früher autrefois in passato früheren rechtsprechung désormais mittlerweile",
-        "kündigung bger nicht kann abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
-        "kündigung bger nicht kann ausnahme exception eccezione vorbehalt réserve riserva einschränkung excepté fatta eccezione",
-        "kündigung bger nicht kann minderheit minorité minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
-        "kündigung bger nicht kann ältere rechtsprechung ancienne jurisprudence precedente giurisprudenza früher autrefois in passato früheren rechtsprechung désormais mittlerweile",
-        "kündigung nicht bger wenn abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
-        "kündigung nicht bger wenn ausnahme exception eccezione vorbehalt réserve riserva einschränkung excepté fatta eccezione",
-        "kündigung nicht bger wenn minderheit minorité minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
-        "kündigung nicht bger wenn ältere rechtsprechung ancienne jurisprudence precedente giurisprudenza früher autrefois in passato früheren rechtsprechung désormais mittlerweile"
+        "k\u00fcndigung bger nicht ausgesprochen abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
+        "k\u00fcndigung bger nicht ausgesprochen ausnahme exception eccezione vorbehalt r\u00e9serve riserva einschr\u00e4nkung except\u00e9 fatta eccezione",
+        "k\u00fcndigung bger nicht ausgesprochen minderheit minorit\u00e9 minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
+        "k\u00fcndigung bger nicht ausgesprochen \u00e4ltere rechtsprechung ancienne jurisprudence precedente giurisprudenza fr\u00fcher autrefois in passato fr\u00fcheren rechtsprechung d\u00e9sormais mittlerweile",
+        "k\u00fcndigung bger nicht kann abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
+        "k\u00fcndigung bger nicht kann ausnahme exception eccezione vorbehalt r\u00e9serve riserva einschr\u00e4nkung except\u00e9 fatta eccezione",
+        "k\u00fcndigung bger nicht kann minderheit minorit\u00e9 minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
+        "k\u00fcndigung bger nicht kann \u00e4ltere rechtsprechung ancienne jurisprudence precedente giurisprudenza fr\u00fcher autrefois in passato fr\u00fcheren rechtsprechung d\u00e9sormais mittlerweile",
+        "k\u00fcndigung nicht bger wenn abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
+        "k\u00fcndigung nicht bger wenn ausnahme exception eccezione vorbehalt r\u00e9serve riserva einschr\u00e4nkung except\u00e9 fatta eccezione",
+        "k\u00fcndigung nicht bger wenn minderheit minorit\u00e9 minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
+        "k\u00fcndigung nicht bger wenn \u00e4ltere rechtsprechung ancienne jurisprudence precedente giurisprudenza fr\u00fcher autrefois in passato fr\u00fcheren rechtsprechung d\u00e9sormais mittlerweile"
       ],
       "decision_ids": [
         "bge_138 III 59",
@@ -2130,12 +2172,12 @@
         "rejected_ids": 0,
         "wall_seconds": 141.35
       },
-      "query": "Responsabilité pénale de l'entreprise selon l'art. 102 CP subsidiaire ou primaire",
+      "query": "Responsabilit\u00e9 p\u00e9nale de l'entreprise selon l'art. 102 CP subsidiaire ou primaire",
       "report": "reports/product/CYCLE_38641080245.md",
       "run_id": 38641080245,
       "server": "python product/query_app.py --port 8793 (one command, stdlib ThreadingHTTPServer)"
     },
-    "live_legs_this_run": "results/product/reality_check/summary_ci_38604340726.json (4/4 structural+truth, sequential) — durable run conclusion=success observed 2026-10-14T21:36:10Z",
+    "live_legs_this_run": "results/product/reality_check/summary_ci_38604340726.json (4/4 structural+truth, sequential) \u2014 durable run conclusion=success observed 2026-10-14T21:36:10Z",
     "pre_existing_collection_errors": "18 legacy 174k test modules fail collection with ModuleNotFoundError: sentence_transformers (optional dep, PAUSE'd legacy lane); unchanged by this cycle and not on the query-map path",
     "product_integration_tests": "91 passed (ci_reality_legs 20 + ci_run_evidence 26 + reality_check + audit_seam + query_map_mvp + answer_contract + human_gate_integration 12)",
     "resume_39014141628": "reports/product/CYCLE_39011220761_RESUME.md is this cycle's report (written by run 39014141628). Pre-existing-red follow-up: product/tests/test_cache_non_orphan claim-bundle identity (CORRECTED characterization, audit D2 repair r1: 2841 differing leaves, committed claim bundle 154 rows vs 120 from a fresh frozen-subset replay, all 120 present in the committed set - NOT only cluster label/size/member_ids) and test_audit_seam dead-model agreement fail identically at accepted base 3077b27 in this environment - re-measure in the numeric environment that produced the accepted claim artifact before quoting claim-cache identity again; never weaken content_sha256 or the seam's exclusion to make them pass.",
@@ -2539,7 +2581,7 @@
       "verdict": "PASS",
       "checks": "10/10",
       "mode": "fixture",
-      "query": "Kündigung Mietvertrag Mietrecht",
+      "query": "K\u00fcndigung Mietvertrag Mietrecht",
       "counts": {
         "n_first_page": 100,
         "n_final": 100,
@@ -2636,7 +2678,7 @@
       "verdict": "PASS",
       "checks": "10/10",
       "mode": "fixture",
-      "query": "Kündigung Mietvertrag Mietrecht",
+      "query": "K\u00fcndigung Mietvertrag Mietrecht",
       "counts": {
         "n_first_page": 100,
         "n_final": 100,
@@ -2683,5 +2725,118 @@
       "reason": "no independent PASS gate on a cycle audit ref and no accept commit on origin/lab/product for this snapshot chain"
     },
     "claim_ceiling": "OPERATIONAL RESUME DIAGNOSIS, ONE AUDIT-INSTRUMENT REPAIR AND A FRESH SERVED-SLICE VERIFICATION. The v68 deliverable is consumed as accepted evidence and is not re-measured. No live retrieval, answer quality, legal usefulness, frozen bar, serve verdict, packet admission or human-gate claim is made."
+  },
+  "cycle_41193662357_operational_resume": {
+    "run_id": 41193662357,
+    "repair_round": 0,
+    "direction_version": 68,
+    "mode": "OPERATIONAL RESUME from the persisted producer snapshot of run 41193519633 (team ref 98ca6621, byte-identical to predecessor 41193345044 and to run 41188877123's committed delta)",
+    "resumed_snapshot": {
+      "run_id": 41193519633,
+      "team_ref": "origin/cycle/core/product/41193519633/team",
+      "team_ref_head": "98ca66217b4058dfa5bfd888c7421036b34dbcf5",
+      "predecessor_snapshot_run_id": 41193345044,
+      "predecessor_snapshot_head": "98ca66217b4058dfa5bfd888c7421036b34dbcf5",
+      "failure": "team job failed at 'Run lane cycle' after 16.0 s of a 2700 s work quantum; public annotation carries GENERIC exit code 1 (no wrapper branch name); state validation and write-scope enforcement skipped; audit/integrate skipped; ZERO_DURABLE_DELTA over snapshot 98ca6621",
+      "second_failed_run_in_chain": {
+        "run_id": 41193345044,
+        "failure": "same class, also 16.0 s / exit 1 / ZERO_DURABLE_DELTA over 98ca6621; diagnosed this cycle because it sits between the last committing run (41188877123) and the resume subject",
+        "diagnosis": "results/product/orchestration/CYCLE_41193345044_resume_diagnosis.json"
+      },
+      "why_unaudited": "both runs' team jobs died before the workflow's validation, write-scope and persist-of-work steps could run a gate; no /audit ref exists for either, and the predecessor chain's audit jobs previously died at LEX_WORK_QUANTUM_EXPIRED (2705 s / exit 78)"
+    },
+    "diagnosis": "results/product/orchestration/CYCLE_41193519633_resume_diagnosis.json",
+    "raw_snapshot": "results/product/orchestration/CYCLE_41193519633_team_step_raw.json",
+    "orchestration_evidence": [
+      "results/product/orchestration/CYCLE_41193519633_orchestration.json",
+      "results/product/orchestration/CYCLE_41193345044_orchestration.json",
+      "results/product/orchestration/CYCLE_41193345044_resume_diagnosis.json"
+    ],
+    "mechanism_kind": "observed_step_failure",
+    "exit_code": 1,
+    "exit_code_meaning": null,
+    "log_access_probe": {
+      "artifact": "results/product/orchestration/CYCLE_41193662357_log_access_probe.json",
+      "attempted_with": "runner's persisted git-credentials auth header",
+      "endpoint": "GET /repos/Mickalive/LexMachina/actions/runs/<id>/logs and /actions/jobs/<id>/logs",
+      "http": 403,
+      "message": "Must have admin rights to Repository.",
+      "consequence": "log-level cause UNOBSERVED for both runs; no cause asserted. The earlier lane claim of HTTP 200 log access (run 40263666190) does not reproduce on this runner today and is historical."
+    },
+    "diagnosis_scope": "The public run/jobs snapshots prove the step conclusions, the 16.0 s durations, the generic exit code 1 and that validation/write-scope/audit/integrate were skipped, and prove ZERO_DURABLE_DELTA against the predecessor ref. Wrapper arithmetic rules out LEX_WORK_QUANTUM_EXPIRED (needs 2700 s), LEX_ZERO_DELTA_REPAIR (needs exit 67) and TRANSIENT_RETRIES_EXHAUSTED (needs 90 s+ inside a 16 s step); the preflight exits 64/65/66/76/77 are ruled out by a clean local replay. The logs endpoint answered HTTP 403, so the innermost cause is UNOBSERVED. Precedent, not attribution: the only committed OBSERVED instance of an exit-1-in-seconds lane-cycle death is run 40263308953's model-gateway request rejection.",
+    "lane_deliverable": {
+      "status": "VERIFIED_AT_THIS_HEAD",
+      "component": "served vertical slice: question -> query_result_bundle -> sourced answer -> counter-authority pass -> clickable source-linked map",
+      "artifact": "results/product/server_slice/41193662357/summary.json",
+      "served_slice": "results/product/server_slice/41193662357",
+      "verdict": "PASS",
+      "checks": "10/10",
+      "mode": "fixture",
+      "query": "K\u00fcndigung Mietvertrag Mietrecht",
+      "counts": {
+        "n_first_page": 100,
+        "n_final": 100,
+        "n_clusters_final": 8,
+        "n_cited": 2,
+        "counter_authorities": 1,
+        "counter_status_bearing_rows": 3,
+        "rows_with_source_url": 100,
+        "page_contract_assertions": 71
+      },
+      "total_s": 2.665,
+      "claim_ceiling": "fixture-mode served wiring evidence only; no live OpenCaseLaw latency, answer quality, legal usefulness, frozen bar, serve verdict or human-gate claim",
+      "ordered_work_note": "Direction v68 ordered work (1) rejection/incumbent leg and (2) full-family regeneration stay consumed REPORTED-ONLY as accepted evidence (v68_delivery.status=LANDED); this cycle re-measures neither and writes no bundle bytes."
+    },
+    "audit_readiness": {
+      "profile": "41193519633",
+      "dossier": "results/product/audit_readiness/CYCLE_41193519633_audit_readiness.json",
+      "new_instrument": "product/audit_readiness.py::bounded_plan_for",
+      "why": "two audits in this chain died at 2705 s of a 2700 s quantum before writing a gate; the dossier now publishes every check's measured command duration, the total and the margin against the audit quantum so an auditor can bound its plan up front",
+      "fail_closed_profile_rule": "no profile exists for predecessor run 41193345044 on purpose: select_profile() refuses unknown ids so one run's claims can never be published under another run's id"
+    },
+    "report": "reports/product/CYCLE_41193662357.md",
+    "cycle_test": "product/tests/test_cycle_41193662357.py",
+    "accepted_pointer": {
+      "accepted_run_id": "CYCLE_40284658455",
+      "accepted_commit": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+      "both_halves_verified_this_cycle": true,
+      "half_1": "results/audit/product/CYCLE_40284658455_GATE.json (gate PASS, safe_to_integrate=true, required_fixes=[])",
+      "half_2": "commit 7be4480e 'accept product cycle 40284658455' is in the resumed snapshot's ancestry (git log --all --grep)"
+    },
+    "bundle_bytes_written": false,
+    "frozen_bar_scored": false,
+    "posture_unchanged": true,
+    "adjudication": {
+      "status": "UNADJUDICATED",
+      "accepted": false,
+      "product_defect": false,
+      "gate_minted": false,
+      "audit_namespace_written": false,
+      "reason": "no independent PASS gate on a cycle audit ref and no accept commit on origin/lab/product for this snapshot chain"
+    },
+    "claim_ceiling": "OPERATIONAL RESUME DIAGNOSIS (two runs), ONE AUDIT-READINESS INSTRUMENT (measured bounded plan) AND A FRESH SERVED-SLICE VERIFICATION. The v68 deliverable is consumed as accepted evidence and is not re-measured. No live retrieval, answer quality, legal usefulness, frozen bar, serve verdict, packet admission or human-gate claim is made.",
+    "unobservable_repair_dispatch": {
+      "observed": true,
+      "message_claim": "REPAIR round 2 of REJECTED run 41194527376, with a producer-written self-declaration (attached)",
+      "checks_run": [
+        "results/audit/product/CYCLE_41194527376* \u2014 absent (no audit-gate file)",
+        "reports/audit/product/CYCLE_41194527376* \u2014 absent",
+        "git ls-remote origin | grep 41194527376 \u2014 no ref",
+        "grep -r 41194527376 (tracked tree) \u2014 no occurrence",
+        "ls /tmp/lex_prior_audit \u2014 directory does not exist (no prior-audit mount)",
+        "attached self-declaration \u2014 no content delivered with the dispatch"
+      ],
+      "env_contradicts_message": {
+        "GITHUB_RUN_ID": "41193662357",
+        "LEX_MODEL_SLOT": "core:product:v68:41193662357",
+        "REPAIR_FROM": "",
+        "REPAIR_ROUND": 0
+      },
+      "action": "recorded, not fabricated",
+      "why_no_repair": "A repair must be scoped by the rejected cycle's required_fixes and gate verdict. Neither the gate, the required_fixes list, the rejected snapshot, nor the claimed self-declaration is observable from this workspace, so no repair of 41194527376 can be honestly claimed or reproduced from committed artifacts. Nothing was invented; the dispatch is recorded as an unobservable control-plane discrepancy.",
+      "fail_closed": true,
+      "causally_verified_claim": "no gate or ref for run 41194527376 is observable from this workspace",
+      "claim_ceiling": "This entry is an observed-workspace fact (absence), not a verdict on run 41194527376."
+    }
   }
 }

@@ -1,0 +1,56 @@
+{
+  "schema": "product-log-access-probe/1",
+  "generated_at": "2026-10-31T10:58:00Z",
+  "executing_run_id": "41193662357",
+  "subject_run_ids": [
+    "41193345044",
+    "41193519633"
+  ],
+  "purpose": "Re-test, with the runner's own persisted git-credentials authorization, whether the GitHub job-log endpoints that earlier lane cycles read with HTTP 200 are readable today. The answer decides whether the recurring lane-cycle exit-1 deaths can be attributed to a log-level cause or must stay UNOBSERVED.",
+  "credential_source": "git config http.https://github.com/.extraheader (runner-persisted checkout credentials; value NOT recorded here or anywhere in this repository)",
+  "requests": [
+    {
+      "url": "https://api.github.com/repos/Mickalive/LexMachina/actions/runs/41193519633/logs",
+      "method": "GET",
+      "auth": "runner persisted git-credentials header",
+      "http_status": 403,
+      "response_message": "Must have admin rights to Repository.",
+      "body_bytes": 180
+    },
+    {
+      "url": "https://api.github.com/repos/Mickalive/LexMachina/actions/jobs/124514973619/logs",
+      "method": "GET",
+      "auth": "runner persisted git-credentials header",
+      "http_status": 403,
+      "response_message": "Must have admin rights to Repository.",
+      "job": "team of run 41193519633",
+      "body_bytes": 141
+    },
+    {
+      "url": "https://api.github.com/repos/Mickalive/LexMachina/actions/runs/41193519633/jobs",
+      "method": "GET",
+      "auth": "none (unauthenticated public read)",
+      "http_status": 200,
+      "response_message": null,
+      "note": "the public jobs/annotations record IS readable; only the log bodies are admin-gated"
+    }
+  ],
+  "findings": {
+    "logs_readable_today": false,
+    "logs_endpoint_status": 403,
+    "innermost_cause": "UNOBSERVED",
+    "cause_asserted": false,
+    "historical_claim_status": "The lane's earlier artifact (CYCLE_40263666190_lane_cycle_log_evidence.json, fetched 2026-10-26 with HTTP 200) records a different, earlier token/endpoint state. That is historical evidence and is preserved verbatim; it does NOT reproduce on this runner today and must not be cited as this cycle's log access.",
+    "only_observed_precedent_for_this_signature": {
+      "run_id": "40263308953",
+      "classification": "MODEL_UPSTREAM_REJECTED_REQUEST_PARAMETER",
+      "upstream_signature": "unsupported_parameter",
+      "exit_codes": [
+        1
+      ],
+      "artifact": "results/product/orchestration/CYCLE_40263666190_lane_cycle_log_evidence.json",
+      "status": "PRECEDENT ONLY - not an attribution for 41193345044 or 41193519633"
+    }
+  },
+  "claim_ceiling": "Observation of two HTTP responses and one public read on this machine at this timestamp, with the credential value withheld. It names whether logs were readable; it asserts no cause for any run, scores no bar, writes no gate and edits no .github/** file (control-plane scope, recorded not edited)."
+}
