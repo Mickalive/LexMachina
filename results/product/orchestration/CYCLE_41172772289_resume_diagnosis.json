@@ -1,0 +1,69 @@
+{
+  "schema": "product-resume-snapshot-diagnosis/1",
+  "run_id": "41172772289",
+  "resumed_by_run_id": "41172922015",
+  "predecessor_run_id": "41168174298",
+  "direction_version": 68,
+  "generated_at": "2026-10-31T05:50:23Z",
+  "mode": "operational resume off the persisted producer snapshot of run 41168174298",
+  "orchestration": {
+    "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+    "failed_job": "team",
+    "failed_step": "Run lane cycle",
+    "failed_step_seconds": 16.0,
+    "team_job_conclusion": "failure",
+    "team_job_seconds": 53.0,
+    "audit_job_conclusion": "skipped",
+    "integrate_job_conclusion": "skipped",
+    "producer_state_validation_conclusion": "skipped",
+    "write_scope_enforcement_conclusion": "skipped",
+    "raw_snapshot": "results/product/orchestration/CYCLE_41172772289_team_step_raw.json",
+    "mechanism": {
+      "status": "OBSERVED_LANE_CYCLE_STEP_FAILED",
+      "logs_available": false,
+      "logs_endpoint_status": 403,
+      "logs_note": "The public GitHub logs endpoint returned HTTP 403 for this unauthenticated reader ('Must have admin rights to Repository'), so the innermost log-level cause of the agent step is UNOBSERVED and none is asserted. The public check-run annotation names only the GENERIC exit code 1, which is not one of the wrapper's own fixed codes (64/65/66/67/75/76/77/78); every named branch is ruled out arithmetically and no model, provider or auth defect is claimed.",
+      "quantum_expired": false,
+      "quantum_seconds": 2700,
+      "lane_cycle_step_seconds": 16.0,
+      "lane_cycle_step_conclusion": "failure",
+      "exit_code": 1,
+      "exit_code_meaning": null,
+      "workflow_version_note": "The run used the control-plane workflow at the head mounted by the lane; its team job failed at the 'Run lane cycle' step, so the downstream 'Validate active MVP producer state' and 'Enforce lane write scope' steps were both skipped while the if:always() 'Persist team snapshot' step succeeded."
+    },
+    "team": {
+      "job_id": 124454087750,
+      "started_at": "2026-10-31T05:29:19Z",
+      "completed_at": "2026-10-31T05:31:12Z",
+      "seconds": 53.0
+    },
+    "audit": {
+      "ran": false,
+      "skipped": true,
+      "gate_file_written": false,
+      "reason": "needs.team.result == 'success' was false, so the audit job and the downstream integrate job were both skipped"
+    }
+  },
+  "durable_delta": {
+    "classification": "ZERO_DURABLE_DELTA",
+    "changed_files": 0,
+    "snapshot_head": "72d10431d6bcab0b9a134d9a18fa5048f303919d",
+    "predecessor_head": "72d10431d6bcab0b9a134d9a18fa5048f303919d",
+    "predecessor_team_ref": "cycle/core/product/41168174298/team",
+    "team_ref": "cycle/core/product/41172772289/team",
+    "note": "Both the team ref and its predecessor point at 72d10431, byte-identical: the failed producer step committed nothing and the always-run persist step published the unchanged tree. The ref exists but proves no work; this is an orchestration outcome, NOT a product defect and NOT a verdict."
+  },
+  "adjudication": {
+    "status": "UNADJUDICATED",
+    "accepted": false,
+    "audit_ref_exists": false,
+    "reason": "the lane-cycle step failed after 16 s with observed generic exit 1; producer-state validation and write-scope enforcement were skipped; no independent audit ran and no gate was written for 41172772289. Requirement 4 needs BOTH an independent PASS gate and an accept commit."
+  },
+  "observed_facts": {
+    "public_record_source": "results/product/orchestration/CYCLE_41172772289_team_step_raw.json",
+    "annotation": "Process completed with exit code 1.",
+    "named_wrapper_branch": "NONE (the annotation carries no LEX_* branch name)",
+    "preflight_replay": "clean: agent registry 7/7 cards and model_health.healthy=true against the mounted control plane"
+  },
+  "claim_ceiling": "This artifact classifies an orchestration outcome and a git-ref delta. It writes no gate, labels no run accepted or rejected, asserts no cause the committed run/jobs snapshot cannot show, and makes no product, legal or serve claim."
+}
