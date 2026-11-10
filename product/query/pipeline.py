@@ -190,7 +190,7 @@ def replay_fixture_query(
 ) -> dict:
     """Deterministic, network-free replay for ``retrieval_mode="fixture"``.
 
-    Two content-addressed sources are tried in a fixed order, both with
+    Three content-addressed sources are tried in a fixed order, all with
     ``mode="offline"`` (cache-only; a miss degrades, it never hits the network):
 
     1. the canonical Frontier fixture scenario (``fixture_config``), which only
@@ -199,13 +199,22 @@ def replay_fixture_query(
     2. the product-owned live cache (``results/product/query_cache``) replayed
        with the **same retrieval config the live run used**, because the
        adapter's request keys are config-shaped (page size, page counts,
-       channel stages) — a differently-shaped config simply misses.
+       channel stages) — a differently-shaped config simply misses;
+    3. the same product cache replayed through
+       :class:`query.cache_replay.QuestionMatchTransport`, which on a search
+       miss serves the recorded page for the *same question text, language and
+       all other request params* (offset/sort/fields included) even when the
+       requested ``limit`` differs.  The
+       committed cache records the four frozen questions at several page sizes
+       (10/12/25/30/...), while ``top_n``-derived configs ask for 25 or 37, so
+       sources 1-2 alone raised "OpenCaseLaw retrieval returned no decisions"
+       for real, already-cached questions.
 
-    Source 2 is what makes ``reality_check.py --mode fixture`` work for the
-    four frozen reality legs: their envelopes were recorded by live runs of
-    the exact same question and config, but never by the canonical scenario.
-    Before this fallback, fixture mode raised "OpenCaseLaw retrieval returned
-    no decisions" for every leg question (negative evidence preserved in
+    Source 2 is what makes ``reality_check.py --mode fixture`` work when the
+    caller's config matches the recorded live run.  Source 3 keeps the same
+    questions replayable when only the page size drifted.  Before these
+    fallbacks, fixture mode raised "OpenCaseLaw retrieval returned no
+    decisions" for every leg question (negative evidence preserved in
     ``results/product/reality_check/summary_fixture_20261016T165553Z.json`` and
     ``..._20261017T055734Z.json``).
 
@@ -233,6 +242,30 @@ def replay_fixture_query(
         cfg = cfg.replace(max_requests=max(cfg.max_requests, hydration_budget))
         out = replay_fixtures(query, config=cfg, hydrate_top=hydrate_top)
         source = "product_query_cache_live_config_replay"
+    question_match_stats = None
+    if not out.get("candidates"):
+        # Third attempt, offline only: the product cache contains real
+        # OpenCaseLaw answers for the frozen reality questions that were
+        # recorded at page sizes the current ``top_n``-derived config does not
+        # reproduce (e.g. limit=10/12 while top_n=100 asks for 25).  The
+        # tolerant transport ignores ONLY ``limit`` and only for the same
+        # query text, language and non-paging params, so this is a replay of
+        # recorded pages, never a network call or a cross-question substitution.
+        from .cache_replay import QuestionMatchTransport
+
+        # Read the SAME cache root the caller configured (product cache in
+        # production, an isolated tmp dir in tests).  The fallback must never
+        # reach past a caller's cache isolation.
+        tolerant = QuestionMatchTransport(cfg.cache_path())
+        out = build_candidate_bundle(
+            query,
+            config=cfg,
+            transport=tolerant,
+            hydrate_top=hydrate_top,
+            include_structure=True,
+        )
+        question_match_stats = tolerant.stats()
+        source = "product_query_cache_question_match_replay"
     prov = out.setdefault("provenance", {})
     prov["product_fixture_replay"] = {
         "source": source,
@@ -240,6 +273,12 @@ def replay_fixture_query(
         "network": "none",
         "n_candidates": len(out.get("candidates") or []),
     }
+    if question_match_stats is not None:
+        prov["product_fixture_replay"]["question_match"] = question_match_stats
+        prov["product_fixture_replay"]["config_tolerance"] = (
+            "search cache miss matches the same query text, language and "
+            "non-paging params, ignoring only limit/offset; no network call"
+        )
     return out
 
 
