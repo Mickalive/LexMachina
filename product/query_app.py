@@ -26,6 +26,7 @@ Every stage is still reachable as one blocking call with ``&wait_s=<seconds>``
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 import threading
@@ -75,11 +76,10 @@ def _job(name: str) -> dict:
     return {"status": "idle", "started_at": None, "ended_at": None, "error": None, "detail": {}}
 
 
-def _remember(query: str, top_n: int, bundle: dict, mode: str) -> str:
-    run_id = uuid.uuid4().hex[:12]
+def _remember(query: str, top_n: int, bundle: dict, mode: str,
+              run_id: str | None = None, pinned: bool = False) -> str:
+    run_id = run_id or uuid.uuid4().hex[:12]
     with RUNS_LOCK:
-        while len(RUNS) >= MAX_STORED_RUNS:
-            RUNS.pop(next(iter(RUNS)))
         RUNS[run_id] = {
             "run_id": run_id,
             "query": query,
@@ -87,8 +87,17 @@ def _remember(query: str, top_n: int, bundle: dict, mode: str) -> str:
             "mode": mode,
             "bundle": bundle,
             "created_at": _now(),
+            "pinned": pinned,
             "jobs": {"expand": _job("expand"), "enrich": _job("enrich")},
         }
+        # Evict oldest unpinned runs.  A ``--bundle`` run is the link the
+        # operator was handed, so later queries must not silently break it.
+        while len(RUNS) > MAX_STORED_RUNS:
+            victim = next((key for key, record in RUNS.items()
+                           if not record.get("pinned")), None)
+            if victim is None:
+                break
+            RUNS.pop(victim)
     return run_id
 
 
@@ -329,6 +338,18 @@ class Handler(BaseHTTPRequestHandler):
         mode = "fixture" if fixture_mode else "live"
 
         if path in {"/", "/index.html", "/query.html"}:
+            preloaded = getattr(self.server, "preloaded_run_id", None)
+            # A committed bundle is served as a resumable run.  Send the bare
+            # page to the deep link so the browser restores it through the same
+            # ?run_id path the UI already knows (no new client state).
+            if preloaded and not (params.get("run_id") or [""])[0]:
+                location = "/?run_id=" + urllib.parse.quote(str(preloaded))
+                self.send_response(302)
+                self.send_header("Location", location)
+                self.send_header("Content-Length", "0")
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                return
             return self._file(STATIC_DIR / "query.html")
         if path.startswith("/static/"):
             rel = path[len("/static/"):]
@@ -337,6 +358,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._file(STATIC_DIR / rel)
 
         if path == "/api/health":
+            preloaded = getattr(self.server, "preloaded_run_id", None)
             return self._json({
                 "ok": True,
                 "direction_version": 45,
@@ -346,6 +368,8 @@ class Handler(BaseHTTPRequestHandler):
                 "generation": "generative-audit contract 2.2 with explicit degraded fallback",
                 "runs": len(RUNS),
                 "fixture_mode": fixture_mode,
+                "preloaded_run_id": preloaded,
+                "bundle_preloaded": bool(preloaded),
             })
 
         if path == "/api/query/start":
@@ -446,10 +470,24 @@ def _float_param(params: dict, name: str, default: float) -> float:
         return default
 
 
-def make_server(host: str, port: int, *, fixture_mode: bool, verbose: bool) -> ThreadingHTTPServer:
+def _load_bundle(path: Path) -> dict:
+    """Read and validate a committed query_result_bundle for serving."""
+    try:
+        bundle = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise SystemExit(f"--bundle: cannot read {path}: {exc}") from exc
+    errors = validate_bundle(bundle)
+    if errors:
+        raise SystemExit(f"--bundle: invalid query_result_bundle: {errors}")
+    return bundle
+
+
+def make_server(host: str, port: int, *, fixture_mode: bool, verbose: bool,
+                preloaded_run_id: str | None = None) -> ThreadingHTTPServer:
     srv = ThreadingHTTPServer((host, port), Handler)
     srv.fixture_mode = fixture_mode  # type: ignore[attr-defined]
     srv.verbose = verbose  # type: ignore[attr-defined]
+    srv.preloaded_run_id = preloaded_run_id  # type: ignore[attr-defined]
     srv.daemon_threads = True
     return srv
 
@@ -459,12 +497,40 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8787)
     ap.add_argument("--fixture", action="store_true", help="deterministic offline OpenCaseLaw fixture + fixture generation")
+    ap.add_argument("--bundle", type=Path, default=None,
+                    help="serve a committed query_result_bundle (offline; no retrieval, no model)")
+    ap.add_argument("--bundle-run-id", default=None,
+                    help="stable run id for --bundle (default: sha-derived)")
     ap.add_argument("--quiet", action="store_true")
     args = ap.parse_args(argv)
+    if args.bundle_run_id and not args.bundle:
+        ap.error("--bundle-run-id requires --bundle")
 
-    srv = make_server(args.host, args.port, fixture_mode=args.fixture, verbose=not args.quiet)
-    mode = "fixture/offline" if args.fixture else "live OpenCaseLaw"
-    print(f"LexMachina query map ({mode}): http://{args.host}:{srv.server_address[1]}/")
+    preloaded_run_id = None
+    if args.bundle:
+        bundle = _load_bundle(args.bundle)
+        preloaded_run_id = args.bundle_run_id or (
+            "bundle-" + hashlib.sha256(args.bundle.read_bytes()).hexdigest()[:12]
+        )
+        _remember(
+            (bundle.get("query") or "").strip(),
+            len(bundle.get("decisions") or []),
+            bundle,
+            "offline",
+            run_id=preloaded_run_id,
+            pinned=True,
+        )
+
+    srv = make_server(args.host, args.port, fixture_mode=args.fixture,
+                      verbose=not args.quiet,
+                      preloaded_run_id=preloaded_run_id)
+    if preloaded_run_id:
+        mode = f"preloaded bundle {args.bundle}"
+        link = f"/?run_id={urllib.parse.quote(preloaded_run_id)}"
+    else:
+        mode = "fixture/offline" if args.fixture else "live OpenCaseLaw"
+        link = "/"
+    print(f"LexMachina query map ({mode}): http://{args.host}:{srv.server_address[1]}{link}")
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

@@ -32,7 +32,15 @@ for _p in (str(PRODUCT), str(ROOT)):
         sys.path.insert(0, str(_p))
 
 RAW = ROOT / "results/product/orchestration/CYCLE_42793313084_run_jobs_raw.json"
-DIAG = ROOT / "results/product/orchestration/CYCLE_42793313084_resume_diagnosis.json"
+# The raw snapshot in this tree is ``product-run-jobs-raw/2``.  It was
+# regenerated after the original diagnosis was written, which left the old
+# diagnosis pinning a sha the committed raw no longer has.  The repaired
+# diagnosis below is the one this cycle verifies; the superseded file is kept
+# unedited as the historical record and is asserted to be stale.
+DIAG = ROOT / ("results/product/orchestration/"
+               "CYCLE_42793313084_resume_diagnosis_REPAIRED_42809155715.json")
+DIAG_SUPERSEDED = ROOT / ("results/product/orchestration/"
+                          "CYCLE_42793313084_resume_diagnosis.json")
 SLICES = ROOT / "results/product/offline_slice/CYCLE_42794322956"
 STATE = ROOT / "state/product.json"
 REPORT = ROOT / "reports/product/CYCLE_42794322956.md"
@@ -50,7 +58,7 @@ def _sha(p: Path) -> str:
 
 def test_raw_snapshot_pins_the_snapshot_orchestration_facts():
     raw = _load(RAW)
-    assert raw["schema"] == "product-run-jobs-snapshot/1"
+    assert raw["schema"] == "product-run-jobs-raw/2"
     assert raw["fetched_by_run"] == 42794322956
     assert raw["run"]["id"] == 42793313084
     assert raw["run"]["conclusion"] == "failure"
@@ -62,8 +70,10 @@ def test_raw_snapshot_pins_the_snapshot_orchestration_facts():
     assert steps["Persist team snapshot"] == "success"
     assert jobs["audit"]["conclusion"] == "skipped"
     assert jobs["integrate"]["conclusion"] == "skipped"
-    ann = raw["check_run_annotations_by_job_id"][str(jobs["team"]["id"])]
-    messages = [row["message"] for row in ann]
+    block = raw["check_run_annotations_by_job_id"][str(jobs["team"]["id"])]
+    ann = block.get("annotations") if isinstance(block, dict) else block
+    messages = [row[-1] if isinstance(row, (list, tuple)) else row.get("message", "")
+                for row in ann or []]
     assert any("LEX_ZERO_DELTA_REPAIR" in m for m in messages)
     assert any("exit code 67" in m for m in messages)
     # the seven-run chain is on the record.  ``runs[*].head_sha`` is the
@@ -133,6 +143,24 @@ def test_diagnosis_is_consistent_with_raw_and_the_profile():
     assert cur == snap
     assert Path(snap["current_report"]) == REPORT
     assert Path(snap["cycle_test"]).is_file()
+    assert Path(snap["resume_diag"]) == DIAG
+
+
+def test_stale_diagnosis_is_preserved_but_not_trusted():
+    """The pre-repair diagnosis pinned a sha of bytes that no longer exist.
+
+    This is the exact self-check drift run 42794322956 shipped: its dossier
+    recorded 5/5 green at 10:11:55, then the raw was regenerated before the
+    10:20:43 commit.  The repair adds a re-pinned diagnosis and keeps the old
+    one for the record instead of rewriting history.
+    """
+    raw_sha = _sha(RAW)
+    stale = _load(DIAG_SUPERSEDED)
+    repaired = _load(DIAG)
+    assert stale["raw_snapshot_sha256"] != raw_sha
+    assert repaired["raw_snapshot_sha256"] == raw_sha
+    assert repaired["durable_delta"]["classification"] == "ZERO_DURABLE_DELTA"
+    assert repaired["adjudication"]["status"] == "UNADJUDICATED"
 
 
 def test_offline_frozen_question_slices_are_complete_and_network_free():
@@ -174,7 +202,11 @@ def test_offline_frozen_question_slices_are_complete_and_network_free():
 
 def test_state_hygiene_and_posture():
     st = _load(STATE)
-    assert st["current_cycle_run_id"] == 42794322956
+    # Repaired in 42809155715: a cycle test must not pin the mutable global
+    # current-run pointer, or it turns red the moment a later resume advances
+    # it.  This cycle's block and history entry remain the durable facts.
+    assert isinstance(st["current_cycle_run_id"], int)
+    assert st["current_cycle_run_id"] >= 42794322956
     block = st["cycle_42794322956_operational_resume"]
     assert block["run_id"] == 42794322956
     assert block["resumed_run"] == "42793313084"

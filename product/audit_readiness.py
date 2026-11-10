@@ -469,7 +469,15 @@ PROFILES: dict[str, dict[str, Any]] = {
         "resumed_run_id": "42793313084",
         "predecessor_run_id": "42792990432",
         "raw": ORCH / "CYCLE_42793313084_run_jobs_raw.json",
-        "resume_diag": ORCH / "CYCLE_42793313084_resume_diagnosis.json",
+        # The raw snapshot was regenerated to ``product-run-jobs-raw/2`` after
+        # the original diagnosis was written, so the original pins a sha the
+        # committed bytes no longer have.  The repaired diagnosis is re-pinned
+        # to the committed raw; the original is preserved as the historical
+        # record and is not overwritten.
+        "resume_diag": ORCH / (
+            "CYCLE_42793313084_resume_diagnosis_REPAIRED_42809155715.json"),
+        "resume_diag_superseded": ORCH / (
+            "CYCLE_42793313084_resume_diagnosis.json"),
         # The snapshot produced no report of its own, so no inherited report
         # is claimed rather than borrowing another run's report as this one's.
         "inherited_report": None,
@@ -496,6 +504,45 @@ PROFILES: dict[str, dict[str, Any]] = {
         },
     },
     "42794322956": {"alias_of": "42793313084"},
+    "42808654760": {
+        # Operational resume target: the predecessor snapshot 42798377691 had
+        # a GREEN team job (10/10) and a real but narrow delta (37 query-cache
+        # refreshes, 4db23e85) yet its independent audit consumed the whole
+        # 2700 s quantum (exit 78) before a gate, so it is UNADJUDICATED.
+        # 42808654760 tried to resume it but its lane-cycle step was rejected
+        # by the workflow's own zero-delta guard (public annotation
+        # LEX_ZERO_DELTA_REPAIR, exit 67); state validation and write-scope
+        # enforcement were skipped and the always-run persist step published
+        # 4db23e85 again.  Resumed by run 42809155715, whose committed delta is
+        # this cycle's product work.
+        "resumed_run_id": "42808654760",
+        "predecessor_run_id": "42798377691",
+        "raw": ORCH / "CYCLE_42808654760_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_42808654760_resume_diagnosis.json",
+        "inherited_report": None,
+        "current_report": ROOT / "reports" / "product"
+                            / "CYCLE_42809155715.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed_zero_delta",
+        "delta_kind": "zero",
+        "exit_code": 67,
+        "changed_files": 0,
+        "cycle_test": "product/tests/test_cycle_42809155715.py",
+        "state_block": "cycle_42809155715_operational_resume",
+        # Consume the accepted fixed-path counter-content family unchanged
+        # (REPORTED-ONLY); this resume runs no new frozen predicate.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "42809155715": {"alias_of": "42808654760"},
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -546,6 +593,9 @@ MVP_CORE_TESTS = (
     "product/tests/test_counter_content_rejection_v68.py",
     "product/tests/test_state_contract.py",
     "product/tests/test_progressive_query.py",
+    # run 42809155715: the two new product-owned capabilities this cycle ships
+    "product/tests/test_bundle_preload.py",
+    "product/tests/test_run_snapshot_fetch.py",
 )
 
 STATE_TIMEOUT_S = 180
