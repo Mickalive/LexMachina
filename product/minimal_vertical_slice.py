@@ -38,7 +38,7 @@ from query_bundle_adapter import adapt_bundle_to_visualization  # noqa: E402 (fr
 
 
 def run_minimal_slice(query: str, top_n: int = 120, max_cites: int = 8,
-                      mode: str = "live") -> dict:
+                      mode: str = "live", with_bundle: bool = False):
     """Execute the full vertical slice and return the visualization-ready data.
 
     ``mode`` is the pipeline retrieval mode: ``live`` (OpenCaseLaw, cache
@@ -158,6 +158,12 @@ def run_minimal_slice(query: str, top_n: int = 120, max_cites: int = 8,
     # Print JSON output
     print(json.dumps(output, ensure_ascii=False, indent=2))
 
+    if with_bundle:
+        # Preserve the full query_result_bundle (decisions with x/y/cluster/
+        # source links, answer, counter status, provenance) instead of only
+        # the compact visualization summary.  This is what the clickable map
+        # and any downstream audit consume; the summary alone cannot render.
+        return output, initial
     return output
 
 
@@ -176,15 +182,27 @@ def main(argv=None):
                              "(cache-only, network-free), fixture (frozen)")
     parser.add_argument("--out", type=str, default=None,
                         help="Write visualization JSON to file")
+    parser.add_argument("--bundle-out", type=str, default=None,
+                        help="Write the full query_result_bundle JSON to file")
     args = parser.parse_args(argv)
 
-    output = run_minimal_slice(args.query, top_n=args.n, max_cites=args.cites,
-                               mode=args.mode)
+    result = run_minimal_slice(
+        args.query, top_n=args.n, max_cites=args.cites, mode=args.mode,
+        with_bundle=bool(args.bundle_out),
+    )
+    if args.bundle_out:
+        output, bundle = result
+    else:
+        output, bundle = result, None
 
     if args.out:
         with open(args.out, "w", encoding="utf-8") as f:
             json.dump(output, f, ensure_ascii=False, indent=2)
         print(f"\nWrote visualization output to {args.out}")
+    if args.bundle_out:
+        with open(args.bundle_out, "w", encoding="utf-8") as f:
+            json.dump(bundle, f, ensure_ascii=False, indent=2)
+        print(f"Wrote full query_result_bundle to {args.bundle_out}")
 
     return 0
 

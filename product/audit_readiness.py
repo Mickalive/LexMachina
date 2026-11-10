@@ -458,6 +458,44 @@ PROFILES: dict[str, dict[str, Any]] = {
         },
     },
     "42771257885": {"alias_of": "42764343815"},
+    "42793313084": {
+        # Operational resume target: the producer's lane-cycle step was
+        # rejected by the workflow's own zero-delta guard (public annotation
+        # LEX_ZERO_DELTA_REPAIR, exit 67) before state validation and
+        # write-scope enforcement could run.  The always-run persist step
+        # published the predecessor's exact tree (6a825be8), so the team ref
+        # carries ZERO durable delta.  Resumed by run 42794322956, whose team
+        # ref carries the actual product delta this dossier validates.
+        "resumed_run_id": "42793313084",
+        "predecessor_run_id": "42792990432",
+        "raw": ORCH / "CYCLE_42793313084_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_42793313084_resume_diagnosis.json",
+        # The snapshot produced no report of its own, so no inherited report
+        # is claimed rather than borrowing another run's report as this one's.
+        "inherited_report": None,
+        "current_report": ROOT / "reports" / "product"
+                            / "CYCLE_42794322956.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed_zero_delta",
+        "delta_kind": "zero",
+        "exit_code": 67,
+        "changed_files": 0,
+        "cycle_test": "product/tests/test_cycle_42794322956.py",
+        "state_block": "cycle_42794322956_operational_resume",
+        # Consume the accepted fixed-path counter-content family unchanged
+        # (REPORTED-ONLY); this resume runs no new frozen predicate.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "42794322956": {"alias_of": "42793313084"},
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -778,6 +816,64 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                 problems.append("raw_scope_step_not_failure")
         else:
             problems.append("raw_snapshot_missing")
+    elif mechanism_kind == "observed_zero_delta":
+        # Fifth real failure mode, observed on the 42781684618 ..
+        # 42793313084 chain: the producer's lane-cycle step was rejected by
+        # the workflow's own zero-delta guard (public annotation
+        # LEX_ZERO_DELTA_REPAIR, exit 67) before state validation and scope
+        # enforcement could run.  The always-run persist step still published
+        # the predecessor's exact tree, so the team ref carries ZERO durable
+        # delta.  This is an orchestration outcome, not a product defect and
+        # not a quantum expiry; wording it as either would misreport the run.
+        mechanism = orch.get("mechanism") or {}
+        quantum_seconds = None
+        exit_code = p("exit_code", 67)
+        if mechanism.get("status") != "OBSERVED_ZERO_DELTA_GUARD":
+            problems.append("mechanism_status")
+        if mechanism.get("zero_delta_repair") is not True:
+            problems.append("zero_delta_repair")
+        if mechanism.get("exit_code") != exit_code:
+            problems.append("exit_code")
+        if mechanism.get("quantum_expired") is not False:
+            problems.append("quantum_expired")
+        team_block = orch.get("team") or {}
+        if team_block.get("failed_step") != "Run lane cycle":
+            problems.append("failed_step")
+        if (orch.get("audit") or {}).get("gate_file_written") is not False:
+            problems.append("gate_file_written")
+        if (orch.get("audit") or {}).get("conclusion") != "skipped":
+            problems.append("audit_not_skipped")
+        # Cross-check the raw snapshot the profile names: the failed producer
+        # step, the skipped workflow guards, the always-run persist step and
+        # the zero-delta annotation must all agree with the diagnosis.
+        if raw is not None and raw.is_file():
+            raw_doc = _load(raw)
+            team = next((j for j in raw_doc.get("jobs") or []
+                         if j.get("name") == "team"), None)
+            steps = {s.get("name"): s.get("conclusion")
+                     for s in (team or {}).get("steps") or []}
+            if steps.get("Run lane cycle") != "failure":
+                problems.append("raw_lane_cycle_not_failure")
+            if steps.get("Validate active MVP producer state") != "skipped":
+                problems.append("raw_state_validation_not_skipped")
+            if steps.get("Enforce lane write scope") != "skipped":
+                problems.append("raw_scope_step_not_skipped")
+            if steps.get("Persist team snapshot") != "success":
+                problems.append("raw_snapshot_step_not_success")
+            ann = (raw_doc.get("check_run_annotations_by_job_id") or {}).get(
+                str((team or {}).get("id"))
+            ) or {}
+            ann_rows = ann.get("annotations") if isinstance(ann, dict) else ann
+            messages = []
+            for row in ann_rows or []:
+                if isinstance(row, dict):
+                    messages.append(str(row.get("message") or ""))
+                elif isinstance(row, (list, tuple)) and row:
+                    messages.append(str(row[-1]))
+            if not any("LEX_ZERO_DELTA_REPAIR" in m for m in messages):
+                problems.append("raw_zero_delta_annotation_missing")
+        else:
+            problems.append("raw_snapshot_missing")
     else:
         # Raw-free resume: the public run/jobs snapshot is unavailable. The
         # only honest record is that the mechanism is unobserved; asserting a
@@ -832,6 +928,12 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                    "on a producer-minted auditor-namespace gate file (no "
                    "work quantum reached, audit skipped), durable delta "
                    "present, run unadjudicated")
+    elif mechanism_kind == "observed_zero_delta":
+        summary = (f"Resumed run {resumed_id}: lane-cycle step rejected by "
+                   "the workflow's own zero-delta guard (LEX_ZERO_DELTA_REPAIR, "
+                   "exit 67) before state validation or write-scope "
+                   "enforcement, team ref carries zero durable delta over its "
+                   "predecessor, run unadjudicated")
     else:
         summary = (f"Resumed run {resumed_id}: raw run/jobs snapshot "
                    "unavailable (mechanism unobserved), team ref carries zero "
@@ -1227,6 +1329,20 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
             "QUARANTINED.json. Observed from the run's own job records "
             "(logs endpoint HTTP 200), not inferred; no work quantum "
             "expired."
+        )
+        c1_artifacts = (
+            ([str(raw.relative_to(ROOT))] if raw is not None else [])
+            + [str(resume_diag.relative_to(ROOT))])
+    elif mechanism_kind == "observed_zero_delta":
+        c1_claim = (
+            f"Run {resumed_id}'s lane-cycle step was rejected by the "
+            f"workflow's own zero-delta guard (public annotation "
+            f"LEX_ZERO_DELTA_REPAIR, exit {p('exit_code', 67)}) before the "
+            "producer state-validation and write-scope steps could run; the "
+            "always-run persist step then published the predecessor's exact "
+            "tree, so the team ref carries ZERO durable delta. Observed from "
+            "the public check-run annotations, not inferred; no work quantum "
+            "expired and no product defect is claimed."
         )
         c1_artifacts = (
             ([str(raw.relative_to(ROOT))] if raw is not None else [])

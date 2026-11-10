@@ -181,6 +181,40 @@ def _retrieval_config(top_n: int, mode: str) -> AdapterConfig:
     )
 
 
+def _question_match_replay(
+    query: str,
+    *,
+    top_n: int,
+    config: AdapterConfig,
+    hydrate_top: int = 0,
+) -> tuple[dict, dict]:
+    """Replay a real cached question with the tolerant offline transport.
+
+    The product cache records the frozen reality questions at several page
+    sizes (10/12/25/30/...), while a ``top_n``-derived config asks for a
+    different ``limit``.  :class:`query.cache_replay.QuestionMatchTransport`
+    serves the recorded page for the same question text, language and all
+    other request params, ignoring only ``limit``.  It never touches the
+    network and never substitutes a different question.
+
+    Returns ``(candidate_bundle, transport_stats)``.  Shared by fixture mode
+    (third replay source) and by the plain offline mode, so a developer who
+    asks the one-command slice for a frozen question gets the same recorded
+    pages instead of ``OpenCaseLaw retrieval returned no decisions``.
+    """
+    from .cache_replay import QuestionMatchTransport
+
+    tolerant = QuestionMatchTransport(config.cache_path())
+    out = build_candidate_bundle(
+        query,
+        config=config,
+        transport=tolerant,
+        hydrate_top=hydrate_top,
+        include_structure=True,
+    )
+    return out, tolerant.stats()
+
+
 def replay_fixture_query(
     query: str,
     *,
@@ -251,20 +285,12 @@ def replay_fixture_query(
         # tolerant transport ignores ONLY ``limit`` and only for the same
         # query text, language and non-paging params, so this is a replay of
         # recorded pages, never a network call or a cross-question substitution.
-        from .cache_replay import QuestionMatchTransport
-
         # Read the SAME cache root the caller configured (product cache in
         # production, an isolated tmp dir in tests).  The fallback must never
         # reach past a caller's cache isolation.
-        tolerant = QuestionMatchTransport(cfg.cache_path())
-        out = build_candidate_bundle(
-            query,
-            config=cfg,
-            transport=tolerant,
-            hydrate_top=hydrate_top,
-            include_structure=True,
+        out, question_match_stats = _question_match_replay(
+            query, top_n=top_n, config=cfg, hydrate_top=hydrate_top
         )
-        question_match_stats = tolerant.stats()
         source = "product_query_cache_question_match_replay"
     prov = out.setdefault("provenance", {})
     prov["product_fixture_replay"] = {
@@ -448,13 +474,36 @@ def _retrieve(
     # hydration call must not re-issue extra searches to fetch one decision id.
     if not hydrate_ids and not hydrate_top:
         if not candidate.get("candidates") and mode == "offline":
-            # Cache-first fallback: the primary request key missed the cache
-            # (e.g. a frozen envelope recorded by another client config), so
-            # replay the planned texts under the coverage config, including the
-            # query text itself.  A miss is still recorded, never fabricated.
-            candidate = _expand_query_text_coverage(
-                candidate, query, top_n=top_n, mode=mode, include_primary=True
+            # Cache-first fallback, first attempt: the primary request key
+            # missed because the committed page was recorded at another
+            # ``limit`` (the frozen reality questions were cached at
+            # 10/12/25/30/... while a top_n-derived config asks for 25/37).
+            # Replay the same question text through the tolerant transport,
+            # which ignores only the page size and never touches the network.
+            # This is the offline analogue of fixture mode's third source.
+            candidate, question_match_stats = _question_match_replay(
+                query, top_n=top_n, config=cfg
             )
+            candidate.setdefault("provenance", {})["product_offline_replay"] = {
+                "source": "product_query_cache_question_match_replay",
+                "mode": "offline",
+                "network": "none",
+                "n_candidates": len(candidate.get("candidates") or []),
+                "question_match": question_match_stats,
+                "config_tolerance": (
+                    "search cache miss matches the same query text, language "
+                    "and non-paging params, ignoring only limit; no network "
+                    "call and no cross-question substitution"
+                ),
+            }
+            if not candidate.get("candidates"):
+                # Second attempt: replay the planned texts under the coverage
+                # config, including the query text itself.  A miss is still
+                # recorded, never fabricated.
+                candidate = _expand_query_text_coverage(
+                    candidate, query, top_n=top_n, mode=mode,
+                    include_primary=True,
+                )
         else:
             candidate = _expand_query_text_coverage(
                 candidate, query, top_n=top_n, mode=mode

@@ -40,6 +40,7 @@ AUDIT_JOB = "audit"
 AUDIT_STEP = "Independent audit"
 QUANTUM_RE = re.compile(r"LEX_WORK_QUANTUM_EXPIRED\s+seconds=(\d+)")
 EXIT_CODE_RE = re.compile(r"exit code\s+(\d+)", re.IGNORECASE)
+ZERO_DELTA_RE = re.compile(r"LEX_ZERO_DELTA_REPAIR")
 
 
 def _step(job: dict, name: str) -> dict | None:
@@ -54,22 +55,65 @@ def _seconds_between(start: str | None, end: str | None) -> float | None:
                  .total_seconds(), 1)
 
 
+def _normalise_annotation(item: object) -> dict | None:
+    """Normalise one annotation record to ``{"message": str, ...}``.
+
+    Raw snapshots in this repository have been captured in three shapes:
+    the REST object (``{"message": ...}``), the older hand-written pair
+    (``[level, message]``), and a bare string.  All three are evidence of the
+    same public check-run annotation, so the parser accepts all three instead
+    of silently treating a committed snapshot as annotation-free.
+    """
+    if isinstance(item, dict):
+        message = item.get("message")
+        return dict(item) if message is not None else None
+    if isinstance(item, (list, tuple)) and item:
+        message = item[-1]
+        if message is None:
+            return None
+        out = {"message": str(message)}
+        if len(item) > 1:
+            out["level"] = item[0]
+        return out
+    if isinstance(item, str):
+        return {"message": item}
+    return None
+
+
 def _job_annotations(snapshot: dict, job: dict) -> list[dict]:
     """Return the check-run annotations for ``job`` from a committed snapshot.
 
-    Two layouts are accepted because the raw snapshots were captured by hand:
-    ``snapshot["annotations"][<job id>]`` (what the workflow-adjacent fetcher
-    writes) and a job-local ``job["annotations"]`` list.  Anything else is
-    treated as "not captured", never guessed.
+    Layouts accepted because the raw snapshots were captured by hand:
+    ``snapshot["check_run_annotations_by_job_id"][<job id>]`` (the key written
+    by the run/jobs fetcher used for 42764343815 and later resumes; the value
+    may be the block dict or its ``annotations`` list),
+    ``snapshot["annotations"][<job id>]`` and a job-local
+    ``job["annotations"]`` list.  Anything else is treated as "not captured",
+    never guessed.
     """
+    candidates: list[object] = []
+    block = (snapshot.get("check_run_annotations_by_job_id") or {}).get(
+        str(job.get("id"))
+    )
+    if isinstance(block, dict):
+        candidates.append(block.get("annotations"))
+    elif isinstance(block, list):
+        candidates.append(block)
     ann = snapshot.get("annotations")
     if isinstance(ann, dict):
         for key in (str(job.get("id")), job.get("id")):
-            if key in ann and isinstance(ann[key], list):
-                return ann[key]
-    job_ann = job.get("annotations")
-    if isinstance(job_ann, list):
-        return job_ann
+            if key in ann:
+                candidates.append(ann[key])
+                break
+    candidates.append(job.get("annotations"))
+    for candidate in candidates:
+        if isinstance(candidate, list):
+            normalised = [
+                row for row in (_normalise_annotation(item)
+                                for item in candidate) if row is not None
+            ]
+            if normalised:
+                return normalised
     return []
 
 
@@ -97,11 +141,14 @@ def _failure_annotations(snapshot: dict, team: dict, audit: dict,
     quantum_seconds = None
     exit_code = None
     quantum_message = None
+    zero_delta_message = None
     for message in messages:
         m = QUANTUM_RE.search(message)
         if m:
             quantum_seconds = int(m.group(1))
             quantum_message = message.strip()
+        if ZERO_DELTA_RE.search(message) and zero_delta_message is None:
+            zero_delta_message = message.strip()
         e = EXIT_CODE_RE.search(message)
         if e and exit_code is None:
             exit_code = int(e.group(1))
@@ -115,6 +162,8 @@ def _failure_annotations(snapshot: dict, team: dict, audit: dict,
         "quantum_expired": quantum_seconds is not None,
         "quantum_seconds": quantum_seconds,
         "quantum_message": quantum_message,
+        "zero_delta_repair": zero_delta_message is not None,
+        "zero_delta_message": zero_delta_message,
         "messages": messages,
     }
 
@@ -155,6 +204,7 @@ def classify(snapshot: dict) -> dict:
     )
     quantum_seconds = annotations.get("quantum_seconds")
     quantum_expired = bool(annotations.get("quantum_expired"))
+    zero_delta_repair = bool(annotations.get("zero_delta_repair"))
     # HTTP 200 on the run-jobs logs endpoint means the producing cycle (or a
     # later resume holding the producer token) actually downloaded the job
     # logs; "not downloadable" is then a false sentence, see the branch below.
@@ -217,9 +267,34 @@ def classify(snapshot: dict) -> dict:
         # occurred, and the log-level cause belongs to the committed
         # lane-cycle log-evidence artifact (product/lane_cycle_log_evidence.py)
         # rather than to this instrument.
-        mechanism_status = ("OBSERVED_LOGS_AVAILABLE_NO_QUANTUM"
-                            if logs_available else "UNOBSERVED")
-        if logs_available:
+        if zero_delta_repair:
+            # The wrapper's own zero-delta guard is visible in the public
+            # check-run annotation, so the run's death class is observed even
+            # though the agent's log body is not downloadable.  This is the
+            # class behind the zero-delta guard rejections in the
+            # 42781684618 .. 42793313084 chain (42790448478, 42793313084):
+            # the producer step exited 67 after changing nothing, and the
+            # always-run persist step republished the predecessor's exact
+            # tree.  Exit-1 runs in that chain are NOT folded into this
+            # class; their mechanism stays UNOBSERVED.
+            mechanism_status = "OBSERVED_ZERO_DELTA_GUARD"
+            mechanism_claim = (
+                "The lane-cycle agent process exited non-zero after "
+                f"{(failed_team_step or {}).get('started_at')} and before "
+                f"{(failed_team_step or {}).get('completed_at')} with exit "
+                f"code {annotations.get('exit_code')}. The public check-run "
+                f"annotation reads {annotations.get('zero_delta_message')!r}, "
+                "so the workflow's own zero-delta guard rejected the cycle "
+                "before the state-validation and write-scope steps could run. "
+                "The 'Persist team snapshot' step is guarded by `if: always()` "
+                "and concluded "
+                f"{(snapshot_step or {}).get('conclusion')!r}, so the team ref "
+                "was published with the predecessor's unchanged tree. This is "
+                "an orchestration outcome, not a product defect; no provider, "
+                "auth, timeout or token cause is claimed."
+            )
+        elif logs_available:
+            mechanism_status = "OBSERVED_LOGS_AVAILABLE_NO_QUANTUM"
             mechanism_claim = (
                 "The lane-cycle agent process exited non-zero after "
                 f"{(failed_team_step or {}).get('started_at')} and before "
@@ -239,6 +314,7 @@ def classify(snapshot: dict) -> dict:
                 "is asserted here."
             )
         else:
+            mechanism_status = "UNOBSERVED"
             mechanism_claim = (
                 "The lane-cycle agent process exited non-zero after "
                 f"{(failed_team_step or {}).get('started_at')} and before "
@@ -390,6 +466,7 @@ def classify(snapshot: dict) -> dict:
             "annotations_available": annotations.get("annotations_available"),
             "quantum_expired": quantum_expired,
             "quantum_seconds": quantum_seconds,
+            "zero_delta_repair": zero_delta_repair,
             "exit_code": annotations.get("exit_code"),
             "claim": mechanism_claim,
         },
