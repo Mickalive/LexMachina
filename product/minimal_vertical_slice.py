@@ -37,12 +37,22 @@ from product.query.bundle import annotate_content_state, validate_bundle, bundle
 from query_bundle_adapter import adapt_bundle_to_visualization  # noqa: E402 (frontier adapter reuse)
 
 
-def run_minimal_slice(query: str, top_n: int = 120, max_cites: int = 8) -> dict:
-    """Execute the full vertical slice and return the visualization-ready data."""
+def run_minimal_slice(query: str, top_n: int = 120, max_cites: int = 8,
+                      mode: str = "live") -> dict:
+    """Execute the full vertical slice and return the visualization-ready data.
+
+    ``mode`` is the pipeline retrieval mode: ``live`` (OpenCaseLaw, cache
+    assisted), ``offline`` (cache-only, never touches the network) or
+    ``fixture`` (frozen envelopes, deterministic).  The offline/fixture modes
+    make the slice reproducible under an armed socket trap.
+    """
+    if mode not in {"live", "offline", "fixture"}:
+        raise ValueError(f"unsupported retrieval mode: {mode}")
 
     # --- Phase 1: Initial retrieval + map (run_query_initial) ---
-    print(f"=== Phase 1: Retrieval + map (query='{query}', top_n={top_n}) ===")
-    initial = run_query_initial(query, top_n=top_n, retrieval_mode="live")
+    print(f"=== Phase 1: Retrieval + map (query='{query}', top_n={top_n}, "
+          f"mode={mode}) ===")
+    initial = run_query_initial(query, top_n=top_n, retrieval_mode=mode)
     print(f"  Decisions: {len(initial.get('decisions', []))}")
     print(f"  Clusters: {len(initial.get('clusters', []))}")
     print(f"  Answer status: {initial.get('answer', {}).get('status', 'pending')}")
@@ -115,6 +125,8 @@ def run_minimal_slice(query: str, top_n: int = 120, max_cites: int = 8) -> dict:
     print("\n=== Output ===")
     output = {
         "query": initial["query"],
+        "retrieval_mode": mode,
+        "decision_ids": [d["decision_id"] for d in initial["decisions"]],
         "summary": summary,
         "visualization": {
             "n_decisions": viz["n_decisions"],
@@ -158,11 +170,16 @@ def main(argv=None):
                         help="Swiss legal research question")
     parser.add_argument("--n", type=int, default=120, help="target decisions (100-300)")
     parser.add_argument("--cites", type=int, default=8, help="max citations in answer")
+    parser.add_argument("--mode", choices=("live", "offline", "fixture"),
+                        default="live",
+                        help="retrieval mode: live (network), offline "
+                             "(cache-only, network-free), fixture (frozen)")
     parser.add_argument("--out", type=str, default=None,
                         help="Write visualization JSON to file")
     args = parser.parse_args(argv)
 
-    output = run_minimal_slice(args.query, top_n=args.n, max_cites=args.cites)
+    output = run_minimal_slice(args.query, top_n=args.n, max_cites=args.cites,
+                               mode=args.mode)
 
     if args.out:
         with open(args.out, "w", encoding="utf-8") as f:

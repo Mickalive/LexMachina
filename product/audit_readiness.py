@@ -415,6 +415,49 @@ PROFILES: dict[str, dict[str, Any]] = {
         },
     },
     "42745308078": {"alias_of": "42738229187"},
+    "42764343815": {
+        # Operational resume target: the producer team job of 42764343815
+        # SUCCEEDED (10/10 green steps, 2-file delta d5a2012b over the last
+        # durable team ref 17fd0f19) but the independent-audit agent consumed
+        # its whole 2700 s work quantum (exit 78, pid=2302) before writing a
+        # gate, so the run is UNADJUDICATED with no /audit ref.  The two runs
+        # between were LEX_ZERO_DELTA_REPAIR (exit 67) rejections that left the
+        # team ref unchanged.  Resumed by run 42771257885.
+        "resumed_run_id": "42764343815",
+        "predecessor_run_id": "42756474119",
+        "raw": ORCH / "CYCLE_42764343815_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_42764343815_resume_diagnosis.json",
+        # The snapshot produced no report of its own (its team job only
+        # reworded state/audit-readiness prose), so no inherited report is
+        # claimed rather than borrowing another run's report as this one's.
+        "inherited_report": None,
+        "current_report": ROOT / "reports" / "product"
+                            / "CYCLE_42771257885.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 2,
+        "changed_paths_include": (
+            "product/audit_readiness.py",
+            "state/product.json",
+        ),
+        "cycle_test": "product/tests/test_cycle_42771257885.py",
+        "state_block": "cycle_42771257885_operational_resume",
+        # Consume the accepted fixed-path counter-content family unchanged
+        # (REPORTED-ONLY); this resume runs no new frozen predicate.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "42771257885": {"alias_of": "42764343815"},
 }
 
 # Active profile; empty means "the module constants above" (the original
