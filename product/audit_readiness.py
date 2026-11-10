@@ -1235,17 +1235,16 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
              "claim": c1_claim,
              "check": "resumed_diagnosis",
              "artifacts": c1_artifacts},
-            {"id": "C2",
-             "claim": (
-                 f"Run {resumed_id} persisted an {delta_files}-file durable "
-                 f"delta over {predecessor or 'the accepted head "
-                 "origin/lab/product'} and is UNADJUDICATED."
-                 if delta_kind != "zero" else
-                 f"Run {resumed_id}'s team ref is byte-identical to its "
-                 f"predecessor {predecessor}'s team ref: the resumed producer "
-                 "added nothing (ZERO_DURABLE_DELTA) and the run is "
-                 "UNADJUDICATED."
-             ),
+{"id": "C2",
+              "claim": (
+                  f"Run {resumed_id} persisted an {delta_files}-file durable "
+                  f"delta over {predecessor or 'the accepted head of the accepted chain'}"
+                  if delta_kind != "zero" else
+                  f"Run {resumed_id}'s team ref is byte-identical to its "
+                  f"predecessor {predecessor}'s team ref: the resumed producer "
+                  "added nothing (ZERO_DURABLE_DELTA) and the run is "
+                  "UNADJUDICATED."
+              ),
              "check": "resumed_diagnosis",
              "artifacts": [str(resume_diag.relative_to(ROOT))]},
             {"id": "C3",
