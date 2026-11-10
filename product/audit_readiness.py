@@ -369,6 +369,52 @@ PROFILES: dict[str, dict[str, Any]] = {
                              / "self_minted_gate_40278460732_producer_"
                                "40283048553.QUARANTINED.json",
     },
+    "42738229187": {
+        # Operational resume of 42745308078: the producer's team job SUCCEEDED
+        # and published a real 7-file delta (the page-size-tolerant fixture
+        # question replay), but the independent-audit agent consumed its whole
+        # 2700 s work quantum (exit 78) before writing a gate, so the run is
+        # UNADJUDICATED with no /audit ref.  Same failure mode as 40196023042,
+        # observed from check-run annotations (logs endpoint HTTP 403).
+        "resumed_run_id": "42738229187",
+        # The delta baseline is the ACCEPTED head (origin/lab/product), which
+        # is the instrument's own default for a resume: comparing against the
+        # previous team ref would count the accept commit's audit files as if
+        # this producer had written them.  The diagnosis therefore records an
+        # empty predecessor_run_id, and the profile matches it exactly.
+        "predecessor_run_id": "",
+        "raw": ORCH / "CYCLE_42738229187_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_42738229187_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_42738229187.md",
+        "current_report": ROOT / "reports" / "product"
+                            / "CYCLE_42745308078.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 7,
+        "changed_paths_include": (
+            "product/fixture_question_replay_probe.py",
+            "product/query/cache_replay.py",
+            "reports/product/CYCLE_42738229187.md",
+        ),
+        "cycle_test": "product/tests/test_cycle_42745308078.py",
+        "state_block": "cycle_42745308078_operational_resume",
+        # No new counter-content family this cycle: consume the accepted
+        # fixed-path family pins unchanged (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "42745308078": {"alias_of": "42738229187"},
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -1192,7 +1238,8 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
             {"id": "C2",
              "claim": (
                  f"Run {resumed_id} persisted an {delta_files}-file durable "
-                 f"delta over {predecessor} and is UNADJUDICATED."
+                 f"delta over {predecessor or 'the accepted head "
+                 "origin/lab/product'} and is UNADJUDICATED."
                  if delta_kind != "zero" else
                  f"Run {resumed_id}'s team ref is byte-identical to its "
                  f"predecessor {predecessor}'s team ref: the resumed producer "

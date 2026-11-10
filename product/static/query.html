@@ -17,6 +17,14 @@
 aside{background:#fff;border-right:1px solid #e2e5ea;overflow:auto;padding:18px}
 main{min-width:0;display:flex;flex-direction:column}.brand{font-weight:800;font-size:21px}.sub{color:#68707d;font-size:12px;margin:3px 0 16px}
 .search{display:grid;grid-template-columns:1fr 72px;gap:7px}.search input,.search select,button{border:1px solid #d7dbe2;border-radius:8px;padding:9px;background:#fff}
+/* frozen-question quick-pick (FAST MVP): one click fills #q with a frozen
+   reality-check leg and runs the normal pipeline.  The four strings live in
+   FROZEN_QUICKPICK below and are pinned byte-for-byte against
+   product/reality_check.py LEGS by product/tests/test_frozen_question_quickpick.py. */
+.quickpick{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin:7px 0 2px}
+.quickpick .qp-label{font-size:11px;color:#737b88;flex:0 0 auto}
+.quickpick button.qp{padding:3px 9px;border-radius:14px;font-size:11.5px;font-weight:600;background:#fff;cursor:pointer;color:#2c3340}
+.quickpick button.qp:hover{background:#f2f5f9;border-color:#b9c0cb}
 button{cursor:pointer;font-weight:650}.primary{grid-column:1/-1;background:#17191f;color:#fff;border-color:#17191f}
 #status{font-size:12px;color:#68707d;margin:9px 0 14px;min-height:30px}.phase{display:inline-block;padding:2px 7px;border-radius:20px;background:#eef0f4;margin-right:5px}
 .warn{color:#9c5a00;background:#fff7e8;border:1px solid #f0d7a8;padding:8px;border-radius:8px;font-size:12px}
@@ -54,6 +62,17 @@ h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#737b88;ma
     <input id="q" value="Kündigung Mietvertrag Mietrecht" placeholder="Posez une question de droit suisse…">
     <select id="n"><option>100</option><option selected>150</option><option>250</option><option>300</option></select>
     <button class="primary" id="run">Rechercher</button>
+  </div>
+  <!-- Frozen-question quick-pick: the four reality-check legs, one click each.
+       The question text is NOT duplicated here on purpose - it lives only in
+       FROZEN_QUICKPICK (below) and is pinned against reality_check.LEGS by
+       product/tests/test_frozen_question_quickpick.py. -->
+  <div class="quickpick" id="quickpick" role="group" aria-label="Questions figées">
+    <span class="qp-label">Questions figées :</span>
+    <button type="button" class="qp" id="qp-rent-default">Loyer impayé · bail d'habitation</button>
+    <button type="button" class="qp" id="qp-petty-theft-dismissal">Vol de faible valeur · art. 337 CO</button>
+    <button type="button" class="qp" id="qp-corporate-criminal-liability">Responsabilité pénale · art. 102 CP</button>
+    <button type="button" class="qp" id="qp-business-judgment-rule">Business judgment rule</button>
   </div>
   <div id="status">Prêt.</div>
   <h3>Réponse</h3>
@@ -722,6 +741,28 @@ function wireGateAnswers(controller){
 }
 if(window.__LEX_PRODUCT_SWITCH__)wireGateAnswers(window.__LEX_PRODUCT_SWITCH__.controller);
 window.__LEX_GATE_ANSWERS__={questions:GATE_UI_QUESTIONS,read:readGateAnswers,wire:wireGateAnswers};
+/* Frozen-question quick-pick (FAST MVP): select a real Swiss-law fixture
+   instead of retyping it.  The map still comes from the same progressive
+   pipeline; only the question source differs.  The strings in FROZEN_QUICKPICK
+   are the four frozen reality-check legs, byte-pinned by
+   product/tests/test_frozen_question_quickpick.py against reality_check.LEGS.
+   This block lives AFTER the harness attach() block on purpose: the first
+   addEventListener("click",...) in the page must stay the switch's toggle
+   listener, which product/tests/test_human_gate_integration.py pins. */
+const FROZEN_QUICKPICK={
+"rent-default":"Sous quelles conditions un bailleur peut-il résilier un bail d'habitation pour retard dans le paiement du loyer selon le droit suisse, et quelles exceptions ou limites jurisprudentielles existent ?",
+"petty-theft-dismissal":"Un vol de faible valeur commis par un employé justifie-t-il un licenciement immédiat selon l'art. 337 CO ? Quelles circonstances font varier la réponse ?",
+"corporate-criminal-liability":"La responsabilité pénale de l'entreprise selon l'art. 102 CP est-elle subsidiaire ou primaire, et pour quelles infractions ? Quelles exigences d'organisation doivent être prouvées ?",
+"business-judgment-rule":"Dans quelles conditions le juge suisse s'abstient-il de revoir une décision commerciale d'un conseil d'administration au titre de la business judgment rule, et quelles exceptions ou limites ressortent de la jurisprudence ?"
+};
+Object.keys(FROZEN_QUICKPICK).forEach(function(slug){
+  const btn=document.getElementById("qp-"+slug);
+  if(!btn)return;
+  btn.addEventListener("click",function(){
+    document.getElementById("q").value=FROZEN_QUICKPICK[slug];
+    run();
+  });
+});
 /* The boot promise is published so an offline harness can await the deep-link
    decision instead of racing it; the page itself never uses it. */
 window.__LEX_BOOT_PROMISE__=boot();
