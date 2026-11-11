@@ -543,6 +543,50 @@ PROFILES: dict[str, dict[str, Any]] = {
         },
     },
     "42809155715": {"alias_of": "42808654760"},
+    "42930681665": {
+        # Operational resume target: the predecessor snapshot 42820069517
+        # committed a real but narrow delta (44 query-cache rows: 34 modified
+        # entries of which 29 carry upstream OpenCaseLaw drift, 10 new entries)
+        # yet wrote no report, state block or dossier, and its public GitHub
+        # run record was pruned before any snapshot could capture it (HTTP 404
+        # in CYCLE_42930681665_run_jobs_raw.json fetch_failures), so its stop
+        # mechanism is UNOBSERVED and it is UNADJUDICATED — reconciled by the
+        # committed cache-refresh artifact, never narrated.  42930681665 tried
+        # to resume it but its lane-cycle step was rejected by the workflow's
+        # own zero-delta guard (public annotation LEX_ZERO_DELTA_REPAIR, exit
+        # 67); state validation and write-scope enforcement were skipped and
+        # the always-run persist step published 49a276d9 again.  Resumed by
+        # run 42931129328, whose committed delta is this cycle's product work.
+        "resumed_run_id": "42930681665",
+        "predecessor_run_id": "42820069517",
+        "raw": ORCH / "CYCLE_42930681665_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_42930681665_resume_diagnosis.json",
+        "cache_refresh_reconciliation": ORCH / (
+            "CYCLE_42820069517_reconciliation.json"),
+        "inherited_report": None,
+        "current_report": ROOT / "reports" / "product"
+                            / "CYCLE_42931129328.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed_zero_delta",
+        "delta_kind": "zero",
+        "exit_code": 67,
+        "changed_files": 0,
+        "cycle_test": "product/tests/test_cycle_42931129328.py",
+        "state_block": "cycle_42931129328_operational_resume",
+        # Consume the accepted fixed-path counter-content family unchanged
+        # (REPORTED-ONLY); this resume runs no new frozen predicate.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "42931129328": {"alias_of": "42930681665"},
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -1030,6 +1074,12 @@ def check_claim_artifacts() -> dict[str, Any]:
     ]
     if raw_path is not None:
         paths.insert(3, raw_path)
+    # A resume whose predecessor committed an unreported cache-refresh delta
+    # pins its reconciliation artifact here; existence and hash only — the
+    # headline numbers are verified by the cycle test, not the dossier.
+    reconciliation = p("cache_refresh_reconciliation")
+    if reconciliation:
+        paths.append(Path(reconciliation))
     missing = [str(p.relative_to(ROOT)) for p in paths if not p.is_file()]
     hashes = {str(p.relative_to(ROOT)): _sha256(p)
               for p in paths if p.is_file()}
