@@ -633,6 +633,53 @@ PROFILES: dict[str, dict[str, Any]] = {
         },
     },
     "42955840398": {"alias_of": "42949721176"},
+    "42983901071": {
+        # Operational resume target: run 42976016321's TEAM job was green
+        # with a 37-file delta (36 query_cache entries + a byte-only
+        # state/product.json re-serialization) and its own independent audit
+        # consumed the whole 2700 s work quantum (LEX_WORK_QUANTUM_EXPIRED,
+        # exit 78) before writing a gate, so the snapshot is UNADJUDICATED.
+        # The producer stopped after persisting its cache refresh: no
+        # diagnosis, report, state block or dossier was written for the
+        # chain it refreshed (42964203118 zero-delta exit 1, 42964472484
+        # team-green/audit-quantum, 42970556900 team-quantum after a 7-file
+        # delta), and this cycle's committed delta finishes that work.
+        # The last report in the tree at the snapshot's base is
+        # CYCLE_42955840398.md, so that is the inherited report here.
+        "resumed_run_id": "42976016321",
+        "predecessor_run_id": "42970556900",
+        "raw": ORCH / "CYCLE_42976016321_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_42976016321_resume_diagnosis.json",
+        # The resumed run's own cache/state delta, reconciled by the
+        # committed product/cache_refresh_delta.py against upstream.
+        "cache_refresh_reconciliation": ORCH / (
+            "CYCLE_42976016321_cache_refresh_delta.json"),
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_42955840398.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_42983901071.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 37,
+        "changed_paths_include": ("query_cache",),
+        "cycle_test": "product/tests/test_cycle_42983901071.py",
+        "state_block": "cycle_42983901071_operational_resume",
+        # Consume the accepted fixed-path counter-content family unchanged
+        # (REPORTED-ONLY); this resume runs no new frozen predicate.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original

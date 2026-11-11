@@ -142,7 +142,13 @@ def test_finished_slice_deliverable_is_tested_and_artifacted():
 
 def test_state_hygiene_and_fail_closed_posture():
     st = _load(STATE)
-    assert st["current_cycle_run_id"] == 42771257885
+    # POINTER-PIN AMENDMENT (product cycle 42983901071), following
+    # ``test_cycle_40263666190_resume.py``: later cycles legitimately
+    # advance the pointer past this cycle's era; only regression below this
+    # cycle's executing run is a defect.
+    assert st["current_cycle_run_id"] >= 42771257885, (
+        "current_cycle_run_id regressed below this cycle's executing run",
+        st["current_cycle_run_id"])
     assert st["direction_version"] == 68
     hist = {h["run_id"]: h for h in st["run_history"]}
     for rid in (42750521657, 42756474119, 42763518526, 42763865015,

@@ -175,7 +175,13 @@ def test_quickpick_is_byte_exact_with_frozen_legs_and_shipped():
 
 def test_state_records_this_resume_fail_closed_with_a_current_pointer():
     st = _load(STATE)
-    assert st["current_cycle_run_id"] == int(EXECUTING_RUN_ID)
+    # POINTER-PIN AMENDMENT (product cycle 42983901071), following
+    # ``test_cycle_40263666190_resume.py``: later cycles legitimately
+    # advance the pointer past this cycle's era; only regression below this
+    # cycle's executing run is a defect.
+    assert st["current_cycle_run_id"] >= int(EXECUTING_RUN_ID), (
+        "current_cycle_run_id regressed below this cycle's executing run",
+        st["current_cycle_run_id"], EXECUTING_RUN_ID)
     assert st["direction_version"] == 68
     assert st["continue_recommended"] is True
     for flag in ("human_gate_ready", "machine_gate_ready", "packet_admitted",

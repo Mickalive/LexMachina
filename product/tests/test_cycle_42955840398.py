@@ -238,7 +238,13 @@ def test_42931129328_audit_outcome_correction_is_recorded():
 
 def test_state_hygiene_this_cycle():
     state = _load(STATE)
-    assert state["current_cycle_run_id"] == 42955840398
+    # POINTER-PIN AMENDMENT (product cycle 42983901071), following
+    # ``test_cycle_40263666190_resume.py``: later cycles legitimately
+    # advance the pointer past this cycle's era; only regression below this
+    # cycle's executing run is a defect.
+    assert state["current_cycle_run_id"] >= 42955840398, (
+        "current_cycle_run_id regressed below this cycle's executing run",
+        state["current_cycle_run_id"])
     assert state["direction_version"] == 68
     assert state["cycle_status"] == "COMPLETE"
     # Every chain run and this cycle now has a run_history row.

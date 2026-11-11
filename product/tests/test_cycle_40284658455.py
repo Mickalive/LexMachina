@@ -120,7 +120,13 @@ def test_no_gate_exists_for_the_executing_or_resumed_run():
 
 def test_state_attributes_the_executing_run_not_the_resumed_snapshot():
     st = _load(STATE)
-    assert st["current_cycle_run_id"] == int(EXECUTING_RUN_ID)
+    # POINTER-PIN AMENDMENT (product cycle 42983901071), following
+    # ``test_cycle_40263666190_resume.py``: later cycles legitimately
+    # advance the pointer past this cycle's era; only regression below this
+    # cycle's executing run is a defect.
+    assert st["current_cycle_run_id"] >= int(EXECUTING_RUN_ID), (
+        "current_cycle_run_id regressed below this cycle's executing run",
+        st["current_cycle_run_id"], EXECUTING_RUN_ID)
     blk = st["cycle_40284658455_operational_resume"]
     assert blk["resumed_snapshot"]["run_id"] == int(RESUMED_RUN_ID)
     assert "NON_PROMOTING" in blk["quarantine_verdict"]

@@ -76,7 +76,15 @@ def test_current_report_and_state_are_honest():
         assert needle in report, needle
 
     state = _load(STATE)
-    assert state["current_cycle_run_id"] == int(RUN_ID)
+    # POINTER-PIN AMENDMENT (product cycle 42983901071), following the
+    # amendment recorded in ``test_cycle_40263666190_resume.py``: later
+    # accepted cycles legitimately advance ``current_cycle_run_id`` past
+    # this cycle's era, so pinning it to 40259640985 breaks once the world
+    # moves.  What survives is stronger: the pointer must never REGRESS
+    # below this cycle's executing run.
+    assert state["current_cycle_run_id"] >= int(RUN_ID), (
+        "current_cycle_run_id regressed below this cycle's executing run",
+        state["current_cycle_run_id"], RUN_ID)
     assert state["continue_recommended"] is True
     assert state["human_gate_ready"] is False
     assert state["machine_gate_ready"] is False

@@ -157,7 +157,13 @@ def test_bundle_preload_is_the_shipped_offline_clickable_slice():
 def test_state_hygiene_and_operational_resume_record():
     st = _load(STATE)
     assert st["direction_version"] == 68
-    assert st["current_cycle_run_id"] == 42809155715
+    # POINTER-PIN AMENDMENT (product cycle 42983901071), following
+    # ``test_cycle_40263666190_resume.py``: later cycles legitimately
+    # advance the pointer past this cycle's era; only regression below this
+    # cycle's executing run is a defect.
+    assert st["current_cycle_run_id"] >= 42809155715, (
+        "current_cycle_run_id regressed below this cycle's executing run",
+        st["current_cycle_run_id"])
     block = st["cycle_42809155715_operational_resume"]
     assert block["run_id"] == 42809155715
     assert block["resumed_run"] == "42808654760"

@@ -22,8 +22,9 @@ Given a run's committed resume diagnosis (which pins its ``snapshot_head`` and
 ``predecessor_head`` from git refs) it:
 
 * lists every file the run's commit changed under
-  ``results/product/query_cache/`` (and refuses a delta that touches
-  anything else without ``--allow-non-cache-paths``);
+  ``results/product/query_cache/`` and, because a delta that touches anything
+  else must never be silently dropped, records those paths verbatim in
+  ``delta.non_cache_paths`` (they are neither characterized nor hidden);
 * classifies each *modified* entry as ``fetched_at_only`` (every field equal
   except ``fetched_at``) or ``upstream_drift`` (the cached HTTP envelope's
   content changed), recording which top-level and nested ``body`` keys moved;
@@ -304,10 +305,17 @@ def reconcile(run_id: str, resume_diagnosis: Path, raw_snapshot: Path | None,
             f"({delta_block.get('classification')}); a zero-delta run needs no "
             "cache-refresh reconciliation")
     character = characterize(base, head)
+    orchestration = diag.get("orchestration") or {}
+    mechanism_block = orchestration.get("mechanism")
+    mechanism_status = (mechanism_block or {}).get("status") \
+        if isinstance(mechanism_block, dict) else None
+    mechanism_claim = (mechanism_block or {}).get("claim") \
+        if isinstance(mechanism_block, dict) else None
     github_record: dict[str, Any] = {
         "raw_snapshot": (_rel(raw_snapshot)
                          if raw_snapshot is not None else None),
         "fetch_failure": None,
+        "captured": False,
         "meaning": (
             "the run's public GitHub run/jobs record was unavailable when the "
             "cited raw snapshot was captured, so the run's own stop mechanism "
@@ -319,7 +327,24 @@ def reconcile(run_id: str, resume_diagnosis: Path, raw_snapshot: Path | None,
             if str(failure.get("run_id")) == str(run_id):
                 github_record["fetch_failure"] = failure
                 break
-        else:
+        run_obj = raw.get("run") or {}
+        if str(run_obj.get("id")) == str(run_id) and raw.get("jobs"):
+            # The raw snapshot captured THIS run, so the pruned-record text
+            # above would be false (requirement 33: a published claim must
+            # reproduce from the committed bytes). Say what was captured.
+            github_record["captured"] = True
+            github_record["run_name"] = run_obj.get("name")
+            github_record["run_conclusion"] = run_obj.get("conclusion")
+            github_record["jobs"] = {
+                job.get("name"): job.get("conclusion")
+                for job in raw.get("jobs") or []
+            }
+            github_record["meaning"] = (
+                "the run's public GitHub run/jobs record IS captured by the "
+                "cited raw snapshot; the stop mechanism is classified in the "
+                "cited resume diagnosis"
+                + (f" as {mechanism_status}" if mechanism_status else ""))
+        elif github_record["fetch_failure"] is None:
             github_record["fetch_failure"] = (
                 f"not listed in {raw_snapshot}; the run id is not cited there")
     adjudication = {
@@ -330,6 +355,39 @@ def reconcile(run_id: str, resume_diagnosis: Path, raw_snapshot: Path | None,
                               / f"CYCLE_{run_id}_GATE.json").exists(),
     }
     remote = _remote_refs(run_id) if remote_check else None
+    if mechanism_status:
+        why_this_exists = (
+            "the run committed a query-cache delta but no report, state block "
+            "or dossier; its public run/jobs record was captured by a raw "
+            "snapshot and its stop mechanism is classified in the resume "
+            "diagnosis cited above, so this artifact makes the delta itself "
+            "reproducible from git without restating the cause"
+        )
+        claim_ceiling = [
+            "the mechanism that stopped this run is "
+            f"{mechanism_status}, as classified by the cited resume diagnosis "
+            "from the captured public run/jobs snapshot"
+            + (f": {mechanism_claim}" if mechanism_claim else ""),
+            "the delta characterization is REPORTED-ONLY; it is not a frozen "
+            "bar, not a benchmark and not a product capability claim",
+            "UNADJUDICATED is not a verdict; only an independent audit gate "
+            "plus an accept commit change it",
+        ]
+    else:
+        why_this_exists = (
+            "the run committed a query-cache delta but no report, state block "
+            "or dossier, and its public run record was pruned before any "
+            "snapshot could capture it; this artifact makes the delta itself "
+            "reproducible from git without asserting why the run stopped"
+        )
+        claim_ceiling = [
+            "the mechanism that stopped this run is UNOBSERVED; no provider, "
+            "quantum, scope or zero-delta cause is asserted",
+            "the delta characterization is REPORTED-ONLY; it is not a frozen "
+            "bar, not a benchmark and not a product capability claim",
+            "UNADJUDICATED is not a verdict; only an independent audit gate "
+            "plus an accept commit change it",
+        ]
     return {
         "schema": SCHEMA,
         "generated_at": _now(),
@@ -337,24 +395,13 @@ def reconcile(run_id: str, resume_diagnosis: Path, raw_snapshot: Path | None,
         "commit": head,
         "base_commit": base,
         "resume_diagnosis": _rel(resume_diagnosis),
-        "why_this_exists": (
-            "the run committed a query-cache delta but no report, state block "
-            "or dossier, and its public run record was pruned before any "
-            "snapshot could capture it; this artifact makes the delta itself "
-            "reproducible from git without asserting why the run stopped"),
+        "why_this_exists": why_this_exists,
         "delta": character,
         "github_record": github_record,
         "state_run_history": _run_history_presence(state_path, str(run_id)),
         "remote_refs_observed": remote,
         "adjudication": adjudication,
-        "claim_ceiling": [
-            "the mechanism that stopped this run is UNOBSERVED; no provider, "
-            "quantum, scope or zero-delta cause is asserted",
-            "the delta characterization is REPORTED-ONLY; it is not a frozen "
-            "bar, not a benchmark and not a product capability claim",
-            "UNADJUDICATED is not a verdict; only an independent audit gate "
-            "plus an accept commit change it",
-        ],
+        "claim_ceiling": claim_ceiling,
     }
 
 
