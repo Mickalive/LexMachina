@@ -60,7 +60,7 @@
       "scope": ".github/** is control-plane scope and is recorded, never edited from a lane"
     }
   ],
-  "current_cycle_run_id": 42931129328,
+  "current_cycle_run_id": 42955840398,
   "cycle_38764203_verification": {
     "accepted_by_both_halves": false,
     "adjudication": {
@@ -2006,9 +2006,9 @@
   },
   "lane": "product",
   "last_repair_round": 0,
-  "last_updated": "2026-11-11T00:55:00Z",
+  "last_updated": "2026-11-11T05:20:00Z",
   "machine_gate_ready": false,
-  "next_recommendation": "Direction v68 / FAST MVP, producer cycle 42931129328 (OPERATIONAL RESUME of persisted zero-delta snapshot 42930681665; the 42820069517 predecessor committed an unreported 44-row query-cache refresh that this cycle reconciled from git alone). WHAT THIS CYCLE DID: (a) captured 42930681665's public run/jobs snapshot and diagnosed OBSERVED_ZERO_DELTA_GUARD exit 67 / ZERO_DURABLE_DELTA / UNADJUDICATED; (b) reconciled the unreported 42820069517 commit with a new committed instrument (product/cache_refresh_delta.py) characterizing all 44 rows (34 modified: 5 fetched_at-only, 29 upstream drift; 10 new HTTP 200 entries), recording the run in run_history with mechanism UNOBSERVED and no back-dated report; (c) re-verified the inherited lane deliverable: query_app.py --bundle one-command clickable slice, MVP core tests and progressive smoke all green on this snapshot. No gate minted; no frozen bar, rubric, threshold or serve verdict touched; all fail-closed posture flags remain false. NEXT: independent audit of this snapshot; if the gate is PASS, the owner can test the one-command offline bundle link, and the next producer cycle should advance a substantive product capability rather than another operational verification slice.",
+  "next_recommendation": "Direction v68 / FAST MVP, producer cycle 42955840398 (OPERATIONAL RESUME of persisted producer snapshot 42949721176, whose team job was fully green with a 2-file raw-capture delta but whose independent audit quantum-expired at exit 78 before any gate). WHAT THIS CYCLE DID: (a) diagnosed the complete eight-run unadjudicated chain since the last reported cycle 42931129328 - including the two chain-of-record gaps (42930240440, 42939030694) that no previously committed raw snapshot covered - from committed public run/jobs+annotation evidence, with per-run resume diagnoses sha-pinned to their raw bytes; (b) finished the incomplete producer work inherited from 42939662796 and 42949721176 (diagnoses, report, state rows, audit-readiness profile + dossier, cycle test); (c) re-verified the inherited lane deliverable: 176 MVP core tests green, progressive smoke 23/23 over a real socket, committed offline bundles validate, one-command query_app.py --bundle clickable slice covered by test_bundle_preload.py. No gate minted; no frozen bar, rubric, threshold or serve verdict touched; all fail-closed posture flags remain false. NEXT: independent audit of this snapshot; the dossier gives the auditor one bounded command to re-derive the claims instead of spending its quantum rediscovering them. If the gate is PASS, the owner can test the one-command offline bundle link, and the next producer cycle should advance a substantive product capability rather than another operational verification slice.",
   "not_claimed": [
     "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
     "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
@@ -2333,6 +2333,16 @@
     },
     {
       "audit_gate": "NONE_ON_ANY_REF",
+      "date": "2026-11-11T00:17:58Z",
+      "diagnosis": "results/product/orchestration/CYCLE_42930240440_resume_diagnosis.json",
+      "raw": "results/product/orchestration/CYCLE_42930240440_run_jobs_raw.json",
+      "repair_round": 0,
+      "run_id": 42930240440,
+      "status": "TEAM_JOB_EXIT_1_ZERO_DURABLE_DELTA_CHAIN_GAP_CLOSED",
+      "summary": "Chain-of-record gap closed by run 42955840398: run 42930240440 failed at 'Run lane cycle' with exit 1 (mechanism UNOBSERVED: no zero-delta annotation, no quantum marker), and its always-run persist step republished 49a276d9, so the team ref carries ZERO durable delta over 42820069517. Audit and integrate skipped. UNADJUDICATED. It was absent from every previously committed raw snapshot; its public run/jobs record was captured and its diagnosis written by 42955840398."
+    },
+    {
+      "audit_gate": "NONE_ON_ANY_REF",
       "date": "2026-11-11T00:24:32Z",
       "repair_round": 0,
       "run_id": 42930681665,
@@ -2340,12 +2350,100 @@
       "summary": "Team job failed at 'Run lane cycle' with LEX_ZERO_DELTA_REPAIR exit 67 (61 s; producer found nothing to do); state validation and write-scope enforcement skipped; always-run persist republished 49a276d9, so the team ref carries ZERO durable delta over 42820069517. Audit and integrate skipped; UNADJUDICATED. Resumed by run 42931129328."
     },
     {
-      "audit_gate": "NONE_YET_THIS_RUN",
+      "audit_gate": "NONE_ON_ANY_REF",
       "date": "2026-11-11T00:55:00Z",
       "repair_round": 0,
       "run_id": 42931129328,
       "status": "OPERATIONAL_RESUME_ZERO_DELTA_SNAPSHOT_42930681665_RECONCILIATION",
-      "summary": "Operational resume of 42930681665: captured its public run/jobs snapshot (4 jobs) with the committed fetcher, diagnosed OBSERVED_ZERO_DELTA_GUARD exit 67 / ZERO_DURABLE_DELTA / UNADJUDICATED, reconciled the unreported 42820069517 commit (44-row cache characterization reproduced from git), and re-verified the inherited lane deliverable (one-command --bundle clickable slice, MVP core tests, progressive smoke). PROPOSED, pending independent audit."
+      "summary": "Operational resume of 42930681665: captured its public run/jobs snapshot (4 jobs) with the committed fetcher, diagnosed OBSERVED_ZERO_DELTA_GUARD exit 67 / ZERO_DURABLE_DELTA / UNADJUDICATED, reconciled the unreported 42820069517 commit (44-row cache characterization reproduced from git), and re-verified the inherited lane deliverable (one-command --bundle clickable slice, MVP core tests, progressive smoke). PROPOSED, pending independent audit.",
+      "correction": {
+        "corrected_by_run": 42955840398,
+        "field": "audit_gate",
+        "from": "NONE_YET_THIS_RUN",
+        "to": "NONE_ON_ANY_REF",
+        "reason": "the producer cannot observe its own run's audit while it executes; the committed raw snapshot captured by run 42939662796 (results/product/orchestration/CYCLE_42939662796_run_jobs_raw.json chain_of_record) observes that run 42931129328's independent audit FAILED at 'Independent audit' with LEX_WORK_QUANTUM_EXPIRED seconds=2700 exit 78, so no gate exists on any ref and the run is UNADJUDICATED",
+        "history_preserved": "the original 'NONE_YET_THIS_RUN' value and the row's summary text remain readable at git show 25af4ca1:state/product.json; nothing is deleted or re-labelled"
+      }
+    },
+    {
+      "audit_gate": "NONE_ON_ANY_REF",
+      "date": "2026-11-11T01:26:58Z",
+      "diagnosis": "results/product/orchestration/CYCLE_42939030694_resume_diagnosis.json",
+      "raw": "results/product/orchestration/CYCLE_42939030694_run_jobs_raw.json",
+      "repair_round": 0,
+      "run_id": 42939030694,
+      "status": "TEAM_JOB_EXIT_1_ZERO_DURABLE_DELTA_CHAIN_GAP_CLOSED",
+      "summary": "Chain-of-record gap closed by run 42955840398: run 42939030694 failed at 'Run lane cycle' with exit 1 (mechanism UNOBSERVED), republished 25af4ca1 (ZERO durable delta over 42931129328). Audit and integrate skipped. UNADJUDICATED; absent from every previously committed raw snapshot."
+    },
+    {
+      "audit_gate": "NONE_ON_ANY_REF",
+      "date": "2026-11-11T01:29:36Z",
+      "diagnosis": "results/product/orchestration/CYCLE_42939338810_resume_diagnosis.json",
+      "raw": "results/product/orchestration/CYCLE_42939338810_run_jobs_raw.json",
+      "repair_round": 0,
+      "run_id": 42939338810,
+      "status": "TEAM_JOB_EXIT_1_ZERO_DURABLE_DELTA_DIAGNOSED_BY_42939662796",
+      "summary": "Failed at 'Run lane cycle' after 17 s with exit 1 (mechanism UNOBSERVED); republished 25af4ca1 (ZERO durable delta over 42931129328). Audit and integrate skipped. UNADJUDICATED. Its raw+diagnosis were committed by the next run (42939662796) before that run itself hit the team-side work quantum."
+    },
+    {
+      "audit_gate": "NONE_ON_ANY_REF",
+      "date": "2026-11-11T01:32:13Z",
+      "diagnosis": "results/product/orchestration/CYCLE_42939662796_resume_diagnosis.json",
+      "progressive_smoke": "results/product/progressive_smoke/CYCLE_42939662796_progressive_smoke.json",
+      "raw": "results/product/orchestration/CYCLE_42939662796_run_jobs_raw.json",
+      "repair_round": 0,
+      "run_id": 42939662796,
+      "status": "TEAM_QUANTUM_EXPIRED_AFTER_3_FILE_COMMIT",
+      "summary": "Team job failed at 'Run lane cycle' after 2705 s with LEX_WORK_QUANTUM_EXPIRED exit 78 - but only AFTER committing a real 3-file delta (d290d307): the 42939338810 raw+diagnosis pair and its own progressive smoke artifact (verdict PASS, 23/23 checks). It wrote no report, state block or dossier before dying. Audit and integrate skipped. UNADJUDICATED; its incomplete producer work was finished by 42955840398."
+    },
+    {
+      "audit_gate": "NONE_ON_ANY_REF",
+      "date": "2026-11-11T02:19:43Z",
+      "diagnosis": "results/product/orchestration/CYCLE_42945255785_resume_diagnosis.json",
+      "raw": "results/product/orchestration/CYCLE_42945255785_run_jobs_raw.json",
+      "repair_round": 0,
+      "run_id": 42945255785,
+      "status": "TEAM_JOB_EXIT_1_ZERO_DURABLE_DELTA",
+      "summary": "Failed at 'Run lane cycle' with exit 1 (mechanism UNOBSERVED); republished d290d307 (ZERO durable delta over 42939662796). Audit and integrate skipped. UNADJUDICATED."
+    },
+    {
+      "audit_gate": "NONE_ON_ANY_REF",
+      "date": "2026-11-11T02:21:59Z",
+      "diagnosis": "results/product/orchestration/CYCLE_42945527654_resume_diagnosis.json",
+      "raw": "results/product/orchestration/CYCLE_42945527654_run_jobs_raw.json",
+      "repair_round": 0,
+      "run_id": 42945527654,
+      "status": "TEAM_JOB_EXIT_1_MODEL_ROTATION_ZERO_DURABLE_DELTA",
+      "summary": "Failed at 'Run lane cycle' with exit 1; public annotations record LEX_MODEL_ROTATE selected=opencode/beam-free index=3 pool_size=4 and 'Transient Ox/OpenCode failure; rotating healthy free model pool before retry' - a provider-class failure (requirement 20), not a product defect and not an audit verdict. Republished d290d307 (ZERO durable delta). UNADJUDICATED."
+    },
+    {
+      "audit_gate": "NONE_ON_ANY_REF",
+      "date": "2026-11-11T02:57:26Z",
+      "diagnosis": "results/product/orchestration/CYCLE_42949488384_resume_diagnosis.json",
+      "raw": "results/product/orchestration/CYCLE_42949488384_run_jobs_raw.json",
+      "repair_round": 0,
+      "run_id": 42949488384,
+      "status": "TEAM_JOB_EXIT_1_ZERO_DURABLE_DELTA",
+      "summary": "Failed at 'Run lane cycle' with exit 1 (mechanism UNOBSERVED); republished d290d307 (ZERO durable delta). Audit and integrate skipped. UNADJUDICATED. Its own run/jobs snapshot (including the 42945255785/42945527654/42939662796 chain entries) was captured by the next run (42949721176)."
+    },
+    {
+      "audit_gate": "NONE_ON_ANY_REF",
+      "date": "2026-11-11T02:59:38Z",
+      "diagnosis": "results/product/orchestration/CYCLE_42949721176_resume_diagnosis.json",
+      "raw": "results/product/orchestration/CYCLE_42949721176_run_jobs_raw.json",
+      "repair_round": 0,
+      "run_id": 42949721176,
+      "status": "PERSISTED_PRODUCER_SNAPSHOT_TEAM_GREEN_AUDIT_QUANTUM_NO_GATE",
+      "summary": "THE PERSISTED SNAPSHOT resumed by 42955840398. Team job fully green (all twelve steps success, 491 s; state validation and write-scope enforcement both ran) and committed a real 2-file delta (bdd1bdec): the raw run/jobs captures for 42939662796 and 42949488384. The producer stopped there - no diagnosis, report, state block or dossier was written for the chain it captured. Its independent audit FAILED at 'Independent audit' after 2705 s with LEX_WORK_QUANTUM_EXPIRED exit 78; gate/scope/persist skipped, integrate skipped, no /audit ref. UNADJUDICATED; an orchestration outcome, not a product defect and not a verdict."
+    },
+    {
+      "audit_gate": "NONE_YET",
+      "date": "2026-11-11T05:20:00Z",
+      "repair_round": 0,
+      "report": "reports/product/CYCLE_42955840398.md",
+      "run_id": 42955840398,
+      "status": "OPERATIONAL_RESUME_SNAPSHOT_42949721176_CHAIN_DIAGNOSED_AUDIT_READY",
+      "summary": "OPERATIONAL RESUME of persisted producer snapshot 42949721176. Diagnosed the full eight-run unadjudicated chain (42930240440 gap closed, 42931129328 audit outcome corrected from the committed raw, 42939030694 gap closed, 42939338810, 42939662796 3-file incomplete producer work finished, 42945255785, 42945527654 model-rotation, 42949488384, 42949721176 team-green/audit-quantum) from committed public run/jobs+annotation evidence; every run UNADJUDICATED, none rejected. Preserved all inherited work; re-verified the lane deliverable (176 MVP core tests, progressive smoke 23/23, offline bundles validate, one-command --bundle slice); added the audit-readiness profile + dossier, the cycle test and this report. No gate minted; no frozen bar, rubric, threshold or serve verdict touched; posture stays fail-closed. PROPOSED, pending independent audit."
     }
   ],
   "v55_delivery": {
@@ -2576,5 +2674,106 @@
     },
     "mode": "FAST MVP MODE - fixture mode vertical slice verification",
     "run_id": "CYCLE_40100397058"
+  },
+  "cycle_42955840398_operational_resume": {
+    "schema": "product-operational-resume/1",
+    "run_id": 42955840398,
+    "resumed_run": "42949721176",
+    "predecessor_run_id": "42949488384",
+    "mode": "OPERATIONAL RESUME from the persisted producer snapshot of run 42949721176; inherited work preserved, not restarted",
+    "direction_version": 68,
+    "orchestration_failure_of_record": {
+      "run_id": "42949721176",
+      "run_name": "Core product dirV68 repair0",
+      "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+      "mechanism": "OBSERVED_QUANTUM_EXPIRED",
+      "annotation": "LEX_WORK_QUANTUM_EXPIRED seconds=2700",
+      "exit_code": 78,
+      "failed_job": "audit",
+      "failed_step": "Independent audit",
+      "failed_step_seconds": 2705.0,
+      "team_job": "success, all twelve steps green (Run lane cycle, Validate active MVP producer state and Enforce lane write scope all success); 491 s",
+      "durable_delta": "COMMITTED_DELTA 2 files (the 42939662796 and 42949488384 raw run/jobs captures)",
+      "producer_work_incomplete": "the snapshot committed only the two raw captures; its diagnosis, report, state block and dossier for the chain were never written before the team job ended, and were finished by this cycle",
+      "integrate_job": "skipped",
+      "adjudication": "UNADJUDICATED",
+      "evidence": [
+        "results/product/orchestration/CYCLE_42949721176_run_jobs_raw.json",
+        "results/product/orchestration/CYCLE_42949721176_resume_diagnosis.json"
+      ]
+    },
+    "inherited_chain": [
+      {
+        "run_id": 42930240440,
+        "team_job": "failure at 'Run lane cycle' exit 1 (UNOBSERVED); zero durable delta over 42820069517",
+        "audit": "skipped",
+        "team_ref_head": "49a276d92642d99cd88db52721e6476e344dd237",
+        "chain_gap_closed_by_this_cycle": true
+      },
+      {
+        "run_id": 42931129328,
+        "team_job": "success; delta 25af4ca1 (cache-refresh reconciliation cycle, report/state/dossier)",
+        "audit": "failure at 'Independent audit' after 2700 s: LEX_WORK_QUANTUM_EXPIRED, exit 78, no gate (observed in the committed CYCLE_42939662796_run_jobs_raw.json chain)",
+        "team_ref_head": "25af4ca1150ed174721ec4c40392e95ad85b87b1"
+      },
+      {
+        "run_id": 42939030694,
+        "team_job": "failure at 'Run lane cycle' exit 1 (UNOBSERVED); zero durable delta",
+        "audit": "skipped",
+        "team_ref_head": "25af4ca1150ed174721ec4c40392e95ad85b87b1",
+        "chain_gap_closed_by_this_cycle": true
+      },
+      {
+        "run_id": 42939338810,
+        "team_job": "failure at 'Run lane cycle' after 17 s exit 1 (UNOBSERVED); zero durable delta",
+        "audit": "skipped",
+        "team_ref_head": "25af4ca1150ed174721ec4c40392e95ad85b87b1"
+      },
+      {
+        "run_id": 42939662796,
+        "team_job": "failure at 'Run lane cycle' after 2705 s: LEX_WORK_QUANTUM_EXPIRED exit 78, AFTER committing a 3-file delta (42939338810 raw+diagnosis + own progressive smoke PASS 23/23); no report/state/dossier written",
+        "audit": "skipped",
+        "team_ref_head": "d290d307da7f9c620ea6afda64af7f9890ab4440"
+      },
+      {
+        "run_id": 42945255785,
+        "team_job": "failure at 'Run lane cycle' exit 1 (UNOBSERVED); zero durable delta",
+        "audit": "skipped",
+        "team_ref_head": "d290d307da7f9c620ea6afda64af7f9890ab4440"
+      },
+      {
+        "run_id": 42945527654,
+        "team_job": "failure at 'Run lane cycle' exit 1 with LEX_MODEL_ROTATE selected=opencode/beam-free (provider class, requirement 20); zero durable delta",
+        "audit": "skipped",
+        "team_ref_head": "d290d307da7f9c620ea6afda64af7f9890ab4440"
+      },
+      {
+        "run_id": 42949488384,
+        "team_job": "failure at 'Run lane cycle' exit 1 (UNOBSERVED); zero durable delta",
+        "audit": "skipped",
+        "team_ref_head": "d290d307da7f9c620ea6afda64af7f9890ab4440"
+      },
+      {
+        "run_id": 42949721176,
+        "team_job": "SUCCESS, all steps green; committed the 2-file raw-capture delta (bdd1bdec) then stopped before any diagnosis/report/state/dossier",
+        "audit": "failure at 'Independent audit' after 2705 s: LEX_WORK_QUANTUM_EXPIRED exit 78, no gate; UNADJUDICATED",
+        "team_ref_head": "bdd1bdec790558ee4857320984c59acc92d77c6e"
+      }
+    ],
+    "instrument_additions": {
+      "audit_readiness_profiles": "profile 42949721176 (+alias 42955840398) added: pins the resumed raw/diagnosis pair, mechanism observed (audit quantum 2700 s / exit 78), delta committed (2 files), the new cycle test and this state block",
+      "chain_diagnoses": "seven new resume diagnoses committed (42930240440, 42939030694, 42939662796, 42945255785, 42945527654, 42949488384, 42949721176) plus two new raw captures for the chain gaps (42930240440, 42939030694); all produced by the committed product/resume_snapshot_diagnosis.py and product/run_snapshot_fetch.py instruments, each sha-pinned to its raw bytes"
+    },
+    "tests": [
+      "product/tests/test_cycle_42955840398.py"
+    ],
+    "posture": {
+      "continue_recommended": true,
+      "human_gate_ready": false,
+      "machine_gate_ready": false,
+      "packet_admitted": false,
+      "ready_for_owner_session": false
+    },
+    "claim_ceiling": "Diagnoses the 42949721176 audit-quantum orchestration failure and the full eight-run unadjudicated chain from public run/jobs/annotation evidence; finishes the incomplete 42939662796/42949721176 producer work (diagnoses, report, state, dossier); re-verifies the inherited lane deliverable. No mechanism is asserted beyond the observed annotations; no gate is minted; no run is labelled accepted or rejected; no frozen bar, rubric, threshold or serve verdict is touched; both DO-NOT-SERVE orders and all posture flags stand."
   }
 }

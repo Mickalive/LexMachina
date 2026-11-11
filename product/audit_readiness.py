@@ -587,6 +587,52 @@ PROFILES: dict[str, dict[str, Any]] = {
         },
     },
     "42931129328": {"alias_of": "42930681665"},
+    "42949721176": {
+        # Operational resume target: run 42949721176's TEAM job succeeded
+        # (2026-11-11T02:59:46Z .. 03:08:18Z, 491 s) and committed exactly
+        # two raw run/jobs snapshot captures (CYCLE_42939662796_ and
+        # CYCLE_42949488384_run_jobs_raw.json) for the unreported failure
+        # chain after 42931129328, but the producer stopped there - no
+        # diagnosis, report, state block or dossier was written for the
+        # chain it captured - and its own independent audit consumed the
+        # whole 2700 s work quantum (LEX_WORK_QUANTUM_EXPIRED, exit 78)
+        # before writing a gate, so the snapshot is UNADJUDICATED. The
+        # seven-run chain it sits on (42931129328 team-green with its audit
+        # quantum-expired; 42939030694/42939338810/42945255785/42945527654/
+        # 42949488384 team exit-1 zero-delta; 42939662796 team quantum after
+        # committing a 3-file diagnosis delta) is fully diagnosed by run
+        # 42955840398, whose committed delta is this cycle's product work.
+        "resumed_run_id": "42949721176",
+        "predecessor_run_id": "42949488384",
+        "raw": ORCH / "CYCLE_42949721176_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_42949721176_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_42931129328.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_42955840398.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 2,
+        "changed_paths_include": ("CYCLE_42939662796_run_jobs_raw.json",),
+        "cycle_test": "product/tests/test_cycle_42955840398.py",
+        "state_block": "cycle_42955840398_operational_resume",
+        # Consume the accepted fixed-path counter-content family unchanged
+        # (REPORTED-ONLY); this resume runs no new frozen predicate.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "42955840398": {"alias_of": "42949721176"},
 }
 
 # Active profile; empty means "the module constants above" (the original
