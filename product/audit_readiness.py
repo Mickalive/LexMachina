@@ -680,6 +680,51 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    "43138476983": {
+        # Operational resume target: run 43134567769's team job was rejected
+        # by the workflow's own zero-delta guard (public annotation
+        # LEX_ZERO_DELTA_REPAIR, exit 67) after ~34 min; state validation and
+        # write-scope enforcement were skipped and the always-run persist step
+        # re-published the predecessor's exact tree, so the snapshot carries
+        # ZERO durable delta. Its predecessor 43124268728 had a green team job
+        # (one committed helper file) and an independent audit that consumed
+        # the whole 2700 s quantum (LEX_WORK_QUANTUM_EXPIRED, exit 78) with no
+        # gate, so the snapshot was never adjudicated.
+        #
+        # This cycle resumes 43134567769, diagnoses both failure modes from
+        # committed public evidence, restores the stranded producer lineage
+        # 42996172250 (8fd1b421, 310 files over the accepted base, whose public
+        # run record has been pruned -> mechanism UNOBSERVED) and reverts the
+        # predecessor's unverified bundle-substitution helper. The last report
+        # in the tree at the snapshot's base is CYCLE_42983901071.md.
+        "resumed_run_id": "43134567769",
+        "predecessor_run_id": "43124268728",
+        "raw": ORCH / "CYCLE_43134567769_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_43134567769_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_42983901071.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_43138476983.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed_zero_delta",
+        "delta_kind": "zero",
+        "exit_code": 67,
+        "changed_files": 0,
+        "cycle_test": "product/tests/test_cycle_43138476983.py",
+        "state_block": "cycle_43138476983_operational_resume",
+        # Consume the accepted fixed-path counter-content family unchanged
+        # (REPORTED-ONLY); this resume runs no new frozen predicate.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
