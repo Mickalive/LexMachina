@@ -45,6 +45,7 @@ reaching the network.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -394,10 +395,16 @@ def run(
             "makes no product, legal or serve claim."
         ),
     }
+    if raw_path is not None:
+        # Pin the exact bytes the classification was derived from.  A resume
+        # that later regenerates the snapshot must not silently compare a new
+        # file against an old diagnosis.
+        record["raw_snapshot_sha256"] = hashlib.sha256(
+            Path(raw_path).read_bytes()
+        ).hexdigest()
     if raw_path is None:
-        # Only the raw-free mode needs to name the delta baseline; preserving
-        # the historical raw-mode record byte shape keeps accepted cycle tests
-        # reproducible.
+        # Only the raw-free mode needs to name the delta baseline; raw-mode
+        # records keep their historical keys plus the additive snapshot hash.
         record["predecessor_ref"] = predecessor_ref or ACCEPTED_REF
     return record
 

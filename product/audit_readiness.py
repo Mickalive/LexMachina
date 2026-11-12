@@ -369,6 +369,317 @@ PROFILES: dict[str, dict[str, Any]] = {
                              / "self_minted_gate_40278460732_producer_"
                                "40283048553.QUARANTINED.json",
     },
+    "42738229187": {
+        # Operational resume of 42745308078: the producer's team job SUCCEEDED
+        # and published a real 7-file delta (the page-size-tolerant fixture
+        # question replay), but the independent-audit agent consumed its whole
+        # 2700 s work quantum (exit 78) before writing a gate, so the run is
+        # UNADJUDICATED with no /audit ref.  Same failure mode as 40196023042,
+        # observed from check-run annotations (logs endpoint HTTP 403).
+        "resumed_run_id": "42738229187",
+        # The delta baseline is the ACCEPTED head (origin/lab/product), which
+        # is the instrument's own default for a resume: comparing against the
+        # previous team ref would count the accept commit's audit files as if
+        # this producer had written them.  The diagnosis therefore records an
+        # empty predecessor_run_id, and the profile matches it exactly.
+        "predecessor_run_id": "",
+        "raw": ORCH / "CYCLE_42738229187_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_42738229187_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_42738229187.md",
+        "current_report": ROOT / "reports" / "product"
+                            / "CYCLE_42745308078.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 7,
+        "changed_paths_include": (
+            "product/fixture_question_replay_probe.py",
+            "product/query/cache_replay.py",
+            "reports/product/CYCLE_42738229187.md",
+        ),
+        "cycle_test": "product/tests/test_cycle_42745308078.py",
+        "state_block": "cycle_42745308078_operational_resume",
+        # No new counter-content family this cycle: consume the accepted
+        # fixed-path family pins unchanged (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "42745308078": {"alias_of": "42738229187"},
+    "42764343815": {
+        # Operational resume target: the producer team job of 42764343815
+        # SUCCEEDED (10/10 green steps, 2-file delta d5a2012b over the last
+        # durable team ref 17fd0f19) but the independent-audit agent consumed
+        # its whole 2700 s work quantum (exit 78, pid=2302) before writing a
+        # gate, so the run is UNADJUDICATED with no /audit ref.  The two runs
+        # between were LEX_ZERO_DELTA_REPAIR (exit 67) rejections that left the
+        # team ref unchanged.  Resumed by run 42771257885.
+        "resumed_run_id": "42764343815",
+        "predecessor_run_id": "42756474119",
+        "raw": ORCH / "CYCLE_42764343815_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_42764343815_resume_diagnosis.json",
+        # The snapshot produced no report of its own (its team job only
+        # reworded state/audit-readiness prose), so no inherited report is
+        # claimed rather than borrowing another run's report as this one's.
+        "inherited_report": None,
+        "current_report": ROOT / "reports" / "product"
+                            / "CYCLE_42771257885.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 2,
+        "changed_paths_include": (
+            "product/audit_readiness.py",
+            "state/product.json",
+        ),
+        "cycle_test": "product/tests/test_cycle_42771257885.py",
+        "state_block": "cycle_42771257885_operational_resume",
+        # Consume the accepted fixed-path counter-content family unchanged
+        # (REPORTED-ONLY); this resume runs no new frozen predicate.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "42771257885": {"alias_of": "42764343815"},
+    "42793313084": {
+        # Operational resume target: the producer's lane-cycle step was
+        # rejected by the workflow's own zero-delta guard (public annotation
+        # LEX_ZERO_DELTA_REPAIR, exit 67) before state validation and
+        # write-scope enforcement could run.  The always-run persist step
+        # published the predecessor's exact tree (6a825be8), so the team ref
+        # carries ZERO durable delta.  Resumed by run 42794322956, whose team
+        # ref carries the actual product delta this dossier validates.
+        "resumed_run_id": "42793313084",
+        "predecessor_run_id": "42792990432",
+        "raw": ORCH / "CYCLE_42793313084_run_jobs_raw.json",
+        # The raw snapshot was regenerated to ``product-run-jobs-raw/2`` after
+        # the original diagnosis was written, so the original pins a sha the
+        # committed bytes no longer have.  The repaired diagnosis is re-pinned
+        # to the committed raw; the original is preserved as the historical
+        # record and is not overwritten.
+        "resume_diag": ORCH / (
+            "CYCLE_42793313084_resume_diagnosis_REPAIRED_42809155715.json"),
+        "resume_diag_superseded": ORCH / (
+            "CYCLE_42793313084_resume_diagnosis.json"),
+        # The snapshot produced no report of its own, so no inherited report
+        # is claimed rather than borrowing another run's report as this one's.
+        "inherited_report": None,
+        "current_report": ROOT / "reports" / "product"
+                            / "CYCLE_42794322956.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed_zero_delta",
+        "delta_kind": "zero",
+        "exit_code": 67,
+        "changed_files": 0,
+        "cycle_test": "product/tests/test_cycle_42794322956.py",
+        "state_block": "cycle_42794322956_operational_resume",
+        # Consume the accepted fixed-path counter-content family unchanged
+        # (REPORTED-ONLY); this resume runs no new frozen predicate.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "42794322956": {"alias_of": "42793313084"},
+    "42808654760": {
+        # Operational resume target: the predecessor snapshot 42798377691 had
+        # a GREEN team job (10/10) and a real but narrow delta (37 query-cache
+        # refreshes, 4db23e85) yet its independent audit consumed the whole
+        # 2700 s quantum (exit 78) before a gate, so it is UNADJUDICATED.
+        # 42808654760 tried to resume it but its lane-cycle step was rejected
+        # by the workflow's own zero-delta guard (public annotation
+        # LEX_ZERO_DELTA_REPAIR, exit 67); state validation and write-scope
+        # enforcement were skipped and the always-run persist step published
+        # 4db23e85 again.  Resumed by run 42809155715, whose committed delta is
+        # this cycle's product work.
+        "resumed_run_id": "42808654760",
+        "predecessor_run_id": "42798377691",
+        "raw": ORCH / "CYCLE_42808654760_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_42808654760_resume_diagnosis.json",
+        "inherited_report": None,
+        "current_report": ROOT / "reports" / "product"
+                            / "CYCLE_42809155715.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed_zero_delta",
+        "delta_kind": "zero",
+        "exit_code": 67,
+        "changed_files": 0,
+        "cycle_test": "product/tests/test_cycle_42809155715.py",
+        "state_block": "cycle_42809155715_operational_resume",
+        # Consume the accepted fixed-path counter-content family unchanged
+        # (REPORTED-ONLY); this resume runs no new frozen predicate.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "42809155715": {"alias_of": "42808654760"},
+    "42930681665": {
+        # Operational resume target: the predecessor snapshot 42820069517
+        # committed a real but narrow delta (44 query-cache rows: 34 modified
+        # entries of which 29 carry upstream OpenCaseLaw drift, 10 new entries)
+        # yet wrote no report, state block or dossier, and its public GitHub
+        # run record was pruned before any snapshot could capture it (HTTP 404
+        # in CYCLE_42930681665_run_jobs_raw.json fetch_failures), so its stop
+        # mechanism is UNOBSERVED and it is UNADJUDICATED — reconciled by the
+        # committed cache-refresh artifact, never narrated.  42930681665 tried
+        # to resume it but its lane-cycle step was rejected by the workflow's
+        # own zero-delta guard (public annotation LEX_ZERO_DELTA_REPAIR, exit
+        # 67); state validation and write-scope enforcement were skipped and
+        # the always-run persist step published 49a276d9 again.  Resumed by
+        # run 42931129328, whose committed delta is this cycle's product work.
+        "resumed_run_id": "42930681665",
+        "predecessor_run_id": "42820069517",
+        "raw": ORCH / "CYCLE_42930681665_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_42930681665_resume_diagnosis.json",
+        "cache_refresh_reconciliation": ORCH / (
+            "CYCLE_42820069517_reconciliation.json"),
+        "inherited_report": None,
+        "current_report": ROOT / "reports" / "product"
+                            / "CYCLE_42931129328.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "mechanism_kind": "observed_zero_delta",
+        "delta_kind": "zero",
+        "exit_code": 67,
+        "changed_files": 0,
+        "cycle_test": "product/tests/test_cycle_42931129328.py",
+        "state_block": "cycle_42931129328_operational_resume",
+        # Consume the accepted fixed-path counter-content family unchanged
+        # (REPORTED-ONLY); this resume runs no new frozen predicate.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "42931129328": {"alias_of": "42930681665"},
+    "42949721176": {
+        # Operational resume target: run 42949721176's TEAM job succeeded
+        # (2026-11-11T02:59:46Z .. 03:08:18Z, 491 s) and committed exactly
+        # two raw run/jobs snapshot captures (CYCLE_42939662796_ and
+        # CYCLE_42949488384_run_jobs_raw.json) for the unreported failure
+        # chain after 42931129328, but the producer stopped there - no
+        # diagnosis, report, state block or dossier was written for the
+        # chain it captured - and its own independent audit consumed the
+        # whole 2700 s work quantum (LEX_WORK_QUANTUM_EXPIRED, exit 78)
+        # before writing a gate, so the snapshot is UNADJUDICATED. The
+        # seven-run chain it sits on (42931129328 team-green with its audit
+        # quantum-expired; 42939030694/42939338810/42945255785/42945527654/
+        # 42949488384 team exit-1 zero-delta; 42939662796 team quantum after
+        # committing a 3-file diagnosis delta) is fully diagnosed by run
+        # 42955840398, whose committed delta is this cycle's product work.
+        "resumed_run_id": "42949721176",
+        "predecessor_run_id": "42949488384",
+        "raw": ORCH / "CYCLE_42949721176_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_42949721176_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_42931129328.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_42955840398.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 2,
+        "changed_paths_include": ("CYCLE_42939662796_run_jobs_raw.json",),
+        "cycle_test": "product/tests/test_cycle_42955840398.py",
+        "state_block": "cycle_42955840398_operational_resume",
+        # Consume the accepted fixed-path counter-content family unchanged
+        # (REPORTED-ONLY); this resume runs no new frozen predicate.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "42955840398": {"alias_of": "42949721176"},
+    "42983901071": {
+        # Operational resume target: run 42976016321's TEAM job was green
+        # with a 37-file delta (36 query_cache entries + a byte-only
+        # state/product.json re-serialization) and its own independent audit
+        # consumed the whole 2700 s work quantum (LEX_WORK_QUANTUM_EXPIRED,
+        # exit 78) before writing a gate, so the snapshot is UNADJUDICATED.
+        # The producer stopped after persisting its cache refresh: no
+        # diagnosis, report, state block or dossier was written for the
+        # chain it refreshed (42964203118 zero-delta exit 1, 42964472484
+        # team-green/audit-quantum, 42970556900 team-quantum after a 7-file
+        # delta), and this cycle's committed delta finishes that work.
+        # The last report in the tree at the snapshot's base is
+        # CYCLE_42955840398.md, so that is the inherited report here.
+        "resumed_run_id": "42976016321",
+        "predecessor_run_id": "42970556900",
+        "raw": ORCH / "CYCLE_42976016321_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_42976016321_resume_diagnosis.json",
+        # The resumed run's own cache/state delta, reconciled by the
+        # committed product/cache_refresh_delta.py against upstream.
+        "cache_refresh_reconciliation": ORCH / (
+            "CYCLE_42976016321_cache_refresh_delta.json"),
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_42955840398.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_42983901071.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 37,
+        "changed_paths_include": ("query_cache",),
+        "cycle_test": "product/tests/test_cycle_42983901071.py",
+        "state_block": "cycle_42983901071_operational_resume",
+        # Consume the accepted fixed-path counter-content family unchanged
+        # (REPORTED-ONLY); this resume runs no new frozen predicate.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -419,6 +730,9 @@ MVP_CORE_TESTS = (
     "product/tests/test_counter_content_rejection_v68.py",
     "product/tests/test_state_contract.py",
     "product/tests/test_progressive_query.py",
+    # run 42809155715: the two new product-owned capabilities this cycle ships
+    "product/tests/test_bundle_preload.py",
+    "product/tests/test_run_snapshot_fetch.py",
 )
 
 STATE_TIMEOUT_S = 180
@@ -689,6 +1003,64 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                 problems.append("raw_scope_step_not_failure")
         else:
             problems.append("raw_snapshot_missing")
+    elif mechanism_kind == "observed_zero_delta":
+        # Fifth real failure mode, observed on the 42781684618 ..
+        # 42793313084 chain: the producer's lane-cycle step was rejected by
+        # the workflow's own zero-delta guard (public annotation
+        # LEX_ZERO_DELTA_REPAIR, exit 67) before state validation and scope
+        # enforcement could run.  The always-run persist step still published
+        # the predecessor's exact tree, so the team ref carries ZERO durable
+        # delta.  This is an orchestration outcome, not a product defect and
+        # not a quantum expiry; wording it as either would misreport the run.
+        mechanism = orch.get("mechanism") or {}
+        quantum_seconds = None
+        exit_code = p("exit_code", 67)
+        if mechanism.get("status") != "OBSERVED_ZERO_DELTA_GUARD":
+            problems.append("mechanism_status")
+        if mechanism.get("zero_delta_repair") is not True:
+            problems.append("zero_delta_repair")
+        if mechanism.get("exit_code") != exit_code:
+            problems.append("exit_code")
+        if mechanism.get("quantum_expired") is not False:
+            problems.append("quantum_expired")
+        team_block = orch.get("team") or {}
+        if team_block.get("failed_step") != "Run lane cycle":
+            problems.append("failed_step")
+        if (orch.get("audit") or {}).get("gate_file_written") is not False:
+            problems.append("gate_file_written")
+        if (orch.get("audit") or {}).get("conclusion") != "skipped":
+            problems.append("audit_not_skipped")
+        # Cross-check the raw snapshot the profile names: the failed producer
+        # step, the skipped workflow guards, the always-run persist step and
+        # the zero-delta annotation must all agree with the diagnosis.
+        if raw is not None and raw.is_file():
+            raw_doc = _load(raw)
+            team = next((j for j in raw_doc.get("jobs") or []
+                         if j.get("name") == "team"), None)
+            steps = {s.get("name"): s.get("conclusion")
+                     for s in (team or {}).get("steps") or []}
+            if steps.get("Run lane cycle") != "failure":
+                problems.append("raw_lane_cycle_not_failure")
+            if steps.get("Validate active MVP producer state") != "skipped":
+                problems.append("raw_state_validation_not_skipped")
+            if steps.get("Enforce lane write scope") != "skipped":
+                problems.append("raw_scope_step_not_skipped")
+            if steps.get("Persist team snapshot") != "success":
+                problems.append("raw_snapshot_step_not_success")
+            ann = (raw_doc.get("check_run_annotations_by_job_id") or {}).get(
+                str((team or {}).get("id"))
+            ) or {}
+            ann_rows = ann.get("annotations") if isinstance(ann, dict) else ann
+            messages = []
+            for row in ann_rows or []:
+                if isinstance(row, dict):
+                    messages.append(str(row.get("message") or ""))
+                elif isinstance(row, (list, tuple)) and row:
+                    messages.append(str(row[-1]))
+            if not any("LEX_ZERO_DELTA_REPAIR" in m for m in messages):
+                problems.append("raw_zero_delta_annotation_missing")
+        else:
+            problems.append("raw_snapshot_missing")
     else:
         # Raw-free resume: the public run/jobs snapshot is unavailable. The
         # only honest record is that the mechanism is unobserved; asserting a
@@ -743,6 +1115,12 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                    "on a producer-minted auditor-namespace gate file (no "
                    "work quantum reached, audit skipped), durable delta "
                    "present, run unadjudicated")
+    elif mechanism_kind == "observed_zero_delta":
+        summary = (f"Resumed run {resumed_id}: lane-cycle step rejected by "
+                   "the workflow's own zero-delta guard (LEX_ZERO_DELTA_REPAIR, "
+                   "exit 67) before state validation or write-scope "
+                   "enforcement, team ref carries zero durable delta over its "
+                   "predecessor, run unadjudicated")
     else:
         summary = (f"Resumed run {resumed_id}: raw run/jobs snapshot "
                    "unavailable (mechanism unobserved), team ref carries zero "
@@ -789,6 +1167,12 @@ def check_claim_artifacts() -> dict[str, Any]:
     ]
     if raw_path is not None:
         paths.insert(3, raw_path)
+    # A resume whose predecessor committed an unreported cache-refresh delta
+    # pins its reconciliation artifact here; existence and hash only — the
+    # headline numbers are verified by the cycle test, not the dossier.
+    reconciliation = p("cache_refresh_reconciliation")
+    if reconciliation:
+        paths.append(Path(reconciliation))
     missing = [str(p.relative_to(ROOT)) for p in paths if not p.is_file()]
     hashes = {str(p.relative_to(ROOT)): _sha256(p)
               for p in paths if p.is_file()}
@@ -1142,6 +1526,20 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
         c1_artifacts = (
             ([str(raw.relative_to(ROOT))] if raw is not None else [])
             + [str(resume_diag.relative_to(ROOT))])
+    elif mechanism_kind == "observed_zero_delta":
+        c1_claim = (
+            f"Run {resumed_id}'s lane-cycle step was rejected by the "
+            f"workflow's own zero-delta guard (public annotation "
+            f"LEX_ZERO_DELTA_REPAIR, exit {p('exit_code', 67)}) before the "
+            "producer state-validation and write-scope steps could run; the "
+            "always-run persist step then published the predecessor's exact "
+            "tree, so the team ref carries ZERO durable delta. Observed from "
+            "the public check-run annotations, not inferred; no work quantum "
+            "expired and no product defect is claimed."
+        )
+        c1_artifacts = (
+            ([str(raw.relative_to(ROOT))] if raw is not None else [])
+            + [str(resume_diag.relative_to(ROOT))])
     elif mechanism_kind == "observed":
         c1_claim = (
             f"Run {resumed_id}'s {who} agent ended on the workflow "
@@ -1189,16 +1587,16 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
              "claim": c1_claim,
              "check": "resumed_diagnosis",
              "artifacts": c1_artifacts},
-            {"id": "C2",
-             "claim": (
-                 f"Run {resumed_id} persisted an {delta_files}-file durable "
-                 f"delta over {predecessor} and is UNADJUDICATED."
-                 if delta_kind != "zero" else
-                 f"Run {resumed_id}'s team ref is byte-identical to its "
-                 f"predecessor {predecessor}'s team ref: the resumed producer "
-                 "added nothing (ZERO_DURABLE_DELTA) and the run is "
-                 "UNADJUDICATED."
-             ),
+{"id": "C2",
+              "claim": (
+                  f"Run {resumed_id} persisted an {delta_files}-file durable "
+                  f"delta over {predecessor or 'the accepted head of the accepted chain'}"
+                  if delta_kind != "zero" else
+                  f"Run {resumed_id}'s team ref is byte-identical to its "
+                  f"predecessor {predecessor}'s team ref: the resumed producer "
+                  "added nothing (ZERO_DURABLE_DELTA) and the run is "
+                  "UNADJUDICATED."
+              ),
              "check": "resumed_diagnosis",
              "artifacts": [str(resume_diag.relative_to(ROOT))]},
             {"id": "C3",
