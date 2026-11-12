@@ -96,43 +96,11 @@ def _counter_surface_enabled():
             os.environ[cs.ENABLE_ENV] = saved
 
 
-_ACCEPTED_SLICE_DIR = REPO_ROOT / "results" / "product" / "offline_slice"
-
-
-def _accepted_bundle(slug: str, *, top_n: int) -> dict | None:
-    """The committed accepted offline-slice bundle for ``slug``, if any.
-
-    Newest committed ``<slug>.bundle.json`` carrying exactly ``top_n`` decisions
-    wins; unreadable artifacts are skipped.  ``None`` means "no committed
-    fixture for this leg/top_n" and the caller falls back to the replay.
-    """
-    try:
-        candidates = sorted(
-            (p for p in _ACCEPTED_SLICE_DIR.glob(f"*/{slug}.bundle.json") if p.is_file()),
-            key=lambda p: p.stat().st_mtime,
-            reverse=True,
-        )
-    except OSError:
-        return None
-    for path in candidates:
-        try:
-            doc = json.loads(path.read_text(encoding="utf-8"))
-        except Exception:  # noqa: BLE001 - skip unreadable artifacts
-            continue
-        if len(doc.get("decisions") or []) != int(top_n):
-            continue
-        return doc
-    return None
-
-
 def _build_base_bundle(slug: str, *, top_n: int) -> dict:
     from product.reality_check import LEGS
     from product.query.pipeline import enrich_query_bundle, run_query_initial
 
     leg = LEGS[slug]
-    accepted = _accepted_bundle(slug, top_n=top_n)
-    if accepted is not None:
-        return accepted
     with _counter_surface_enabled():
         initial = run_query_initial(leg, top_n=top_n, retrieval_mode="fixture")
         return enrich_query_bundle(
