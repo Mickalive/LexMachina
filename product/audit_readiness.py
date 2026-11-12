@@ -774,6 +774,48 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    "43180882004": {
+        # Operational resume target: persisted producer snapshot 542627d0
+        # (run 43180882004) is a 4-file delta over e37a7ad7 (run 43172256761),
+        # which itself is a 2-file offline_slice delta over the accepted-tree
+        # cycle 43162816979. Both team jobs succeeded with all 10 steps green;
+        # both independent audits consumed the 2700 s quantum and failed with
+        # LEX_WORK_QUANTUM_EXPIRED exit 78 before writing a gate, so integrate
+        # was skipped and neither run was adjudicated. This cycle diagnoses
+        # that chain, re-derives the snapshot's vertical slice from committed
+        # bytes under an armed socket trap, and publishes a run-scoped shipped
+        # offline_slice bundle without moving the accepted pointer.
+        "resumed_run_id": "43180882004",
+        "predecessor_run_id": "43172256761",
+        "raw": ORCH / "CYCLE_43180882004_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_43180882004_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_43162816979.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_43189571965.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "delta_kind": "committed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 4,
+        "changed_paths_include": ("product/vertical_slice.py",),
+        "cycle_test": "product/tests/test_cycle_43189571965.py",
+        "state_block": "cycle_43189571965_operational_resume",
+        # Consume the accepted fixed-path counter-content family unchanged
+        # (REPORTED-ONLY); this resume runs no new frozen predicate.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "43189571965": {"alias_of": "43180882004"},
 }
 
 # Active profile; empty means "the module constants above" (the original
