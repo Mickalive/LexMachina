@@ -221,7 +221,10 @@ def test_progressive_smoke_artifact_for_this_run():
 
 def test_state_hygiene_this_cycle():
     state = _load(STATE)
-    assert state["current_cycle_run_id"] == EXECUTING
+    # A later accepted/resumed cycle legitimately advances the pointer past
+    # this run; only a regression below it would falsify this cycle's record.
+    assert state["current_cycle_run_id"] >= EXECUTING, (
+        "current_cycle_run_id regressed below this cycle's executing run")
     assert state["direction_version"] == 68
     assert state["cycle_status"] == "COMPLETE"
     history_ids = {r.get("run_id") for r in state["run_history"]}

@@ -263,3 +263,45 @@ def test_absent_id_diagnosis_pins_head_exclusion_not_a_retrieval_miss():
         assert r["legal_anchor_score"] == 0.0
         assert r["query_similarity"] < 0.04
         assert r["inside_top_n_cut"] is False
+
+
+# --------------------------------------------------------------------------- #
+# 9. the two query entry points route the seam (v68 rejection/incumbent leg)
+# --------------------------------------------------------------------------- #
+
+def test_initial_map_entry_point_routes_the_span_seam():
+    """``run_query_initial`` must run the seam before returning a map bundle.
+
+    The shipped server uses this entry point for the first-page map and the
+    offline slice calls it before enrichment.  Routing it here makes the
+    rejection/incumbent leg run on the path a jurist actually sees, instead of
+    only inside the one-shot convenience wrapper.
+    """
+    from product.query import run_query_initial
+
+    bundle = run_query_initial(
+        "Kündigung Mietvertrag Mietrecht", top_n=40, retrieval_mode="fixture")
+    prov = bundle["provenance"]["counter_evidence_span"]
+    assert prov["applied"] is True
+    assert prov["mode"] == "select"
+    src = (ROOT / "product" / "query" / "pipeline.py").read_text(encoding="utf-8")
+    initial_at = src.index("def run_query_initial(")
+    call_at = src.index("audited = apply_verified_span_selection(", initial_at)
+    validate_at = src.index("errors = validate_bundle(audited)", call_at)
+    assert initial_at < call_at < validate_at
+
+
+def test_first_page_entry_point_routes_the_span_seam():
+    """``run_query_first_page`` must run the seam too (progressive server path)."""
+    from product.query import run_query_first_page
+
+    bundle = run_query_first_page(
+        "Kündigung Mietvertrag Mietrecht", top_n=40, retrieval_mode="fixture")
+    prov = bundle["provenance"]["counter_evidence_span"]
+    assert prov["applied"] is True
+    assert prov["mode"] == "select"
+    src = (ROOT / "product" / "query" / "progressive.py").read_text(
+        encoding="utf-8")
+    call_at = src.index("audited = apply_verified_span_selection(")
+    validate_at = src.index("errors = validate_bundle(audited)", call_at)
+    assert call_at < validate_at
