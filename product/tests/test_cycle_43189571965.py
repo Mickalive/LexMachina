@@ -270,7 +270,11 @@ def test_state_records_this_resume_without_moving_the_accepted_pointer():
     assert state["lane"] == "product"
     assert state["direction_version"] == 68
     assert state["cycle_status"] != "INITIALIZED"
-    assert state["current_cycle_run_id"] == int(EXECUTING_RUN)
+    # Later operational resumes legitimately advance the current-cycle pointer
+    # past this cycle; the append-only run_history row below keeps this cycle's
+    # attribution exact (established convention in
+    # test_cycle_40259640985_resume.py).
+    assert state["current_cycle_run_id"] >= int(EXECUTING_RUN)
     assert state["continue_recommended"] is True
     assert state["human_gate_ready"] is False
     assert state["ready_for_owner_session"] is False

@@ -83,6 +83,15 @@ def _without_timestamps(rec: dict) -> dict:
     out = copy.deepcopy(rec)
     out.pop("generated_at", None)
     out.get("orchestration", {}).pop("generated_at", None)
+    # audit_step_diagnosis.classify() later added the additive
+    # zero_delta_repair/zero_delta_message observation. This artifact was
+    # committed before that field existed; compare the stable classification
+    # surface rather than requiring the new additive keys retroactively.
+    for section in ("mechanism", "observed_failure", "orchestration"):
+        rec_section = out.get(section)
+        if isinstance(rec_section, dict):
+            rec_section.pop("zero_delta_repair", None)
+            rec_section.pop("zero_delta_message", None)
     return out
 
 
@@ -291,8 +300,11 @@ def test_lightweight_checks_reproduce_now() -> None:
         new = next(c for c in fresh["checks"] if c["id"] == check_id)
         assert old["status"] == new["status"] == "PASS", check_id
     assert fresh["overall_status"] == "PARTIAL"
+    # audit_readiness later split the cycle test out as its own check; with
+    # include_tests=False all three test-backed checks are skipped.
     assert set(fresh["skipped_checks"]) == {"progressive_smoke",
-                                            "mvp_core_tests"}
+                                            "mvp_core_tests",
+                                            "cycle_test"}
 
 
 # ---------------------------------------------------------------------------

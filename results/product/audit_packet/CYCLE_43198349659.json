@@ -1,0 +1,327 @@
+{
+  "schema": "product-audit-packet/1",
+  "generated_at": "2026-11-12T10:18:14Z",
+  "executing_run_id": "43198349659",
+  "resumed_run_id": "43189571965",
+  "predecessor_run_id": "43180882004",
+  "direction_version": 68,
+  "claim_ceiling": "Bounded producer evidence only: every claim names a committed artifact, its sha256 and a reproduction command. The packet is not an audit gate, writes nothing in the auditor namespace, labels no run accepted or rejected, scores no frozen bar and makes no live-retrieval, legal or performance claim.",
+  "forbidden_verdict_keys_present": [],
+  "claims": [
+    {
+      "id": "orchestration_diagnosis",
+      "statement": "Run 43189571965's team job was green and its audit step failed on the 2700 s work quantum (exit 78) with no gate; the run is UNADJUDICATED and its snapshot carries a committed delta.",
+      "artifact": "results/product/orchestration/CYCLE_43189571965_resume_diagnosis.json",
+      "sha256": "eab5dd31bbb7cea6cd41112acda1e1e441747731320a57411b94bee848cdf98f",
+      "bytes": 8736,
+      "assertions": [
+        {
+          "kind": "equals",
+          "path": "run_id",
+          "value": "43189571965"
+        },
+        {
+          "kind": "equals",
+          "path": "predecessor_run_id",
+          "value": "43180882004"
+        },
+        {
+          "kind": "equals",
+          "path": "orchestration.classification",
+          "value": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE"
+        },
+        {
+          "kind": "equals",
+          "path": "orchestration.team.conclusion",
+          "value": "success"
+        },
+        {
+          "kind": "equals",
+          "path": "orchestration.audit.failed_step",
+          "value": "Independent audit"
+        },
+        {
+          "kind": "truthy",
+          "path": "orchestration.mechanism.quantum_expired"
+        },
+        {
+          "kind": "equals",
+          "path": "orchestration.mechanism.exit_code",
+          "value": 78
+        },
+        {
+          "kind": "not_truthy",
+          "path": "orchestration.audit.gate_file_written"
+        },
+        {
+          "kind": "equals",
+          "path": "adjudication.status",
+          "value": "UNADJUDICATED"
+        },
+        {
+          "kind": "equals",
+          "path": "durable_delta.classification",
+          "value": "COMMITTED_DELTA"
+        }
+      ],
+      "bounded_seconds": 0.2
+    },
+    {
+      "id": "public_run_record",
+      "statement": "The committed run/jobs snapshot was fetched by this executing run 43198349659 and carries the public LEX_WORK_QUANTUM_EXPIRED annotation for run 43189571965's audit job.",
+      "artifact": "results/product/orchestration/CYCLE_43189571965_run_jobs_raw.json",
+      "sha256": "fdb88567a5fcbb4510edb1a0c907f176633130154dbd9ff8875156835acdab7d",
+      "bytes": 16074,
+      "assertions": [
+        {
+          "kind": "equals",
+          "path": "schema",
+          "value": "product-run-jobs-raw/2"
+        },
+        {
+          "kind": "equals",
+          "path": "run.id",
+          "value": 43189571965
+        },
+        {
+          "kind": "equals",
+          "path": "fetched_by_run",
+          "value": 43198349659
+        },
+        {
+          "kind": "annotations_contain",
+          "value": "LEX_WORK_QUANTUM_EXPIRED seconds=2700"
+        }
+      ],
+      "bounded_seconds": 0.2
+    },
+    {
+      "id": "predecessor_diagnosis",
+      "statement": "The predecessor run 43180882004 has its own committed diagnosis, so this resume does not re-derive the earlier chain.",
+      "artifact": "results/product/orchestration/CYCLE_43180882004_resume_diagnosis.json",
+      "sha256": "fcfaec1389b4db852a78ef138969a813848ff4f67e5414b4d0b85fac0aa4b078",
+      "bytes": 9449,
+      "assertions": [
+        {
+          "kind": "equals",
+          "path": "run_id",
+          "value": "43180882004"
+        },
+        {
+          "kind": "equals",
+          "path": "durable_delta.classification",
+          "value": "COMMITTED_DELTA"
+        },
+        {
+          "kind": "truthy",
+          "path": "orchestration.mechanism.quantum_expired"
+        }
+      ],
+      "bounded_seconds": 0.2
+    },
+    {
+      "id": "predecessor_run_record",
+      "statement": "The predecessor's public run/jobs snapshot is preserved byte-for-byte as the input of its diagnosis.",
+      "artifact": "results/product/orchestration/CYCLE_43180882004_run_jobs_raw.json",
+      "sha256": "e687c24ffa3e8c4bf305ba0403b96a639e36aa7cfeef63538da0fb6cb466e1af",
+      "bytes": 16074,
+      "assertions": [
+        {
+          "kind": "equals",
+          "path": "run.id",
+          "value": 43180882004
+        }
+      ],
+      "bounded_seconds": 0.2
+    },
+    {
+      "id": "inherited_report",
+      "statement": "The inherited snapshot's report of record exists unchanged; this resume publishes its own report rather than editing it.",
+      "artifact": "reports/product/CYCLE_43189571965.md",
+      "sha256": "5d836826f44a9a0c280bd2843d10764366dfae33921bd6ce13f589996f8adc7f",
+      "bytes": 8098,
+      "assertions": [
+        {
+          "kind": "contains",
+          "path": "__text__",
+          "value": "OFFLINE WIRING EVIDENCE ONLY"
+        }
+      ],
+      "bounded_seconds": 0.2
+    },
+    {
+      "id": "inherited_run_scoped_slice",
+      "statement": "The inherited snapshot's run-scoped offline slice remains a verified full-loop artifact (page contract PASS, network none, 120 decisions, 8 clusters, all rows clickable).",
+      "artifact": "results/product/vertical_slice/CYCLE_43189571965/summary.json",
+      "sha256": "7489ba489f1be37b89a1097a0fee9744d2f970f747a6203ce0c178aad75228ed",
+      "bytes": 2247,
+      "assertions": [
+        {
+          "kind": "truthy",
+          "path": "verified"
+        },
+        {
+          "kind": "equals",
+          "path": "mode",
+          "value": "full_loop"
+        },
+        {
+          "kind": "truthy",
+          "path": "page_contract"
+        },
+        {
+          "kind": "equals",
+          "path": "stats.n_decisions",
+          "value": 120
+        },
+        {
+          "kind": "equals",
+          "path": "stats.n_clusters",
+          "value": 8
+        },
+        {
+          "kind": "equals",
+          "path": "stats.rows_with_xy",
+          "value": 120
+        },
+        {
+          "kind": "equals",
+          "path": "stats.rows_with_cluster_id",
+          "value": 120
+        },
+        {
+          "kind": "equals",
+          "path": "stats.rows_with_canonical_url",
+          "value": 120
+        },
+        {
+          "kind": "equals",
+          "path": "stats.fixture_replay.network",
+          "value": "none"
+        },
+        {
+          "kind": "equals",
+          "path": "stats.adapter_transport_attempts",
+          "value": 0
+        }
+      ],
+      "bounded_seconds": 0.2
+    },
+    {
+      "id": "inherited_slice_bundle",
+      "statement": "The inherited run-scoped bundle carries the routed span seam and an answer whose citations are all present in the mapped set.",
+      "artifact": "results/product/vertical_slice/CYCLE_43189571965/rent-default.bundle.json",
+      "sha256": "f4636c788bf013845969cdeab3af9dd87c3ba6a7567eb704813bc520424f26b1",
+      "bytes": 816928,
+      "assertions": [
+        {
+          "kind": "truthy",
+          "path": "provenance.counter_evidence_span.applied"
+        }
+      ],
+      "bounded_seconds": 0.4
+    },
+    {
+      "id": "inherited_vertical_slice_result",
+      "statement": "The snapshot's own vertical-slice result artifact records 120 decisions, 8 clusters and the counter-status distribution that product/tests/test_cycle_43198349659.py re-derives under a socket trap.",
+      "artifact": "results/product/vertical_slice_results_20261112T160000Z.json",
+      "sha256": "0c7af6b774d51a97f7f5aab71c172494baf4e82f2fb39ffce2b50510fd9c90f7",
+      "bytes": 2074,
+      "assertions": [
+        {
+          "kind": "equals",
+          "path": "n_decisions",
+          "value": 120
+        },
+        {
+          "kind": "equals",
+          "path": "n_clusters",
+          "value": 8
+        },
+        {
+          "kind": "equals",
+          "path": "counter_status_dist.cited",
+          "value": 2
+        },
+        {
+          "kind": "equals",
+          "path": "counter_status_dist.candidate-limiting",
+          "value": 4
+        },
+        {
+          "kind": "equals",
+          "path": "content_coverage.by_state.full_text",
+          "value": 25
+        }
+      ],
+      "bounded_seconds": 0.2
+    },
+    {
+      "id": "v68_before_bundle",
+      "statement": "Accepted v68 before/after evidence for the rejection/incumbent leg; consumed REPORTED-ONLY and never re-derived here.",
+      "artifact": "results/product/offline_slice/20261024T142517Z/rent-default.bundle.json",
+      "sha256": "6eee1149b3c0ec23124746af482e15d9298c2120ee25de4bc4dd7e1cf7d93fa9",
+      "bytes": 924802,
+      "assertions": [],
+      "bounded_seconds": 0.4
+    },
+    {
+      "id": "v68_after_bundle",
+      "statement": "Accepted v68 before/after evidence for the rejection/incumbent leg; consumed REPORTED-ONLY and never re-derived here.",
+      "artifact": "results/product/offline_slice/20261025T070356Z/rent-default.bundle.json",
+      "sha256": "f060fa2914605eebf4b7121f91463df28bc5ef7f97a346dd995fa68d7152c76e",
+      "bytes": 936404,
+      "assertions": [],
+      "bounded_seconds": 0.4
+    },
+    {
+      "id": "audit_namespace_untouched",
+      "statement": "This producer wrote no auditor-namespace path and minted no gate; the /audit half of requirement 4 is the independent auditor's to create.",
+      "artifact": null,
+      "sha256": null,
+      "bytes": null,
+      "assertions": [
+        {
+          "kind": "absent_path",
+          "value": "results/audit/product/CYCLE_43198349659_GATE.json"
+        },
+        {
+          "kind": "absent_path",
+          "value": "reports/audit/product/CYCLE_43198349659.md"
+        }
+      ],
+      "bounded_seconds": 0.1
+    }
+  ],
+  "commands": [
+    {
+      "id": "state_contract",
+      "argv": [
+        "python3",
+        "product/state_contract.py",
+        "--check",
+        "--direction-version",
+        "68",
+        "--json"
+      ],
+      "expect_exit": 0,
+      "timeout_s": 180,
+      "bounded_seconds": 2.0
+    },
+    {
+      "id": "cycle_reproduction",
+      "argv": [
+        "python3",
+        "-m",
+        "pytest",
+        "product/tests/test_cycle_43198349659.py",
+        "-q"
+      ],
+      "expect_exit": 0,
+      "timeout_s": 600,
+      "bounded_seconds": 60.0
+    }
+  ],
+  "bounded_total_seconds": 64.7,
+  "audit_entrypoint": "python3 product/audit_packet.py --verify results/product/audit_packet/CYCLE_43198349659.json --run-commands"
+}
