@@ -45,6 +45,7 @@ import time
 from typing import Any
 
 from .bundle import annotate_content_state, build_bundle, validate_bundle
+from .counter_evidence_span import apply_verified_span_selection
 from .qmap import MapModel, build_map, fit_map_model
 
 #: One upstream page is enough to draw a real map immediately.  The accepted
@@ -236,10 +237,21 @@ def run_query_first_page(query: str, top_n: int = 150, *, retrieval_mode: str = 
         "map_stability": "not_applicable_single_pass",
     }
     annotate_content_state(bundle)
-    errors = validate_bundle(bundle)
+
+    # Stage 1 of the counter-evidence span seam (direction v65/v68).
+    # Selects verbatim spans from each decision's own text and lets the
+    # frozen decide_label gate confirm or abstain.  The rejection/incumbent
+    # leg (v68 P0) downgrades defective incumbent counter_evidence to
+    # explicitly-unevidenced rather than leaving it verified.
+    audited = apply_verified_span_selection(
+        bundle,
+        qid=(bundle.get("provenance") or {}).get("qid"),
+    )
+
+    errors = validate_bundle(audited)
     if errors:
-        raise RuntimeError(f"first-page query bundle invalid: {errors}")
-    return bundle
+        raise RuntimeError(f"first-page query bundle invalid after span selection: {errors}")
+    return audited
 
 
 def _merge_decisions(existing: list[dict], incoming: list[dict]) -> tuple[list[dict], int]:

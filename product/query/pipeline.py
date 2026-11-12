@@ -1075,10 +1075,23 @@ def run_query_initial(query: str, top_n: int = 150, *, retrieval_mode: str = "li
     # an explicit reference-only pointer. Never let an empty shell masquerade as
     # a decision the jurist can read.
     annotate_content_state(bundle)
-    errors = validate_bundle(bundle)
+
+    # Stage 1 of the counter-evidence span seam (direction v65/v68).
+    # Selects verbatim verbatim spans from each decision's own text and lets
+    # the frozen decide_label gate confirm or abstain.  The rejection/incumbent
+    # leg (v68 P0) downgrades defective incumbent counter_evidence to
+    # explicitly-unevidenced rather than leaving it verified — exactly the
+    # "when the seam abstains or a candidate is filter-rejected, the defective
+    # incumbent counter_evidence must not remain verified" requirement.
+    audited = apply_verified_span_selection(
+        bundle,
+        qid=(bundle.get("provenance") or {}).get("qid"),
+    )
+
+    errors = validate_bundle(audited)
     if errors:
-        raise RuntimeError(f"initial query bundle invalid: {errors}")
-    return bundle
+        raise RuntimeError(f"initial query bundle invalid after span selection: {errors}")
+    return audited
 
 
 def _merge_hydrated_evidence(bundle: dict, *, retrieval_mode: str, evidence_count: int) -> dict:
