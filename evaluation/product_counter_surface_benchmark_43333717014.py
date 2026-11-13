@@ -41,12 +41,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", default=None)
     parser.add_argument("--hypothesis", default=str(DEFAULT_HYPOTHESIS))
     parser.add_argument("--freeze", default=str(DEFAULT_FREEZE))
+    parser.add_argument(
+        "--cache-dir",
+        default=None,
+        help="Override the frozen 24-envelope cache directory (provenance: see freeze cache_sample_restoration).",
+    )
     args = parser.parse_args(argv)
 
     # Patch only the run-scoped pin paths; every other module global
     # (PRODUCT_FILES, OUT_DIR, measurement and gate logic) is untouched.
     bench.HYPOTHESIS_PATH = Path(args.hypothesis).resolve()
     bench.FREEZE_PATH = Path(args.freeze).resolve()
+    if args.cache_dir:
+        bench.CACHE_DIR = Path(args.cache_dir).resolve()
     out_path = Path(args.out).resolve() if args.out else None
     out = bench.run(Path(args.product_root), args.run_id, out_path)
 
