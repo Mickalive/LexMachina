@@ -61,6 +61,7 @@ Usage
 -----
     python3 product/content_family_probe.py --run-id 40143042888
     python3 product/content_family_probe.py --json
+    python3 product/content_family_probe.py --check     # exit 1 when unmet
 """
 from __future__ import annotations
 
@@ -747,11 +748,22 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--direction-version", type=int, default=None)
     ap.add_argument("--out", default=None, help="output json path")
     ap.add_argument("--json", action="store_true", help="print record and exit")
+    ap.add_argument(
+        "--check",
+        action="store_true",
+        help=(
+            "enforce the ordered-work (2) success rule: exit 1 when the "
+            "fixed-path family still carries a D2/D3/D4 defect, a false "
+            "reject, or the accepted before/after leg is incomplete"
+        ),
+    )
     args = ap.parse_args(argv)
 
     rec = run(run_id=args.run_id, direction_version=args.direction_version)
     if args.json:
         print(json.dumps(rec, indent=2, ensure_ascii=False, sort_keys=True))
+        if args.check and not rec["ordered_work_2_full_success_rule"]["met"]:
+            return 1
         return 0
     out = args.out
     if not out:
@@ -783,6 +795,12 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  confirmed set false rejects: {rec['false_reject_count']}")
     print(f"  ordered-work (2) success rule met: "
           f"{rec['ordered_work_2_success_rule']['met']}")
+    full = rec["ordered_work_2_full_success_rule"]
+    print(f"  ordered-work (2) FULL success rule met: {full['met']}")
+    if args.check and not full["met"]:
+        unmet = [k for k, v in full.items() if k != "met" and v is not True]
+        print(f"  CHECK FAILED: unmet ordered-work (2) conditions: {unmet}")
+        return 1
     return 0
 
 
