@@ -1,0 +1,28 @@
+{
+  "schema": "lex-evaluation-shim-test-record/1",
+  "run_id": "43333717014",
+  "generated_at_utc": "2026-11-13T00:18:34Z",
+  "method": "No pytest in the image (ModuleNotFoundError). A 20-line stdlib shim providing only pytest.raises/mark was used to import and call every test_* function; unsupported fixtures are not counted as passed.",
+  "target": "tests/evaluation/test_product_counter_surface_benchmark.py",
+  "target_sha256": "7425db2bf3a92aab4dd9d3c73be5e605eec15d2c81990fe7823a33b1f9f28268",
+  "summary": {
+    "passed": 4,
+    "failed": 2,
+    "total": 6
+  },
+  "passed": [
+    "test_frozen_inputs_and_product_pins_are_unchanged",
+    "test_product_module_identity_and_classifier_guards",
+    "test_network_guard_fails_closed",
+    "test_hydration_index_prefers_nonempty_full_text"
+  ],
+  "failed": [
+    "test_cached_sample_pool_parity_and_known_counter_reach",
+    "test_frozen_gate_contract_is_complete_and_nonvacuous"
+  ],
+  "failure_root_cause": "The live results/evaluation/retrieval_benchmark/cache bytes drifted from the accepted run 39838415410 sample (24/24 envelope hashes differ; rewrite commit 05238b36). The tests read the live cache and assert the pre-drift accepted pool cardinalities [223,218,221,205] and G7; the live cache yields [222,218,221,206] and G7 false.",
+  "not_caused_by": "The new wrapper restores the accepted cache bytes from d1de037b (24/24 verified) and its own run passes C2/G7; the failures reproduce on the untouched accepted test without the wrapper.",
+  "disposition": "Disclosed, not papered over. The accepted test was NOT edited: relaxing its pool assertions would weaken the frozen sample check. The claim-bearing run uses the byte-pinned accepted cache; a future lane decision must either pin the test's cache input to the accepted sample or accept that the live cache is a new sample.",
+  "reproduce": "PYTHONPATH=/tmp/pyshim:. python3 - <<'PY' ... import tests.evaluation.test_product_counter_surface_benchmark as m; call each test_* ... PY",
+  "network_calls": 0
+}
