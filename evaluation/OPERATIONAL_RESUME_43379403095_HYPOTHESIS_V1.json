@@ -1,0 +1,84 @@
+{
+  "schema": "lex-evaluation-operational-resume-hypothesis/1",
+  "lane": "evaluation",
+  "run_id": "43379403095",
+  "resumed_run_id": "43378111582",
+  "resumed_base_run_id": "43371675511",
+  "resumed_chain": ["43365313827", "43365482535", "43371040309", "43371186416", "43371675511", "43378111582"],
+  "direction_version": 68,
+  "mode": "OPERATIONAL_RESUME",
+  "fast_mvp_directive": "FAST MVP MODE: smallest executable retrieval/counter-authority benchmark that can falsify the product; reuse existing multilingual/provenance tests; no universal-174k reruns; operational resume from the persisted producer snapshot of run 43378111582 without restarting completed work",
+  "recorded_at_utc": "2026-11-13T06:46:00Z",
+  "freeze_before_execution": true,
+  "question": "The persisted producer snapshot of run 43378111582 (commit 6c45cf2a) died at workflow step 'Run lane cycle' after a model-provider auth failure and rotation, leaving only a ref probe and GitHub API diagnostics, while its two team-successful ancestors (43365482535, 43371675511) each lost their independent audit to a 2700 s work-quantum expiry and one ancestor (43371186416) exited 67 LEX_ZERO_DELTA_REPAIR. Can the accumulated snapshot's completed FAST-MVP retrieval/counter-authority deliverable be verified, every orchestration failure in the chain diagnosed from committed public metadata, the item-(2) precondition re-adjudicated, and the snapshot made audit-ready with in-lane-only writes - without restarting from scratch and without re-running any closed frozen measurement?",
+  "product_decision_unlocked": "Whether evaluation's accumulated work (FAST-MVP falsifier 43365482535 on packet-of-record 39319405429 plus the whole resume chain's diagnostics) can be handed to the independent auditor as one audit-ready snapshot, or whether the lane must discard it and start again.",
+  "baseline": {
+    "accepted_evaluation_head_at_freeze": "ea98384e54d31d2e694c418a1d1ce5769fc6c32f (accept evaluation cycle 40265377500)",
+    "accepted_product_head_at_freeze": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83 (accept product cycle 40284658455)",
+    "snapshot_head_at_freeze": "6c45cf2ae7b6b39f2b1d8fd965ab432859dcf20f (evaluation cycle 43378111582 repair 0)",
+    "prior_same_class_runs": [
+      "43342851837",
+      "43344048907",
+      "43349645400",
+      "43357838904",
+      "43359487892",
+      "43365313827",
+      "43365482535",
+      "43371040309",
+      "43371186416",
+      "43371675511"
+    ],
+    "prior_instrument": "evaluation/operational_resume_43359487892.py (five-hypothesis resume verification pattern) plus evaluation.snapshot_audit.write_scope",
+    "prior_verification_of_record": "results/evaluation/operational_resume_43359487892/verification_43359487892.json (RESUME_VERIFIED_AUDIT_READY, 45/45 checks) - this run does NOT re-run that instrument; it extends the same pattern to the newer chain and the newer deliverable"
+  },
+  "hypotheses": [
+    {
+      "id": "H1",
+      "claim": "Run 43378111582 failed ONLY at the workflow step 'Run lane cycle' with exit code 1 after a model-provider auth failure and rotation (annotations LEX_MODEL_AUTH_FAILURE model=opencode/big-pickle quarantined, then LEX_MODEL_ROTATE selected=opencode/beam-free of pool 4); 'Validate active MVP producer state' and 'Enforce lane write scope' were skipped, the audit and integrate jobs were skipped, no audit ref exists, and the snapshot it persisted adds only lane-namespace diagnostic paths (a ref probe and GitHub API envelopes) - i.e. this is the provider-rotation failure class of factory-wide requirement 20, NOT a write-scope violation and NOT a product or evidence verdict.",
+      "success_rule": "Committed jobs_43378111582.json: team=conclusion failure with failing steps exactly ['Run lane cycle'], validate-state step skipped, write-scope step skipped, audit=skipped, integrate=skipped; committed annotations_team_43378111582.json contains LEX_MODEL_AUTH_FAILURE with model=opencode/big-pickle and quarantine wording plus LEX_MODEL_ROTATE with selected=opencode/beam-free and pool_size=4; git diff --name-status 11bc8c68..6c45cf2a adds exactly 11 paths all under results/evaluation/operational_resume_43378111582/ (ref_probe + api/) and no path under results/audit/ or reports/audit/; ref probe shows no refs/heads/cycle/core/evaluation/43378111582/audit.",
+      "falsified_if": "any other step failed, no provider-rotation annotation exists, the snapshot added any audit-namespace path, or an audit ref exists."
+    },
+    {
+      "id": "H2",
+      "claim": "The five other runs of the chain each died in a recorded non-product orchestration class: 43365482535 and 43371675511 had team=success but their independent-audit job failed at step 'Independent audit' with exit code 78 LEX_WORK_QUANTUM_EXPIRED seconds=2700 (so neither ever reached 'Enforce audit scope and read gate' and neither produced a gate of record); 43371186416's team failed with exit 67 LEX_ZERO_DELTA_REPAIR; 43365313827 and 43371040309's teams failed at 'Run lane cycle' with exit 1. No independent audit exists for any of 43365482535, 43371675511 or 43378111582.",
+      "success_rule": "For each of the six runs the committed jobs envelope shows the frozen step pattern (43365313827/43371040309: team failure at 'Run lane cycle', audit skipped; 43365482535/43371675511: team success, audit failure at 'Independent audit', 'Enforce audit scope and read gate' skipped, integrate skipped; 43371186416: team failure at 'Run lane cycle'); the committed annotations envelopes carry LEX_WORK_QUANTUM_EXPIRED seconds=2700 with exit 78 for both audit jobs, LEX_ZERO_DELTA_REPAIR with exit 67 for 43371186416, and exit 1 for the two other team failures; the ref probe reports audit_ref_present=false for 43365482535, 43371675511 and 43378111582.",
+      "falsified_if": "any run's failing step or exit annotation differs from the frozen pattern, or an audit ref exists for any of the three named runs."
+    },
+    {
+      "id": "H3",
+      "claim": "The snapshot's completed FAST-MVP retrieval/counter-authority deliverable (run 43365482535, the newest instance of the minimal-ca-falsify/mapping-free falsifier on packet-of-record 39319405429) is preserved and internally valid: every frozen input pin re-hashes unchanged, wrapper/engine record and report agree, the non-vacuity battery holds, a fresh scratch replay at the same product mount reproduces every measurement-bearing field without rewriting the claim-bearing original, and its measurement is field-identical (outside the seven named volatile fields) to the previously verified 43342851837 record on the same product head.",
+      "success_rule": "all 9 frozen repo pins and the 3 deliverable shas re-hash to the freeze-record digests; run_valid=true, input_drift=[], verdict=PRODUCT_FALSIFIED, exit_code=1, n_gates=18/n_passed=11/n_failed=4/n_reported=3, failed_gates equal the four named mf:: gates, product_mount_head=7be4480e; wrapper, engine record and report agree on verdict/exit/gates/failed_gates/head; non_vacuity.all_hold=true; fresh scratch replay compares 41 measurement-bearing fields with 0 differences; cross-record comparison of 43365482535 against 43342851837 over all keys minus the volatile set {run_id, generated_at_utc, engine_record_path, entry_point, engine_entry_point, numeric_environment, wrapper_instrument} yields 41 compared fields and 0 differences, with numeric_environment differing only on the host platform label.",
+      "falsified_if": "any pin mismatches, any input drift appears, any measurement-bearing replay or cross-record field differs outside the volatile set, or the original record is rewritten."
+    },
+    {
+      "id": "H4",
+      "claim": "Ordered-work item (2) (conditional re-measure of the named 15-member flagship family) is still NOT_YET_DISCRIMINATING at the unchanged accepted product head 7be4480e: the product fixed-path family is byte-identical to the set accepted run 40258497460 already measured, the named family is regenerated only 14/15 under the frozen role rule, and lab/product has not advanced since accepted adjudication 43333717014.",
+      "success_rule": "the accepted evaluation.v68_item2_family_gate instrument re-run against /tmp/lex_accepted/product returns status=NOT_YET_DISCRIMINATING, zero_delta byte_identical_n=50 of 50, role_parity=false, member_for_member_ceiling=14 of 15, product head 7be4480e; ref probe shows refs/heads/lab/product == 7be4480e; no D1-D4 content is re-scored and no synthetic stand-in is substituted.",
+      "falsified_if": "the precondition is met (15/15 regenerated at a new head) or the current product bytes differ from the measured set."
+    },
+    {
+      "id": "H5",
+      "claim": "The snapshot can be made audit-ready by in-lane-only writes: the resumed run's own delta is write-scope clean under the byte-faithful port of the workflow's write-scope step, live producer write scope for this run is SCOPE_CLEAN, no file under results/audit/ or reports/audit/ is added, modified or deleted by this run, the root and lane state files agree on run identity after the additive state update, state integrity passes, and the lane suite passes.",
+      "success_rule": "write_scope --repro-from-git 11bc8c68 6c45cf2a returns verdict=SCOPE_CLEAN with zero bad paths; write_scope live returns SCOPE_CLEAN (junk tolerated only as already-disclosed non-lane scratch); git status --porcelain -uall shows no path under results/audit/ or reports/audit/; state_integrity_gate returns ALL_CHECKS_PASS; lane_suite --skip-pytest returns PASS; root and lane state agree on accepted_run_id, direction_version and github_run and github_run == 43379403095.",
+      "falsified_if": "any new out-of-scope path is written or any out-of-scope file is modified/deleted, or any validation instrument fails."
+    }
+  ],
+  "ordered_work_status_rules": {
+    "1": "DISCHARGED_ELSEWHERE - reports/evaluation/BYPASS_CLAUSE_CORRECTION_OF_RECORD_40105794124_v68.md; not re-run",
+    "2": "NOT_YET_DISCRIMINATING unless H4 falsifies it; full protocol NOT executed otherwise, no synthetic stand-in, packet-of-record not scored",
+    "3": "KEPT - benchmark of record (mapping-free falsifier PRODUCT_FALSIFIED on 39319405429, measurement of record 40182692670) untouched; this run's replay is verification, not a new falsification of record",
+    "4": "REPORT_ONLY where quoted",
+    "5": "APPLIED - this cycle is OPERATIONAL (diagnosis, verification, state); no frozen bench, D2 profile or bypass diagnosis is re-derived"
+  },
+  "out_of_scope": [
+    "no frozen bar, rubric, threshold, predicate or verdict contract is edited, re-derived or moved",
+    "no serve verdict, admission flag or posture flag is changed; both DO-NOT-SERVE orders stand; admission stays fail-closed",
+    "no universal-174k benchmark is rerun",
+    "no NEW falsification of record is authored; the mapping-free falsifier PRODUCT_FALSIFIED on packet-of-record 39319405429 is preserved untouched",
+    "no independent audit gate is authored by this run; results/audit/evaluation/ and reports/audit/evaluation/ are NOT written, modified or deleted",
+    "no .github/** change; the write-scope, quantum-expiry, zero-delta and provider-rotation failure classes are recorded, not patched",
+    "comparative map-versus-ranked-list half is not scored; human_gate_ready stays false",
+    "no LIVE network retrieval, OpenCaseLaw, model or paid-API call; only public GitHub REST run/job/check-run metadata and git ref probes"
+  ],
+  "claim_ceiling": "Operational-resume diagnosis, deliverable verification, precondition re-adjudication and audit-ready snapshot assembly. It creates no new product measurement, no frozen-bar result, no serve or admission verdict and no jurist-utility claim; it is NOT an independent audit of run 43378111582 or of this run."
+}
