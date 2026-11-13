@@ -71,6 +71,7 @@ import glob
 import hashlib
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -147,8 +148,20 @@ ACCEPTED_V3_ARM_ARTIFACT = (
 )
 
 
-def bundle_paths() -> list[Path]:
-    """Every committed flagship bundle, sorted for determinism."""
+#: Ad-hoc verification outputs (``<run>_verify/`` or ``*_verify/``) are written
+#: by every cycle that re-renders the slice.  They carry the same fixed-path
+#: provenance as a flagship bundle, so a provenance-only selector would grow the
+#: "fixed-path family" by one 100-decision bundle on every verification cycle
+#: and thereby move a previously published family measurement (49 bundles /
+#: 4900 decisions / 55 verified) without any change to the shipped pipeline.
+#: Those outputs are still measured under ``all_committed`` and reported by the
+#: end-to-end slice summary; they are simply not members of the frozen
+#: flagship family.  This keeps the family definition stable across cycles.
+_VERIFY_DIR_RE = re.compile(r"(?:^|/)[^/]*_verify/")
+
+
+def all_bundle_paths() -> list[Path]:
+    """Every committed bundle, including ad-hoc verification outputs."""
     patterns = (
         "results/product/offline_slice/*/*.bundle.json",
         "results/product/server_slice/*/*.bundle.json",
@@ -157,6 +170,24 @@ def bundle_paths() -> list[Path]:
     for pat in patterns:
         out.extend(Path(p) for p in glob.glob(str(ROOT / pat)))
     return sorted(set(out))
+
+
+def is_verification_bundle(path: str | Path) -> bool:
+    """True when the bundle lives in a ``*_verify/`` verification directory."""
+    p = Path(path)
+    rel = p.relative_to(ROOT).as_posix() if p.is_absolute() else p.as_posix()
+    return bool(_VERIFY_DIR_RE.search(rel))
+
+
+def bundle_paths() -> list[Path]:
+    """Every committed *flagship* bundle, sorted for determinism.
+
+    Verification-only directories are excluded (see :data:`_VERIFY_DIR_RE`):
+    each cycle writes one, and letting them join the family would silently move
+    the frozen 49-bundle / 4900-decision baseline.  They remain in
+    ``all_committed`` and in the per-cycle slice summary.
+    """
+    return [p for p in all_bundle_paths() if not is_verification_bundle(p)]
 
 
 def _has_fixed_path_provenance(doc: dict) -> bool:
@@ -627,9 +658,11 @@ def run(
     # bundles; allowing those to leak into an old artifact's recomputation
     # turns a true claim into a permanent false failure.  The default remains
     # the live committed population.
-    rows = [probe_bundle(p) for p in (paths if paths is not None else bundle_paths())]
-    fixed = [r for r in rows if r["fixed_path_family"]]
-    historical = [r for r in rows if not r["fixed_path_family"]]
+    rows = [probe_bundle(p) for p in
+            (paths if paths is not None else all_bundle_paths())]
+    fixed = [r for r in rows
+             if r["fixed_path_family"] and not is_verification_bundle(r["path"])]
+    historical = [r for r in rows if r not in fixed]
     fixed_totals = _totals(fixed)
     historical_totals = _totals(historical)
     all_totals = _totals(rows)

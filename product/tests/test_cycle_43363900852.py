@@ -274,7 +274,12 @@ def test_posture_fail_closed_and_no_auditor_namespace_writes():
     for flag in ("human_gate_ready", "machine_gate_ready", "packet_admitted",
                  "ready_for_owner_session"):
         assert st[flag] is False, f"{flag} must stay fail-closed"
-    assert st["current_cycle_run_id"] == int(EXECUTING_RUN_ID)
+    # POINTER-PIN AMENDMENT (standing convention from cycle 40272586794):
+    # every successor cycle advances ``current_cycle_run_id``, so this
+    # historical cycle test asserts non-regression, never equality.
+    assert st["current_cycle_run_id"] >= int(EXECUTING_RUN_ID), (
+        "current_cycle_run_id regressed below this cycle's executing run",
+        st["current_cycle_run_id"], EXECUTING_RUN_ID)
     block = st[f"cycle_{EXECUTING_RUN_ID}_operational_resume"]
     assert block["run_id"] == int(EXECUTING_RUN_ID)
     assert block["direction_version"] == 68

@@ -501,6 +501,52 @@ PROFILES: dict[str, dict[str, Any]] = {
                                / "query_map_diagnosis"
                                / "CYCLE_40257275384.json",
     },
+    "43373102286": {
+        # Operational resume of snapshot 43363900852 (team ref 756fa4e3), which
+        # itself resumed 43357207555.  The audit job died at the same
+        # independent-audit work quantum (2708 s, exit 78) after the team job
+        # had succeeded with a 46-file committed delta over origin/lab/product.
+        # This cycle repairs a validation inconsistency found while verifying
+        # the lane deliverable: ad-hoc ``*_verify/`` outputs carried the same
+        # fixed-path provenance as flagship bundles, so every verification
+        # cycle silently grew the frozen family measurement (49 -> 50 -> 51).
+        # The family now excludes verification-only directories while
+        # ``all_committed`` keeps every bundle (149 / D2=44 preserved).
+        "resumed_run_id": "43363900852",
+        "predecessor_run_id": "43357207555",
+        "raw": ORCH / "CYCLE_43363900852_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_43363900852_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_43363900852.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_43373102286.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "mechanism_kind": "observed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "failed_job": "audit",
+        "delta_kind": "committed",
+        "changed_files": 46,
+        "changed_paths_include": ("product/content_family_probe.py",
+                                  "reports/product/CYCLE_43363900852.md"),
+        "cycle_test": "product/tests/test_cycle_43373102286.py",
+        "state_block": "cycle_43373102286_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_43373102286.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "replay_summary": ROOT / "results" / "product" / "live_cache_replay"
+                          / "CYCLE_40257275384" / "summary.json",
+        "query_map_diagnosis": ROOT / "results" / "product"
+                               / "query_map_diagnosis"
+                               / "CYCLE_40257275384.json",
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
