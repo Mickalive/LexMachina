@@ -409,6 +409,19 @@
       "finding": "the workflow's 'Clean generated junk' step does not cover zero-byte server*.log files at the repository root, and 'Enforce lane write scope' is skipped whenever the producer step fails, so out-of-scope root files land in the team ref (observed: 4 such files in commit d4e8a86).",
       "scope": ".github/** is control-plane scope and is recorded, never edited from a lane",
       "route_around": "product-owned code writes its server logs under results/ or a temp dir; the lane additionally re-checks root-level junk before committing"
+    },
+    {
+      "id": "CP-AUDIT-QUANTUM-RECURRENCE",
+      "recorded_by": "product cycle 43373102286 (operational resume of 43363900852)",
+      "gap": "The independent-audit job consumed its full 2700 s LEX_WORK_QUANTUM on two consecutive runs (43357207555 step 2705.0 s pid=2393; 43363900852 step 2708.0 s pid=3075) and wrote no gate. On 43363900852 the job log shows one ls at 04:51:07 then no further tool output until the quantum warning, and the selected model was opencode/mimo-v2.6-flash-free (LEX_MODEL_POOL index=0). The team jobs succeeded on both runs and preserved committed deltas, so the stop is on the audit side, not the producer.",
+      "why_a_lane_cannot_fix_it": ".github/** and model-pool selection are control-plane scope; the lane cannot change the audit job's quantum, model or prompt.",
+      "intended_upstream_fix_for_the_control_plane_maintainer": [
+        "select/rotate an audit-capable model independently of the producer pool, or cap the audit agent's turns so it writes a gate within the job timeout",
+        "have run-ox-with-retry.sh trap the quantum and write a BLOCKED/REVISE gate skeleton with a 'quantum expired before verdict' claim_ceiling instead of exiting 78 with no artifact",
+        "surface per-tool-call progress in the job log so a stall/hang is distinguishable from legitimate long reading",
+        "give the audit job a snapshot/resume path rather than discarding a 2700 s session"
+      ],
+      "route_around_used": "the producer publishes a compact audit-readiness dossier plus a one-command re-derivation test and a short quickstart in the cycle report so an auditor does not need to explore the repo; the lane records the diagnosis instead of dispatching another diagnosis-only cycle."
     }
   ],
   "evidence_ref_counts_40143042888": {
@@ -1097,7 +1110,7 @@
   },
   "current_cycle_run_id": 43373102286,
   "last_repair_round": 0,
-  "last_updated": "2026-11-13T05:52:00Z",
+  "last_updated": "2026-11-13T05:58:00Z",
   "run_history": [
     {
       "run_id": "40241250741",
