@@ -410,6 +410,49 @@ PROFILES: dict[str, dict[str, Any]] = {
                                / "query_map_diagnosis"
                                / "CYCLE_40257275384.json",
     },
+    "43357207555": {
+        # Operational resume of snapshot 43356960891 (team ref 696cd4b7).
+        # That run, its predecessor 43356503308 and 43349050225 all point at
+        # the same commit: the zero-delta chain continued and no public
+        # run/jobs snapshot was reachable, so the mechanism is UNOBSERVED.
+        # This resuming cycle adds the durable product delta (the query-app
+        # stage guard) and the audit-ready dossier.
+        "resumed_run_id": "43356960891",
+        "predecessor_run_id": "43356503308",
+        "raw": None,
+        "resume_diag": ORCH / "CYCLE_43356960891_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_43349050225.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_43357207555.md",
+        "classification": "RAW_SNAPSHOT_UNAVAILABLE",
+        "mechanism_kind": "unobserved",
+        "delta_kind": "zero",
+        "failed_job": "team",
+        "quantum_seconds": None,
+        "exit_code": None,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_43357207555.py",
+        "state_block": "cycle_43357207555_operational_resume",
+        # Fresh REPORTED-ONLY re-measurement on the current committed
+        # fixed-path family; accepted before/after bundles are unchanged.
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_43357207555.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "replay_summary": ROOT / "results" / "product" / "live_cache_replay"
+                          / "CYCLE_40257275384" / "summary.json",
+        "query_map_diagnosis": ROOT / "results" / "product"
+                               / "query_map_diagnosis"
+                               / "CYCLE_40257275384.json",
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original

@@ -97,11 +97,36 @@ def _get(run_id: str) -> dict | None:
         return RUNS.get(run_id)
 
 
+#: Pipeline stage ordering for the run's stored bundle.  Expansion and
+#: enrichment run on the same thread pool and both write the run's bundle, so a
+#: late *expand* can finish after an *enrich* and overwrite the sourced answer
+#: with a pending one.  The bundle endpoint would then contradict
+#: ``/api/query/status`` (jobs=done, answer=ready) exactly when the researcher
+#: reloads the page.  A later stage may replace an earlier one; an earlier stage
+#: may never replace a later one.
+_PHASE_RANK = {
+    "first_page": 0,
+    "map_ready": 0,
+    "map_expanded": 1,
+    "complete": 2,
+}
+
+
+def _bundle_stage(bundle: dict | None) -> int:
+    phase = ((bundle or {}).get("provenance") or {}).get("phase")
+    return _PHASE_RANK.get(phase, 0)
+
+
 def _set_bundle(run_id: str, bundle: dict) -> None:
     with RUNS_LOCK:
         record = RUNS.get(run_id)
-        if record is not None:
-            record["bundle"] = bundle
+        if record is None:
+            return
+        current = record.get("bundle")
+        if _bundle_stage(bundle) < _bundle_stage(current):
+            # A late lower-stage job must not regress an enriched bundle.
+            return
+        record["bundle"] = bundle
 
 
 def _set_job(run_id: str, name: str, **fields) -> None:
