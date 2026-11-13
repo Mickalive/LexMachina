@@ -74,6 +74,22 @@ UPSTREAM_RE = re.compile(
     r"Upstream request failed: \[(?P<signature>[^\]]+)\]\s*(?P<detail>.*)"
 )
 MISSING_MODULE_RE = re.compile(r"No module named '([^']+)'")
+#: Canonical Python/interpreter error form only.  The bare regex above also
+#: matches the agent's own source (``MISSING_MODULE_RE = re.compile(r"No
+#: module named '([^']+)'")``) and its comment prose while it writes the
+#: diagnosis, which is how ``([^`` once reached a published artifact.
+MODULE_ERR_RE = re.compile(
+    r"(?:ModuleNotFoundError|ImportError): No module named '([^']+)'"
+)
+#: The wrapper prints this with a resolved code (``rc=1``); the wrapper's own
+#: script source echoes ``rc=$rc``, and a diagnosis agent quotes that source.
+NON_TRANSIENT_RE = re.compile(
+    r"failed without transient(?:/auth)? signature \(rc=(-?\d+)\)"
+)
+#: The genuine signal is a pytest ``AssertionError: Map data missing
+#: positions: ...``; the agent's dict-literal source line has a closing quote
+#: between the string and ``in text``.
+MAP_POS_RE = re.compile(r"Map data missing positions:")
 ATTEMPT_RE = re.compile(r"LEX_OX_ATTEMPT=(\d+)/(\d+)")
 #: The runner renders workflow/script annotations as ``##[error]TEXT`` inside
 #: the downloaded log.  Only those lines are the *run's own* verdicts: an agent
@@ -124,32 +140,144 @@ def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def parse_lane_cycle_log(text: str) -> dict[str, Any]:
+#: A quoted-history line carries the *outer* log timestamp and then the
+#: *inner* timestamp of the file the agent was reading, e.g.
+#: ``2026-11-13T00:36:07.9623823Z 2026-11-13T00:21:01.6751994Z LEX_MODEL_POOL``.
+#: The workflow's own output never nests a second timestamp.
+NESTED_TS_RE = re.compile(
+    r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[.\d]*Z\s+\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"
+)
+#: A bare 8-12 digit run id on a line means the line is *about* some run; the
+#: wrapper's own pool/upstream/attempt lines never name a run id at all, and
+#: the run's own pool line names exactly this run (in ``slot=``).
+FOREIGN_RUN_RE = re.compile(r"\b\d{8,12}\b")
+
+
+def line_is_own(line: str, run_id: str | None = None) -> bool:
+    """True when ``line`` is this run's own output rather than quoted history.
+
+    Three independent signals, any of which makes a line foreign:
+
+    * a nested timestamp (the agent printing another run's log bytes);
+    * a run id that is not ``run_id`` (the agent's prose about a predecessor);
+    * a ``slot=...:<id>`` whose id is not ``run_id`` (handled by the caller
+      through :func:`line_is_own`'s run-id test as well, since the slot id is
+      itself an 8-12 digit token).
+
+    With ``run_id=None`` only the nesting test applies, so the pure parser
+    keeps its historical behaviour on synthetic single-run text.
+    """
+    if NESTED_TS_RE.search(line):
+        return False
+    if run_id:
+        for token in FOREIGN_RUN_RE.findall(line):
+            if token != run_id:
+                return False
+    return True
+
+
+def own_lines(text: str, run_id: str | None = None) -> list[str]:
+    return [ln for ln in text.splitlines() if line_is_own(ln, run_id)]
+
+
+def parse_lane_cycle_log(text: str, run_id: str | None = None) -> dict[str, Any]:
     """Derive the observable failure facts of one ``Run lane cycle`` log.
 
     Pure and total: an input that shows none of the known markers returns
     ``classification = UNCLASSIFIED_LANE_CYCLE_FAILURE`` with the markers it
     did see, rather than being folded into a neighbouring class.
+
+    ``run_id`` scopes the parse to *this* run's own output.  A diagnosis log
+    legitimately contains whole predecessor logs (the agent reads them while
+    writing its own diagnosis), and honouring those bytes would publish another
+    run's model pool, upstream error and exit codes under this run's id - the
+    requirement-33 "claim does not reproduce" class, one level down.  When
+    ``run_id`` is given:
+
+    * ``model_pool`` is the pool line whose ``slot`` names this run;
+      anything else is reported in ``model_pool_quoted_candidates``;
+    * ``upstream_error`` / ``missing_modules`` / ``attempts`` come only from
+      this run's own lines; foreign matches are reported as ``*_quoted_*``;
+    * ``exit_codes`` are the step's own ``##[error]...exit code N`` annotation
+      lines (what the check-run annotations API records), and
+      ``final_annotation_exit_code`` is the LAST one - the step's real exit.
+      When an agent echoes ``::error::`` commands, GitHub records those as
+      annotations too, so a multi-element list is flagged by
+      ``annotation_echo_contamination`` instead of being read as "the wrapper
+      exited six times".
+
+    The two guard markers are pinned to that final exit code, because a
+    diagnosis agent quoting ``LEX_ZERO_DELTA_REPAIR``/``exit 67`` text must not
+    relabel a work-quantum expiry (or vice versa).
     """
+    own = own_lines(text, run_id)
+    own_text = "\n".join(own)
+
     pool = None
+    pool_quoted: list[dict[str, Any]] = []
     for match in POOL_RE.finditer(text):
-        pool = match.groupdict()  # last attempt wins if a retry happened
+        entry = match.groupdict()
+        line = match.group(0)
+        # POOL_RE matches inside a longer line, so test the whole source line.
+        src = next((ln for ln in text.splitlines() if match.group(0) in ln), line)
+        if line_is_own(src, run_id) and (
+            not run_id or str(entry.get("slot") or "").endswith(f":{run_id}")
+        ):
+            pool = entry  # last own attempt wins if a retry happened
+        else:
+            pool_quoted.append(entry)
+    if pool is None and run_id:
+        # Own-line match that names another run's slot (should not happen once
+        # line_is_own rejects foreign run ids) - fall back to the last own line.
+        for match in POOL_RE.finditer(own_text):
+            pool = match.groupdict()
+
     upstream = None
+    upstream_quoted: list[dict[str, Any]] = []
     for match in UPSTREAM_RE.finditer(text):
-        upstream = {
+        entry = {
             "signature": match.group("signature").strip(),
             "detail": match.group("detail").strip()[:300],
         }
-    exit_codes = [int(m.group(1)) for m in EXIT_RE.finditer(text)]
+        src = next((ln for ln in text.splitlines() if match.group(0) in ln), "")
+        if not src or line_is_own(src, run_id):
+            upstream = entry
+        else:
+            upstream_quoted.append(entry)
+
+    # The step's own verdicts are its annotation lines; plain-text mentions of
+    # "exit code N" include script source and quoted history.
+    annotation_matches = list(ANNOTATION_LINE_RE.finditer(text))
+    annotation_texts = [m.group("text") for m in annotation_matches]
+    exit_codes = [
+        int(m.group(1))
+        for m in (EXIT_RE.search(t) for t in annotation_texts)
+        if m
+    ]
+    final_exit = exit_codes[-1] if exit_codes else None
+
     attempts = [
         {"attempt": int(a), "max_attempts": int(b)}
-        for a, b in ATTEMPT_RE.findall(text)
+        for a, b in ATTEMPT_RE.findall(own_text)
     ]
-    missing = sorted(set(MISSING_MODULE_RE.findall(text)))
 
-    # Workflow annotations are this run's own verdicts; anything the agent
-    # merely quotes is recorded separately and never classifies the run.
-    annotation_texts = [m.group("text") for m in ANNOTATION_LINE_RE.finditer(text)]
+    def _module_errors(lines: list[str]) -> list[str]:
+        found: set[str] = set()
+        for ln in lines:
+            if "re.compile" in ln:
+                continue
+            parts = ln.split(None, 1)
+            body = parts[1] if len(parts) == 2 else ln
+            if body[:1] in ("#", '"', "'"):
+                continue  # comment / dict-literal source the agent is writing
+            found.update(MODULE_ERR_RE.findall(ln))
+        return sorted(found)
+
+    missing = _module_errors(own)
+    foreign_mods = _module_errors(
+        [ln for ln in text.splitlines() if not line_is_own(ln, run_id)])
+    missing_quoted = sorted(set(foreign_mods) - set(missing))
+
     annotation_blob = "\n".join(annotation_texts)
 
     def _annotation(marker: str) -> bool:
@@ -159,22 +287,44 @@ def parse_lane_cycle_log(text: str) -> dict[str, Any]:
         return marker in text and marker not in annotation_blob
 
     markers = {
-        "zero_delta_guard": _annotation("LEX_ZERO_DELTA_REPAIR"),
-        "non_transient_failure": "failed without transient" in text,
-        "agent_card_ok": "LEX_AGENT_CARD_OK" in text,
+        # Pinned to the step's real exit code: an agent that echoes
+        # "::error::LEX_ZERO_DELTA_REPAIR" while writing its diagnosis must not
+        # flip these, and the echo is visible as an extra annotation entry.
+        "zero_delta_guard": bool(
+            _annotation("LEX_ZERO_DELTA_REPAIR") and final_exit == 67
+        ),
+        "non_transient_failure": bool(NON_TRANSIENT_RE.search(own_text)),
+        "agent_card_ok": "LEX_AGENT_CARD_OK" in own_text,
         "persist_nothing_to_commit": "nothing to commit, working tree clean" in
-                                     text,
-        "quantum_expired": _annotation("LEX_WORK_QUANTUM_EXPIRED"),
-        "map_data_missing_positions": "Map data missing positions" in text,
+                                     own_text,
+        "quantum_expired": bool(
+            _annotation("LEX_WORK_QUANTUM_EXPIRED")
+            and final_exit in (None, 78)
+        ),
+        "map_data_missing_positions": bool(MAP_POS_RE.search(own_text)),
         "markers_quoted_from_history_only": sorted(
             m for m in ("LEX_ZERO_DELTA_REPAIR", "LEX_WORK_QUANTUM_EXPIRED")
             if _quoted_only(m)
         ),
         "annotation_error_lines": sorted(set(
             m.group("text").strip()[:200]
-            for m in ANNOTATION_LINE_RE.finditer(text)
+            for m in annotation_matches
             if m.group("level") == "error"
         )),
+        "annotation_echo_contamination": len(exit_codes) > 1,
+        "final_annotation_exit_code": final_exit,
+        # Present as an annotation but refused as this run's own verdict,
+        # because the step's real exit code contradicts it.  This is exactly
+        # the agent-echo case: a diagnosis agent that cats a file containing
+        # "::error::LEX_ZERO_DELTA_REPAIR" makes GitHub record that annotation
+        # against its own step.
+        "annotation_markers_rejected_by_final_exit": sorted(
+            m for m, ok in (
+                ("LEX_ZERO_DELTA_REPAIR", final_exit == 67),
+                ("LEX_WORK_QUANTUM_EXPIRED", final_exit in (None, 78)),
+            )
+            if _annotation(m) and not ok
+        ),
     }
 
     if markers["quantum_expired"]:
@@ -196,7 +346,7 @@ def parse_lane_cycle_log(text: str) -> dict[str, Any]:
         classification = CLASS_UNCLASSIFIED
         why = "none of the known lane-cycle failure markers were observed"
 
-    return {
+    out: dict[str, Any] = {
         "model_pool": pool,
         "upstream_error": upstream,
         "exit_codes": exit_codes,
@@ -206,6 +356,17 @@ def parse_lane_cycle_log(text: str) -> dict[str, Any]:
         "classification": classification,
         "why": why,
     }
+    if run_id:
+        out["run_id_scoped"] = True
+        if pool_quoted:
+            out["model_pool_quoted_candidates"] = pool_quoted[:5]
+        if upstream_quoted:
+            out["upstream_error_quoted_candidates"] = upstream_quoted[:5]
+        if missing_quoted:
+            out["missing_modules_quoted_candidates"] = missing_quoted[:5]
+    else:
+        out["run_id_scoped"] = False
+    return out
 
 
 def build(logs_dir: Path, run_ids: list[str],
@@ -218,7 +379,8 @@ def build(logs_dir: Path, run_ids: list[str],
             runs[run_id] = {"file": None, "present": False}
             continue
         raw = path.read_bytes()
-        parsed = parse_lane_cycle_log(raw.decode("utf-8", errors="replace"))
+        parsed = parse_lane_cycle_log(
+            raw.decode("utf-8", errors="replace"), run_id=str(run_id))
         runs[run_id] = {
             "file": str(path),
             "present": True,
@@ -228,6 +390,7 @@ def build(logs_dir: Path, run_ids: list[str],
         }
     classes = sorted({r["classification"] for r in runs.values()
                       if r.get("present")})
+    n_runs = len(runs)
     return {
         "schema": SCHEMA,
         "generated_at": datetime.now(timezone.utc).strftime(
@@ -240,11 +403,13 @@ def build(logs_dir: Path, run_ids: list[str],
         "observed_failure_classes": classes,
         "control_plane_items": [dict(i) for i in CONTROL_PLANE_ITEMS],
         "meaning": (
-            "Observed evidence from committed job logs of three failed product "
-            "runs. The two failure classes are control-plane/model-pool and "
-            "fresh-runner-validation facts, not product verdicts: no gate is "
-            "written, no run is labelled accepted or rejected, and no frozen "
-            "bar, rubric or threshold is touched."
+            f"Observed evidence from the {n_runs} committed lane-cycle job "
+            "log(s) listed under runs. The failure classes are "
+            "control-plane/model-pool and fresh-runner-validation facts, not "
+            "product verdicts: no gate is written, no run is labelled "
+            "accepted or rejected, and no frozen bar, rubric or threshold is "
+            "touched. Each run's own output is separated from predecessor log "
+            "bytes the agent quoted while writing its diagnosis."
         ),
         "claim_ceiling": (
             "This artifact names why the producer step exited, from bytes the "
