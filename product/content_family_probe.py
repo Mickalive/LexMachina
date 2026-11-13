@@ -705,9 +705,12 @@ def run(
             "alignment": prov.get("alignment"),
         },
         "family_definition": (
-            "fixed_path_family = bundle provenance carries "
+            "fixed_path_family = flagship bundles whose provenance carries "
             "counter_evidence_span.content_filter (regenerated on the fixed "
-            "path); identified from the bytes, never hard-coded"
+            "path), excluding ad-hoc *_verify/ outputs so a verification "
+            "cycle cannot move the frozen baseline; identified from the "
+            "bytes, never hard-coded. all_committed still contains every "
+            "committed bundle, including *_verify/ outputs."
         ),
         "fixed_path_family": {"totals": fixed_totals, "bundles": fixed},
         "historical_population": {
