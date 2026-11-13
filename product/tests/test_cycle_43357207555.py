@@ -167,7 +167,15 @@ def test_posture_fail_closed_and_no_auditor_namespace_writes():
     for flag in ("human_gate_ready", "machine_gate_ready", "packet_admitted",
                  "ready_for_owner_session"):
         assert st[flag] is False, f"{flag} must stay fail-closed"
-    assert st["current_cycle_run_id"] == int(EXECUTING_RUN_ID)
+    # POINTER-PIN AMENDMENT (standing convention from cycle 40272586794,
+    # re-applied here by operational-resume run 43363900852): the executing
+    # run advances ``current_cycle_run_id`` on every successor cycle, so the
+    # equality pin fails with nothing regressed.  The durable form is the
+    # non-regression check; posture, report and no-gate assertions below are
+    # unchanged.
+    assert st["current_cycle_run_id"] >= int(EXECUTING_RUN_ID), (
+        "current_cycle_run_id regressed below this cycle's executing run",
+        st["current_cycle_run_id"], EXECUTING_RUN_ID)
     assert REPORT.is_file()
     assert not (ROOT / "results" / "audit" / "product"
                 / f"CYCLE_{EXECUTING_RUN_ID}_GATE.json").exists()

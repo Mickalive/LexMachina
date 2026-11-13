@@ -159,7 +159,17 @@ def test_posture_fail_closed_and_no_auditor_namespace_writes():
     for flag in ("human_gate_ready", "machine_gate_ready", "packet_admitted",
                  "ready_for_owner_session"):
         assert st[flag] is False, f"{flag} must stay fail-closed"
-    assert st["current_cycle_run_id"] == int(EXECUTING_RUN_ID)
+    # POINTER-PIN AMENDMENT (standing convention from cycle 40272586794,
+    # re-applied here by operational-resume run 43363900852): later cycles
+    # legitimately advance ``current_cycle_run_id``, so the equality pin
+    # asserted `43357207555 == 43349050225` and failed on successor cycles
+    # with nothing regressed.  What survives is stronger: the pointer must
+    # never REGRESS below this cycle's executing run (a hand-rolled-back
+    # state fails), and every assertion below still pins this cycle's report,
+    # the fail-closed posture and the no-self-minted-gate rule verbatim.
+    assert st["current_cycle_run_id"] >= int(EXECUTING_RUN_ID), (
+        "current_cycle_run_id regressed below this cycle's executing run",
+        st["current_cycle_run_id"], EXECUTING_RUN_ID)
     assert REPORT.is_file()
     # The producer may not mint an audit gate for its own run.
     assert not (ROOT / "results" / "audit" / "product"

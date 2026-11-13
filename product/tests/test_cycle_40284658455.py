@@ -114,13 +114,49 @@ def test_no_gate_exists_for_the_executing_or_resumed_run():
         audit_refs = _git("ls-remote", "--heads", "origin",
                           f"refs/heads/cycle/core/product/{run}/audit")
         assert audit_refs == "", f"unexpected /audit ref for {run}"
-    assert not (ROOT / "results" / "audit" / "product" /
-                f"CYCLE_{EXECUTING_RUN_ID}_GATE.json").exists()
+    # POINTER-PIN AMENDMENT (re-applied by run 43363900852): when this test
+    # was written the executing run had no gate yet; the independent auditor
+    # subsequently authored CYCLE_40284658455_GATE.json and it was ACCEPTED
+    # (both halves of requirement 4), so "the file must not exist" is now
+    # false for a legitimate reason.  What this test exists to prevent is a
+    # PRODUCER mint for its own run, so the durable form is: the gate, if
+    # present, must be the auditor's accepted gate and must not be an
+    # uncommitted producer write, while no gate may exist for the resumed or
+    # the formerly self-minted run.
+    gate_path = (ROOT / "results" / "audit" / "product"
+                 / f"CYCLE_{EXECUTING_RUN_ID}_GATE.json")
+    if gate_path.is_file():
+        gate = _load(gate_path)
+        assert gate["gate"] == "PASS"
+        assert gate["safe_to_integrate"] is True
+        assert gate["required_fixes"] == []
+        accepted = _git("show",
+                        f"origin/lab/product:results/audit/product/"
+                        f"CYCLE_{EXECUTING_RUN_ID}_GATE.json")
+        assert accepted == gate_path.read_text(encoding="utf-8").strip(), (
+            "gate bytes differ from the accepted tree")
+    pending = _git("status", "--porcelain", "-uall", "--", "results/audit/")
+    assert pending == "", (
+        "producer must not have an uncommitted auditor-namespace write",
+        pending)
+    assert not (ROOT / "results" / "audit" / "product"
+                / f"CYCLE_{RESUMED_RUN_ID}_GATE.json").exists()
+    # MINTED_GATE_RUN's minted file is deliberately NOT asserted absent: it is
+    # preserved in place as committed evidence (append-only) and is held
+    # non-promoting by QUARANTINE, which
+    # test_self_minted_gate_is_preserved_and_quarantined_non_promoting pins.
 
 
 def test_state_attributes_the_executing_run_not_the_resumed_snapshot():
     st = _load(STATE)
-    assert st["current_cycle_run_id"] == int(EXECUTING_RUN_ID)
+    # POINTER-PIN AMENDMENT (re-applied by run 43363900852): later cycles
+    # advance this live pointer, so the equality pin failed with nothing
+    # regressed.  The non-regression form still fails for the case this test
+    # exists to catch - a state attributing the older run (the resumed
+    # snapshot, or any earlier cycle) instead of this executing run.
+    assert st["current_cycle_run_id"] >= int(EXECUTING_RUN_ID), (
+        "current_cycle_run_id regressed below this cycle's executing run",
+        st["current_cycle_run_id"], EXECUTING_RUN_ID)
     blk = st["cycle_40284658455_operational_resume"]
     assert blk["resumed_snapshot"]["run_id"] == int(RESUMED_RUN_ID)
     assert "NON_PROMOTING" in blk["quarantine_verdict"]
@@ -134,11 +170,24 @@ def test_state_attributes_the_executing_run_not_the_resumed_snapshot():
 
 def test_accepted_pointer_satisfies_both_halves_and_posture_stays_fail_closed():
     st = _load(STATE)
-    assert st["accepted_run_id"] == "CYCLE_40269774540"
-    assert st["accepted_commit"].startswith("5adaa66d")
+    # POINTER-PIN AMENDMENT (re-applied by run 43363900852): the accepted
+    # pointer advances with every later accept - this very cycle advanced it
+    # from CYCLE_40269774540 to CYCLE_40284658455 - so pinning the value seen
+    # at write time fails with nothing regressed.  What survives is stronger:
+    # the LIVE pointer must be no older than this cycle's value and must
+    # itself satisfy both halves of factory-wide requirement 4.
+    assert int(st["accepted_run_id"].removeprefix("CYCLE_")) >= 40269774540, (
+        "accepted pointer older than this cycle's value",
+        st["accepted_run_id"])
+    from product.state_contract import accepted_pointer_evidence
+    evidence = accepted_pointer_evidence(st, ROOT)
+    assert evidence["problems"] == []
+    assert evidence["gate_ok"] is True
+    assert evidence["accept_commit_present"] is True
     gate = _load(ROOT / "results" / "audit" / "product"
-                 / "CYCLE_40269774540_GATE.json")
+                 / f"{st['accepted_run_id']}_GATE.json")
     assert gate["gate"] == "PASS" and gate["safe_to_integrate"] is True
+    assert gate["required_fixes"] == []
     head = _git("ls-remote", "--heads", "origin", "refs/heads/lab/product")
     assert head.startswith(st["accepted_commit"]), (head, st["accepted_commit"])
     for key, expected in (

@@ -173,7 +173,15 @@
     "product/tests/test_query_app_stage_guard.py (3 tests)",
     "results/product/audit_readiness/CYCLE_43357207555_audit_readiness.json",
     "product/tests/test_cycle_43357207555.py",
-    "reports/product/CYCLE_43357207555.md"
+    "reports/product/CYCLE_43357207555.md",
+    "product/fetch_run_jobs_snapshot.py",
+    "results/product/orchestration/CYCLE_43357207555_run_jobs_raw.json",
+    "results/product/orchestration/CYCLE_43357207555_job_logs/MANIFEST.json",
+    "results/product/orchestration/CYCLE_43357207555_resume_diagnosis.json",
+    "results/product/counter_content_family/CYCLE_43363900852.json",
+    "results/product/offline_slice/43363900852_verify/rent-default.bundle.json",
+    "product/tests/test_cycle_43363900852.py",
+    "reports/product/CYCLE_43363900852.md"
   ],
   "evidence_tier": "REPRODUCED",
   "human_gate_ready": false,
@@ -194,7 +202,7 @@
   },
   "lane": "product",
   "machine_gate_ready": false,
-  "next_recommendation": "Direction v68 / FAST MVP, producer cycle 43357207555 (OPERATIONAL RESUME of snapshot 43356960891; UNADJUDICATED pending independent audit). THE RESUME BROKE THE ZERO-DELTA CHAIN WITH A SHIPPED PRODUCT FIX, NOT MORE DIAGNOSIS: the resumed run 43356960891 (and its predecessor 43356503308) was byte-identical to 696cd4b7, so audit was skipped again (ZERO_DURABLE_DELTA, mechanism UNOBSERVED - no public run/jobs snapshot). Exercising the shipped query_app server exposed a real defect: a late expand job could overwrite an enrich result, making /api/query/status report answer=ready while /api/query/bundle returned answer=pending with no citations. Fixed with a monotonic stage guard in product/query_app.py (first_page/map_ready < map_expanded < complete) and pinned by product/tests/test_query_app_stage_guard.py (3 tests, including the shipped-server sequence). The v68 P0 rejection/incumbent leg and fixed-path family are unchanged and re-measured (49 bundles / 4900 decisions / 55 verified / 0 verified-and-defective, D1-D4=0, 0 false rejects, sound row bstger_SK.2023.49 retained; results/product/counter_content_family/CYCLE_43357207555.json); the end-to-end offline slice still yields 100 source-linked, clustered, query-conditioned points plus a sourced answer with the network trap armed. NEXT CYCLE: run the independent audit on this snapshot; do not dispatch more diagnosis. Posture stays FAIL-CLOSED: human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session all FALSE (both frozen packet-of-record bars unmet), owner_decision_required false, continue_recommended TRUE until a locally runnable end-to-end path is marked human_gate_ready.",
+  "next_recommendation": "Direction v68 / FAST MVP, producer cycle 43363900852 (OPERATIONAL RESUME of persisted producer snapshot 43357207555 @ 4047dfd9; UNADJUDICATED pending independent audit). THIS CYCLE DIAGNOSED THE PREVIOUS RUN'S ORCHESTRATION FAILURE FROM PUBLIC EVIDENCE AND MADE THE SNAPSHOT AUDIT-READY: run 43357207555's team job SUCCEEDED (COMMITTED_DELTA, 31 files over origin/lab/product) and only its independent-audit job died - observed, not inferred - at LEX_WORK_QUANTUM_EXPIRED seconds=2700 / exit code 78 after 2705.0 s, with the gate-read and audit-persist steps skipped and no gate on any ref. Both evidence channels are committed: the run/jobs snapshot with check-run annotations (logs_endpoint_status=200) and the redacted job logs, produced by the new product/fetch_run_jobs_snapshot.py (token scheme, credential redaction, fail-closed). It also REPAIRED A REAL SUITE VALIDATION FAILURE CLASS: four historical cycle tests equality-pinned the live current_cycle_run_id (pytest failed with 'assert 43357207555 == 43349050225') and two of them also pinned an accepted pointer / gate-absence assertion that later legitimate accepts superseded; all four now use the lane's POINTER-PIN AMENDMENT non-regression form (live pointer >= value observed at write time, accepted pointer checked against both halves of requirement 4), with every posture/report assertion unchanged and the auditor-authored gate accepted in place of the stale absence claim. The lane deliverable was verified on current bytes rather than re-derived: content_family_probe --run-id 43363900852 --check exits 0 (49 bundles / 4900 decisions / 55 verified / 0 verified-and-defective, D1-D4=0, 0 false rejects, sound row bstger_SK.2023.49 retained) and offline_slice --verify rebuilds the end-to-end slice (100 decisions, 8 clusters, source links and coordinates on every row, answer ready with 4 cited decisions, geometry preserved, network none, page contract PASS). ORDERED WORK IS UNCHANGED: the v68 P0 rejection/incumbent leg and the full-family regeneration stay accepted and are consumed, never re-derived; LIVE LATENCY/PRECISION stays DEFERRED with the budget at 8; the frozen-rules profile coverage gap stays DISCLOSED and TRANSFERRED to evaluation; no frozen bar, rubric, threshold or verdict contract is edited; no serve verdict is re-run; no human-gate session is staged while either frozen bar is unmet; posture flags stay FALSE; owner_decision_required stays false; continue_recommended stays true. NEXT: the independent audit of this snapshot - do not dispatch further diagnosis-only cycles.",
   "not_claimed": [
     "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
     "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
@@ -1087,9 +1095,9 @@
     "audit_namespace_written": false,
     "claim_ceiling": "OPERATIONAL-RESUME AND AUDIT-READINESS EVIDENCE ONLY. No live retrieval, legal usefulness, frozen bar, serve verdict, acceptance or human-gate readiness is asserted."
   },
-  "current_cycle_run_id": 43357207555,
+  "current_cycle_run_id": 43363900852,
   "last_repair_round": 0,
-  "last_updated": "2026-11-13T03:20:13Z",
+  "last_updated": "2026-11-13T04:38:50Z",
   "run_history": [
     {
       "run_id": "40241250741",
@@ -1244,6 +1252,14 @@
       "audit_gate": "NONE_YET",
       "summary": "Operational resume of snapshot 43356960891 (zero-delta chain over 43356503308/43349050225, mechanism unobserved). Preserved all accepted work; fixed a real shipped-server defect the resume exposed (a late expand could overwrite an enriched bundle, so /api/query/status and /api/query/bundle disagreed); added a monotonic stage guard in product/query_app.py and a 3-test regression file; re-verified the v68 fixed-path family (49/4900/55/0, D1-D4=0, 0 false rejects, sound row retained) and the end-to-end offline slice; added the 43357207555 audit-readiness profile/dossier and cycle test. Posture fail-closed unchanged. UNADJUDICATED pending independent audit.",
       "date": "2026-11-13T03:20:13Z"
+    },
+    {
+      "run_id": 43363900852,
+      "repair_round": 0,
+      "status": "AUDIT_READY_PENDING_INDEPENDENT_AUDIT",
+      "audit_gate": "NONE_YET",
+      "summary": "Operational resume of snapshot 43357207555 (COMMITTED_DELTA 31 files over origin/lab/product). Predecessor's audit failure OBSERVED from public channels: independent-audit step 2705.0 s, LEX_WORK_QUANTUM_EXPIRED seconds=2700 / exit 78, gate steps skipped, no gate on any ref -> UNADJUDICATED. Raw run/jobs snapshot + redacted job logs committed by the new product/fetch_run_jobs_snapshot.py. Repaired the suite validation failure class (stale live-pointer equality pins and a superseded accepted-pointer/gate-absence pin) across four historical cycle-test files with the POINTER-PIN AMENDMENT; the new cycle test re-runs two of them as a guard. Re-verified the lane deliverable on current bytes: content family 49/4900/55/0 with D1-D4=0 and 0 false rejects, end-to-end offline slice 100 decisions / 8 clusters / answer ready / page contract PASS. Posture fail-closed unchanged.",
+      "date": "2026-11-13T04:38:50Z"
     }
   ],
   "cycle_40247041354_resume": {
@@ -2129,5 +2145,85 @@
     "frozen_bar_scored": false,
     "posture_unchanged": true,
     "claim_ceiling": "One shipped product defect fix plus regression test, verification of already-accepted v68 P0 bytes, and an honest orchestration diagnosis. It writes no audit gate, labels no run accepted or rejected, scores no frozen bar and makes no legal-usefulness claim."
+  },
+  "cycle_43363900852_operational_resume": {
+    "run_id": 43363900852,
+    "repair_round": 0,
+    "direction_version": 68,
+    "mode": "OPERATIONAL RESUME from persisted producer snapshot of run 43357207555",
+    "resumed_snapshot": {
+      "run_id": 43357207555,
+      "team_ref": "origin/cycle/core/product/43357207555/team",
+      "team_ref_head": "4047dfd94944df746ebc84206f4c32ffc396b269",
+      "predecessor_ref": "origin/lab/product",
+      "predecessor_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+      "delta": "COMMITTED_DELTA - 31 files over origin/lab/product; the predecessor's stage-guard fix, dossier, report and cycle test are carried, not restarted",
+      "mechanism": "OBSERVED_QUANTUM_EXPIRED - the independent-audit agent hit LEX_WORK_QUANTUM_EXPIRED seconds=2700 / exit code 78 after 2705.0 s (check-run annotations AND the downloaded job log agree); no provider or auth cause is claimed"
+    },
+    "orchestration_failure_diagnosis": {
+      "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+      "failed_job": "audit",
+      "failed_step": "Independent audit",
+      "gate_step": "skipped",
+      "persist_step": "skipped",
+      "gate_file_written": false,
+      "adjudication": "UNADJUDICATED - no gate exists on any ref, so neither half of factory-wide requirement 4 exists for 43357207555; this is an orchestration outcome, not a product defect and not a verdict",
+      "artifacts": {
+        "raw_snapshot": "results/product/orchestration/CYCLE_43357207555_run_jobs_raw.json",
+        "job_logs": "results/product/orchestration/CYCLE_43357207555_job_logs/",
+        "resume_diagnosis": "results/product/orchestration/CYCLE_43357207555_resume_diagnosis.json"
+      },
+      "log_channel_correction": "the endpoint is NOT admin-only: HTTP 403 came from the checkout's basic extraheader. With the token scheme and no credential on the storage redirect it answers HTTP 200, which is why logs_endpoint_status now reads 200"
+    },
+    "validation_failure_repaired": {
+      "observed": "pytest product/tests/test_cycle_43349050225.py failed with 'assert 43357207555 == 43349050225' - a stale equality pin on the live current_cycle_run_id pointer; test_cycle_43357207555.py carried the identical pin",
+      "fix": "POINTER-PIN AMENDMENT (established by cycle 40272586794) applied to both: current_cycle_run_id >= this cycle's executing run, i.e. non-regression instead of equality",
+      "unchanged": "direction_version, continue_recommended, the four fail-closed posture flags, the report-existence assertion and the producer-minted-no-gate rule in both tests",
+      "guard": "product/tests/test_cycle_43363900852.py::test_pointer_pin_amendment_keeps_predecessor_cycle_tests_green runs both predecessor cycle tests and fails if the equality pin returns",
+      "claims_weakened": "none - no frozen benchmark, rubric, threshold or accepted number was touched",
+      "legacy_files_repaired": [
+        "product/tests/test_cycle_43349050225.py (live-pointer equality pin)",
+        "product/tests/test_cycle_43357207555.py (live-pointer equality pin)",
+        "product/tests/test_cycle_40259640985_resume.py (live-pointer equality pin + superseded accepted-pointer pin)",
+        "product/tests/test_cycle_40284658455.py (live-pointer equality pin + superseded accepted-pointer pin + gate-absence assertion invalidated by the later legitimate accept)"
+      ],
+      "verified_green": "pytest on the four repaired cycle-test files plus the new cycle test: all green; the new cycle test also re-runs two of them as a regression guard"
+    },
+    "lane_deliverable_verified": {
+      "content_family": "results/product/counter_content_family/CYCLE_43363900852.json",
+      "content_family_numbers": "49 bundles / 4900 decisions / 55 verified / 0 verified-and-defective; D1=D2=D3=D4=0; false_reject_count=0; confirmed sound row bstger_SK.2023.49 still verified; ordered-work (2) full success rule met (REPORTED-ONLY)",
+      "enforced_command": "python3 product/content_family_probe.py --run-id 43363900852 --check -> exit 0",
+      "end_to_end_slice": "results/product/offline_slice/43363900852_verify/rent-default.bundle.json - 100 decisions, 8 clusters, 100/100 source links and coordinates, answer ready with 4 cited decisions, geometry_preserved=true, network none, page contract PASS",
+      "capability_contract": "question -> cached OpenCaseLaw retrieval -> query_result_bundle -> sourced answer -> counter-authority pass -> query-conditioned clustered clickable map"
+    },
+    "accepted_pointer": {
+      "accepted_run_id": "CYCLE_40284658455",
+      "accepted_commit": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+      "both_halves_verified_this_cycle": true,
+      "half_1": "results/audit/product/CYCLE_40284658455_GATE.json = gate PASS safe_to_integrate=true required_fixes=[]",
+      "half_2": "origin/lab/product head 7be4480e = 'accept product cycle 40284658455'"
+    },
+    "artifacts": {
+      "fetch_instrument": "product/fetch_run_jobs_snapshot.py",
+      "raw_snapshot": "results/product/orchestration/CYCLE_43357207555_run_jobs_raw.json",
+      "job_logs": "results/product/orchestration/CYCLE_43357207555_job_logs/MANIFEST.json",
+      "resume_diagnosis": "results/product/orchestration/CYCLE_43357207555_resume_diagnosis.json",
+      "content_family": "results/product/counter_content_family/CYCLE_43363900852.json",
+      "slice": "results/product/offline_slice/43363900852_verify/",
+      "cycle_test": "product/tests/test_cycle_43363900852.py",
+      "report": "reports/product/CYCLE_43363900852.md",
+      "audit_readiness": "results/product/audit_readiness/CYCLE_43363900852_audit_readiness.json",
+      "legacy_test_repairs": [
+        "product/tests/test_cycle_43349050225.py",
+        "product/tests/test_cycle_43357207555.py",
+        "product/tests/test_cycle_40259640985_resume.py",
+        "product/tests/test_cycle_40284658455.py"
+      ]
+    },
+    "bundle_bytes_written": false,
+    "gate_minted": false,
+    "auditor_namespace_written": false,
+    "posture": "fail-closed: human_gate_ready, machine_gate_ready, packet_admitted, ready_for_owner_session all false; continue_recommended true",
+    "status": "AUDIT_READY_PENDING_INDEPENDENT_AUDIT"
   }
 }

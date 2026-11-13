@@ -76,13 +76,30 @@ def test_current_report_and_state_are_honest():
         assert needle in report, needle
 
     state = _load(STATE)
-    assert state["current_cycle_run_id"] == int(RUN_ID)
+    # POINTER-PIN AMENDMENT (re-applied by run 43363900852): the live pointer
+    # moves forward with every later cycle; pinning the value seen at write
+    # time failed with nothing regressed.  Non-regression below this cycle's
+    # executing run is the durable form.
+    assert state["current_cycle_run_id"] >= int(RUN_ID), (
+        "current_cycle_run_id regressed below this cycle's executing run",
+        state["current_cycle_run_id"], RUN_ID)
     assert state["continue_recommended"] is True
     assert state["human_gate_ready"] is False
     assert state["machine_gate_ready"] is False
     assert state["packet_admitted"] is False
     assert state["ready_for_owner_session"] is False
-    assert state["accepted_run_id"] == "CYCLE_40247189361"
+    # POINTER-PIN AMENDMENT (same run): the accepted pointer advanced to
+    # later accepted cycles after this one was written.  The live pointer is
+    # now checked the durable way - no older than this cycle's value, and
+    # still satisfying both halves of requirement 4.
+    assert int(state["accepted_run_id"].removeprefix("CYCLE_")) >= 40247189361, (
+        "accepted pointer older than this cycle's observed value",
+        state["accepted_run_id"])
+    from product.state_contract import accepted_pointer_evidence
+    evidence = accepted_pointer_evidence(state, ROOT)
+    assert evidence["problems"] == []
+    assert evidence["gate_ok"] is True
+    assert evidence["accept_commit_present"] is True
     block = state[f"cycle_{RUN_ID}_operational_resume"]
     assert int(block["snapshot_run_id"]) == int(SNAPSHOT)
     assert block["posture"]["human_gate_ready"] is False

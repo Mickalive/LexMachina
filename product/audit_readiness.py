@@ -453,6 +453,54 @@ PROFILES: dict[str, dict[str, Any]] = {
                                / "query_map_diagnosis"
                                / "CYCLE_40257275384.json",
     },
+    "43363900852": {
+        # Operational resume of snapshot 43357207555 (team ref 4047dfd9) -
+        # the first resume of this lane with BOTH public evidence channels
+        # captured: the run/jobs snapshot with check-run annotations AND the
+        # redacted job logs (HTTP 200 once the endpoint is called with the
+        # ``token`` auth scheme instead of the checkout's ``basic``
+        # extraheader).  The predecessor's team job SUCCEEDED with a committed
+        # 31-file delta over origin/lab/product, and only its independent-audit
+        # agent was stopped by its own 2700 s work quantum (exit 78) before
+        # writing a gate - so unlike the four resumes before it, this profile
+        # is mechanism_kind "observed" with delta_kind "committed".
+        "resumed_run_id": "43357207555",
+        "predecessor_run_id": "43356960891",
+        "raw": ORCH / "CYCLE_43357207555_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_43357207555_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_43357207555.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_43363900852.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "mechanism_kind": "observed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "failed_job": "audit",
+        "delta_kind": "committed",
+        "changed_files": 31,
+        "changed_paths_include": ("product/query_app.py",
+                                  "reports/product/CYCLE_43357207555.md"),
+        "cycle_test": "product/tests/test_cycle_43363900852.py",
+        "state_block": "cycle_43363900852_operational_resume",
+        # Fresh REPORTED-ONLY re-measurement written by this run's own
+        # `content_family_probe.py --run-id 43363900852 --check`.
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_43363900852.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "replay_summary": ROOT / "results" / "product" / "live_cache_replay"
+                          / "CYCLE_40257275384" / "summary.json",
+        "query_map_diagnosis": ROOT / "results" / "product"
+                               / "query_map_diagnosis"
+                               / "CYCLE_40257275384.json",
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
