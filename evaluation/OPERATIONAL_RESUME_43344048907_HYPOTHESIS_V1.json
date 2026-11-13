@@ -1,0 +1,59 @@
+{
+  "schema": "lex-evaluation-operational-resume-hypothesis/1",
+  "lane": "evaluation",
+  "run_id": "43344048907",
+  "resumed_run_id": "43342851837",
+  "direction_version": 68,
+  "mode": "OPERATIONAL_RESUME",
+  "recorded_at_utc": "2026-11-13T01:31:00Z",
+  "freeze_before_execution": true,
+  "question": "Run 43342851837 completed its producer cycle and then died in the workflow's validation leg. Is the failure attributable to a single reproducible write-scope violation, is the FAST-MVP retrieval/counter-authority deliverable it produced still valid and reproducible, and can the persisted snapshot be made audit-ready without restarting the cycle?",
+  "product_decision_unlocked": "Whether the persisted producer snapshot of 43342851837 can be handed to the independent auditor with its deliverable intact, or whether the cycle must be re-run from scratch.",
+  "baseline": {
+    "prior_same_class_runs": [
+      "38982176936",
+      "39470495546",
+      "40167904552",
+      "40186604273",
+      "40232590665"
+    ],
+    "prior_instrument": "evaluation.snapshot_audit.write_scope (byte-faithful port of .github/workflows/core-lane.yml step 'Enforce lane write scope')",
+    "prior_recovery_precedent": "results/evaluation/audit_namespace_recovery_40232590665/RELOCATION_RECORD.json (originals retained, copies published in the lane namespace)"
+  },
+  "hypotheses": [
+    {
+      "id": "H1",
+      "claim": "Run 43342851837 failed ONLY at the workflow step 'Enforce lane write scope' because exactly 2 of the 5 paths its snapshot commit added are outside the producer-allowed set; audit and integrate were therefore skipped and no independent audit of 43342851837 exists.",
+      "success_rule": "write_scope --repro-from-git 240ca2d9 a886bf2a returns verdict=SCOPE_VIOLATION with bad_paths EXACTLY ['reports/audit/evaluation/CYCLE_43342851837.md', 'results/audit/evaluation/CYCLE_43342851837_GATE.json']; the GitHub REST job record shows team=failure, audit=skipped, integrate=skipped with the failing step named 'Enforce lane write scope'; git ls-remote for refs/heads/cycle/core/evaluation/43342851837/audit returns nothing.",
+      "falsified_if": "any other step failed, or the bad-path set differs from the two audit-namespace paths, or an audit ref exists."
+    },
+    {
+      "id": "H2",
+      "claim": "The FAST-MVP deliverable produced by 43342851837 (minimal retrieval/counter-authority falsification benchmark on packet-of-record 39319405429 at product mount head 7be4480e) is complete and internally valid: every frozen pin re-hashes, the record is run_valid with no input drift, and its non-vacuity battery holds.",
+      "success_rule": "re-hash of every entry in rehash_before_execution.repo (10) and rehash_before_execution.mount (14) equals the recorded digest; frozen spec 187b0e54..., RULES_LABEL 4457e971..., RULES_GEOMETRY a7452748..., engine hypothesis d1135f9f..., engine freeze 431aa87b... all match on disk; run_valid=true, input_drift=[], verdict=PRODUCT_FALSIFIED, n_gates=18/n_passed=11/n_failed=4/n_reported=3, failed_gates set equals the four named mf:: gates, non_vacuity battery all holds=true.",
+      "falsified_if": "any pin mismatches, any drift is recorded, or the record contradicts its own report."
+    },
+    {
+      "id": "H3",
+      "claim": "A fresh scratch re-execution of the same wrapper/engine at the same product mount head reproduces every measurement-bearing field of the committed 43342851837 record.",
+      "success_rule": "scratch replay (out-of-tree output dirs, run id 43344048907_replay) yields the same verdict, exit_code, n_gates, n_passed, n_failed, n_reported, failed_gates set, per_question payloads, non_vacuity holds, input_drift=[] and product_mount_head; the committed claim-bearing file for 43342851837 is NOT rewritten (F-3B append-only rule).",
+      "falsified_if": "any measurement-bearing field differs; then the difference is published as-is and no field is harmonised."
+    },
+    {
+      "id": "H4",
+      "claim": "The two producer-authored files that crossed into the independent auditor's namespace can be made audit-ready by append-only byte-identical relocation into the lane's own namespace, with the originals retained and the pseudo-gate explicitly disclosed as NOT an independent audit.",
+      "success_rule": "both copies exist under results/evaluation/audit_namespace_recovery_43342851837/ with sha256 equal to the originals; both originals still exist at their audit-namespace paths and are byte-unchanged; RELOCATION_RECORD.json records originals_retained=true, independent_audit_provenance=false, and the git provenance of the snapshot commit a886bf2a; state/evaluation.json carries the same disclosure.",
+      "falsified_if": "any original is deleted or edited in place, any copy is not byte-identical, or the disclosure is absent."
+    }
+  ],
+  "out_of_scope": [
+    "no frozen bar, rubric, threshold, predicate or verdict contract is edited, re-derived or moved",
+    "no serve verdict, admission flag or posture flag is changed; both DO-NOT-SERVE orders stand; admission stays fail-closed",
+    "no universal-174k benchmark is rerun",
+    "no re-run of the standing falsification as a NEW claim of record; the benchmark of record (mapping-free falsifier PRODUCT_FALSIFIED on packet-of-record 39319405429) is unchanged",
+    "no independent audit gate is authored by this run; results/audit/evaluation/ and reports/audit/evaluation/ are NOT written",
+    "no .github/** change; the write-scope step defect class is recorded, not patched",
+    "comparative map-versus-ranked-list half is not scored; human_gate_ready stays false"
+  ],
+  "claim_ceiling": "Operational-resume diagnosis, deliverable verification and append-only provenance relocation. It creates no new product measurement, no frozen-bar result, no serve or admission verdict and no jurist-utility claim."
+}
