@@ -1,0 +1,53 @@
+{
+  "all_hold": true,
+  "committed_tree_defect_found": {
+    "dangling_refs_at_HEAD": [
+      "tests/evaluation/test_operational_resume_43405199129.py",
+      "reports/evaluation/OPERATIONAL_RESUME_43405199129_AUDIT_READY.md"
+    ],
+    "defect": "commit 61621db4 (cycle 43405199129) declared evidence refs that were never committed; a fresh audit checkout of the snapshot branch cannot resolve them",
+    "repaired_this_cycle": "both files committed by this cycle (additive; no history rewritten); the prior cycle's regression test carries ONE disclosed pre-first-commit adjustment to its two state-pointer assertions (see recovered_delta entry); no artifact content otherwise changed",
+    "why_it_mattered": "state validation requires every evidence_refs entry to resolve in the COMMITTED tree; the working tree resolved them, which masked the defect from the producer side"
+  },
+  "failure_class_inrun": "AGENT_ATTEMPT_DIED_BEFORE_COMMIT (transient; no lane-visible annotation available from inside the job; disclosed as producer-side inference)",
+  "job": "team",
+  "job_started_at": "2026-11-14T00:00:48Z",
+  "mechanism": ".github/scripts/run-ox-with-retry.sh runs up to OX_MAX_ATTEMPTS=8 agent attempts inside one team job and preserves the working tree across attempts; a transient earlier-attempt death leaves exactly this half-committed state",
+  "no_file_deleted": true,
+  "recorded_at": "2026-11-14T00:38:43Z",
+  "recovered_delta": [
+    {
+      "path": "results/evaluation/minimal_ca_falsify_benchmark/43531218191.json",
+      "status": "recovered_intact",
+      "verified": "deliverable_verification_43531218191.json"
+    },
+    {
+      "path": "results/evaluation/minimal_ca_falsify_benchmark/43531218191_engine_mapping_free_recall_falsifier.json",
+      "status": "recovered_intact",
+      "verified": "deliverable_verification_43531218191.json"
+    },
+    {
+      "path": "reports/evaluation/RETRIEVAL_CA_BENCHMARK_43531218191.md",
+      "status": "recovered_intact",
+      "verified": "matches machine record fields"
+    },
+    {
+      "note": "prior cycle's regression test, untracked at snapshot HEAD; committed this cycle with ONE disclosed adjustment made BEFORE its first-ever commit: the two state-pointer assertions (github_run == 43405199129, resumed_run_id == 43404713001) were made point-in-time-safe (>= the pinned values) because this cycle advances the pointer by lane convention; every measurement and verification assertion is byte-intact",
+      "path": "tests/evaluation/test_operational_resume_43405199129.py",
+      "status": "recovered_intact"
+    },
+    {
+      "note": "+3 evidence refs (43531218191 artifacts), evidence_refs_n 359->362; pointer fields advanced this cycle",
+      "path": "state/evaluation.json",
+      "status": "recovered_partial_edit"
+    },
+    {
+      "note": "mirror of root state edit",
+      "path": "evaluation/state/evaluation.json",
+      "status": "recovered_partial_edit"
+    }
+  ],
+  "recovered_delta_created_at_range": "2026-11-14T00:15:30Z..2026-11-14T00:20:04Z (file mtimes; the earlier agent attempt of THIS run executed and died before committing)",
+  "run_id": "43531218191",
+  "schema": "lex-evaluation-operational-resume-inrun-recovery/1"
+}
