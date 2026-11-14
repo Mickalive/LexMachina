@@ -639,6 +639,52 @@ PROFILES: dict[str, dict[str, Any]] = {
                                / "query_map_diagnosis"
                                / "CYCLE_40257275384.json",
     },
+    "43572985556": {
+        # Operational resume of run 43572798128 (team ref 5de296f8), which was
+        # itself dispatched to resume 43572630465 and never reached the work
+        # quantum.  Its TEAM job failed at "Run lane cycle" after 16 s with
+        # exit code 1; the run's own logs show the model gateway rejected the
+        # request argument itself (``unsupported_parameter`` /
+        # "Unrecognized request argument supplied: permissions."), so the
+        # lane-cycle agent process never started and no retry was attempted
+        # (the wrapper classified the failure as non-transient).  The
+        # always-run persist step published the predecessor's exact tree, so
+        # the resumed run carries ZERO DURABLE DELTA and is UNADJUDICATED.
+        # This is a provider/config incompatibility, not a product defect and
+        # not a verdict.  The snapshot being audited is the accumulated
+        # 5de296f8 tree produced by 43566223678; this profile hands the
+        # auditor that run's report plus this cycle's bounded diagnosis.
+        "resumed_run_id": "43572798128",
+        "predecessor_run_id": "43572630465",
+        "raw": ORCH / "CYCLE_43572798128_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_43572798128_resume_diagnosis.json",
+        "lane_cycle_log_evidence": ORCH
+                                   / "CYCLE_43572985556_lane_cycle_log_evidence.json",
+        "lane_cycle_classification": "MODEL_UPSTREAM_REJECTED_REQUEST_PARAMETER",
+        "upstream_signature": "unsupported_parameter",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_43566223678.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_43572985556.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "mechanism_kind": "observed_log",
+        "failed_job": "team",
+        "exit_code": 1,
+        "delta_kind": "zero",
+        "changed_files": 0,
+        "cycle_test": "product/tests/test_cycle_43572985556.py",
+        "state_block": "cycle_43572985556_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_43572985556.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
     "43566223678": {
         # Operational resume of run 43561447112 (team ref c6270101).  That run
         # succeeded in the team job (lane cycle 662 s, state validation and
@@ -726,6 +772,11 @@ MVP_CORE_TESTS = (
     "product/tests/test_adversarial_retrieval.py",
     "product/tests/test_counter_evidence_span.py",
     "product/tests/test_counter_content_rejection_v68.py",
+    # The stage guard is this lane's shipped server fix (late map_expanded
+    # responses must not overwrite a complete enriched bundle).  It has its own
+    # test file; leaving it out of the core set let the dossier pass without
+    # exercising the fix that the audit ref actually carries.
+    "product/tests/test_query_app_stage_guard.py",
     "product/tests/test_state_contract.py",
     "product/tests/test_progressive_query.py",
 )

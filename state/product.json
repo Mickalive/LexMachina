@@ -212,7 +212,7 @@
   },
   "lane": "product",
   "machine_gate_ready": false,
-  "next_recommendation": "Direction v68 / FAST MVP, executing cycle 43566223678 (OPERATIONAL RESUME of persisted producer snapshot 43561447112 @ c6270101; UNADJUDICATED pending independent audit). Run 43561447112's team job succeeded and persisted a 28-file product-owned query_cache delta; its independent-audit job then hit LEX_WORK_QUANTUM_EXPIRED seconds=2700 / exit 78 after 2705 s with the gate and persist steps skipped. This cycle re-froze the cache snapshot (55 mismatches -> CYCLE_43566223678_cache_manifest.json), repaired the accepted-ref fetch in test_cycle_40284658455, removed two dangling artifact pointers in the 43550578572 state block, and replaced the unsupported 43555660841 'audit readiness PASS' prose. Snapshot is audit-ready: bounded MVP 170 passed, cache attribution 12 passed, content family 49/4900/55/0 with D1-D4=0 and 0 false rejects, offline slice PASS 70 assertions, progressive API 23/23. No gate minted; posture fail-closed. NEXT: independent audit using results/product/audit_readiness/CYCLE_43566223678_audit_readiness.json; do not re-run live retrieval against frontier fixture paths from this lane.",
+  "next_recommendation": "Direction v68 / FAST MVP, executing cycle 43572985556 (OPERATIONAL RESUME of persisted producer snapshot 43572798128 @ 5de296f8; UNADJUDICATED pending independent audit). The resumed run was a provider-rejection failure: its team job died at 'Run lane cycle' after 16 s (exit 1) because the model gateway rejected the request argument itself ('unsupported_parameter' / 'Unrecognized request argument supplied: permissions.'); the running predecessor 43572630465 died the same way, so this is a control-plane model config incompatibility, not a product defect. The always-run persist step published the predecessor's exact tree, so the resumed run carries ZERO_DURABLE_DELTA. The snapshot under audit is the accumulated 5de296f8 tree produced by 43566223678 (314 files over accepted head 7be4480e). This cycle recorded the run/jobs and lane-cycle log evidence, added an audit_readiness profile for the provider-rejection mechanism, added the shipped stage-guard test to the bounded MVP core set, re-measured the frozen content family (49/4900/55/0, D1-D4=0, 0 false rejects) and re-verified the slice: bounded MVP 173 passed, offline slice PASS 70 assertions (100 decisions / 8 clusters / 4 counter rows / answer ready), progressive API PASS 23/23. Accepted pointer unchanged (CYCLE_40284658455 / 7be4480e). No gate minted; posture stays fail-closed (human_gate_ready=false, machine_gate_ready=false, packet_admitted=false, ready_for_owner_session=false, continue_recommended=true). Next: hand the bounded dossier to the independent auditor; the 2700 s audit quantum and the model request argument are control-plane-owned and are not edited from this lane.",
   "not_claimed": [
     "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
     "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
@@ -1118,9 +1118,9 @@
     "audit_namespace_written": false,
     "claim_ceiling": "OPERATIONAL-RESUME AND AUDIT-READINESS EVIDENCE ONLY. No live retrieval, legal usefulness, frozen bar, serve verdict, acceptance or human-gate readiness is asserted."
   },
-  "current_cycle_run_id": 43566223678,
+  "current_cycle_run_id": 43572985556,
   "last_repair_round": 0,
-  "last_updated": "2026-11-14T06:43:30Z",
+  "last_updated": "2026-11-14T08:05:00Z",
   "run_history": [
     {
       "run_id": "40241250741",
@@ -1355,6 +1355,15 @@
       "audit_gate": "NONE_YET",
       "summary": "Operational resume of snapshot 43561447112 (COMMITTED_DELTA 28 files over predecessor 43561269343 / e82aabde). Re-froze the cache snapshot after 55 mismatches, repaired the accepted-ref fetch in test_cycle_40284658455, removed two dangling 43550578572 artifact pointers, and replaced the unsupported 43555660841 audit-readiness prose. Re-verified the lane deliverable: bounded MVP 170 passed, family 49/4900/55/0 D1-D4=0 with 0 false rejects, offline slice PASS 70 assertions, progressive API 23/23. No gate minted; posture fail-closed.",
       "date": "2026-11-14T06:43:30Z"
+    },
+    {
+      "run_id": "43572985556",
+      "repair_round": 0,
+      "status": "AUDIT_READY_PENDING_INDEPENDENT_AUDIT",
+      "audit_gate": "NONE_YET",
+      "summary": "Operational resume of failed run 43572798128 (provider rejected the request argument 'permissions', team died at 'Run lane cycle' in 16 s, zero durable delta; predecessor 43572630465 died the same way). Recorded the raw run/jobs, job logs and resume diagnosis; added an audit_readiness observed_log profile and put the stage-guard test in the bounded MVP set; re-measured family 49/4900/55/0 and re-verified the slice (MVP 173 passed, offline slice PASS 70 assertions, progressive API 23/23). No gate; unchanged accepted pointer.",
+      "report": "reports/product/CYCLE_43572985556.md",
+      "date": "2026-11-14T08:05:00Z"
     }
   ],
   "cycle_40247041354_resume": {
@@ -2948,6 +2957,213 @@
       "cycle_test": "product/tests/test_cycle_43566223678.py",
       "report": "reports/product/CYCLE_43566223678.md",
       "audit_readiness": "results/product/audit_readiness/CYCLE_43566223678_audit_readiness.json"
+    }
+  },
+  "cycle_43572985556_operational_resume": {
+    "run_id": 43572985556,
+    "repair_round": 0,
+    "direction_version": 68,
+    "mode": "OPERATIONAL RESUME from the persisted producer snapshot of run 43572798128",
+    "resumed_snapshot": {
+      "run_id": 43572798128,
+      "team_ref": "origin/cycle/core/product/43572798128/team",
+      "team_head": "5de296f8c32d2e6688423e757eb917fe18c65e2f",
+      "predecessor_run_id": 43572630465,
+      "predecessor_head": "5de296f8c32d2e6688423e757eb917fe18c65e2f",
+      "delta_vs_predecessor_team": "ZERO_DURABLE_DELTA - the team ref is byte-identical to 43572630465; the always-run persist step published an unchanged tree",
+      "intermediate_runs": [
+        {
+          "run_id": 43572630465,
+          "team_head": "5de296f8c32d2e6688423e757eb917fe18c65e2f",
+          "delta": "ZERO_DURABLE_DELTA",
+          "note": "same failure: team job died at 'Run lane cycle' in 17 s with the gateway rejecting the request argument ('Unrecognized request argument supplied: permissions.'); audit skipped, no gate"
+        },
+        {
+          "run_id": 43566223678,
+          "team_head": "5de296f8c32d2e6688423e757eb917fe18c65e2f",
+          "delta": "the real product-owned work behind this snapshot: 314 files over the accepted head 7be4480e (286 results/, 20 product/, 7 reports/, 1 state/)",
+          "note": "its own team job succeeded; its independent audit hit the 2700 s work quantum (exit 78) and wrote no gate, so the accumulated snapshot is still UNADJUDICATED"
+        }
+      ],
+      "meaning": "the resumed run added nothing; the snapshot under audit is the accumulated 5de296f8 tree produced by 43566223678, and the provider rejection is an orchestration fact, not a product defect"
+    },
+    "orchestration_failure_diagnosis": {
+      "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+      "mechanism": "MODEL_UPSTREAM_REJECTED_REQUEST_PARAMETER",
+      "failed_job": "team",
+      "failed_step": "Run lane cycle",
+      "failed_step_seconds": 16.0,
+      "exit_code": 1,
+      "logs_endpoint_status": 200,
+      "annotations_available": true,
+      "quantum_expired": false,
+      "quantum_seconds": null,
+      "upstream_error": {
+        "signature": "unsupported_parameter",
+        "detail": "Unrecognized request argument supplied: permissions."
+      },
+      "state_validation_step": "skipped",
+      "scope_step": "skipped",
+      "audit": "skipped",
+      "integrate": "skipped",
+      "gate_file_written": false,
+      "audit_ref_present": false,
+      "product_defect": false,
+      "control_plane_scope": "the model-pool selection and the request arguments that the gateway rejected are control-plane configuration; recorded here, never edited from this lane",
+      "artifacts": [
+        "results/product/orchestration/CYCLE_43572798128_run_jobs_raw.json",
+        "results/product/orchestration/CYCLE_43572798128_resume_diagnosis.json",
+        "results/product/orchestration/CYCLE_43572985556_lane_cycle_log_evidence.json",
+        "results/product/orchestration/CYCLE_43572985556_lane_cycle_logs/MANIFEST.json",
+        "results/product/orchestration/CYCLE_43572985556_lane_cycle_logs/team.log",
+        "results/product/orchestration/CYCLE_43572985556_lane_cycle_logs/resilience.log",
+        "results/product/orchestration/CYCLE_43572630465_run_jobs_raw.json",
+        "results/product/orchestration/CYCLE_43572630465_logs/team.log"
+      ]
+    },
+    "cumulative_unaccepted_delta": {
+      "accepted_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+      "snapshot_head": "5de296f8c32d2e6688423e757eb917fe18c65e2f",
+      "changed_files_at_resumed_head": 314,
+      "by_top_level": {
+        "results": 286,
+        "product": 20,
+        "reports": 7,
+        "state": 1
+      },
+      "audit_focus": [
+        "product/query_app.py stage guard (a late map_expanded response must not overwrite a complete enriched bundle) and its test test_query_app_stage_guard.py",
+        "product/audit_readiness.py profile/instrument additions",
+        "product/resume_snapshot_diagnosis.py and audit_step_diagnosis.py",
+        "the 7 reports/product/CYCLE_*.md reports",
+        "the generated results/ artifacts (evidence, not re-derived prose)"
+      ],
+      "note": "the manifest pins the resumed snapshot head 5de296f8 (314 files) so the inventory stays stable; this cycle's own delta is 22 files (20 added, 2 modified), so the current accepted..HEAD audit object is 334 files (187 added, 147 modified, 0 deleted)",
+      "manifest": "results/product/audit_readiness/CYCLE_43572985556_unaccepted_delta.json",
+      "manifest_head": "5de296f8c32d2e6688423e757eb917fe18c65e2f",
+      "cycle_delta": {
+        "base": "5de296f8c32d2e6688423e757eb917fe18c65e2f",
+        "changed_files": 22,
+        "by_status": {
+          "A": 20,
+          "M": 2
+        },
+        "note": "this cycle's evidence/test/profile delta on top of the resumed snapshot (the workflow's persist step may add a metadata-only commit without changing these paths)"
+      },
+      "accepted_to_current": {
+        "changed_files": 334,
+        "by_status": {
+          "A": 187,
+          "M": 147
+        },
+        "by_top_level": {
+          "product": 23,
+          "reports": 8,
+          "results": 302,
+          "state": 1
+        },
+        "note": "accepted 7be4480e .. this cycle's commit; the independent audit object"
+      }
+    },
+    "instrument_repairs": {
+      "audit_profile": {
+        "change": "product/audit_readiness.py now resolves run 43572985556 to a profile whose mechanism_kind is 'observed_log' and whose lane-cycle classification is MODEL_UPSTREAM_REJECTED_REQUEST_PARAMETER",
+        "effect": "the dossier re-derives this cycle's diagnosis from the committed raw snapshot and log evidence instead of asserting a quantum expiry that did not happen"
+      },
+      "stage_guard_in_core_set": {
+        "change": "product/tests/test_query_app_stage_guard.py joined audit_readiness.MVP_CORE_TESTS",
+        "effect": "the bounded MVP suite now exercises the shipped server fix that this snapshot carries; it previously could pass without touching the stage guard"
+      },
+      "unaccepted_delta_manifest": {
+        "change": "product/unaccepted_delta_manifest.py (new) emits a deterministic inventory of the accepted..snapshot diff",
+        "effect": "the auditor reads 7 product-code paths and 13 test paths instead of 314 undifferentiated files; no correctness or acceptance claim is made"
+      }
+    },
+    "lane_deliverable_verified": {
+      "bounded_mvp_core_tests": {
+        "command": "pytest -q <audit_readiness.MVP_CORE_TESTS (10 files)>",
+        "result": "173 passed"
+      },
+      "content_family_probe": {
+        "command": "python3 product/content_family_probe.py --run-id 43572985556 --check",
+        "artifact": "results/product/counter_content_family/CYCLE_43572985556.json",
+        "fixed_path_family": {
+          "n_bundles": 49,
+          "n_decisions": 4900,
+          "n_verified": 55,
+          "n_verified_defective": 0,
+          "defect_histogram": {
+            "D1_empty_evidence": 0,
+            "D2_letterhead_zone": 0,
+            "D3_markup_residue": 0,
+            "D4_language_marker_mismatch": 0
+          }
+        },
+        "all_committed": {
+          "n_bundles": 155,
+          "defect_histogram": {
+            "D1_empty_evidence": 0,
+            "D2_letterhead_zone": 44,
+            "D3_markup_residue": 31,
+            "D4_language_marker_mismatch": 7
+          },
+          "note": "historical bundles preserved as evidence, not current-head defects"
+        },
+        "false_reject_count": 0,
+        "ordered_work_2_full_success_rule_met": true
+      },
+      "offline_slice": {
+        "command": "python3 product/offline_slice.py --slug rent-default --out results/product/offline_slice/43572985556_verify --verify",
+        "summary": "results/product/offline_slice/43572985556_verify/summary.json",
+        "n_decisions": 100,
+        "n_clusters": 8,
+        "counter_rows": 4,
+        "counter_status_bearing_rows": 8,
+        "answer_status": "ready",
+        "cited_decision_ids": 4,
+        "rows_with_source_link": 100,
+        "rows_with_xy": 100,
+        "geometry_preserved_by_enrich": true,
+        "fixture_replay_network": "none",
+        "fixture_replay_cache_misses": 0,
+        "page_contract": "PASS 70 assertions",
+        "verdict": "PASS"
+      },
+      "progressive_smoke": {
+        "command": "python3 product/progressive_smoke.py --run-id 43572985556",
+        "artifact": "results/product/progressive_smoke/CYCLE_43572985556_progressive_smoke.json",
+        "result": "PASS 23/23"
+      },
+      "full_suite_disclosure": "the full product/tests tree still carries pre-existing legacy failures at the resumed head; they are not on the bounded MVP claim path and are not re-labelled green"
+    },
+    "accepted_pointer": {
+      "accepted_run_id": "CYCLE_40284658455",
+      "accepted_commit": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+      "both_halves_verified_this_cycle": true,
+      "half_1": "results/audit/product/CYCLE_40284658455_GATE.json = gate PASS safe_to_integrate=true required_fixes=[]",
+      "half_2": "origin/lab/product head 7be4480e = 'accept product cycle 40284658455'"
+    },
+    "posture": {
+      "continue_recommended": true,
+      "human_gate_ready": false,
+      "machine_gate_ready": false,
+      "packet_admitted": false,
+      "ready_for_owner_session": false,
+      "reason": "this cycle only diagnoses an orchestration failure and re-verifies the slice; the accumulated snapshot is still UNADJUDICATED"
+    },
+    "artifacts": {
+      "run_jobs_snapshot": "results/product/orchestration/CYCLE_43572798128_run_jobs_raw.json",
+      "predecessor_run_jobs_snapshot": "results/product/orchestration/CYCLE_43572630465_run_jobs_raw.json",
+      "resume_diagnosis": "results/product/orchestration/CYCLE_43572798128_resume_diagnosis.json",
+      "lane_cycle_log_evidence": "results/product/orchestration/CYCLE_43572985556_lane_cycle_log_evidence.json",
+      "job_logs": "results/product/orchestration/CYCLE_43572985556_lane_cycle_logs/",
+      "content_family": "results/product/counter_content_family/CYCLE_43572985556.json",
+      "slice": "results/product/offline_slice/43572985556_verify/",
+      "progressive_smoke": "results/product/progressive_smoke/CYCLE_43572985556_progressive_smoke.json",
+      "cycle_test": "product/tests/test_cycle_43572985556.py",
+      "report": "reports/product/CYCLE_43572985556.md",
+      "audit_readiness": "results/product/audit_readiness/CYCLE_43572985556_audit_readiness.json",
+      "unaccepted_delta_manifest": "results/product/audit_readiness/CYCLE_43572985556_unaccepted_delta.json"
     }
   }
 }
