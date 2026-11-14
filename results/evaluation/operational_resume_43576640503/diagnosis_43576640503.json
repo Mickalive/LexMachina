@@ -1,0 +1,52 @@
+{
+ "schema": "lex-evaluation-operational-resume-diagnosis/1",
+ "run_id": "43583276284",
+ "resumed_run_id": "43576640503",
+ "direction_version": 68,
+ "phase": "H1",
+ "failure_class": "AUDIT_WORK_QUANTUM_EXPIRED_RC78",
+ "failure_class_distinct_from": [
+  "ORCHESTRATION_LAUNCH_FAILURE_RC1 (team, Run lane cycle, short duration, audit skipped)",
+  "ZERO_DELTA_REPAIR (exit 67, audit skipped)",
+  "PRODUCER_REJECTION (audit gate REVISE/BLOCKED)",
+  "SUPERSEDED_DIRECTION (exit 86)"
+ ],
+ "step_logs": "NOT_CAPTURED: the public logs endpoint is HTTP 403 without an admin token; diagnosis uses job step conclusions, timings and check-run annotations from the unauthenticated public Actions API",
+ "signature": {
+  "run": "43576640503",
+  "run_conclusion": "failure",
+  "team_conclusion": "success",
+  "audit_conclusion": "failure",
+  "integrate_conclusion": "skipped",
+  "failing_step": "Independent audit",
+  "audit_step_duration_s": 2705,
+  "exit_78": true,
+  "quantum_2700": true,
+  "quantum_clean_exit_warning": true,
+  "audit_gate_step": "skipped",
+  "audit_persist_step": "skipped",
+  "team_persist_step": null,
+  "team_validate_step": null,
+  "team_write_scope_step": null,
+  "annotations": [
+   "Process completed with exit code 78.",
+   "Agent quantum ended cleanly; workflow must snapshot and resume rather than hang.",
+   "LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2648",
+   "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+  ],
+  "evidence_files": [
+   "results/evaluation/operational_resume_43576640503/api/run_43576640503.json",
+   "results/evaluation/operational_resume_43576640503/api/jobs_43576640503.json",
+   "results/evaluation/operational_resume_43576640503/api/annotations_43576640503_audit.json",
+   "results/evaluation/operational_resume_43576640503/api/CAPTURE_MANIFEST.json"
+  ]
+ },
+ "prior_starved_audits_source": "results/evaluation/operational_resume_43570757974/diagnosis_43570757974.json",
+ "prior_starved_audits_count": 6,
+ "consecutive_occurrence_index": 7,
+ "why_this_is_the_blocker": "Every evaluation cycle since 43531218191 has had its team job succeed and its independent-audit job die at the 2700 s wrapper quantum (exit 78). No audit ref has ever been written for this chain, so no snapshot can be promoted. The producer surface is therefore the lever: the audit must be able to reach a verdict from a read-only fast path well inside the quantum, without exploring the repository.",
+ "not_a_producer_rejection": true,
+ "not_a_team_launch_failure": true,
+ "not_a_zero_delta_repair": true,
+ "recorded_at_utc": "2026-11-14T10:42:48Z"
+}

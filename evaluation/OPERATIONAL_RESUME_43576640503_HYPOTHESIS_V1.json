@@ -1,0 +1,113 @@
+{
+ "schema": "lex-evaluation-operational-resume-hypothesis/1",
+ "lane": "evaluation",
+ "mode": "OPERATIONAL_RESUME",
+ "run_id": "43583276284",
+ "resumed_run_id": "43576640503",
+ "direction_version": 68,
+ "accepted_run_id": 40265377500,
+ "resumed_snapshot_head": "a965bd8bc53c84d48ee16b0087b37899e8acad84",
+ "recorded_before_formal_evidence": true,
+ "formal_evidence_started": false,
+ "freeze_path": "evaluation/OPERATIONAL_RESUME_43576640503_FREEZE_V1.json",
+ "freeze_sha256": "99f4cce295d48e2351260ac0a8d1cf134b22ab5029cc5ecadc96c34ff6ddbf16",
+ "claim_ceiling": "Producer-authored operational verification of the persisted snapshot a965bd8b (run 43576640503's producer output) plus a diagnosis of its audit-quantum-expiry failure and an audit-readiness package for run 43583276284. No new product claim, no new same-question measurement, no promotion/admission/serve, no frozen bar/rubric/threshold/predicate/verdict-contract edit, no universal-174k benchmark. Ordered item (2) remains NOT_YET_DISCRIMINATING under the accepted frozen rule.",
+ "query_set": [
+  {
+   "id": "Q1",
+   "question": "Why did run 43576640503 fail, and at which stage?",
+   "baseline": "prior pack diagnoses 43570757974 as the same audit-quantum-expiry class; 5 earlier runs share the signature",
+   "metric": "public GitHub Actions job conclusions, failing step, duration and check-run annotations",
+   "success": "team success; audit failure at Independent audit in [2700,2735] s; exit 78; LEX_WORK_QUANTUM_EXPIRED seconds=2700; audit gate/persist skipped; integrate skipped; no audit ref; 7th consecutive occurrence"
+  },
+  {
+   "id": "Q2",
+   "question": "Is the resumed producer snapshot a965bd8b intact and unmodified by this run's diagnosis work?",
+   "baseline": "a965bd8b = 43576640503's 3-commit output on top of dad96632; prior freeze pins 65/65",
+   "metric": "git identity, prior freeze pin re-verification, prior fast-verify record, audit-namespace scan of any delta",
+   "success": "HEAD==a965bd8b at freeze; all pinned prior artifacts byte-identical after this run; no audit-namespace path written by this run"
+  },
+  {
+   "id": "Q3",
+   "question": "Does the lane deliverable still falsify the product?",
+   "baseline": "deliverable of record 43554928192 PRODUCT_FALSIFIED, packet 39319405429, 3 questions, 0 issued",
+   "metric": "sha256 of deliverable, v68 + minimal benchmark test suites, fresh replay equality",
+   "success": "deliverable sha256 unchanged; test_counter_authority_falsify_v68 + test_minimal_ca_falsify_benchmark + test_minimal_retrieval_ca_benchmark all pass; replay verdict/exit/packet/n_questions/total_issued unchanged"
+  },
+  {
+   "id": "Q4",
+   "question": "Are standing contrary records and the accepted gate intact?",
+   "baseline": "accepted gate CYCLE_40265377500_GATE.json PASS; family gate NOT_YET_DISCRIMINATING; correction of record present",
+   "metric": "pin re-verification of gate/report/correction/family-gate script; no re-measure executed",
+   "success": "all standing pins match; family gate not re-run into a new status; no accepted_run_id change"
+  },
+  {
+   "id": "Q5",
+   "question": "Is the snapshot audit-ready for run 43583276284 inside the 2700 s audit quantum?",
+   "baseline": "7 consecutive audits starved at 2700 s; prior pack already caps refs/index at 40 and ships a fast verify",
+   "metric": "state identity after advance, evidence-ref count and resolution, audit-index size, fast-verify runtime and read-only-ness, brief presence and command cost, write-scope cleanliness",
+   "success": "github_run advanced to 43583276284 with additive disclosure; accepted_run_id unchanged; state evidence_refs<=40 and all resolve; audit index primary<=40 and all resolve; new fast verify<=60 s, read-only, all_hold; audit brief names a <=60 s command path; write scope clean; no audit-namespace file written"
+  }
+ ],
+ "hypotheses": {
+  "H1": {
+   "statement": "The failure of record for 43576640503 is an independent-audit work-quantum expiry (exit 78), not a team/launch failure, not a zero-delta repair and not a producer rejection.",
+   "falsifier": "team job not success, or audit step not the failing step, or no LEX_WORK_QUANTUM_EXPIRED seconds=2700 / exit 78 annotation, or audit gate/persist not skipped, or duration outside [2700,2735] s.",
+   "status_rule": "HOLDS iff all H1 checks true"
+  },
+  "H2": {
+   "statement": "The resumed snapshot a965bd8b is intact, every pinned prior artifact is byte-identical after this run, and this run writes no audit-namespace path.",
+   "falsifier": "any pin mismatch after evidence collection, or any file under results/audit/ or reports/audit/ created or modified by the producer.",
+   "status_rule": "HOLDS iff all H2 checks true"
+  },
+  "H3": {
+   "statement": "The deliverable of record is unchanged and still reproduces: the v68 and minimal benchmark suites pass and a fresh replay returns the same falsification.",
+   "falsifier": "deliverable hash drift, any named test failing, or replay verdict/exit/packet/n_questions/total_issued differing.",
+   "status_rule": "HOLDS iff all H3 checks true; classified OPERATIONAL_REEXECUTION_NOT_NEW_CLAIM"
+  },
+  "H4": {
+   "statement": "Standing contrary records and the accepted audit gate remain intact; no new same-question measurement is executed.",
+   "falsifier": "any standing pin drifts, accepted_run_id changes, or a family re-measure produces a new status.",
+   "status_rule": "HOLDS iff all H4 checks true"
+  },
+  "H5": {
+   "statement": "After the additive github_run advance to 43583276284 the snapshot is audit-ready: refs and index resolve within cap, a read-only fast verify passes inside 60 s, and the audit brief gives the auditor a path that finishes well inside the 2700 s quantum.",
+   "falsifier": "any evidence ref or index row unresolves, count exceeds 40, fast verify exceeds 60 s or is not read-only or not all_hold, brief missing or naming a >60 s mandatory path, or write scope not clean.",
+   "status_rule": "HOLDS iff all H5 checks true"
+  }
+ },
+ "stop_conditions": [
+  "If H1 does not hold, report the actual failure class instead of the expected one; do not advertise audit readiness on a misdiagnosis.",
+  "If any H2 pin drifts, stop and report SNAPSHOT_DRIFT; do not silently re-pin.",
+  "If H3 fails, report the deliverable regression verbatim; do not re-freeze the deliverable to make it pass.",
+  "If H4 standing records moved, stop and hand the decision to the eval owner; do not re-measure in this operational cycle.",
+  "If H5 fails, state PENDING_INDEPENDENT_AUDIT without claiming audit-ready and record the specific failing budget item."
+ ],
+ "audit_budget_pre_registered": {
+  "prior_audit_outcome": "INDEPENDENT_AUDIT starved at 2700 s / exit 78 on 43576640503 (2705 s), the 7th consecutive occurrence after 43531218191, 43542378874, 43550420112, 43554928192, 43559166421 and 43570757974",
+  "max_fast_verify_runtime_s": 60,
+  "max_state_evidence_refs": 40,
+  "max_audit_index_primary": 40,
+  "lane_suite_reference_runtime_s": 238,
+  "audit_must_not_be_required_to_run_lane_suite": true,
+  "audit_must_not_be_required_to_read_query_map_cached_bundle_benchmark": true,
+  "audit_must_not_be_required_to_run_prior_instrument_full_phases": true
+ },
+ "negative_controls": [
+  {
+   "id": "NC1",
+   "control": "one-byte mutation of a pinned file copy in /tmp must be detected as a hash mismatch",
+   "success": "detected"
+  },
+  {
+   "id": "NC2",
+   "control": "dropping one row from the audit index must be detected as an unresolved required ref",
+   "success": "detected"
+  },
+  {
+   "id": "NC3",
+   "control": "pointing state github_run at a non-existent run must fail the new fast verify state-identity check",
+   "success": "detected"
+  }
+ ]
+}
