@@ -1636,7 +1636,7 @@ def write_docs(summary: dict) -> None:
     REPORT.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     brief = [
-        f"# AUDIT BRIEF - evaluation snapshot `{SNAPSHOT_HEAD[:12]}` "
+        f"# AUDIT BRIEF - evaluation resume of snapshot `{SNAPSHOT_HEAD[:12]}` "
         f"(run {RUN_ID}, resumes {RESUMED})",
         "",
         "**You have 2700 s. The previous audit on this chain expired at "
@@ -1725,6 +1725,11 @@ def write_audit_index(summary: dict) -> dict:
         "snapshot_delta_files": SNAPSHOT_DELTA_FILES,
         "audit_status": "PENDING_INDEPENDENT_AUDIT",
         "accepted_as_evidence": False,
+        "evidence_locus": (
+            "dad96632 is the resumed subject snapshot; this audit pack is "
+            "authored in the 43576640503 snapshot on top of it. Read the "
+            "checked-out pack, then use dad96632 only for the H2 delta "
+            "checks."),
         "fast_verify": {
             "command": (
                 f"python3 -m evaluation.operational_resume_{RESUMED} "
@@ -1764,6 +1769,11 @@ def write_audit_index(summary: dict) -> dict:
         "status": "PRODUCER_SNAPSHOT_READY_FOR_INDEPENDENT_AUDIT",
         "audit_status": "PENDING_INDEPENDENT_AUDIT",
         "accepted_as_evidence": False,
+        "evidence_locus": (
+            "dad96632 is the resumed subject snapshot; this audit pack is "
+            "authored in the 43576640503 snapshot on top of it. Read the "
+            "checked-out pack, then use dad96632 only for the H2 delta "
+            "checks."),
         "claim_ceiling": load(HYPOTHESIS)["claim_ceiling"],
         "audit_protocol": {
             "budget_s": 2700,
