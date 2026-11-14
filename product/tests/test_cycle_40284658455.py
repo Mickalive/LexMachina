@@ -56,10 +56,43 @@ def _load(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+ACCEPTED_REF = "origin/lab/product"
+
+
 def _git(*args: str) -> str:
     return subprocess.run(
         ["git", *args], cwd=str(ROOT), capture_output=True, text=True,
         check=True).stdout.strip()
+
+
+def _ensure_accepted_ref() -> None:
+    """Make ``origin/lab/product`` readable locally, fetching it if needed.
+
+    A repair/resume checkout initializes the base from the persisted *team*
+    snapshot and deliberately does not fetch the accepted ref (the workflow's
+    repair path fetches only the team/audit refs for ``repair_from_run_id``).
+    The accepted-gate byte comparison must still run there: if the ref is
+    absent we fetch just that ref, and if the fetch fails we stop with an
+    explicit diagnostic instead of weakening the assertion.  Never replaces a
+    present ref, so an already-fetched audit/accept checkout is unchanged.
+    """
+    if subprocess.run(
+            ["git", "rev-parse", "--verify", "--quiet", ACCEPTED_REF],
+            cwd=str(ROOT), capture_output=True, text=True).returncode == 0:
+        return
+    fetch = subprocess.run(
+        ["git", "fetch", "--quiet", "origin",
+         f"lab/product:refs/remotes/{ACCEPTED_REF}"],
+        cwd=str(ROOT), capture_output=True, text=True)
+    if fetch.returncode != 0:
+        raise AssertionError(
+            f"cannot verify the accepted gate: {ACCEPTED_REF} is not available "
+            f"locally and fetching it failed ({fetch.stderr.strip() or 'no stderr'}); "
+            "a repair/audit checkout must fetch the accepted ref rather than "
+            "skip the byte comparison")
+    assert subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", ACCEPTED_REF],
+        cwd=str(ROOT), capture_output=True, text=True).returncode == 0
 
 
 def test_chain_runs_are_recorded_with_observed_mechanisms():
@@ -130,6 +163,7 @@ def test_no_gate_exists_for_the_executing_or_resumed_run():
         assert gate["gate"] == "PASS"
         assert gate["safe_to_integrate"] is True
         assert gate["required_fixes"] == []
+        _ensure_accepted_ref()
         accepted = _git("show",
                         f"origin/lab/product:results/audit/product/"
                         f"CYCLE_{EXECUTING_RUN_ID}_GATE.json")

@@ -639,6 +639,45 @@ PROFILES: dict[str, dict[str, Any]] = {
                                / "query_map_diagnosis"
                                / "CYCLE_40257275384.json",
     },
+    "43566223678": {
+        # Operational resume of run 43561447112 (team ref c6270101).  That run
+        # succeeded in the team job (lane cycle 662 s, state validation and
+        # write-scope enforcement passed) and persisted a 28-file delta, all
+        # under results/product/query_cache/.  Its independent-audit job then
+        # hit the workflow's own 2700 s agent work quantum (exit 78) after
+        # 2705 s with the gate and persist steps skipped, so the run is
+        # UNADJUDICATED.  This resume preserves the query_cache bytes, re-froze
+        # the cache manifest after 55 mismatches, repaired the accepted-ref
+        # fetch in test_cycle_40284658455 (the repair checkout does not fetch
+        # origin/lab/product), and hands the auditor a bounded dossier.
+        "resumed_run_id": "43561447112",
+        "predecessor_run_id": "43561269343",
+        "raw": ORCH / "CYCLE_43561447112_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_43561447112_resume_diagnosis.json",
+        "inherited_report": None,
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_43566223678.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "mechanism_kind": "observed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "failed_job": "audit",
+        "delta_kind": "committed",
+        "changed_files": 28,
+        "changed_paths_include": ("results/product/query_cache",),
+        "cycle_test": "product/tests/test_cycle_43566223678.py",
+        "state_block": "cycle_43566223678_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_43566223678.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
