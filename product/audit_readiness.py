@@ -593,6 +593,52 @@ PROFILES: dict[str, dict[str, Any]] = {
                                / "query_map_diagnosis"
                                / "CYCLE_40257275384.json",
     },
+    "43538547811": {
+        # Operational resume of run 43531125031 (team ref 183e9d79).  That run
+        # resumed the zero-delta model-health-gated snapshot 43530889474,
+        # repaired the 43406325896 append-only violation, re-verified the v68
+        # deliverable and persisted a 19-file delta over its predecessor
+        # (209 paths over the accepted head 7be4480e).  Its TEAM job succeeded
+        # in 17 m; its AUDIT job then hit the workflow's own 2700 s agent work
+        # quantum (exit 78) after two tool calls and wrote no gate, so the run
+        # is UNADJUDICATED.  This resume preserves that work, diagnoses the
+        # quantum expiry from the run's own job log and annotations, and hands
+        # the auditor a bounded dossier instead of making it re-derive the
+        # slice inside the same quantum.
+        "resumed_run_id": "43531125031",
+        "predecessor_run_id": "43530889474",
+        "raw": ORCH / "CYCLE_43531125031_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_43531125031_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_43531125031.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_43538547811.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "mechanism_kind": "observed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "failed_job": "audit",
+        "delta_kind": "committed",
+        "changed_files": 209,
+        "changed_paths_include": ("product/audit_readiness.py",),
+        "cycle_test": "product/tests/test_cycle_43538547811.py",
+        "state_block": "cycle_43538547811_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_43538547811.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "replay_summary": ROOT / "results" / "product" / "live_cache_replay"
+                          / "CYCLE_40257275384" / "summary.json",
+        "query_map_diagnosis": ROOT / "results" / "product"
+                               / "query_map_diagnosis"
+                               / "CYCLE_40257275384.json",
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original

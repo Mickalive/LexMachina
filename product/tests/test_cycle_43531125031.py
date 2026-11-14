@@ -256,7 +256,10 @@ def test_audit_readiness_profile_and_state_posture():
         assert Path(prof[field]).is_file(), field
 
     st = _load(STATE)
-    assert st["current_cycle_run_id"] == int(EXECUTING_RUN_ID)
+    # POINTER-PIN AMENDMENT (cycle 43538547811): the live pointer must not move
+    # backwards past this cycle, but a later operational-resume cycle may
+    # advance it. Pin non-regression, not equality.
+    assert st["current_cycle_run_id"] >= int(EXECUTING_RUN_ID)
     assert st["direction_version"] == 68
     assert st["continue_recommended"] is True
     assert st["human_gate_ready"] is False
