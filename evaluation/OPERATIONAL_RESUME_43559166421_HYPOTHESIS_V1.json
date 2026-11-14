@@ -1,0 +1,135 @@
+{
+  "schema": "lex-evaluation-operational-resume-hypothesis/1",
+  "lane": "evaluation",
+  "mode": "OPERATIONAL_RESUME",
+  "run_id": "43565032175",
+  "resumed_run_id": "43559166421",
+  "direction_version": 68,
+  "freeze_before_execution": true,
+  "freeze_record": "evaluation/OPERATIONAL_RESUME_43559166421_FREEZE_V1.json",
+  "generated_at_utc": "2026-11-14T06:16:26Z",
+  "claim_ceiling": "Pre-registered expectations for an operational-resume diagnosis/verification of the persisted producer snapshot c40cd928 (run 43559166421). No new product claim, no new same-question measurement, no bar/rubric/threshold/verdict-contract edit, no serve verdict, no packet admission, no universal-174k benchmark, no OpenCaseLaw/retrieval/model network call. The formal replay and family gate are reproducibility checks over already-measured bytes; any repeat is OPERATIONAL_REEXECUTION_NOT_NEW_CLAIM. This document is producer-authored, not an independent audit.",
+  "pre_freeze_disclosure": {
+    "exploratory_probes_ran_before_this_freeze": true,
+    "probes": [
+      {
+        "command": "python3 -c 'from evaluation.smallest_ca_benchmark import run; run(\"probe_replay_43565032175\", Path(\"/tmp/probe_replay_43565032175.json\"), \"/tmp/lex_accepted/product\")'",
+        "observed": "exit_code=1 verdict=PRODUCT_FALSIFIED packet=39319405429 direction_version=68 n_questions=3 total_issued=0 wall_seconds~0.06",
+        "purpose": "size the formal replay; not used to select or tune any hypothesis"
+      },
+      {
+        "command": "python3 -m evaluation.v68_item2_family_gate --run-id probe43565032175 --out /tmp/family_gate_probe.json",
+        "observed": "status=NOT_YET_DISCRIMINATING zero_delta=true ceiling=14 of=15 wall_seconds~0.08",
+        "purpose": "confirm the mount precondition before declaring item (2) blocked; not used to select or tune any hypothesis"
+      },
+      {
+        "command": "python3 -m evaluation.no_pytest_runner --test-file tests/evaluation/<candidate>.py",
+        "observed": "prior resume 9/9; fast-mvp recall 7/7; minimal CA 8/8; counter-authority v68 9 passed+3 unsupported; mount-provenance 8 passed+1 failed+4 unsupported (excluded pending review)",
+        "purpose": "select only already-passing reusable suites for the audit bundle; mount-provenance failure is recorded, not hidden"
+      }
+    ],
+    "formal_evidence_started_after_freeze": true
+  },
+  "hypotheses": [
+    {
+      "id": "H1",
+      "statement": "Run 43559166421 completed its producer team job end-to-end (Run lane cycle, state validation, clean junk, write scope, persist snapshot all success) and its independent audit job failed ONLY at \"Independent audit\" after >=2700s with LEX_WORK_QUANTUM_EXPIRED seconds=2700 and exit code 78; gate-read and persist-audit were skipped, integrate was skipped, and no audit ref/gate exists. This is ORCHESTRATION_AUDIT_WORK_QUANTUM_EXPIRED, not a producer, validation, gate or product failure.",
+      "expected": {
+        "team_conclusion": "success",
+        "team_duration_seconds": 1592,
+        "audit_conclusion": "failure",
+        "audit_failing_step": "Independent audit",
+        "audit_duration_seconds": 2761,
+        "audit_duration_ge_2700": true,
+        "audit_exit_code": 78,
+        "audit_quantum_annotation": "LEX_WORK_QUANTUM_EXPIRED seconds=2700",
+        "audit_ref_exists": false,
+        "gate_step": "skipped",
+        "persist_audit_step": "skipped",
+        "integrate_conclusion": "skipped",
+        "snapshot_head": "c40cd9288bbcab02a5489bd768e2a329f4dea218",
+        "persist_snapshot": "success"
+      }
+    },
+    {
+      "id": "H2",
+      "statement": "The binding failure is a recurring AUDIT_WORK_QUANTUM_EXPIRY, now observed on 43531218191, 43542378874, 43550420112, 43554928192 and 43559166421: each team job succeeded and the independent audit died at ~2700s with exit 78, so none of those producer snapshots ever received an audit verdict. 43541879339 hit the zero-delta guard (rc 67) and 43542234373 died at Run lane cycle with exit 1 and no retryable LEX_* signature. The current run 43565032175 is the fifth resume of a completed-but-unaudited snapshot, not a new product cycle.",
+      "expected": {
+        "root_cause": "AUDIT_WORK_QUANTUM_EXPIRY_RECURRENCE",
+        "runs_audit_quantum_expired": [
+          "43531218191",
+          "43542378874",
+          "43550420112",
+          "43554928192",
+          "43559166421"
+        ],
+        "all_audits_exit_78": true,
+        "all_team_jobs_success": true,
+        "no_audit_ref_for_any": true,
+        "zero_delta_resume": "43541879339",
+        "launch_failure_resume": "43542234373"
+      }
+    },
+    {
+      "id": "H3",
+      "statement": "The persisted producer snapshot c40cd928 is preserved and its work verifies: its delta from 35d8d649 is exactly the 62 committed files of the resume package with pinned hashes; it writes no auditor-namespace path; its machine record results/evaluation/smallest_ca_benchmark/43554928192.json is PRODUCT_FALSIFIED exit 1 on packet 39319405429 with zero issued counter-authority rows across 3 questions at direction 68; a fresh out-of-tree replay reproduces every measurement-bearing field with zero network; the standing claim-bearing records 43397701490 and 43531218191 are byte-intact; every frozen pin re-hashes; and the correction-of-record report (ordered item 1) is byte-intact. The repeat is classified OPERATIONAL_REEXECUTION_NOT_NEW_CLAIM.",
+      "expected": {
+        "delta_files": 62,
+        "pins_all_match": true,
+        "audit_namespace_paths": 0,
+        "verdict": "PRODUCT_FALSIFIED",
+        "exit_code": 1,
+        "packet": "39319405429",
+        "n_questions": 3,
+        "total_issued": 0,
+        "replay_reproduces": true,
+        "network_calls": 0,
+        "standing_records_intact": true,
+        "correction_of_record_intact": true,
+        "classification": "OPERATIONAL_REEXECUTION_NOT_NEW_CLAIM"
+      }
+    },
+    {
+      "id": "H4",
+      "statement": "Ordered v68 work stays where the direction left it: item (1) is PRESENT_AND_VERIFIED; item (2) is NOT_YET_DISCRIMINATING because the product mount is 7be4480e (the direction names the later accepted head 8b5b08dd), the mounted gate reports the precondition leg landed but the full named 15-member family has not been regenerated (server/served 3 vs 4; offline/rent-default 18 vs 11), the already-measured fixed-path bytes are byte-identical (zero delta), and the member-for-member ceiling is 14/15, so no conditional re-measure is run; item (3) the standing falsification record is untouched; item (4) remains report-only where quoted; item (5) is honoured for this cycle (OPERATIONAL, not a new same-question measurement).",
+      "expected": {
+        "item_1": "PRESENT_AND_VERIFIED",
+        "item_2": "NOT_YET_DISCRIMINATING",
+        "item_2_re_measure_executed": false,
+        "item_3": "STANDING_RECORD_UNTOUCHED",
+        "item_4": "REPORT_ONLY_WHERE_QUOTED",
+        "item_5": "HONOURED_OPERATIONAL",
+        "product_mount_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+        "direction_accepted_product_head": "8b5b08dd",
+        "mount_lag_disclosed": true,
+        "precondition_leg_landed": true,
+        "precondition_full_named_family_regenerated": false,
+        "family_gate_status": "NOT_YET_DISCRIMINATING",
+        "member_for_member_ceiling": 14,
+        "frozen_family_n": 15,
+        "zero_delta": true
+      }
+    },
+    {
+      "id": "H5",
+      "statement": "The resumed snapshot is audit-ready but not audit-accepted: state-integrity gate passes, nested evidence refs resolve with zero unresolved, the live write scope is clean with zero auditor-namespace paths, the evaluation lane suite passes, the selected reusable multilingual/provenance suites pass under the no-pytest shim, both state files advance to this run id and disclose PENDING_INDEPENDENT_AUDIT with accepted_as_evidence=false, accepted_run_id stays 40265377500, and a compact AUDIT_INDEX plus a single fast verify command keep the independent audit under the 2700s work quantum. This snapshot is producer-authored and must not be promoted before an independent audit verdict.",
+      "expected": {
+        "state_integrity_pass": true,
+        "nested_refs_zero_unresolved": true,
+        "write_scope_clean": true,
+        "zero_audit_namespace_paths": true,
+        "lane_suite_pass": true,
+        "reusable_suites_pass": true,
+        "accepted_run_id_unchanged": 40265377500,
+        "direction_version_current": 68,
+        "github_run_is_this_run": true,
+        "audit_status_pending": true,
+        "state_files_agree_on_run_identity": true,
+        "audit_status": "PENDING_INDEPENDENT_AUDIT",
+        "accepted_as_evidence": false,
+        "audit_index_refs_max": 40,
+        "instrument_runtime_lt_300s": true
+      }
+    }
+  ]
+}
