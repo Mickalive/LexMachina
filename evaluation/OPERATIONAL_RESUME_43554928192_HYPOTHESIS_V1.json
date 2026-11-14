@@ -1,0 +1,112 @@
+{
+  "claim_ceiling": "Pre-registered expectations for an operational-resume verification/diagnosis instrument. No product measurement, no bar movement, no serve or admission verdict, no re-run of the standing falsification as a new claim, no universal-174k benchmark. The prior producer run is preserved; this cycle only verifies it and makes the snapshot audit-ready.",
+  "direction_version": 68,
+  "freeze_before_execution": true,
+  "freeze_record": "evaluation/OPERATIONAL_RESUME_43554928192_FREEZE_V1.json",
+  "generated_at_utc": "2026-11-14T05:02:57Z",
+  "hypotheses": [
+    {
+      "expected": {
+        "audit_conclusion": "failure",
+        "audit_duration_ge_2700": true,
+        "audit_exit_code": 78,
+        "audit_failing_step": "Independent audit",
+        "audit_quantum_annotation": "LEX_WORK_QUANTUM_EXPIRED seconds=2700",
+        "audit_ref_exists": false,
+        "gate_step": "skipped",
+        "integrate_conclusion": "skipped",
+        "persist_audit_step": "skipped",
+        "persist_snapshot": "success",
+        "run_lane_cycle": "success",
+        "snapshot_head": "35d8d64941b76ab59f931915f1f59ac97e07041f",
+        "state_validation": "success",
+        "team_conclusion": "success",
+        "write_scope": "success"
+      },
+      "id": "H1",
+      "statement": "Run 43554928192 completed its producer team job end-to-end (Run lane cycle, state validation, clean junk, write scope, persist snapshot all success) and its independent audit job failed ONLY at \"Independent audit\" after >=2700s with LEX_WORK_QUANTUM_EXPIRED seconds=2700 and exit code 78; the gate-read and persist-audit steps were skipped, integrate was skipped, no audit ref exists, and the persist step recorded the snapshot head. This is ORCHESTRATION_AUDIT_WORK_QUANTUM_EXPIRED, not a producer, validation, gate or product failure."
+    },
+    {
+      "expected": {
+        "all_audits_exit_78": true,
+        "all_team_jobs_success": true,
+        "launch_failure_resume": "43542234373",
+        "no_audit_ref_for_any": true,
+        "root_cause": "AUDIT_WORK_QUANTUM_EXPIRY_RECURRENCE",
+        "runs_audit_quantum_expired": [
+          "43531218191",
+          "43542378874",
+          "43550420112",
+          "43554928192"
+        ],
+        "zero_delta_resume": "43541879339"
+      },
+      "id": "H2",
+      "statement": "The binding failure is a recurring AUDIT_WORK_QUANTUM_EXPIRY: the independent audit of 43531218191, 43542378874, 43550420112 and 43554928192 each died at ~2700s with exit 78 after its team job succeeded, so none of those producer snapshots ever received an audit verdict. 43541879339 hit the zero-delta guard (rc 67) and 43542234373 died at Run lane cycle with exit 1 and no retryable LEX_* signature. The current run 43559166421 is another resume of the same completed-but-unaudited snapshot, not a new product cycle."
+    },
+    {
+      "expected": {
+        "classification": "OPERATIONAL_REEXECUTION_NOT_NEW_CLAIM",
+        "correction_of_record_intact": true,
+        "delta_files": 5,
+        "direction_version": 68,
+        "exit_code": 1,
+        "n_questions": 3,
+        "network_calls": 0,
+        "packet": "39319405429",
+        "pins_all_match": true,
+        "replay_reproduces": true,
+        "standing_records_intact": true,
+        "total_issued": 0,
+        "verdict": "PRODUCT_FALSIFIED"
+      },
+      "id": "H3",
+      "statement": "The persisted producer snapshot 43554928192 is preserved and its work verifies: its five-file delta is present with the committed hashes, it writes no protected or auditor-namespace path; its machine record results/evaluation/smallest_ca_benchmark/43554928192.json is PRODUCT_FALSIFIED exit 1 on packet 39319405429 with zero issued counter-authority rows across 3 questions at direction 68; a fresh out-of-tree replay of evaluation.smallest_ca_benchmark reproduces every measurement-bearing field with zero network; the standing claim-bearing records 43397701490 and 43531218191 are byte-intact; every frozen pin re-hashes; and the correction-of-record report (ordered item 1) is byte-intact. The prior run's re-execution is classified as OPERATIONAL_REEXECUTION_NOT_NEW_CLAIM and does not supersede the standing falsification record."
+    },
+    {
+      "expected": {
+        "family_gate_status": "NOT_YET_DISCRIMINATING",
+        "item_1": "PRESENT_AND_VERIFIED",
+        "item_2": "NOT_YET_DISCRIMINATING",
+        "item_2_re_measure_executed": false,
+        "item_3": "STANDING_RECORD_UNTOUCHED",
+        "item_4": "REPORT_ONLY_WHERE_QUOTED",
+        "item_5": "HONOURED_OPERATIONAL",
+        "product_head": "8b5b08dd"
+      },
+      "id": "H4",
+      "statement": "Ordered v68 work stays where the direction left it: item (1) is PRESENT_AND_VERIFIED; item (2) is NOT_YET_DISCRIMINATING because the rejection/incumbent leg remains open at the direction's accepted product head 8b5b08dd and the named 15-member family has not been regenerated, so no conditional re-measure is run; item (3) the standing falsification record is untouched; item (4) remains report-only where quoted; item (5) is honoured for this cycle (OPERATIONAL, not a new same-question measurement), with the prior smallest-CA re-execution explicitly recorded as operational verification rather than evidence."
+    },
+    {
+      "expected": {
+        "accepted_as_evidence": false,
+        "accepted_run_id": 40265377500,
+        "audit_namespace_paths": 0,
+        "audit_status": "PENDING_INDEPENDENT_AUDIT",
+        "direction_version": 68,
+        "github_run": 43559166421,
+        "lane_suite_failed": 0,
+        "nested_refs_unresolved": 0,
+        "state_files_agree": true,
+        "state_integrity": "ALL_CHECKS_PASS",
+        "write_scope": "SCOPE_CLEAN"
+      },
+      "id": "H5",
+      "statement": "The snapshot is made audit-ready by in-lane-only writes: the state-integrity gate passes all checks in both state files, the nested evidence_refs guard resolves every top-level and nested ref with zero unresolved, live write scope is SCOPE_CLEAN with zero paths in the independent auditor namespace (results/audit/evaluation/**, reports/audit/evaluation/**), the lane suite passes (pytest-absent skip allowed), and both state files agree on accepted_run_id 40265377500 / direction_version 68 / github_run 43559166421 with this run disclosed as PENDING_INDEPENDENT_AUDIT and accepted_as_evidence=false."
+    }
+  ],
+  "lane": "evaluation",
+  "mode": "OPERATIONAL_RESUME",
+  "n_hypotheses": 5,
+  "resumed_run_id": "43554928192",
+  "rules": [
+    "Freeze first: this file and its FREEZE_V1 sibling were written before the instrument executed its replay.",
+    "Negative results are evidence; a falsified hypothesis is published as-is.",
+    "No frozen bar, rubric, threshold, predicate or verdict contract is edited.",
+    "The claim-bearing originals under results/evaluation/minimal_ca_falsify_benchmark/ are never rewritten.",
+    "The producer snapshot 43554928192 is preserved; this cycle adds only operational verification and state hygiene.",
+    "Producer-authored; not an independent audit."
+  ],
+  "run_id": "43559166421",
+  "schema": "lex-evaluation-operational-resume-hypothesis/1"
+}
