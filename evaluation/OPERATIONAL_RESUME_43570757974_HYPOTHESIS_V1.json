@@ -1,0 +1,118 @@
+{
+  "schema": "lex-evaluation-operational-resume-hypothesis/1",
+  "lane": "evaluation",
+  "mode": "OPERATIONAL_RESUME",
+  "run_id": "43576640503",
+  "resumed_run_id": "43570757974",
+  "direction_version": 68,
+  "accepted_run_id": 40265377500,
+  "snapshot_head": "dad9663256617ed4cb59c677687540106611f306",
+  "snapshot_parent": "c79dae10ef9591e4448c4a7e426c81e4686a180c",
+  "snapshot_delta_files": 49,
+  "recorded_before_formal_evidence": true,
+  "formal_evidence_started": false,
+  "freeze_path": "evaluation/OPERATIONAL_RESUME_43570757974_FREEZE_V1.json",
+  "freeze_sha256": "967e25492015bd158925623168c0705d97a8e5a84a9c8ae87dcdc63aa5484a16",
+  "claim_ceiling": "Producer-authored operational verification of the persisted snapshot dad96632. No new product claim, no new same-question measurement, no promotion/admission/serve, no frozen bar/rubric/threshold/predicate/verdict-contract edit, no universal-174k benchmark. H4 records that ordered item (2) remains NOT_YET_DISCRIMINATING under the accepted frozen rule.",
+  "query_set": [
+    {
+      "id": "Q1",
+      "question": "Why did run 43570757974 fail, and at which stage?",
+      "baseline": "prior reports classify 43570632816 as a team launch failure (exit 1, 16 s) and 43541879339 as a zero-delta repair (exit 67)",
+      "metric": "job conclusions, failing step, duration and check-run annotations",
+      "success": "team success; audit failure at Independent audit >=2700 s; exit 78; LEX_WORK_QUANTUM_EXPIRED seconds=2700; audit gate/persist skipped; integrate skipped; no audit ref; same signature as >=3 prior starved audits"
+    },
+    {
+      "id": "Q2",
+      "question": "Is the persisted snapshot intact and is it the producer output of 43570757974?",
+      "baseline": "snapshot head dad96632, parent c79dae10, 49 delta files; prior freeze and prior verify are committed",
+      "metric": "git head/parent/delta, prior freeze pin matches, prior fast verify all_hold, no audit namespace",
+      "success": "HEAD==dad96632, parent==c79dae10, delta==49, 0 audit-namespace paths, 65/65 prior freeze pins match, prior fast verify all_hold true"
+    },
+    {
+      "id": "Q3",
+      "question": "Does the lane deliverable still reproduce, and are standing contrary records intact?",
+      "baseline": "deliverable of record 43554928192 PRODUCT_FALSIFIED, packet 39319405429, 3 questions, 0 issued",
+      "metric": "deliverable measurement, fresh socket-guarded replay equality, standing record hashes",
+      "success": "deliverable verdict/exit/packet/direction/n_questions/total_issued unchanged; replay measurement equal; standing records and correction of record match frozen hashes"
+    },
+    {
+      "id": "Q4",
+      "question": "Does ordered work item (2) remain NOT_YET_DISCRIMINATING?",
+      "baseline": "prior family gate 43570757974: NOT_YET_DISCRIMINATING, 50/50 byte-identical, role parity false, ceiling 14/15",
+      "metric": "fresh deterministic family-gate re-derivation against the current product mount under the frozen rule",
+      "success": "status NOT_YET_DISCRIMINATING; zero delta with 50 byte-identical bundles; leg landed true; full named family not regenerated; role parity false; ceiling 14/15; product mount head stable at 7be4480e; mount is a descendant of direction-named 8b5b08dd"
+    },
+    {
+      "id": "Q5",
+      "question": "Is the snapshot audit-ready inside the 2700 s audit quantum?",
+      "baseline": "prior audit starved at 2700 s after 45 min; state carried 546 evidence refs; lane suite takes ~238 s",
+      "metric": "state integrity, nested refs, write scope, lane suite, reusable tests, state identity, evidence-ref count, audit-index size, fast-verify runtime, verifier tamper control",
+      "success": "all gates pass; accepted_run_id unchanged; state evidence_refs<=40 and all resolve; audit index primary<=40 and all resolve; fast verify<=60 s and read-only; tamper control detects a one-byte mutation; full lane suite recorded as a producer gate not an audit discovery tool"
+    }
+  ],
+  "hypotheses": {
+    "H1": {
+      "statement": "The failure of record for 43570757974 is an independent-audit work-quantum expiry (exit 78), not a team/launch failure, not a zero-delta repair and not a producer rejection.",
+      "falsifier": "team job not success, or audit step not the failing step, or no LEX_WORK_QUANTUM_EXPIRED seconds=2700 / exit 78 annotation, or audit gate/persist not skipped.",
+      "status_rule": "HOLDS iff all H1 checks true"
+    },
+    "H2": {
+      "statement": "The persisted snapshot dad96632 is the intact 49-file producer output of 43570757974 on top of c79dae10, with no audit-namespace paths and no drift in any frozen prior artifact.",
+      "falsifier": "head/parent/delta mismatch, a prior freeze pin mismatch, prior fast verify not all_hold, or any audit-namespace delta path.",
+      "status_rule": "HOLDS iff all H2 checks true"
+    },
+    "H3": {
+      "statement": "The deliverable of record is unchanged and reproduces offline under a socket guard, and standing contrary records are intact.",
+      "falsifier": "any deliverable field changes, replay differs, a standing hash changes, or replay needs network.",
+      "status_rule": "HOLDS iff all H3 checks true; classified OPERATIONAL_REEXECUTION_NOT_NEW_CLAIM"
+    },
+    "H4": {
+      "statement": "Ordered work item (2) remains NOT_YET_DISCRIMINATING under the accepted frozen role rule; product publication does not re-parameterize the frozen evaluation.",
+      "falsifier": "gate says DISCRIMINATING, zero-delta false, role parity true, ceiling changes from 14/15, or the frozen rule hash changes.",
+      "status_rule": "HOLDS iff all H4 checks true; no new same-question measurement executed"
+    },
+    "H5": {
+      "statement": "The snapshot is audit-ready and can be independently checked by a read-only fast path well inside the 2700 s quantum, with no state/lane integrity or write-scope violation.",
+      "falsifier": "any integrity/scope/suite/test/identity check fails, evidence_refs>40, audit index primary>40, fast verify>60 s or not read-only, or tamper control fails to detect mutation.",
+      "status_rule": "HOLDS iff all H5 checks true"
+    }
+  },
+  "stop_conditions": [
+    "If H1-H4 do not all hold, do not update state to PENDING audit and do not advertise audit readiness; report the falsified hypothesis instead.",
+    "If the snapshot head/parent/delta changes after this freeze, stop and report SNAPSHOT_DRIFT; do not silently re-pin.",
+    "If ordered item (2) would become DISCRIMINATING, do not run a new same-question measurement in this operational cycle; report the gate and hand the decision to the eval owner."
+  ],
+  "audit_budget_pre_registered": {
+    "prior_audit_outcome": "INDEPENDENT_AUDIT starved at 2700 s / exit 78 (43570757974), after ~45 min 6 s",
+    "max_fast_verify_runtime_s": 60,
+    "max_state_evidence_refs": 40,
+    "max_audit_index_primary": 40,
+    "lane_suite_reference_runtime_s": 238,
+    "audit_must_not_be_required_to_run_lane_suite": true,
+    "audit_must_not_be_required_to_read_query_map_cached_bundle_benchmark": true
+  },
+  "negative_controls": [
+    {
+      "id": "NC1",
+      "control": "one-byte mutation of a pinned file copy in /tmp must be detected as a hash mismatch",
+      "success": "detected"
+    },
+    {
+      "id": "NC2",
+      "control": "deleting a primary evidence path from an in-memory copy of the audit index must make the resolver report unresolved",
+      "success": "detected"
+    }
+  ],
+  "disclosure": {
+    "pre_freeze_probes": [
+      "public GitHub Actions metadata for the resumed run and comparison runs was captured before this freeze (see results/evaluation/operational_resume_43570757974/api/CAPTURE_MANIFEST.json)",
+      "prior committed evidence and the persisted snapshot were read",
+      "the prior fast verify was executed once to confirm all_hold; its output is not re-used as this run's claim",
+      "tool runtimes were measured to size the audit budget"
+    ],
+    "network": "The instrument performs zero network calls. The GitHub metadata was captured by the operator before the freeze. Step logs are HTTP 403 without an admin token.",
+    "independent_audit": "Not performed by this instrument. This snapshot is producer-authored and must not be self-promoted."
+  },
+  "created_at_utc": "2026-11-14T08:51:52Z"
+}
