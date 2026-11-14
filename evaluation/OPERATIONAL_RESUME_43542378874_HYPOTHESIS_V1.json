@@ -1,0 +1,112 @@
+{
+  "base_run_id": "43531218191",
+  "claim_ceiling": "Pre-registered expectations for an operational-resume verification/diagnosis instrument. No product measurement, no bar movement, no serve or admission verdict, no re-run of the standing falsification as a new claim, no universal-174k benchmark.",
+  "direction_version": 68,
+  "freeze_before_execution": true,
+  "freeze_record": "evaluation/OPERATIONAL_RESUME_43542378874_FREEZE_V1.json",
+  "freeze_sha256": "7bc05a47952a0564219a0983d7308bd8ce2f405066b6f69e3b35ff5e45a83366",
+  "generated_at_utc": "2026-11-14T01:55:44Z",
+  "hypotheses": [
+    {
+      "expected": {
+        "attempt_ref": "8c07cacab54e12a008cf50f207898154d43f5926",
+        "audit_conclusion": "skipped",
+        "audit_ref_exists": false,
+        "base_ref_43531218191": "8c07cacab54e12a008cf50f207898154d43f5926",
+        "delta_vs_base": "empty",
+        "duration_seconds_approx": 77,
+        "exit_code": 1,
+        "failing_step": "Run lane cycle",
+        "failure_class": "ORCHESTRATION_AGENT_LAUNCH_FAILURE_EXIT_1_NO_RETRYABLE_SIGNATURE",
+        "integrate_conclusion": "skipped",
+        "retryable_lex_signature": false,
+        "state_validation_skipped": true,
+        "team_conclusion": "failure",
+        "team_ref": "8c07cacab54e12a008cf50f207898154d43f5926",
+        "write_scope_skipped": true
+      },
+      "id": "H1",
+      "statement": "The persisted producer snapshot of run 43542234373 failed at workflow step 'Run lane cycle' with 'Process completed with exit code 1.' and NO retryable LEX_* annotation (the recorded ORCHESTRATION_AGENT_LAUNCH_FAILURE_EXIT_1_NO_RETRYABLE_SIGNATURE class, same class as 43404561250), after approximately 77 seconds; steps 'Validate active MVP producer state' and 'Enforce lane write scope' were skipped; audit and integrate jobs were skipped; no audit ref cycle/core/evaluation/43542234373/audit exists; and both its team and team-attempt-1 refs hash to 8c07cacab54e12a008cf50f207898154d43f5926, identical to cycle/core/evaluation/43531218191/team, i.e. an EMPTY durable delta against the prior successful producer."
+    },
+    {
+      "expected": {
+        "first_resume": "43541879339",
+        "first_resume_class": "ORCHESTRATION_ZERO_DELTA_GUARD_RC67",
+        "no_audit_ref_for_any": true,
+        "no_gate_file_for_any": true,
+        "producer_audit_conclusion": "failure",
+        "producer_audit_duration_ge_2700": true,
+        "producer_audit_exit_78": true,
+        "producer_audit_quantum_expired": true,
+        "producer_run": "43531218191",
+        "producer_team_success": true,
+        "root_cause_prefix": "AUDIT_SIDE_STARVATION_PLUS_RESUME_FAILURE_LOOP",
+        "second_resume": "43542234373",
+        "second_resume_class": "ORCHESTRATION_AGENT_LAUNCH_FAILURE_EXIT_1_NO_RETRYABLE_SIGNATURE"
+      },
+      "id": "H2",
+      "statement": "The chain root cause is audit-side quantum starvation plus resume failures, not a producer, product or validation failure: 43531218191's team job succeeded end-to-end (Run lane cycle, state validation and write scope all success) and committed the deliverable at 8c07caca, but its independent audit job failed after ~45m49s at 'Independent audit' with annotations LEX_WORK_QUANTUM_EXPIRED seconds=2700 / 'Process completed with exit code 78.' so no gate was written, no audit ref exists and integrate was skipped; resume 43541879339 then hit the zero-delta guard (LEX_ZERO_DELTA_REPAIR / exit 67, correctly empty delta because the deliverable was already committed); resume 43542234373 then died at Run lane cycle with exit 1 and no retryable signature. Therefore the snapshot's completed, validation-passing deliverable has NEVER received an independent audit verdict, and every resume that adds no delta re-fails the same way. This instrument breaks the loop by producing a real, in-scope delta."
+    },
+    {
+      "expected": {
+        "direction_version": 68,
+        "exit_code": 1,
+        "gates": [
+          18,
+          11,
+          4,
+          3
+        ],
+        "input_drift": [],
+        "pins_all_match": true,
+        "product_mount_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+        "replay_reproduces": true,
+        "report_exists": true,
+        "run_valid": true,
+        "twin_differing_outside_volatile": [],
+        "verdict": "PRODUCT_FALSIFIED"
+      },
+      "id": "H3",
+      "statement": "The snapshot's completed FAST-MVP deliverable chain is intact and reproducible: the claim-bearing record results/evaluation/minimal_ca_falsify_benchmark/43397701490.json and its operational verification 43531218191.json both carry verdict PRODUCT_FALSIFIED, exit_code 1, 18 gates = 11 passed / 4 failed / 3 reported, product_mount_head 7be4480ed3ca623b77ea082404ca3b5b7ac5ee83, direction_version 68, input_drift [], run_valid true; 43531218191 and 43397701490 are field-identical outside exactly the three volatile fields (run_id, engine_record_path, generated_at_utc); every frozen pin re-hashes byte-identically to the freeze record; and a fresh out-of-tree scratch replay of evaluation.minimal_ca_falsify_benchmark reproduces every measurement-bearing field with zero input drift while the claim-bearing originals are left untouched."
+    },
+    {
+      "expected": {
+        "item1_present": true,
+        "item2_product_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+        "item2_status": "NOT_YET_DISCRIMINATING",
+        "item3_standing_freeze_pin": "ff466aa8ff16d5767c498587a6755103ed212088876f1aa43f2d04120e29e9fe",
+        "item5_operational_not_measurement": true
+      },
+      "id": "H4",
+      "statement": "Ordered v68 work stays exactly where the direction left it: item (1) the correction-of-record for 40105794124 is present and byte-pinned; item (2) is still NOT_YET_DISCRIMINATING because lab/product and the accepted product mount are unchanged at 7be4480ed3ca623b77ea082404ca3b5b7ac5ee83 (the named-family gate still reports its frozen role ceiling short of 15/15), so no conditional re-measure is due and none is run; item (3) the standing falsification record is untouched; item (4) the three non-blocking required fixes of CYCLE_39965089504_GATE.json remain report-only where quoted; item (5) is honoured - this cycle is OPERATIONAL, not a new same-question measurement."
+    },
+    {
+      "expected": {
+        "accepted_run_id": 40265377500,
+        "audit_namespace_paths": 0,
+        "audit_status": "PENDING_INDEPENDENT_AUDIT",
+        "direction_version": 68,
+        "lane_suite_failed": 0,
+        "nested_refs_unresolved": 0,
+        "state_files_agree": true,
+        "state_integrity": "ALL_CHECKS_PASS",
+        "write_scope": "SCOPE_CLEAN"
+      },
+      "id": "H5",
+      "statement": "The snapshot is made audit-ready by in-lane-only writes: the state-integrity gate passes all checks in both state files, the nested evidence_refs guard resolves every top-level and nested ref with zero unresolved, live and delta write scope are SCOPE_CLEAN with zero paths in the independent auditor's namespace (results/audit/evaluation/**, reports/audit/evaluation/**), the lane suite passes, and both state files agree on accepted_run_id 40265377500 / direction_version 68 / github_run with this run disclosed as PENDING_INDEPENDENT_AUDIT and accepted_as_evidence=false."
+    }
+  ],
+  "lane": "evaluation",
+  "mode": "OPERATIONAL_RESUME",
+  "n_hypotheses": 5,
+  "resumed_run_id": "43542234373",
+  "rules": [
+    "Freeze first: this file and its FREEZE_V1 sibling were written before the instrument executed.",
+    "Negative results are evidence; a falsified hypothesis is published as-is.",
+    "No frozen bar, rubric, threshold, predicate or verdict contract is edited.",
+    "The claim-bearing originals under results/evaluation/minimal_ca_falsify_benchmark/ are never rewritten.",
+    "Producer-authored; not an independent audit."
+  ],
+  "run_id": "43542378874",
+  "schema": "lex-evaluation-operational-resume-hypothesis/1"
+}
