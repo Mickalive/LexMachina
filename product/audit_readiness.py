@@ -1055,11 +1055,12 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                    "quantum reached), team ref carries zero durable delta "
                    "over its predecessor, run unadjudicated")
     elif mechanism_kind == "observed_scope":
+        scope_note = p("scope_enforcement_note") or (
+            "on a producer path outside the product allowlist")
         summary = (f"Resumed run {resumed_id}: lane-cycle agent step "
-                   "succeeded, team job failed at write-scope enforcement "
-                   "on a producer-minted auditor-namespace gate file (no "
-                   "work quantum reached, audit skipped), durable delta "
-                   "present, run unadjudicated")
+                   f"succeeded, team job failed at write-scope enforcement "
+                   f"{scope_note} (no work quantum reached, audit skipped), "
+                   "durable delta present, run unadjudicated")
     else:
         summary = (f"Resumed run {resumed_id}: raw run/jobs snapshot "
                    "unavailable (mechanism unobserved), team ref carries zero "
@@ -1459,22 +1460,29 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
             + ([str(log_ev_path.relative_to(ROOT))]
                if log_ev_path.is_file() else []))
     elif mechanism_kind == "observed_scope":
+        # Wording is profile-driven: 40283048553 minted an auditor-namespace
+        # gate; 43550578572 wrote live frontier fixture cache under
+        # results/frontier/**. Both are outside the product allowlist; a
+        # single hardcoded gate-file sentence would misreport one of them.
+        scope_note = p("scope_enforcement_note") or (
+            "because the producer wrote a path outside the product allowlist "
+            "(product/*, tests/product/*, results/product/*, reports/product/"
+            "*, state/product.json, data/product/*)")
+        scope_paths = ", ".join(p("scope_violation_paths", ()))
+        if scope_paths:
+            scope_note = (
+                "because the producer wrote path(s) outside the product "
+                f"allowlist: {scope_paths}"
+            )
         c1_claim = (
             f"Run {resumed_id}'s lane-cycle agent step SUCCEEDED ("
             f"{p('lane_cycle_step_seconds', 0)} s of a 2700 s quantum) and "
             f"the producer state validation passed, but the team job died "
             f"at 'Enforce lane write scope' (exit "
-            f"{p('exit_code', 3)}) because the producer minted "
-            "results/audit/product/"
-            f"CYCLE_{resumed_id}_GATE.json, a path outside the producer "
-            "write scope; audit and integrate were therefore skipped and no "
-            "auditor ever ran for that gate's named run. The minted file is "
-            "preserved verbatim and quarantined as NON-PROMOTING by "
-            "results/product/incidents/"
-            "self_minted_gate_40278460732_producer_40283048553."
-            "QUARANTINED.json. Observed from the run's own job records "
-            "(logs endpoint HTTP 200), not inferred; no work quantum "
-            "expired."
+            f"{p('exit_code', 3)}) {scope_note}; audit and integrate were "
+            "therefore skipped and no independent gate was ever written for "
+            "this run. Observed from the run's own job records (logs "
+            "endpoint HTTP 200), not inferred; no work quantum expired."
         )
         c1_artifacts = (
             ([str(raw.relative_to(ROOT))] if raw is not None else [])

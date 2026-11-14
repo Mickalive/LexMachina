@@ -105,6 +105,9 @@ ATTEMPT_RE = re.compile(r"LEX_OX_ATTEMPT=(\d+)/(\d+)")
 ANNOTATION_LINE_RE = re.compile(
     r"##\[(?P<level>error|warning|notice)\](?P<text>.*)"
 )
+SCOPE_ENFORCEMENT_RE = re.compile(
+    r"lane crossed protected scope", re.I
+)
 # ``selected=`` is also echoed by resolve_model_args in some wrapper versions;
 # the pool line above is the authoritative one.
 
@@ -112,6 +115,7 @@ CLASS_ZERO_DELTA = "AGENT_FINISHED_ZERO_DURABLE_DELTA"
 CLASS_MODEL_HEALTH_GATE = "MODEL_HEALTH_GATE_BLOCKED_DISPATCH"
 CLASS_MODEL_PARAMETER = "MODEL_UPSTREAM_REJECTED_REQUEST_PARAMETER"
 CLASS_QUANTUM = "WORK_QUANTUM_EXPIRED"
+CLASS_SCOPE = "WRITE_SCOPE_ENFORCEMENT_FAILED"
 CLASS_UNCLASSIFIED = "UNCLASSIFIED_LANE_CYCLE_FAILURE"
 
 CONTROL_PLANE_ITEMS = (
@@ -330,6 +334,10 @@ def parse_lane_cycle_log(text: str, run_id: str | None = None) -> dict[str, Any]
             and final_exit == 76
         ),
         "map_data_missing_positions": bool(MAP_POS_RE.search(own_text)),
+        "write_scope_enforcement": bool(
+            _annotation("lane crossed protected scope")
+            and final_exit == 3
+        ),
         "markers_quoted_from_history_only": sorted(
             m for m in ("LEX_ZERO_DELTA_REPAIR", "LEX_WORK_QUANTUM_EXPIRED",
                         "LEX_NO_HEALTHY_FREE_TOOL_MODEL")
@@ -357,6 +365,7 @@ def parse_lane_cycle_log(text: str, run_id: str | None = None) -> dict[str, Any]
         ),
     }
 
+    scope_enforcement = bool(markers.get("write_scope_enforcement"))
     if markers["quantum_expired"]:
         classification = CLASS_QUANTUM
         why = "the wrapper's work quantum expired before the cycle finished"
@@ -378,6 +387,14 @@ def parse_lane_cycle_log(text: str, run_id: str | None = None) -> dict[str, Any]
         why = (
             "the agent process exited 0 with an unchanged tree, so the "
             "LEX_REQUIRE_DELTA guard rejected the cycle before persistence"
+        )
+    elif scope_enforcement:
+        classification = CLASS_SCOPE
+        why = (
+            "the workflow's 'Enforce lane write scope' step rejected pending "
+            "paths outside the product allowlist and exited 3 after the "
+            "lane-cycle agent finished (annotation: lane crossed protected "
+            "scope)"
         )
     else:
         classification = CLASS_UNCLASSIFIED

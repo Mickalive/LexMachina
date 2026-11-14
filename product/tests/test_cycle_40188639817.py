@@ -79,7 +79,11 @@ def test_audit_step_diagnosis_is_reproducible_from_the_raw_snapshot() -> None:
     # This is not a weakening: an existing key that changes value still fails.
     for key, value in art["team"].items():
         assert fresh["team"][key] == value, key
-    assert fresh["audit"] == art["audit"]
+    # Same additive-field amendment for audit: 43550578572 added
+    # audit.skipped for the observed_scope dossier. Existing keys that
+    # change value still fail; a new key does not.
+    for key, value in art["audit"].items():
+        assert fresh["audit"][key] == value, key
     assert fresh["integrate"] == art["integrate"]
     assert fresh["mechanism"]["status"] == "UNOBSERVED"
 

@@ -160,9 +160,24 @@ def classify(snapshot: dict) -> dict:
     # logs; "not downloadable" is then a false sentence, see the branch below.
     logs_available = bool(snapshot.get("logs_endpoint_status") == 200)
 
+    scope_enforcement_failed = bool(
+        failed_team_step
+        and failed_team_step.get("name") == "Enforce lane write scope"
+        and audit_skipped
+    )
+    lane_cycle_step = _step(team, "Run lane cycle")
+    lane_cycle_conclusion = (lane_cycle_step or {}).get("conclusion")
+
     if not team_ok and failed_team_step and audit_skipped:
         if failed_team_step.get("name") == "Run lane cycle":
             classification = "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE"
+        elif scope_enforcement_failed:
+            # Observed on 40283048553 and again on 43550578572: the
+            # lane-cycle agent finished inside the work quantum, state
+            # validation passed, and the workflow's own write-scope guard
+            # rejected a pending path outside the product allowlist.  A
+            # generic OTHER_STEP label would hide the only actionable fact.
+            classification = "TEAM_JOB_SCOPE_ENFORCEMENT_FAILED_NO_GATE"
         else:
             classification = "TEAM_JOB_FAILED_OTHER_STEP"
     elif team_ok and audit_failed and audit_step_failed and gate_skipped:
@@ -182,7 +197,21 @@ def classify(snapshot: dict) -> dict:
         (failed_team_step or {}).get("started_at"),
         (failed_team_step or {}).get("completed_at"),
     )
-    if quantum_expired:
+    if scope_enforcement_failed and not quantum_expired:
+        mechanism_status = "OBSERVED_SCOPE_ENFORCEMENT_FAILED"
+        mechanism_claim = (
+            "The producer agent completed inside the work quantum "
+            f"({lane_cycle_conclusion!r} lane-cycle step) and "
+            "'Validate active MVP producer state' passed, but "
+            "'Enforce lane write scope' rejected one or more pending paths "
+            "outside the product allowlist (product/*, tests/product/*, "
+            "results/product/*, reports/product/*, state/product.json, "
+            "data/product/*). The workflow exited 3, audit and integrate were "
+            "skipped, and the if:always() persist step published the tree it "
+            "had. This is an orchestration scope-guard outcome, not a product "
+            "verdict and not a quantum or provider cause."
+        )
+    elif quantum_expired:
         who = ("the independent-audit agent" if failed_team_step is None
                else "the lane-cycle (producer) agent")
         mechanism_status = "OBSERVED_QUANTUM_EXPIRED"
@@ -315,10 +344,26 @@ def classify(snapshot: dict) -> dict:
             "REVISE, a BLOCKED verdict or a product regression from a failed "
             "audit job."
         )
+    elif scope_enforcement_failed:
+        control_plane_attention = (
+            "the workflow's write-scope guard rejected a pending path outside "
+            "the product allowlist; the producer must keep every write inside "
+            "product/*, tests/product/*, results/product/*, reports/product/*, "
+            "state/product.json and data/product/* (frontier fixtures and "
+            "audit namespaces are never product-writable). This is an "
+            "orchestration scope fact, not a product verdict."
+        )
+        next_action = (
+            "Resume from the persisted team snapshot, repair the out-of-scope "
+            "writes (do not re-touch them from this lane), restore any "
+            "truncated state registers, re-verify the lane deliverable and "
+            "make the snapshot audit-ready; do not infer a REVISE, a BLOCKED "
+            "verdict or a product regression from a failed producer step."
+        )
     else:
         control_plane_attention = (
             "resume from the persisted snapshot and verify whether it "
-            "carries a durable delta; `if: always()` can publish a "
+            "carries a durable delta; `if:always()` can publish a "
             "failed producer's unchanged tree, which the producer-side "
             "scope and validation steps never get to reject"
         )
@@ -337,6 +382,11 @@ def classify(snapshot: dict) -> dict:
         "run_name": run.get("name"),
         "run_conclusion": run.get("conclusion"),
         "classification": classification,
+        # Top-level alias the audit-readiness observed_scope profile reads;
+        # mirrors team.failed_step so a dossier need not dig.
+        "failed_step": (failed_team_step or {}).get("name"),
+        "failed_job": "team" if not team_ok else (
+            "audit" if audit_failed else None),
         "team": {
             "conclusion": team.get("conclusion"),
             "team_snapshot_persisted": team_snapshot_persisted,
@@ -364,6 +414,7 @@ def classify(snapshot: dict) -> dict:
         },
         "audit": {
             "conclusion": audit.get("conclusion"),
+            "skipped": audit.get("conclusion") == "skipped",
             "failed_step": AUDIT_STEP if audit_step_failed else None,
             "independent_audit_step_seconds": audit_step_seconds,
             "gate_step": (gate_step or {}).get("conclusion"),
@@ -391,6 +442,15 @@ def classify(snapshot: dict) -> dict:
             "quantum_expired": quantum_expired,
             "quantum_seconds": quantum_seconds,
             "exit_code": annotations.get("exit_code"),
+            "lane_cycle_step_conclusion": lane_cycle_conclusion,
+            "lane_cycle_step_seconds": _seconds_between(
+                (lane_cycle_step or {}).get("started_at"),
+                (lane_cycle_step or {}).get("completed_at"),
+            ),
+            "state_validation_step_conclusion": (validate_step or {}).get(
+                "conclusion"
+            ),
+            "scope_step_conclusion": (scope_step or {}).get("conclusion"),
             "claim": mechanism_claim,
         },
         "observed_failure": annotations,

@@ -395,7 +395,11 @@ def main(argv: list[str] | None = None) -> int:
             ORCH_DIR / f"CYCLE_{args.run_id}_resume_diagnosis.json")
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(text, encoding="utf-8")
-        print(f"wrote {out.relative_to(REPO_ROOT)}")
+        try:
+            shown = out.resolve().relative_to(REPO_ROOT)
+        except ValueError:
+            shown = out
+        print(f"wrote {shown}")
     else:
         print(text, end="")
     return 0
