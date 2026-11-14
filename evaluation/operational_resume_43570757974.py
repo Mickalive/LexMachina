@@ -1664,7 +1664,7 @@ def write_docs(summary: dict) -> None:
         "same-question re-measure ran.",
         "5. H5: state/lane integrity pass, write scope clean, evidence refs "
         "<= 40, index rows <= 40, negative controls detect tampering.",
-        "6. State: `github_run {RUN_ID}`, `accepted_run_id 40265377500` "
+        f"6. State: `github_run {RUN_ID}`, `accepted_run_id 40265377500` "
         "unchanged, `audit_status PENDING_INDEPENDENT_AUDIT`.",
         "7. No promotion/admission/serve claim is made.",
         "",

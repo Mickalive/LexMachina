@@ -40,7 +40,7 @@ Five prior audits plus this one are consecutive quantum expiries, so the blocker
 ## Audit budget (H5)
 
 - fast verify: `python3 -m evaluation.operational_resume_43570757974 --phase verify` (~1 s, zero writes)
-- state evidence refs: **39** (archive preserves 546)
+- state evidence refs: **40** (archive preserves 546)
 - audit index primary rows: **29** (cap 40)
 - full lane suite: ~238 s; recorded as a producer gate, **not** an audit discovery tool
 - negative controls: **True** (one-byte mutation detected; dropped evidence row unresolved)
