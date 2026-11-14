@@ -44,10 +44,21 @@ from evaluation.frozen_bars.label_gate import EXPECTED_RULES_SHA256  # noqa: E40
 
 SCHEMA = "lex-evaluation-smallest-ca-benchmark/1"
 DEFAULT_MOUNTS = ("/tmp/lex_accepted/product",)
-PACKET = "38839347028"  # the served-record packet of record; frozen by direction v50
+# REUSE-FIRST: packet-of-record selection is derived from the current factory direction
+# version at runtime.  Direction v50 uses the served-record packet; v68 uses the
+# v68 packet-of-record.  New directions add their packet here — never re-derive or
+# re-tune the measurement predicate.
+PACKET_MAP = {
+    50: "38839347028",  # served-record packet frozen by direction v50
+    68: "39319405429",  # v68 packet-of-record; counter-authority surface is empty
+}
+# Derive the active packet for the current direction version (REUSE-FIRST: never hardcoded
+# beyond the map; new directions add their entry to PACKET_MAP).
+def _packet_for_direction() -> str:
+    dirn = _current_direction_version()
+    return PACKET_MAP.get(dirn, PACKET_MAP[50])  # fallback to v50 packet
 
-# REUSE-FIRST: the accepted evaluation state is the authoritative source for the
-# current factory direction version; derived at runtime, never hardcoded.
+
 STATE_PATH = REPO_ROOT / "state" / "evaluation.json"
 
 
@@ -145,8 +156,11 @@ def measure(mount: Path) -> dict | None:
     """Measure counter-authority surface on the served packet at the given mount.
 
     Returns a record dict or None if the mount/data is unavailable.
+    Packet selection is derived from the current factory direction version at runtime
+    (REUSE-FIRST: derived from PACKET_MAP, never re-derived or re-tuned).
     """
-    packet_dir = mount / "results" / "product" / "gate_packet" / PACKET / "questions"
+    packet = _packet_for_direction()
+    packet_dir = mount / "results" / "product" / "gate_packet" / packet / "questions"
     if not packet_dir.is_dir():
         return None
     qids = sorted(p.name[: -len(".bundle.json")]
@@ -163,12 +177,12 @@ def measure(mount: Path) -> dict | None:
         scored_statuses = _get_scored_statuses_from_frozen_rubric()
         res = counter_authority_surface_minimal(bundle, scored_statuses)
         results.append({
-            "packet": PACKET,
+            "packet": packet,
             "qid": qid,
             "bundle_sha256": sha256_file(bpath),
             "counter_authority": res,
         })
-    return {"packet": PACKET, "results": results, "n_questions": len(results)}
+    return {"packet": packet, "results": results, "n_questions": len(results)}
 
 
 def verdict_of(measured: dict | None) -> tuple[str, int]:
@@ -225,7 +239,7 @@ def run(run_id: str, out: Path | None, mount_arg: str | None = None) -> tuple[in
         "elapsed_s": round(time.time() - started, 3),
         "product_mount": str(mount),
         "product_mount_head": None,  # omitted for minimality; disclose if needed
-        "packet": PACKET,
+        "packet": measured.get("packet", _packet_for_direction()),
         "verdict": verdict,
         "exit_code": exit_code,
         "numeric_environment": env,
