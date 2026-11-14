@@ -547,6 +547,52 @@ PROFILES: dict[str, dict[str, Any]] = {
                                / "query_map_diagnosis"
                                / "CYCLE_40257275384.json",
     },
+    "43531125031": {
+        # Operational resume of run 43530889474 (team ref afcfca0d), which was
+        # dispatched to resume 43530681515.  The wrapper's model-health
+        # preflight read an unhealthy control-plane snapshot and exited 76 in
+        # 2 s before any agent started; the always-run persist step then
+        # published the predecessor's exact commit (ZERO_DURABLE_DELTA).
+        # This cycle repairs the historical-record defect the unchanged
+        # snapshot carried (the 43406325896 in-place rewrite of the
+        # CYCLE_43373102286 family artifact), re-homes that measurement under
+        # this run's own id, and re-verifies the lane deliverable.
+        "resumed_run_id": "43530889474",
+        "predecessor_run_id": "43530681515",
+        "raw": ORCH / "CYCLE_43530889474_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_43530889474_resume_diagnosis.json",
+        "lane_cycle_log_evidence": ORCH
+                                   / "CYCLE_43530889474_lane_cycle_log_evidence.json",
+        "lane_cycle_classification": "MODEL_HEALTH_GATE_BLOCKED_DISPATCH",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_43373102286.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_43531125031.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "mechanism_kind": "observed_health_gate",
+        "exit_code": 76,
+        "failed_job": "team",
+        "failed_step_seconds": 2.0,
+        "delta_kind": "zero",
+        "changed_files": 0,
+        "cycle_test": "product/tests/test_cycle_43531125031.py",
+        "state_block": "cycle_43531125031_operational_resume",
+        "content_family": ROOT / "results" / "product"
+                          / "counter_content_family"
+                          / "CYCLE_43531125031.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "replay_summary": ROOT / "results" / "product" / "live_cache_replay"
+                          / "CYCLE_40257275384" / "summary.json",
+        "query_map_diagnosis": ROOT / "results" / "product"
+                               / "query_map_diagnosis"
+                               / "CYCLE_40257275384.json",
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -778,6 +824,48 @@ def check_resumed_diagnosis() -> dict[str, Any]:
             problems.append("exit_code")
         if (orch.get("audit") or {}).get("gate_file_written") is not False:
             problems.append("gate_file_written")
+    elif mechanism_kind == "observed_health_gate":
+        # Fifth real-world failure mode, observed on run 43530889474: the
+        # workflow's model-health preflight read an unhealthy control-plane
+        # snapshot and exited 76 BEFORE launching the agent.  The team job
+        # failed at "Run lane cycle" in 2 s, the always-run persist step then
+        # published an unchanged tree, and the snapshot carries zero durable
+        # delta.  Calling this a model-gateway rejection or a quantum expiry
+        # would misreport it, so the health-gate kind is first-class and is
+        # cross-checked against the lane-cycle log-evidence artifact.
+        mechanism = orch.get("mechanism") or {}
+        quantum_seconds = None
+        exit_code = p("exit_code", 76)
+        if mechanism.get("status") != "OBSERVED_LOGS_AVAILABLE_NO_QUANTUM":
+            problems.append("mechanism_status")
+        if mechanism.get("logs_available") is not True:
+            problems.append("logs_available")
+        if mechanism.get("logs_endpoint_status") != 200:
+            problems.append("logs_endpoint_status")
+        if mechanism.get("quantum_expired") is not False:
+            problems.append("quantum_expired")
+        if mechanism.get("exit_code") != exit_code:
+            problems.append("exit_code")
+        if (orch.get("audit") or {}).get("gate_file_written") is not False:
+            problems.append("gate_file_written")
+        evidence_path = Path(p("lane_cycle_log_evidence",
+                               LANE_CYCLE_LOG_EVIDENCE))
+        log_ev = _load(evidence_path) if evidence_path.is_file() else {}
+        entry = (log_ev.get("runs") or {}).get(resumed_id) or {}
+        if (entry.get("classification")
+                != p("lane_cycle_classification",
+                     "MODEL_HEALTH_GATE_BLOCKED_DISPATCH")):
+            problems.append("lane_cycle_classification")
+        codes = entry.get("exit_codes") or []
+        if exit_code not in codes:
+            problems.append("lane_cycle_exit_codes")
+        markers = entry.get("markers") or {}
+        if markers.get("model_health_gate") is not True:
+            problems.append("log_evidence_model_health_marker")
+        if markers.get("quantum_expired") is not False:
+            problems.append("log_evidence_quantum_marker")
+        if not evidence_path.is_file():
+            problems.append("lane_cycle_log_evidence_missing")
     elif mechanism_kind == "observed_log":
         # Third real-world failure mode, observed on runs 40263308953 and
         # 40263483436: the logs endpoint answered HTTP 200, the committed job
@@ -910,6 +998,11 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                else "lane-cycle (producer)")
         summary = (f"Resumed run {resumed_id}: {who} work-quantum expiry "
                    "observed, durable delta present, run unadjudicated")
+    elif mechanism_kind == "observed_health_gate":
+        summary = (f"Resumed run {resumed_id}: model-health preflight refused "
+                   "dispatch (LEX_NO_HEALTHY_FREE_TOOL_MODEL, exit 76; no work "
+                   "quantum reached), team ref carries zero durable delta "
+                   "over its predecessor, run unadjudicated")
     elif mechanism_kind == "observed_log":
         summary = (f"Resumed run {resumed_id}: model-gateway request "
                    "rejection observed in the run's own job logs (no work "
@@ -927,7 +1020,7 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                    "durable delta over its predecessor, run unadjudicated")
     evidence = ([str(raw.relative_to(ROOT))] if raw is not None else [])
     evidence.append(str(resume_diag.relative_to(ROOT)))
-    if mechanism_kind == "observed_log":
+    if mechanism_kind in ("observed_log", "observed_health_gate"):
         ev = Path(p("lane_cycle_log_evidence", LANE_CYCLE_LOG_EVIDENCE))
         if ev.is_file():
             evidence.append(str(ev.relative_to(ROOT)))
@@ -1276,11 +1369,31 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
     cf_expected = dict(p("content_family_expected", CONTENT_FAMILY_EXPECTED))
     live_state = _load(STATE)
 
-    # C1 wording follows the observed mechanism kind: the three real failure
-    # modes this dossier has now measured are a work-quantum expiry, an
-    # unobserved stop, and a model-gateway request rejection.  Wording all
-    # three as "work quantum" would misreport the last one.
-    if mechanism_kind == "observed_log":
+    # C1 wording follows the observed mechanism kind.  The real failure modes
+    # this dossier has measured are a work-quantum expiry, an unobserved stop,
+    # a model-gateway request rejection, a write-scope enforcement failure and
+    # a model-health gate that refused dispatch before the agent started.
+    # Wording any of them as "work quantum" would misreport it.
+    if mechanism_kind == "observed_health_gate":
+        log_ev_path = Path(p("lane_cycle_log_evidence",
+                             LANE_CYCLE_LOG_EVIDENCE))
+        c1_claim = (
+            f"Run {resumed_id}'s lane-cycle dispatch was refused by the "
+            f"workflow's model-health preflight "
+            f"(LEX_NO_HEALTHY_FREE_TOOL_MODEL, exit {p('exit_code', 76)}) "
+            f"after {p('failed_step_seconds')} s, before the agent started; "
+            "observed from the run's own job log (logs endpoint HTTP 200), "
+            "not inferred, and no work quantum was reached. The always-run "
+            "persist step then published an unchanged tree, so the snapshot "
+            "carries zero durable delta. "
+            + (p("mechanism_chain_note") or "")
+        ).strip()
+        c1_artifacts = (
+            ([str(raw.relative_to(ROOT))] if raw is not None else [])
+            + [str(resume_diag.relative_to(ROOT))]
+            + ([str(log_ev_path.relative_to(ROOT))]
+               if log_ev_path.is_file() else []))
+    elif mechanism_kind == "observed_log":
         log_ev_path = Path(p("lane_cycle_log_evidence",
                              LANE_CYCLE_LOG_EVIDENCE))
         c1_claim = (

@@ -161,10 +161,16 @@ def test_fixed_path_family_excludes_verification_outputs_but_keeps_history():
     }
     assert all(not cfp.is_verification_bundle(b["path"])
                for b in rec["fixed_path_family"]["bundles"])
-    # Every bundle - including ad-hoc verification output - stays in the
-    # historical/all-committed population, so excluding verify dirs from the
-    # family does not delete evidence.
-    assert rec["all_committed"]["totals"]["n_bundles"] == len(all_paths)
+    # Every bundle committed when this artifact was generated - including
+    # ad-hoc verification output - stays in the historical/all-committed
+    # population, so excluding verify dirs from the family does not delete
+    # evidence.  The count is pinned to the artifact's OWN bundle list, not to
+    # the live tree: a later cycle's verification output is evidence for a new
+    # run-id artifact and must never be inserted into this historical record
+    # (append-only rule; the 43406325896 in-place rewrite was reverted).
+    assert rec["all_committed"]["totals"]["n_bundles"] == 149
+    assert rec["all_committed"]["totals"]["n_bundles"] == len(
+        rec["all_committed"]["bundles"])
     assert rec["all_committed"]["totals"]["defect_histogram"] == {
         "D1_empty_evidence": 0,
         "D2_letterhead_zone": 44,

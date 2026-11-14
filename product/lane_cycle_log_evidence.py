@@ -12,10 +12,15 @@ those logs (HTTP 200), so during run 40263666190 the three failed predecessor
 runs' ``Run lane cycle`` logs were fetched and committed under
 ``results/product/orchestration/CYCLE_40263666190_lane_cycle_logs/``.
 
-That turns the chain's cause from prose into evidence.  Two *distinct* death
+That turns the chain's cause from prose into evidence.  Three *distinct* death
 classes are visible in those bytes, and conflating them would mis-aim the
 repair:
 
+* ``MODEL_HEALTH_GATE_BLOCKED_DISPATCH`` - the wrapper's model-health preflight
+  read an unhealthy workflow-owned snapshot and exited 76 before the agent
+  started (``LEX_NO_HEALTHY_FREE_TOOL_MODEL``).  Control plane: model health is
+  refreshed and probed by the control plane; this lane records it, never edits
+  it, and a later healthy snapshot is the route-around.
 * ``MODEL_UPSTREAM_REJECTED_REQUEST_PARAMETER`` - the model pool selected a
   free model whose upstream rejects a request argument OpenCode sends
   (``[unsupported_parameter] ... permissions``).  The wrapper classifies it as
@@ -104,11 +109,26 @@ ANNOTATION_LINE_RE = re.compile(
 # the pool line above is the authoritative one.
 
 CLASS_ZERO_DELTA = "AGENT_FINISHED_ZERO_DURABLE_DELTA"
+CLASS_MODEL_HEALTH_GATE = "MODEL_HEALTH_GATE_BLOCKED_DISPATCH"
 CLASS_MODEL_PARAMETER = "MODEL_UPSTREAM_REJECTED_REQUEST_PARAMETER"
 CLASS_QUANTUM = "WORK_QUANTUM_EXPIRED"
 CLASS_UNCLASSIFIED = "UNCLASSIFIED_LANE_CYCLE_FAILURE"
 
 CONTROL_PLANE_ITEMS = (
+    {
+        "item": "model_health_preflight_gate",
+        "owner": "control-plane (state/model_health.json + model-health workflow)",
+        "detail": (
+            "The lane-cycle wrapper refuses to dispatch an agent when the "
+            "workflow-owned model_health.json snapshot says healthy=false or "
+            "names no resolved_model (LEX_NO_HEALTHY_FREE_TOOL_MODEL, exit 76). "
+            "The producer then exits before any product step runs, and the "
+            "always-run persist step publishes an unchanged tree: a zero-durable-"
+            "delta snapshot. model_health.json is control-plane state and is "
+            "recorded, never edited, from this lane; the route-around is a "
+            "healthy refresh before dispatch."
+        ),
+    },
     {
         "item": "model_pool_probe_shape_gap",
         "owner": "control-plane (state/model_health.json + model-health workflow)",
@@ -301,9 +321,18 @@ def parse_lane_cycle_log(text: str, run_id: str | None = None) -> dict[str, Any]
             _annotation("LEX_WORK_QUANTUM_EXPIRED")
             and final_exit in (None, 78)
         ),
+        # The wrapper's preflight refuses to launch an agent when the
+        # workflow-owned model-health snapshot is unhealthy.  Pinned to exit 76
+        # so a diagnosis agent that merely quotes the marker cannot relabel a
+        # different death class.
+        "model_health_gate": bool(
+            _annotation("LEX_NO_HEALTHY_FREE_TOOL_MODEL")
+            and final_exit == 76
+        ),
         "map_data_missing_positions": bool(MAP_POS_RE.search(own_text)),
         "markers_quoted_from_history_only": sorted(
-            m for m in ("LEX_ZERO_DELTA_REPAIR", "LEX_WORK_QUANTUM_EXPIRED")
+            m for m in ("LEX_ZERO_DELTA_REPAIR", "LEX_WORK_QUANTUM_EXPIRED",
+                        "LEX_NO_HEALTHY_FREE_TOOL_MODEL")
             if _quoted_only(m)
         ),
         "annotation_error_lines": sorted(set(
@@ -322,6 +351,7 @@ def parse_lane_cycle_log(text: str, run_id: str | None = None) -> dict[str, Any]
             m for m, ok in (
                 ("LEX_ZERO_DELTA_REPAIR", final_exit == 67),
                 ("LEX_WORK_QUANTUM_EXPIRED", final_exit in (None, 78)),
+                ("LEX_NO_HEALTHY_FREE_TOOL_MODEL", final_exit == 76),
             )
             if _annotation(m) and not ok
         ),
@@ -330,6 +360,13 @@ def parse_lane_cycle_log(text: str, run_id: str | None = None) -> dict[str, Any]
     if markers["quantum_expired"]:
         classification = CLASS_QUANTUM
         why = "the wrapper's work quantum expired before the cycle finished"
+    elif markers["model_health_gate"]:
+        classification = CLASS_MODEL_HEALTH_GATE
+        why = (
+            "the wrapper's model-health preflight read an unhealthy "
+            "control-plane snapshot and exited 76 before launching the agent, "
+            "so no product step ran"
+        )
     elif upstream and upstream["signature"] == "unsupported_parameter":
         classification = CLASS_MODEL_PARAMETER
         why = (
@@ -375,6 +412,12 @@ def build(logs_dir: Path, run_ids: list[str],
     runs: dict[str, Any] = {}
     for run_id in run_ids:
         path = logs_dir / f"{run_id}_team_lane_cycle.log"
+        if not path.is_file() and len(run_ids) == 1:
+            # fetch_run_jobs_snapshot.py names the whole team job ``team.log``;
+            # a single-run capture may therefore be stored under that name.
+            fallback = logs_dir / "team.log"
+            if fallback.is_file():
+                path = fallback
         if not path.is_file():
             runs[run_id] = {"file": None, "present": False}
             continue

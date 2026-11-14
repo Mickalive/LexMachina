@@ -295,7 +295,12 @@ def main(argv: list[str] | None = None) -> int:
                 name = f"{job['name'].replace(' ', '_')}.log"
                 text, hits = redact(body.decode("utf-8", "replace"))
                 (log_dir / name).write_text(text, encoding="utf-8")
-                entry.update(file=name, bytes=len(text), redactions=hits)
+                # ``bytes`` must be the on-disk UTF-8 size, not the character
+                # count: runner logs carry non-ASCII box/ANSI glyphs, so the
+                # two differ and a published byte count would not reproduce.
+                entry.update(file=name,
+                             bytes=len(text.encode("utf-8")),
+                             redactions=hits)
             manifest.append(entry)
         (log_dir / "MANIFEST.json").write_text(
             json.dumps({"schema": "product-job-log-capture/1",

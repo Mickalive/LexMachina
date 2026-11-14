@@ -1,0 +1,65 @@
+{
+  "schema": "product-lane-cycle-log-evidence/1",
+  "generated_at": "2026-11-14T00:06:51Z",
+  "resuming_run_id": "43531125031",
+  "logs_dir": "results/product/orchestration/CYCLE_43530889474_job_logs",
+  "fetched_via": "GitHub Actions job-log endpoint (HTTP 200) using the runner's persisted git-credentials token; downloaded during the resuming run",
+  "logs_endpoint_status": 200,
+  "runs": {
+    "43530889474": {
+      "file": "results/product/orchestration/CYCLE_43530889474_job_logs/team.log",
+      "present": true,
+      "bytes": 29996,
+      "sha256": "34f3fecf322a055f10e92da7363e440140c4d99d175727eb533ad57611d743b0",
+      "model_pool": null,
+      "upstream_error": null,
+      "exit_codes": [
+        76
+      ],
+      "attempts": [],
+      "missing_modules": [],
+      "markers": {
+        "zero_delta_guard": false,
+        "non_transient_failure": false,
+        "agent_card_ok": true,
+        "persist_nothing_to_commit": true,
+        "quantum_expired": false,
+        "model_health_gate": true,
+        "map_data_missing_positions": false,
+        "markers_quoted_from_history_only": [],
+        "annotation_error_lines": [
+          "LEX_NO_HEALTHY_FREE_TOOL_MODEL; model-health workflow must pass before agent work is dispatched.",
+          "Process completed with exit code 76."
+        ],
+        "annotation_echo_contamination": false,
+        "final_annotation_exit_code": 76,
+        "annotation_markers_rejected_by_final_exit": []
+      },
+      "classification": "MODEL_HEALTH_GATE_BLOCKED_DISPATCH",
+      "why": "the wrapper's model-health preflight read an unhealthy control-plane snapshot and exited 76 before launching the agent, so no product step ran",
+      "run_id_scoped": true
+    }
+  },
+  "observed_failure_classes": [
+    "MODEL_HEALTH_GATE_BLOCKED_DISPATCH"
+  ],
+  "control_plane_items": [
+    {
+      "item": "model_health_preflight_gate",
+      "owner": "control-plane (state/model_health.json + model-health workflow)",
+      "detail": "The lane-cycle wrapper refuses to dispatch an agent when the workflow-owned model_health.json snapshot says healthy=false or names no resolved_model (LEX_NO_HEALTHY_FREE_TOOL_MODEL, exit 76). The producer then exits before any product step runs, and the always-run persist step publishes an unchanged tree: a zero-durable-delta snapshot. model_health.json is control-plane state and is recorded, never edited, from this lane; the route-around is a healthy refresh before dispatch."
+    },
+    {
+      "item": "model_pool_probe_shape_gap",
+      "owner": "control-plane (state/model_health.json + model-health workflow)",
+      "detail": "opencode/beam-free answers the health tool_probe with PASS but rejects the real agent request with [unsupported_parameter] Unrecognized request argument supplied: permissions, so a healthy-looking pool slot can still kill the lane before the agent starts. The probe must reproduce the agent request shape; model_health.json is workflow-owned and is recorded, never edited, from this lane."
+    },
+    {
+      "item": "workflow_does_not_bootstrap_query_runtime",
+      "owner": "control-plane (.github/workflows/core-lane.yml)",
+      "detail": "No workflow step installs product/requirements-query.txt before the agent starts, so a fresh runner begins with no numpy and no scikit-learn. The lane now self-heals from product/tests/conftest.py via product.query_env.ensure(); the missing workflow step remains recorded, never edited, from here."
+    }
+  ],
+  "meaning": "Observed evidence from the 1 committed lane-cycle job log(s) listed under runs. The failure classes are control-plane/model-pool and fresh-runner-validation facts, not product verdicts: no gate is written, no run is labelled accepted or rejected, and no frozen bar, rubric or threshold is touched. Each run's own output is separated from predecessor log bytes the agent quoted while writing its diagnosis.",
+  "claim_ceiling": "This artifact names why the producer step exited, from bytes the workflow itself printed. It asserts nothing about product quality, retrieval, answer, counter-authority or map utility."
+}
