@@ -291,7 +291,8 @@ def test_lightweight_checks_reproduce_now() -> None:
         new = next(c for c in fresh["checks"] if c["id"] == check_id)
         assert old["status"] == new["status"] == "PASS", check_id
     assert fresh["overall_status"] == "PARTIAL"
-    assert set(fresh["skipped_checks"]) == {"progressive_smoke",
+    assert set(fresh["skipped_checks"]) == {"cycle_test",
+                                            "progressive_smoke",
                                             "mvp_core_tests"}
 
 
