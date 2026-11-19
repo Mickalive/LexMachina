@@ -40,6 +40,11 @@ AUDIT_JOB = "audit"
 AUDIT_STEP = "Independent audit"
 QUANTUM_RE = re.compile(r"LEX_WORK_QUANTUM_EXPIRED\s+seconds=(\d+)")
 EXIT_CODE_RE = re.compile(r"exit code\s+(\d+)", re.IGNORECASE)
+# The wrapper's repair-round zero-delta guard: `LEX_ZERO_DELTA_REPAIR`, exit 67.
+# It fires only when REPAIR_INTENT is true and HEAD is unchanged AND the working
+# tree is empty, i.e. "the producer found nothing to do" - NOT a broken lane,
+# NOT a verdict and NOT a human-gate problem (factory-wide requirement 10).
+ZERO_DELTA_RE = re.compile(r"LEX_ZERO_DELTA_REPAIR")
 
 
 def _step(job: dict, name: str) -> dict | None:
@@ -97,6 +102,7 @@ def _failure_annotations(snapshot: dict, team: dict, audit: dict,
     quantum_seconds = None
     exit_code = None
     quantum_message = None
+    zero_delta_repair = False
     for message in messages:
         m = QUANTUM_RE.search(message)
         if m:
@@ -105,7 +111,9 @@ def _failure_annotations(snapshot: dict, team: dict, audit: dict,
         e = EXIT_CODE_RE.search(message)
         if e and exit_code is None:
             exit_code = int(e.group(1))
-    return {
+        if ZERO_DELTA_RE.search(message):
+            zero_delta_repair = True
+    observed: dict = {
         "source": (
             "github_actions_check_run_annotations" if messages else "none"
         ),
@@ -117,6 +125,12 @@ def _failure_annotations(snapshot: dict, team: dict, audit: dict,
         "quantum_message": quantum_message,
         "messages": messages,
     }
+    # New first-class observable. Add the key ONLY when the marker is present:
+    # older committed diagnosis artifacts are exact-equality fixtures, so their
+    # re-classification must stay byte-shape-identical (no silent field drift).
+    if zero_delta_repair:
+        observed["zero_delta_repair"] = True
+    return observed
 
 
 def classify(snapshot: dict) -> dict:
@@ -202,7 +216,30 @@ def classify(snapshot: dict) -> dict:
                      "steps report 'skipped'; the always-run persist step "
                      "then published the tree it had."
             )
-            + " No provider or auth cause is claimed."
+             + " No provider or auth cause is claimed."
+         )
+    elif annotations.get("zero_delta_repair"):
+        # Fifth observed mechanism kind.  The public check-run annotation is
+        # the workflow's OWN verdict: the repair round's agent left HEAD
+        # unchanged and the tree empty, so the wrapper rejected it with
+        # `LEX_ZERO_DELTA_REPAIR` (exit 67).  No work quantum was reached and no
+        # provider/auth/token cause is claimed.  Calling this run "unobserved"
+        # would publish a false sentence now that its annotation is committed.
+        mechanism_status = "OBSERVED_ZERO_DELTA_REPAIR"
+        mechanism_claim = (
+            "The lane-cycle agent was rejected by the workflow's own "
+            "repair-round zero-delta guard: the public check-run annotation "
+            "reads 'LEX_ZERO_DELTA_REPAIR' with exit code "
+            f"{annotations.get('exit_code')} after "
+            f"{failed_team_step_seconds} s. This means the producer found "
+            "nothing to do on that repair round; it is an orchestration "
+            "outcome, NOT a product defect, NOT a verdict and NOT a "
+            "human-gate problem. No work quantum expired and no provider, "
+            "auth or token cause is asserted. The always-run 'Persist team "
+            "snapshot' step concluded "
+            f"{(snapshot_step or {}).get('conclusion')!r}; whether that "
+            "published tree carries a durable delta is proven separately "
+            "from git refs by the resume diagnosis."
         )
     elif not team_ok:
         # The mechanism block's vocabulary used to be binary: observed quantum
@@ -299,11 +336,28 @@ def classify(snapshot: dict) -> dict:
                 "never edited from a lane."
             )
         next_action = (
-            "Resume from the persisted team snapshot, consume the bounded "
-            "audit-readiness dossier, and re-run the independent audit; do not "
-            "infer a REVISE, BLOCKED verdict or a product regression from a "
-            "quantum expiry."
-        )
+             "Resume from the persisted team snapshot, consume the bounded "
+             "audit-readiness dossier, and re-run the independent audit; do not "
+             "infer a REVISE, BLOCKED verdict or a product regression from a "
+             "quantum expiry."
+         )
+    elif annotations.get("zero_delta_repair"):
+         control_plane_attention = (
+             "the repair round's producer found nothing to do and the wrapper "
+             "rejected it with the zero-delta guard (exit 67). This is the "
+             "expected autonomous 'nothing to do' outcome recorded in "
+             "factory-wide requirement 10, not a broken lane; .github/** is "
+             "control-plane scope and is recorded, never edited from a lane. "
+             "ROUTE-AROUND: change the QUESTION so the repair has a concrete "
+             "deliverable, and never re-dispatch the identical repair."
+         )
+         next_action = (
+             "Resume from the persisted team snapshot, prove whether it carries "
+             "a durable delta against its predecessor from git refs, "
+             "re-verify the lane deliverable and make the snapshot audit-ready; "
+             "do not infer a REVISE, a BLOCKED verdict, a product regression or "
+             "a human-gate need from a zero-delta guard exit."
+         )
     elif team_ok:
         control_plane_attention = (
             "re-run the independent audit; no workflow change is identified "

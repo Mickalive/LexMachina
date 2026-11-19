@@ -367,8 +367,46 @@ PROFILES: dict[str, dict[str, Any]] = {
         },
         "self_minted_gate": ROOT / "results" / "product" / "incidents"
                              / "self_minted_gate_40278460732_producer_"
-                               "40283048553.QUARANTINED.json",
+                                "40283048553.QUARANTINED.json",
     },
+    "44435078310": {
+        "resumed_run_id": "44433859941",
+        "predecessor_run_id": "44426640158",
+        "raw": ORCH / "CYCLE_44433859941_team_step_raw.json",
+        "resume_diag": ORCH / "CYCLE_44433859941_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40284658455.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_44435078310.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        # Fifth observed mechanism: the repair round's lane-cycle step was
+        # rejected by the zero-delta guard (public check-run annotation
+        # LEX_ZERO_DELTA_REPAIR, exit 67) after ~436 s. No quantum, no gateway
+        # rejection and no producer-minted gate. The team ref is byte-identical
+        # to predecessor 44426640158 (a591bbf8), so the durable delta is zero.
+        "mechanism_kind": "observed_zero_delta",
+        "failed_job": "team",
+        "quantum_seconds": None,
+        "exit_code": 67,
+        "failed_step_seconds": 436.0,
+        "delta_kind": "zero",
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_44435078310.py",
+        "state_block": "cycle_44435078310_operational_resume",
+        # No new counter-content family this cycle: consume the accepted
+        # fixed-path family pins unchanged (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "44433859941": {"alias_of": "44435078310"},
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -689,6 +727,55 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                 problems.append("raw_scope_step_not_failure")
         else:
             problems.append("raw_snapshot_missing")
+    elif mechanism_kind == "observed_zero_delta":
+        # Fifth real failure mode, observed on run 44433859941: the repair
+        # round's lane-cycle step failed because the wrapper's zero-delta guard
+        # rejected an unchanged tree (`LEX_ZERO_DELTA_REPAIR`, exit 67), with no
+        # work quantum and no producer-minted gate. The public check-run
+        # annotation is the workflow's own verdict, so it is OBSERVED, not
+        # "unobserved" and not a gateway/quantum mechanism.
+        mechanism = orch.get("mechanism") or {}
+        quantum_seconds = None
+        exit_code = p("exit_code", 67)
+        if mechanism.get("status") != "OBSERVED_ZERO_DELTA_REPAIR":
+            problems.append("mechanism_status")
+        if mechanism.get("quantum_expired") is not False:
+            problems.append("quantum_expired")
+        if mechanism.get("exit_code") != exit_code:
+            problems.append("exit_code")
+        if (orch.get("audit") or {}).get("gate_file_written") is not False:
+            problems.append("gate_file_written")
+        # The live classifier records the audit job's workflow state as
+        # ``conclusion == "skipped"`` (not a separate boolean ``skipped``).
+        if (orch.get("audit") or {}).get("conclusion") != "skipped":
+            problems.append("audit_not_skipped")
+        observed = orch.get("observed_failure") or {}
+        if observed.get("zero_delta_repair") is not True:
+            problems.append("observed_zero_delta_repair")
+        if observed.get("annotations_available") is not True:
+            problems.append("observed_annotations_available")
+        # Cross-check the committed raw snapshot: the failed step must be the
+        # lane-cycle step and the persist step must still have published.
+        if raw is not None and raw.is_file():
+            raw_doc = _load(raw)
+            team = next((j for j in raw_doc.get("jobs") or []
+                         if j.get("name") == "team"), None)
+            steps = {s.get("name"): s.get("conclusion")
+                     for s in (team or {}).get("steps") or []}
+            if steps.get("Run lane cycle") != "failure":
+                problems.append("raw_lane_cycle_not_failure")
+            if steps.get("Persist team snapshot") != "success":
+                problems.append("raw_persist_not_success")
+            anns = None
+            if isinstance(raw_doc.get("annotations"), dict):
+                anns = next(iter(raw_doc["annotations"].values()), None)
+            ann_blob = json.dumps(anns or [])
+            if "LEX_ZERO_DELTA_REPAIR" not in ann_blob:
+                problems.append("raw_zero_delta_annotation_missing")
+        else:
+            problems.append("raw_snapshot_missing")
+        # The durable-delta fact is git-ref truth, not this mechanism: the
+        # resume diagnosis records ZERO_DURABLE_DELTA against the predecessor.
     else:
         # Raw-free resume: the public run/jobs snapshot is unavailable. The
         # only honest record is that the mechanism is unobserved; asserting a
@@ -743,6 +830,12 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                    "on a producer-minted auditor-namespace gate file (no "
                    "work quantum reached, audit skipped), durable delta "
                    "present, run unadjudicated")
+    elif mechanism_kind == "observed_zero_delta":
+        summary = (f"Resumed run {resumed_id}: lane-cycle step rejected by the "
+                   "workflow's zero-delta repair guard (OBSERVED, check-run "
+                   "annotation LEX_ZERO_DELTA_REPAIR, no work quantum, no "
+                   "gate), team ref carries zero durable delta over its "
+                   "predecessor, run unadjudicated")
     else:
         summary = (f"Resumed run {resumed_id}: raw run/jobs snapshot "
                    "unavailable (mechanism unobserved), team ref carries zero "
@@ -869,6 +962,34 @@ def check_claim_artifacts() -> dict[str, Any]:
     )
 
 
+def _fresh_env_probe() -> tuple[dict, str | None]:
+    """Re-probe the pinned runtime in a FRESH interpreter.
+
+    ``query_env.probe()`` imports via the caller's ``sys.path``/``sys.modules``.
+    A dossier process that bootstraps the runtime mid-flight keeps the startup
+    import state, so an in-process re-probe can still report ``numpy`` missing
+    after ``bootstrap_query_env.sh`` printed ``[ok]``.  A fresh interpreter is
+    the environment the later pytest/smoke checks actually use; re-probing
+    there is stricter, not looser, and removes that false audit FAIL.
+    """
+    code = (
+        "import json,sys;sys.path.insert(0,'.');"
+        "from product import query_env as q;"
+        "print(json.dumps({'probe':q.probe(),'pytest':q.installed_version('pytest')}))"
+    )
+    try:
+        proc = subprocess.run([sys.executable, "-c", code], cwd=str(ROOT),
+                              capture_output=True, text=True, timeout=120,
+                              check=False)
+        data = json.loads(proc.stdout) if proc.stdout.strip() else {}
+        return data.get("probe") or {}, data.get("pytest")
+    except (OSError, subprocess.SubprocessError, json.JSONDecodeError):
+        # Defensive: an unreadable fresh probe must fail closed, not inherit a
+        # stale in-process "ok".
+        return {"ok": False, "missing": ["<fresh-probe-failed>"],
+                "workflow_gap": "fresh interpreter probe could not be read"}, None
+
+
 def check_runtime_preflight(auto_bootstrap: bool = True) -> dict[str, Any]:
     """Fail closed on the fresh-runner dependency gap before running re-checks.
 
@@ -880,15 +1001,14 @@ def check_runtime_preflight(auto_bootstrap: bool = True) -> dict[str, Any]:
     lane's own pinned bootstrap when needed, and re-probes.  It never weakens a
     test or a frozen bar; it only makes the runtime explicit.
     """
-    before = query_env.probe()
-    pytest_before = query_env.installed_version("pytest")
+    before, pytest_before = _fresh_env_probe()
     action: dict[str, Any] | None = None
-    after = before
-    pytest_after = pytest_before
-    if (not before["ok"] or pytest_before is None) and auto_bootstrap:
+    after, pytest_after = before, pytest_before
+    if (not before.get("ok") or pytest_before is None) and auto_bootstrap:
         action = _run(["bash", "product/bootstrap_query_env.sh"], 600)
-        after = query_env.probe()
-        pytest_after = query_env.installed_version("pytest")
+        # Re-probe in a fresh interpreter, not in the bootstrap caller: the
+        # caller's import state predates the install (see _fresh_env_probe).
+        after, pytest_after = _fresh_env_probe()
     ok = bool(after["ok"]) and pytest_after is not None
     return _check(
         "runtime_preflight",
