@@ -530,6 +530,48 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    "44480855771": {
+        # Operational resume of the persisted producer snapshot 44480512027
+        # (HEAD 5e48b511, the "product cycle 44471693612 repair 0" commit).  The
+        # public run/jobs snapshot IS committed: the team job's "Run lane cycle"
+        # step failed in 16 s with NO check-run annotations and no downloadable
+        # logs, so the orchestration facts are observed while the log-level cause
+        # stays unobserved (no provider/auth/gateway claim).  The always-run
+        # persist step published the unchanged tree, so the durable delta is
+        # ZERO - proved from git refs.  The locally REPRODUCED validation failure
+        # this resume repairs is in the predecessor snapshot's own cycle test,
+        # product/tests/test_cycle_44471693612.py: it named the conventional
+        # "origin/cycle/core/product/44464605045/team" ref, which an
+        # operational-resume / audit checkout does not fetch, so it degraded to
+        # REF_ABSENT.  The fix names the present commit SHA (RESUMED_HEAD), which
+        # proves the same 9-file COMMITTED_DELTA without weakening the claim.
+        "resumed_run_id": "44480512027",
+        "predecessor_run_id": "44471693612",
+        "raw": ORCH / "CYCLE_44480512027_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_44480512027_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_44471693612.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_44480855771.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "mechanism_kind": "observed_no_annotations",
+        "failed_job": "team",
+        "quantum_seconds": None,
+        "exit_code": None,
+        "delta_kind": "zero",
+        "changed_files": 0,
+        "cycle_test": "product/tests/test_cycle_44480855771.py",
+        "state_block": "cycle_44480855771_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -899,6 +941,43 @@ def check_resumed_diagnosis() -> dict[str, Any]:
             problems.append("raw_snapshot_missing")
         # The durable-delta fact is git-ref truth, not this mechanism: the
         # resume diagnosis records ZERO_DURABLE_DELTA against the predecessor.
+    elif mechanism_kind == "observed_no_annotations":
+        # Sixth real failure mode, observed on run 44480512027: a committed
+        # run/jobs snapshot IS available and shows the team job's "Run lane
+        # cycle" step failed fast (16 s, no work quantum) with NO check-run
+        # annotations and no downloadable logs.  The orchestration facts are
+        # observed; the log-level cause is not, so no provider/auth/gateway
+        # mechanism is asserted.  Neither the quantum, gateway, scope nor
+        # zero-delta kinds describes this run honestly, so it is first-class.
+        mechanism = orch.get("mechanism") or {}
+        quantum_seconds = None
+        exit_code = None
+        if mechanism.get("status") != "UNOBSERVED":
+            problems.append("mechanism_status")
+        if mechanism.get("annotations_available") is not False:
+            problems.append("annotations_available")
+        if mechanism.get("quantum_expired") is not False:
+            problems.append("quantum_expired")
+        if mechanism.get("logs_available") is not False:
+            problems.append("logs_available")
+        if (orch.get("audit") or {}).get("gate_file_written") is not False:
+            problems.append("gate_file_written")
+        if (orch.get("audit") or {}).get("conclusion") != "skipped":
+            problems.append("audit_not_skipped")
+        # Cross-check the committed raw snapshot: the failed step must be the
+        # lane-cycle step and the always-run persist step must still publish.
+        if raw is not None and raw.is_file():
+            raw_doc = _load(raw)
+            team = next((j for j in raw_doc.get("jobs") or []
+                         if j.get("name") == "team"), None)
+            steps = {s.get("name"): s.get("conclusion")
+                     for s in (team or {}).get("steps") or []}
+            if steps.get("Run lane cycle") != "failure":
+                problems.append("raw_lane_cycle_not_failure")
+            if steps.get("Persist team snapshot") != "success":
+                problems.append("raw_persist_not_success")
+        else:
+            problems.append("raw_snapshot_missing")
     else:
         # Raw-free resume: the public run/jobs snapshot is unavailable. The
         # only honest record is that the mechanism is unobserved; asserting a
@@ -959,10 +1038,16 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                    "annotation LEX_ZERO_DELTA_REPAIR, no work quantum, no "
                    "gate), team ref carries zero durable delta over its "
                    "predecessor, run unadjudicated")
+    elif mechanism_kind == "observed_no_annotations":
+        summary = (f"Resumed run {resumed_id}: team 'Run lane cycle' step "
+                    "failed fast (no work quantum, no check-run annotations, no "
+                    "downloadable logs; log-level cause unobserved), team ref "
+                    "carries zero durable delta over its predecessor, run "
+                    "unadjudicated")
     else:
         summary = (f"Resumed run {resumed_id}: raw run/jobs snapshot "
-                   "unavailable (mechanism unobserved), team ref carries zero "
-                   "durable delta over its predecessor, run unadjudicated")
+                    "unavailable (mechanism unobserved), team ref carries zero "
+                    "durable delta over its predecessor, run unadjudicated")
     evidence = ([str(raw.relative_to(ROOT))] if raw is not None else [])
     evidence.append(str(resume_diag.relative_to(ROOT)))
     if mechanism_kind == "observed_log":

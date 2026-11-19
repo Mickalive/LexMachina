@@ -26,7 +26,12 @@ EXECUTING_RUN_ID = "44471693612"
 RESUMED_RUN_ID = "44464605045"
 RESUMED_HEAD = "04e07eaceb230fcfd33feb891a75b5599b326830"
 PREDECESSOR_HEAD = "c3bd920c342b728f6d2ae29ed8f041a0fbdd968b"
-SNAPSHOT_REF = "origin/cycle/core/product/44464605045/team"
+# The conventional team ref is absent in an operational-resume / audit checkout
+# (which fetches only the accepted base and the current team ref), so this test
+# must name a commit SHA that is present in the fetched history.  RESUMED_HEAD is
+# exactly that snapshot commit; using it preserves every claim assertion below
+# (9-file COMMITTED_DELTA) while making the reproduction checkout-independent.
+SNAPSHOT_REF = RESUMED_HEAD
 ACCEPTED_RUN_ID = "CYCLE_40284658455"
 ACCEPTED_COMMIT = "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83"
 
@@ -56,7 +61,11 @@ def test_state_is_fail_closed_and_records_this_resume():
     st = _load(STATE)
     assert st["lane"] == "product"
     assert st["direction_version"] == 68
-    assert st["current_cycle_run_id"] == int(EXECUTING_RUN_ID)
+    # A later resume may advance current_cycle_run_id; this snapshot's own
+    # fail-closed state block stays preserved.  "At least this run" is the
+    # currency invariant (the same relaxation already applied in
+    # test_cycle_44464605045.py).
+    assert st["current_cycle_run_id"] >= int(EXECUTING_RUN_ID)
     assert st["accepted_run_id"] == ACCEPTED_RUN_ID
     assert st["accepted_commit"] == ACCEPTED_COMMIT
     assert st["continue_recommended"] is True
