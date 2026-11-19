@@ -40,7 +40,11 @@ ref would count the accepted audit commit as if the failed run had produced it.
 Refs must already be available locally (the workflow fetches ``main``,
 ``lab/<lane>`` and the team ref).  The instrument never fetches, so an
 offline reproduction is honest about a missing ref instead of silently
-reaching the network.
+reaching the network.  A resume checkout often carries only its OWN team ref,
+not the team ref of the run it resumes; pass ``--snapshot-ref`` with a ref or
+commit that IS present (the persisted snapshot head) so the delta is still
+proved from real git objects rather than degrading to ``REF_ABSENT``.  The
+default conventional team ref is unchanged for workflow checkouts that have it.
 """
 from __future__ import annotations
 
@@ -342,21 +346,27 @@ def run(
     raw_path: Path | None = None,
     *,
     predecessor_ref: str | None = None,
+    snapshot_ref: str | None = None,
 ) -> dict[str, Any]:
     orchestration = (
         asd.classify(json.loads(Path(raw_path).read_text(encoding="utf-8")))
         if raw_path is not None
         else _orchestration_without_raw(None)
     )
+    # A resume checkout commonly has only its own team ref; the persisted
+    # snapshot head is a commit that IS present.  Allowing an explicit ref keeps
+    # the delta reproducible from real git objects without weakening the claim
+    # (it still must resolve and differ from the predecessor to be a delta).
+    snap = snapshot_ref or f"origin/cycle/core/product/{run_id}/team"
     if predecessor_ref:
-        delta = _delta(f"origin/cycle/core/product/{run_id}/team", predecessor_ref)
+        delta = _delta(snap, predecessor_ref)
     elif predecessor_run_id:
         delta = _delta(
-            f"origin/cycle/core/product/{run_id}/team",
+            snap,
             f"origin/cycle/core/product/{predecessor_run_id}/team",
         )
     else:
-        delta = _delta(f"origin/cycle/core/product/{run_id}/team", ACCEPTED_REF)
+        delta = _delta(snap, ACCEPTED_REF)
     accept = _accept_commit(run_id)
     audit = _audit_half(run_id)
     accepted = bool(accept.get("accept_commit")) and bool(
@@ -409,6 +419,9 @@ def main(argv: list[str] | None = None) -> int:
                     help="previous cycle's team ref (optional when --predecessor-ref is given)")
     ap.add_argument("--predecessor-ref", default="",
                     help="explicit git ref for the durable-delta baseline (default origin/lab/product)")
+    ap.add_argument("--snapshot-ref", default="",
+                    help="explicit ref/commit for the snapshot head when the run's "
+                         "conventional team ref is absent in a resume checkout")
     ap.add_argument("--raw", default=None,
                     help="committed run/jobs snapshot for --run-id; omit when unavailable")
     ap.add_argument("--out", required=True)
@@ -420,6 +433,7 @@ def main(argv: list[str] | None = None) -> int:
         args.predecessor_run_id,
         Path(args.raw) if args.raw else None,
         predecessor_ref=args.predecessor_ref or None,
+        snapshot_ref=args.snapshot_ref or None,
     )
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)

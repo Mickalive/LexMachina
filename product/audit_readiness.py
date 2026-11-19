@@ -487,6 +487,49 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    "44471693612": {
+        # Operational resume of the persisted producer snapshot 44464605045
+        # (HEAD 04e07eac).  No public run/jobs snapshot was captured for that
+        # run in this checkout and the GitHub API is rate-limited, so its own
+        # stop mechanism is honestly UNKNOWN (mechanism_unobserved); no cause
+        # is invented.  The durable delta is proved from real git objects:
+        # snapshot 04e07eac differs from predecessor c3bd920c by 9 files.
+        # The concrete, locally REPRODUCED validation failure this resume
+        # repairs is in cycle_44464605045's own test: the delta re-derivation
+        # used the resumed run's conventional team ref, which an operational
+        # resume checkout does not fetch, so it degraded to REF_ABSENT.  The
+        # fix adds an explicit --snapshot-ref and the repaired test pins it.
+        "resumed_run_id": "44464605045",
+        "predecessor_run_id": "44459256873",
+        "raw": None,
+        "resume_diag": ORCH / "CYCLE_44464605045_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_44464605045.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_44471693612.md",
+        "classification": "RAW_SNAPSHOT_UNAVAILABLE",
+        "mechanism_kind": "unobserved",
+        "failed_job": None,
+        "quantum_seconds": None,
+        "exit_code": None,
+        "delta_kind": "committed",
+        "changed_files": 9,
+        "changed_paths_include": (
+            "product/audit_readiness.py",
+            "product/tests/test_cycle_44464605045.py",
+        ),
+        "cycle_test": "product/tests/test_cycle_44471693612.py",
+        "state_block": "cycle_44471693612_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
