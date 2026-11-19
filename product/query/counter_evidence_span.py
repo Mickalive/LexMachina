@@ -978,11 +978,16 @@ def apply_verified_span_selection(
             content_fail = bool(incumbent_defects) or (
                 bool(incumbent_ev.strip()) and incumbent_grounded is None
             )
+        if not sel.selected:
             if content_fail:
                 was_verified = d.get("counter_evidence_verified") is True
                 d["counter_evidence_verified"] = False
                 d["counter_evidence_unevidenced"] = True
-                d["counter_evidence_unevidenced_reason"] = sel.reason_code
+                # Use the actual content-defect reason code rather than the gate's
+                # abstention reason (direction v68 P0: the defect, not the pivot
+                # absence, is the recorded cause of the downgrade).
+                defect_reason = _content_defect_reason(incumbent_defects) or sel.reason_code
+                d["counter_evidence_unevidenced_reason"] = defect_reason
                 if was_verified:
                     downgrades.append({
                         "decision_id": str(d.get("decision_id") or ""),
@@ -991,17 +996,33 @@ def apply_verified_span_selection(
                         "after": {
                             "counter_evidence_verified": False,
                             "counter_status": d.get("counter_status"),
-                            "counter_evidence_unevidenced_reason": sel.reason_code,
+                            "counter_evidence_unevidenced_reason": defect_reason,
                         },
-                        "reason_code": sel.reason_code,
+                        "reason_code": defect_reason,
                         "defects": incumbent_defects,
                         "incumbent_grounded_in": incumbent_grounded,
+                    })
+                else:
+                    retained.append({
+                        "decision_id": str(d.get("decision_id") or ""),
+                        "leg": "seam_abstention_content_sound_incumbent",
+                        "reason_code": _content_defect_reason(incumbent_defects) or sel.reason_code,
+                        "counter_evidence_verified": d.get("counter_evidence_verified"),
+                        "counter_status": d.get("counter_status"),
+                        "incumbent_grounded_in": incumbent_grounded,
+                        "defects": [],
+                        "note": (
+                            "frozen label gate abstained (reason_code above); the "
+                            "incumbent evidence is verbatim and passes the frozen "
+                            "D1-D4 content predicates, so this leg does not "
+                            "downgrade it (ordered-work success rule)"
+                        ),
                     })
             else:
                 retained.append({
                     "decision_id": str(d.get("decision_id") or ""),
                     "leg": "seam_abstention_content_sound_incumbent",
-                    "reason_code": sel.reason_code,
+                    "reason_code": _content_defect_reason(incumbent_defects) or sel.reason_code,
                     "counter_evidence_verified": d.get("counter_evidence_verified"),
                     "counter_status": d.get("counter_status"),
                     "incumbent_grounded_in": incumbent_grounded,
@@ -1197,6 +1218,16 @@ _DEFECT_REASON = {
     "D3_markup_residue": "d3_markup_residue",
     "D4_language_marker_mismatch": "d4_language_marker_mismatch",
 }
+
+
+def _content_defect_reason(defects: list[str]) -> str | None:
+    """Convert a frozen content-defect list to the corresponding reason code.
+
+    Returns the reason code for the first defect if present, else None.
+    """
+    if defects:
+        return _DEFECT_REASON.get(defects[0])
+    return None
 
 
 def passes_content_filter(quote: str, row: dict, start: int | None = None) -> tuple[bool, str]:
