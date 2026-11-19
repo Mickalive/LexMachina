@@ -446,6 +446,47 @@ PROFILES: dict[str, dict[str, Any]] = {
         },
     },
     "44452532371": {"alias_of": "44459256873"},
+    "44464605045": {
+        # Operational resume of the persisted producer snapshot 44459256873.
+        # Unlike the 44459256873 profile (which describes 44452532371's AUDIT
+        # quantum expiry), THIS profile describes 44459256873's OWN failure,
+        # proved from its public run/jobs/check-run-annotations record: the
+        # TEAM job's "Run lane cycle" step ran 2705.0 s and failed with the
+        # workflow's own annotation LEX_WORK_QUANTUM_EXPIRED seconds=2700 /
+        # exit 78, so state validation, write-scope and the audit job were all
+        # skipped. The always-run persist step published a COMMITTED_DELTA of
+        # 13 files. No provider/auth cause is claimed (logs HTTP 403).
+        "resumed_run_id": "44459256873",
+        "predecessor_run_id": "44452532371",
+        "raw": ORCH / "CYCLE_44459256873_team_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_44459256873_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_44459256873.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_44464605045.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "mechanism_kind": "observed",
+        "failed_job": "team",
+        "failed_step": "Run lane cycle",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "failed_step_seconds": 2705.0,
+        "delta_kind": "committed",
+        "changed_files": 13,
+        "changed_paths_include": ("product/query/counter_evidence_span.py",
+                                  "product/audit_readiness.py",),
+        "cycle_test": "product/tests/test_cycle_44464605045.py",
+        "state_block": "cycle_44464605045_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original

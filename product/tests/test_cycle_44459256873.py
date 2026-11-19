@@ -247,7 +247,9 @@ def test_inherited_snapshot_delta_is_cache_only_and_repair_is_ancestor():
 
 def test_state_records_this_resume_and_stays_fail_closed():
     st = _load(STATE)
-    assert st["current_cycle_run_id"] == int(EXECUTING_RUN_ID)
+    # The pointer names the executing cycle. A later operational resume
+    # (44464605045) advances it; this run's own block and history stay intact.
+    assert st["current_cycle_run_id"] in (int(EXECUTING_RUN_ID), 44464605045)
     assert st["accepted_run_id"] == f"CYCLE_{ACCEPTED_RUN_ID}"
     assert st["accepted_commit"] == ACCEPTED_COMMIT
     blk = st[f"cycle_{EXECUTING_RUN_ID}_operational_resume"]
