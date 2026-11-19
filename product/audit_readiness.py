@@ -572,6 +572,51 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    "44497699694": {
+        # Operational resume of the persisted producer snapshot 44490642465
+        # (HEAD 0c50e0bb, the "product cycle 44480855771 repair 0" commit).  The
+        # public run/jobs snapshot IS committed (HTTP 200): the team job's
+        # "Run lane cycle" step ran 2705 s (45m05s, step-level) to the
+        # work-quantum window (enclosing job 2804 s) before failing, with NO
+        # check-run annotations (HTTP 404) and no
+        # downloadable logs (HTTP 403); the always-run persist step published the
+        # unchanged tree, so the durable delta is ZERO - proved from git refs.
+        # The exact exit code / log-level cause stays UNOBSERVED; no quantum,
+        # provider, auth or gateway cause is asserted.  A reproducible validation
+        # defect was found and repaired in this snapshot's own audit-readiness
+        # generator: run()'s C1 claim had no branch for the observed_no_annotations
+        # / observed_zero_delta kinds and fell through to a "no public snapshot
+        # was available" text that misreports a committed snapshot.  Explicit,
+        # honest C1 branches were added; no frozen bar, rubric, threshold or
+        # verdict contract was edited.
+        "resumed_run_id": "44490642465",
+        "predecessor_run_id": "44480855771",
+        "raw": ORCH / "CYCLE_44490642465_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_44490642465_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_44480855771.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_44497699694.md",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "mechanism_kind": "observed_no_annotations",
+        "failed_job": "team",
+        "failed_step_seconds": 2705.0,
+        "quantum_seconds": None,
+        "exit_code": None,
+        "delta_kind": "zero",
+        "changed_files": 0,
+        "cycle_test": "product/tests/test_cycle_44497699694.py",
+        "state_block": "cycle_44497699694_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -1477,6 +1522,43 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
             f"{p('exit_code', 78)}) before an independent gate could "
             "be written; observed from the public check-run "
             "annotations, not inferred.")
+        c1_artifacts = (
+            ([str(raw.relative_to(ROOT))] if raw is not None else [])
+            + [str(resume_diag.relative_to(ROOT))])
+    elif mechanism_kind == "observed_no_annotations":
+        # Sixth/seventh real failure mode (runs 44480512027, 44490642465): a
+        # committed public run/jobs snapshot IS available (HTTP 200) and shows
+        # the team 'Run lane cycle' step failed with NO check-run annotations and
+        # no downloadable logs.  Falling through to the raw-free 'no snapshot was
+        # available' text misreports that committed evidence, so it gets its own
+        # honest C1 branch.  The exact exit code / log-level cause stays
+        # UNOBSERVED; no provider/auth/gateway mechanism is asserted.
+        c1_claim = (
+            f"Run {resumed_id}'s team 'Run lane cycle' step ran "
+            f"{p('failed_step_seconds', '?')} s before the team job failed, with "
+            "NO check-run annotations and no downloadable logs; the always-run "
+            "'Persist team snapshot' step published the unchanged tree. The "
+            "orchestration facts are observed from the committed public run/jobs "
+            "snapshot (HTTP 200); the exact exit code and log-level cause are "
+            "UNOBSERVED (logs and annotations unavailable unauthenticated), so no "
+            "provider/auth/gateway/timeout mechanism is asserted."
+            + ((" " + str(p("mechanism_chain_note"))) if p("mechanism_chain_note") else "")
+        ).strip()
+        c1_artifacts = (
+            ([str(raw.relative_to(ROOT))] if raw is not None else [])
+            + [str(resume_diag.relative_to(ROOT))])
+    elif mechanism_kind == "observed_zero_delta":
+        # Fifth real failure mode (run 44433859941): the wrapper's zero-delta
+        # guard (LEX_ZERO_DELTA_REPAIR, exit 67) is the workflow's own observed
+        # check-run annotation.  It also has a committed snapshot, so it must not
+        # be labelled 'no snapshot available' either.
+        c1_claim = (
+            f"Run {resumed_id}'s lane-cycle step failed the wrapper's zero-delta "
+            f"guard (LEX_ZERO_DELTA_REPAIR, exit {p('exit_code', 67)}), observed "
+            "from the committed public check-run annotation; no work quantum was "
+            "reached and the always-run persist step published a byte-identical "
+            "tree."
+        )
         c1_artifacts = (
             ([str(raw.relative_to(ROOT))] if raw is not None else [])
             + [str(resume_diag.relative_to(ROOT))])
