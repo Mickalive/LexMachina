@@ -407,6 +407,45 @@ PROFILES: dict[str, dict[str, Any]] = {
         },
     },
     "44433859941": {"alias_of": "44435078310"},
+    "44459256873": {
+        "resumed_run_id": "44452532371",
+        "predecessor_run_id": "44444791517",
+        "raw": ORCH / "CYCLE_44452532371_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_44452532371_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_44435078310.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_44459256873.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        # Sixth observed mechanism (same first-class kind as the original
+        # quantum profile): the team job was green end-to-end, the audit job
+        # died at "Independent audit" under the workflow's own annotation
+        # LEX_WORK_QUANTUM_EXPIRED seconds=2700 / exit 78 after 2706.0 s, so no
+        # gate was written and integrate was skipped. The resumed snapshot
+        # still carries a COMMITTED_DELTA of 40 cache-refresh files.
+        "mechanism_kind": "observed",
+        "failed_job": "audit",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "failed_step_seconds": 2706.0,
+        "delta_kind": "committed",
+        "changed_files": 40,
+        "changed_paths_include": ("results/product/query_cache",),
+        "cycle_test": "product/tests/test_cycle_44459256873.py",
+        "state_block": "cycle_44459256873_operational_resume",
+        # No new counter-content family this cycle: consume the accepted
+        # fixed-path family pins unchanged (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "44452532371": {"alias_of": "44459256873"},
 }
 
 # Active profile; empty means "the module constants above" (the original

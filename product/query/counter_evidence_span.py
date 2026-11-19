@@ -935,6 +935,7 @@ def apply_verified_span_selection(
     reasons: dict[str, int] = {}
     downgrades: list[dict[str, Any]] = []
     retained: list[dict[str, Any]] = []
+    defective_unverified: list[dict[str, Any]] = []
     for d in _iter_candidates(out.get("decisions") or []):
         n_candidates += 1
         before = {
@@ -978,7 +979,6 @@ def apply_verified_span_selection(
             content_fail = bool(incumbent_defects) or (
                 bool(incumbent_ev.strip()) and incumbent_grounded is None
             )
-        if not sel.selected:
             if content_fail:
                 was_verified = d.get("counter_evidence_verified") is True
                 d["counter_evidence_verified"] = False
@@ -1003,26 +1003,35 @@ def apply_verified_span_selection(
                         "incumbent_grounded_in": incumbent_grounded,
                     })
                 else:
-                    retained.append({
+                    # Content-FAIL but the row was already verified=false, so
+                    # there is no verified flag to downgrade.  Publish it here
+                    # with its TRUE defect list; it must never be filed under
+                    # retained_content_sound (which asserts the opposite).
+                    defective_unverified.append({
                         "decision_id": str(d.get("decision_id") or ""),
-                        "leg": "seam_abstention_content_sound_incumbent",
-                        "reason_code": _content_defect_reason(incumbent_defects) or sel.reason_code,
-                        "counter_evidence_verified": d.get("counter_evidence_verified"),
+                        "leg": "seam_abstention_defective_already_unverified",
+                        "reason_code": defect_reason,
+                        "counter_evidence_verified": False,
                         "counter_status": d.get("counter_status"),
                         "incumbent_grounded_in": incumbent_grounded,
-                        "defects": [],
+                        "defects": list(incumbent_defects),
+                        "ungrounded": bool(
+                            incumbent_ev.strip()) and incumbent_grounded is None,
                         "note": (
-                            "frozen label gate abstained (reason_code above); the "
-                            "incumbent evidence is verbatim and passes the frozen "
-                            "D1-D4 content predicates, so this leg does not "
-                            "downgrade it (ordered-work success rule)"
+                            "frozen label gate abstained AND the incumbent fails "
+                            "the frozen D1-D4 content predicates (or is not "
+                            "verbatim-grounded); the row was already "
+                            "verified=false so there is no flag to flip - the "
+                            "explicit unevidenced flags are written and the "
+                            "defects are published here, never in "
+                            "retained_content_sound"
                         ),
                     })
             else:
                 retained.append({
                     "decision_id": str(d.get("decision_id") or ""),
                     "leg": "seam_abstention_content_sound_incumbent",
-                    "reason_code": _content_defect_reason(incumbent_defects) or sel.reason_code,
+                    "reason_code": sel.reason_code,
                     "counter_evidence_verified": d.get("counter_evidence_verified"),
                     "counter_status": d.get("counter_status"),
                     "incumbent_grounded_in": incumbent_grounded,
@@ -1091,6 +1100,11 @@ def apply_verified_span_selection(
         "downgrades": downgrades,
         "n_retained_content_sound": len(retained),
         "retained_content_sound": retained,
+        # Content-fail rows the seam met while they were ALREADY
+        # verified=false (no flag to flip): published with their true defect
+        # list so no consumer can mistake them for content-sound rows.
+        "n_defective_already_unverified": len(defective_unverified),
+        "defective_already_unverified": defective_unverified,
     }
     return out
 

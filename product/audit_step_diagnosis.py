@@ -24,7 +24,7 @@ inferred here.
 
 Usage
 -----
-    python3 product/audit_step_diagnosis.py --raw <snapshot.json> --out <dir>
+    python3 product/audit_step_diagnosis.py --raw <snapshot.json> --out <file>
 """
 from __future__ import annotations
 
