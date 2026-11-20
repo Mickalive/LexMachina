@@ -122,7 +122,7 @@
     }
   },
   "continue_recommended": true,
-  "cycle_status": "VERIFIED",
+  "cycle_status": "COMPLETE",
   "direction_version": 68,
   "evidence_refs": [
     "product/tests/test_server_query_api.py::test_the_shipped_server_boots_in_query_mode_without_the_174k_corpus",
@@ -252,10 +252,23 @@
     "reports/product/CYCLE_44675979766.md",
     {
       "ref": "CYCLE_44675979766_GATE.json",
-      "type": "audit_gate",
-      "status": "PASS",
-      "cycle": 44675979766
-    }
+      "type": "producer_minted_gate_quarantined",
+      "status": "NON_PROMOTING",
+      "cycle": 44675979766,
+      "corrected_by_run": 44683945698,
+      "quarantine": "results/product/incidents/self_minted_gate_44675979766_producer_44683121773.QUARANTINED.json",
+      "note": "Was recorded as type=audit_gate status=PASS by run 44683121773. No /audit ref and no auditor report exist for 44675979766; the file was authored by lex-product-team and was itself the unique write-scope violation that failed run 44683121773. Relabelled, never deleted."
+    },
+    "product/fetch_run_jobs_snapshot.py -> results/product/orchestration/CYCLE_{44661217001,44669305676,44675979766,44682634688,44682877714,44683121773}_run_jobs_raw.json (public run/jobs/annotations; logs endpoint 403 for 44683121773, recorded not invented)",
+    "product/resume_snapshot_diagnosis.py -> results/product/orchestration/CYCLE_44683945698_resume_diagnosis.json (run 44683121773: TEAM_JOB_FAILED_OTHER_STEP at Enforce lane write scope, 23-file COMMITTED_DELTA, UNADJUDICATED)",
+    "product/orchestration_chain.py -> results/product/orchestration/CYCLE_44683945698_chain_diagnosis.json (6-run chain: 3x audit quantum expiry, 2x zero durable delta, 1x write-scope exit 3 naming results/audit/product/CYCLE_44675979766_GATE.json)",
+    "results/product/incidents/self_minted_gate_44675979766_producer_44683121773.QUARANTINED.json (NON_PROMOTING, file preserved verbatim, sha256 2b56a5e446dda5c9ca09c4bc1f88e9ccb351731d78710b78441dc345f7ff247c)",
+    "product/live_slice.py -> results/product/live_slice/44683945698.json (LIVE OpenCaseLaw retrieval_mode=refresh, cache_hits=0, network_calls=8, 11/11 checks)",
+    "results/product/live_slice/44683945698_bundle.json (query_result_bundle v1.0: 158 decisions, 8 clusters, 6 cited, coordinates in [-1,1])",
+    "product/offline_slice.py --verify -> results/product/offline_slice/20261120T060613Z/ (genuinely local 1.998s no-network path: 100 decisions, 8 clusters, 4 cited, page contract PASS 70 assertions)",
+    "product/progressive_smoke.py -> results/product/progressive_smoke/CYCLE_44683945698_progressive_smoke.json (PASS 23/23 over a real socket, server boot 1.013s)",
+    "product/tests/test_cycle_44683945698.py",
+    "reports/product/CYCLE_44683945698.md"
   ],
   "evidence_tier": "REPRODUCED",
   "human_gate_ready": false,
@@ -302,15 +315,77 @@
   "packet_admitted": false,
   "ready_for_owner_session": false,
   "vertical_slice_verification": {
-    "cycle_id": "CYCLE_44675979766",
-    "verdict": "PASS_MAP_ONLY",
-    "n_decisions": 152,
-    "n_clusters": 8,
-    "n_counter_authorities": 12,
-    "n_cited_decisions": 7,
-    "audit_gate": "results/audit/product/CYCLE_44675979766_GATE.json",
-    "gate_status": "PASS",
-    "safe_to_integrate": true
+    "cycle_id": "CYCLE_44683945698",
+    "run_id": 44683945698,
+    "direction_version": 68,
+    "verdict": "PASS_LOCAL_ONLY",
+    "audit_gate": null,
+    "gate_status": "ABSENT_UNADJUDICATED",
+    "safe_to_integrate": false,
+    "note": "Local producer verification of the query-specific vertical slice only. No independent audit gate exists for run 44683945698 or for any run since accepted cycle 40284658455; nothing here is an audit verdict and nothing here promotes a run.",
+    "primary_evidence": {
+      "artifact": "results/product/live_slice/44683945698.json",
+      "bundle": "results/product/live_slice/44683945698_bundle.json",
+      "instrument": "product/live_slice.py",
+      "retrieval_mode_served": "refresh",
+      "query": "Responsabilite penale de l'entreprise selon l'art. 102 CP",
+      "checks_passed": "11/11",
+      "freshness": {
+        "adapter_cache_hits": 0,
+        "adapter_network_calls": 8,
+        "independent_probe_saw_network": true,
+        "claim": "retrieval went to the live OpenCaseLaw API, not to a warm cache"
+      }
+    },
+    "measurements": {
+      "n_decisions": 158,
+      "n_clusters": 8,
+      "n_cited_decisions": 6,
+      "n_counter_authorities": 10,
+      "n_counter_status_bearing_rows": 16,
+      "counter_status_distribution": {
+        "abstained_unevidenced": 6,
+        "candidate-contrary": 1,
+        "candidate-limiting": 3,
+        "cited": 6,
+        "none": 142
+      },
+      "answer_status": "ready",
+      "rows_with_xy": 158,
+      "rows_with_source_url": 158,
+      "rows_with_cluster_id": 158,
+      "x_range": [
+        -0.0002,
+        0.7287
+      ],
+      "y_range": [
+        -0.084,
+        1.0
+      ],
+      "coordinates_bounded_in_unit_square": true,
+      "page_contract": "PASS - product/verify_query_page.js (76 assertions)"
+    },
+    "local_offline_path": {
+      "artifact": "results/product/offline_slice/20261120T060613Z/rent-default.bundle.json",
+      "instrument": "python3 product/offline_slice.py --verify",
+      "seconds": 1.998,
+      "network": "none",
+      "n_decisions": 100,
+      "n_clusters": 8,
+      "n_cited_decisions": 4,
+      "n_counter_authorities": 8,
+      "page_contract": "PASS - product/verify_query_page.js (70 assertions)"
+    },
+    "server_smoke": {
+      "artifact": "results/product/progressive_smoke/CYCLE_44683945698_progressive_smoke.json",
+      "verdict": "PASS",
+      "checks": "23/23",
+      "server_boot_s": 1.013
+    },
+    "supersedes": {
+      "cycle_id": "CYCLE_44675979766",
+      "why": "The previous values (n_decisions 152, n_cited_decisions 7, gate_status PASS, safe_to_integrate true) came from a producer-minted gate file that never passed an independent audit; they are not re-derivable from any committed bundle. Quarantined as NON_PROMOTING by results/product/incidents/self_minted_gate_44675979766_producer_44683121773.QUARANTINED.json."
+    }
   },
   "v68_delivery": {
     "component": "counter_evidence_span rejection/incumbent leg",
@@ -932,7 +1007,7 @@
     "defects_repaired": [
       "BGE identity: court \"bge\" resolved through the raw docket before the citation, so docket-shaped aliases (\"113 II 52\" and \"BGE 113 II 52\") became two map points for one decision. Court \"bge\" now resolves through the canonical citation first; the merge is exported in provenance.identity_merge (method court_docket_or_bge_identity_merge_v2).",
       "Local inspectability: every row now carries content_state in {full_text,regeste,snippet,pointer} and provenance.content_coverage; bundle_summary publishes the same tally. Annotation is applied on the initial, progressive and enriched paths, and refreshed after lazy hydration.",
-      "UI honesty: the page labels reference-only points \"r\u00e9f\u00e9rence seule\", prints a coverage line (local vs total), and the detail panel states that no local excerpt exists while still offering the public source link.",
+      "UI honesty: the page labels reference-only points \"référence seule\", prints a coverage line (local vs total), and the detail panel states that no local excerpt exists while still offering the public source link.",
       "Offline summary honesty: rows_with_source_url is now the true source_url count; rows_with_source_link and rows_with_canonical_url are separate; fixture replay degraded/cache-miss/failure counts are surfaced, with degraded_scope=fixture_replay_only at the summary top level."
     ],
     "measurements": {
@@ -1145,7 +1220,7 @@
   },
   "current_cycle_run_id": 40284658455,
   "last_repair_round": 0,
-  "last_updated": "2026-11-20T00:00:00Z",
+  "last_updated": "2026-11-20T06:25:00Z",
   "run_history": [
     {
       "run_id": "44661217001",
@@ -1277,6 +1352,54 @@
       "audit_gate": "NONE_YET",
       "summary": "Operational resume of snapshot 40283048553 (this run). Preserved all valid completed work; diagnosed the full six-run chain (40272586794 quantum-expiry-after-commit -> beam-free gateway rejection -> two zero-delta guard exits -> 40278460732 quantum expiry -> 40283048553 self-minted-gate scope failure); quarantined the minted gate NON-PROMOTING without deleting it; corrected the state attribution (current_cycle_run_id now names the executing run; the minted gate is never cited as an audit gate); pinned the chain with a cycle test; and regenerated the audit-readiness dossier so the next team job can reach an independent audit. No frozen bar scored; posture stays fail-closed. UNADJUDICATED pending independent audit.",
       "date": "2026-10-26T07:32:00Z"
+    },
+    {
+      "run_id": 44669305676,
+      "repair_round": 0,
+      "status": "COMMITTED_DELTA_AUDIT_QUANTUM_EXPIRED_NO_GATE",
+      "audit_gate": "NONE_ON_ANY_REF",
+      "summary": "Operational resume of 44661217001. 48-file delta (4 offline-slice bundles + 44 query_cache), team success, audit died at Independent audit exit 78 with LEX_WORK_QUANTUM_EXPIRED seconds=2700; gate step skipped, no /audit ref. UNADJUDICATED.",
+      "date": "2026-11-20T06:25:00Z"
+    },
+    {
+      "run_id": 44675979766,
+      "repair_round": 0,
+      "status": "COMMITTED_DELTA_AUDIT_QUANTUM_EXPIRED_NO_GATE",
+      "audit_gate": "NONE_ON_ANY_REF",
+      "summary": "Operational resume of 44669305676. 8-file delta (test, report, 3 diagnostics, 2 resume artifacts, state), team success, audit died at exit 78 LEX_WORK_QUANTUM_EXPIRED seconds=2700; gate step skipped, no /audit ref and no reports/audit/product/CYCLE_44675979766.md anywhere in history. UNADJUDICATED.",
+      "date": "2026-11-20T06:25:00Z"
+    },
+    {
+      "run_id": 44682634688,
+      "repair_round": 0,
+      "status": "ZERO_DURABLE_DELTA_TEAM_EXIT_1",
+      "audit_gate": "NONE",
+      "summary": "Team job failed at Run lane cycle (exit 1); persist published the unchanged head 89ed3bc9 (identical to 44675979766's). Zero delta, audit skipped. UNADJUDICATED.",
+      "date": "2026-11-20T06:25:00Z"
+    },
+    {
+      "run_id": 44682877714,
+      "repair_round": 0,
+      "status": "ZERO_DURABLE_DELTA_TEAM_EXIT_1",
+      "audit_gate": "NONE",
+      "summary": "Second consecutive Run lane cycle exit 1 with zero durable delta; team ref still 89ed3bc9. Audit skipped. UNADJUDICATED.",
+      "date": "2026-11-20T06:25:00Z"
+    },
+    {
+      "run_id": 44683121773,
+      "repair_round": 0,
+      "status": "SELF_MINTED_GATE_SCOPE_ENFORCEMENT_FAILED",
+      "audit_gate": "NONE",
+      "summary": "Operational resume of snapshot 89ed3bc9. 23-file delta whose UNIQUE out-of-scope path is results/audit/product/CYCLE_44675979766_GATE.json (producer-minted); 'Enforce lane write scope' exited 3, audit skipped, always() persist published 0765fc35. The minted gate is quarantined NON_PROMOTING by run 44683945698. UNADJUDICATED.",
+      "date": "2026-11-20T06:25:00Z"
+    },
+    {
+      "run_id": 44683945698,
+      "repair_round": 0,
+      "status": "OPERATIONAL_RESUME_QUARANTINE_AND_LOCAL_REVERIFICATION",
+      "audit_gate": "NONE_YET",
+      "summary": "Operational resume of 44683121773 (this run). Diagnosed the whole six-run chain from public run/jobs snapshots + git refs, proved the unique scope violation, quarantined the producer-minted gate, retracted the non-re-derivable state claims (152/7/PASS/safe_to_integrate), re-measured the query-specific vertical slice from committed bytes (live OpenCaseLaw 158/8/10/6 + local 1.998s offline path + 23/23 socket smoke), and kept the fail-closed posture and accepted pointer unchanged. No gate minted, no auditor namespace written.",
+      "date": "2026-11-20T06:25:00Z"
     }
   ],
   "cycle_40247041354_resume": {
@@ -1526,18 +1649,18 @@
         "Kundigung Mietvertrag Mietrecht",
         "Kundigung Mietvertrag Mietrecht miete loyer bail locazione mietzins",
         "kundigung mietvertrag mietrecht eccezione limite abuso di diritto buona fede restrizione miete loyer bail locazione mietzins",
-        "k\u00fcndigung bger nicht ausgesprochen abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
-        "k\u00fcndigung bger nicht ausgesprochen ausnahme exception eccezione vorbehalt r\u00e9serve riserva einschr\u00e4nkung except\u00e9 fatta eccezione",
-        "k\u00fcndigung bger nicht ausgesprochen minderheit minorit\u00e9 minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
-        "k\u00fcndigung bger nicht ausgesprochen \u00e4ltere rechtsprechung ancienne jurisprudence precedente giurisprudenza fr\u00fcher autrefois in passato fr\u00fcheren rechtsprechung d\u00e9sormais mittlerweile",
-        "k\u00fcndigung bger nicht kann abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
-        "k\u00fcndigung bger nicht kann ausnahme exception eccezione vorbehalt r\u00e9serve riserva einschr\u00e4nkung except\u00e9 fatta eccezione",
-        "k\u00fcndigung bger nicht kann minderheit minorit\u00e9 minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
-        "k\u00fcndigung bger nicht kann \u00e4ltere rechtsprechung ancienne jurisprudence precedente giurisprudenza fr\u00fcher autrefois in passato fr\u00fcheren rechtsprechung d\u00e9sormais mittlerweile",
-        "k\u00fcndigung nicht bger wenn abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
-        "k\u00fcndigung nicht bger wenn ausnahme exception eccezione vorbehalt r\u00e9serve riserva einschr\u00e4nkung except\u00e9 fatta eccezione",
-        "k\u00fcndigung nicht bger wenn minderheit minorit\u00e9 minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
-        "k\u00fcndigung nicht bger wenn \u00e4ltere rechtsprechung ancienne jurisprudence precedente giurisprudenza fr\u00fcher autrefois in passato fr\u00fcheren rechtsprechung d\u00e9sormais mittlerweile"
+        "kündigung bger nicht ausgesprochen abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
+        "kündigung bger nicht ausgesprochen ausnahme exception eccezione vorbehalt réserve riserva einschränkung excepté fatta eccezione",
+        "kündigung bger nicht ausgesprochen minderheit minorité minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
+        "kündigung bger nicht ausgesprochen ältere rechtsprechung ancienne jurisprudence precedente giurisprudenza früher autrefois in passato früheren rechtsprechung désormais mittlerweile",
+        "kündigung bger nicht kann abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
+        "kündigung bger nicht kann ausnahme exception eccezione vorbehalt réserve riserva einschränkung excepté fatta eccezione",
+        "kündigung bger nicht kann minderheit minorité minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
+        "kündigung bger nicht kann ältere rechtsprechung ancienne jurisprudence precedente giurisprudenza früher autrefois in passato früheren rechtsprechung désormais mittlerweile",
+        "kündigung nicht bger wenn abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
+        "kündigung nicht bger wenn ausnahme exception eccezione vorbehalt réserve riserva einschränkung excepté fatta eccezione",
+        "kündigung nicht bger wenn minderheit minorité minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
+        "kündigung nicht bger wenn ältere rechtsprechung ancienne jurisprudence precedente giurisprudenza früher autrefois in passato früheren rechtsprechung désormais mittlerweile"
       ],
       "decision_ids": [
         "bge_138 III 59",
@@ -2006,12 +2129,12 @@
         "rejected_ids": 0,
         "wall_seconds": 141.35
       },
-      "query": "Responsabilit\u00e9 p\u00e9nale de l'entreprise selon l'art. 102 CP subsidiaire ou primaire",
+      "query": "Responsabilité pénale de l'entreprise selon l'art. 102 CP subsidiaire ou primaire",
       "report": "reports/product/CYCLE_38641080245.md",
       "run_id": 38641080245,
       "server": "python product/query_app.py --port 8793 (one command, stdlib ThreadingHTTPServer)"
     },
-    "live_legs_this_run": "results/product/reality_check/summary_ci_38604340726.json (4/4 structural+truth, sequential) \u2014 durable run conclusion=success observed 2026-10-14T21:36:10Z",
+    "live_legs_this_run": "results/product/reality_check/summary_ci_38604340726.json (4/4 structural+truth, sequential) — durable run conclusion=success observed 2026-10-14T21:36:10Z",
     "pre_existing_collection_errors": "18 legacy 174k test modules fail collection with ModuleNotFoundError: sentence_transformers (optional dep, PAUSE'd legacy lane); unchanged by this cycle and not on the query-map path",
     "product_integration_tests": "91 passed (ci_reality_legs 20 + ci_run_evidence 26 + reality_check + audit_seam + query_map_mvp + answer_contract + human_gate_integration 12)",
     "resume_39014141628": "reports/product/CYCLE_39011220761_RESUME.md is this cycle's report (written by run 39014141628). Pre-existing-red follow-up: product/tests/test_cache_non_orphan claim-bundle identity (CORRECTED characterization, audit D2 repair r1: 2841 differing leaves, committed claim bundle 154 rows vs 120 from a fresh frozen-subset replay, all 120 present in the committed set - NOT only cluster label/size/member_ids) and test_audit_seam dead-model agreement fail identically at accepted base 3077b27 in this environment - re-measure in the numeric environment that produced the accepted claim artifact before quoting claim-cache identity again; never weaken content_sha256 or the seam's exclusion to make them pass.",
@@ -2062,5 +2185,87 @@
     "bundle_bytes_written": false,
     "frozen_bar_scored": false,
     "posture_unchanged": true
+  },
+  "cycle_44683945698_operational_resume": {
+    "resumed_run_id": 44683121773,
+    "predecessor_head": "89ed3bc95fe5c6324714b4af172a2098ca43458c",
+    "current_run_id": 44683945698,
+    "direction_version": 68,
+    "mode": "FAST MVP operational resume (REUSE-FIRST, zero mandatory external spend)",
+    "chain_diagnosis": {
+      "artifact": "results/product/orchestration/CYCLE_44683945698_chain_diagnosis.json",
+      "runs": 6,
+      "accepted": [],
+      "unadjudicated": [
+        44661217001,
+        44669305676,
+        44675979766,
+        44682634688,
+        44682877714,
+        44683121773
+      ],
+      "audit_quantum_expiries": [
+        44661217001,
+        44669305676,
+        44675979766
+      ],
+      "zero_durable_delta": [
+        44682634688,
+        44682877714
+      ],
+      "write_scope_failure": {
+        "run": 44683121773,
+        "failed_step": "Enforce lane write scope",
+        "exit_code": 3,
+        "annotation": "lane crossed protected scope:",
+        "unique_violation": "results/audit/product/CYCLE_44675979766_GATE.json",
+        "proof": "product/orchestration_chain.py applies product/state_contract.scope_violations to git diff 89ed3bc9..0765fc35 (23 paths) and returns exactly one path"
+      },
+      "why_no_accept": "no /audit ref exists for any of the six runs and origin/lab/product is still 7be4480e (accept product cycle 40284658455), so neither half of factory-wide requirement 4 holds for any of them"
+    },
+    "quarantine": {
+      "path": "results/product/incidents/self_minted_gate_44675979766_producer_44683121773.QUARANTINED.json",
+      "minted_file": "results/audit/product/CYCLE_44675979766_GATE.json",
+      "sha256": "2b56a5e446dda5c9ca09c4bc1f88e9ccb351731d78710b78441dc345f7ff247c",
+      "bytes": 968,
+      "verdict": "NON_PROMOTING",
+      "append_only": "the minted file is preserved verbatim; only its provenance and non-promotability are recorded"
+    },
+    "state_corrections": [
+      {
+        "field": "vertical_slice_verification",
+        "was": "n_decisions 152, n_cited_decisions 7, gate_status PASS, safe_to_integrate true, audit_gate results/audit/product/CYCLE_44675979766_GATE.json",
+        "now": "re-derived from results/product/live_slice/44683945698_bundle.json: 158 decisions, 8 clusters, 6 cited, 10 counter authorities, gate_status ABSENT_UNADJUDICATED, safe_to_integrate false",
+        "why": "the old numbers came from a producer-minted gate that no auditor ever signed and no committed bundle reproduces"
+      },
+      {
+        "field": "evidence_refs[CYCLE_44675979766_GATE.json]",
+        "was": "type audit_gate, status PASS",
+        "now": "type producer_minted_gate_quarantined, status NON_PROMOTING, with the quarantine path",
+        "why": "no /audit ref and no auditor report exist for 44675979766"
+      },
+      {
+        "field": "cycle_status",
+        "was": "VERIFIED",
+        "now": "COMPLETE",
+        "why": "VERIFIED was set by run 44683121773 without an independent gate; local verification is recorded inside vertical_slice_verification and this block instead"
+      }
+    ],
+    "local_verification": {
+      "live_slice": "results/product/live_slice/44683945698.json (11/11, live OpenCaseLaw, cache_hits 0, network_calls 8)",
+      "offline_slice": "results/product/offline_slice/20261120T060613Z/ (PASS, 1.998s, zero network)",
+      "progressive_smoke": "results/product/progressive_smoke/CYCLE_44683945698_progressive_smoke.json (PASS 23/23)",
+      "page_contract": "product/verify_query_page.js PASS on both bundles",
+      "cycle_test": "product/tests/test_cycle_44683945698.py",
+      "report": "reports/product/CYCLE_44683945698.md"
+    },
+    "claim_impact": "none: fail-closed posture and accepted pointer unchanged; no gate minted, no auditor namespace written, no frozen bar scored, no run labelled accepted or rejected",
+    "not_claimed": [
+      "no audit gate for 44683945698 or any run since 40284658455",
+      "no live-retrieval latency or legal-usefulness claim",
+      "no universal-174k alignment, dense embeddings, corpus scraping, citation-graph reconstruction, model training or paid API",
+      "no repair of D3/D4 on the 14/14 population"
+    ],
+    "continue_recommended": true
   }
 }
