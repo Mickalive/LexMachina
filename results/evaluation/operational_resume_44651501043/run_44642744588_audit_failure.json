@@ -1,0 +1,55 @@
+{
+  "schema": "lex-evaluation-orchestration-failure-capture/1",
+  "run_id": 44642744588,
+  "captured_by_run": 44651501043,
+  "repository": "Mickalive/LexMachina",
+  "captured_at_utc": "2026-11-20T01:19:00Z",
+  "capture_method": "unauthenticated public GitHub REST + check-runs annotations; no admin rights; log body remains HTTP 403 without auth",
+  "provenance_commands": [
+    "curl -sS -H 'Accept: application/vnd.github+json' 'https://api.github.com/repos/Mickalive/LexMachina/check-runs/135986915768/annotations'",
+    "curl -sS -H 'Accept: application/vnd.github+json' 'https://api.github.com/repos/Mickalive/LexMachina/actions/runs/44642744588/jobs?per_page=100'"
+  ],
+  "annotation_messages": [
+    "Process completed with exit code 78.",
+    "Agent quantum ended cleanly; workflow must snapshot and resume rather than hang.",
+    "LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2357"
+  ],
+  "jobs": [
+    {
+      "job_id": 135977680248,
+      "name": "team",
+      "conclusion": "success",
+      "started_at": "2026-11-20T00:03:51Z",
+      "completed_at": "2026-11-20T00:23:42Z",
+      "run_lane_cycle_step": {"number": 6, "conclusion": "success", "started_at": "2026-11-20T00:04:43Z", "completed_at": "2026-11-20T00:23:32Z"},
+      "write_scope_step": {"number": 9, "conclusion": "success"}
+    },
+    {
+      "job_id": 135986915768,
+      "name": "audit",
+      "conclusion": "failure",
+      "started_at": "2026-11-20T00:23:44Z",
+      "completed_at": "2026-11-20T01:09:26Z",
+      "independent_audit_step": {"number": 5, "conclusion": "failure", "started_at": "2026-11-20T00:24:19Z", "completed_at": "2026-11-20T01:09:24Z", "duration_s": 2705},
+      "enforce_scope_and_read_gate_step": {"number": 6, "conclusion": "skipped"},
+      "persist_audit_snapshot_step": {"number": 7, "conclusion": "skipped"}
+    },
+    {
+      "job_id": 136007177347,
+      "name": "resilience",
+      "conclusion": "success",
+      "started_at": "2026-11-20T01:09:29Z",
+      "completed_at": "2026-11-20T01:09:39Z"
+    },
+    {
+      "job_id": 136007178851,
+      "name": "integrate",
+      "conclusion": "skipped"
+    }
+  ],
+  "failure_class": "ORCHESTRATION_AUDIT_QUANTUM_EXPIRY_RC78",
+  "gate_written": false,
+  "promotion": false,
+  "disposition": "The producer snapshot was persisted by the team job before the audit job died. No gate, no report and no accept commit followed. The resilience job dispatched this resuming run 44651501043. This is an orchestration/agent-quantum failure (factory-wide requirement 20), not a gate-content, scope or product defect and not a human-gate problem.",
+  "claim_ceiling": "Public metadata capture only. It proves job/step conclusions and annotations, not the internal mechanism of the audit agent's timeout."
+}
