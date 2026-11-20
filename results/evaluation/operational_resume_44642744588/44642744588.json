@@ -1,0 +1,2767 @@
+{
+  "checks": {
+    "CC10_state_pointer_and_refs": {
+      "actual": {
+        "accept_subject": "accept evaluation cycle 40265377500",
+        "gate_present": true,
+        "lane_accepted_run_id": 40265377500,
+        "lane_github_run": 44642744588,
+        "lane_refs_all_resolve": true,
+        "lane_refs_len": 176,
+        "lane_refs_n": 176,
+        "root_accepted_run_id": 40265377500,
+        "root_github_run": 44642744588,
+        "root_refs_all_resolve": true,
+        "root_refs_len": 266,
+        "root_refs_n": 266
+      },
+      "evidence": "state/evaluation.json; evaluation/state/evaluation.json",
+      "expected": "both state files carry accepted_run_id=40265377500 and github_run=44642744588; evidence_refs_n==len and every ref resolves; gate PASS and accept commit subject match",
+      "ok": true
+    },
+    "CC11_no_falsifier_reexecution_and_no_174k": {
+      "actual": {
+        "forbidden_imports_found": [],
+        "suspicious_read_paths": []
+      },
+      "evidence": "evaluation/operational_resume_44642744588.py",
+      "expected": "instrument source does not import/invoke the falsifier engine; no read path is a universal-174k artifact",
+      "ok": true
+    },
+    "CC1_snapshot_preserved": {
+      "actual": {
+        "audit_gate_in_tree": false,
+        "audit_remote": "",
+        "audit_report_in_tree": false,
+        "head": "ea98384e54d31d2e694c418a1d1ce5769fc6c32f",
+        "lab_local": "ea98384e54d31d2e694c418a1d1ce5769fc6c32f",
+        "lab_remote": "ea98384e54d31d2e694c418a1d1ce5769fc6c32f",
+        "team_local": "ea98384e54d31d2e694c418a1d1ce5769fc6c32f",
+        "team_remote": "ea98384e54d31d2e694c418a1d1ce5769fc6c32f"
+      },
+      "evidence": "git rev-parse / git ls-remote",
+      "expected": "HEAD == team ref == lab/evaluation == ea98384e; no audit ref, gate or report for the failed run",
+      "ok": true
+    },
+    "CC2_orchestration_rc1_failure_class": {
+      "actual": {
+        "annotation": "Process completed with exit code 1.",
+        "annotation_sha256": "b1ad045d105d7f425b5e1140831559d93c4fbe287c3b221690aaf21b6d1c89e8",
+        "audit": "skipped",
+        "capture_sha256": "04694e8e23c47ef896228339d90ee229d24a475b79eec92dd2cbdeefe89c8f5c",
+        "failing_step": {
+          "completed_at": "2026-11-20T00:03:26Z",
+          "conclusion": "failure",
+          "name": "Run lane cycle",
+          "number": 6,
+          "started_at": "2026-11-20T00:03:10Z",
+          "status": "completed"
+        },
+        "head_sha": "b132288ccb67cf383dd76eb94042964b879ba648",
+        "integrate": "skipped",
+        "resilience": "success",
+        "run_conclusion": "failure",
+        "team_conclusion": "failure"
+      },
+      "evidence": "results/evaluation/operational_resume_44642744588/run_44642554373_rest_capture.json; results/evaluation/operational_resume_44642744588/run_44642554373_annotation_evidence.json",
+      "expected": "public REST + annotation prove a step-6 'Run lane cycle' exit-1 failure (16s), audit/integrate skipped, resilience success",
+      "ok": true
+    },
+    "CC3_correction_of_record_pinned": {
+      "actual": {
+        "falsifier_reexecuted": false,
+        "machine_verdict": "CORRECTION_NOT_CONFIRMED",
+        "measurement_unchanged": true,
+        "missing_tokens": [],
+        "report_sha256": "b10eeb3a720cd6352fbc7eabbf8d3430989b52d90193d0f948e69908ef5dc48d",
+        "result_sha256": "2e691dd02c7b53bac7b1bf048363e56006a1596dd3cade1fd4fb44514330228d"
+      },
+      "evidence": "reports/evaluation/BYPASS_CLAUSE_CORRECTION_OF_RECORD_40105794124_v68.md",
+      "expected": "report + machine record exist at pinned shas, carry the required tokens, and state measurement unchanged / falsifier not re-executed",
+      "ok": true
+    },
+    "CC4_bundle_span_provenance_of_record": {
+      "actual": {
+        "abstained_ids": [
+          "gr_gerichte_ERZ 2010 25"
+        ],
+        "abstention_reasons": {
+          "pivot_absent": 1
+        },
+        "applied": true,
+        "frozen_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+        "mode": "select",
+        "n_abstained": 1,
+        "n_candidates": 1,
+        "n_selected": 0,
+        "sha256": "6eee1149b3c0ec23124746af482e15d9298c2120ee25de4bc4dd7e1cf7d93fa9"
+      },
+      "evidence": "results/product/offline_slice/20261024T142517Z/rent-default.bundle.json",
+      "expected": "bundle sha pin holds and the seam abstained (applied=true, n_selected=0, gr_gerichte_ERZ 2010 25 / pivot_absent)",
+      "ok": true
+    },
+    "CC5_accepted_code_path": {
+      "actual": {
+        "51d306c_object_present_in_shallow_mount": false,
+        "apply_line": 1404,
+        "fixture_generation_true": true,
+        "guard_line": 1400,
+        "lines_between_apply_and_guard": "    if adversarial_retrieval:\n        # Direction v65 / v67: select a VERBATIM span from the row's own text and let\n        # the already-accepted frozen gate confirm-or-abstain on it.  Run even in\n        # fixture mode so the shipped offline/slice path exercises the filter.",
+        "old_predicate_occurrences": 0,
+        "pipeline_sha256": "4928479082900b24267a73d979eea17a1cfacca3ba9eb4f9b621b19a124b0b6c"
+      },
+      "evidence": "product/query/pipeline.py + product/offline_slice.py",
+      "expected": "current mount structurally routes apply_verified_span_selection under `if adversarial_retrieval:` only (no old combined gate); offline_slice still passes fixture_generation=True; 51d306c diff is REPORTED-ONLY because the shallow mount no longer carries that object",
+      "ok": true
+    },
+    "CC6_measurement_of_record_unchanged_not_reexecuted": {
+      "actual": {
+        "observed": {
+          "defect_histogram": {
+            "D2_letterhead_zone": 2,
+            "D3_markup_residue": 2,
+            "D4_language_marker_mismatch": 1
+          },
+          "distinct_defective_decision_ids": [
+            "bge_BGE_110_II_391",
+            "bge_BGE_121_III_260",
+            "ge_gerichte_CAPH_107_2004",
+            "gr_gerichte_ERZ 2010 25"
+          ],
+          "exit_code": 0,
+          "falsification_proven": false,
+          "n_defective_verified_scored_rows_total": 4,
+          "n_verified_scored_rows_total": 5,
+          "sound_decision_id": "bstger_SK.2023.49",
+          "verdict": "SOUND_COUNTER_ROW_PRESENT"
+        },
+        "pinned": {
+          "defect_histogram": {
+            "D2_letterhead_zone": 2,
+            "D3_markup_residue": 2,
+            "D4_language_marker_mismatch": 1
+          },
+          "distinct_defective_decision_ids": [
+            "bge_BGE_110_II_391",
+            "bge_BGE_121_III_260",
+            "ge_gerichte_CAPH_107_2004",
+            "gr_gerichte_ERZ 2010 25"
+          ],
+          "exit_code": 0,
+          "falsification_proven": false,
+          "n_defective_verified_scored_rows_total": 4,
+          "n_verified_scored_rows_total": 5,
+          "sound_decision_id": "bstger_SK.2023.49",
+          "source": "results/evaluation/fast_mvp_current_head_ca_falsifier/40105794124.json",
+          "verdict": "SOUND_COUNTER_ROW_PRESENT"
+        },
+        "record_sha256": "fd25345b02da6658edbd5ed8722c69c9b3c7dbbc22e7856740cfdd421c5c4592"
+      },
+      "evidence": "results/evaluation/fast_mvp_current_head_ca_falsifier/40105794124.json",
+      "expected": "the 40105794124 record still reproduces the freeze-pinned aggregate and is read-only; this instrument never imports or invokes its engine",
+      "ok": true
+    },
+    "CC7_incumbent_rows_still_verified": {
+      "actual": {
+        "all_verified": true,
+        "n_defective": 4,
+        "n_sound": 1,
+        "rows": [
+          {
+            "counter_evidence_verified_at_mount": true,
+            "counter_status_at_mount": "candidate-limiting",
+            "counter_uncertainty_at_mount": 0.2,
+            "decision_id": "gr_gerichte_ERZ 2010 25",
+            "defects_read_from_record": [
+              "D2_letterhead_zone"
+            ],
+            "ok": true,
+            "path": "results/product/offline_slice/20261024T142517Z/rent-default.bundle.json"
+          },
+          {
+            "counter_evidence_verified_at_mount": true,
+            "counter_status_at_mount": "candidate-limiting",
+            "counter_uncertainty_at_mount": 0.2,
+            "decision_id": "bstger_SK.2023.49",
+            "defects_read_from_record": [],
+            "ok": true,
+            "path": "results/product/offline_slice/20261023T121512Z/corporate-criminal-liability.bundle.json"
+          },
+          {
+            "counter_evidence_verified_at_mount": true,
+            "counter_status_at_mount": "candidate-limiting",
+            "counter_uncertainty_at_mount": 0.2,
+            "decision_id": "bge_BGE_110_II_391",
+            "defects_read_from_record": [
+              "D2_letterhead_zone"
+            ],
+            "ok": true,
+            "path": "results/product/offline_slice/20261023T121515Z/business-judgment-rule.bundle.json"
+          },
+          {
+            "counter_evidence_verified_at_mount": true,
+            "counter_status_at_mount": "candidate-limiting",
+            "counter_uncertainty_at_mount": 0.2,
+            "decision_id": "ge_gerichte_CAPH_107_2004",
+            "defects_read_from_record": [
+              "D3_markup_residue"
+            ],
+            "ok": true,
+            "path": "results/product/offline_slice/20261023T121518Z/petty-theft-dismissal.bundle.json"
+          },
+          {
+            "counter_evidence_verified_at_mount": true,
+            "counter_status_at_mount": "candidate-limiting",
+            "counter_uncertainty_at_mount": 0.2,
+            "decision_id": "bge_BGE_121_III_260",
+            "defects_read_from_record": [
+              "D3_markup_residue",
+              "D4_language_marker_mismatch"
+            ],
+            "ok": true,
+            "path": "results/product/server_slice/20261023T224255Z/served.bundle.json"
+          }
+        ]
+      },
+      "evidence": "accepted mount bundles vs committed record row list",
+      "expected": "all 4 defective decision rows and the 1 sound row named by the record are still counter_evidence_verified=true at the mount (flag read, never re-scored)",
+      "ok": true
+    },
+    "CC8_item2_precondition_reused_frozen_gate": {
+      "actual": {
+        "H1_leg_landed": true,
+        "H2_family_regenerated": false,
+        "full_protocol_executed": false,
+        "matched_members": 14,
+        "matched_per_role": {
+          "offline/business-judgment-rule": 0,
+          "offline/corporate-criminal-liability": 0,
+          "offline/petty-theft-dismissal": 0,
+          "offline/rent-default": 11,
+          "server/served": 3
+        },
+        "of": 15,
+        "packet_of_record_scored": false,
+        "roles_post": {
+          "offline/business-judgment-rule": 10,
+          "offline/corporate-criminal-liability": 9,
+          "offline/petty-theft-dismissal": 9,
+          "offline/rent-default": 18,
+          "server/served": 3
+        },
+        "status": "NOT_YET_DISCRIMINATING (ordered item (2) protocol not executed: member-for-member regeneration of the named frozen family is 14/15; no synthetic stand-in is substituted, d2_path_sc"
+      },
+      "evidence": "evaluation/POST_REPAIR_FAMILY_CA_FALSIFIER_40258497460_HYPOTHESIS_V1.json",
+      "expected": "frozen precondition_gate returns a self-consistent set relation; this resume records READY only on 15/15 and otherwise NOT_YET",
+      "ok": true
+    },
+    "CC9_frozen_inputs_rehash": {
+      "actual": {
+        "mismatches": {},
+        "n_pins": 14
+      },
+      "evidence": "evaluation/OPERATIONAL_RESUME_44642744588_FREEZE_V1.json",
+      "expected": "every frozen input and population pin re-hashes to its freeze value (state files excluded: they are intentionally rewritten later)",
+      "ok": true
+    }
+  },
+  "claim_ceiling": "Operational provenance and state reconciliation over committed accepted artifacts plus a read-only re-derivation of the frozen item-(2) precondition. It adds no quality measurement, moves no bar, issues no serve or admission verdict, and makes no legal-usefulness or human-gate claim.",
+  "controls": {
+    "C1_snapshot_mutation_detected": {
+      "detail": "flipping the head sha makes the relation false",
+      "holds": true
+    },
+    "C2_annotation_mutation_detected": {
+      "detail": "exit code 1 -> 67 makes the metadata check false",
+      "holds": true
+    },
+    "C3_span_mutation_detected": {
+      "detail": "n_selected 0 -> 1 is reported as a divergence",
+      "holds": true
+    },
+    "C4_measurement_mutation_detected": {
+      "detail": "n_defective 4 -> 3 diverges from the freeze pin",
+      "holds": true
+    },
+    "C5_no_falsifier_reexecution": {
+      "detail": "instrument source imports/invokes none of the falsifier engine",
+      "forbidden_substrings_found": [],
+      "holds": true
+    },
+    "C6_item2_rule_consistency": {
+      "detail": "READY requires H1+H2+15/15; NOT_YET requires a shortfall",
+      "holds": true
+    },
+    "C7_state_pointer_bridge": {
+      "detail": "accepted_run_id==40265377500, gate exists, accept subject matches",
+      "holds": true
+    },
+    "C8_write_scope": {
+      "detail": "all current producer paths are in-scope; a producer audit gate path is rejected",
+      "holds": true,
+      "n_paths": 14,
+      "paths": [
+        "evaluation/state/evaluation.json",
+        "state/evaluation.json",
+        "evaluation/OPERATIONAL_RESUME_44642744588_FREEZE_V1.json",
+        "evaluation/OPERATIONAL_RESUME_44642744588_HYPOTHESIS_V1.json",
+        "evaluation/operational_resume_44642744588.py",
+        "reports/evaluation/OPERATIONAL_RESUME_44642744588_AUDIT_READY.md",
+        "reports/evaluation/RETRIEVAL_CA_BENCHMARK_test_resume_44642554373.md",
+        "results/evaluation/minimal_ca_falsify_benchmark/test_resume_44642554373.json",
+        "results/evaluation/minimal_ca_falsify_benchmark/test_resume_44642554373_engine_mapping_free_recall_falsifier.json",
+        "results/evaluation/operational_resume_44642744588/44642744588.json",
+        "results/evaluation/operational_resume_44642744588/AUDIT_INDEX_44642744588.json",
+        "results/evaluation/operational_resume_44642744588/run_44642554373_annotation_evidence.json",
+        "results/evaluation/operational_resume_44642744588/run_44642554373_rest_capture.json",
+        "tests/evaluation/test_operational_resume_44642744588.py"
+      ],
+      "planted_audit_path_rejected": true
+    }
+  },
+  "details": {
+    "CC1": {
+      "audit_gate_in_tree": false,
+      "audit_remote": "",
+      "audit_report_in_tree": false,
+      "head": "ea98384e54d31d2e694c418a1d1ce5769fc6c32f",
+      "lab": "ea98384e54d31d2e694c418a1d1ce5769fc6c32f",
+      "team": "ea98384e54d31d2e694c418a1d1ce5769fc6c32f"
+    },
+    "CC11": {
+      "forbidden_imports_found": [],
+      "suspicious_read_paths": []
+    },
+    "CC2": {
+      "annotation_sha256": "b1ad045d105d7f425b5e1140831559d93c4fbe287c3b221690aaf21b6d1c89e8",
+      "capture_sha256": "04694e8e23c47ef896228339d90ee229d24a475b79eec92dd2cbdeefe89c8f5c",
+      "jobs": {
+        "audit": {
+          "completed_at": "2026-11-20T00:03:36Z",
+          "conclusion": "skipped",
+          "id": 135977580997,
+          "name": "audit",
+          "started_at": "2026-11-20T00:03:36Z",
+          "status": "completed",
+          "steps": []
+        },
+        "integrate": {
+          "completed_at": "2026-11-20T00:03:36Z",
+          "conclusion": "skipped",
+          "id": 135977581002,
+          "name": "integrate",
+          "started_at": "2026-11-20T00:03:36Z",
+          "status": "completed",
+          "steps": []
+        },
+        "resilience": {
+          "completed_at": "2026-11-20T00:03:48Z",
+          "conclusion": "success",
+          "id": 135977580253,
+          "name": "resilience",
+          "started_at": "2026-11-20T00:03:38Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completed_at": "2026-11-20T00:03:40Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "started_at": "2026-11-20T00:03:39Z",
+              "status": "completed"
+            },
+            {
+              "completed_at": "2026-11-20T00:03:41Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@v6",
+              "number": 2,
+              "started_at": "2026-11-20T00:03:40Z",
+              "status": "completed"
+            },
+            {
+              "completed_at": "2026-11-20T00:03:45Z",
+              "conclusion": "success",
+              "name": "Recover failed chain and wake supervisor",
+              "number": 3,
+              "started_at": "2026-11-20T00:03:41Z",
+              "status": "completed"
+            },
+            {
+              "completed_at": "2026-11-20T00:03:46Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v6",
+              "number": 6,
+              "started_at": "2026-11-20T00:03:45Z",
+              "status": "completed"
+            },
+            {
+              "completed_at": "2026-11-20T00:03:46Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 7,
+              "started_at": "2026-11-20T00:03:46Z",
+              "status": "completed"
+            }
+          ]
+        },
+        "team": {
+          "completed_at": "2026-11-20T00:03:35Z",
+          "conclusion": "failure",
+          "id": 135977000346,
+          "name": "team",
+          "started_at": "2026-11-20T00:02:24Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completed_at": "2026-11-20T00:02:26Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "started_at": "2026-11-20T00:02:25Z",
+              "status": "completed"
+            },
+            {
+              "completed_at": "2026-11-20T00:02:27Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@v6",
+              "number": 2,
+              "started_at": "2026-11-20T00:02:26Z",
+              "status": "completed"
+            },
+            {
+              "completed_at": "2026-11-20T00:03:03Z",
+              "conclusion": "success",
+              "name": "Validate lane and initialize working base",
+              "number": 3,
+              "started_at": "2026-11-20T00:02:27Z",
+              "status": "completed"
+            },
+            {
+              "completed_at": "2026-11-20T00:03:08Z",
+              "conclusion": "success",
+              "name": "Mount accepted peer evidence",
+              "number": 4,
+              "started_at": "2026-11-20T00:03:03Z",
+              "status": "completed"
+            },
+            {
+              "completed_at": "2026-11-20T00:03:10Z",
+              "conclusion": "success",
+              "name": "Install Ox/OpenCode",
+              "number": 5,
+              "started_at": "2026-11-20T00:03:08Z",
+              "status": "completed"
+            },
+            {
+              "completed_at": "2026-11-20T00:03:26Z",
+              "conclusion": "failure",
+              "name": "Run lane cycle",
+              "number": 6,
+              "started_at": "2026-11-20T00:03:10Z",
+              "status": "completed"
+            },
+            {
+              "completed_at": "2026-11-20T00:03:26Z",
+              "conclusion": "skipped",
+              "name": "Validate active MVP producer state",
+              "number": 7,
+              "started_at": "2026-11-20T00:03:26Z",
+              "status": "completed"
+            },
+            {
+              "completed_at": "2026-11-20T00:03:26Z",
+              "conclusion": "success",
+              "name": "Clean generated junk",
+              "number": 8,
+              "started_at": "2026-11-20T00:03:26Z",
+              "status": "completed"
+            },
+            {
+              "completed_at": "2026-11-20T00:03:26Z",
+              "conclusion": "skipped",
+              "name": "Enforce lane write scope",
+              "number": 9,
+              "started_at": "2026-11-20T00:03:26Z",
+              "status": "completed"
+            },
+            {
+              "completed_at": "2026-11-20T00:03:33Z",
+              "conclusion": "success",
+              "name": "Persist team snapshot",
+              "number": 10,
+              "started_at": "2026-11-20T00:03:26Z",
+              "status": "completed"
+            },
+            {
+              "completed_at": "2026-11-20T00:03:33Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v6",
+              "number": 20,
+              "started_at": "2026-11-20T00:03:33Z",
+              "status": "completed"
+            },
+            {
+              "completed_at": "2026-11-20T00:03:33Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 21,
+              "started_at": "2026-11-20T00:03:33Z",
+              "status": "completed"
+            }
+          ]
+        }
+      },
+      "run": {
+        "conclusion": "failure",
+        "created_at": "2026-11-20T00:02:20Z",
+        "display_title": "Core evaluation dirV68 repair0",
+        "event": "workflow_dispatch",
+        "head_branch": "main",
+        "head_sha": "b132288ccb67cf383dd76eb94042964b879ba648",
+        "html_url": "https://github.com/Mickalive/LexMachina/actions/runs/44642554373",
+        "id": 44642554373,
+        "name": "Core evaluation dirV68 repair0",
+        "path": ".github/workflows/core-lane.yml",
+        "run_attempt": 1,
+        "status": "completed",
+        "updated_at": "2026-11-20T00:03:48Z"
+      }
+    },
+    "CC3": {
+      "missing_tokens": [],
+      "report": "reports/evaluation/BYPASS_CLAUSE_CORRECTION_OF_RECORD_40105794124_v68.md",
+      "report_sha256": "b10eeb3a720cd6352fbc7eabbf8d3430989b52d90193d0f948e69908ef5dc48d",
+      "result": "results/evaluation/bypass_clause_correction/40144816305.json",
+      "result_sha256": "2e691dd02c7b53bac7b1bf048363e56006a1596dd3cade1fd4fb44514330228d"
+    },
+    "CC4": {
+      "path": "results/product/offline_slice/20261024T142517Z/rent-default.bundle.json",
+      "sha256": "6eee1149b3c0ec23124746af482e15d9298c2120ee25de4bc4dd7e1cf7d93fa9",
+      "span": {
+        "abstained_ids": [
+          "gr_gerichte_ERZ 2010 25"
+        ],
+        "abstention_reasons": {
+          "pivot_absent": 1
+        },
+        "anchor_profile": "fr-bail-entretien",
+        "applied": true,
+        "claim_ceiling": "The span is verified verbatim and the frozen classifier confirms or abstains. This seam never asserts that a decision IS supporting, contrary or limiting; emitted labels remain the row's own proposal.",
+        "frozen_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+        "guard_available": true,
+        "guard_phrase_count": 53,
+        "guard_statutes": [
+          "257d",
+          "257f",
+          "257h",
+          "259b",
+          "260a",
+          "271"
+        ],
+        "max_candidates_per_field": 240,
+        "min_span_chars": 40,
+        "mode": "select",
+        "n_abstained": 1,
+        "n_candidates": 1,
+        "n_guard_rejected": 0,
+        "n_selected": 0,
+        "n_sentences_evaluated": 244,
+        "precision_guard": true,
+        "qid": null,
+        "selected_ids": [],
+        "selection_order": "row_status_then_field_then_text_order",
+        "text_fields": [
+          "full_text",
+          "regeste",
+          "snippet",
+          "title"
+        ],
+        "version": "counter_span_selection/1"
+      }
+    },
+    "CC5": {
+      "apply_line": 1404,
+      "guard_line": 1400,
+      "old_predicate_occurrences": 0
+    },
+    "CC6": {
+      "observed": {
+        "defect_histogram": {
+          "D2_letterhead_zone": 2,
+          "D3_markup_residue": 2,
+          "D4_language_marker_mismatch": 1
+        },
+        "distinct_defective_decision_ids": [
+          "bge_BGE_110_II_391",
+          "bge_BGE_121_III_260",
+          "ge_gerichte_CAPH_107_2004",
+          "gr_gerichte_ERZ 2010 25"
+        ],
+        "exit_code": 0,
+        "falsification_proven": false,
+        "n_defective_verified_scored_rows_total": 4,
+        "n_verified_scored_rows_total": 5,
+        "sound_decision_id": "bstger_SK.2023.49",
+        "verdict": "SOUND_COUNTER_ROW_PRESENT"
+      },
+      "record_sha256": "fd25345b02da6658edbd5ed8722c69c9b3c7dbbc22e7856740cfdd421c5c4592"
+    },
+    "CC7": {
+      "n_defective": 4,
+      "n_sound": 1,
+      "rows": [
+        {
+          "counter_evidence_verified_at_mount": true,
+          "counter_status_at_mount": "candidate-limiting",
+          "counter_uncertainty_at_mount": 0.2,
+          "decision_id": "gr_gerichte_ERZ 2010 25",
+          "defects_read_from_record": [
+            "D2_letterhead_zone"
+          ],
+          "ok": true,
+          "path": "results/product/offline_slice/20261024T142517Z/rent-default.bundle.json"
+        },
+        {
+          "counter_evidence_verified_at_mount": true,
+          "counter_status_at_mount": "candidate-limiting",
+          "counter_uncertainty_at_mount": 0.2,
+          "decision_id": "bstger_SK.2023.49",
+          "defects_read_from_record": [],
+          "ok": true,
+          "path": "results/product/offline_slice/20261023T121512Z/corporate-criminal-liability.bundle.json"
+        },
+        {
+          "counter_evidence_verified_at_mount": true,
+          "counter_status_at_mount": "candidate-limiting",
+          "counter_uncertainty_at_mount": 0.2,
+          "decision_id": "bge_BGE_110_II_391",
+          "defects_read_from_record": [
+            "D2_letterhead_zone"
+          ],
+          "ok": true,
+          "path": "results/product/offline_slice/20261023T121515Z/business-judgment-rule.bundle.json"
+        },
+        {
+          "counter_evidence_verified_at_mount": true,
+          "counter_status_at_mount": "candidate-limiting",
+          "counter_uncertainty_at_mount": 0.2,
+          "decision_id": "ge_gerichte_CAPH_107_2004",
+          "defects_read_from_record": [
+            "D3_markup_residue"
+          ],
+          "ok": true,
+          "path": "results/product/offline_slice/20261023T121518Z/petty-theft-dismissal.bundle.json"
+        },
+        {
+          "counter_evidence_verified_at_mount": true,
+          "counter_status_at_mount": "candidate-limiting",
+          "counter_uncertainty_at_mount": 0.2,
+          "decision_id": "bge_BGE_121_III_260",
+          "defects_read_from_record": [
+            "D3_markup_residue",
+            "D4_language_marker_mismatch"
+          ],
+          "ok": true,
+          "path": "results/product/server_slice/20261023T224255Z/served.bundle.json"
+        }
+      ]
+    },
+    "CC8": {
+      "H1": true,
+      "H2": false,
+      "falsifier_reexecuted": false,
+      "full_protocol_executed": false,
+      "gate": {
+        "H1_precondition_leg_landed": true,
+        "H2_precondition_full_family_regenerated": false,
+        "item_2_full_protocol_status": "NOT_YET_DISCRIMINATING (ordered item (2) protocol not executed: member-for-member regeneration of the named frozen family is 14/15; no synthetic stand-in is substituted, d2_path_scope_probe is not re-run as the ordered re-measure, packet-of-record 39319405429 is not scored and the standing falsification is not re-run)",
+        "item_2_leg_status": "LANDED",
+        "leg_markers": {
+          "all_markers_present": true,
+          "file": "product/query/counter_evidence_span.py",
+          "file_present": true,
+          "file_sha256": "82cea13122b13a60e4da746072af4a185f9e4b2e0ef51853d6273acb7a1bb6ce",
+          "line_evidence_declared_at_freeze": {
+            "Content quality filter": "comments at lines 385, 450, 1077",
+            "REJECTION/INCUMBENT": "comments at lines 899, 965",
+            "_content_rejection_sweep": "def at line 809; also referenced at 903, 1033",
+            "n_incumbent_downgraded": "populated at lines 915, 1035, 1068"
+          },
+          "markers": {
+            "Content quality filter": {
+              "found": true,
+              "line_numbers": [
+                385,
+                450,
+                1077
+              ],
+              "n_hits": 3
+            },
+            "REJECTION/INCUMBENT": {
+              "found": true,
+              "line_numbers": [
+                899,
+                965
+              ],
+              "n_hits": 2
+            },
+            "_content_rejection_sweep": {
+              "found": true,
+              "line_numbers": [
+                809,
+                903,
+                1033
+              ],
+              "n_hits": 3
+            },
+            "n_incumbent_downgraded": {
+              "found": true,
+              "line_numbers": [
+                915,
+                1035,
+                1068
+              ],
+              "n_hits": 3
+            }
+          }
+        },
+        "post_repair_inventory": {
+          "bundles": [
+            {
+              "abstained_ids": [
+                "gr_gerichte_ERZ 2010 25"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261024T185212Z/rent-default.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "rent-default"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "gr_gerichte_ERZ 2010 25"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261024T185255Z/rent-default.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "rent-default"
+              ]
+            },
+            {
+              "abstained_ids": null,
+              "abstention_reasons": null,
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 1,
+              "path": "results/product/offline_slice/20261024T185257Z/petty-theft-dismissal.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "petty-theft-dismissal"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bstger_SK.2023.49"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 0,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261024T185300Z/corporate-criminal-liability.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "corporate-criminal-liability"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bge_BGE_110_II_391"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261024T185303Z/business-judgment-rule.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "business-judgment-rule"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "gr_gerichte_ERZ 2010 25"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261024T235221Z/rent-default.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "rent-default"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "gr_gerichte_ERZ 2010 25"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T004717Z/rent-default.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "rent-default"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "gr_gerichte_ERZ 2010 25"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T005703Z/rent-default.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "rent-default"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bge_BGE_110_II_391"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T010046Z/business-judgment-rule.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "business-judgment-rule"
+              ]
+            },
+            {
+              "abstained_ids": null,
+              "abstention_reasons": null,
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 1,
+              "path": "results/product/offline_slice/20261025T010052Z/petty-theft-dismissal.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "petty-theft-dismissal"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bstger_SK.2023.49"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 0,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T010108Z/corporate-criminal-liability.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "corporate-criminal-liability"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "gr_gerichte_ERZ 2010 25"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T015155Z/rent-default.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "rent-default"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "gr_gerichte_ERZ 2010 25"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T031500Z/rent-default.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "rent-default"
+              ]
+            },
+            {
+              "abstained_ids": null,
+              "abstention_reasons": null,
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 1,
+              "path": "results/product/offline_slice/20261025T033046Z/petty-theft-dismissal.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "petty-theft-dismissal"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bstger_SK.2023.49"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 0,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T033055Z/corporate-criminal-liability.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "corporate-criminal-liability"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "gr_gerichte_ERZ 2010 25"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T035854Z/rent-default.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "rent-default"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bge_BGE_110_II_391"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T040208Z/business-judgment-rule.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "business-judgment-rule"
+              ]
+            },
+            {
+              "abstained_ids": null,
+              "abstention_reasons": null,
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 1,
+              "path": "results/product/offline_slice/20261025T040216Z/petty-theft-dismissal.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "petty-theft-dismissal"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bstger_SK.2023.49"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 0,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T040222Z/corporate-criminal-liability.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "corporate-criminal-liability"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "gr_gerichte_ERZ 2010 25"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T045400Z/rent-default.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "rent-default"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bge_BGE_110_II_391"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T045404Z/business-judgment-rule.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "business-judgment-rule"
+              ]
+            },
+            {
+              "abstained_ids": null,
+              "abstention_reasons": null,
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 1,
+              "path": "results/product/offline_slice/20261025T045412Z/petty-theft-dismissal.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "petty-theft-dismissal"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bstger_SK.2023.49"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 0,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T045414Z/corporate-criminal-liability.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "corporate-criminal-liability"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "gr_gerichte_ERZ 2010 25"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T070356Z/rent-default.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "rent-default"
+              ]
+            },
+            {
+              "abstained_ids": null,
+              "abstention_reasons": null,
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 1,
+              "path": "results/product/offline_slice/20261025T070400Z/petty-theft-dismissal.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "petty-theft-dismissal"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bstger_SK.2023.49"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 0,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T070402Z/corporate-criminal-liability.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "corporate-criminal-liability"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bge_BGE_110_II_391"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T070406Z/business-judgment-rule.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "business-judgment-rule"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "gr_gerichte_ERZ 2010 25"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T152238Z/rent-default.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "rent-default"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "gr_gerichte_ERZ 2010 25"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T174808Z/rent-default.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "rent-default"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "gr_gerichte_ERZ 2010 25"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T181726Z/rent-default.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "rent-default"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bge_BGE_110_II_391"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T181736Z/business-judgment-rule.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "business-judgment-rule"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "gr_gerichte_ERZ 2010 25"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T182837Z/rent-default.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "rent-default"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bge_BGE_110_II_391"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T182847Z/business-judgment-rule.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "business-judgment-rule"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "gr_gerichte_ERZ 2010 25"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T195050Z/rent-default.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "rent-default"
+              ]
+            },
+            {
+              "abstained_ids": null,
+              "abstention_reasons": null,
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 1,
+              "path": "results/product/offline_slice/20261025T195059Z/petty-theft-dismissal.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "petty-theft-dismissal"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bstger_SK.2023.49"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 0,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T195106Z/corporate-criminal-liability.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "corporate-criminal-liability"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bge_BGE_110_II_391"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T195114Z/business-judgment-rule.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "business-judgment-rule"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "gr_gerichte_ERZ 2010 25"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T204600Z/rent-default.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "rent-default"
+              ]
+            },
+            {
+              "abstained_ids": null,
+              "abstention_reasons": null,
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 1,
+              "path": "results/product/offline_slice/20261025T204610Z/petty-theft-dismissal.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "petty-theft-dismissal"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bstger_SK.2023.49"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 0,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T204620Z/corporate-criminal-liability.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "corporate-criminal-liability"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bge_BGE_110_II_391"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T204630Z/business-judgment-rule.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "business-judgment-rule"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "gr_gerichte_ERZ 2010 25"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/20261025T205046Z/rent-default.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "rent-default"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bge_BGE_110_II_391"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/40247189361-business-judgment-rule/business-judgment-rule.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "business-judgment-rule"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bstger_SK.2023.49"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 0,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/40247189361-corporate-criminal-liability/corporate-criminal-liability.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "corporate-criminal-liability"
+              ]
+            },
+            {
+              "abstained_ids": null,
+              "abstention_reasons": null,
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 1,
+              "path": "results/product/offline_slice/40247189361-petty-theft-dismissal/petty-theft-dismissal.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "petty-theft-dismissal"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "vd_gerichte_JL09.019144"
+              ],
+              "abstention_reasons": {
+                "pivot_absent": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/offline_slice/40247189361-rent-default/rent-default.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "offline",
+                "rent-default"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bge_BGE_121_III_260"
+              ],
+              "abstention_reasons": {
+                "no_intent_marker": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/server_slice/20261024T185740Z/served.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "server",
+                "served"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bge_BGE_121_III_260"
+              ],
+              "abstention_reasons": {
+                "no_intent_marker": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/server_slice/40143042888/served.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "server",
+                "served"
+              ]
+            },
+            {
+              "abstained_ids": [
+                "bge_BGE_121_III_260"
+              ],
+              "abstention_reasons": {
+                "no_intent_marker": 1
+              },
+              "n_downgraded": 1,
+              "n_incumbent_downgraded": 0,
+              "path": "results/product/server_slice/40247189361/served.bundle.json",
+              "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+              "role_key": [
+                "server",
+                "served"
+              ]
+            }
+          ],
+          "n_bundles": 49,
+          "paths": [
+            "results/product/offline_slice/20261024T185212Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261024T185255Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261024T185257Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261024T185300Z/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/20261024T185303Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261024T235221Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T004717Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T005703Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T010046Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261025T010052Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261025T010108Z/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/20261025T015155Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T031500Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T033046Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261025T033055Z/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/20261025T035854Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T040208Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261025T040216Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261025T040222Z/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/20261025T045400Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T045404Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261025T045412Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261025T045414Z/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/20261025T070356Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T070400Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261025T070402Z/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/20261025T070406Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261025T152238Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T174808Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T181726Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T181736Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261025T182837Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T182847Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261025T195050Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T195059Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261025T195106Z/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/20261025T195114Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261025T204600Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T204610Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261025T204620Z/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/20261025T204630Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261025T205046Z/rent-default.bundle.json",
+            "results/product/offline_slice/40247189361-business-judgment-rule/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/40247189361-corporate-criminal-liability/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/40247189361-petty-theft-dismissal/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/40247189361-rent-default/rent-default.bundle.json",
+            "results/product/server_slice/20261024T185740Z/served.bundle.json",
+            "results/product/server_slice/40143042888/served.bundle.json",
+            "results/product/server_slice/40247189361/served.bundle.json"
+          ],
+          "roles": {
+            "offline/business-judgment-rule": 10,
+            "offline/corporate-criminal-liability": 9,
+            "offline/petty-theft-dismissal": 9,
+            "offline/rent-default": 18,
+            "server/served": 3
+          }
+        },
+        "product_claim_adjudication": {
+          "claim_definition_member_count": 5,
+          "claim_roles_satisfied_by_post_repair_bytes": true,
+          "claim_source": "reports/product/CYCLE_40247189361.md \u00a73 and /tmp/lex_accepted/product/results/product/counter_content_family/CYCLE_40247189361.json, read at freeze time; product's own claim, not this run's measurement",
+          "claim_string": "Full flagship offline/server slice family (4 offline + 1 server) regenerated with fix; 49 fixed-path bundles / 4,900 decisions / 55 verified / 0 verified+defective; ordered_work_2_full_success_rule.met = true",
+          "finding": "Product's claimed family (4 offline query bundles + 1 server bundle) and the direction's named family (the frozen 15-member probe family: 11 offline rent-default + 4 server served) are DIFFERENT SETS. Member-for-member regeneration of the named family is 14/15; every frozen role has a post-repair bundle=True; per-role multiplicity parity=False; Product's own 4+1 claim is satisfied by the present bytes=True. Both readings are published; neither is silently preferred, and no 'all of the family' claim is made from a cardinality.",
+          "frozen_direction_member_count": 15
+        },
+        "set_relations_REQUIREMENT_16": {
+          "frozen_probe_family_n": 15,
+          "member_for_member_matching": {
+            "matched_members": 14,
+            "matched_per_role": {
+              "offline/business-judgment-rule": 0,
+              "offline/corporate-criminal-liability": 0,
+              "offline/petty-theft-dismissal": 0,
+              "offline/rent-default": 11,
+              "server/served": 3
+            },
+            "of": 15,
+            "rule": "each frozen family member matches at most one distinct post-repair bundle of the same (slice_kind, query) role"
+          },
+          "never_cardinality_only": "path-identity sets, role tables and the member-for-member matching are all published; no 'exactly/all-of' claim is made from a count alone",
+          "path_identity": {
+            "frozen_family_only": [
+              "results/product/offline_slice/20261023T190402Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261023T202433Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261023T202440Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261023T203316Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261023T212530Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261023T214943Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261023T220629Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261023T222223Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261023T223903Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261023T224023Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261023T224250Z/rent-default.bundle.json",
+              "results/product/server_slice/20261023T223109Z/served.bundle.json",
+              "results/product/server_slice/20261023T223909Z/served.bundle.json",
+              "results/product/server_slice/20261023T224031Z/served.bundle.json",
+              "results/product/server_slice/20261023T224255Z/served.bundle.json"
+            ],
+            "frozen_family_only_n": 15,
+            "interpretation": "path identity is EXPECTED to be 0 while the baseline family is preserved byte-for-byte (append-only); it is reported for completeness and is never the sole basis of the verdict",
+            "intersection_by_path": [],
+            "intersection_by_path_n": 0,
+            "post_repair_only": [
+              "results/product/offline_slice/20261024T185212Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261024T185255Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261024T185257Z/petty-theft-dismissal.bundle.json",
+              "results/product/offline_slice/20261024T185300Z/corporate-criminal-liability.bundle.json",
+              "results/product/offline_slice/20261024T185303Z/business-judgment-rule.bundle.json",
+              "results/product/offline_slice/20261024T235221Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261025T004717Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261025T005703Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261025T010046Z/business-judgment-rule.bundle.json",
+              "results/product/offline_slice/20261025T010052Z/petty-theft-dismissal.bundle.json",
+              "results/product/offline_slice/20261025T010108Z/corporate-criminal-liability.bundle.json",
+              "results/product/offline_slice/20261025T015155Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261025T031500Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261025T033046Z/petty-theft-dismissal.bundle.json",
+              "results/product/offline_slice/20261025T033055Z/corporate-criminal-liability.bundle.json",
+              "results/product/offline_slice/20261025T035854Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261025T040208Z/business-judgment-rule.bundle.json",
+              "results/product/offline_slice/20261025T040216Z/petty-theft-dismissal.bundle.json",
+              "results/product/offline_slice/20261025T040222Z/corporate-criminal-liability.bundle.json",
+              "results/product/offline_slice/20261025T045400Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261025T045404Z/business-judgment-rule.bundle.json",
+              "results/product/offline_slice/20261025T045412Z/petty-theft-dismissal.bundle.json",
+              "results/product/offline_slice/20261025T045414Z/corporate-criminal-liability.bundle.json",
+              "results/product/offline_slice/20261025T070356Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261025T070400Z/petty-theft-dismissal.bundle.json",
+              "results/product/offline_slice/20261025T070402Z/corporate-criminal-liability.bundle.json",
+              "results/product/offline_slice/20261025T070406Z/business-judgment-rule.bundle.json",
+              "results/product/offline_slice/20261025T152238Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261025T174808Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261025T181726Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261025T181736Z/business-judgment-rule.bundle.json",
+              "results/product/offline_slice/20261025T182837Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261025T182847Z/business-judgment-rule.bundle.json",
+              "results/product/offline_slice/20261025T195050Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261025T195059Z/petty-theft-dismissal.bundle.json",
+              "results/product/offline_slice/20261025T195106Z/corporate-criminal-liability.bundle.json",
+              "results/product/offline_slice/20261025T195114Z/business-judgment-rule.bundle.json",
+              "results/product/offline_slice/20261025T204600Z/rent-default.bundle.json",
+              "results/product/offline_slice/20261025T204610Z/petty-theft-dismissal.bundle.json",
+              "results/product/offline_slice/20261025T204620Z/corporate-criminal-liability.bundle.json",
+              "results/product/offline_slice/20261025T204630Z/business-judgment-rule.bundle.json",
+              "results/product/offline_slice/20261025T205046Z/rent-default.bundle.json",
+              "results/product/offline_slice/40247189361-business-judgment-rule/business-judgment-rule.bundle.json",
+              "results/product/offline_slice/40247189361-corporate-criminal-liability/corporate-criminal-liability.bundle.json",
+              "results/product/offline_slice/40247189361-petty-theft-dismissal/petty-theft-dismissal.bundle.json",
+              "results/product/offline_slice/40247189361-rent-default/rent-default.bundle.json",
+              "results/product/server_slice/20261024T185740Z/served.bundle.json",
+              "results/product/server_slice/40143042888/served.bundle.json",
+              "results/product/server_slice/40247189361/served.bundle.json"
+            ],
+            "post_repair_only_n": 49
+          },
+          "per_role_multiplicity_parity": false,
+          "post_repair_n": 49,
+          "role_covered_every_frozen_role_has_a_post_repair_bundle": true,
+          "role_relation": {
+            "offline/business-judgment-rule": {
+              "covered": true,
+              "frozen_family": 0,
+              "post_repair": 10
+            },
+            "offline/corporate-criminal-liability": {
+              "covered": true,
+              "frozen_family": 0,
+              "post_repair": 9
+            },
+            "offline/petty-theft-dismissal": {
+              "covered": true,
+              "frozen_family": 0,
+              "post_repair": 9
+            },
+            "offline/rent-default": {
+              "covered": true,
+              "frozen_family": 11,
+              "post_repair": 18
+            },
+            "server/served": {
+              "covered": false,
+              "frozen_family": 4,
+              "post_repair": 3
+            }
+          },
+          "roles_frozen_family": {
+            "offline/rent-default": 11,
+            "server/served": 4
+          },
+          "roles_post_repair": {
+            "offline/business-judgment-rule": 10,
+            "offline/corporate-criminal-liability": 9,
+            "offline/petty-theft-dismissal": 9,
+            "offline/rent-default": 18,
+            "server/served": 3
+          }
+        }
+      },
+      "matched": 14,
+      "of": 15,
+      "packet_of_record_scored": false,
+      "status": "NOT_YET_DISCRIMINATING (ordered item (2) protocol not executed: member-for-member regeneration of the named frozen family is 14/15; no synthetic stand-in is substituted, d2_path_scope_probe is not re-run as the ordered re-measure, packet-of-record 39319405429 is not scored and the standing falsification is not re-run)"
+    },
+    "CC9": {
+      "mismatches": {},
+      "state_files_excluded": [
+        "evaluation/state/evaluation.json",
+        "state/evaluation.json"
+      ]
+    }
+  },
+  "direction_version": 68,
+  "exit_code": 0,
+  "failed_claims_or_controls": [],
+  "falsifier_reexecuted": false,
+  "freeze": {
+    "path": "evaluation/OPERATIONAL_RESUME_44642744588_FREEZE_V1.json",
+    "sha256": "0b947b3b9e59954fa712e13543feb3fc3bfa68568fa75b9fd1efbc3f165c8148"
+  },
+  "generated_at_utc": "2026-11-20T00:13:17Z",
+  "hypothesis": {
+    "path": "evaluation/OPERATIONAL_RESUME_44642744588_HYPOTHESIS_V1.json",
+    "sha256": "933a641313df13d36702c9b856bd334fa7dc890a9cf2e9ccf1b0313d34e8df0a"
+  },
+  "instrument": {
+    "path": "evaluation/operational_resume_44642744588.py",
+    "sha256": "e5a2f1d4ab5c1ce11e72e93da6cea635f87acd55c372679077f953bae9d98643"
+  },
+  "item_2": {
+    "H1": true,
+    "H2": false,
+    "falsifier_reexecuted": false,
+    "full_protocol_executed": false,
+    "gate": {
+      "H1_precondition_leg_landed": true,
+      "H2_precondition_full_family_regenerated": false,
+      "item_2_full_protocol_status": "NOT_YET_DISCRIMINATING (ordered item (2) protocol not executed: member-for-member regeneration of the named frozen family is 14/15; no synthetic stand-in is substituted, d2_path_scope_probe is not re-run as the ordered re-measure, packet-of-record 39319405429 is not scored and the standing falsification is not re-run)",
+      "item_2_leg_status": "LANDED",
+      "leg_markers": {
+        "all_markers_present": true,
+        "file": "product/query/counter_evidence_span.py",
+        "file_present": true,
+        "file_sha256": "82cea13122b13a60e4da746072af4a185f9e4b2e0ef51853d6273acb7a1bb6ce",
+        "line_evidence_declared_at_freeze": {
+          "Content quality filter": "comments at lines 385, 450, 1077",
+          "REJECTION/INCUMBENT": "comments at lines 899, 965",
+          "_content_rejection_sweep": "def at line 809; also referenced at 903, 1033",
+          "n_incumbent_downgraded": "populated at lines 915, 1035, 1068"
+        },
+        "markers": {
+          "Content quality filter": {
+            "found": true,
+            "line_numbers": [
+              385,
+              450,
+              1077
+            ],
+            "n_hits": 3
+          },
+          "REJECTION/INCUMBENT": {
+            "found": true,
+            "line_numbers": [
+              899,
+              965
+            ],
+            "n_hits": 2
+          },
+          "_content_rejection_sweep": {
+            "found": true,
+            "line_numbers": [
+              809,
+              903,
+              1033
+            ],
+            "n_hits": 3
+          },
+          "n_incumbent_downgraded": {
+            "found": true,
+            "line_numbers": [
+              915,
+              1035,
+              1068
+            ],
+            "n_hits": 3
+          }
+        }
+      },
+      "post_repair_inventory": {
+        "bundles": [
+          {
+            "abstained_ids": [
+              "gr_gerichte_ERZ 2010 25"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261024T185212Z/rent-default.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "rent-default"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "gr_gerichte_ERZ 2010 25"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261024T185255Z/rent-default.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "rent-default"
+            ]
+          },
+          {
+            "abstained_ids": null,
+            "abstention_reasons": null,
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 1,
+            "path": "results/product/offline_slice/20261024T185257Z/petty-theft-dismissal.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "petty-theft-dismissal"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bstger_SK.2023.49"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 0,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261024T185300Z/corporate-criminal-liability.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "corporate-criminal-liability"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bge_BGE_110_II_391"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261024T185303Z/business-judgment-rule.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "business-judgment-rule"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "gr_gerichte_ERZ 2010 25"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261024T235221Z/rent-default.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "rent-default"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "gr_gerichte_ERZ 2010 25"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T004717Z/rent-default.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "rent-default"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "gr_gerichte_ERZ 2010 25"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T005703Z/rent-default.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "rent-default"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bge_BGE_110_II_391"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T010046Z/business-judgment-rule.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "business-judgment-rule"
+            ]
+          },
+          {
+            "abstained_ids": null,
+            "abstention_reasons": null,
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 1,
+            "path": "results/product/offline_slice/20261025T010052Z/petty-theft-dismissal.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "petty-theft-dismissal"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bstger_SK.2023.49"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 0,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T010108Z/corporate-criminal-liability.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "corporate-criminal-liability"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "gr_gerichte_ERZ 2010 25"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T015155Z/rent-default.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "rent-default"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "gr_gerichte_ERZ 2010 25"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T031500Z/rent-default.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "rent-default"
+            ]
+          },
+          {
+            "abstained_ids": null,
+            "abstention_reasons": null,
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 1,
+            "path": "results/product/offline_slice/20261025T033046Z/petty-theft-dismissal.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "petty-theft-dismissal"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bstger_SK.2023.49"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 0,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T033055Z/corporate-criminal-liability.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "corporate-criminal-liability"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "gr_gerichte_ERZ 2010 25"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T035854Z/rent-default.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "rent-default"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bge_BGE_110_II_391"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T040208Z/business-judgment-rule.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "business-judgment-rule"
+            ]
+          },
+          {
+            "abstained_ids": null,
+            "abstention_reasons": null,
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 1,
+            "path": "results/product/offline_slice/20261025T040216Z/petty-theft-dismissal.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "petty-theft-dismissal"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bstger_SK.2023.49"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 0,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T040222Z/corporate-criminal-liability.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "corporate-criminal-liability"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "gr_gerichte_ERZ 2010 25"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T045400Z/rent-default.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "rent-default"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bge_BGE_110_II_391"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T045404Z/business-judgment-rule.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "business-judgment-rule"
+            ]
+          },
+          {
+            "abstained_ids": null,
+            "abstention_reasons": null,
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 1,
+            "path": "results/product/offline_slice/20261025T045412Z/petty-theft-dismissal.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "petty-theft-dismissal"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bstger_SK.2023.49"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 0,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T045414Z/corporate-criminal-liability.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "corporate-criminal-liability"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "gr_gerichte_ERZ 2010 25"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T070356Z/rent-default.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "rent-default"
+            ]
+          },
+          {
+            "abstained_ids": null,
+            "abstention_reasons": null,
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 1,
+            "path": "results/product/offline_slice/20261025T070400Z/petty-theft-dismissal.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "petty-theft-dismissal"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bstger_SK.2023.49"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 0,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T070402Z/corporate-criminal-liability.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "corporate-criminal-liability"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bge_BGE_110_II_391"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T070406Z/business-judgment-rule.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "business-judgment-rule"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "gr_gerichte_ERZ 2010 25"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T152238Z/rent-default.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "rent-default"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "gr_gerichte_ERZ 2010 25"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T174808Z/rent-default.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "rent-default"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "gr_gerichte_ERZ 2010 25"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T181726Z/rent-default.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "rent-default"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bge_BGE_110_II_391"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T181736Z/business-judgment-rule.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "business-judgment-rule"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "gr_gerichte_ERZ 2010 25"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T182837Z/rent-default.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "rent-default"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bge_BGE_110_II_391"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T182847Z/business-judgment-rule.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "business-judgment-rule"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "gr_gerichte_ERZ 2010 25"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T195050Z/rent-default.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "rent-default"
+            ]
+          },
+          {
+            "abstained_ids": null,
+            "abstention_reasons": null,
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 1,
+            "path": "results/product/offline_slice/20261025T195059Z/petty-theft-dismissal.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "petty-theft-dismissal"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bstger_SK.2023.49"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 0,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T195106Z/corporate-criminal-liability.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "corporate-criminal-liability"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bge_BGE_110_II_391"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T195114Z/business-judgment-rule.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "business-judgment-rule"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "gr_gerichte_ERZ 2010 25"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T204600Z/rent-default.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "rent-default"
+            ]
+          },
+          {
+            "abstained_ids": null,
+            "abstention_reasons": null,
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 1,
+            "path": "results/product/offline_slice/20261025T204610Z/petty-theft-dismissal.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "petty-theft-dismissal"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bstger_SK.2023.49"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 0,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T204620Z/corporate-criminal-liability.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "corporate-criminal-liability"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bge_BGE_110_II_391"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T204630Z/business-judgment-rule.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "business-judgment-rule"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "gr_gerichte_ERZ 2010 25"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/20261025T205046Z/rent-default.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "rent-default"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bge_BGE_110_II_391"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/40247189361-business-judgment-rule/business-judgment-rule.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "business-judgment-rule"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bstger_SK.2023.49"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 0,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/40247189361-corporate-criminal-liability/corporate-criminal-liability.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "corporate-criminal-liability"
+            ]
+          },
+          {
+            "abstained_ids": null,
+            "abstention_reasons": null,
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 1,
+            "path": "results/product/offline_slice/40247189361-petty-theft-dismissal/petty-theft-dismissal.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "petty-theft-dismissal"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "vd_gerichte_JL09.019144"
+            ],
+            "abstention_reasons": {
+              "pivot_absent": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/offline_slice/40247189361-rent-default/rent-default.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "offline",
+              "rent-default"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bge_BGE_121_III_260"
+            ],
+            "abstention_reasons": {
+              "no_intent_marker": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/server_slice/20261024T185740Z/served.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "server",
+              "served"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bge_BGE_121_III_260"
+            ],
+            "abstention_reasons": {
+              "no_intent_marker": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/server_slice/40143042888/served.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "server",
+              "served"
+            ]
+          },
+          {
+            "abstained_ids": [
+              "bge_BGE_121_III_260"
+            ],
+            "abstention_reasons": {
+              "no_intent_marker": 1
+            },
+            "n_downgraded": 1,
+            "n_incumbent_downgraded": 0,
+            "path": "results/product/server_slice/40247189361/served.bundle.json",
+            "post_repair_marker": "provenance.counter_evidence_span.content_filter",
+            "role_key": [
+              "server",
+              "served"
+            ]
+          }
+        ],
+        "n_bundles": 49,
+        "paths": [
+          "results/product/offline_slice/20261024T185212Z/rent-default.bundle.json",
+          "results/product/offline_slice/20261024T185255Z/rent-default.bundle.json",
+          "results/product/offline_slice/20261024T185257Z/petty-theft-dismissal.bundle.json",
+          "results/product/offline_slice/20261024T185300Z/corporate-criminal-liability.bundle.json",
+          "results/product/offline_slice/20261024T185303Z/business-judgment-rule.bundle.json",
+          "results/product/offline_slice/20261024T235221Z/rent-default.bundle.json",
+          "results/product/offline_slice/20261025T004717Z/rent-default.bundle.json",
+          "results/product/offline_slice/20261025T005703Z/rent-default.bundle.json",
+          "results/product/offline_slice/20261025T010046Z/business-judgment-rule.bundle.json",
+          "results/product/offline_slice/20261025T010052Z/petty-theft-dismissal.bundle.json",
+          "results/product/offline_slice/20261025T010108Z/corporate-criminal-liability.bundle.json",
+          "results/product/offline_slice/20261025T015155Z/rent-default.bundle.json",
+          "results/product/offline_slice/20261025T031500Z/rent-default.bundle.json",
+          "results/product/offline_slice/20261025T033046Z/petty-theft-dismissal.bundle.json",
+          "results/product/offline_slice/20261025T033055Z/corporate-criminal-liability.bundle.json",
+          "results/product/offline_slice/20261025T035854Z/rent-default.bundle.json",
+          "results/product/offline_slice/20261025T040208Z/business-judgment-rule.bundle.json",
+          "results/product/offline_slice/20261025T040216Z/petty-theft-dismissal.bundle.json",
+          "results/product/offline_slice/20261025T040222Z/corporate-criminal-liability.bundle.json",
+          "results/product/offline_slice/20261025T045400Z/rent-default.bundle.json",
+          "results/product/offline_slice/20261025T045404Z/business-judgment-rule.bundle.json",
+          "results/product/offline_slice/20261025T045412Z/petty-theft-dismissal.bundle.json",
+          "results/product/offline_slice/20261025T045414Z/corporate-criminal-liability.bundle.json",
+          "results/product/offline_slice/20261025T070356Z/rent-default.bundle.json",
+          "results/product/offline_slice/20261025T070400Z/petty-theft-dismissal.bundle.json",
+          "results/product/offline_slice/20261025T070402Z/corporate-criminal-liability.bundle.json",
+          "results/product/offline_slice/20261025T070406Z/business-judgment-rule.bundle.json",
+          "results/product/offline_slice/20261025T152238Z/rent-default.bundle.json",
+          "results/product/offline_slice/20261025T174808Z/rent-default.bundle.json",
+          "results/product/offline_slice/20261025T181726Z/rent-default.bundle.json",
+          "results/product/offline_slice/20261025T181736Z/business-judgment-rule.bundle.json",
+          "results/product/offline_slice/20261025T182837Z/rent-default.bundle.json",
+          "results/product/offline_slice/20261025T182847Z/business-judgment-rule.bundle.json",
+          "results/product/offline_slice/20261025T195050Z/rent-default.bundle.json",
+          "results/product/offline_slice/20261025T195059Z/petty-theft-dismissal.bundle.json",
+          "results/product/offline_slice/20261025T195106Z/corporate-criminal-liability.bundle.json",
+          "results/product/offline_slice/20261025T195114Z/business-judgment-rule.bundle.json",
+          "results/product/offline_slice/20261025T204600Z/rent-default.bundle.json",
+          "results/product/offline_slice/20261025T204610Z/petty-theft-dismissal.bundle.json",
+          "results/product/offline_slice/20261025T204620Z/corporate-criminal-liability.bundle.json",
+          "results/product/offline_slice/20261025T204630Z/business-judgment-rule.bundle.json",
+          "results/product/offline_slice/20261025T205046Z/rent-default.bundle.json",
+          "results/product/offline_slice/40247189361-business-judgment-rule/business-judgment-rule.bundle.json",
+          "results/product/offline_slice/40247189361-corporate-criminal-liability/corporate-criminal-liability.bundle.json",
+          "results/product/offline_slice/40247189361-petty-theft-dismissal/petty-theft-dismissal.bundle.json",
+          "results/product/offline_slice/40247189361-rent-default/rent-default.bundle.json",
+          "results/product/server_slice/20261024T185740Z/served.bundle.json",
+          "results/product/server_slice/40143042888/served.bundle.json",
+          "results/product/server_slice/40247189361/served.bundle.json"
+        ],
+        "roles": {
+          "offline/business-judgment-rule": 10,
+          "offline/corporate-criminal-liability": 9,
+          "offline/petty-theft-dismissal": 9,
+          "offline/rent-default": 18,
+          "server/served": 3
+        }
+      },
+      "product_claim_adjudication": {
+        "claim_definition_member_count": 5,
+        "claim_roles_satisfied_by_post_repair_bytes": true,
+        "claim_source": "reports/product/CYCLE_40247189361.md \u00a73 and /tmp/lex_accepted/product/results/product/counter_content_family/CYCLE_40247189361.json, read at freeze time; product's own claim, not this run's measurement",
+        "claim_string": "Full flagship offline/server slice family (4 offline + 1 server) regenerated with fix; 49 fixed-path bundles / 4,900 decisions / 55 verified / 0 verified+defective; ordered_work_2_full_success_rule.met = true",
+        "finding": "Product's claimed family (4 offline query bundles + 1 server bundle) and the direction's named family (the frozen 15-member probe family: 11 offline rent-default + 4 server served) are DIFFERENT SETS. Member-for-member regeneration of the named family is 14/15; every frozen role has a post-repair bundle=True; per-role multiplicity parity=False; Product's own 4+1 claim is satisfied by the present bytes=True. Both readings are published; neither is silently preferred, and no 'all of the family' claim is made from a cardinality.",
+        "frozen_direction_member_count": 15
+      },
+      "set_relations_REQUIREMENT_16": {
+        "frozen_probe_family_n": 15,
+        "member_for_member_matching": {
+          "matched_members": 14,
+          "matched_per_role": {
+            "offline/business-judgment-rule": 0,
+            "offline/corporate-criminal-liability": 0,
+            "offline/petty-theft-dismissal": 0,
+            "offline/rent-default": 11,
+            "server/served": 3
+          },
+          "of": 15,
+          "rule": "each frozen family member matches at most one distinct post-repair bundle of the same (slice_kind, query) role"
+        },
+        "never_cardinality_only": "path-identity sets, role tables and the member-for-member matching are all published; no 'exactly/all-of' claim is made from a count alone",
+        "path_identity": {
+          "frozen_family_only": [
+            "results/product/offline_slice/20261023T190402Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T202433Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T202440Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T203316Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T212530Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T214943Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T220629Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T222223Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T223903Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T224023Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261023T224250Z/rent-default.bundle.json",
+            "results/product/server_slice/20261023T223109Z/served.bundle.json",
+            "results/product/server_slice/20261023T223909Z/served.bundle.json",
+            "results/product/server_slice/20261023T224031Z/served.bundle.json",
+            "results/product/server_slice/20261023T224255Z/served.bundle.json"
+          ],
+          "frozen_family_only_n": 15,
+          "interpretation": "path identity is EXPECTED to be 0 while the baseline family is preserved byte-for-byte (append-only); it is reported for completeness and is never the sole basis of the verdict",
+          "intersection_by_path": [],
+          "intersection_by_path_n": 0,
+          "post_repair_only": [
+            "results/product/offline_slice/20261024T185212Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261024T185255Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261024T185257Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261024T185300Z/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/20261024T185303Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261024T235221Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T004717Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T005703Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T010046Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261025T010052Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261025T010108Z/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/20261025T015155Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T031500Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T033046Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261025T033055Z/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/20261025T035854Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T040208Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261025T040216Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261025T040222Z/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/20261025T045400Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T045404Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261025T045412Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261025T045414Z/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/20261025T070356Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T070400Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261025T070402Z/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/20261025T070406Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261025T152238Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T174808Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T181726Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T181736Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261025T182837Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T182847Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261025T195050Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T195059Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261025T195106Z/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/20261025T195114Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261025T204600Z/rent-default.bundle.json",
+            "results/product/offline_slice/20261025T204610Z/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/20261025T204620Z/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/20261025T204630Z/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/20261025T205046Z/rent-default.bundle.json",
+            "results/product/offline_slice/40247189361-business-judgment-rule/business-judgment-rule.bundle.json",
+            "results/product/offline_slice/40247189361-corporate-criminal-liability/corporate-criminal-liability.bundle.json",
+            "results/product/offline_slice/40247189361-petty-theft-dismissal/petty-theft-dismissal.bundle.json",
+            "results/product/offline_slice/40247189361-rent-default/rent-default.bundle.json",
+            "results/product/server_slice/20261024T185740Z/served.bundle.json",
+            "results/product/server_slice/40143042888/served.bundle.json",
+            "results/product/server_slice/40247189361/served.bundle.json"
+          ],
+          "post_repair_only_n": 49
+        },
+        "per_role_multiplicity_parity": false,
+        "post_repair_n": 49,
+        "role_covered_every_frozen_role_has_a_post_repair_bundle": true,
+        "role_relation": {
+          "offline/business-judgment-rule": {
+            "covered": true,
+            "frozen_family": 0,
+            "post_repair": 10
+          },
+          "offline/corporate-criminal-liability": {
+            "covered": true,
+            "frozen_family": 0,
+            "post_repair": 9
+          },
+          "offline/petty-theft-dismissal": {
+            "covered": true,
+            "frozen_family": 0,
+            "post_repair": 9
+          },
+          "offline/rent-default": {
+            "covered": true,
+            "frozen_family": 11,
+            "post_repair": 18
+          },
+          "server/served": {
+            "covered": false,
+            "frozen_family": 4,
+            "post_repair": 3
+          }
+        },
+        "roles_frozen_family": {
+          "offline/rent-default": 11,
+          "server/served": 4
+        },
+        "roles_post_repair": {
+          "offline/business-judgment-rule": 10,
+          "offline/corporate-criminal-liability": 9,
+          "offline/petty-theft-dismissal": 9,
+          "offline/rent-default": 18,
+          "server/served": 3
+        }
+      }
+    },
+    "matched": 14,
+    "of": 15,
+    "packet_of_record_scored": false,
+    "status": "NOT_YET_DISCRIMINATING (ordered item (2) protocol not executed: member-for-member regeneration of the named frozen family is 14/15; no synthetic stand-in is substituted, d2_path_scope_probe is not re-run as the ordered re-measure, packet-of-record 39319405429 is not scored and the standing falsification is not re-run)"
+  },
+  "lane": "evaluation",
+  "latest_accepted_evaluation_cycle": 40265377500,
+  "mode": "OPERATIONAL_RESUME",
+  "mount": "/tmp/lex_accepted/product",
+  "mount_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+  "network_calls": [
+    "git ls-remote origin (pinned refs only)",
+    "public GitHub REST run/jobs metadata captured before freeze"
+  ],
+  "no_new_claim_bearing_measurement": true,
+  "numeric_environment": {
+    "numpy": "NOT_IMPORTABLE",
+    "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+    "python": "3.14.4",
+    "scipy": "NOT_IMPORTABLE",
+    "sklearn": "NOT_IMPORTABLE",
+    "thread_env": {
+      "MKL_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null
+    }
+  },
+  "product_accepted_cycle": 40284658455,
+  "run_id": 44642744588,
+  "run_under_resume": 44642554373,
+  "schema": "lex-evaluation-operational-resume/1",
+  "snapshot_head": "ea98384e54d31d2e694c418a1d1ce5769fc6c32f",
+  "snapshot_subject": "accept evaluation cycle 40265377500",
+  "state_update": {
+    "cc10_ok": true,
+    "lane_keys_after": 53,
+    "lane_keys_before": 48,
+    "lane_refs_after": 176,
+    "lane_refs_before": 162,
+    "root_keys_after": 77,
+    "root_keys_before": 72,
+    "root_refs_after": 266,
+    "root_refs_before": 255
+  },
+  "universal_174k_benchmark_run": false,
+  "verdict": "RESUME_VERIFIED_AND_AUDIT_READY"
+}
