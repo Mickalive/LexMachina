@@ -369,6 +369,38 @@ PROFILES: dict[str, dict[str, Any]] = {
                              / "self_minted_gate_40278460732_producer_"
                                "40283048553.QUARANTINED.json",
     },
+    "44683945698": {
+        "resumed_run_id": "44683121773",
+        "predecessor_run_id": "44675979766",
+        "raw": ORCH / "CYCLE_44683121773_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_44683945698_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_44675979766.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_44683945698.md",
+        "classification": "TEAM_JOB_FAILED_OTHER_STEP",
+        # Fifth real failure mode: the same write-scope enforcement failure as
+        # `observed_scope`, but the job-logs endpoint answers HTTP 403 to the
+        # unauthenticated producer, so the evidence surface is the public
+        # run/jobs snapshot plus check-run annotations only.  A logs-200
+        # assertion here would be false; a "mechanism unobserved" assertion
+        # would discard the exit-3 scope annotation that IS observed.
+        "mechanism_kind": "observed_scope_no_logs",
+        "failed_job": "team",
+        "quantum_seconds": None,
+        "exit_code": 3,
+        "changed_files": 23,
+        # only paths that appear in the diagnosis's changed_paths_sample
+        "changed_paths_include": (
+            "results/audit/product/CYCLE_44675979766_GATE.json",
+        ),
+        "cycle_test": "product/tests/test_cycle_44683945698.py",
+        "state_block": "cycle_44683945698_operational_resume",
+        "self_minted_gate": ROOT / "results" / "product" / "incidents"
+                             / "self_minted_gate_44675979766_producer_"
+                               "44683121773.QUARANTINED.json",
+    },
+    "44683121773": {"alias_of": "44683945698"},
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -689,6 +721,72 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                 problems.append("raw_scope_step_not_failure")
         else:
             problems.append("raw_snapshot_missing")
+    elif mechanism_kind == "observed_scope_no_logs":
+        # Same defect class as `observed_scope` (producer wrote outside the
+        # lane allowlist, the workflow's own scope guard caught it) with a
+        # different evidence surface: logs_endpoint_status is 403, so every
+        # assertion below is something the public run/jobs snapshot or the
+        # check-run annotations actually show.  Nothing log-derived is
+        # asserted (lane-cycle duration, agent transcript, provider cause).
+        mechanism = orch.get("mechanism") or {}
+        observed = orch.get("observed_failure") or {}
+        team = orch.get("team") or {}
+        audit = orch.get("audit") or {}
+        exit_code = p("exit_code", 3)
+        if mechanism.get("exit_code") != exit_code:
+            problems.append("exit_code")
+        if mechanism.get("quantum_expired") is not False:
+            problems.append("quantum_expired")
+        if mechanism.get("quantum_seconds") not in (None,):
+            problems.append("quantum_seconds_claimed")
+        if mechanism.get("logs_endpoint_status") != 403:
+            problems.append("logs_endpoint_status")
+        if mechanism.get("logs_available") is not False:
+            problems.append("logs_available")
+        if mechanism.get("annotations_available") is not True:
+            problems.append("annotations_available")
+        if team.get("failed_step") != "Enforce lane write scope":
+            problems.append("failed_step")
+        if team.get("write_scope_step_conclusion") != "failure":
+            problems.append("scope_step_conclusion")
+        if team.get("producer_state_validation_step_conclusion") != "success":
+            problems.append("state_validation_step_conclusion")
+        if team.get("team_snapshot_persisted_after_failed_team_job") is not True:
+            problems.append("persist_after_failure")
+        if audit.get("conclusion") != "skipped":
+            problems.append("audit_not_skipped")
+        if audit.get("gate_file_written") is not False:
+            problems.append("gate_file_written")
+        if observed.get("job") != "team":
+            problems.append("observed_job")
+        if observed.get("exit_code") != exit_code:
+            problems.append("observed_exit_code")
+        if not any("lane crossed protected scope" in str(m)
+                   for m in observed.get("messages") or []):
+            problems.append("scope_annotation_missing")
+        if raw is None or not raw.is_file():
+            problems.append("raw_snapshot_missing")
+        else:
+            raw_doc = _load(raw)
+            team_job = next((j for j in raw_doc.get("jobs") or []
+                             if j.get("name") == "team"), None)
+            steps = {s.get("name"): s.get("conclusion")
+                     for s in (team_job or {}).get("steps") or []}
+            if steps.get("Run lane cycle") != "success":
+                problems.append("raw_lane_cycle_not_success")
+            if steps.get("Enforce lane write scope") != "failure":
+                problems.append("raw_scope_step_not_failure")
+            if steps.get("Persist team snapshot") != "success":
+                problems.append("raw_persist_not_success")
+            if steps.get("Validate active MVP producer state") != "success":
+                problems.append("raw_state_validation_not_success")
+            if raw_doc.get("logs_endpoint_status") != 403:
+                problems.append("raw_logs_endpoint_status")
+            audit_job = next((j for j in raw_doc.get("jobs") or []
+                              if j.get("name") == "audit"), None)
+            if (audit_job or {}).get("conclusion") != "skipped":
+                problems.append("raw_audit_not_skipped")
+
     else:
         # Raw-free resume: the public run/jobs snapshot is unavailable. The
         # only honest record is that the mechanism is unobserved; asserting a
@@ -742,6 +840,13 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                    "succeeded, team job failed at write-scope enforcement "
                    "on a producer-minted auditor-namespace gate file (no "
                    "work quantum reached, audit skipped), durable delta "
+                   "present, run unadjudicated")
+    elif mechanism_kind == "observed_scope_no_logs":
+        summary = (f"Resumed run {resumed_id}: team job failed at "
+                   "write-scope enforcement (exit 3, annotation 'lane "
+                   "crossed protected scope:') observed from the public "
+                   "run/jobs snapshot and check-run annotations with the "
+                   "logs endpoint at HTTP 403; audit skipped, durable delta "
                    "present, run unadjudicated")
     else:
         summary = (f"Resumed run {resumed_id}: raw run/jobs snapshot "
@@ -1142,6 +1247,30 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
         c1_artifacts = (
             ([str(raw.relative_to(ROOT))] if raw is not None else [])
             + [str(resume_diag.relative_to(ROOT))])
+    elif mechanism_kind == "observed_scope_no_logs":
+        c1_claim = (
+            f"Run {resumed_id}'s team job failed at 'Enforce lane write "
+            f"scope' (exit {p('exit_code', 3)}) with the check-run "
+            "annotation 'lane crossed protected scope:'. The unique "
+            "out-of-scope path in the snapshot's "
+            f"{p('changed_files', 0)}-file delta is the producer-minted "
+            "results/audit/product/CYCLE_44675979766_GATE.json, proved by "
+            "applying the workflow's own scope predicate to "
+            "git diff 89ed3bc9..0765fc35 (product/orchestration_chain.py). "
+            "Audit and integrate were skipped, so no auditor ever ran for "
+            "that gate's named run; the file is preserved verbatim and "
+            "quarantined NON-PROMOTING by results/product/incidents/"
+            "self_minted_gate_44675979766_producer_44683121773."
+            "QUARANTINED.json. Observed from the public run/jobs snapshot "
+            "and annotations only (logs endpoint HTTP 403); no agent "
+            "transcript and no work-quantum mechanism is claimed."
+        )
+        c1_artifacts = (
+            ([str(raw.relative_to(ROOT))] if raw is not None else [])
+            + [str(resume_diag.relative_to(ROOT))]
+            + ["results/product/incidents/"
+               "self_minted_gate_44675979766_producer_44683121773."
+               "QUARANTINED.json"])
     elif mechanism_kind == "observed":
         c1_claim = (
             f"Run {resumed_id}'s {who} agent ended on the workflow "
