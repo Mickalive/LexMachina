@@ -41,6 +41,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -413,6 +414,49 @@ PROFILES: dict[str, dict[str, Any]] = {
     # The auditor of the resumed run may invoke the dossier with either the
     # executing run id or the resumed run id; both resolve to the same profile.
     "44700830021": {"alias_of": "44711032839"},
+    "44723775560": {
+        # Operational resume of producer snapshot 44711032839: its team job
+        # was green and persisted a 9-file durable delta (c03dbab5 over
+        # 6fc88265), and its independent audit died on the workflow's own
+        # 2700 s work quantum (exit 78, annotation-observed, 2706.0 s step)
+        # before the gate step could run -- the same mechanism class as its
+        # predecessor 44700830021, observed again rather than assumed.  This
+        # profile additionally carries the validation-failure repair of that
+        # snapshot: the prior cycle's report and state claimed an
+        # audit-readiness dossier that was never committed, and the dossier
+        # claimed by run 44711032839 is generated alongside this one.
+        "resumed_run_id": "44711032839",
+        "predecessor_run_id": "44700830021",
+        "raw": ORCH / "CYCLE_44711032839_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_44711032839_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_44711032839.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_44723775560.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "delta_kind": "committed",
+        "changed_files": 9,
+        "changed_paths_include": (
+            "product/tests/test_cycle_44711032839.py",
+            "reports/product/CYCLE_44711032839.md",
+        ),
+        "cycle_test": "product/tests/test_cycle_44723775560.py",
+        "state_block": "cycle_44723775560_operational_resume",
+        # No new counter-content family this cycle: consume the accepted
+        # fixed-path family pins unchanged (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -487,11 +531,17 @@ def _sha256(path: Path) -> str:
     return h.hexdigest()
 
 
-def _run(cmd: list[str], timeout: int) -> dict[str, Any]:
+def _run(cmd: list[str], timeout: int,
+         env: dict[str, str] | None = None) -> dict[str, Any]:
     started = time.monotonic()
+    run_env = None
+    if env is not None:
+        run_env = dict(os.environ)
+        run_env.update(env)
     try:
         proc = subprocess.run(cmd, cwd=str(ROOT), capture_output=True,
-                              text=True, timeout=timeout, check=False)
+                              text=True, timeout=timeout, check=False,
+                              env=run_env)
         return {
             "command": " ".join(cmd),
             "exit_code": proc.returncode,
@@ -976,7 +1026,13 @@ def check_cycle_test(cycle_test: str) -> dict[str, Any]:
             [cycle_test],
         )
     cmd = [sys.executable, "-m", "pytest", cycle_test, "-q", "--maxfail=1"]
-    run = _run(cmd, 300)
+    # The cycle test asserts that THIS dossier exists and passes, and this
+    # run writes the dossier only after every check finishes -- so the test
+    # is told it is inside its own generation.  Outside that context (an
+    # auditor re-running the test, or the producer's final test pass) the
+    # same assertion fails closed on an absent dossier, which is exactly the
+    # defect that let run 44711032839 publish a dossier claim with no file.
+    run = _run(cmd, 300, env={"LEX_DOSSIER_GENERATING": "1"})
     text = run["stdout_tail"] + "\n" + run["stderr_tail"]
     passed = int((_PASSED_RE.search(text) or [0, 0])[1] or 0)
     failed = int((_FAILED_RE.search(text) or [0, 0])[1] or 0)

@@ -175,7 +175,17 @@
     "results/product/answer_sourcing/CYCLE_44711032839_verification.json",
     "product/audit_readiness.py (profile 44711032839) -> results/product/audit_readiness/CYCLE_44711032839_audit_readiness.json",
     "product/tests/test_cycle_44711032839.py",
-    "reports/product/CYCLE_44711032839.md"
+    "reports/product/CYCLE_44711032839.md",
+    "product/fetch_run_jobs_snapshot.py -> results/product/orchestration/CYCLE_44711032839_run_jobs_raw.json",
+    "results/product/orchestration/CYCLE_44711032839_run_jobs_raw.json",
+    "results/product/orchestration/CYCLE_44711032839_resume_diagnosis.json",
+    "results/product/answer_sourcing/CYCLE_44723775560_verification.json",
+    "results/product/audit_readiness/CYCLE_44711032839_audit_readiness.json (backfilled claim)",
+    "results/product/audit_readiness/CYCLE_44723775560_audit_readiness.json",
+    "product/tests/test_cycle_44723775560.py",
+    "reports/product/CYCLE_44723775560.md",
+    "product/audit_readiness.py (profile 44723775560 + LEX_DOSSIER_GENERATING recursion guard)",
+    "product/resume_snapshot_diagnosis.py (missing_claimed_dossiers detection)"
   ],
   "evidence_tier": "REPRODUCED",
   "human_gate_ready": false,
@@ -196,7 +206,7 @@
   },
   "lane": "product",
   "machine_gate_ready": false,
-  "next_recommendation": "Direction v68 / FAST MVP, producer cycle 44711032839 (OPERATIONAL RESUME of snapshot 44700830021; UNADJUDICATED pending independent audit). The resumed run's failure is now OBSERVED, not inferred: its independent-audit step hit LEX_WORK_QUANTUM_EXPIRED seconds=2700 (exit 78) after 2705 s, so no gate was written; its 8-file team delta and the answer-sourcing deliverable are preserved and re-verified (PASS 10/10). This cycle published the raw run/jobs snapshot with public annotations, the resume diagnosis, a re-verification artifact, the audit-readiness dossier (results/product/audit_readiness/CYCLE_44711032839_audit_readiness.json, one command for the auditor) and this report. Accepted pointer hygiene discharged: accepted_run_id now CYCLE_40284658455 / 7be4480e with both halves of requirement 4 re-verified from committed bytes. Next: the independent auditor consumes the dossier instead of re-deriving the slice; the producer does not mint a gate. Ordered-work status unchanged and already measured in earlier cycles: v68 item (1) P0 rejection/incumbent leg LANDED - do not re-diagnose; (2) full-family regeneration PUBLISHED; (3) accepted findings CONSUMED; (4) fixture-anchor exposure MEASURED DO_NOT_CLOSE; (5) live latency/precision DEFERRED (budget 8); (6) frozen-rules profile gap DISCLOSED and evaluation-owned. Posture stays FAIL-CLOSED: human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session all FALSE (both frozen bars unmet), owner_decision_required false and continue_recommended TRUE until a locally runnable end-to-end path can honestly be human_gate_ready.",
+  "next_recommendation": "Direction v68 / FAST MVP, producer cycle 44723775560 (OPERATIONAL RESUME of snapshot 44711032839; UNADJUDICATED pending independent audit). Two failures are now diagnosed from committed bytes. (1) ORCHESTRATION: the resumed run's independent-audit step hit LEX_WORK_QUANTUM_EXPIRED seconds=2700 (exit 78) after 2706.0 s (annotation-observed), so no gate was written; its 9-file team delta is preserved (c03dbab5 over 6fc88265). (2) VALIDATION: the prior cycle's report and state claimed an audit-readiness dossier that was never committed - recorded point-in-time in validation_findings.missing_claimed_dossiers (n=1, claimed_by report+state) and REPAIRED this cycle by generating both dossiers, adding missing_claimed_dossiers detection to product/resume_snapshot_diagnosis.py, and replacing the unconditional dossier skip with an env-guarded fail-closed assertion (LEX_DOSSIER_GENERATING). Inherited answer-sourcing deliverable re-verified PASS 10/10 (results/product/answer_sourcing/CYCLE_44723775560_verification.json). New instruments: product/fetch_run_jobs_snapshot.py (public unauthenticated run/jobs + annotation capture). Next: the independent auditor consumes results/product/audit_readiness/CYCLE_44723775560_audit_readiness.json (and the backfilled CYCLE_44711032839 dossier) instead of re-deriving the slice inside its own quantum; the producer does not mint a gate. Ordered-work status unchanged and already measured in earlier cycles: v68 item (1) P0 rejection/incumbent leg LANDED - do not re-diagnose; (2) full-family regeneration PUBLISHED; (3) accepted findings CONSUMED; (4) fixture-anchor exposure MEASURED DO_NOT_CLOSE; (5) live latency/precision DEFERRED (budget 8); (6) frozen-rules profile gap DISCLOSED and evaluation-owned. Posture stays FAIL-CLOSED: human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session all FALSE (both frozen bars unmet), owner_decision_required false and continue_recommended TRUE until a locally runnable end-to-end path can honestly be human_gate_ready.",
   "not_claimed": [
     "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
     "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
@@ -244,7 +254,7 @@
       "clusters": 8,
       "counter_authorities": 3,
       "decisions": 154,
-      "fixture_query": "K\u00fcndigung Mietvertrag Mietrecht",
+      "fixture_query": "Kündigung Mietvertrag Mietrecht",
       "map_phase_latency_s": 0.3,
       "top_n": 150
     },
@@ -871,7 +881,7 @@
     "defects_repaired": [
       "BGE identity: court \"bge\" resolved through the raw docket before the citation, so docket-shaped aliases (\"113 II 52\" and \"BGE 113 II 52\") became two map points for one decision. Court \"bge\" now resolves through the canonical citation first; the merge is exported in provenance.identity_merge (method court_docket_or_bge_identity_merge_v2).",
       "Local inspectability: every row now carries content_state in {full_text,regeste,snippet,pointer} and provenance.content_coverage; bundle_summary publishes the same tally. Annotation is applied on the initial, progressive and enriched paths, and refreshed after lazy hydration.",
-      "UI honesty: the page labels reference-only points \"r\u00e9f\u00e9rence seule\", prints a coverage line (local vs total), and the detail panel states that no local excerpt exists while still offering the public source link.",
+      "UI honesty: the page labels reference-only points \"référence seule\", prints a coverage line (local vs total), and the detail panel states that no local excerpt exists while still offering the public source link.",
       "Offline summary honesty: rows_with_source_url is now the true source_url count; rows_with_source_link and rows_with_canonical_url are separate; fixture replay degraded/cache-miss/failure counts are surfaced, with degraded_scope=fixture_replay_only at the summary top level."
     ],
     "measurements": {
@@ -1082,9 +1092,9 @@
     "audit_namespace_written": false,
     "claim_ceiling": "OPERATIONAL-RESUME AND AUDIT-READINESS EVIDENCE ONLY. No live retrieval, legal usefulness, frozen bar, serve verdict, acceptance or human-gate readiness is asserted."
   },
-  "current_cycle_run_id": 44711032839,
+  "current_cycle_run_id": 44723775560,
   "last_repair_round": 0,
-  "last_updated": "2026-11-20T10:05:00Z",
+  "last_updated": "2026-11-20T11:26:00Z",
   "run_history": [
     {
       "run_id": "40241250741",
@@ -1224,6 +1234,15 @@
       "summary": "Operational resume of persisted producer snapshot 44700830021 (team ref 6fc88265). Orchestration failure of record now OBSERVED, not inferred: the public check-run annotations for run 44700830021 read LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2391 and 'Process completed with exit code 78' on the audit job's Independent audit step (2705.0 s, 08:43:20Z->09:28:25Z); the team job was green 10/10 with an 8-file durable delta; gate/persist audit steps were skipped, so no audit ref and no gate exist for 44700830021, integrate was skipped and the run concluded failure. Raw snapshot results/product/orchestration/CYCLE_44700830021_run_jobs_raw.json; diagnosis CYCLE_44700830021_resume_diagnosis.json (AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE / OBSERVED_QUANTUM_EXPIRED / COMMITTED_DELTA / UNADJUDICATED). The inherited answer-sourcing deliverable was re-verified on this snapshot (PASS 10/10, results/product/answer_sourcing/CYCLE_44711032839_verification.json) and a bounded audit-readiness dossier was published so the next independent audit does not re-derive the slice inside its own quantum. Accepted pointer hygiene: CYCLE_40269774540 -> CYCLE_40284658455 (both halves re-verified). No frozen bar scored, no serve verdict re-run, no gate minted; posture stays fail-closed; UNADJUDICATED pending independent audit.",
       "report": "reports/product/CYCLE_44711032839.md",
       "date": "2026-11-20T10:05:00Z"
+    },
+    {
+      "run_id": 44723775560,
+      "repair_round": 0,
+      "status": "OPERATIONAL_RESUME_VALIDATION_REPAIR_AND_AUDIT_READINESS",
+      "audit_gate": "NONE_YET",
+      "summary": "Operational resume of persisted producer snapshot 44711032839 (team ref c03dbab5). Orchestration failure re-OBSERVED from public check-run annotations: the independent-audit step hit LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=3440 (exit 78) after 2706.0 s; team job green with a 9-file durable delta; no gate, no audit ref, integrate skipped; UNADJUDICATED. VALIDATION FAILURE DIAGNOSED AND REPAIRED: the prior cycle's report and state claimed an audit-readiness dossier that was never committed (recorded point-in-time in validation_findings.missing_claimed_dossiers, n=1); the dossier is now generated and committed, the detection instrument exists, and cycle tests fail closed outside their own generation. Inherited answer-sourcing deliverable re-verified PASS 10/10. Dossiers for both 44711032839 (backfill) and this run are committed so the next independent audit consumes them instead of re-deriving the slice inside its own 2700 s quantum. No frozen bar scored, no serve verdict re-run, no gate minted; posture stays fail-closed; continue_recommended TRUE.",
+      "report": "reports/product/CYCLE_44723775560.md",
+      "date": "2026-11-20T11:26:00Z"
     }
   ],
   "cycle_40247041354_resume": {
@@ -1473,18 +1492,18 @@
         "Kundigung Mietvertrag Mietrecht",
         "Kundigung Mietvertrag Mietrecht miete loyer bail locazione mietzins",
         "kundigung mietvertrag mietrecht eccezione limite abuso di diritto buona fede restrizione miete loyer bail locazione mietzins",
-        "k\u00fcndigung bger nicht ausgesprochen abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
-        "k\u00fcndigung bger nicht ausgesprochen ausnahme exception eccezione vorbehalt r\u00e9serve riserva einschr\u00e4nkung except\u00e9 fatta eccezione",
-        "k\u00fcndigung bger nicht ausgesprochen minderheit minorit\u00e9 minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
-        "k\u00fcndigung bger nicht ausgesprochen \u00e4ltere rechtsprechung ancienne jurisprudence precedente giurisprudenza fr\u00fcher autrefois in passato fr\u00fcheren rechtsprechung d\u00e9sormais mittlerweile",
-        "k\u00fcndigung bger nicht kann abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
-        "k\u00fcndigung bger nicht kann ausnahme exception eccezione vorbehalt r\u00e9serve riserva einschr\u00e4nkung except\u00e9 fatta eccezione",
-        "k\u00fcndigung bger nicht kann minderheit minorit\u00e9 minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
-        "k\u00fcndigung bger nicht kann \u00e4ltere rechtsprechung ancienne jurisprudence precedente giurisprudenza fr\u00fcher autrefois in passato fr\u00fcheren rechtsprechung d\u00e9sormais mittlerweile",
-        "k\u00fcndigung nicht bger wenn abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
-        "k\u00fcndigung nicht bger wenn ausnahme exception eccezione vorbehalt r\u00e9serve riserva einschr\u00e4nkung except\u00e9 fatta eccezione",
-        "k\u00fcndigung nicht bger wenn minderheit minorit\u00e9 minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
-        "k\u00fcndigung nicht bger wenn \u00e4ltere rechtsprechung ancienne jurisprudence precedente giurisprudenza fr\u00fcher autrefois in passato fr\u00fcheren rechtsprechung d\u00e9sormais mittlerweile"
+        "kündigung bger nicht ausgesprochen abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
+        "kündigung bger nicht ausgesprochen ausnahme exception eccezione vorbehalt réserve riserva einschränkung excepté fatta eccezione",
+        "kündigung bger nicht ausgesprochen minderheit minorité minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
+        "kündigung bger nicht ausgesprochen ältere rechtsprechung ancienne jurisprudence precedente giurisprudenza früher autrefois in passato früheren rechtsprechung désormais mittlerweile",
+        "kündigung bger nicht kann abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
+        "kündigung bger nicht kann ausnahme exception eccezione vorbehalt réserve riserva einschränkung excepté fatta eccezione",
+        "kündigung bger nicht kann minderheit minorité minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
+        "kündigung bger nicht kann ältere rechtsprechung ancienne jurisprudence precedente giurisprudenza früher autrefois in passato früheren rechtsprechung désormais mittlerweile",
+        "kündigung nicht bger wenn abweichend a contrario contrario entgegen contraire respinto anderer auffassung contrairement inammissibile",
+        "kündigung nicht bger wenn ausnahme exception eccezione vorbehalt réserve riserva einschränkung excepté fatta eccezione",
+        "kündigung nicht bger wenn minderheit minorité minoranza minderheitsmeinung minoritaire dissenso dissens avis minoritaire abweichende meinung",
+        "kündigung nicht bger wenn ältere rechtsprechung ancienne jurisprudence precedente giurisprudenza früher autrefois in passato früheren rechtsprechung désormais mittlerweile"
       ],
       "decision_ids": [
         "bge_138 III 59",
@@ -1953,12 +1972,12 @@
         "rejected_ids": 0,
         "wall_seconds": 141.35
       },
-      "query": "Responsabilit\u00e9 p\u00e9nale de l'entreprise selon l'art. 102 CP subsidiaire ou primaire",
+      "query": "Responsabilité pénale de l'entreprise selon l'art. 102 CP subsidiaire ou primaire",
       "report": "reports/product/CYCLE_38641080245.md",
       "run_id": 38641080245,
       "server": "python product/query_app.py --port 8793 (one command, stdlib ThreadingHTTPServer)"
     },
-    "live_legs_this_run": "results/product/reality_check/summary_ci_38604340726.json (4/4 structural+truth, sequential) \u2014 durable run conclusion=success observed 2026-10-14T21:36:10Z",
+    "live_legs_this_run": "results/product/reality_check/summary_ci_38604340726.json (4/4 structural+truth, sequential) — durable run conclusion=success observed 2026-10-14T21:36:10Z",
     "pre_existing_collection_errors": "18 legacy 174k test modules fail collection with ModuleNotFoundError: sentence_transformers (optional dep, PAUSE'd legacy lane); unchanged by this cycle and not on the query-map path",
     "product_integration_tests": "91 passed (ci_reality_legs 20 + ci_run_evidence 26 + reality_check + audit_seam + query_map_mvp + answer_contract + human_gate_integration 12)",
     "resume_39014141628": "reports/product/CYCLE_39011220761_RESUME.md is this cycle's report (written by run 39014141628). Pre-existing-red follow-up: product/tests/test_cache_non_orphan claim-bundle identity (CORRECTED characterization, audit D2 repair r1: 2841 differing leaves, committed claim bundle 154 rows vs 120 from a fresh frozen-subset replay, all 120 present in the committed set - NOT only cluster label/size/member_ids) and test_audit_seam dead-model agreement fail identically at accepted base 3077b27 in this environment - re-measure in the numeric environment that produced the accepted claim artifact before quoting claim-cache identity again; never weaken content_sha256 or the seam's exclusion to make them pass.",
@@ -2071,6 +2090,48 @@
       "gate": "results/audit/product/CYCLE_40284658455_GATE.json (PASS, safe_to_integrate=true, required_fixes=[])",
       "accept_commit": "7be4480e (origin/lab/product head; introduced the gate bytes)"
     },
+    "no_frozen_artifact_touched": true,
+    "no_gate_minted": true,
+    "posture_unchanged": true,
+    "dossier_backfill": {
+      "claimed_path": "results/product/audit_readiness/CYCLE_44711032839_audit_readiness.json",
+      "claim_was_unbacked_at_commit": true,
+      "found_by_run": 44723775560,
+      "found_via": "results/product/orchestration/CYCLE_44711032839_resume_diagnosis.json -> validation_findings.missing_claimed_dossiers (point-in-time evidence, never rewritten)",
+      "repaired_by_run": 44723775560,
+      "repaired_by": "the file is generated and committed by run 44723775560 on the same snapshot bytes; the old cycle test's unconditional skip was replaced with an env-guarded fail-closed assertion",
+      "nothing_deleted": true
+    }
+  },
+  "cycle_44723775560_operational_resume": {
+    "run_id": 44723775560,
+    "repair_round": 0,
+    "direction_version": 68,
+    "mode": "OPERATIONAL RESUME from persisted producer snapshot of run 44711032839",
+    "resumed_snapshot": {
+      "run_id": "44711032839",
+      "team_ref_head": "c03dbab5fb9dfdbbb612ef2d2061fe1507bffc2b",
+      "predecessor_head": "6fc8826545ed333d3a8f5c5816e2e2170b8eb71d",
+      "durable_delta_files": 9,
+      "failure": "audit job Independent-audit step failed on the workflow work quantum (LEX_WORK_QUANTUM_EXPIRED seconds=2700, exit 78, 2706.0 s, annotation-observed); gate and persist steps skipped; no audit ref, no gate, integrate skipped; run conclusion failure"
+    },
+    "diagnosis": "results/product/orchestration/CYCLE_44711032839_resume_diagnosis.json",
+    "raw_snapshot": "results/product/orchestration/CYCLE_44711032839_run_jobs_raw.json",
+    "diagnosis_classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+    "mechanism": "OBSERVED_QUANTUM_EXPIRED (annotations: LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=3440; exit code 78; logs endpoint HTTP 403)",
+    "validation_failure_diagnosed": {
+      "class": "UNBACKED_DOSSIER_CLAIM (requirement-33 claim class)",
+      "finding": "reports/product/CYCLE_44711032839.md and state/product.json named results/product/audit_readiness/CYCLE_44711032839_audit_readiness.json while the file was never committed; the old cycle test's unconditional skip let the claim pass",
+      "evidence": "validation_findings.missing_claimed_dossiers in the committed diagnosis (point-in-time, n=1, claimed_by report+state)",
+      "repaired_by": "dossier generated and committed this cycle; instrument now detects the class (missing_claimed_dossiers); cycle tests fail closed outside their own generation"
+    },
+    "verification": "results/product/answer_sourcing/CYCLE_44723775560_verification.json",
+    "verification_verdict": "PASS (10/10 checks)",
+    "audit_readiness_dossier": "results/product/audit_readiness/CYCLE_44723775560_audit_readiness.json",
+    "backfilled_dossier": "results/product/audit_readiness/CYCLE_44711032839_audit_readiness.json",
+    "cycle_test": "product/tests/test_cycle_44723775560.py",
+    "report": "reports/product/CYCLE_44723775560.md",
+    "snapshot_fetcher": "product/fetch_run_jobs_snapshot.py",
     "no_frozen_artifact_touched": true,
     "no_gate_minted": true,
     "posture_unchanged": true

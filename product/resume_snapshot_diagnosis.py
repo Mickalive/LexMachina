@@ -183,6 +183,8 @@ def _repo_relative(path: Path) -> str:
 
 
 CYCLE_TEST_RE = re.compile(r"product/tests/test_cycle_[A-Za-z0-9_]+\.py")
+DOSSIER_CLAIM_RE = re.compile(
+    r"audit_readiness/CYCLE_([0-9]+)_audit_readiness\.json")
 
 
 def _fresh_runner_probe() -> dict[str, Any]:
@@ -233,6 +235,8 @@ def _validation_findings(run_id: str, predecessor_run_id: str) -> dict[str, Any]
 
     * a ``product/tests/test_cycle_*.py`` path the snapshot's own report claims
       but the snapshot did not commit;
+    * an audit-readiness dossier path that a report or ``state/product.json``
+      claims but the tree does not contain (the run-44711032839 defect class);
     * an audit-readiness dossier produced with its mandatory re-runs skipped;
     * the pinned query runtime's presence on the machine that consumes the
       snapshot (the core-lane team job installs nothing, so a fresh runner
@@ -278,6 +282,37 @@ def _validation_findings(run_id: str, predecessor_run_id: str) -> dict[str, Any]
             "failed_checks": data.get("failed_checks") or [],
         })
 
+    # A report or state file that NAMES an audit-readiness dossier the tree
+    # does not contain is the requirement-33 defect class applied to this
+    # instrument: run 44711032839's report and state both claimed
+    # CYCLE_44711032839_audit_readiness.json while the file was never
+    # committed, and the previous generation of this instrument could not
+    # see it because it only listed dossiers that already existed.  Every
+    # claim is checked against the tree, both for this run's predecessors
+    # and across the whole product report/state corpus.
+    claim_sources: list[Path] = [
+        REPO_ROOT / "state" / "product.json",
+        *sorted((REPO_ROOT / "reports" / "product").glob("CYCLE_*.md")),
+    ]
+    claimed_ids: dict[str, list[str]] = {}
+    for src in claim_sources:
+        if not src.is_file():
+            continue
+        for rid in sorted(set(DOSSIER_CLAIM_RE.findall(
+                src.read_text(encoding="utf-8", errors="replace")))):
+            claimed_ids.setdefault(rid, []).append(_repo_relative(src))
+    missing_claimed_dossiers = [
+        {
+            "run_id": rid,
+            "path": f"results/product/audit_readiness/"
+                    f"CYCLE_{rid}_audit_readiness.json",
+            "claimed_by": sorted(set(sources)),
+        }
+        for rid, sources in sorted(claimed_ids.items())
+        if not (REPO_ROOT / "results" / "product" / "audit_readiness"
+                / f"CYCLE_{rid}_audit_readiness.json").is_file()
+    ]
+
     fresh = _fresh_runner_probe()
 
     historical = sorted(
@@ -292,6 +327,7 @@ def _validation_findings(run_id: str, predecessor_run_id: str) -> dict[str, Any]
             row["path"] for row in claimed_tests if not row["present"]
         ],
         "audit_readiness_dossiers": dossier_summary,
+        "missing_claimed_dossiers": missing_claimed_dossiers,
         "dossiers_with_skipped_mandatory_reruns": [
             row["path"] for row in dossier_summary if row["skipped_checks"]
         ],

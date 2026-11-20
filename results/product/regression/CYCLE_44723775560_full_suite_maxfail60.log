@@ -1,0 +1,3188 @@
+........................................................................ [  4%]
+........................................................................ [  8%]
+....................FF.................................................. [ 12%]
+..............................s......................................... [ 16%]
+........................................................................ [ 20%]
+.........................................F...................F.F..FFFFF. [ 24%]
+.FFFFFFFFFFFFFFFFFFFFFFFFFFFFF.FFFFFFFF.FFFFFFFFFFFFF
+=================================== FAILURES ===================================
+__________ test_the_frozen_snapshot_in_force_matches_the_working_tree __________
+
+    def test_the_frozen_snapshot_in_force_matches_the_working_tree():
+        """The protection stays alive: the snapshot in force must describe the tree."""
+        snapshot = cra.newest_snapshot()
+        assert snapshot is not None, (
+            "no superseding frozen cache-manifest snapshot exists - the tree "
+            "drifted from the 38759730609 manifest, so the protection must be "
+            "re-frozen with --write-snapshot")
+        payload = json.loads(snapshot.read_text(encoding="utf-8"))
+        entries = {str(e["path"]): str(e["sha256"])
+                   for e in (payload.get("entries") or [])}
+        tree = cra.current_tree_integrity(entries)
+>       assert tree["intact"], (
+            f"the frozen snapshot in force ({snapshot.name}) does not match the "
+            f"working tree: {tree['n_mismatch']} mismatched, {tree['n_missing']} "
+            "missing")
+E       AssertionError: the frozen snapshot in force (CYCLE_39799042649_cache_manifest.json) does not match the working tree: 21 mismatched, 0 missing
+E       assert False
+
+product/tests/test_cache_rewrite_attribution.py:144: AssertionError
+_____________ test_the_published_attributions_all_verify_together ______________
+
+    def test_the_published_attributions_all_verify_together():
+        """The tool's own verdict must be green, and it must be checkable."""
+        code, problems = cra.check_all()
+>       assert code == 0, f"the published cache attribution does not verify: {problems}"
+E       AssertionError: the published cache attribution does not verify: ['CYCLE_39799042649_cache_manifest.json: the frozen snapshot in force does not match the working tree (21 mismatched, 0 missing)']
+E       assert 1 == 0
+
+product/tests/test_cache_rewrite_attribution.py:155: AssertionError
+________________ test_measurement_is_network_free_and_monotone _________________
+
+    def test_measurement_is_network_free_and_monotone() -> None:
+        """One cached leg, both budgets, no network: the documented delta holds."""
+        out = csk.measure(legs=["rent-default"], caps=[8, 24])
+        assert out["schema"] == csk.SCHEMA
+        assert "fixture replay" in out["mode"] and "network blocked" in out["mode"]
+        assert out["invariants"]["network_calls_blocked"] is True
+        assert out["invariants"]["known_signals_monotone_in_cap"] is True
+        leg = out["legs"][0]
+        assert leg["slug"] == "rent-default"
+        assert leg["known_n"] == 9
+>       assert leg["scans"]["8"]["summary"]["known_signalled_n"] == 2
+E       assert 1 == 2
+
+product/tests/test_counter_surface_known.py:73: AssertionError
+________________________ test_proximity_explainer_basic ________________________
+
+    def test_proximity_explainer_basic():
+        """Test proximity explanation between two known decisions."""
+        print("=== Test: Proximity Explainer (basic) ===")
+    
+        corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+        corpus = CorpusLoader(str(corpus_dir))
+        corpus.load()
+    
+        explainer = ProximityExplainer(corpus)
+    
+        # Find two decisions in the same branch
+        same_branch = None
+        ids = list(corpus.decisions.keys())
+        for i, id_a in enumerate(ids):
+            for id_b in ids[i+1:i+50]:
+                a = corpus.get(id_a)
+                b = corpus.get(id_b)
+                if a and b and a.branch == b.branch and a.language == b.language:
+                    same_branch = (id_a, id_b)
+                    break
+            if same_branch:
+                break
+    
+>       assert same_branch, "Could not find two decisions in same branch"
+E       AssertionError: Could not find two decisions in same branch
+E       assert None
+
+product/tests/test_cycle_33032746334.py:40: AssertionError
+----------------------------- Captured stdout call -----------------------------
+=== Test: Proximity Explainer (basic) ===
+__________________ test_proximity_explainer_language_warning ___________________
+
+    def test_proximity_explainer_language_warning():
+        """Test that language-dominated proximity triggers warnings."""
+        print("=== Test: Proximity Explainer (language warning) ===")
+    
+        corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+        corpus = CorpusLoader(str(corpus_dir))
+        corpus.load()
+    
+        explainer = ProximityExplainer(corpus)
+    
+        # Find two decisions with same language but different branch
+        same_lang_diff_branch = None
+        ids = list(corpus.decisions.keys())
+        for i, id_a in enumerate(ids):
+            for id_b in ids[i+1:i+100]:
+                a = corpus.get(id_a)
+                b = corpus.get(id_b)
+                if a and b and a.language == b.language and a.branch != b.branch:
+                    same_lang_diff_branch = (id_a, id_b)
+                    break
+            if same_lang_diff_branch:
+                break
+    
+>       assert same_lang_diff_branch, "Could not find same-language different-branch pair"
+E       AssertionError: Could not find same-language different-branch pair
+E       assert None
+
+product/tests/test_cycle_33032746334.py:129: AssertionError
+----------------------------- Captured stdout call -----------------------------
+=== Test: Proximity Explainer (language warning) ===
+____________________________ test_cluster_coherence ____________________________
+
+tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-0/test_cluster_coherence0')
+
+    def test_cluster_coherence(tmp_path):
+        """Test cluster coherence analysis."""
+        print("=== Test: Cluster Coherence ===")
+    
+        corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+        results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+        api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
+        api.initialize()
+    
+        # Get cluster coherence for first cluster at zoom 1
+        coherence = api.get_cluster_coherence("concat_center_tfidf", 1, 0)
+    
+>       assert "cluster_id" in coherence, "Missing cluster_id"
+E       AssertionError: Missing cluster_id
+E       assert 'cluster_id' in {'error': 'Zoom level not found'}
+
+product/tests/test_cycle_33032746334.py:210: AssertionError
+----------------------------- Captured stdout call -----------------------------
+=== Test: Cluster Coherence ===
+WARNING: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/center_projected_64dim_hierarchical/metadata.json not found, skipping 64-dim center_projected
+_____________________ test_cluster_coherence_all_clusters ______________________
+
+tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-0/test_cluster_coherence_all_clu0')
+
+    def test_cluster_coherence_all_clusters(tmp_path):
+        """Test coherence for multiple clusters."""
+        print("=== Test: Cluster Coherence (all clusters) ===")
+    
+        corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+        results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+        api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
+        api.initialize()
+    
+        # Get map data to find all cluster IDs
+        map_data = api.get_map_data("concat_center_tfidf", 1)
+>       cluster_ids = [c["cluster_id"] for c in map_data["clusters"]]
+                                                ^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'clusters'
+
+product/tests/test_cycle_33032746334.py:239: KeyError
+----------------------------- Captured stdout call -----------------------------
+=== Test: Cluster Coherence (all clusters) ===
+WARNING: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/center_projected_64dim_hierarchical/metadata.json not found, skipping 64-dim center_projected
+_________________________ test_proximity_api_endpoint __________________________
+
+tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-0/test_proximity_api_endpoint0')
+
+    def test_proximity_api_endpoint(tmp_path):
+        """Test the proximity API endpoint through NavigationAPI."""
+        print("=== Test: Proximity API Endpoint ===")
+    
+        corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+        results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+        api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
+        api.initialize()
+    
+        # Get two decisions from the map
+        positions = api.map_loader.get_positions("concat_center_tfidf")
+        ids = list(positions.keys())[:2]
+    
+>       result = api.get_proximity_explanation(ids[0], ids[1])
+                                               ^^^^^^
+E       IndexError: list index out of range
+
+product/tests/test_cycle_33032746334.py:266: IndexError
+----------------------------- Captured stdout call -----------------------------
+=== Test: Proximity API Endpoint ===
+WARNING: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/center_projected_64dim_hierarchical/metadata.json not found, skipping 64-dim center_projected
+_____________________________ test_language_filter _____________________________
+
+tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-0/test_language_filter0')
+
+    def test_language_filter(tmp_path):
+        """Test language-aware map data filtering."""
+        print("=== Test: Language Filter ===")
+    
+        corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+        results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+        api = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
+        api.initialize()
+    
+        # Get unfiltered data
+        all_data = api.get_map_data("concat_center_tfidf", 1)
+>       total = len(all_data["positions"])
+                    ^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'positions'
+
+product/tests/test_cycle_33032746334.py:296: KeyError
+----------------------------- Captured stdout call -----------------------------
+=== Test: Language Filter ===
+WARNING: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/center_projected_64dim_hierarchical/metadata.json not found, skipping 64-dim center_projected
+__________________________ test_zoom_coherence_loader __________________________
+
+    def test_zoom_coherence_loader():
+        """Test zoom coherence data loading and summary."""
+        print("=== Test: Zoom Coherence Loader ===")
+    
+        results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+        loader = ZoomCoherenceLoader(str(results_dir))
+        loaded = loader.load()
+    
+>       assert loaded, "Zoom coherence data should load"
+E       AssertionError: Zoom coherence data should load
+E       assert False
+
+product/tests/test_cycle_33033658714.py:24: AssertionError
+----------------------------- Captured stdout call -----------------------------
+=== Test: Zoom Coherence Loader ===
+________________________ test_navigation_new_endpoints _________________________
+
+tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-0/test_navigation_new_endpoints0')
+
+    def test_navigation_new_endpoints(tmp_path):
+        """Test new navigation API endpoints."""
+        print("=== Test: Navigation New Endpoints ===")
+    
+        corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+        results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+        nav = NavigationAPI(str(corpus_dir), str(results_dir), write_dir=str(tmp_path))
+        nav.initialize()
+    
+        # Test zoom coherence summary
+        zoom_summary = nav.get_zoom_coherence_summary()
+>       assert "overall_improvement_rate" in zoom_summary, "Zoom summary should have improvement rate"
+E       AssertionError: Zoom summary should have improvement rate
+E       assert 'overall_improvement_rate' in {'error': 'Zoom coherence data not loaded'}
+
+product/tests/test_cycle_33033658714.py:167: AssertionError
+----------------------------- Captured stdout call -----------------------------
+=== Test: Navigation New Endpoints ===
+WARNING: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/center_projected_64dim_hierarchical/metadata.json not found, skipping 64-dim center_projected
+__________ TestScaledSectionProjections.test_scaled_directory_exists ___________
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244ae2490>
+
+    def test_scaled_directory_exists(self):
+        """Verify the section_scaled output directory exists."""
+>       assert SCALED_DIR.exists(), f"Scaled directory not found: {SCALED_DIR}"
+E       AssertionError: Scaled directory not found: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2
+E       assert False
+E        +  where False = exists()
+E        +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2').exists
+
+product/tests/test_cycle_33035450227.py:47: AssertionError
+____________ TestScaledSectionProjections.test_metadata_json_exists ____________
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244ae2350>
+
+    def test_metadata_json_exists(self):
+        """Verify metadata.json exists and is valid JSON."""
+        meta_path = SCALED_DIR / "metadata.json"
+>       assert meta_path.exists(), f"metadata.json not found in {SCALED_DIR}"
+E       AssertionError: metadata.json not found in /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2
+E       assert False
+E        +  where False = exists()
+E        +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/metadata.json').exists
+
+product/tests/test_cycle_33035450227.py:53: AssertionError
+__________ TestScaledSectionProjections.test_metadata_total_decisions __________
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d256f46780>
+
+    def test_metadata_total_decisions(self):
+        """Verify metadata reports 1202 total decisions (v18 expanded)."""
+>       with open(SCALED_DIR / "metadata.json") as f:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/metadata.json'
+
+product/tests/test_cycle_33035450227.py:61: FileNotFoundError
+_____ TestScaledSectionProjections.test_metadata_section_covered_decisions _____
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d256f468b0>
+
+    def test_metadata_section_covered_decisions(self):
+        """Verify metadata reports 1150 section-covered decisions (v18 expanded from 63)."""
+>       with open(SCALED_DIR / "metadata.json") as f:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/metadata.json'
+
+product/tests/test_cycle_33035450227.py:70: FileNotFoundError
+_______ TestScaledSectionProjections.test_metadata_section_modes_present _______
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d24577db50>
+
+    def test_metadata_section_modes_present(self):
+        """Verify all 6 section modes are listed in metadata."""
+>       with open(SCALED_DIR / "metadata.json") as f:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/metadata.json'
+
+product/tests/test_cycle_33035450227.py:79: FileNotFoundError
+__________ TestScaledSectionProjections.test_metadata_coverage_stats ___________
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d245ae5d00>
+
+    def test_metadata_coverage_stats(self):
+        """Verify per-mode coverage stats (v18 expanded: up to 95.7% coverage)."""
+>       with open(SCALED_DIR / "metadata.json") as f:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/metadata.json'
+
+product/tests/test_cycle_33035450227.py:89: FileNotFoundError
+________ TestScaledSectionProjections.test_metadata_decision_provenance ________
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d245b4fac0>
+
+    def test_metadata_decision_provenance(self):
+        """Verify provenance array has 1202 entries with section/baseline sources."""
+>       with open(SCALED_DIR / "metadata.json") as f:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/metadata.json'
+
+product/tests/test_cycle_33035450227.py:110: FileNotFoundError
+____ TestScaledSectionProjections.test_projection_file_exists[sachverhalt] _____
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244650b50>
+mode_name = 'sachverhalt'
+
+    @pytest.mark.parametrize("mode_name", SECTION_MODES)
+    def test_projection_file_exists(self, mode_name):
+        """Verify each section mode projection file exists."""
+        proj_path = SCALED_DIR / f"projection_{mode_name}.npy"
+>       assert proj_path.exists(), f"Projection file missing: {proj_path}"
+E       AssertionError: Projection file missing: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt.npy
+E       assert False
+E        +  where False = exists()
+E        +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt.npy').exists
+
+product/tests/test_cycle_33035450227.py:128: AssertionError
+____ TestScaledSectionProjections.test_projection_file_exists[erwaegungen] _____
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244650d50>
+mode_name = 'erwaegungen'
+
+    @pytest.mark.parametrize("mode_name", SECTION_MODES)
+    def test_projection_file_exists(self, mode_name):
+        """Verify each section mode projection file exists."""
+        proj_path = SCALED_DIR / f"projection_{mode_name}.npy"
+>       assert proj_path.exists(), f"Projection file missing: {proj_path}"
+E       AssertionError: Projection file missing: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen.npy
+E       assert False
+E        +  where False = exists()
+E        +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen.npy').exists
+
+product/tests/test_cycle_33035450227.py:128: AssertionError
+_____ TestScaledSectionProjections.test_projection_file_exists[dispositiv] _____
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244b58140>
+mode_name = 'dispositiv'
+
+    @pytest.mark.parametrize("mode_name", SECTION_MODES)
+    def test_projection_file_exists(self, mode_name):
+        """Verify each section mode projection file exists."""
+        proj_path = SCALED_DIR / f"projection_{mode_name}.npy"
+>       assert proj_path.exists(), f"Projection file missing: {proj_path}"
+E       AssertionError: Projection file missing: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_dispositiv.npy
+E       assert False
+E        +  where False = exists()
+E        +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_dispositiv.npy').exists
+
+product/tests/test_cycle_33035450227.py:128: AssertionError
+_____ TestScaledSectionProjections.test_projection_file_exists[full_text] ______
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244b58230>
+mode_name = 'full_text'
+
+    @pytest.mark.parametrize("mode_name", SECTION_MODES)
+    def test_projection_file_exists(self, mode_name):
+        """Verify each section mode projection file exists."""
+        proj_path = SCALED_DIR / f"projection_{mode_name}.npy"
+>       assert proj_path.exists(), f"Projection file missing: {proj_path}"
+E       AssertionError: Projection file missing: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_full_text.npy
+E       assert False
+E        +  where False = exists()
+E        +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_full_text.npy').exists
+
+product/tests/test_cycle_33035450227.py:128: AssertionError
+_ TestScaledSectionProjections.test_projection_file_exists[erwaegungen_dispositiv] _
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244b4c4b0>
+mode_name = 'erwaegungen_dispositiv'
+
+    @pytest.mark.parametrize("mode_name", SECTION_MODES)
+    def test_projection_file_exists(self, mode_name):
+        """Verify each section mode projection file exists."""
+        proj_path = SCALED_DIR / f"projection_{mode_name}.npy"
+>       assert proj_path.exists(), f"Projection file missing: {proj_path}"
+E       AssertionError: Projection file missing: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen_dispositiv.npy
+E       assert False
+E        +  where False = exists()
+E        +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen_dispositiv.npy').exists
+
+product/tests/test_cycle_33035450227.py:128: AssertionError
+_ TestScaledSectionProjections.test_projection_file_exists[sachverhalt_erwaegungen_dispositiv] _
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244b4c670>
+mode_name = 'sachverhalt_erwaegungen_dispositiv'
+
+    @pytest.mark.parametrize("mode_name", SECTION_MODES)
+    def test_projection_file_exists(self, mode_name):
+        """Verify each section mode projection file exists."""
+        proj_path = SCALED_DIR / f"projection_{mode_name}.npy"
+>       assert proj_path.exists(), f"Projection file missing: {proj_path}"
+E       AssertionError: Projection file missing: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt_erwaegungen_dispositiv.npy
+E       assert False
+E        +  where False = exists()
+E        +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt_erwaegungen_dispositiv.npy').exists
+
+product/tests/test_cycle_33035450227.py:128: AssertionError
+_______ TestScaledSectionProjections.test_projection_shape[sachverhalt] ________
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d245abb6c0>
+mode_name = 'sachverhalt'
+
+    @pytest.mark.parametrize("mode_name", SECTION_MODES)
+    def test_projection_shape(self, mode_name):
+        """Verify each projection has shape (1202, 2) for v18 expanded."""
+>       proj = np.load(SCALED_DIR / f"projection_{mode_name}.npy")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+product/tests/test_cycle_33035450227.py:134: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+file = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt.npy')
+mmap_mode = None, allow_pickle = False, fix_imports = True, encoding = 'ASCII'
+max_header_size = 10000
+
+    @set_module('numpy')
+    def load(file, mmap_mode=None, allow_pickle=False, fix_imports=True,
+             encoding='ASCII', *, max_header_size=_MAX_HEADER_SIZE):
+        """
+        Load arrays or pickled objects from ``.npy``, ``.npz`` or pickled files.
+    
+        .. warning:: Loading files that contain object arrays uses the ``pickle``
+                     module, which is not secure against erroneous or maliciously
+                     constructed data. Consider passing ``allow_pickle=False`` to
+                     load data that is known not to contain object arrays for the
+                     safer handling of untrusted sources.
+    
+        Parameters
+        ----------
+        file : file-like object, string, or pathlib.Path
+            The file to read. File-like objects must support the
+            ``seek()`` and ``read()`` methods and must always
+            be opened in binary mode.  Pickled files require that the
+            file-like object support the ``readline()`` method as well.
+        mmap_mode : {None, 'r+', 'r', 'w+', 'c'}, optional
+            If not None, then memory-map the file, using the given mode (see
+            `numpy.memmap` for a detailed description of the modes).  A
+            memory-mapped array is kept on disk. However, it can be accessed
+            and sliced like any ndarray.  Memory mapping is especially useful
+            for accessing small fragments of large files without reading the
+            entire file into memory.
+        allow_pickle : bool, optional
+            Allow loading pickled object arrays stored in npy files. Reasons for
+            disallowing pickles include security, as loading pickled data can
+            execute arbitrary code. If pickles are disallowed, loading object
+            arrays will fail. Default: False
+        fix_imports : bool, optional
+            Only useful when loading Python 2 generated pickled files,
+            which includes npy/npz files containing object arrays. If `fix_imports`
+            is True, pickle will try to map the old Python 2 names to the new names
+            used in Python 3.
+        encoding : str, optional
+            What encoding to use when reading Python 2 strings. Only useful when
+            loading Python 2 generated pickled files, which includes
+            npy/npz files containing object arrays. Values other than 'latin1',
+            'ASCII', and 'bytes' are not allowed, as they can corrupt numerical
+            data. Default: 'ASCII'
+        max_header_size : int, optional
+            Maximum allowed size of the header.  Large headers may not be safe
+            to load securely and thus require explicitly passing a larger value.
+            See :py:func:`ast.literal_eval()` for details.
+            This option is ignored when `allow_pickle` is passed.  In that case
+            the file is by definition trusted and the limit is unnecessary.
+    
+        Returns
+        -------
+        result : array, tuple, dict, etc.
+            Data stored in the file. For ``.npz`` files, the returned instance
+            of NpzFile class must be closed to avoid leaking file descriptors.
+    
+        Raises
+        ------
+        OSError
+            If the input file does not exist or cannot be read.
+        UnpicklingError
+            If ``allow_pickle=True``, but the file cannot be loaded as a pickle.
+        ValueError
+            The file contains an object array, but ``allow_pickle=False`` given.
+        EOFError
+            When calling ``np.load`` multiple times on the same file handle,
+            if all data has already been read
+    
+        See Also
+        --------
+        save, savez, savez_compressed, loadtxt
+        memmap : Create a memory-map to an array stored in a file on disk.
+        lib.format.open_memmap : Create or load a memory-mapped ``.npy`` file.
+    
+        Notes
+        -----
+        - If the file contains pickle data, then whatever object is stored
+          in the pickle is returned.
+        - If the file is a ``.npy`` file, then a single array is returned.
+        - If the file is a ``.npz`` file, then a dictionary-like object is
+          returned, containing ``{filename: array}`` key-value pairs, one for
+          each file in the archive.
+        - If the file is a ``.npz`` file, the returned value supports the
+          context manager protocol in a similar fashion to the open function::
+    
+            with load('foo.npz') as data:
+                a = data['a']
+    
+          The underlying file descriptor is closed when exiting the 'with'
+          block.
+    
+        Examples
+        --------
+        >>> import numpy as np
+    
+        Store data to disk, and load it again:
+    
+        >>> np.save('/tmp/123', np.array([[1, 2, 3], [4, 5, 6]]))
+        >>> np.load('/tmp/123.npy')
+        array([[1, 2, 3],
+               [4, 5, 6]])
+    
+        Store compressed data to disk, and load it again:
+    
+        >>> a=np.array([[1, 2, 3], [4, 5, 6]])
+        >>> b=np.array([1, 2])
+        >>> np.savez('/tmp/123.npz', a=a, b=b)
+        >>> data = np.load('/tmp/123.npz')
+        >>> data['a']
+        array([[1, 2, 3],
+               [4, 5, 6]])
+        >>> data['b']
+        array([1, 2])
+        >>> data.close()
+    
+        Mem-map the stored array, and then access the second row
+        directly from disk:
+    
+        >>> X = np.load('/tmp/123.npy', mmap_mode='r')
+        >>> X[1, :]
+        memmap([4, 5, 6])
+    
+        """
+        if encoding not in ('ASCII', 'latin1', 'bytes'):
+            # The 'encoding' value for pickle also affects what encoding
+            # the serialized binary data of NumPy arrays is loaded
+            # in. Pickle does not pass on the encoding information to
+            # NumPy. The unpickling code in numpy._core.multiarray is
+            # written to assume that unicode data appearing where binary
+            # should be is in 'latin1'. 'bytes' is also safe, as is 'ASCII'.
+            #
+            # Other encoding values can corrupt binary data, and we
+            # purposefully disallow them. For the same reason, the errors=
+            # argument is not exposed, as values other than 'strict'
+            # result can similarly silently corrupt numerical data.
+            raise ValueError("encoding must be 'ASCII', 'latin1', or 'bytes'")
+    
+        pickle_kwargs = {'encoding': encoding, 'fix_imports': fix_imports}
+    
+        with contextlib.ExitStack() as stack:
+            if hasattr(file, 'read'):
+                fid = file
+                own_fid = False
+            else:
+>               fid = stack.enter_context(open(os.fspath(file), "rb"))
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt.npy'
+
+../../../.local/lib/python3.14/site-packages/numpy/lib/_npyio_impl.py:454: FileNotFoundError
+_______ TestScaledSectionProjections.test_projection_shape[erwaegungen] ________
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244a82bd0>
+mode_name = 'erwaegungen'
+
+    @pytest.mark.parametrize("mode_name", SECTION_MODES)
+    def test_projection_shape(self, mode_name):
+        """Verify each projection has shape (1202, 2) for v18 expanded."""
+>       proj = np.load(SCALED_DIR / f"projection_{mode_name}.npy")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+product/tests/test_cycle_33035450227.py:134: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+file = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen.npy')
+mmap_mode = None, allow_pickle = False, fix_imports = True, encoding = 'ASCII'
+max_header_size = 10000
+
+    @set_module('numpy')
+    def load(file, mmap_mode=None, allow_pickle=False, fix_imports=True,
+             encoding='ASCII', *, max_header_size=_MAX_HEADER_SIZE):
+        """
+        Load arrays or pickled objects from ``.npy``, ``.npz`` or pickled files.
+    
+        .. warning:: Loading files that contain object arrays uses the ``pickle``
+                     module, which is not secure against erroneous or maliciously
+                     constructed data. Consider passing ``allow_pickle=False`` to
+                     load data that is known not to contain object arrays for the
+                     safer handling of untrusted sources.
+    
+        Parameters
+        ----------
+        file : file-like object, string, or pathlib.Path
+            The file to read. File-like objects must support the
+            ``seek()`` and ``read()`` methods and must always
+            be opened in binary mode.  Pickled files require that the
+            file-like object support the ``readline()`` method as well.
+        mmap_mode : {None, 'r+', 'r', 'w+', 'c'}, optional
+            If not None, then memory-map the file, using the given mode (see
+            `numpy.memmap` for a detailed description of the modes).  A
+            memory-mapped array is kept on disk. However, it can be accessed
+            and sliced like any ndarray.  Memory mapping is especially useful
+            for accessing small fragments of large files without reading the
+            entire file into memory.
+        allow_pickle : bool, optional
+            Allow loading pickled object arrays stored in npy files. Reasons for
+            disallowing pickles include security, as loading pickled data can
+            execute arbitrary code. If pickles are disallowed, loading object
+            arrays will fail. Default: False
+        fix_imports : bool, optional
+            Only useful when loading Python 2 generated pickled files,
+            which includes npy/npz files containing object arrays. If `fix_imports`
+            is True, pickle will try to map the old Python 2 names to the new names
+            used in Python 3.
+        encoding : str, optional
+            What encoding to use when reading Python 2 strings. Only useful when
+            loading Python 2 generated pickled files, which includes
+            npy/npz files containing object arrays. Values other than 'latin1',
+            'ASCII', and 'bytes' are not allowed, as they can corrupt numerical
+            data. Default: 'ASCII'
+        max_header_size : int, optional
+            Maximum allowed size of the header.  Large headers may not be safe
+            to load securely and thus require explicitly passing a larger value.
+            See :py:func:`ast.literal_eval()` for details.
+            This option is ignored when `allow_pickle` is passed.  In that case
+            the file is by definition trusted and the limit is unnecessary.
+    
+        Returns
+        -------
+        result : array, tuple, dict, etc.
+            Data stored in the file. For ``.npz`` files, the returned instance
+            of NpzFile class must be closed to avoid leaking file descriptors.
+    
+        Raises
+        ------
+        OSError
+            If the input file does not exist or cannot be read.
+        UnpicklingError
+            If ``allow_pickle=True``, but the file cannot be loaded as a pickle.
+        ValueError
+            The file contains an object array, but ``allow_pickle=False`` given.
+        EOFError
+            When calling ``np.load`` multiple times on the same file handle,
+            if all data has already been read
+    
+        See Also
+        --------
+        save, savez, savez_compressed, loadtxt
+        memmap : Create a memory-map to an array stored in a file on disk.
+        lib.format.open_memmap : Create or load a memory-mapped ``.npy`` file.
+    
+        Notes
+        -----
+        - If the file contains pickle data, then whatever object is stored
+          in the pickle is returned.
+        - If the file is a ``.npy`` file, then a single array is returned.
+        - If the file is a ``.npz`` file, then a dictionary-like object is
+          returned, containing ``{filename: array}`` key-value pairs, one for
+          each file in the archive.
+        - If the file is a ``.npz`` file, the returned value supports the
+          context manager protocol in a similar fashion to the open function::
+    
+            with load('foo.npz') as data:
+                a = data['a']
+    
+          The underlying file descriptor is closed when exiting the 'with'
+          block.
+    
+        Examples
+        --------
+        >>> import numpy as np
+    
+        Store data to disk, and load it again:
+    
+        >>> np.save('/tmp/123', np.array([[1, 2, 3], [4, 5, 6]]))
+        >>> np.load('/tmp/123.npy')
+        array([[1, 2, 3],
+               [4, 5, 6]])
+    
+        Store compressed data to disk, and load it again:
+    
+        >>> a=np.array([[1, 2, 3], [4, 5, 6]])
+        >>> b=np.array([1, 2])
+        >>> np.savez('/tmp/123.npz', a=a, b=b)
+        >>> data = np.load('/tmp/123.npz')
+        >>> data['a']
+        array([[1, 2, 3],
+               [4, 5, 6]])
+        >>> data['b']
+        array([1, 2])
+        >>> data.close()
+    
+        Mem-map the stored array, and then access the second row
+        directly from disk:
+    
+        >>> X = np.load('/tmp/123.npy', mmap_mode='r')
+        >>> X[1, :]
+        memmap([4, 5, 6])
+    
+        """
+        if encoding not in ('ASCII', 'latin1', 'bytes'):
+            # The 'encoding' value for pickle also affects what encoding
+            # the serialized binary data of NumPy arrays is loaded
+            # in. Pickle does not pass on the encoding information to
+            # NumPy. The unpickling code in numpy._core.multiarray is
+            # written to assume that unicode data appearing where binary
+            # should be is in 'latin1'. 'bytes' is also safe, as is 'ASCII'.
+            #
+            # Other encoding values can corrupt binary data, and we
+            # purposefully disallow them. For the same reason, the errors=
+            # argument is not exposed, as values other than 'strict'
+            # result can similarly silently corrupt numerical data.
+            raise ValueError("encoding must be 'ASCII', 'latin1', or 'bytes'")
+    
+        pickle_kwargs = {'encoding': encoding, 'fix_imports': fix_imports}
+    
+        with contextlib.ExitStack() as stack:
+            if hasattr(file, 'read'):
+                fid = file
+                own_fid = False
+            else:
+>               fid = stack.enter_context(open(os.fspath(file), "rb"))
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen.npy'
+
+../../../.local/lib/python3.14/site-packages/numpy/lib/_npyio_impl.py:454: FileNotFoundError
+________ TestScaledSectionProjections.test_projection_shape[dispositiv] ________
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244a82810>
+mode_name = 'dispositiv'
+
+    @pytest.mark.parametrize("mode_name", SECTION_MODES)
+    def test_projection_shape(self, mode_name):
+        """Verify each projection has shape (1202, 2) for v18 expanded."""
+>       proj = np.load(SCALED_DIR / f"projection_{mode_name}.npy")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+product/tests/test_cycle_33035450227.py:134: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+file = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_dispositiv.npy')
+mmap_mode = None, allow_pickle = False, fix_imports = True, encoding = 'ASCII'
+max_header_size = 10000
+
+    @set_module('numpy')
+    def load(file, mmap_mode=None, allow_pickle=False, fix_imports=True,
+             encoding='ASCII', *, max_header_size=_MAX_HEADER_SIZE):
+        """
+        Load arrays or pickled objects from ``.npy``, ``.npz`` or pickled files.
+    
+        .. warning:: Loading files that contain object arrays uses the ``pickle``
+                     module, which is not secure against erroneous or maliciously
+                     constructed data. Consider passing ``allow_pickle=False`` to
+                     load data that is known not to contain object arrays for the
+                     safer handling of untrusted sources.
+    
+        Parameters
+        ----------
+        file : file-like object, string, or pathlib.Path
+            The file to read. File-like objects must support the
+            ``seek()`` and ``read()`` methods and must always
+            be opened in binary mode.  Pickled files require that the
+            file-like object support the ``readline()`` method as well.
+        mmap_mode : {None, 'r+', 'r', 'w+', 'c'}, optional
+            If not None, then memory-map the file, using the given mode (see
+            `numpy.memmap` for a detailed description of the modes).  A
+            memory-mapped array is kept on disk. However, it can be accessed
+            and sliced like any ndarray.  Memory mapping is especially useful
+            for accessing small fragments of large files without reading the
+            entire file into memory.
+        allow_pickle : bool, optional
+            Allow loading pickled object arrays stored in npy files. Reasons for
+            disallowing pickles include security, as loading pickled data can
+            execute arbitrary code. If pickles are disallowed, loading object
+            arrays will fail. Default: False
+        fix_imports : bool, optional
+            Only useful when loading Python 2 generated pickled files,
+            which includes npy/npz files containing object arrays. If `fix_imports`
+            is True, pickle will try to map the old Python 2 names to the new names
+            used in Python 3.
+        encoding : str, optional
+            What encoding to use when reading Python 2 strings. Only useful when
+            loading Python 2 generated pickled files, which includes
+            npy/npz files containing object arrays. Values other than 'latin1',
+            'ASCII', and 'bytes' are not allowed, as they can corrupt numerical
+            data. Default: 'ASCII'
+        max_header_size : int, optional
+            Maximum allowed size of the header.  Large headers may not be safe
+            to load securely and thus require explicitly passing a larger value.
+            See :py:func:`ast.literal_eval()` for details.
+            This option is ignored when `allow_pickle` is passed.  In that case
+            the file is by definition trusted and the limit is unnecessary.
+    
+        Returns
+        -------
+        result : array, tuple, dict, etc.
+            Data stored in the file. For ``.npz`` files, the returned instance
+            of NpzFile class must be closed to avoid leaking file descriptors.
+    
+        Raises
+        ------
+        OSError
+            If the input file does not exist or cannot be read.
+        UnpicklingError
+            If ``allow_pickle=True``, but the file cannot be loaded as a pickle.
+        ValueError
+            The file contains an object array, but ``allow_pickle=False`` given.
+        EOFError
+            When calling ``np.load`` multiple times on the same file handle,
+            if all data has already been read
+    
+        See Also
+        --------
+        save, savez, savez_compressed, loadtxt
+        memmap : Create a memory-map to an array stored in a file on disk.
+        lib.format.open_memmap : Create or load a memory-mapped ``.npy`` file.
+    
+        Notes
+        -----
+        - If the file contains pickle data, then whatever object is stored
+          in the pickle is returned.
+        - If the file is a ``.npy`` file, then a single array is returned.
+        - If the file is a ``.npz`` file, then a dictionary-like object is
+          returned, containing ``{filename: array}`` key-value pairs, one for
+          each file in the archive.
+        - If the file is a ``.npz`` file, the returned value supports the
+          context manager protocol in a similar fashion to the open function::
+    
+            with load('foo.npz') as data:
+                a = data['a']
+    
+          The underlying file descriptor is closed when exiting the 'with'
+          block.
+    
+        Examples
+        --------
+        >>> import numpy as np
+    
+        Store data to disk, and load it again:
+    
+        >>> np.save('/tmp/123', np.array([[1, 2, 3], [4, 5, 6]]))
+        >>> np.load('/tmp/123.npy')
+        array([[1, 2, 3],
+               [4, 5, 6]])
+    
+        Store compressed data to disk, and load it again:
+    
+        >>> a=np.array([[1, 2, 3], [4, 5, 6]])
+        >>> b=np.array([1, 2])
+        >>> np.savez('/tmp/123.npz', a=a, b=b)
+        >>> data = np.load('/tmp/123.npz')
+        >>> data['a']
+        array([[1, 2, 3],
+               [4, 5, 6]])
+        >>> data['b']
+        array([1, 2])
+        >>> data.close()
+    
+        Mem-map the stored array, and then access the second row
+        directly from disk:
+    
+        >>> X = np.load('/tmp/123.npy', mmap_mode='r')
+        >>> X[1, :]
+        memmap([4, 5, 6])
+    
+        """
+        if encoding not in ('ASCII', 'latin1', 'bytes'):
+            # The 'encoding' value for pickle also affects what encoding
+            # the serialized binary data of NumPy arrays is loaded
+            # in. Pickle does not pass on the encoding information to
+            # NumPy. The unpickling code in numpy._core.multiarray is
+            # written to assume that unicode data appearing where binary
+            # should be is in 'latin1'. 'bytes' is also safe, as is 'ASCII'.
+            #
+            # Other encoding values can corrupt binary data, and we
+            # purposefully disallow them. For the same reason, the errors=
+            # argument is not exposed, as values other than 'strict'
+            # result can similarly silently corrupt numerical data.
+            raise ValueError("encoding must be 'ASCII', 'latin1', or 'bytes'")
+    
+        pickle_kwargs = {'encoding': encoding, 'fix_imports': fix_imports}
+    
+        with contextlib.ExitStack() as stack:
+            if hasattr(file, 'read'):
+                fid = file
+                own_fid = False
+            else:
+>               fid = stack.enter_context(open(os.fspath(file), "rb"))
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_dispositiv.npy'
+
+../../../.local/lib/python3.14/site-packages/numpy/lib/_npyio_impl.py:454: FileNotFoundError
+________ TestScaledSectionProjections.test_projection_shape[full_text] _________
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244b51c80>
+mode_name = 'full_text'
+
+    @pytest.mark.parametrize("mode_name", SECTION_MODES)
+    def test_projection_shape(self, mode_name):
+        """Verify each projection has shape (1202, 2) for v18 expanded."""
+>       proj = np.load(SCALED_DIR / f"projection_{mode_name}.npy")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+product/tests/test_cycle_33035450227.py:134: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+file = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_full_text.npy')
+mmap_mode = None, allow_pickle = False, fix_imports = True, encoding = 'ASCII'
+max_header_size = 10000
+
+    @set_module('numpy')
+    def load(file, mmap_mode=None, allow_pickle=False, fix_imports=True,
+             encoding='ASCII', *, max_header_size=_MAX_HEADER_SIZE):
+        """
+        Load arrays or pickled objects from ``.npy``, ``.npz`` or pickled files.
+    
+        .. warning:: Loading files that contain object arrays uses the ``pickle``
+                     module, which is not secure against erroneous or maliciously
+                     constructed data. Consider passing ``allow_pickle=False`` to
+                     load data that is known not to contain object arrays for the
+                     safer handling of untrusted sources.
+    
+        Parameters
+        ----------
+        file : file-like object, string, or pathlib.Path
+            The file to read. File-like objects must support the
+            ``seek()`` and ``read()`` methods and must always
+            be opened in binary mode.  Pickled files require that the
+            file-like object support the ``readline()`` method as well.
+        mmap_mode : {None, 'r+', 'r', 'w+', 'c'}, optional
+            If not None, then memory-map the file, using the given mode (see
+            `numpy.memmap` for a detailed description of the modes).  A
+            memory-mapped array is kept on disk. However, it can be accessed
+            and sliced like any ndarray.  Memory mapping is especially useful
+            for accessing small fragments of large files without reading the
+            entire file into memory.
+        allow_pickle : bool, optional
+            Allow loading pickled object arrays stored in npy files. Reasons for
+            disallowing pickles include security, as loading pickled data can
+            execute arbitrary code. If pickles are disallowed, loading object
+            arrays will fail. Default: False
+        fix_imports : bool, optional
+            Only useful when loading Python 2 generated pickled files,
+            which includes npy/npz files containing object arrays. If `fix_imports`
+            is True, pickle will try to map the old Python 2 names to the new names
+            used in Python 3.
+        encoding : str, optional
+            What encoding to use when reading Python 2 strings. Only useful when
+            loading Python 2 generated pickled files, which includes
+            npy/npz files containing object arrays. Values other than 'latin1',
+            'ASCII', and 'bytes' are not allowed, as they can corrupt numerical
+            data. Default: 'ASCII'
+        max_header_size : int, optional
+            Maximum allowed size of the header.  Large headers may not be safe
+            to load securely and thus require explicitly passing a larger value.
+            See :py:func:`ast.literal_eval()` for details.
+            This option is ignored when `allow_pickle` is passed.  In that case
+            the file is by definition trusted and the limit is unnecessary.
+    
+        Returns
+        -------
+        result : array, tuple, dict, etc.
+            Data stored in the file. For ``.npz`` files, the returned instance
+            of NpzFile class must be closed to avoid leaking file descriptors.
+    
+        Raises
+        ------
+        OSError
+            If the input file does not exist or cannot be read.
+        UnpicklingError
+            If ``allow_pickle=True``, but the file cannot be loaded as a pickle.
+        ValueError
+            The file contains an object array, but ``allow_pickle=False`` given.
+        EOFError
+            When calling ``np.load`` multiple times on the same file handle,
+            if all data has already been read
+    
+        See Also
+        --------
+        save, savez, savez_compressed, loadtxt
+        memmap : Create a memory-map to an array stored in a file on disk.
+        lib.format.open_memmap : Create or load a memory-mapped ``.npy`` file.
+    
+        Notes
+        -----
+        - If the file contains pickle data, then whatever object is stored
+          in the pickle is returned.
+        - If the file is a ``.npy`` file, then a single array is returned.
+        - If the file is a ``.npz`` file, then a dictionary-like object is
+          returned, containing ``{filename: array}`` key-value pairs, one for
+          each file in the archive.
+        - If the file is a ``.npz`` file, the returned value supports the
+          context manager protocol in a similar fashion to the open function::
+    
+            with load('foo.npz') as data:
+                a = data['a']
+    
+          The underlying file descriptor is closed when exiting the 'with'
+          block.
+    
+        Examples
+        --------
+        >>> import numpy as np
+    
+        Store data to disk, and load it again:
+    
+        >>> np.save('/tmp/123', np.array([[1, 2, 3], [4, 5, 6]]))
+        >>> np.load('/tmp/123.npy')
+        array([[1, 2, 3],
+               [4, 5, 6]])
+    
+        Store compressed data to disk, and load it again:
+    
+        >>> a=np.array([[1, 2, 3], [4, 5, 6]])
+        >>> b=np.array([1, 2])
+        >>> np.savez('/tmp/123.npz', a=a, b=b)
+        >>> data = np.load('/tmp/123.npz')
+        >>> data['a']
+        array([[1, 2, 3],
+               [4, 5, 6]])
+        >>> data['b']
+        array([1, 2])
+        >>> data.close()
+    
+        Mem-map the stored array, and then access the second row
+        directly from disk:
+    
+        >>> X = np.load('/tmp/123.npy', mmap_mode='r')
+        >>> X[1, :]
+        memmap([4, 5, 6])
+    
+        """
+        if encoding not in ('ASCII', 'latin1', 'bytes'):
+            # The 'encoding' value for pickle also affects what encoding
+            # the serialized binary data of NumPy arrays is loaded
+            # in. Pickle does not pass on the encoding information to
+            # NumPy. The unpickling code in numpy._core.multiarray is
+            # written to assume that unicode data appearing where binary
+            # should be is in 'latin1'. 'bytes' is also safe, as is 'ASCII'.
+            #
+            # Other encoding values can corrupt binary data, and we
+            # purposefully disallow them. For the same reason, the errors=
+            # argument is not exposed, as values other than 'strict'
+            # result can similarly silently corrupt numerical data.
+            raise ValueError("encoding must be 'ASCII', 'latin1', or 'bytes'")
+    
+        pickle_kwargs = {'encoding': encoding, 'fix_imports': fix_imports}
+    
+        with contextlib.ExitStack() as stack:
+            if hasattr(file, 'read'):
+                fid = file
+                own_fid = False
+            else:
+>               fid = stack.enter_context(open(os.fspath(file), "rb"))
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_full_text.npy'
+
+../../../.local/lib/python3.14/site-packages/numpy/lib/_npyio_impl.py:454: FileNotFoundError
+__ TestScaledSectionProjections.test_projection_shape[erwaegungen_dispositiv] __
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244b51d30>
+mode_name = 'erwaegungen_dispositiv'
+
+    @pytest.mark.parametrize("mode_name", SECTION_MODES)
+    def test_projection_shape(self, mode_name):
+        """Verify each projection has shape (1202, 2) for v18 expanded."""
+>       proj = np.load(SCALED_DIR / f"projection_{mode_name}.npy")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+product/tests/test_cycle_33035450227.py:134: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+file = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen_dispositiv.npy')
+mmap_mode = None, allow_pickle = False, fix_imports = True, encoding = 'ASCII'
+max_header_size = 10000
+
+    @set_module('numpy')
+    def load(file, mmap_mode=None, allow_pickle=False, fix_imports=True,
+             encoding='ASCII', *, max_header_size=_MAX_HEADER_SIZE):
+        """
+        Load arrays or pickled objects from ``.npy``, ``.npz`` or pickled files.
+    
+        .. warning:: Loading files that contain object arrays uses the ``pickle``
+                     module, which is not secure against erroneous or maliciously
+                     constructed data. Consider passing ``allow_pickle=False`` to
+                     load data that is known not to contain object arrays for the
+                     safer handling of untrusted sources.
+    
+        Parameters
+        ----------
+        file : file-like object, string, or pathlib.Path
+            The file to read. File-like objects must support the
+            ``seek()`` and ``read()`` methods and must always
+            be opened in binary mode.  Pickled files require that the
+            file-like object support the ``readline()`` method as well.
+        mmap_mode : {None, 'r+', 'r', 'w+', 'c'}, optional
+            If not None, then memory-map the file, using the given mode (see
+            `numpy.memmap` for a detailed description of the modes).  A
+            memory-mapped array is kept on disk. However, it can be accessed
+            and sliced like any ndarray.  Memory mapping is especially useful
+            for accessing small fragments of large files without reading the
+            entire file into memory.
+        allow_pickle : bool, optional
+            Allow loading pickled object arrays stored in npy files. Reasons for
+            disallowing pickles include security, as loading pickled data can
+            execute arbitrary code. If pickles are disallowed, loading object
+            arrays will fail. Default: False
+        fix_imports : bool, optional
+            Only useful when loading Python 2 generated pickled files,
+            which includes npy/npz files containing object arrays. If `fix_imports`
+            is True, pickle will try to map the old Python 2 names to the new names
+            used in Python 3.
+        encoding : str, optional
+            What encoding to use when reading Python 2 strings. Only useful when
+            loading Python 2 generated pickled files, which includes
+            npy/npz files containing object arrays. Values other than 'latin1',
+            'ASCII', and 'bytes' are not allowed, as they can corrupt numerical
+            data. Default: 'ASCII'
+        max_header_size : int, optional
+            Maximum allowed size of the header.  Large headers may not be safe
+            to load securely and thus require explicitly passing a larger value.
+            See :py:func:`ast.literal_eval()` for details.
+            This option is ignored when `allow_pickle` is passed.  In that case
+            the file is by definition trusted and the limit is unnecessary.
+    
+        Returns
+        -------
+        result : array, tuple, dict, etc.
+            Data stored in the file. For ``.npz`` files, the returned instance
+            of NpzFile class must be closed to avoid leaking file descriptors.
+    
+        Raises
+        ------
+        OSError
+            If the input file does not exist or cannot be read.
+        UnpicklingError
+            If ``allow_pickle=True``, but the file cannot be loaded as a pickle.
+        ValueError
+            The file contains an object array, but ``allow_pickle=False`` given.
+        EOFError
+            When calling ``np.load`` multiple times on the same file handle,
+            if all data has already been read
+    
+        See Also
+        --------
+        save, savez, savez_compressed, loadtxt
+        memmap : Create a memory-map to an array stored in a file on disk.
+        lib.format.open_memmap : Create or load a memory-mapped ``.npy`` file.
+    
+        Notes
+        -----
+        - If the file contains pickle data, then whatever object is stored
+          in the pickle is returned.
+        - If the file is a ``.npy`` file, then a single array is returned.
+        - If the file is a ``.npz`` file, then a dictionary-like object is
+          returned, containing ``{filename: array}`` key-value pairs, one for
+          each file in the archive.
+        - If the file is a ``.npz`` file, the returned value supports the
+          context manager protocol in a similar fashion to the open function::
+    
+            with load('foo.npz') as data:
+                a = data['a']
+    
+          The underlying file descriptor is closed when exiting the 'with'
+          block.
+    
+        Examples
+        --------
+        >>> import numpy as np
+    
+        Store data to disk, and load it again:
+    
+        >>> np.save('/tmp/123', np.array([[1, 2, 3], [4, 5, 6]]))
+        >>> np.load('/tmp/123.npy')
+        array([[1, 2, 3],
+               [4, 5, 6]])
+    
+        Store compressed data to disk, and load it again:
+    
+        >>> a=np.array([[1, 2, 3], [4, 5, 6]])
+        >>> b=np.array([1, 2])
+        >>> np.savez('/tmp/123.npz', a=a, b=b)
+        >>> data = np.load('/tmp/123.npz')
+        >>> data['a']
+        array([[1, 2, 3],
+               [4, 5, 6]])
+        >>> data['b']
+        array([1, 2])
+        >>> data.close()
+    
+        Mem-map the stored array, and then access the second row
+        directly from disk:
+    
+        >>> X = np.load('/tmp/123.npy', mmap_mode='r')
+        >>> X[1, :]
+        memmap([4, 5, 6])
+    
+        """
+        if encoding not in ('ASCII', 'latin1', 'bytes'):
+            # The 'encoding' value for pickle also affects what encoding
+            # the serialized binary data of NumPy arrays is loaded
+            # in. Pickle does not pass on the encoding information to
+            # NumPy. The unpickling code in numpy._core.multiarray is
+            # written to assume that unicode data appearing where binary
+            # should be is in 'latin1'. 'bytes' is also safe, as is 'ASCII'.
+            #
+            # Other encoding values can corrupt binary data, and we
+            # purposefully disallow them. For the same reason, the errors=
+            # argument is not exposed, as values other than 'strict'
+            # result can similarly silently corrupt numerical data.
+            raise ValueError("encoding must be 'ASCII', 'latin1', or 'bytes'")
+    
+        pickle_kwargs = {'encoding': encoding, 'fix_imports': fix_imports}
+    
+        with contextlib.ExitStack() as stack:
+            if hasattr(file, 'read'):
+                fid = file
+                own_fid = False
+            else:
+>               fid = stack.enter_context(open(os.fspath(file), "rb"))
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen_dispositiv.npy'
+
+../../../.local/lib/python3.14/site-packages/numpy/lib/_npyio_impl.py:454: FileNotFoundError
+_ TestScaledSectionProjections.test_projection_shape[sachverhalt_erwaegungen_dispositiv] _
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244b54230>
+mode_name = 'sachverhalt_erwaegungen_dispositiv'
+
+    @pytest.mark.parametrize("mode_name", SECTION_MODES)
+    def test_projection_shape(self, mode_name):
+        """Verify each projection has shape (1202, 2) for v18 expanded."""
+>       proj = np.load(SCALED_DIR / f"projection_{mode_name}.npy")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+product/tests/test_cycle_33035450227.py:134: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+file = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt_erwaegungen_dispositiv.npy')
+mmap_mode = None, allow_pickle = False, fix_imports = True, encoding = 'ASCII'
+max_header_size = 10000
+
+    @set_module('numpy')
+    def load(file, mmap_mode=None, allow_pickle=False, fix_imports=True,
+             encoding='ASCII', *, max_header_size=_MAX_HEADER_SIZE):
+        """
+        Load arrays or pickled objects from ``.npy``, ``.npz`` or pickled files.
+    
+        .. warning:: Loading files that contain object arrays uses the ``pickle``
+                     module, which is not secure against erroneous or maliciously
+                     constructed data. Consider passing ``allow_pickle=False`` to
+                     load data that is known not to contain object arrays for the
+                     safer handling of untrusted sources.
+    
+        Parameters
+        ----------
+        file : file-like object, string, or pathlib.Path
+            The file to read. File-like objects must support the
+            ``seek()`` and ``read()`` methods and must always
+            be opened in binary mode.  Pickled files require that the
+            file-like object support the ``readline()`` method as well.
+        mmap_mode : {None, 'r+', 'r', 'w+', 'c'}, optional
+            If not None, then memory-map the file, using the given mode (see
+            `numpy.memmap` for a detailed description of the modes).  A
+            memory-mapped array is kept on disk. However, it can be accessed
+            and sliced like any ndarray.  Memory mapping is especially useful
+            for accessing small fragments of large files without reading the
+            entire file into memory.
+        allow_pickle : bool, optional
+            Allow loading pickled object arrays stored in npy files. Reasons for
+            disallowing pickles include security, as loading pickled data can
+            execute arbitrary code. If pickles are disallowed, loading object
+            arrays will fail. Default: False
+        fix_imports : bool, optional
+            Only useful when loading Python 2 generated pickled files,
+            which includes npy/npz files containing object arrays. If `fix_imports`
+            is True, pickle will try to map the old Python 2 names to the new names
+            used in Python 3.
+        encoding : str, optional
+            What encoding to use when reading Python 2 strings. Only useful when
+            loading Python 2 generated pickled files, which includes
+            npy/npz files containing object arrays. Values other than 'latin1',
+            'ASCII', and 'bytes' are not allowed, as they can corrupt numerical
+            data. Default: 'ASCII'
+        max_header_size : int, optional
+            Maximum allowed size of the header.  Large headers may not be safe
+            to load securely and thus require explicitly passing a larger value.
+            See :py:func:`ast.literal_eval()` for details.
+            This option is ignored when `allow_pickle` is passed.  In that case
+            the file is by definition trusted and the limit is unnecessary.
+    
+        Returns
+        -------
+        result : array, tuple, dict, etc.
+            Data stored in the file. For ``.npz`` files, the returned instance
+            of NpzFile class must be closed to avoid leaking file descriptors.
+    
+        Raises
+        ------
+        OSError
+            If the input file does not exist or cannot be read.
+        UnpicklingError
+            If ``allow_pickle=True``, but the file cannot be loaded as a pickle.
+        ValueError
+            The file contains an object array, but ``allow_pickle=False`` given.
+        EOFError
+            When calling ``np.load`` multiple times on the same file handle,
+            if all data has already been read
+    
+        See Also
+        --------
+        save, savez, savez_compressed, loadtxt
+        memmap : Create a memory-map to an array stored in a file on disk.
+        lib.format.open_memmap : Create or load a memory-mapped ``.npy`` file.
+    
+        Notes
+        -----
+        - If the file contains pickle data, then whatever object is stored
+          in the pickle is returned.
+        - If the file is a ``.npy`` file, then a single array is returned.
+        - If the file is a ``.npz`` file, then a dictionary-like object is
+          returned, containing ``{filename: array}`` key-value pairs, one for
+          each file in the archive.
+        - If the file is a ``.npz`` file, the returned value supports the
+          context manager protocol in a similar fashion to the open function::
+    
+            with load('foo.npz') as data:
+                a = data['a']
+    
+          The underlying file descriptor is closed when exiting the 'with'
+          block.
+    
+        Examples
+        --------
+        >>> import numpy as np
+    
+        Store data to disk, and load it again:
+    
+        >>> np.save('/tmp/123', np.array([[1, 2, 3], [4, 5, 6]]))
+        >>> np.load('/tmp/123.npy')
+        array([[1, 2, 3],
+               [4, 5, 6]])
+    
+        Store compressed data to disk, and load it again:
+    
+        >>> a=np.array([[1, 2, 3], [4, 5, 6]])
+        >>> b=np.array([1, 2])
+        >>> np.savez('/tmp/123.npz', a=a, b=b)
+        >>> data = np.load('/tmp/123.npz')
+        >>> data['a']
+        array([[1, 2, 3],
+               [4, 5, 6]])
+        >>> data['b']
+        array([1, 2])
+        >>> data.close()
+    
+        Mem-map the stored array, and then access the second row
+        directly from disk:
+    
+        >>> X = np.load('/tmp/123.npy', mmap_mode='r')
+        >>> X[1, :]
+        memmap([4, 5, 6])
+    
+        """
+        if encoding not in ('ASCII', 'latin1', 'bytes'):
+            # The 'encoding' value for pickle also affects what encoding
+            # the serialized binary data of NumPy arrays is loaded
+            # in. Pickle does not pass on the encoding information to
+            # NumPy. The unpickling code in numpy._core.multiarray is
+            # written to assume that unicode data appearing where binary
+            # should be is in 'latin1'. 'bytes' is also safe, as is 'ASCII'.
+            #
+            # Other encoding values can corrupt binary data, and we
+            # purposefully disallow them. For the same reason, the errors=
+            # argument is not exposed, as values other than 'strict'
+            # result can similarly silently corrupt numerical data.
+            raise ValueError("encoding must be 'ASCII', 'latin1', or 'bytes'")
+    
+        pickle_kwargs = {'encoding': encoding, 'fix_imports': fix_imports}
+    
+        with contextlib.ExitStack() as stack:
+            if hasattr(file, 'read'):
+                fid = file
+                own_fid = False
+            else:
+>               fid = stack.enter_context(open(os.fspath(file), "rb"))
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt_erwaegungen_dispositiv.npy'
+
+../../../.local/lib/python3.14/site-packages/numpy/lib/_npyio_impl.py:454: FileNotFoundError
+_______ TestScaledSectionProjections.test_projection_dtype[sachverhalt] ________
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244b54370>
+mode_name = 'sachverhalt'
+
+    @pytest.mark.parametrize("mode_name", SECTION_MODES)
+    def test_projection_dtype(self, mode_name):
+        """Verify projection arrays are numeric (float)."""
+>       proj = np.load(SCALED_DIR / f"projection_{mode_name}.npy")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+product/tests/test_cycle_33035450227.py:143: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+file = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt.npy')
+mmap_mode = None, allow_pickle = False, fix_imports = True, encoding = 'ASCII'
+max_header_size = 10000
+
+    @set_module('numpy')
+    def load(file, mmap_mode=None, allow_pickle=False, fix_imports=True,
+             encoding='ASCII', *, max_header_size=_MAX_HEADER_SIZE):
+        """
+        Load arrays or pickled objects from ``.npy``, ``.npz`` or pickled files.
+    
+        .. warning:: Loading files that contain object arrays uses the ``pickle``
+                     module, which is not secure against erroneous or maliciously
+                     constructed data. Consider passing ``allow_pickle=False`` to
+                     load data that is known not to contain object arrays for the
+                     safer handling of untrusted sources.
+    
+        Parameters
+        ----------
+        file : file-like object, string, or pathlib.Path
+            The file to read. File-like objects must support the
+            ``seek()`` and ``read()`` methods and must always
+            be opened in binary mode.  Pickled files require that the
+            file-like object support the ``readline()`` method as well.
+        mmap_mode : {None, 'r+', 'r', 'w+', 'c'}, optional
+            If not None, then memory-map the file, using the given mode (see
+            `numpy.memmap` for a detailed description of the modes).  A
+            memory-mapped array is kept on disk. However, it can be accessed
+            and sliced like any ndarray.  Memory mapping is especially useful
+            for accessing small fragments of large files without reading the
+            entire file into memory.
+        allow_pickle : bool, optional
+            Allow loading pickled object arrays stored in npy files. Reasons for
+            disallowing pickles include security, as loading pickled data can
+            execute arbitrary code. If pickles are disallowed, loading object
+            arrays will fail. Default: False
+        fix_imports : bool, optional
+            Only useful when loading Python 2 generated pickled files,
+            which includes npy/npz files containing object arrays. If `fix_imports`
+            is True, pickle will try to map the old Python 2 names to the new names
+            used in Python 3.
+        encoding : str, optional
+            What encoding to use when reading Python 2 strings. Only useful when
+            loading Python 2 generated pickled files, which includes
+            npy/npz files containing object arrays. Values other than 'latin1',
+            'ASCII', and 'bytes' are not allowed, as they can corrupt numerical
+            data. Default: 'ASCII'
+        max_header_size : int, optional
+            Maximum allowed size of the header.  Large headers may not be safe
+            to load securely and thus require explicitly passing a larger value.
+            See :py:func:`ast.literal_eval()` for details.
+            This option is ignored when `allow_pickle` is passed.  In that case
+            the file is by definition trusted and the limit is unnecessary.
+    
+        Returns
+        -------
+        result : array, tuple, dict, etc.
+            Data stored in the file. For ``.npz`` files, the returned instance
+            of NpzFile class must be closed to avoid leaking file descriptors.
+    
+        Raises
+        ------
+        OSError
+            If the input file does not exist or cannot be read.
+        UnpicklingError
+            If ``allow_pickle=True``, but the file cannot be loaded as a pickle.
+        ValueError
+            The file contains an object array, but ``allow_pickle=False`` given.
+        EOFError
+            When calling ``np.load`` multiple times on the same file handle,
+            if all data has already been read
+    
+        See Also
+        --------
+        save, savez, savez_compressed, loadtxt
+        memmap : Create a memory-map to an array stored in a file on disk.
+        lib.format.open_memmap : Create or load a memory-mapped ``.npy`` file.
+    
+        Notes
+        -----
+        - If the file contains pickle data, then whatever object is stored
+          in the pickle is returned.
+        - If the file is a ``.npy`` file, then a single array is returned.
+        - If the file is a ``.npz`` file, then a dictionary-like object is
+          returned, containing ``{filename: array}`` key-value pairs, one for
+          each file in the archive.
+        - If the file is a ``.npz`` file, the returned value supports the
+          context manager protocol in a similar fashion to the open function::
+    
+            with load('foo.npz') as data:
+                a = data['a']
+    
+          The underlying file descriptor is closed when exiting the 'with'
+          block.
+    
+        Examples
+        --------
+        >>> import numpy as np
+    
+        Store data to disk, and load it again:
+    
+        >>> np.save('/tmp/123', np.array([[1, 2, 3], [4, 5, 6]]))
+        >>> np.load('/tmp/123.npy')
+        array([[1, 2, 3],
+               [4, 5, 6]])
+    
+        Store compressed data to disk, and load it again:
+    
+        >>> a=np.array([[1, 2, 3], [4, 5, 6]])
+        >>> b=np.array([1, 2])
+        >>> np.savez('/tmp/123.npz', a=a, b=b)
+        >>> data = np.load('/tmp/123.npz')
+        >>> data['a']
+        array([[1, 2, 3],
+               [4, 5, 6]])
+        >>> data['b']
+        array([1, 2])
+        >>> data.close()
+    
+        Mem-map the stored array, and then access the second row
+        directly from disk:
+    
+        >>> X = np.load('/tmp/123.npy', mmap_mode='r')
+        >>> X[1, :]
+        memmap([4, 5, 6])
+    
+        """
+        if encoding not in ('ASCII', 'latin1', 'bytes'):
+            # The 'encoding' value for pickle also affects what encoding
+            # the serialized binary data of NumPy arrays is loaded
+            # in. Pickle does not pass on the encoding information to
+            # NumPy. The unpickling code in numpy._core.multiarray is
+            # written to assume that unicode data appearing where binary
+            # should be is in 'latin1'. 'bytes' is also safe, as is 'ASCII'.
+            #
+            # Other encoding values can corrupt binary data, and we
+            # purposefully disallow them. For the same reason, the errors=
+            # argument is not exposed, as values other than 'strict'
+            # result can similarly silently corrupt numerical data.
+            raise ValueError("encoding must be 'ASCII', 'latin1', or 'bytes'")
+    
+        pickle_kwargs = {'encoding': encoding, 'fix_imports': fix_imports}
+    
+        with contextlib.ExitStack() as stack:
+            if hasattr(file, 'read'):
+                fid = file
+                own_fid = False
+            else:
+>               fid = stack.enter_context(open(os.fspath(file), "rb"))
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt.npy'
+
+../../../.local/lib/python3.14/site-packages/numpy/lib/_npyio_impl.py:454: FileNotFoundError
+_______ TestScaledSectionProjections.test_projection_dtype[erwaegungen] ________
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244b03890>
+mode_name = 'erwaegungen'
+
+    @pytest.mark.parametrize("mode_name", SECTION_MODES)
+    def test_projection_dtype(self, mode_name):
+        """Verify projection arrays are numeric (float)."""
+>       proj = np.load(SCALED_DIR / f"projection_{mode_name}.npy")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+product/tests/test_cycle_33035450227.py:143: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+file = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen.npy')
+mmap_mode = None, allow_pickle = False, fix_imports = True, encoding = 'ASCII'
+max_header_size = 10000
+
+    @set_module('numpy')
+    def load(file, mmap_mode=None, allow_pickle=False, fix_imports=True,
+             encoding='ASCII', *, max_header_size=_MAX_HEADER_SIZE):
+        """
+        Load arrays or pickled objects from ``.npy``, ``.npz`` or pickled files.
+    
+        .. warning:: Loading files that contain object arrays uses the ``pickle``
+                     module, which is not secure against erroneous or maliciously
+                     constructed data. Consider passing ``allow_pickle=False`` to
+                     load data that is known not to contain object arrays for the
+                     safer handling of untrusted sources.
+    
+        Parameters
+        ----------
+        file : file-like object, string, or pathlib.Path
+            The file to read. File-like objects must support the
+            ``seek()`` and ``read()`` methods and must always
+            be opened in binary mode.  Pickled files require that the
+            file-like object support the ``readline()`` method as well.
+        mmap_mode : {None, 'r+', 'r', 'w+', 'c'}, optional
+            If not None, then memory-map the file, using the given mode (see
+            `numpy.memmap` for a detailed description of the modes).  A
+            memory-mapped array is kept on disk. However, it can be accessed
+            and sliced like any ndarray.  Memory mapping is especially useful
+            for accessing small fragments of large files without reading the
+            entire file into memory.
+        allow_pickle : bool, optional
+            Allow loading pickled object arrays stored in npy files. Reasons for
+            disallowing pickles include security, as loading pickled data can
+            execute arbitrary code. If pickles are disallowed, loading object
+            arrays will fail. Default: False
+        fix_imports : bool, optional
+            Only useful when loading Python 2 generated pickled files,
+            which includes npy/npz files containing object arrays. If `fix_imports`
+            is True, pickle will try to map the old Python 2 names to the new names
+            used in Python 3.
+        encoding : str, optional
+            What encoding to use when reading Python 2 strings. Only useful when
+            loading Python 2 generated pickled files, which includes
+            npy/npz files containing object arrays. Values other than 'latin1',
+            'ASCII', and 'bytes' are not allowed, as they can corrupt numerical
+            data. Default: 'ASCII'
+        max_header_size : int, optional
+            Maximum allowed size of the header.  Large headers may not be safe
+            to load securely and thus require explicitly passing a larger value.
+            See :py:func:`ast.literal_eval()` for details.
+            This option is ignored when `allow_pickle` is passed.  In that case
+            the file is by definition trusted and the limit is unnecessary.
+    
+        Returns
+        -------
+        result : array, tuple, dict, etc.
+            Data stored in the file. For ``.npz`` files, the returned instance
+            of NpzFile class must be closed to avoid leaking file descriptors.
+    
+        Raises
+        ------
+        OSError
+            If the input file does not exist or cannot be read.
+        UnpicklingError
+            If ``allow_pickle=True``, but the file cannot be loaded as a pickle.
+        ValueError
+            The file contains an object array, but ``allow_pickle=False`` given.
+        EOFError
+            When calling ``np.load`` multiple times on the same file handle,
+            if all data has already been read
+    
+        See Also
+        --------
+        save, savez, savez_compressed, loadtxt
+        memmap : Create a memory-map to an array stored in a file on disk.
+        lib.format.open_memmap : Create or load a memory-mapped ``.npy`` file.
+    
+        Notes
+        -----
+        - If the file contains pickle data, then whatever object is stored
+          in the pickle is returned.
+        - If the file is a ``.npy`` file, then a single array is returned.
+        - If the file is a ``.npz`` file, then a dictionary-like object is
+          returned, containing ``{filename: array}`` key-value pairs, one for
+          each file in the archive.
+        - If the file is a ``.npz`` file, the returned value supports the
+          context manager protocol in a similar fashion to the open function::
+    
+            with load('foo.npz') as data:
+                a = data['a']
+    
+          The underlying file descriptor is closed when exiting the 'with'
+          block.
+    
+        Examples
+        --------
+        >>> import numpy as np
+    
+        Store data to disk, and load it again:
+    
+        >>> np.save('/tmp/123', np.array([[1, 2, 3], [4, 5, 6]]))
+        >>> np.load('/tmp/123.npy')
+        array([[1, 2, 3],
+               [4, 5, 6]])
+    
+        Store compressed data to disk, and load it again:
+    
+        >>> a=np.array([[1, 2, 3], [4, 5, 6]])
+        >>> b=np.array([1, 2])
+        >>> np.savez('/tmp/123.npz', a=a, b=b)
+        >>> data = np.load('/tmp/123.npz')
+        >>> data['a']
+        array([[1, 2, 3],
+               [4, 5, 6]])
+        >>> data['b']
+        array([1, 2])
+        >>> data.close()
+    
+        Mem-map the stored array, and then access the second row
+        directly from disk:
+    
+        >>> X = np.load('/tmp/123.npy', mmap_mode='r')
+        >>> X[1, :]
+        memmap([4, 5, 6])
+    
+        """
+        if encoding not in ('ASCII', 'latin1', 'bytes'):
+            # The 'encoding' value for pickle also affects what encoding
+            # the serialized binary data of NumPy arrays is loaded
+            # in. Pickle does not pass on the encoding information to
+            # NumPy. The unpickling code in numpy._core.multiarray is
+            # written to assume that unicode data appearing where binary
+            # should be is in 'latin1'. 'bytes' is also safe, as is 'ASCII'.
+            #
+            # Other encoding values can corrupt binary data, and we
+            # purposefully disallow them. For the same reason, the errors=
+            # argument is not exposed, as values other than 'strict'
+            # result can similarly silently corrupt numerical data.
+            raise ValueError("encoding must be 'ASCII', 'latin1', or 'bytes'")
+    
+        pickle_kwargs = {'encoding': encoding, 'fix_imports': fix_imports}
+    
+        with contextlib.ExitStack() as stack:
+            if hasattr(file, 'read'):
+                fid = file
+                own_fid = False
+            else:
+>               fid = stack.enter_context(open(os.fspath(file), "rb"))
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen.npy'
+
+../../../.local/lib/python3.14/site-packages/numpy/lib/_npyio_impl.py:454: FileNotFoundError
+________ TestScaledSectionProjections.test_projection_dtype[dispositiv] ________
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d2445ab6d0>
+mode_name = 'dispositiv'
+
+    @pytest.mark.parametrize("mode_name", SECTION_MODES)
+    def test_projection_dtype(self, mode_name):
+        """Verify projection arrays are numeric (float)."""
+>       proj = np.load(SCALED_DIR / f"projection_{mode_name}.npy")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+product/tests/test_cycle_33035450227.py:143: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+file = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_dispositiv.npy')
+mmap_mode = None, allow_pickle = False, fix_imports = True, encoding = 'ASCII'
+max_header_size = 10000
+
+    @set_module('numpy')
+    def load(file, mmap_mode=None, allow_pickle=False, fix_imports=True,
+             encoding='ASCII', *, max_header_size=_MAX_HEADER_SIZE):
+        """
+        Load arrays or pickled objects from ``.npy``, ``.npz`` or pickled files.
+    
+        .. warning:: Loading files that contain object arrays uses the ``pickle``
+                     module, which is not secure against erroneous or maliciously
+                     constructed data. Consider passing ``allow_pickle=False`` to
+                     load data that is known not to contain object arrays for the
+                     safer handling of untrusted sources.
+    
+        Parameters
+        ----------
+        file : file-like object, string, or pathlib.Path
+            The file to read. File-like objects must support the
+            ``seek()`` and ``read()`` methods and must always
+            be opened in binary mode.  Pickled files require that the
+            file-like object support the ``readline()`` method as well.
+        mmap_mode : {None, 'r+', 'r', 'w+', 'c'}, optional
+            If not None, then memory-map the file, using the given mode (see
+            `numpy.memmap` for a detailed description of the modes).  A
+            memory-mapped array is kept on disk. However, it can be accessed
+            and sliced like any ndarray.  Memory mapping is especially useful
+            for accessing small fragments of large files without reading the
+            entire file into memory.
+        allow_pickle : bool, optional
+            Allow loading pickled object arrays stored in npy files. Reasons for
+            disallowing pickles include security, as loading pickled data can
+            execute arbitrary code. If pickles are disallowed, loading object
+            arrays will fail. Default: False
+        fix_imports : bool, optional
+            Only useful when loading Python 2 generated pickled files,
+            which includes npy/npz files containing object arrays. If `fix_imports`
+            is True, pickle will try to map the old Python 2 names to the new names
+            used in Python 3.
+        encoding : str, optional
+            What encoding to use when reading Python 2 strings. Only useful when
+            loading Python 2 generated pickled files, which includes
+            npy/npz files containing object arrays. Values other than 'latin1',
+            'ASCII', and 'bytes' are not allowed, as they can corrupt numerical
+            data. Default: 'ASCII'
+        max_header_size : int, optional
+            Maximum allowed size of the header.  Large headers may not be safe
+            to load securely and thus require explicitly passing a larger value.
+            See :py:func:`ast.literal_eval()` for details.
+            This option is ignored when `allow_pickle` is passed.  In that case
+            the file is by definition trusted and the limit is unnecessary.
+    
+        Returns
+        -------
+        result : array, tuple, dict, etc.
+            Data stored in the file. For ``.npz`` files, the returned instance
+            of NpzFile class must be closed to avoid leaking file descriptors.
+    
+        Raises
+        ------
+        OSError
+            If the input file does not exist or cannot be read.
+        UnpicklingError
+            If ``allow_pickle=True``, but the file cannot be loaded as a pickle.
+        ValueError
+            The file contains an object array, but ``allow_pickle=False`` given.
+        EOFError
+            When calling ``np.load`` multiple times on the same file handle,
+            if all data has already been read
+    
+        See Also
+        --------
+        save, savez, savez_compressed, loadtxt
+        memmap : Create a memory-map to an array stored in a file on disk.
+        lib.format.open_memmap : Create or load a memory-mapped ``.npy`` file.
+    
+        Notes
+        -----
+        - If the file contains pickle data, then whatever object is stored
+          in the pickle is returned.
+        - If the file is a ``.npy`` file, then a single array is returned.
+        - If the file is a ``.npz`` file, then a dictionary-like object is
+          returned, containing ``{filename: array}`` key-value pairs, one for
+          each file in the archive.
+        - If the file is a ``.npz`` file, the returned value supports the
+          context manager protocol in a similar fashion to the open function::
+    
+            with load('foo.npz') as data:
+                a = data['a']
+    
+          The underlying file descriptor is closed when exiting the 'with'
+          block.
+    
+        Examples
+        --------
+        >>> import numpy as np
+    
+        Store data to disk, and load it again:
+    
+        >>> np.save('/tmp/123', np.array([[1, 2, 3], [4, 5, 6]]))
+        >>> np.load('/tmp/123.npy')
+        array([[1, 2, 3],
+               [4, 5, 6]])
+    
+        Store compressed data to disk, and load it again:
+    
+        >>> a=np.array([[1, 2, 3], [4, 5, 6]])
+        >>> b=np.array([1, 2])
+        >>> np.savez('/tmp/123.npz', a=a, b=b)
+        >>> data = np.load('/tmp/123.npz')
+        >>> data['a']
+        array([[1, 2, 3],
+               [4, 5, 6]])
+        >>> data['b']
+        array([1, 2])
+        >>> data.close()
+    
+        Mem-map the stored array, and then access the second row
+        directly from disk:
+    
+        >>> X = np.load('/tmp/123.npy', mmap_mode='r')
+        >>> X[1, :]
+        memmap([4, 5, 6])
+    
+        """
+        if encoding not in ('ASCII', 'latin1', 'bytes'):
+            # The 'encoding' value for pickle also affects what encoding
+            # the serialized binary data of NumPy arrays is loaded
+            # in. Pickle does not pass on the encoding information to
+            # NumPy. The unpickling code in numpy._core.multiarray is
+            # written to assume that unicode data appearing where binary
+            # should be is in 'latin1'. 'bytes' is also safe, as is 'ASCII'.
+            #
+            # Other encoding values can corrupt binary data, and we
+            # purposefully disallow them. For the same reason, the errors=
+            # argument is not exposed, as values other than 'strict'
+            # result can similarly silently corrupt numerical data.
+            raise ValueError("encoding must be 'ASCII', 'latin1', or 'bytes'")
+    
+        pickle_kwargs = {'encoding': encoding, 'fix_imports': fix_imports}
+    
+        with contextlib.ExitStack() as stack:
+            if hasattr(file, 'read'):
+                fid = file
+                own_fid = False
+            else:
+>               fid = stack.enter_context(open(os.fspath(file), "rb"))
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_dispositiv.npy'
+
+../../../.local/lib/python3.14/site-packages/numpy/lib/_npyio_impl.py:454: FileNotFoundError
+________ TestScaledSectionProjections.test_projection_dtype[full_text] _________
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d2445aaa50>
+mode_name = 'full_text'
+
+    @pytest.mark.parametrize("mode_name", SECTION_MODES)
+    def test_projection_dtype(self, mode_name):
+        """Verify projection arrays are numeric (float)."""
+>       proj = np.load(SCALED_DIR / f"projection_{mode_name}.npy")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+product/tests/test_cycle_33035450227.py:143: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+file = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_full_text.npy')
+mmap_mode = None, allow_pickle = False, fix_imports = True, encoding = 'ASCII'
+max_header_size = 10000
+
+    @set_module('numpy')
+    def load(file, mmap_mode=None, allow_pickle=False, fix_imports=True,
+             encoding='ASCII', *, max_header_size=_MAX_HEADER_SIZE):
+        """
+        Load arrays or pickled objects from ``.npy``, ``.npz`` or pickled files.
+    
+        .. warning:: Loading files that contain object arrays uses the ``pickle``
+                     module, which is not secure against erroneous or maliciously
+                     constructed data. Consider passing ``allow_pickle=False`` to
+                     load data that is known not to contain object arrays for the
+                     safer handling of untrusted sources.
+    
+        Parameters
+        ----------
+        file : file-like object, string, or pathlib.Path
+            The file to read. File-like objects must support the
+            ``seek()`` and ``read()`` methods and must always
+            be opened in binary mode.  Pickled files require that the
+            file-like object support the ``readline()`` method as well.
+        mmap_mode : {None, 'r+', 'r', 'w+', 'c'}, optional
+            If not None, then memory-map the file, using the given mode (see
+            `numpy.memmap` for a detailed description of the modes).  A
+            memory-mapped array is kept on disk. However, it can be accessed
+            and sliced like any ndarray.  Memory mapping is especially useful
+            for accessing small fragments of large files without reading the
+            entire file into memory.
+        allow_pickle : bool, optional
+            Allow loading pickled object arrays stored in npy files. Reasons for
+            disallowing pickles include security, as loading pickled data can
+            execute arbitrary code. If pickles are disallowed, loading object
+            arrays will fail. Default: False
+        fix_imports : bool, optional
+            Only useful when loading Python 2 generated pickled files,
+            which includes npy/npz files containing object arrays. If `fix_imports`
+            is True, pickle will try to map the old Python 2 names to the new names
+            used in Python 3.
+        encoding : str, optional
+            What encoding to use when reading Python 2 strings. Only useful when
+            loading Python 2 generated pickled files, which includes
+            npy/npz files containing object arrays. Values other than 'latin1',
+            'ASCII', and 'bytes' are not allowed, as they can corrupt numerical
+            data. Default: 'ASCII'
+        max_header_size : int, optional
+            Maximum allowed size of the header.  Large headers may not be safe
+            to load securely and thus require explicitly passing a larger value.
+            See :py:func:`ast.literal_eval()` for details.
+            This option is ignored when `allow_pickle` is passed.  In that case
+            the file is by definition trusted and the limit is unnecessary.
+    
+        Returns
+        -------
+        result : array, tuple, dict, etc.
+            Data stored in the file. For ``.npz`` files, the returned instance
+            of NpzFile class must be closed to avoid leaking file descriptors.
+    
+        Raises
+        ------
+        OSError
+            If the input file does not exist or cannot be read.
+        UnpicklingError
+            If ``allow_pickle=True``, but the file cannot be loaded as a pickle.
+        ValueError
+            The file contains an object array, but ``allow_pickle=False`` given.
+        EOFError
+            When calling ``np.load`` multiple times on the same file handle,
+            if all data has already been read
+    
+        See Also
+        --------
+        save, savez, savez_compressed, loadtxt
+        memmap : Create a memory-map to an array stored in a file on disk.
+        lib.format.open_memmap : Create or load a memory-mapped ``.npy`` file.
+    
+        Notes
+        -----
+        - If the file contains pickle data, then whatever object is stored
+          in the pickle is returned.
+        - If the file is a ``.npy`` file, then a single array is returned.
+        - If the file is a ``.npz`` file, then a dictionary-like object is
+          returned, containing ``{filename: array}`` key-value pairs, one for
+          each file in the archive.
+        - If the file is a ``.npz`` file, the returned value supports the
+          context manager protocol in a similar fashion to the open function::
+    
+            with load('foo.npz') as data:
+                a = data['a']
+    
+          The underlying file descriptor is closed when exiting the 'with'
+          block.
+    
+        Examples
+        --------
+        >>> import numpy as np
+    
+        Store data to disk, and load it again:
+    
+        >>> np.save('/tmp/123', np.array([[1, 2, 3], [4, 5, 6]]))
+        >>> np.load('/tmp/123.npy')
+        array([[1, 2, 3],
+               [4, 5, 6]])
+    
+        Store compressed data to disk, and load it again:
+    
+        >>> a=np.array([[1, 2, 3], [4, 5, 6]])
+        >>> b=np.array([1, 2])
+        >>> np.savez('/tmp/123.npz', a=a, b=b)
+        >>> data = np.load('/tmp/123.npz')
+        >>> data['a']
+        array([[1, 2, 3],
+               [4, 5, 6]])
+        >>> data['b']
+        array([1, 2])
+        >>> data.close()
+    
+        Mem-map the stored array, and then access the second row
+        directly from disk:
+    
+        >>> X = np.load('/tmp/123.npy', mmap_mode='r')
+        >>> X[1, :]
+        memmap([4, 5, 6])
+    
+        """
+        if encoding not in ('ASCII', 'latin1', 'bytes'):
+            # The 'encoding' value for pickle also affects what encoding
+            # the serialized binary data of NumPy arrays is loaded
+            # in. Pickle does not pass on the encoding information to
+            # NumPy. The unpickling code in numpy._core.multiarray is
+            # written to assume that unicode data appearing where binary
+            # should be is in 'latin1'. 'bytes' is also safe, as is 'ASCII'.
+            #
+            # Other encoding values can corrupt binary data, and we
+            # purposefully disallow them. For the same reason, the errors=
+            # argument is not exposed, as values other than 'strict'
+            # result can similarly silently corrupt numerical data.
+            raise ValueError("encoding must be 'ASCII', 'latin1', or 'bytes'")
+    
+        pickle_kwargs = {'encoding': encoding, 'fix_imports': fix_imports}
+    
+        with contextlib.ExitStack() as stack:
+            if hasattr(file, 'read'):
+                fid = file
+                own_fid = False
+            else:
+>               fid = stack.enter_context(open(os.fspath(file), "rb"))
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_full_text.npy'
+
+../../../.local/lib/python3.14/site-packages/numpy/lib/_npyio_impl.py:454: FileNotFoundError
+__ TestScaledSectionProjections.test_projection_dtype[erwaegungen_dispositiv] __
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244b2f770>
+mode_name = 'erwaegungen_dispositiv'
+
+    @pytest.mark.parametrize("mode_name", SECTION_MODES)
+    def test_projection_dtype(self, mode_name):
+        """Verify projection arrays are numeric (float)."""
+>       proj = np.load(SCALED_DIR / f"projection_{mode_name}.npy")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+product/tests/test_cycle_33035450227.py:143: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+file = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen_dispositiv.npy')
+mmap_mode = None, allow_pickle = False, fix_imports = True, encoding = 'ASCII'
+max_header_size = 10000
+
+    @set_module('numpy')
+    def load(file, mmap_mode=None, allow_pickle=False, fix_imports=True,
+             encoding='ASCII', *, max_header_size=_MAX_HEADER_SIZE):
+        """
+        Load arrays or pickled objects from ``.npy``, ``.npz`` or pickled files.
+    
+        .. warning:: Loading files that contain object arrays uses the ``pickle``
+                     module, which is not secure against erroneous or maliciously
+                     constructed data. Consider passing ``allow_pickle=False`` to
+                     load data that is known not to contain object arrays for the
+                     safer handling of untrusted sources.
+    
+        Parameters
+        ----------
+        file : file-like object, string, or pathlib.Path
+            The file to read. File-like objects must support the
+            ``seek()`` and ``read()`` methods and must always
+            be opened in binary mode.  Pickled files require that the
+            file-like object support the ``readline()`` method as well.
+        mmap_mode : {None, 'r+', 'r', 'w+', 'c'}, optional
+            If not None, then memory-map the file, using the given mode (see
+            `numpy.memmap` for a detailed description of the modes).  A
+            memory-mapped array is kept on disk. However, it can be accessed
+            and sliced like any ndarray.  Memory mapping is especially useful
+            for accessing small fragments of large files without reading the
+            entire file into memory.
+        allow_pickle : bool, optional
+            Allow loading pickled object arrays stored in npy files. Reasons for
+            disallowing pickles include security, as loading pickled data can
+            execute arbitrary code. If pickles are disallowed, loading object
+            arrays will fail. Default: False
+        fix_imports : bool, optional
+            Only useful when loading Python 2 generated pickled files,
+            which includes npy/npz files containing object arrays. If `fix_imports`
+            is True, pickle will try to map the old Python 2 names to the new names
+            used in Python 3.
+        encoding : str, optional
+            What encoding to use when reading Python 2 strings. Only useful when
+            loading Python 2 generated pickled files, which includes
+            npy/npz files containing object arrays. Values other than 'latin1',
+            'ASCII', and 'bytes' are not allowed, as they can corrupt numerical
+            data. Default: 'ASCII'
+        max_header_size : int, optional
+            Maximum allowed size of the header.  Large headers may not be safe
+            to load securely and thus require explicitly passing a larger value.
+            See :py:func:`ast.literal_eval()` for details.
+            This option is ignored when `allow_pickle` is passed.  In that case
+            the file is by definition trusted and the limit is unnecessary.
+    
+        Returns
+        -------
+        result : array, tuple, dict, etc.
+            Data stored in the file. For ``.npz`` files, the returned instance
+            of NpzFile class must be closed to avoid leaking file descriptors.
+    
+        Raises
+        ------
+        OSError
+            If the input file does not exist or cannot be read.
+        UnpicklingError
+            If ``allow_pickle=True``, but the file cannot be loaded as a pickle.
+        ValueError
+            The file contains an object array, but ``allow_pickle=False`` given.
+        EOFError
+            When calling ``np.load`` multiple times on the same file handle,
+            if all data has already been read
+    
+        See Also
+        --------
+        save, savez, savez_compressed, loadtxt
+        memmap : Create a memory-map to an array stored in a file on disk.
+        lib.format.open_memmap : Create or load a memory-mapped ``.npy`` file.
+    
+        Notes
+        -----
+        - If the file contains pickle data, then whatever object is stored
+          in the pickle is returned.
+        - If the file is a ``.npy`` file, then a single array is returned.
+        - If the file is a ``.npz`` file, then a dictionary-like object is
+          returned, containing ``{filename: array}`` key-value pairs, one for
+          each file in the archive.
+        - If the file is a ``.npz`` file, the returned value supports the
+          context manager protocol in a similar fashion to the open function::
+    
+            with load('foo.npz') as data:
+                a = data['a']
+    
+          The underlying file descriptor is closed when exiting the 'with'
+          block.
+    
+        Examples
+        --------
+        >>> import numpy as np
+    
+        Store data to disk, and load it again:
+    
+        >>> np.save('/tmp/123', np.array([[1, 2, 3], [4, 5, 6]]))
+        >>> np.load('/tmp/123.npy')
+        array([[1, 2, 3],
+               [4, 5, 6]])
+    
+        Store compressed data to disk, and load it again:
+    
+        >>> a=np.array([[1, 2, 3], [4, 5, 6]])
+        >>> b=np.array([1, 2])
+        >>> np.savez('/tmp/123.npz', a=a, b=b)
+        >>> data = np.load('/tmp/123.npz')
+        >>> data['a']
+        array([[1, 2, 3],
+               [4, 5, 6]])
+        >>> data['b']
+        array([1, 2])
+        >>> data.close()
+    
+        Mem-map the stored array, and then access the second row
+        directly from disk:
+    
+        >>> X = np.load('/tmp/123.npy', mmap_mode='r')
+        >>> X[1, :]
+        memmap([4, 5, 6])
+    
+        """
+        if encoding not in ('ASCII', 'latin1', 'bytes'):
+            # The 'encoding' value for pickle also affects what encoding
+            # the serialized binary data of NumPy arrays is loaded
+            # in. Pickle does not pass on the encoding information to
+            # NumPy. The unpickling code in numpy._core.multiarray is
+            # written to assume that unicode data appearing where binary
+            # should be is in 'latin1'. 'bytes' is also safe, as is 'ASCII'.
+            #
+            # Other encoding values can corrupt binary data, and we
+            # purposefully disallow them. For the same reason, the errors=
+            # argument is not exposed, as values other than 'strict'
+            # result can similarly silently corrupt numerical data.
+            raise ValueError("encoding must be 'ASCII', 'latin1', or 'bytes'")
+    
+        pickle_kwargs = {'encoding': encoding, 'fix_imports': fix_imports}
+    
+        with contextlib.ExitStack() as stack:
+            if hasattr(file, 'read'):
+                fid = file
+                own_fid = False
+            else:
+>               fid = stack.enter_context(open(os.fspath(file), "rb"))
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen_dispositiv.npy'
+
+../../../.local/lib/python3.14/site-packages/numpy/lib/_npyio_impl.py:454: FileNotFoundError
+_ TestScaledSectionProjections.test_projection_dtype[sachverhalt_erwaegungen_dispositiv] _
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244b2f8c0>
+mode_name = 'sachverhalt_erwaegungen_dispositiv'
+
+    @pytest.mark.parametrize("mode_name", SECTION_MODES)
+    def test_projection_dtype(self, mode_name):
+        """Verify projection arrays are numeric (float)."""
+>       proj = np.load(SCALED_DIR / f"projection_{mode_name}.npy")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+product/tests/test_cycle_33035450227.py:143: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+file = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt_erwaegungen_dispositiv.npy')
+mmap_mode = None, allow_pickle = False, fix_imports = True, encoding = 'ASCII'
+max_header_size = 10000
+
+    @set_module('numpy')
+    def load(file, mmap_mode=None, allow_pickle=False, fix_imports=True,
+             encoding='ASCII', *, max_header_size=_MAX_HEADER_SIZE):
+        """
+        Load arrays or pickled objects from ``.npy``, ``.npz`` or pickled files.
+    
+        .. warning:: Loading files that contain object arrays uses the ``pickle``
+                     module, which is not secure against erroneous or maliciously
+                     constructed data. Consider passing ``allow_pickle=False`` to
+                     load data that is known not to contain object arrays for the
+                     safer handling of untrusted sources.
+    
+        Parameters
+        ----------
+        file : file-like object, string, or pathlib.Path
+            The file to read. File-like objects must support the
+            ``seek()`` and ``read()`` methods and must always
+            be opened in binary mode.  Pickled files require that the
+            file-like object support the ``readline()`` method as well.
+        mmap_mode : {None, 'r+', 'r', 'w+', 'c'}, optional
+            If not None, then memory-map the file, using the given mode (see
+            `numpy.memmap` for a detailed description of the modes).  A
+            memory-mapped array is kept on disk. However, it can be accessed
+            and sliced like any ndarray.  Memory mapping is especially useful
+            for accessing small fragments of large files without reading the
+            entire file into memory.
+        allow_pickle : bool, optional
+            Allow loading pickled object arrays stored in npy files. Reasons for
+            disallowing pickles include security, as loading pickled data can
+            execute arbitrary code. If pickles are disallowed, loading object
+            arrays will fail. Default: False
+        fix_imports : bool, optional
+            Only useful when loading Python 2 generated pickled files,
+            which includes npy/npz files containing object arrays. If `fix_imports`
+            is True, pickle will try to map the old Python 2 names to the new names
+            used in Python 3.
+        encoding : str, optional
+            What encoding to use when reading Python 2 strings. Only useful when
+            loading Python 2 generated pickled files, which includes
+            npy/npz files containing object arrays. Values other than 'latin1',
+            'ASCII', and 'bytes' are not allowed, as they can corrupt numerical
+            data. Default: 'ASCII'
+        max_header_size : int, optional
+            Maximum allowed size of the header.  Large headers may not be safe
+            to load securely and thus require explicitly passing a larger value.
+            See :py:func:`ast.literal_eval()` for details.
+            This option is ignored when `allow_pickle` is passed.  In that case
+            the file is by definition trusted and the limit is unnecessary.
+    
+        Returns
+        -------
+        result : array, tuple, dict, etc.
+            Data stored in the file. For ``.npz`` files, the returned instance
+            of NpzFile class must be closed to avoid leaking file descriptors.
+    
+        Raises
+        ------
+        OSError
+            If the input file does not exist or cannot be read.
+        UnpicklingError
+            If ``allow_pickle=True``, but the file cannot be loaded as a pickle.
+        ValueError
+            The file contains an object array, but ``allow_pickle=False`` given.
+        EOFError
+            When calling ``np.load`` multiple times on the same file handle,
+            if all data has already been read
+    
+        See Also
+        --------
+        save, savez, savez_compressed, loadtxt
+        memmap : Create a memory-map to an array stored in a file on disk.
+        lib.format.open_memmap : Create or load a memory-mapped ``.npy`` file.
+    
+        Notes
+        -----
+        - If the file contains pickle data, then whatever object is stored
+          in the pickle is returned.
+        - If the file is a ``.npy`` file, then a single array is returned.
+        - If the file is a ``.npz`` file, then a dictionary-like object is
+          returned, containing ``{filename: array}`` key-value pairs, one for
+          each file in the archive.
+        - If the file is a ``.npz`` file, the returned value supports the
+          context manager protocol in a similar fashion to the open function::
+    
+            with load('foo.npz') as data:
+                a = data['a']
+    
+          The underlying file descriptor is closed when exiting the 'with'
+          block.
+    
+        Examples
+        --------
+        >>> import numpy as np
+    
+        Store data to disk, and load it again:
+    
+        >>> np.save('/tmp/123', np.array([[1, 2, 3], [4, 5, 6]]))
+        >>> np.load('/tmp/123.npy')
+        array([[1, 2, 3],
+               [4, 5, 6]])
+    
+        Store compressed data to disk, and load it again:
+    
+        >>> a=np.array([[1, 2, 3], [4, 5, 6]])
+        >>> b=np.array([1, 2])
+        >>> np.savez('/tmp/123.npz', a=a, b=b)
+        >>> data = np.load('/tmp/123.npz')
+        >>> data['a']
+        array([[1, 2, 3],
+               [4, 5, 6]])
+        >>> data['b']
+        array([1, 2])
+        >>> data.close()
+    
+        Mem-map the stored array, and then access the second row
+        directly from disk:
+    
+        >>> X = np.load('/tmp/123.npy', mmap_mode='r')
+        >>> X[1, :]
+        memmap([4, 5, 6])
+    
+        """
+        if encoding not in ('ASCII', 'latin1', 'bytes'):
+            # The 'encoding' value for pickle also affects what encoding
+            # the serialized binary data of NumPy arrays is loaded
+            # in. Pickle does not pass on the encoding information to
+            # NumPy. The unpickling code in numpy._core.multiarray is
+            # written to assume that unicode data appearing where binary
+            # should be is in 'latin1'. 'bytes' is also safe, as is 'ASCII'.
+            #
+            # Other encoding values can corrupt binary data, and we
+            # purposefully disallow them. For the same reason, the errors=
+            # argument is not exposed, as values other than 'strict'
+            # result can similarly silently corrupt numerical data.
+            raise ValueError("encoding must be 'ASCII', 'latin1', or 'bytes'")
+    
+        pickle_kwargs = {'encoding': encoding, 'fix_imports': fix_imports}
+    
+        with contextlib.ExitStack() as stack:
+            if hasattr(file, 'read'):
+                fid = file
+                own_fid = False
+            else:
+>               fid = stack.enter_context(open(os.fspath(file), "rb"))
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt_erwaegungen_dispositiv.npy'
+
+../../../.local/lib/python3.14/site-packages/numpy/lib/_npyio_impl.py:454: FileNotFoundError
+_________ TestScaledSectionProjections.test_baseline_projection_exists _________
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244aefa70>
+
+    def test_baseline_projection_exists(self):
+        """Verify the baseline projection was copied to section_scaled_v2."""
+        baseline_path = SCALED_DIR / "projection_baseline.npy"
+>       assert baseline_path.exists(), f"Baseline projection missing: {baseline_path}"
+E       AssertionError: Baseline projection missing: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_baseline.npy
+E       assert False
+E        +  where False = exists()
+E        +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_baseline.npy').exists
+
+product/tests/test_cycle_33035450227.py:152: AssertionError
+________ TestScaledSectionProjections.test_section_metadata_copy_exists ________
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244aef9b0>
+
+    def test_section_metadata_copy_exists(self):
+        """Verify section_metadata.json was copied (v18 has 1150 entries)."""
+        sec_meta_path = SCALED_DIR / "section_metadata.json"
+>       assert sec_meta_path.exists(), f"section_metadata.json missing: {sec_meta_path}"
+E       AssertionError: section_metadata.json missing: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/section_metadata.json
+E       assert False
+E        +  where False = exists()
+E        +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/section_metadata.json').exists
+
+product/tests/test_cycle_33035450227.py:162: AssertionError
+_________ TestScaledSectionProjections.test_projections_not_all_zeros __________
+
+self = <test_cycle_33035450227.TestScaledSectionProjections object at 0x71d244b07d40>
+
+    def test_projections_not_all_zeros(self):
+        """Verify that section-scaled projections differ from zero (are meaningful)."""
+>       baseline = np.load(SCALED_DIR / "projection_baseline.npy")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+product/tests/test_cycle_33035450227.py:173: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+file = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_baseline.npy')
+mmap_mode = None, allow_pickle = False, fix_imports = True, encoding = 'ASCII'
+max_header_size = 10000
+
+    @set_module('numpy')
+    def load(file, mmap_mode=None, allow_pickle=False, fix_imports=True,
+             encoding='ASCII', *, max_header_size=_MAX_HEADER_SIZE):
+        """
+        Load arrays or pickled objects from ``.npy``, ``.npz`` or pickled files.
+    
+        .. warning:: Loading files that contain object arrays uses the ``pickle``
+                     module, which is not secure against erroneous or maliciously
+                     constructed data. Consider passing ``allow_pickle=False`` to
+                     load data that is known not to contain object arrays for the
+                     safer handling of untrusted sources.
+    
+        Parameters
+        ----------
+        file : file-like object, string, or pathlib.Path
+            The file to read. File-like objects must support the
+            ``seek()`` and ``read()`` methods and must always
+            be opened in binary mode.  Pickled files require that the
+            file-like object support the ``readline()`` method as well.
+        mmap_mode : {None, 'r+', 'r', 'w+', 'c'}, optional
+            If not None, then memory-map the file, using the given mode (see
+            `numpy.memmap` for a detailed description of the modes).  A
+            memory-mapped array is kept on disk. However, it can be accessed
+            and sliced like any ndarray.  Memory mapping is especially useful
+            for accessing small fragments of large files without reading the
+            entire file into memory.
+        allow_pickle : bool, optional
+            Allow loading pickled object arrays stored in npy files. Reasons for
+            disallowing pickles include security, as loading pickled data can
+            execute arbitrary code. If pickles are disallowed, loading object
+            arrays will fail. Default: False
+        fix_imports : bool, optional
+            Only useful when loading Python 2 generated pickled files,
+            which includes npy/npz files containing object arrays. If `fix_imports`
+            is True, pickle will try to map the old Python 2 names to the new names
+            used in Python 3.
+        encoding : str, optional
+            What encoding to use when reading Python 2 strings. Only useful when
+            loading Python 2 generated pickled files, which includes
+            npy/npz files containing object arrays. Values other than 'latin1',
+            'ASCII', and 'bytes' are not allowed, as they can corrupt numerical
+            data. Default: 'ASCII'
+        max_header_size : int, optional
+            Maximum allowed size of the header.  Large headers may not be safe
+            to load securely and thus require explicitly passing a larger value.
+            See :py:func:`ast.literal_eval()` for details.
+            This option is ignored when `allow_pickle` is passed.  In that case
+            the file is by definition trusted and the limit is unnecessary.
+    
+        Returns
+        -------
+        result : array, tuple, dict, etc.
+            Data stored in the file. For ``.npz`` files, the returned instance
+            of NpzFile class must be closed to avoid leaking file descriptors.
+    
+        Raises
+        ------
+        OSError
+            If the input file does not exist or cannot be read.
+        UnpicklingError
+            If ``allow_pickle=True``, but the file cannot be loaded as a pickle.
+        ValueError
+            The file contains an object array, but ``allow_pickle=False`` given.
+        EOFError
+            When calling ``np.load`` multiple times on the same file handle,
+            if all data has already been read
+    
+        See Also
+        --------
+        save, savez, savez_compressed, loadtxt
+        memmap : Create a memory-map to an array stored in a file on disk.
+        lib.format.open_memmap : Create or load a memory-mapped ``.npy`` file.
+    
+        Notes
+        -----
+        - If the file contains pickle data, then whatever object is stored
+          in the pickle is returned.
+        - If the file is a ``.npy`` file, then a single array is returned.
+        - If the file is a ``.npz`` file, then a dictionary-like object is
+          returned, containing ``{filename: array}`` key-value pairs, one for
+          each file in the archive.
+        - If the file is a ``.npz`` file, the returned value supports the
+          context manager protocol in a similar fashion to the open function::
+    
+            with load('foo.npz') as data:
+                a = data['a']
+    
+          The underlying file descriptor is closed when exiting the 'with'
+          block.
+    
+        Examples
+        --------
+        >>> import numpy as np
+    
+        Store data to disk, and load it again:
+    
+        >>> np.save('/tmp/123', np.array([[1, 2, 3], [4, 5, 6]]))
+        >>> np.load('/tmp/123.npy')
+        array([[1, 2, 3],
+               [4, 5, 6]])
+    
+        Store compressed data to disk, and load it again:
+    
+        >>> a=np.array([[1, 2, 3], [4, 5, 6]])
+        >>> b=np.array([1, 2])
+        >>> np.savez('/tmp/123.npz', a=a, b=b)
+        >>> data = np.load('/tmp/123.npz')
+        >>> data['a']
+        array([[1, 2, 3],
+               [4, 5, 6]])
+        >>> data['b']
+        array([1, 2])
+        >>> data.close()
+    
+        Mem-map the stored array, and then access the second row
+        directly from disk:
+    
+        >>> X = np.load('/tmp/123.npy', mmap_mode='r')
+        >>> X[1, :]
+        memmap([4, 5, 6])
+    
+        """
+        if encoding not in ('ASCII', 'latin1', 'bytes'):
+            # The 'encoding' value for pickle also affects what encoding
+            # the serialized binary data of NumPy arrays is loaded
+            # in. Pickle does not pass on the encoding information to
+            # NumPy. The unpickling code in numpy._core.multiarray is
+            # written to assume that unicode data appearing where binary
+            # should be is in 'latin1'. 'bytes' is also safe, as is 'ASCII'.
+            #
+            # Other encoding values can corrupt binary data, and we
+            # purposefully disallow them. For the same reason, the errors=
+            # argument is not exposed, as values other than 'strict'
+            # result can similarly silently corrupt numerical data.
+            raise ValueError("encoding must be 'ASCII', 'latin1', or 'bytes'")
+    
+        pickle_kwargs = {'encoding': encoding, 'fix_imports': fix_imports}
+    
+        with contextlib.ExitStack() as stack:
+            if hasattr(file, 'read'):
+                fid = file
+                own_fid = False
+            else:
+>               fid = stack.enter_context(open(os.fspath(file), "rb"))
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_baseline.npy'
+
+../../../.local/lib/python3.14/site-packages/numpy/lib/_npyio_impl.py:454: FileNotFoundError
+_____________ TestEvaluationLoader.test_loader_loads_unified_data ______________
+
+self = <test_cycle_33035450227.TestEvaluationLoader object at 0x71d244ae1f90>
+
+    def test_loader_loads_unified_data(self):
+        """Verify load() succeeds when unified_results.json exists."""
+        from app.evaluation_loader import EvaluationLoader
+        loader = EvaluationLoader(str(RESULTS_DIR))
+        result = loader.load()
+>       assert result is True, "load() should return True when unified data found"
+E       AssertionError: load() should return True when unified data found
+E       assert False is True
+
+product/tests/test_cycle_33035450227.py:200: AssertionError
+____________ TestEvaluationLoader.test_loader_loads_zoom_coherence _____________
+
+self = <test_cycle_33035450227.TestEvaluationLoader object at 0x71d256f469e0>
+
+    def test_loader_loads_zoom_coherence(self):
+        """Verify zoom_coherence_results.json is loaded."""
+        from app.evaluation_loader import EvaluationLoader
+        loader = EvaluationLoader(str(RESULTS_DIR))
+        loader.load()
+>       assert loader._zoom_coherence_data is not None, (
+            "Zoom coherence data should be loaded"
+        )
+E       AssertionError: Zoom coherence data should be loaded
+E       assert None is not None
+E        +  where None = <app.evaluation_loader.EvaluationLoader object at 0x71d244013750>._zoom_coherence_data
+
+product/tests/test_cycle_33035450227.py:209: AssertionError
+_____________ TestEvaluationLoader.test_benchmarks_required_fields _____________
+
+self = <test_cycle_33035450227.TestEvaluationLoader object at 0x71d256f46b10>
+
+    def test_benchmarks_required_fields(self):
+        """Verify get_benchmarks() returns all required fields."""
+        from app.evaluation_loader import EvaluationLoader
+        loader = EvaluationLoader(str(RESULTS_DIR))
+        loader.load()
+>       benchmarks = loader.get_benchmarks()
+                     ^^^^^^^^^^^^^^^^^^^^^^^
+
+product/tests/test_cycle_33035450227.py:219: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+product/app/evaluation_loader.py:182: in get_benchmarks
+    best_rep = self._find_best_representation()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.evaluation_loader.EvaluationLoader object at 0x71d243eaafd0>
+
+    def _find_best_representation(self) -> Dict[str, Any]:
+        """Find the representation with the highest ratio at any resolution."""
+        best_name = None
+        best_ratio = 0.0
+        best_resolution = None
+    
+>       for rep_name, resolutions in self._unified_data.items():
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'items'
+
+product/app/evaluation_loader.py:289: AttributeError
+_____________ TestEvaluationLoader.test_best_representation_valid ______________
+
+self = <test_cycle_33035450227.TestEvaluationLoader object at 0x71d244aa20f0>
+
+    def test_best_representation_valid(self):
+        """Verify best_representation has name, ratio, and resolution."""
+        from app.evaluation_loader import EvaluationLoader
+        loader = EvaluationLoader(str(RESULTS_DIR))
+        loader.load()
+>       best = loader.get_benchmarks()["best_representation"]
+               ^^^^^^^^^^^^^^^^^^^^^^^
+
+product/tests/test_cycle_33035450227.py:241: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+product/app/evaluation_loader.py:182: in get_benchmarks
+    best_rep = self._find_best_representation()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.evaluation_loader.EvaluationLoader object at 0x71d243ea9480>
+
+    def _find_best_representation(self) -> Dict[str, Any]:
+        """Find the representation with the highest ratio at any resolution."""
+        best_name = None
+        best_ratio = 0.0
+        best_resolution = None
+    
+>       for rep_name, resolutions in self._unified_data.items():
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'items'
+
+product/app/evaluation_loader.py:289: AttributeError
+_______________ TestEvaluationLoader.test_zoom_coherence_metrics _______________
+
+self = <test_cycle_33035450227.TestEvaluationLoader object at 0x71d245b4e030>
+
+    def test_zoom_coherence_metrics(self):
+        """Verify zoom coherence metrics are sensible."""
+        from app.evaluation_loader import EvaluationLoader
+        loader = EvaluationLoader(str(RESULTS_DIR))
+        loader.load()
+>       benchmarks = loader.get_benchmarks()
+                     ^^^^^^^^^^^^^^^^^^^^^^^
+
+product/tests/test_cycle_33035450227.py:254: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+product/app/evaluation_loader.py:182: in get_benchmarks
+    best_rep = self._find_best_representation()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.evaluation_loader.EvaluationLoader object at 0x71d244050b90>
+
+    def _find_best_representation(self) -> Dict[str, Any]:
+        """Find the representation with the highest ratio at any resolution."""
+        best_name = None
+        best_ratio = 0.0
+        best_resolution = None
+    
+>       for rep_name, resolutions in self._unified_data.items():
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'items'
+
+product/app/evaluation_loader.py:289: AttributeError
+_________________ TestEvaluationLoader.test_resolutions_tested _________________
+
+self = <test_cycle_33035450227.TestEvaluationLoader object at 0x71d244a93130>
+
+    def test_resolutions_tested(self):
+        """Verify resolutions_tested is a non-empty list."""
+        from app.evaluation_loader import EvaluationLoader
+        loader = EvaluationLoader(str(RESULTS_DIR))
+        loader.load()
+>       resolutions = loader.get_benchmarks()["resolutions_tested"]
+                      ^^^^^^^^^^^^^^^^^^^^^^^
+
+product/tests/test_cycle_33035450227.py:271: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+product/app/evaluation_loader.py:182: in get_benchmarks
+    best_rep = self._find_best_representation()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.evaluation_loader.EvaluationLoader object at 0x71d23e8c6250>
+
+    def _find_best_representation(self) -> Dict[str, Any]:
+        """Find the representation with the highest ratio at any resolution."""
+        best_name = None
+        best_ratio = 0.0
+        best_resolution = None
+    
+>       for rep_name, resolutions in self._unified_data.items():
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'items'
+
+product/app/evaluation_loader.py:289: AttributeError
+_______________ TestEvaluationLoader.test_representation_quality _______________
+
+self = <test_cycle_33035450227.TestEvaluationLoader object at 0x71d244652950>
+
+    def test_representation_quality(self):
+        """Verify get_representation_quality() returns per-rep metrics."""
+        from app.evaluation_loader import EvaluationLoader
+        loader = EvaluationLoader(str(RESULTS_DIR))
+        loader.load()
+        quality = loader.get_representation_quality()
+        assert isinstance(quality, dict), "Quality should be a dict"
+        assert len(quality) > 0, "Should have at least one representation"
+        for rep_name, rep_data in quality.items():
+>           assert "best_ratio" in rep_data, f"{rep_name} missing best_ratio"
+E           AssertionError: error missing best_ratio
+E           assert 'best_ratio' in 'Evaluation data not loaded'
+
+product/tests/test_cycle_33035450227.py:285: AssertionError
+_______________ TestEvaluationLoader.test_boilerplate_resistance _______________
+
+self = <test_cycle_33035450227.TestEvaluationLoader object at 0x71d244652b50>
+
+    def test_boilerplate_resistance(self):
+        """Verify boilerplate resistance scores are computed."""
+        from app.evaluation_loader import EvaluationLoader
+        loader = EvaluationLoader(str(RESULTS_DIR))
+        loader.load()
+>       benchmarks = loader.get_benchmarks()
+                     ^^^^^^^^^^^^^^^^^^^^^^^
+
+product/tests/test_cycle_33035450227.py:295: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+product/app/evaluation_loader.py:182: in get_benchmarks
+    best_rep = self._find_best_representation()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.evaluation_loader.EvaluationLoader object at 0x71d23e84a050>
+
+    def _find_best_representation(self) -> Dict[str, Any]:
+        """Find the representation with the highest ratio at any resolution."""
+        best_name = None
+        best_ratio = 0.0
+        best_resolution = None
+    
+>       for rep_name, resolutions in self._unified_data.items():
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'items'
+
+product/app/evaluation_loader.py:289: AttributeError
+________________ TestTemporalFiltering.test_temporal_no_filter _________________
+
+self = <test_cycle_33035450227.TestTemporalFiltering object at 0x71d244ae2990>
+
+    def test_temporal_no_filter(self):
+        """Verify get_temporal_map_data without filters returns all positions."""
+        data = self.api.get_temporal_map_data("concat_center_tfidf", 1)
+>       assert "positions" in data, "Missing positions"
+E       AssertionError: Missing positions
+E       assert 'positions' in {'error': 'Zoom level 1 not available for concat_center_tfidf'}
+
+product/tests/test_cycle_33035450227.py:324: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+WARNING: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/center_projected_64dim_hierarchical/metadata.json not found, skipping 64-dim center_projected
+_____________ TestTemporalFiltering.test_temporal_with_year_range ______________
+
+self = <test_cycle_33035450227.TestTemporalFiltering object at 0x71d244ae2850>
+
+    def test_temporal_with_year_range(self):
+        """Verify filtering by year range returns subset."""
+        data = self.api.get_temporal_map_data(
+            "concat_center_tfidf", 1, year_start=2023, year_end=2024
+        )
+>       assert data["temporal_stats"]["filtered_positions"] > 0, (
+               ^^^^^^^^^^^^^^^^^^^^^^
+            "Should have positions in 2023-2024"
+        )
+E       KeyError: 'temporal_stats'
+
+product/tests/test_cycle_33035450227.py:338: KeyError
+---------------------------- Captured stdout setup -----------------------------
+WARNING: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/center_projected_64dim_hierarchical/metadata.json not found, skipping 64-dim center_projected
+_____________ TestTemporalFiltering.test_temporal_year_start_only ______________
+
+self = <test_cycle_33035450227.TestTemporalFiltering object at 0x71d256f46c40>
+
+    def test_temporal_year_start_only(self):
+        """Verify filtering with only year_start."""
+        data = self.api.get_temporal_map_data(
+            "concat_center_tfidf", 1, year_start=2024
+        )
+>       for pos in data["positions"]:
+                   ^^^^^^^^^^^^^^^^^
+E       KeyError: 'positions'
+
+product/tests/test_cycle_33035450227.py:357: KeyError
+---------------------------- Captured stdout setup -----------------------------
+WARNING: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/center_projected_64dim_hierarchical/metadata.json not found, skipping 64-dim center_projected
+______________ TestTemporalFiltering.test_temporal_year_end_only _______________
+
+self = <test_cycle_33035450227.TestTemporalFiltering object at 0x71d256f46d70>
+
+    def test_temporal_year_end_only(self):
+        """Verify filtering with only year_end."""
+        data = self.api.get_temporal_map_data(
+            "concat_center_tfidf", 1, year_end=2022
+        )
+>       for pos in data["positions"]:
+                   ^^^^^^^^^^^^^^^^^
+E       KeyError: 'positions'
+
+product/tests/test_cycle_33035450227.py:370: KeyError
+---------------------------- Captured stdout setup -----------------------------
+WARNING: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/center_projected_64dim_hierarchical/metadata.json not found, skipping 64-dim center_projected
+_______________ TestTemporalFiltering.test_temporal_narrow_range _______________
+
+self = <test_cycle_33035450227.TestTemporalFiltering object at 0x71d244aa1c70>
+
+    def test_temporal_narrow_range(self):
+        """Verify a narrow year range returns fewer positions."""
+        all_data = self.api.get_temporal_map_data("concat_center_tfidf", 1)
+        narrow_data = self.api.get_temporal_map_data(
+            "concat_center_tfidf", 1, year_start=2024, year_end=2024
+        )
+>       assert narrow_data["temporal_stats"]["filtered_positions"] <= all_data["temporal_stats"]["filtered_positions"], (
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            "Narrow range should have <= positions than unfiltered"
+        )
+E       KeyError: 'temporal_stats'
+
+product/tests/test_cycle_33035450227.py:384: KeyError
+---------------------------- Captured stdout setup -----------------------------
+WARNING: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/center_projected_64dim_hierarchical/metadata.json not found, skipping 64-dim center_projected
+____________ TestTemporalFiltering.test_temporal_year_distribution _____________
+
+self = <test_cycle_33035450227.TestTemporalFiltering object at 0x71d244a93240>
+
+    def test_temporal_year_distribution(self):
+        """Verify year_distribution is computed."""
+        data = self.api.get_temporal_map_data("concat_center_tfidf", 1)
+>       yd = data["temporal_stats"]["year_distribution"]
+             ^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'temporal_stats'
+
+product/tests/test_cycle_33035450227.py:394: KeyError
+---------------------------- Captured stdout setup -----------------------------
+WARNING: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/center_projected_64dim_hierarchical/metadata.json not found, skipping 64-dim center_projected
+_____________ TestTemporalFiltering.test_temporal_year_range_stats _____________
+
+self = <test_cycle_33035450227.TestTemporalFiltering object at 0x71d244a93020>
+
+    def test_temporal_year_range_stats(self):
+        """Verify year_range min/max are computed."""
+        data = self.api.get_temporal_map_data("concat_center_tfidf", 1)
+>       yr = data["temporal_stats"]["year_range"]
+             ^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'temporal_stats'
+
+product/tests/test_cycle_33035450227.py:406: KeyError
+---------------------------- Captured stdout setup -----------------------------
+WARNING: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/center_projected_64dim_hierarchical/metadata.json not found, skipping 64-dim center_projected
+______________ TestTemporalFiltering.test_temporal_has_year_field ______________
+
+self = <test_cycle_33035450227.TestTemporalFiltering object at 0x71d244653550>
+
+    def test_temporal_has_year_field(self):
+        """Verify each position includes a year field."""
+        data = self.api.get_temporal_map_data("concat_center_tfidf", 1)
+>       for pos in data["positions"]:
+                   ^^^^^^^^^^^^^^^^^
+E       KeyError: 'positions'
+
+product/tests/test_cycle_33035450227.py:415: KeyError
+---------------------------- Captured stdout setup -----------------------------
+WARNING: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/center_projected_64dim_hierarchical/metadata.json not found, skipping 64-dim center_projected
+__________ TestTemporalFiltering.test_temporal_clusters_from_filtered __________
+
+self = <test_cycle_33035450227.TestTemporalFiltering object at 0x71d244653750>
+
+    def test_temporal_clusters_from_filtered(self):
+        """Verify clusters are built from the filtered subset."""
+        data = self.api.get_temporal_map_data(
+            "concat_center_tfidf", 1, year_start=2024, year_end=2024
+        )
+>       assert "clusters" in data, "Missing clusters"
+E       AssertionError: Missing clusters
+E       assert 'clusters' in {'error': 'Zoom level 1 not available for concat_center_tfidf'}
+
+product/tests/test_cycle_33035450227.py:424: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+WARNING: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/center_projected_64dim_hierarchical/metadata.json not found, skipping 64-dim center_projected
+_______________ TestTemporalFiltering.test_temporal_empty_range ________________
+
+self = <test_cycle_33035450227.TestTemporalFiltering object at 0x71d244b59b80>
+
+    def test_temporal_empty_range(self):
+        """Verify a range with no matching decisions returns empty positions."""
+        data = self.api.get_temporal_map_data(
+            "concat_center_tfidf", 1, year_start=1900, year_end=1901
+        )
+>       assert data["temporal_stats"]["filtered_positions"] == 0, (
+               ^^^^^^^^^^^^^^^^^^^^^^
+            "No decisions should match 1900-1901"
+        )
+E       KeyError: 'temporal_stats'
+
+product/tests/test_cycle_33035450227.py:439: KeyError
+---------------------------- Captured stdout setup -----------------------------
+WARNING: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/center_projected_64dim_hierarchical/metadata.json not found, skipping 64-dim center_projected
+______________________ TestSectionModes.test_modes_loaded ______________________
+
+self = <test_cycle_33035450227.TestSectionModes object at 0x71d244ae2ad0>
+
+    def test_modes_loaded(self):
+        """Verify at least some section modes loaded."""
+>       assert len(self.loader.modes) > 0, "Should load at least one section mode"
+E       AssertionError: Should load at least one section mode
+E       assert 0 > 0
+E        +  where 0 = len({})
+E        +    where {} = <app.section_modes.SectionModeLoader object at 0x71d23e5dec90>.modes
+E        +      where <app.section_modes.SectionModeLoader object at 0x71d23e5dec90> = <test_cycle_33035450227.TestSectionModes object at 0x71d244ae2ad0>.loader
+
+product/tests/test_cycle_33035450227.py:461: AssertionError
+__________________ TestSectionModes.test_all_six_modes_loaded __________________
+
+self = <test_cycle_33035450227.TestSectionModes object at 0x71d244ae2c10>
+
+    def test_all_six_modes_loaded(self):
+        """Verify all 6 section modes are loaded."""
+        for mode_name in SECTION_MODES:
+>           assert mode_name in self.loader.modes, (
+                f"Section mode '{mode_name}' not loaded"
+            )
+E           AssertionError: Section mode 'sachverhalt' not loaded
+E           assert 'sachverhalt' in {}
+E            +  where {} = <app.section_modes.SectionModeLoader object at 0x71d23e5dfe90>.modes
+E            +    where <app.section_modes.SectionModeLoader object at 0x71d23e5dfe90> = <test_cycle_33035450227.TestSectionModes object at 0x71d244ae2c10>.loader
+
+product/tests/test_cycle_33035450227.py:467: AssertionError
+____________________ TestSectionModes.test_scaled_detection ____________________
+
+self = <test_cycle_33035450227.TestSectionModes object at 0x71d256f46ea0>
+
+    def test_scaled_detection(self):
+        """Verify the loader detects scaled projections (section_scaled_v2/)."""
+>       assert self.loader._is_scaled is True, (
+            "Should detect scaled projections from section_scaled_v2/"
+        )
+E       AssertionError: Should detect scaled projections from section_scaled_v2/
+E       assert False is True
+E        +  where False = <app.section_modes.SectionModeLoader object at 0x71d23e9ad390>._is_scaled
+E        +    where <app.section_modes.SectionModeLoader object at 0x71d23e9ad390> = <test_cycle_33035450227.TestSectionModes object at 0x71d256f46ea0>.loader
+
+product/tests/test_cycle_33035450227.py:474: AssertionError
+=============================== warnings summary ===============================
+product/tests/test_adversarial_retrieval.py: 7 warnings
+product/tests/test_answer_sourcing.py: 2 warnings
+product/tests/test_cache_non_orphan.py: 3 warnings
+product/tests/test_counter_content_rejection_v68.py: 1 warning
+product/tests/test_counter_precision.py: 1 warning
+product/tests/test_counter_surface.py: 1 warning
+product/tests/test_counter_surface_confirmation.py: 2 warnings
+product/tests/test_counter_surface_known.py: 1 warning
+  /home/runner/.local/lib/python3.14/site-packages/sklearn/feature_extraction/text.py:412: UserWarning: Your stop_words may be inconsistent with your preprocessing. Tokenizing the stop words generated tokens ['arret', 'considerant', 'erwagung', 'fur', 'perche', 'piu', 'puo', 'uber'] not in stop_words.
+    warnings.warn(
+
+product/tests/test_cycle_33032746334.py::test_proximity_explainer_cross_branch
+  /home/runner/.local/lib/python3.14/site-packages/_pytest/python.py:171: PytestReturnNotNoneWarning: Test functions should return None, but product/tests/test_cycle_33032746334.py::test_proximity_explainer_cross_branch returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+product/tests/test_cycle_33032746334.py::test_proximity_explainer_missing_decision
+  /home/runner/.local/lib/python3.14/site-packages/_pytest/python.py:171: PytestReturnNotNoneWarning: Test functions should return None, but product/tests/test_cycle_33032746334.py::test_proximity_explainer_missing_decision returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+product/tests/test_cycle_33032746334.py::test_proximity_feature_weights
+  /home/runner/.local/lib/python3.14/site-packages/_pytest/python.py:171: PytestReturnNotNoneWarning: Test functions should return None, but product/tests/test_cycle_33032746334.py::test_proximity_feature_weights returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+product/tests/test_cycle_33033658714.py::test_language_analyzer
+  /home/runner/.local/lib/python3.14/site-packages/_pytest/python.py:171: PytestReturnNotNoneWarning: Test functions should return None, but product/tests/test_cycle_33033658714.py::test_language_analyzer returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+product/tests/test_cycle_33033658714.py::test_tfidf_proximity
+  /home/runner/.local/lib/python3.14/site-packages/_pytest/python.py:171: PytestReturnNotNoneWarning: Test functions should return None, but product/tests/test_cycle_33033658714.py::test_tfidf_proximity returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED product/tests/test_cache_rewrite_attribution.py::test_the_frozen_snapshot_in_force_matches_the_working_tree - AssertionError: the frozen snapshot in force (CYCLE_39799042649_cache_manifest.json) does not match the working tree: 21 mismatched, 0 missing
+assert False
+FAILED product/tests/test_cache_rewrite_attribution.py::test_the_published_attributions_all_verify_together - AssertionError: the published cache attribution does not verify: ['CYCLE_39799042649_cache_manifest.json: the frozen snapshot in force does not match the working tree (21 mismatched, 0 missing)']
+assert 1 == 0
+FAILED product/tests/test_counter_surface_known.py::test_measurement_is_network_free_and_monotone - assert 1 == 2
+FAILED product/tests/test_cycle_33032746334.py::test_proximity_explainer_basic - AssertionError: Could not find two decisions in same branch
+assert None
+FAILED product/tests/test_cycle_33032746334.py::test_proximity_explainer_language_warning - AssertionError: Could not find same-language different-branch pair
+assert None
+FAILED product/tests/test_cycle_33032746334.py::test_cluster_coherence - AssertionError: Missing cluster_id
+assert 'cluster_id' in {'error': 'Zoom level not found'}
+FAILED product/tests/test_cycle_33032746334.py::test_cluster_coherence_all_clusters - KeyError: 'clusters'
+FAILED product/tests/test_cycle_33032746334.py::test_proximity_api_endpoint - IndexError: list index out of range
+FAILED product/tests/test_cycle_33032746334.py::test_language_filter - KeyError: 'positions'
+FAILED product/tests/test_cycle_33033658714.py::test_zoom_coherence_loader - AssertionError: Zoom coherence data should load
+assert False
+FAILED product/tests/test_cycle_33033658714.py::test_navigation_new_endpoints - AssertionError: Zoom summary should have improvement rate
+assert 'overall_improvement_rate' in {'error': 'Zoom coherence data not loaded'}
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_scaled_directory_exists - AssertionError: Scaled directory not found: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2
+assert False
+ +  where False = exists()
+ +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2').exists
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_metadata_json_exists - AssertionError: metadata.json not found in /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2
+assert False
+ +  where False = exists()
+ +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/metadata.json').exists
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_metadata_total_decisions - FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/metadata.json'
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_metadata_section_covered_decisions - FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/metadata.json'
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_metadata_section_modes_present - FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/metadata.json'
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_metadata_coverage_stats - FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/metadata.json'
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_metadata_decision_provenance - FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/metadata.json'
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_file_exists[sachverhalt] - AssertionError: Projection file missing: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt.npy
+assert False
+ +  where False = exists()
+ +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt.npy').exists
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_file_exists[erwaegungen] - AssertionError: Projection file missing: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen.npy
+assert False
+ +  where False = exists()
+ +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen.npy').exists
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_file_exists[dispositiv] - AssertionError: Projection file missing: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_dispositiv.npy
+assert False
+ +  where False = exists()
+ +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_dispositiv.npy').exists
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_file_exists[full_text] - AssertionError: Projection file missing: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_full_text.npy
+assert False
+ +  where False = exists()
+ +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_full_text.npy').exists
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_file_exists[erwaegungen_dispositiv] - AssertionError: Projection file missing: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen_dispositiv.npy
+assert False
+ +  where False = exists()
+ +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen_dispositiv.npy').exists
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_file_exists[sachverhalt_erwaegungen_dispositiv] - AssertionError: Projection file missing: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt_erwaegungen_dispositiv.npy
+assert False
+ +  where False = exists()
+ +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt_erwaegungen_dispositiv.npy').exists
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_shape[sachverhalt] - FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt.npy'
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_shape[erwaegungen] - FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen.npy'
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_shape[dispositiv] - FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_dispositiv.npy'
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_shape[full_text] - FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_full_text.npy'
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_shape[erwaegungen_dispositiv] - FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen_dispositiv.npy'
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_shape[sachverhalt_erwaegungen_dispositiv] - FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt_erwaegungen_dispositiv.npy'
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_dtype[sachverhalt] - FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt.npy'
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_dtype[erwaegungen] - FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen.npy'
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_dtype[dispositiv] - FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_dispositiv.npy'
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_dtype[full_text] - FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_full_text.npy'
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_dtype[erwaegungen_dispositiv] - FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_erwaegungen_dispositiv.npy'
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projection_dtype[sachverhalt_erwaegungen_dispositiv] - FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_sachverhalt_erwaegungen_dispositiv.npy'
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_baseline_projection_exists - AssertionError: Baseline projection missing: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_baseline.npy
+assert False
+ +  where False = exists()
+ +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_baseline.npy').exists
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_section_metadata_copy_exists - AssertionError: section_metadata.json missing: /home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/section_metadata.json
+assert False
+ +  where False = exists()
+ +    where exists = PosixPath('/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/section_metadata.json').exists
+FAILED product/tests/test_cycle_33035450227.py::TestScaledSectionProjections::test_projections_not_all_zeros - FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/section_scaled_v2/projection_baseline.npy'
+FAILED product/tests/test_cycle_33035450227.py::TestEvaluationLoader::test_loader_loads_unified_data - AssertionError: load() should return True when unified data found
+assert False is True
+FAILED product/tests/test_cycle_33035450227.py::TestEvaluationLoader::test_loader_loads_zoom_coherence - AssertionError: Zoom coherence data should be loaded
+assert None is not None
+ +  where None = <app.evaluation_loader.EvaluationLoader object at 0x71d244013750>._zoom_coherence_data
+FAILED product/tests/test_cycle_33035450227.py::TestEvaluationLoader::test_benchmarks_required_fields - AttributeError: 'NoneType' object has no attribute 'items'
+FAILED product/tests/test_cycle_33035450227.py::TestEvaluationLoader::test_best_representation_valid - AttributeError: 'NoneType' object has no attribute 'items'
+FAILED product/tests/test_cycle_33035450227.py::TestEvaluationLoader::test_zoom_coherence_metrics - AttributeError: 'NoneType' object has no attribute 'items'
+FAILED product/tests/test_cycle_33035450227.py::TestEvaluationLoader::test_resolutions_tested - AttributeError: 'NoneType' object has no attribute 'items'
+FAILED product/tests/test_cycle_33035450227.py::TestEvaluationLoader::test_representation_quality - AssertionError: error missing best_ratio
+assert 'best_ratio' in 'Evaluation data not loaded'
+FAILED product/tests/test_cycle_33035450227.py::TestEvaluationLoader::test_boilerplate_resistance - AttributeError: 'NoneType' object has no attribute 'items'
+FAILED product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_no_filter - AssertionError: Missing positions
+assert 'positions' in {'error': 'Zoom level 1 not available for concat_center_tfidf'}
+FAILED product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_with_year_range - KeyError: 'temporal_stats'
+FAILED product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_year_start_only - KeyError: 'positions'
+FAILED product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_year_end_only - KeyError: 'positions'
+FAILED product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_narrow_range - KeyError: 'temporal_stats'
+FAILED product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_year_distribution - KeyError: 'temporal_stats'
+FAILED product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_year_range_stats - KeyError: 'temporal_stats'
+FAILED product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_has_year_field - KeyError: 'positions'
+FAILED product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_clusters_from_filtered - AssertionError: Missing clusters
+assert 'clusters' in {'error': 'Zoom level 1 not available for concat_center_tfidf'}
+FAILED product/tests/test_cycle_33035450227.py::TestTemporalFiltering::test_temporal_empty_range - KeyError: 'temporal_stats'
+FAILED product/tests/test_cycle_33035450227.py::TestSectionModes::test_modes_loaded - AssertionError: Should load at least one section mode
+assert 0 > 0
+ +  where 0 = len({})
+ +    where {} = <app.section_modes.SectionModeLoader object at 0x71d23e5dec90>.modes
+ +      where <app.section_modes.SectionModeLoader object at 0x71d23e5dec90> = <test_cycle_33035450227.TestSectionModes object at 0x71d244ae2ad0>.loader
+FAILED product/tests/test_cycle_33035450227.py::TestSectionModes::test_all_six_modes_loaded - AssertionError: Section mode 'sachverhalt' not loaded
+assert 'sachverhalt' in {}
+ +  where {} = <app.section_modes.SectionModeLoader object at 0x71d23e5dfe90>.modes
+ +    where <app.section_modes.SectionModeLoader object at 0x71d23e5dfe90> = <test_cycle_33035450227.TestSectionModes object at 0x71d244ae2c10>.loader
+FAILED product/tests/test_cycle_33035450227.py::TestSectionModes::test_scaled_detection - AssertionError: Should detect scaled projections from section_scaled_v2/
+assert False is True
+ +  where False = <app.section_modes.SectionModeLoader object at 0x71d23e9ad390>._is_scaled
+ +    where <app.section_modes.SectionModeLoader object at 0x71d23e9ad390> = <test_cycle_33035450227.TestSectionModes object at 0x71d256f46ea0>.loader
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 60 failures !!!!!!!!!!!!!!!!!!!!!!!!!!
+60 failed, 424 passed, 1 skipped, 23 warnings in 99.24s (0:01:39)

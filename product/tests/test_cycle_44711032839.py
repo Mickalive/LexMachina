@@ -17,6 +17,7 @@ posture.  No gate verdict is minted here: the independent auditor owns
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -184,7 +185,12 @@ def test_state_attribution_pointer_hygiene_and_posture():
     from product.state_contract import accepted_pointer_evidence
     st = _load(STATE)
     assert isinstance(st["current_cycle_run_id"], int)
-    assert st["current_cycle_run_id"] == int(RUN)
+    # Later executing cycles legitimately advance this past 44711032839
+    # (amended by run 44723775560 to the repo's monotonic form; the exact
+    # equality was a stale pin that failed on every successor snapshot).
+    assert st["current_cycle_run_id"] >= int(RUN), (
+        "current_cycle_run_id regressed below this cycle's executing run",
+        st["current_cycle_run_id"], RUN)
     hist = {str(h.get("run_id")): h for h in st.get("run_history") or []}
     assert RUN in hist
     assert hist[RUN]["status"] == "OPERATIONAL_RESUME_AUDIT_READINESS_DOSSIER"
@@ -254,7 +260,18 @@ def test_audit_readiness_profile_is_pinned_for_both_run_ids():
 
 def test_audit_readiness_dossier_passes():
     if not DOSSIER.is_file():
-        pytest.skip("dossier not yet written (written at the end of the cycle)")
+        # Fail closed outside the dossier's own generation.  The previous
+        # unconditional skip is what let this cycle's report and state claim
+        # the dossier while the file was never committed (found and repaired
+        # by run 44723775560); inside the enclosing audit_readiness run the
+        # file is written only after every check, so a skip is honest there.
+        if os.environ.get("LEX_DOSSIER_GENERATING") == "1":
+            pytest.skip("dossier written at the end of the enclosing "
+                        "audit_readiness run")
+        raise AssertionError(
+            f"unbacked dossier claim: {DOSSIER.relative_to(ROOT)} is named "
+            f"by {REPORT.relative_to(ROOT)} and state/product.json but is "
+            f"absent from the tree")
     art = _load(DOSSIER)
     assert art["schema"] == "product-audit-readiness/1"
     assert art["run_id"] == RUN
