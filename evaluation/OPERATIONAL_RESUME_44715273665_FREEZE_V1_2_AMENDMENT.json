@@ -1,0 +1,24 @@
+{
+ "schema": "lex-evaluation-freeze-amendment/1",
+ "run_id": 44715273665,
+ "lane": "evaluation",
+ "direction_version": 68,
+ "amendment": "FREEZE_V1_2_AMENDMENT",
+ "trigger_observation": "first --phase final-gates self-test run: 11/13 passed, 2 failed with KeyError 'operational_resume_44715273665' because the self-test asserts this run's state block, but the self-test was wired to run in phase final-gates, which precedes phase state-update by design (state cites paths that only exist after final-gates: final-gates record, nested record, self-test record)",
+ "changes": [
+  "self-test execution moved from phase final-gates to phase state-update (after the state block is written, before the audit index is written)",
+  "phase final-gates records selftest status DEFERRED_TO_STATE_UPDATE_PHASE and stamps the result record without a self-test row",
+  "phase state-update runs the self-test, rewrites final_gates.json with the real self-test row, re-stamps the result record, then runs the post-state guard/state-gate/write-scope checks, writes the state-update record and finally the audit index",
+  "state-update phase exit is nonzero unless post-state gates pass AND the self-test has 0 failures AND the index has all_entries_exist=true with no missing entries"
+ ],
+ "why_not_outcome_based": "no test case outcome changed and no claim gate result was observed when making this change; the fix is purely ordering of two writes inside the same run, and the test file, battery, gates and their pass criteria are untouched",
+ "test_file_sha256": "67ab2359cfd894d7393e3e3dac8d3d61bf65ac944b6325894e2da52dc9b8f6f3",
+ "hypothesis_sha256": "e30df2e43c76a74ba7e08fe58238a215693adab215811a087061979855e75fa6",
+ "instrument_sha256_after_v1_1": "574aca66fbda99bad5f87de899fd75ef800e278e461a25527990c7b0c4e72cea",
+ "instrument_sha256_after": "617f8784211f3fc40a93bec58f39f59af23b7f7616b95d4449a447dc2838185a",
+ "preserved_failed_selftest_evidence": "the failed self-test output is preserved in the run's step log and in this amendment's trigger_observation; the SELFTEST record file is overwritten by the state-update re-run by design (it is a run record, not a frozen input)",
+ "claim_ceiling": "process disclosure only; no measurement claim.",
+ "third_change": "audit index items list extended to include both FREEZE_V1_1 and FREEZE_V1_2 amendment files (they are claim-bearing disclosures the report cites), FREEZE_V1.instrument_sha256 refreshed to the then-current instrument, and the index regenerated as the last artifact; no gate, criterion, battery or test content changed",
+ "instrument_sha256_final": "208577a726a87e2aaf7d9fb5707d6d67c3dd5e4c2f6e64477fbf1c8530daeb95",
+ "freeze_sha256_final": "d6ed26f8d4e8a45ecbe8fde406907a8ba0d8b877a4c3a19742eba7ef96fffa4a"
+}
