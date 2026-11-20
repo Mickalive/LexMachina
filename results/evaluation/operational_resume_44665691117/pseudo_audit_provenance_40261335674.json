@@ -1,0 +1,69 @@
+{
+  "schema": "lex-evaluation-pseudo-audit-provenance/1",
+  "run_id": 44665691117,
+  "generated_at_utc": "2026-11-20T03:25:42Z",
+  "target_run": 40261335674,
+  "finding": "PRODUCER_AUTHORED_PSEUDO_AUDIT_ARTIFACT",
+  "audit_branch_ls_remote": "",
+  "accept_commit_matches": [],
+  "per_path": {
+    "reports/audit/evaluation/CYCLE_40261335674.md": {
+      "adding_commits": [
+        {
+          "commit": "16c84319b570fa29a9a1737b9df335ca068ce275",
+          "author_name": "lex-evaluation-team",
+          "author_email": "lex-team@autonomous.local",
+          "subject": "evaluation cycle 44665054809 repair 0"
+        }
+      ]
+    },
+    "results/audit/evaluation/CYCLE_40261335674_GATE.json": {
+      "adding_commits": [
+        {
+          "commit": "16c84319b570fa29a9a1737b9df335ca068ce275",
+          "author_name": "lex-evaluation-team",
+          "author_email": "lex-team@autonomous.local",
+          "subject": "evaluation cycle 44665054809 repair 0"
+        }
+      ]
+    }
+  },
+  "write_scope_repro": {
+    "command": "python -m evaluation.snapshot_audit.write_scope --lane evaluation --repro-from-git 14cd6ed728 16c84319b5",
+    "exit_code": 1,
+    "verdict": "SCOPE_VIOLATION",
+    "bad_paths": [
+      "reports/audit/evaluation/CYCLE_40261335674.md",
+      "results/audit/evaluation/CYCLE_40261335674_GATE.json"
+    ],
+    "record": "results/evaluation/operational_resume_44665691117/write_scope_repro_44665054809.json"
+  },
+  "api_probe": {
+    "http_statuses": {
+      "40261335674": 404,
+      "40265377500": 404,
+      "40258497460": 404,
+      "44659329788": 200,
+      "44665054809": 200
+    },
+    "discriminating_for_H3": false,
+    "why": "control probes for the ACCEPTED run 40265377500 and for 40258497460 also return 404 while recent runs (44659329788, 44665054809) return 200, so the 404 is a run-retention artifact of the Actions API and proves NOTHING about run 40261335674 in particular. The git evidence above is the sufficient and independent basis for H3."
+  },
+  "pseudo_artifact_internal_inconsistencies": {
+    "gate_continue_recommended_vs_report_disposition": "False vs report asserts CONTINUE_RECOMMENDED: true",
+    "gate_is_revision_but_self_labels_state": "gate=REVISE safe_to_integrate=False while the same file asserts evidence_tier=ACCEPTED and cycle_status=COMPLETE (copied from state/evaluation.json, not derived from an audit)",
+    "auditor_workspace_contradicts_workflow_contract": "report states 'Producer Workspace: /tmp/lex_accepted/product' while the audit job's contract in origin/main:.github/workflows/core-lane.yml mounts the producer workspace at /tmp/lex_team (True )",
+    "report_claims_it_wrote_the_producer_benchmark_record": "'Artifacts Written' lists results/evaluation/fast_mvp_retrieval_recall_benchmark/40261335674.json, which is a PRODUCER artifact (producer commit 419d01bf), conflating the two roles",
+    "report_internal_language_leg_mismatch": "report says 'fr 3->3 holds=false' in Multilingual Observations but 'French: input_hits=4, product_hits=3' in Claim Evaluation"
+  },
+  "checks": {
+    "no_audit_branch_ref": true,
+    "no_accept_commit": true,
+    "single_producer_adding_commit::reports/audit/evaluation/CYCLE_40261335674.md": true,
+    "single_producer_adding_commit::results/audit/evaluation/CYCLE_40261335674_GATE.json": true,
+    "write_scope_repro_reproduces_exit3": true,
+    "api_404_recorded": true,
+    "inconsistency_catalog_non_empty": true
+  },
+  "claim_ceiling": "Provenance adjudication of two producer-written audit-namespace files. It does not create, upgrade or replace any independent audit and makes no product claim."
+}

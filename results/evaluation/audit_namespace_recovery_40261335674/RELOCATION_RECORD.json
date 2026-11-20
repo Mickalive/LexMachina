@@ -1,0 +1,60 @@
+{
+  "schema": "lex-evaluation-audit-namespace-relocation/1",
+  "lane": "evaluation",
+  "run": 44665691117,
+  "captured_at_utc": "2026-11-20T03:25:42Z",
+  "cycle_disclosed": 40261335674,
+  "producing_cycle_disclosed": 44665054809,
+  "why": "the evaluation team wrote these audit-namespace paths in run 44665054809; results/audit/* and reports/audit/* are outside the evaluation lane write scope (admitted: evaluation/*, tests/evaluation/*, results/evaluation/*, reports/evaluation/*, state/evaluation.json, data/evaluation/*). Run 44665054809 failed at 'Enforce lane write scope' (exit 3) on exactly this class; runs 40167904552, 40186604273, 38982176936 and the 40052532425 pseudo-gate had the same defect. Per AGENTS.md #6 and the accepted precedent results/evaluation/audit_namespace_recovery_{40153908549,40182692670,40232590665}/RELOCATION_RECORD.json, the artifacts are disclosed and copied byte-for-byte, not deleted or rewritten.",
+  "originals_retained": true,
+  "originals_deleted": false,
+  "independent_audit_provenance": false,
+  "provenance_finding": "both files were added by commit 16c84319b570fa29a9a1737b9df335ca068ce275 ('evaluation cycle 44665054809 repair 0', author lex-evaluation-team <lex-team@autonomous.local>) - a PRODUCER snapshot commit, not the independent-auditor identity (lex-independent-auditor <lex-audit@autonomous.local>) that the audit job uses. No cycle/core/evaluation/40261335674/audit ref and no 'accept evaluation cycle 40261335674' commit exists on the remote. The files are therefore producer-authored pseudo-audit output and must never be cited as an independent audit of run 40261335674, which satisfies neither half of factory-wide requirement 4.",
+  "git_provenance": {
+    "reports/audit/evaluation/CYCLE_40261335674.md": {
+      "commit": "16c84319b570fa29a9a1737b9df335ca068ce275",
+      "author_name": "lex-evaluation-team",
+      "author_email": "lex-team@autonomous.local",
+      "subject": "evaluation cycle 44665054809 repair 0"
+    },
+    "results/audit/evaluation/CYCLE_40261335674_GATE.json": {
+      "commit": "16c84319b570fa29a9a1737b9df335ca068ce275",
+      "author_name": "lex-evaluation-team",
+      "author_email": "lex-team@autonomous.local",
+      "subject": "evaluation cycle 44665054809 repair 0"
+    }
+  },
+  "items": [
+    {
+      "source_path": "reports/audit/evaluation/CYCLE_40261335674.md",
+      "relocated_copy": "results/evaluation/audit_namespace_recovery_40261335674/CYCLE_40261335674.md",
+      "source_sha256": "3042115c28310cae9f90357c8884f239cd6a0cf551196ed32679cf23c389514f",
+      "copy_sha256": "3042115c28310cae9f90357c8884f239cd6a0cf551196ed32679cf23c389514f",
+      "byte_identical": true,
+      "original_retained_in_worktree": true
+    },
+    {
+      "source_path": "results/audit/evaluation/CYCLE_40261335674_GATE.json",
+      "relocated_copy": "results/evaluation/audit_namespace_recovery_40261335674/CYCLE_40261335674_GATE.json",
+      "source_sha256": "2af61a061b9b18f8395fabf1e77dc7f711c7f051a9c4f3156d622442141e072b",
+      "copy_sha256": "2af61a061b9b18f8395fabf1e77dc7f711c7f051a9c4f3156d622442141e072b",
+      "byte_identical": true,
+      "original_retained_in_worktree": true
+    }
+  ],
+  "gate_content_summary": {
+    "gate": "REVISE",
+    "safe_to_integrate": false,
+    "verdict": "PRODUCT_FALSIFIED_RECALL_LOSS",
+    "direction_version": 68,
+    "run_id": "40261335674",
+    "lane": "evaluation",
+    "evidence_tier": "ACCEPTED",
+    "cycle_status": "COMPLETE",
+    "continue_recommended": false,
+    "accepted_run_id": 40265377500
+  },
+  "api_probe_note": "GET /actions/runs/40261335674 returned 404 at capture time, but the control probes for the ACCEPTED run 40265377500 and for 40258497460 also returned 404 while recent runs returned 200, so the 404 is a retention artifact and is NOT evidence about this run.",
+  "disposition": "The gate is retained as evidence that a producer run PROPOSED a REVISE verdict and as a source of reproducible product findings, and it is relocated in-scope so no future producer touches the audit namespace again. It is NOT an independent audit, cannot satisfy factory-wide requirement 4, and state/evaluation.json must not cite the audit-namespace path as an evidence ref (the refs point at these recovery copies instead). The independent audit job for the current run must produce its own gate under results/audit/evaluation/.",
+  "claim_ceiling": "Disclosure/relocation only; no gate status is adopted, upgraded or downgraded, no measurement is rewritten, and no audit is claimed."
+}

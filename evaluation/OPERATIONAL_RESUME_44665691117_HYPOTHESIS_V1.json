@@ -1,0 +1,53 @@
+{
+  "schema": "lex-evaluation-operational-resume-hypothesis/1",
+  "run_id": 44665691117,
+  "lane": "evaluation",
+  "direction_version": 68,
+  "mode": "OPERATIONAL_RESUME",
+  "resumes_run": 44665054809,
+  "dispatch_inputs": {
+    "lane": "evaluation",
+    "direction_version": 68,
+    "resume_from_run_id": "44665054809",
+    "repair_round": 0
+  },
+  "frozen_before_instrument_execution": true,
+  "disclosure_on_ordering": "The failure mode (step-9 write-scope exit 3 with two reports/audit+results/audit paths) was already read from the prior run's public job log BEFORE this freeze, because the resume mandate is to diagnose a known workflow failure. What is frozen here is the instrument's hypothesis set, its evidence inputs and its success rules; the instrument's own result record does not exist yet.",
+  "evidence_inputs_frozen": [
+    {
+      "path": "results/evaluation/operational_resume_44665691117/run_44665054809_rest_capture.json",
+      "sha256": "831f9b4c81e548889edc161f6c0ba41eca54323a616a1814fb7a9d021d10353f"
+    },
+    {
+      "path": "results/evaluation/operational_resume_44665691117/run_44665054809_annotation_evidence.json",
+      "sha256": "3f29fd0a209c53c5d67ee3c4b3e47f7565d8f68966df534ebaa7d956fdb69dec"
+    },
+    {
+      "path": "origin/main:.github/workflows/core-lane.yml (step 'Enforce lane write scope', exit 3 predicate)",
+      "sha256": "2bd0f49f2eb877abf4a8e080f15586168d773b780c3a531bd9bb05995efed1e1"
+    }
+  ],
+  "hypotheses": {
+    "H1_failure_class": "Run 44665054809 failed at team step 9 'Enforce lane write scope' (workflow exit 3 = 'lane crossed protected scope') because the producer wrote files under reports/audit/ and results/audit/, which the producer write-scope case-pattern does not admit (admitted: <code>/*, tests/<lane>/*, results/<lane>/*, reports/<lane>/*, state/<lane>.json, data/<lane>/*).",
+    "H2_not_other_class": "The failure is NOT rc67 (zero-delta repair), rc68/69 (state validation), rc78 (work-quantum expiry) or a provider/model death; steps 6, 7 and 8 all concluded success and audit/integrate were skipped because the team job failed.",
+    "H3_pseudo_audit": "The two out-of-scope files are PRODUCER-AUTHORED pseudo-audit artifacts for run 40261335674, not independent-audit output: no cycle/core/evaluation/40261335674/audit ref exists on the remote, origin/lab/evaluation contains no 'accept evaluation cycle 40261335674' commit, no CYCLE_40261335674 gate/report blob exists anywhere in git history except via the producing commit, and the GitHub run record for 40261335674 is not retrievable (HTTP 404) at capture time.",
+    "H4_repair_predicate": "Removing the two files from the producer worktree while byte-preserving them under an in-scope quarantine path restores write-scope compliance: the exact predicate the workflow evaluates (git status --porcelain -uall, path case-pattern) yields zero out-of-scope paths once the removal is committed.",
+    "H5_deliverable_unchanged": "The lane's ordered-work deliverable needs no re-measurement: item (1) correction-of-record artifacts still hash-match the state record; item (2) stays NOT_YET_DISCRIMINATING because the accepted product mount head is byte-identical to the already-adjudicated head 7be4480ed (so the 14/15 frozen-family relation cannot change); items (3),(4),(5) are standing and were not re-executed."
+  },
+  "success_rules": {
+    "S1": "REST capture shows team job failure with failing step number 9 name 'Enforce lane write scope' and audit=integrate=skipped, and the annotation capture lists exactly the two audit-namespace paths.",
+    "S2": "git ls-remote origin 'refs/heads/cycle/core/evaluation/40261335674/audit' is empty AND git log origin/lab/evaluation --grep='accept evaluation cycle 40261335674' is empty AND git log --all --diff-filter=A -- <each path> resolves to exactly one commit whose subject is 'evaluation cycle 44665054809 repair 0'.",
+    "S3": "sha256(quarantine copy) == sha256(original blob at 16c84319) for both files, and neither original path exists in the worktree afterwards.",
+    "S4": "Post-repair scope-predicate evaluation returns zero out-of-scope paths (all changed/untracked paths are in the lane scope).",
+    "S5": "python -m evaluation.state_integrity_gate exits 0 with 11/11 checks and evaluation.nested_evidence_refs_guard reports 0 UNRESOLVED refs after the state repair.",
+    "S6": "sha256 of reports/evaluation/BYPASS_CLAUSE_CORRECTION_OF_RECORD_40105794124_v68.md equals b10eeb3a720cd6352fbc7eabbf8d3430989b52d90193d0f948e69908ef5dc48d and of results/evaluation/bypass_clause_correction/40144816305.json equals 2e691dd02c7b53bac7b1bf048363e56006a1596dd3cade1fd4fb44514330228d (both as recorded in state); product mount head == 7be4480ed3ca623b77ea082404ca3b5b7ac5ee83."
+  },
+  "not_claimed": [
+    "no frozen bar, rubric, threshold, gate predicate or verdict contract is edited or re-derived",
+    "no serve verdict, packet admission or human-gate claim",
+    "no FAST-MVP falsifier, D2 profile, d2_path_scope_probe or universal-174k benchmark re-execution",
+    "no claim about the CONTENT of the recall-benchmark record 40261335674 (its own audit status stays PENDING_INDEPENDENT_AUDIT)",
+    "the diagnosis is about orchestration/write-scope, not about retrieval or counter-authority quality"
+  ],
+  "product_decision_unlocked": "Whether the evaluation lane's persisted snapshot can be audited and integrated without importing a fabricated audit record; this unblocks the resume chain, not a product capability."
+}

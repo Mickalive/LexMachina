@@ -1,0 +1,30 @@
+{
+  "schema": "lex-evaluation-operational-resume-hypothesis-amendment/1",
+  "lane": "evaluation",
+  "run_id": 44665691117,
+  "direction_version": 68,
+  "amends": "evaluation/OPERATIONAL_RESUME_44665691117_HYPOTHESIS_V1.json",
+  "amended_file_sha256": "ac84b07980744413ac051407964bb7253b29b24150f78d865754e0bd2911df0b",
+  "amends_field": "hypotheses.H4_repair_predicate (mechanism) and success_rules.S3 second clause ('neither original path exists in the worktree afterwards')",
+  "written_at_utc": "2026-11-20T03:19:37Z",
+  "written_before_instrument_execution": true,
+  "written_before_any_result_record_exists": true,
+  "reason": "Implementation-time discovery of the ACCEPTED, already-cited lane convention for this exact defect class: results/evaluation/audit_namespace_recovery_{40153908549,40182692670,40232590665}/RELOCATION_RECORD.json, schema 'lex-evaluation-audit-namespace-relocation/1', whose record states 'originals_retained: true, originals_deleted: false' and 'the artifacts are disclosed and copied byte-for-byte, not deleted or rewritten'. Three producer audit-namespace violations (runs 40156820260, 40186604273, 40056275530-era) were resolved that way, and tests/evaluation/test_producer_scope_defaults.py plus evaluation/snapshot_audit/write_scope.py encode the class. A SECOND, independent operational argument also binds: the workflow scope step evaluates `git status --porcelain -uall`, so DELETING an out-of-scope path is itself an out-of-scope working-tree entry and would re-trigger exit 3 in this very run; the removal mechanism in H4 is therefore not executable from a producer job without a mid-cycle commit, whereas the accepted relocation mechanism requires no audit-namespace write at all. No result has been observed: no result record for this run exists yet, and no frozen bar, rubric, threshold, gate predicate or verdict contract is touched by this amendment.",
+  "superseded_hypothesis_text": "H4_repair_predicate: 'Removing the two files from the producer worktree while byte-preserving them under an in-scope quarantine path restores write-scope compliance: the exact predicate the workflow evaluates (git status --porcelain -uall, path case-pattern) yields zero out-of-scope paths once the removal is committed.'",
+  "superseded_rule_text": "S3 (second clause): '... and neither original path exists in the worktree afterwards.'",
+  "amended_hypothesis_FROZEN": {
+    "H4_repair_predicate": "Retain the two originals in place (accepted relocation convention) and byte-copy them into the IN-SCOPE recovery namespace results/evaluation/audit_namespace_recovery_40261335674/, re-point the two state evidence_refs at the recovery copies, and publish a RELOCATION_RECORD naming them producer-authored pseudo-audit output that is NOT an independent audit and cannot satisfy factory-wide requirement 4. Write-scope compliance is then restored because the producer makes NO change to the audit namespace: the exact predicate the workflow evaluates yields zero out-of-scope CHANGED/untracked paths."
+  },
+  "amended_success_rule_FROZEN": {
+    "S3_relocation": "sha256(recovery copy) == sha256(original blob at producing commit 16c84319) for both files (byte-identity clause of the original S3, unchanged), BOTH originals still exist in the worktree (retention clause, replacing the deleted-path clause), and neither original path appears in state/evaluation.json evidence_refs afterwards."
+  },
+  "what_is_unchanged": "H1, H2, H3, H5, S1, S2, S4, S5, S6 and every not_claimed item of the V1 hypothesis are untouched; the V1 file stays byte-identical to its freeze pin (sha256 ac84b07980744413ac051407964bb7253b29b24150f78d865754e0bd2911df0b). S4's literal wording ('zero out-of-scope paths among all CHANGED/untracked paths') is evaluated as written and is satisfied by both the removal and the retention mechanism, so it needs no amendment. No measurement, bar, serve verdict, posture flag or product claim is created, moved or re-derived.",
+  "freeze_discipline_note": "Amendment is written BEFORE the first execution of evaluation/operational_resume_44665691117.py. Ordering proof at audit: the amendment and the V1 freeze both exist in the same producer commit chain and precede results/evaluation/operational_resume_44665691117/44665691117.json's generated_at_utc.",
+  "precedent_refs": [
+    "results/evaluation/audit_namespace_recovery_40153908549/RELOCATION_RECORD.json",
+    "results/evaluation/audit_namespace_recovery_40182692670/RELOCATION_RECORD.json",
+    "results/evaluation/audit_namespace_recovery_40232590665/RELOCATION_RECORD.json",
+    "tests/evaluation/test_producer_scope_defaults.py",
+    "evaluation/snapshot_audit/write_scope.py"
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "schema": "lex-evaluation-operational-resume-freeze/1",
+  "run_id": 44665691117,
+  "frozen_at_utc": "2026-11-20T03:17:10Z",
+  "freeze_commit": null,
+  "hypothesis": {
+    "path": "evaluation/OPERATIONAL_RESUME_44665691117_HYPOTHESIS_V1.json",
+    "sha256": "ac84b07980744413ac051407964bb7253b29b24150f78d865754e0bd2911df0b"
+  },
+  "instrument": {
+    "path": "evaluation/operational_resume_44665691117.py",
+    "sha256": "6e9229b9691c16c1ed8fb27c5bef7f81eee04f6bc2f151496e90dd969a8dfdee",
+    "pinned_before_first_execution": true
+  },
+  "evidence_inputs": [
+    {
+      "path": "results/evaluation/operational_resume_44665691117/run_44665054809_rest_capture.json",
+      "sha256": "831f9b4c81e548889edc161f6c0ba41eca54323a616a1814fb7a9d021d10353f"
+    },
+    {
+      "path": "results/evaluation/operational_resume_44665691117/run_44665054809_annotation_evidence.json",
+      "sha256": "3f29fd0a209c53c5d67ee3c4b3e47f7565d8f68966df534ebaa7d956fdb69dec"
+    },
+    {
+      "path": "origin/main:.github/workflows/core-lane.yml (step 'Enforce lane write scope', exit 3 predicate)",
+      "sha256": "2bd0f49f2eb877abf4a8e080f15586168d773b780c3a531bd9bb05995efed1e1"
+    }
+  ],
+  "success_rules": {
+    "S1": "REST capture shows team job failure with failing step number 9 name 'Enforce lane write scope' and audit=integrate=skipped, and the annotation capture lists exactly the two audit-namespace paths.",
+    "S2": "git ls-remote origin 'refs/heads/cycle/core/evaluation/40261335674/audit' is empty AND git log origin/lab/evaluation --grep='accept evaluation cycle 40261335674' is empty AND git log --all --diff-filter=A -- <each path> resolves to exactly one commit whose subject is 'evaluation cycle 44665054809 repair 0'.",
+    "S3": "sha256(quarantine copy) == sha256(original blob at 16c84319) for both files, and neither original path exists in the worktree afterwards.",
+    "S4": "Post-repair scope-predicate evaluation returns zero out-of-scope paths (all changed/untracked paths are in the lane scope).",
+    "S5": "python -m evaluation.state_integrity_gate exits 0 with 11/11 checks and evaluation.nested_evidence_refs_guard reports 0 UNRESOLVED refs after the state repair.",
+    "S6": "sha256 of reports/evaluation/BYPASS_CLAUSE_CORRECTION_OF_RECORD_40105794124_v68.md equals b10eeb3a720cd6352fbc7eabbf8d3430989b52d90193d0f948e69908ef5dc48d and of results/evaluation/bypass_clause_correction/40144816305.json equals 2e691dd02c7b53bac7b1bf048363e56006a1596dd3cade1fd4fb44514330228d (both as recorded in state); product mount head == 7be4480ed3ca623b77ea082404ca3b5b7ac5ee83."
+  },
+  "rule": "Hypothesis and success rules are frozen BEFORE the instrument is executed. A success rule is never edited after results are seen; a failed rule stays failed in the result record.",
+  "frozen_bar_edits": [],
+  "claim_ceiling": "Operational resume: failure diagnosis, write-scope repair and read-only verification of ordered-work pointers. No quality measurement, no bar movement, no serve or human-gate claim.",
+  "amendment": {
+    "path": "evaluation/OPERATIONAL_RESUME_44665691117_HYPOTHESIS_V1_1_AMENDMENT.json",
+    "sha256": "e6cbc257815ebbb3ea4161b8aa1f241482fd4ccdc2b23f2f61a9f3b130339f9e",
+    "written_before_execution": true
+  },
+  "instrument_pinned_at_utc": "2026-11-20T03:19:37Z",
+  "state_update_instrument": {
+    "path": "evaluation/operational_resume_44665691117_update_state.py",
+    "sha256": null,
+    "pinned_before_first_execution": true
+  },
+  "ordering": "V1 hypothesis -> V1_1 amendment -> V1 freeze -> state update -> instrument execution -> reports -> commit"
+}
