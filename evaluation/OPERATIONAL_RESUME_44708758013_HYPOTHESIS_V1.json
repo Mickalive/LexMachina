@@ -1,0 +1,41 @@
+{
+  "schema": "lex-evaluation-operational-resume-hypothesis/1",
+  "lane": "evaluation",
+  "run_id": 44708758013,
+  "direction_version": 68,
+  "mode": "OPERATIONAL_RESUME",
+  "authored_at_utc": "2026-11-20T09:45:00Z",
+  "frozen_before_execution": true,
+  "instrument": "evaluation/operational_resume_44708758013.py",
+  "resumes_snapshot_of_run": 44700681660,
+  "persisted_snapshot_head": "a3dd61fbddd8d973dfc438542ede3bc33ca7f6d6",
+  "claim_ceiling": "Operational provenance, failure diagnosis and byte-identity verification of the persisted producer snapshot only. No product-quality measurement, no frozen-bar/rubric/threshold/gate-predicate/verdict-contract edit, no serve verdict, no packet admission, no human-gate claim, no universal-174k benchmark.",
+  "hypothesis": {
+    "H1": "Run 44700681660 did NOT fail in the producer or in validation: its team job succeeded (08:12:25Z-08:26:33Z, Run lane cycle and Enforce lane write scope both success), persisted snapshot a3dd61fb, and its own final gates are AUDIT_READY. The run failed in the AUDIT job: step 5 'Independent audit' ran 2705.0s (2700s wrapper quantum + ~5s step setup) and concluded failure, steps 6-7 were skipped, no gate file, no /audit ref, integrate skipped, resilience dispatched this run - i.e. ORCHESTRATION_AUDIT_QUANTUM_EXPIRY_RC78 (annotations: 'Process completed with exit code 78.', 'LEX_WORK_QUANTUM_EXPIRED seconds=2700', 'Agent quantum ended cleanly').",
+    "H2": "The persisted producer snapshot of 44700681660 is byte-identical to what its own final-gates record pins: HEAD equals a3dd61fb, the worktree is clean at intake, and the seven claim-bearing pack files (hypothesis, freeze, instrument, result, final gates, report, regression test) re-hash to the values the prior record states.",
+    "H3": "The lane deliverable can be finished/verified and made audit-ready without any measurement rerun: (a) publish the audit-quantum diagnosis as its own artifact, (b) re-verify the v68 ordered work by hash (items 1-5 unchanged: DISCHARGED_ELSEWHERE / NOT_YET_DISCRIMINATING / KEPT / REPORTED_ONLY / HONOURED), (c) add an additive state block for this run and advance github_run/proposed_run_id in both state files, (d) close nested-ref, state-integrity and write-scope gates, and (e) hand the independent auditor a pre-verified compact AUDIT_INDEX so the recurring 2700s audit starvation does not recur on this snapshot.",
+    "H4": "The same audit-quantum signature hit the parallel product run 44700830021 (audit step 5 08:43:20Z-09:28:25Z = 2705s, steps skipped), so the failure class is orchestration-wide and not specific to this lane's content."
+  },
+  "baseline": "The persisted snapshot at a3dd61fbddd8d973dfc438542ede3bc33ca7f6d6 (HEAD on arrival, clean tree) and the accepted state of record with accepted_run_id 40265377500, direction_version 68.",
+  "product_decision_unlocked": "None. This cycle changes no product, no posture flag, no DO-NOT-SERVE order and no owner gate; it diagnoses the audit-job quantum death, verifies the producer snapshot byte-for-byte and restores an auditable record so the independent audit can adjudicate on its merits.",
+  "checks_to_execute": [
+    "C1 audit-quantum diagnosis of run 44700681660 from public GitHub REST jobs + annotations only (job/step conclusions, 2705s duration, rc-78 annotation text); log body stays HTTP 403 and no log line is quoted",
+    "C2 cross-lane corroboration: product run 44700830021 audit step duration and skipped-step pattern",
+    "C3 snapshot integrity: HEAD == a3dd61fbddd8d973dfc438542ede3bc33ca7f6d6 and intake tree clean",
+    "C4 prior-pack byte identity: seven files re-hash to the pins recorded in 44700681660_final_gates.json / the committed tree",
+    "C5 accepted head both halves of requirement 4 (in-tree gate for 40265377500 + accept commit in object graph, local origin/lab ref absence disclosed)",
+    "C6 freeze inputs re-hashed (hypothesis, freeze, instrument), direction_version pinned to 68",
+    "C7 v68 ordered-work pins re-verified by hash only (no falsifier, no probe, no retrieval benchmark, no universal-174k rerun)",
+    "C8 nested_evidence_refs_guard exit 0 with zero unresolved, state_integrity_gate 11/11, write-scope SCOPE_CLEAN with zero bad paths",
+    "C9 FAST-MVP benchmark executability verified by contract test over committed bytes (hash + py_compile + record consistency), never by re-execution"
+  ],
+  "success_rule": "AUDIT_READY only if freeze inputs pass, prior-pack byte identity holds, snapshot head matches, all accepted pins match, and C8 closes with zero unresolved, 11/11 state checks and zero bad paths. Any mismatch is recorded as a negative result; no threshold, success rule or frozen artifact is changed to obtain a pass.",
+  "forbidden": [
+    "no frozen bar, rubric, threshold, gate predicate or verdict contract edit",
+    "no falsifier, probe, retrieval benchmark or universal-174k benchmark re-execution",
+    "no serve verdict or packet admission",
+    "no edit to results/audit/** or reports/audit/** (auditor scope)",
+    "no deletion or in-place overwrite of any historical claim-bearing artifact, including every file of run 44700681660",
+    "no claim that the audit's rc-78 mechanism was observed inside a log body (HTTP 403; only public annotations and job metadata are evidence)"
+  ]
+}

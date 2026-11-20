@@ -1,0 +1,135 @@
+{
+ "schema": "lex-evaluation-orchestration-failure-capture/1",
+ "run_id": 44700681660,
+ "captured_by_run": 44708758013,
+ "repository": "Mickalive/LexMachina",
+ "captured_at_utc": "2026-11-20T09:42:13Z",
+ "capture_method": "unauthenticated public GitHub REST (run, jobs and check-run annotations endpoints); no admin rights; log bodies remain HTTP 403 without auth and are never quoted",
+ "provenance_commands": [
+  "GET https://api.github.com/repos/Mickalive/LexMachina/actions/runs/44700681660",
+  "GET https://api.github.com/repos/Mickalive/LexMachina/actions/runs/44700681660/jobs",
+  "GET https://api.github.com/repos/Mickalive/LexMachina/check-runs/136174187533/annotations",
+  "GET https://api.github.com/repos/Mickalive/LexMachina/actions/runs/44700830021/jobs"
+ ],
+ "run": {
+  "id": 44700681660,
+  "conclusion": "failure",
+  "event": "workflow_dispatch",
+  "created_at": "2026-11-20T08:12:19Z",
+  "updated_at": "2026-11-20T09:12:38Z",
+  "head_sha": "6907499e26b1848ac8431dce0b575ee4873bf90f",
+  "run_number": 19579
+ },
+ "jobs": [
+  {
+   "job_id": 136168045550,
+   "name": "team",
+   "conclusion": "success",
+   "started_at": "2026-11-20T08:12:25Z",
+   "completed_at": "2026-11-20T08:26:33Z",
+   "steps": [
+    {
+     "number": 6,
+     "name": "Run lane cycle",
+     "conclusion": "success",
+     "started_at": "2026-11-20T08:13:08Z",
+     "completed_at": "2026-11-20T08:26:25Z"
+    },
+    {
+     "number": 9,
+     "name": "Enforce lane write scope",
+     "conclusion": "success",
+     "started_at": "2026-11-20T08:26:25Z",
+     "completed_at": "2026-11-20T08:26:25Z"
+    }
+   ]
+  },
+  {
+   "job_id": 136174187533,
+   "name": "audit",
+   "conclusion": "failure",
+   "started_at": "2026-11-20T08:26:36Z",
+   "completed_at": "2026-11-20T09:12:24Z",
+   "steps": [
+    {
+     "number": 5,
+     "name": "Independent audit",
+     "conclusion": "failure",
+     "started_at": "2026-11-20T08:27:17Z",
+     "completed_at": "2026-11-20T09:12:22Z",
+     "duration_s": 2705
+    },
+    {
+     "number": 6,
+     "name": "Enforce audit scope and read gate",
+     "conclusion": "skipped",
+     "started_at": "2026-11-20T09:12:22Z",
+     "completed_at": "2026-11-20T09:12:22Z"
+    },
+    {
+     "number": 7,
+     "name": "Persist audit snapshot",
+     "conclusion": "skipped",
+     "started_at": "2026-11-20T09:12:22Z",
+     "completed_at": "2026-11-20T09:12:22Z"
+    }
+   ]
+  },
+  {
+   "job_id": 136194740575,
+   "name": "resilience",
+   "conclusion": "success",
+   "started_at": "2026-11-20T09:12:27Z",
+   "completed_at": "2026-11-20T09:12:38Z"
+  },
+  {
+   "job_id": 136194742808,
+   "name": "integrate",
+   "conclusion": "skipped",
+   "started_at": "2026-11-20T09:12:25Z",
+   "completed_at": "2026-11-20T09:12:24Z"
+  }
+ ],
+ "annotation_messages": [
+  "Process completed with exit code 78.",
+  "Agent quantum ended cleanly; workflow must snapshot and resume rather than hang.",
+  "LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2588"
+ ],
+ "independent_audit_duration_s": 2705,
+ "quantum_s": 2700,
+ "duration_minus_quantum_s": 5,
+ "rc78_annotation_confirmed": true,
+ "quantum_annotation_confirmed": true,
+ "gate_written": false,
+ "gate_path_checked": "results/audit/evaluation/CYCLE_44700681660_GATE.json",
+ "audit_ref_for_resumed_run": [],
+ "integrate_skipped": true,
+ "resilience_dispatched_run": 44708758013,
+ "parallel_product_run_corroboration": {
+  "run": 44700830021,
+  "team": "success 08:13:36Z-08:41:47Z",
+  "audit": "failure 08:41:50Z-09:28:27Z",
+  "independent_audit_step": {
+   "number": 5,
+   "conclusion": "failure",
+   "started_at": "2026-11-20T08:43:20Z",
+   "completed_at": "2026-11-20T09:28:25Z",
+   "duration_s": 2705
+  },
+  "integrate": "skipped"
+ },
+ "producer_work_preserved": {
+  "team_job": "success (Run lane cycle success, Enforce lane write scope success)",
+  "snapshot_persisted": "a3dd61fbddd8d973dfc438542ede3bc33ca7f6d6",
+  "prior_final_gates_verdict": "AUDIT_READY"
+ },
+ "failure_class": "ORCHESTRATION_AUDIT_QUANTUM_EXPIRY_RC78",
+ "disposition": "The producer snapshot of run 44700681660 was persisted by a successful team job and its own final gates are AUDIT_READY. The INDEPENDENT AUDIT job died at step 5 after 2705.0s (2700s LEX_WORK_QUANTUM_EXPIRED + ~5s step setup, rc-78 confirmed by public check-run annotations). Steps 6-7 were skipped, no gate file and no /audit ref exist for this run, integrate was skipped and the resilience job dispatched this resume. This is factory-wide requirement 20 audit starvation - not a producer failure, not a validation/write-scope failure, not a gate REVISE/BLOCKED verdict and not a product defect. The same 2705s signature hit the parallel product run 44700830021, so the class is orchestration-wide.",
+ "controls": {
+  "no_frozen_bar_or_threshold_changed": true,
+  "no_falsifier_probe_or_benchmark_rerun": true,
+  "no_universal_174k_benchmark": true,
+  "no_log_body_quoted": true
+ },
+ "claim_ceiling": "Public metadata capture only. It proves job/step conclusions, durations and annotation text, not the audit agent's internal state beyond those annotations."
+}

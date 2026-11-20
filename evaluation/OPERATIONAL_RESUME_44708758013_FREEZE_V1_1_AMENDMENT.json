@@ -1,0 +1,40 @@
+{
+ "schema": "lex-evaluation-freeze-amendment/1",
+ "lane": "evaluation",
+ "run_id": 44708758013,
+ "direction_version": 68,
+ "amendment": "V1_1",
+ "authored_at_utc": "2026-11-20T09:56:00Z",
+ "reason": "IMPLEMENTATION_RUN_ID_LABEL_DEFECT_NO_GATE_SEMANTIC_CHANGE",
+ "detail": "The first final-gates execution reused the prior run's gate wrappers (operational_resume_44700681660.run_nested_guard / run_state_gate), which bind --run-id to their own module constant '44700681660'. The nested-refs record was therefore written as 44700681660_nested_evidence_refs.json inside THIS run's results directory and both gate records stamped run_id=44700681660, while final_gates.json cited the record path 44708758013_nested_evidence_refs.json (non-existent) - a broken evidence pointer for an auditor. The gate SEMANTICS are unchanged: the same frozen nested_evidence_refs_guard and state_integrity_gate modules ran over the same state files; both attempt-1 runs returned NESTED_REFS_RESOLVED (0 unresolved) and ALL_CHECKS_PASS (11/11). No measurement, no frozen bar, rubric, threshold, gate predicate or verdict contract is touched.",
+ "failed_records": {
+  "final_gates_attempt1": {
+   "path": "results/evaluation/operational_resume_44708758013/44708758013_final_gates_runidlabel_attempt1.json",
+   "sha256": "bb2e0ad67c1ca00225dbe1257bc2dac1b156a1eec59329e6052108c2323a8743",
+   "verdict": "AUDIT_READY",
+   "defect": "nested.record cites 44708758013_nested_evidence_refs.json which attempt 1 did not write; actual file named for the prior run"
+  },
+  "nested_attempt1": {
+   "path": "results/evaluation/operational_resume_44708758013/44708758013_nested_evidence_refs_runidlabel_attempt1.json",
+   "sha256": "314970db4985467a4e51bbe76ba0c4d36b8ce72ea5efbf5fd3f823871ca37cea",
+   "run_id_stamped": "44700681660",
+   "verdict": "NESTED_REFS_RESOLVED"
+  }
+ },
+ "superseded_artifacts_retained": {
+  "misnamed_nested_original": "results/evaluation/operational_resume_44708758013/44700681660_nested_evidence_refs.json (byte-identical copy retained under the attempt1 name)"
+ },
+ "fix": "phase_final_gates now invokes evaluation.nested_evidence_refs_guard and evaluation.state_integrity_gate directly with --run-id 44708758013; the reused prior module remains import for gate_half_one/gate_half_two/verify_ordered_work only.",
+ "instrument_sha256_before": "22ab79eec2d99dd336e9f482c21af817bdc3b343f702f696dbb397e515329792",
+ "instrument_sha256_after": "12040363b1e65d601fa554012a1b68a54019a3ef7b688ad8b8c4a5b60bf782c2",
+ "frozen_items_unchanged": [
+  "hypothesis, success rule and claim ceiling",
+  "accepted_run_id 40265377500 and both acceptance halves",
+  "RULES_LABEL / RULES_GEOMETRY immutable hashes",
+  "prior-producer pack pins (7 files of run 44700681660)",
+  "v68 ordered-work pins and statuses",
+  "write-scope allowlist case patterns",
+  "nested-ref and state-integrity gate definitions (modules unedited)"
+ ],
+ "claim_ceiling": "Implementation-time repair of this run's own gate-invocation port. No product measurement was taken between attempts, no success rule or threshold was changed to obtain a pass, and both attempt-1 records are preserved as negative results."
+}
