@@ -1,0 +1,65 @@
+{
+  "schema": "product-resume-validation-gap/1",
+  "generated_at_run_id": "44675979766",
+  "resumed_run_id": "44669305676",
+  "resumed_snapshot_ref": "origin/cycle/core/product/44669305676/team",
+  "resumed_snapshot_head": "64c468c88df4eed21e2673dca5a06ff9256a7ad9",
+  "predecessor_ref": "d8c85eea",
+  "predecessor_head": "d8c85eeaf51dbc567e6a9886e19eb012ca172240",
+  "question": "Why was the persisted producer snapshot of run 44669305676 not audit-ready, and what did this resume add so it can be audited on its own bytes?",
+  "finding": "The run-44669305676 team ref carries a real committed delta (48 files), but the delta is operational slice regeneration plus cache writes only. It contains NO report of record, NO cycle regression test and NO state/product.json entry for that run. An independent auditor given that snapshot alone has no claim to verify and no re-derivable instrument, so the snapshot cannot reach a gate on its own bytes. This is the validation/audit-readiness failure class of factory-wide requirement 40 (operational verification only), not a product defect, not a frozen-bar result and not a human-gate problem.",
+  "delta_composition_recomputed_from_git": {
+    "method": "git diff --name-only d8c85eea 64c468c8 (local refs, no network)",
+    "total_changed_files": 48,
+    "by_prefix": {
+      "results/product/offline_slice/": 4,
+      "results/product/query_cache/": 44,
+      "reports/": 0,
+      "product/tests/": 0,
+      "state/": 0,
+      "any_other": 0
+    },
+    "report_test_state_paths": [],
+    "consequence": "Audit-readiness gap: no run-specific report, cycle test or state pointer. The two regenerated bundles are valid inherited work and are preserved verbatim; this resume verifies them and supplies the missing audit surface."
+  },
+  "inherited_work_verdict": {
+    "status": "PRESERVED_AND_VERIFIED",
+    "artifacts": [
+      "results/product/offline_slice/20261120T034309Z/rent-default.bundle.json",
+      "results/product/offline_slice/20261120T034309Z/summary.json",
+      "results/product/offline_slice/20261120T034311Z/rent-default.bundle.json",
+      "results/product/offline_slice/20261120T034311Z/summary.json"
+    ],
+    "not_restarted": true,
+    "note": "The inherited bundles were not regenerated or overwritten by this resume. Their own summaries (verified=true) were independently re-derived from the committed bundle bytes."
+  },
+  "orchestration_mechanism_ceiling": {
+    "classification": "RAW_SNAPSHOT_UNAVAILABLE",
+    "mechanism_unobserved": true,
+    "why": "No committed public run/jobs snapshot for run 44669305676 is present in this checkout and the GitHub log endpoint is unauthenticated (HTTP 403). From refs alone a provider death, a work-quantum expiry (rc 78) and a zero-delta guard exit (rc 67) are indistinguishable; none is claimed.",
+    "established_from_refs": [
+      "team ref exists at 64c468c8 with a 48-file committed delta",
+      "no origin/cycle/core/product/44669305676/audit ref",
+      "no results/audit/product/CYCLE_44669305676_GATE.json in any ref",
+      "no accept commit for this run",
+      "run is UNADJUDICATED, not rejected and not accepted"
+    ]
+  },
+  "fresh_runner_dependency_gap": {
+    "reproduced_this_cycle": true,
+    "observation": "python3 imported from the system interpreter had no numpy/scipy/sklearn/pytest; the documented bootstrap file product/bootstrap_query_env.sh installs the pinned free PyPI runtime into the user site.",
+    "route_around": "bash product/bootstrap_query_env.sh",
+    "claim_ceiling": "Environment/orchestration fact, not a product defect and not a frozen-bar result. .github/** is control-plane scope and is not edited from this lane.",
+    "post_bootstrap_check": "product/state_contract.py --check --direction-version 68 exited 0"
+  },
+  "what_this_resume_adds": [
+    "results/product/orchestration/CYCLE_44675979766_resume_diagnosis.json (existing accepted instrument, re-run on the inherited snapshot)",
+    "results/product/orchestration/CYCLE_44675979766_validation_gap.json (this artifact)",
+    "results/product/resume_44675979766/counter_content_family.json (frozen D1-D4 re-probe over the fixed-path family + packet v3)",
+    "results/product/resume_44675979766/progressive_smoke.json (real subprocess/socket 23/23)",
+    "product/tests/test_cycle_44675979766.py (re-derives every published number from committed artifacts)",
+    "reports/product/CYCLE_44675979766.md (report of record)",
+    "state/product.json (append-only cycle block; posture unchanged, continue_recommended true)"
+  ],
+  "claim_ceiling": "Reported-only diagnosis over local git refs and committed bundle bytes. No gate minted, no frozen bar/rubric/threshold/bar edited, no serve verdict re-run, no packet bytes rewritten, no run labelled accepted or rejected. The v68 claim ceiling stands unchanged: the query->bundle->clickable-map slice is locally runnable; END-TO-END CONTENT REPAIR is not re-attested here; both DO-NOT-SERVE orders stand."
+}
