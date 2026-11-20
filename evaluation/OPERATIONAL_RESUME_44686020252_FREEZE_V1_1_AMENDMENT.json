@@ -1,0 +1,27 @@
+{
+  "schema": "lex-evaluation-freeze-amendment/1",
+  "lane": "evaluation",
+  "run_id": 44686020252,
+  "direction_version": 68,
+  "amendment": "V1_1",
+  "authored_at_utc": "2026-11-20T06:30:00Z",
+  "reason": "IMPLEMENTATION_PARSER_BUG_NO_MEASUREMENT_CHANGE",
+  "detail": "The first final-gates execution returned R7_write_scope=false because the instrument read git porcelain status through a helper that strips leading whitespace. The first porcelain line (' M evaluation/state/evaluation.json') lost its leading space, so the path slice at index 3 produced 'valuation/state/evaluation.json' and was adjudicated out-of-scope. The workflow predicate (.github/workflows/core-lane.yml:137-143) uses the untrimmed line, so this was a defect in this run's port, not a real lane scope crossing and not a control-plane defect.",
+  "failed_record": {
+    "path": "results/evaluation/operational_resume_44686020252/44686020252_final_gates_scopeparser_failed.json",
+    "sha256": "c61f6dcd217206446982bc44b8d99cc7b79ba3b3b3e8f6c71fba5a13f3a3acef",
+    "verdict": "FINAL_GATES_FAILED",
+    "rule_pass": {"freeze_inputs": true, "R6_nested_and_state": true, "R7_write_scope": false}
+  },
+  "fix": "Use an untrimmed git-status reader (gits_raw) for the write-scope predicate; the case-pattern allowlist is unchanged from core-lane.yml:140.",
+  "instrument_sha256_before": "d3390d06cba283c1dd64eae6c1f059145d277382586d8f17e9012894b30c46e6",
+  "instrument_sha256_after": "eebc42671ab28ce2552eeef9846ae0f51f07384aefc16f7eb1c3fc7643679b23",
+  "frozen_items_unchanged": [
+    "hypothesis and success rule",
+    "acceptance pins and accepted_run_id",
+    "RULES_LABEL / RULES_GEOMETRY immutable hashes",
+    "write-scope allowlist case patterns",
+    "nested-ref and state-integrity gate definitions"
+  ],
+  "claim_ceiling": "Implementation-time repair of a read-only verification port. No product measurement was taken between the failed and corrected executions, no success rule or threshold was changed to obtain a pass, and the failed record is preserved as a negative result."
+}
