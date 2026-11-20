@@ -41,6 +41,10 @@ from .adversarial_retrieval import (
     fetch_adversarial_candidates,
     plan_adversarial_queries,
 )
+from .answer_sourcing import (
+    apply_counter_authority_note,
+    build_fixture_answer,
+)
 from .counter_anchor import apply_anchor_labels
 from .counter_emission_repair import apply_counter_emission_repair
 from .counter_evidence_span import (
@@ -1311,15 +1315,32 @@ def enrich_query_bundle(
                 runner=build_runner(budget_from_env()),
                 timeout=answer_timeout_from_env(),
             )
+        # Fixture/deterministic generation: the provider is handed a header
+        # plus VERBATIM passages from the decisions the answer already cites,
+        # so the offline path ships a sourced answer instead of two bare
+        # identifiers (QUERY_MAP_MVP 8).  No model, no network, no scored field.
+        fixture_source_record = None
+        fixture_prose = None
+        if fixture_generation:
+            fixture_header = (
+                "Fixture grounded answer " + " ".join(f"[{x}]" for x in fixture_ids)
+            )
+            fixture_prose, fixture_source_record = build_fixture_answer(
+                work, list(fixture_ids), fixture_header
+            )
         audited = run_generative_audit(
             work,
             provider=provider,
             fixture_mode=fixture_generation,
-            fixture_answer=("Fixture grounded answer " + " ".join(f"[{x}]" for x in fixture_ids)) if fixture_generation else None,
+            fixture_answer=fixture_prose,
             fixture_cited_ids=fixture_ids if fixture_generation else None,
             fixture_findings=fixture_findings,
             defer_adversarial=bool(adversarial_retrieval),
         )
+        if fixture_source_record is not None:
+            audited.setdefault("provenance", {})["answer_fixture_source"] = (
+                fixture_source_record
+            )
         ga = audited.get("provenance", {}).get("generative_audit", {})
         provider_error = ga.get("provider_error")
         if provider_diagnostics:
@@ -1463,6 +1484,15 @@ def enrich_query_bundle(
     for d in audited["decisions"]:
         if d["decision_id"] in original_geo:
             d["x"], d["y"], d["cluster_id"], d["is_outlier"] = original_geo[d["decision_id"]]
+
+    # QUERY_MAP_MVP 8: the answer must mention the material counter-authorities
+    # the independent pass surfaced, and the map must stay auditable afterwards.
+    # Placed AFTER the geometry restore so the invariant is trivial: this writer
+    # appends to answer.prose only, and the coordinates it runs against are
+    # already byte-equal to the first rendered map.  It issues no label, repeats
+    # no evidence the row does not itself report as verbatim-confirmed, and is
+    # idempotent, so a re-enrichment never stacks sections.
+    apply_counter_authority_note(audited)
 
     # Post-hydration relation refresh.  The map is built from PRE-hydration rows
     # so it can render before generation (QUERY_MAP_MVP 9A), which means its
