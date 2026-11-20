@@ -1,0 +1,61 @@
+{
+  "artifact": "operational_resume_diagnosis",
+  "run_id": 44694975109,
+  "resuming_run_id": 44700830021,
+  "lane": "product",
+  "direction_version": 68,
+  "mode": "OPERATIONAL_RESUME from persisted producer snapshot",
+  "verdict": "UNADJUDICATED_VALIDATION_ARTIFACTS_ABSENT",
+  "verdict_ceiling": "This is a local-evidence diagnosis, NOT an audit verdict, NOT a product defect verdict and NOT a human-gate event. No gate file, no gate claim.",
+  "snapshot": {
+    "team_ref": "origin/cycle/core/product/44694975109/team",
+    "head_sha256_git": "3928818e7fd6e38ff3eb85206cf3ab9e9faef0bf",
+    "head_matches_session_HEAD": true,
+    "commit_message": "product cycle 44694975109 repair 0",
+    "committed_delta": [
+      "product/query/answer_sourcing.py (new, 357 lines)",
+      "product/query/pipeline.py (+32/-1)"
+    ],
+    "delta_bytes": "388 insertions, 1 deletion across 2 files",
+    "delta_meaning": "Adds the deterministic sourced-answer writer and answer-side counter-authority note on the runnable query path (QUERY_MAP_MVP section 8)."
+  },
+  "observable_facts_at_resume": {
+    "gate_file_results_audit_product_CYCLE_44694975109_GATE_json": "absent from the checkout",
+    "audit_ref": "no audit ref for 44694975109 is present in the mounted git refs; only the team ref exists",
+    "cycle_report": "reports/product/CYCLE_44694975109.md absent in the snapshot",
+    "cycle_results": "no results/product/answer_sourcing/ directory in the snapshot",
+    "tests": "no test module exercised answer_sourcing.py in the snapshot",
+    "state": "state/product.json did not mention 44694975109; current_cycle_run_id remained 40284658455",
+    "accepted_pointer_unchanged": "CYCLE_40269774540 / 5adaa66d (both halves previously verified); no promotion from 44694975109"
+  },
+  "failure_mechanism": {
+    "status": "NOT_DIRECTLY_OBSERVABLE_IN_THIS_ENVIRONMENT",
+    "reason": "No GH_TOKEN/GITHUB_TOKEN is available in this checkout, so the GitHub run/jobs logs for 44694975109 cannot be fetched. The specific exit code (quantum expiry, provider rotation, write-scope guard, model-gateway rejection) is therefore NOT asserted.",
+    "what_is_established": "The producer committed a substantive product delta, but the validation/audit stage did not persist a test, result, report, state update or gate artifact before the run ended. The snapshot is a code-only deliverable.",
+    "prior_pattern_context_not_reused_as_verdict": "Earlier cycles in this lane recorded quantum expiry (exit 78), zero-delta guard exits (67), model-gateway rejection and a producer-minted gate caught by write-scope enforcement. These are recorded history, not a diagnosis of 44694975109.",
+    "standing_rule_observed": "A producer must never mint results/audit/** gate files; the independent auditor owns that path. This resume writes no gate artifact."
+  },
+  "resume_actions": {
+    "preserve_valid_work": "Committed answer_sourcing.py and pipeline.py wiring are preserved unchanged in code semantics; this resume pins them with tests and a probe rather than replacing them.",
+    "supplied_by_resume": [
+      "product/tests/test_answer_sourcing.py (15 tests)",
+      "product/answer_sourcing_probe.py (reproducible verification command)",
+      "results/product/answer_sourcing/CYCLE_44700830021_verification.json",
+      "results/product/orchestration/CYCLE_44694975109_resume_diagnosis.json (this file)",
+      "reports/product/CYCLE_44700830021.md",
+      "state/product.json resume block and pointer hygiene"
+    ],
+    "no_frozen_artifact_touched": true,
+    "no_gate_minted": true,
+    "no_paid_dependency": true
+  },
+  "posture": {
+    "human_gate_ready": false,
+    "machine_gate_ready": false,
+    "packet_admitted": false,
+    "ready_for_owner_session": false,
+    "owner_decision_required": false,
+    "continue_recommended": true,
+    "why": "Both frozen bars remain unmet and no independent audit of 44700830021 exists; the lane continues until a locally runnable end-to-end path can honestly be marked human_gate_ready."
+  }
+}
