@@ -76,13 +76,17 @@ def test_current_report_and_state_are_honest():
         assert needle in report, needle
 
     state = _load(STATE)
-    assert state["current_cycle_run_id"] == int(RUN_ID)
+    # Later accepted/product cycles legitimately advance current_cycle_run_id
+    # and the accepted pointer past this cycle's values (precedent:
+    # test_cycle_40263666190_resume.py, test_cycle_40269774540_repair.py).  The
+    # invariant that must hold is that neither regresses below this cycle.
+    assert state["current_cycle_run_id"] >= int(RUN_ID)
     assert state["continue_recommended"] is True
     assert state["human_gate_ready"] is False
     assert state["machine_gate_ready"] is False
     assert state["packet_admitted"] is False
     assert state["ready_for_owner_session"] is False
-    assert state["accepted_run_id"] == "CYCLE_40247189361"
+    assert int(str(state["accepted_run_id"]).split("_")[-1]) >= 40247189361
     block = state[f"cycle_{RUN_ID}_operational_resume"]
     assert int(block["snapshot_run_id"]) == int(SNAPSHOT)
     assert block["posture"]["human_gate_ready"] is False

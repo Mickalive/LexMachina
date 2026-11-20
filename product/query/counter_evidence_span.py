@@ -935,6 +935,7 @@ def apply_verified_span_selection(
     reasons: dict[str, int] = {}
     downgrades: list[dict[str, Any]] = []
     retained: list[dict[str, Any]] = []
+    defective_unverified: list[dict[str, Any]] = []
     for d in _iter_candidates(out.get("decisions") or []):
         n_candidates += 1
         before = {
@@ -982,7 +983,14 @@ def apply_verified_span_selection(
                 was_verified = d.get("counter_evidence_verified") is True
                 d["counter_evidence_verified"] = False
                 d["counter_evidence_unevidenced"] = True
-                d["counter_evidence_unevidenced_reason"] = sel.reason_code
+                # Record WHY the incumbent was downgraded.  When the incumbent
+                # fails a frozen content predicate, the defect class is the true
+                # cause; the gate's abstention reason (e.g. ``pivot_absent``) is
+                # a different axis and must not masquerade as the content cause.
+                # Falls back to the gate reason only when the failure is
+                # ungrounded evidence with no named defect class.
+                defect_reason = _content_defect_reason(incumbent_defects) or sel.reason_code
+                d["counter_evidence_unevidenced_reason"] = defect_reason
                 if was_verified:
                     downgrades.append({
                         "decision_id": str(d.get("decision_id") or ""),
@@ -991,11 +999,35 @@ def apply_verified_span_selection(
                         "after": {
                             "counter_evidence_verified": False,
                             "counter_status": d.get("counter_status"),
-                            "counter_evidence_unevidenced_reason": sel.reason_code,
+                            "counter_evidence_unevidenced_reason": defect_reason,
                         },
-                        "reason_code": sel.reason_code,
+                        "reason_code": defect_reason,
                         "defects": incumbent_defects,
                         "incumbent_grounded_in": incumbent_grounded,
+                    })
+                else:
+                    # Content-FAIL but the row was already verified=false, so
+                    # there is no verified flag to flip.  Publish it with its
+                    # TRUE defect list; it must never be filed under
+                    # retained_content_sound, whose contract asserts the row
+                    # passed the frozen D1-D4 predicates.
+                    defective_unverified.append({
+                        "decision_id": str(d.get("decision_id") or ""),
+                        "leg": "seam_abstention_defective_already_unverified",
+                        "reason_code": defect_reason,
+                        "counter_evidence_verified": False,
+                        "counter_status": d.get("counter_status"),
+                        "incumbent_grounded_in": incumbent_grounded,
+                        "defects": list(incumbent_defects),
+                        "ungrounded": bool(incumbent_ev.strip()) and incumbent_grounded is None,
+                        "note": (
+                            "frozen label gate abstained AND the incumbent fails "
+                            "the frozen D1-D4 content predicates (or is not "
+                            "verbatim-grounded); the row was already "
+                            "verified=false so there was no flag to flip - its "
+                            "true defects are published here, never in "
+                            "retained_content_sound"
+                        ),
                     })
             else:
                 retained.append({
@@ -1070,6 +1102,11 @@ def apply_verified_span_selection(
         "downgrades": downgrades,
         "n_retained_content_sound": len(retained),
         "retained_content_sound": retained,
+        # Content-fail rows the seam met while they were ALREADY
+        # verified=false (no flag to flip): published with their true defect
+        # list so no consumer can mistake them for content-sound rows.
+        "n_defective_already_unverified": len(defective_unverified),
+        "defective_already_unverified": defective_unverified,
     }
     return out
 
@@ -1197,6 +1234,17 @@ _DEFECT_REASON = {
     "D3_markup_residue": "d3_markup_residue",
     "D4_language_marker_mismatch": "d4_language_marker_mismatch",
 }
+
+
+def _content_defect_reason(defects: list[str]) -> str | None:
+    """Map the first frozen content-defect class to its reason code.
+
+    ``None`` when the failure has no named defect (e.g. an incumbent that is
+    simply not verbatim-grounded), so callers can fall back to the gate reason.
+    """
+    if defects:
+        return _DEFECT_REASON.get(defects[0])
+    return None
 
 
 def passes_content_filter(quote: str, row: dict, start: int | None = None) -> tuple[bool, str]:

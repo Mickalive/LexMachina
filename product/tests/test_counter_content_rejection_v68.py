@@ -386,3 +386,83 @@ def test_fixture_mode_offline_slice_downgrades_the_known_letterhead_row():
     assert len(bundle["decisions"]) == 100
     assert all(d.get("cluster_id") is not None for d in bundle["decisions"])
     assert all(d.get("canonical_url") for d in bundle["decisions"])
+
+
+# --------------------------------------------------------------------------- #
+# 5. per-row reason accuracy + already-unverified defective publication
+# --------------------------------------------------------------------------- #
+#
+# Direction v68 ordered work (1) requires the per-row downgrade to publish WHY
+# the incumbent was rejected.  A row rejected for a frozen content defect must
+# record the DEFECT class (e.g. ``d2_letterhead_zone``), not the frozen gate's
+# abstention reason (e.g. ``pivot_absent``), which is a different axis.  And a
+# content-fail row the seam meets while it is ALREADY verified=false has no flag
+# to flip: it must be published under ``defective_already_unverified`` with its
+# true defects, never under ``retained_content_sound``.
+
+def test_downgrade_reason_names_the_defect_not_the_gate_abstention():
+    rel, did, expected = DEFECTIVE[0]  # Graubuenden D2 letterhead
+    out = _shipped_apply(_load(rel))
+    prov = out["provenance"]["counter_evidence_span"]
+    rec = next(r for r in prov["downgrades"] if r["decision_id"] == did)
+    # gate abstained for pivot_absent, but the content cause is D2
+    assert prov["abstention_reasons"] == {"pivot_absent": 1}, (
+        "the gate abstention reason must stay published unchanged")
+    assert rec["defects"] == expected
+    assert rec["reason_code"] == "d2_letterhead_zone"
+    assert rec["after"]["counter_evidence_unevidenced_reason"] == "d2_letterhead_zone"
+    row = next(d for d in out["decisions"] if d.get("decision_id") == did)
+    assert row["counter_evidence_unevidenced_reason"] == "d2_letterhead_zone"
+
+
+def test_reapplying_the_seam_publishes_already_unverified_defects():
+    """On the fixed-path bytes the row is already unverified; re-running the
+    seam must publish its true defect instead of hiding it or calling it sound.
+
+    Uses the committed fixed-path bundle where ``gr_gerichte_ERZ 2010 25`` is
+    already ``counter_evidence_verified=false`` (family of 20261025T...).
+    """
+    fixed = ("results/product/offline_slice/20261025T070356Z/"
+             "rent-default.bundle.json")
+    doc = _load(fixed)
+    row0 = next(d for d in doc["decisions"]
+                if d.get("decision_id") == "gr_gerichte_ERZ 2010 25")
+    assert row0.get("counter_evidence_verified") is False, "fixed-path state"
+
+    out = _shipped_apply(doc)
+    prov = out["provenance"]["counter_evidence_span"]
+    rec = next(r for r in prov["defective_already_unverified"]
+               if r["decision_id"] == "gr_gerichte_ERZ 2010 25")
+    assert rec["reason_code"] == "d2_letterhead_zone"
+    assert rec["defects"] == ["D2_letterhead_zone"]
+    assert rec["leg"] == "seam_abstention_defective_already_unverified"
+    # never filed as content-sound
+    assert "gr_gerichte_ERZ 2010 25" not in [
+        r["decision_id"] for r in prov["retained_content_sound"]]
+    assert prov["n_defective_already_unverified"] >= 1
+    # idempotent: no verified flag is flipped (there was none to flip)
+    assert prov["n_downgraded"] == 0
+    row = next(d for d in out["decisions"]
+               if d.get("decision_id") == "gr_gerichte_ERZ 2010 25")
+    assert row["counter_evidence_verified"] is False
+    assert row["counter_evidence_unevidenced_reason"] == "d2_letterhead_zone"
+
+
+def test_retained_content_sound_never_contains_a_defective_row():
+    """A bundle-wide invariant over the four defective fixtures + the sound row:
+    every id in ``retained_content_sound`` is content-sound, and every defective
+    row is either downgraded or published as already-unverified-defective."""
+    fixtures = [rel for rel, _did, _d in DEFECTIVE] + [SOUND[0]]
+    for rel in fixtures:
+        out = _shipped_apply(_load(rel))
+        prov = out["provenance"]["counter_evidence_span"]
+        by_id = {d.get("decision_id"): d for d in out["decisions"]}
+        for rec in prov.get("retained_content_sound", []):
+            row = by_id[rec["decision_id"]]
+            assert row.get("counter_evidence_verified") is True
+            assert ces.frozen_content_defects(
+                str(row.get("counter_evidence") or ""), row) == [], (
+                f"{rec['decision_id']} was retained as content-sound but fails "
+                "a frozen predicate")
+        for rec in (prov.get("downgrades", []) + prov.get("defective_already_unverified", [])):
+            assert rec["defects"], "a rejected incumbent must name its defect"
