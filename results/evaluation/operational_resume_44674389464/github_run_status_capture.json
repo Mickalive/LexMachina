@@ -1,0 +1,41 @@
+{
+  "schema": "lex-evaluation-github-run-status-capture/1",
+  "captured_by_run": 44674389464,
+  "captured_at_utc": "2026-11-20T04:35:00Z",
+  "source": "GET https://api.github.com/repos/Mickalive/LexMachina/actions/runs/<id> and /jobs (unauthenticated, public repository)",
+  "provenance_kind": "PROVENANCE_ONLY_NON_MEASUREMENT",
+  "note": "Recorded verbatim from the public Actions REST API during the operational resume. Job logs require repository admin rights (HTTP 403) and were NOT read; the audit-job death cause is therefore classified as PROVIDER_OR_QUANTUM_DEATH_INFERRED, not an established log line. No quality measurement uses this file.",
+  "runs": {
+    "44665054809": {
+      "name": "Core evaluation dirV68 repair0",
+      "status": "completed",
+      "conclusion": "failure",
+      "jobs": [
+        {"name": "team", "conclusion": "failure", "non_success_steps": [{"number": 9, "name": "Enforce lane write scope", "conclusion": "failure"}]},
+        {"name": "audit", "conclusion": "skipped"},
+        {"name": "integrate", "conclusion": "skipped"},
+        {"name": "resilience", "conclusion": "success"}
+      ],
+      "annotation": "Process completed with exit code 3.",
+      "offending_paths": [
+        "reports/audit/evaluation/CYCLE_40261335674.md",
+        "results/audit/evaluation/CYCLE_40261335674_GATE.json"
+      ]
+    },
+    "44665691117": {
+      "name": "Core evaluation dirV68 repair0",
+      "status": "completed",
+      "conclusion": "failure",
+      "jobs": [
+        {"name": "team", "conclusion": "success", "non_success_steps": []},
+        {"name": "audit", "conclusion": "failure", "non_success_steps": [{"number": 5, "name": "Independent audit", "conclusion": "failure"}], "subsequent_steps": {"6": "skipped", "7": "skipped"}},
+        {"name": "integrate", "conclusion": "skipped"},
+        {"name": "resilience", "conclusion": "success"}
+      ],
+      "audit_gate_written": false,
+      "audit_verdict_issued": false,
+      "classification": "AUDIT_JOB_DEATH_NOT_A_VERDICT",
+      "classification_basis": "step 5 (Independent audit) failed; step 6 'Enforce audit scope and read gate' and step 7 'Persist audit snapshot' were skipped, so no CYCLE_44665691117_GATE.json exists and the integrator had no gate to read. Consistent with factory-wide requirement 20 (provider rotation / LEX_WORK_QUANTUM_EXPIRED), not an audit finding."
+    }
+  }
+}

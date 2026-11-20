@@ -1,0 +1,264 @@
+{
+  "schema": "lex-evaluation-operational-resume/3",
+  "run_id": 44674389464,
+  "resumes_snapshot_of": 44665691117,
+  "snapshot_head": "b65f472db790f4a33545b2acbca05c18f8fe35d0",
+  "lane": "evaluation",
+  "direction_version": 68,
+  "mode": "OPERATIONAL_RESUME",
+  "generated_at_utc": "2026-11-20T04:32:47Z",
+  "claim_bearing_run": 44674389464,
+  "audit_status": "PENDING_INDEPENDENT_AUDIT",
+  "pending_independent_audit": true,
+  "accepted_as_evidence": false,
+  "accepted_run_id": 40265377500,
+  "failure_chain": [
+    {
+      "run": 44665054809,
+      "class": "WRITE_SCOPE_VALIDATION_FAILURE_exit_3",
+      "failing_step": 9,
+      "evidence": "results/evaluation/operational_resume_44665691117/run_44665054809_annotation_evidence.json"
+    },
+    {
+      "run": 44665691117,
+      "class": "AUDIT_JOB_DEATH_NOT_A_VERDICT",
+      "failing_step": 5,
+      "evidence": "results/evaluation/operational_resume_44674389464/github_run_status_capture.json"
+    }
+  ],
+  "rules": {
+    "freeze_inputs": {
+      "passed": true,
+      "checks": {
+        "inputs_present": true,
+        "instrument_sha_matches_active_pin": true,
+        "hypothesis_sha_matches_freeze": true,
+        "capture_sha_matches_freeze": true,
+        "pins_the_current_run": true,
+        "direction_version_pinned": true,
+        "no_frozen_bar_edits": true,
+        "amendment_sha_matches_freeze": true,
+        "amendment_pins_active_instrument": true,
+        "v1_freeze_preserved": true
+      },
+      "active_freeze": "evaluation/OPERATIONAL_RESUME_44674389464_FREEZE_V2.json",
+      "instrument_sha256": "69addd013210341c6a45f627a5780cef05702d0550077b7ec6cea22fb58d56d6",
+      "hypothesis_sha256": "f6e90b047c14f3187701e4b07f813b8e761dbb9c4d08cb9c845237e5f5b38920",
+      "capture_sha256": "8fdd600dec4358229946ada7c722c829d26b030486eb5bec5db2726d0cfbd439"
+    },
+    "R1": {
+      "rule": "R1",
+      "passed": true,
+      "checks": {
+        "accepted_run_id_is_40265377500": true,
+        "gate_file_present": true,
+        "gate_PASS": true,
+        "safe_to_integrate": true,
+        "required_fixes_empty": true,
+        "lab_head_resolves": true,
+        "accept_commit_on_lab": true
+      },
+      "accepted_run_id": 40265377500,
+      "lab_head": "ea98384e54d31d2e694c418a1d1ce5769fc6c32f",
+      "accept_commit_line": "ea98384e accept evaluation cycle 40265377500",
+      "surfaces_read": [
+        "results/audit/evaluation gate file",
+        "origin/lab/evaluation git log"
+      ],
+      "note": "both halves read directly; neither the mount nor results/accepted-state alone was used (requirement 39)"
+    },
+    "R2": {
+      "rule": "R2",
+      "passed": true,
+      "checks": {
+        "scope_fail_step9_failure": true,
+        "scope_fail_annotation_exit_3": true,
+        "offending_paths_exact": true,
+        "audit_and_integrate_skipped": true,
+        "steps_6_7_8_success": true,
+        "workflow_sha_pin_reproduced": true,
+        "audit_death_not_a_verdict": true,
+        "audit_death_step5": true,
+        "captures_are_committed_inputs": true
+      },
+      "scope_failure": {
+        "run": 44665054809,
+        "class": "WRITE_SCOPE_VALIDATION_FAILURE_exit_3",
+        "failing_step": 9,
+        "offending_paths": [
+          "reports/audit/evaluation/CYCLE_40261335674.md",
+          "results/audit/evaluation/CYCLE_40261335674_GATE.json"
+        ],
+        "not": [
+          "rc67",
+          "rc68/69",
+          "rc78",
+          "provider death",
+          "audit verdict"
+        ]
+      },
+      "audit_death": {
+        "run": 44665691117,
+        "class": "AUDIT_JOB_DEATH_NOT_A_VERDICT",
+        "failing_step": 5,
+        "no_gate_no_verdict": true,
+        "cause_certainty": "INFERRED (job logs HTTP 403 without admin rights)"
+      },
+      "workflow_sha_observed": "2bd0f49f2eb877abf4a8e080f15586168d773b780c3a531bd9bb05995efed1e1",
+      "workflow_sha_expected": "2bd0f49f2eb877abf4a8e080f15586168d773b780c3a531bd9bb05995efed1e1",
+      "resolution_of_prior_null": "the prior run observed null for this pin because origin/main was not resolvable in that detached checkout; the pin itself is correct and is reproduced here from the same control-plane ref"
+    },
+    "R3": {
+      "rule": "R3",
+      "passed": true,
+      "checks": {
+        "prior_instrument_bytes_drifted_from_pin": true,
+        "prior_record_reports_pin_false": true,
+        "prior_record_verdict_not_confirmed": true,
+        "prior_record_S4_scope_passed": true,
+        "prior_record_S2_provenance_passed": true,
+        "prior_record_item4_check_was_old_form": true,
+        "current_bytes_use_mount_gate_pin": true,
+        "mount_gate_pin_matches": true,
+        "prior_result_not_rewritten": true
+      },
+      "prior_instrument_sha_now": "befa4879bbc9a97ae62c30e2da57933695b2be19130349a69be89d82f5cb3b02",
+      "prior_instrument_sha_pinned": "6e9229b9691c16c1ed8fb27c5bef7f81eee04f6bc2f151496e90dd969a8dfdee",
+      "prior_record_verdict": "DIAGNOSIS_NOT_CONFIRMED",
+      "finding": "STALE_RESULT_RECORD",
+      "explanation": "run 44665691117 edited its instrument AFTER executing it: the committed bytes now pin the product-mount item-(4) gate, but the recorded result still carries the old gate-absent check and DIAGNOSIS_NOT_CONFIRMED. The result is preserved verbatim; this run does not re-run that instrument (its final-gates phase would overwrite it) and instead re-derives the checks under its own run id.",
+      "disposition": "PRESERVED_AS_NEGATIVE_EVIDENCE_NOT_SUPPRESSED"
+    },
+    "R4": {
+      "rule": "R4",
+      "passed": true,
+      "checks": {
+        "both_copies_byte_identical": true,
+        "both_originals_retained": true,
+        "relocation_record_present": true,
+        "record_declares_retention": true,
+        "record_sha_matches_prior_pin": true
+      },
+      "rows": [
+        {
+          "source": "reports/audit/evaluation/CYCLE_40261335674.md",
+          "recovery": "results/evaluation/audit_namespace_recovery_40261335674/CYCLE_40261335674.md",
+          "source_sha256": "3042115c28310cae9f90357c8884f239cd6a0cf551196ed32679cf23c389514f",
+          "recovery_sha256": "3042115c28310cae9f90357c8884f239cd6a0cf551196ed32679cf23c389514f",
+          "byte_identical": true,
+          "original_retained": true
+        },
+        {
+          "source": "results/audit/evaluation/CYCLE_40261335674_GATE.json",
+          "recovery": "results/evaluation/audit_namespace_recovery_40261335674/CYCLE_40261335674_GATE.json",
+          "source_sha256": "2af61a061b9b18f8395fabf1e77dc7f711c7f051a9c4f3156d622442141e072b",
+          "recovery_sha256": "2af61a061b9b18f8395fabf1e77dc7f711c7f051a9c4f3156d622442141e072b",
+          "byte_identical": true,
+          "original_retained": true
+        }
+      ],
+      "relocation_record": "results/evaluation/audit_namespace_recovery_40261335674/RELOCATION_RECORD.json",
+      "relocation_record_sha256": "d702c27372a1cc954c5a1152377158050acff2b6eda1131f7c1c1e09f8d0272b",
+      "control_plane_disclosure": "the two retained originals are committed in the resume base and cannot be removed from a producer worktree (a delete is itself an out-of-scope status entry -> exit 3); on PASS the integrator overwrites only the current run's gate/report paths, so this residue is recorded for the control plane and is not edited here"
+    },
+    "R5": {
+      "rule": "R5",
+      "passed": true,
+      "checks": {
+        "item1_correction_intact": true,
+        "item2_precondition_unchanged": true,
+        "item3_benchmark_of_record_present": true,
+        "item4_gate_pin_verified_not_quoted": true,
+        "item5_no_closed_work_rerun": true
+      },
+      "observed": {
+        "item1": {
+          "reports/evaluation/BYPASS_CLAUSE_CORRECTION_OF_RECORD_40105794124_v68.md": {
+            "expected": "b10eeb3a720cd6352fbc7eabbf8d3430989b52d90193d0f948e69908ef5dc48d",
+            "observed": "b10eeb3a720cd6352fbc7eabbf8d3430989b52d90193d0f948e69908ef5dc48d",
+            "match": true
+          },
+          "results/evaluation/bypass_clause_correction/40144816305.json": {
+            "expected": "2e691dd02c7b53bac7b1bf048363e56006a1596dd3cade1fd4fb44514330228d",
+            "observed": "2e691dd02c7b53bac7b1bf048363e56006a1596dd3cade1fd4fb44514330228d",
+            "match": true
+          }
+        },
+        "item2": {
+          "product_mount_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+          "expected_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+          "span_sha256": "82cea13122b13a60e4da746072af4a185f9e4b2e0ef51853d6273acb7a1bb6ce",
+          "frozen_family_pin_sha256": "948a8929817f265236c87bbc1b3a17559fa7db2bd03ee4ccddc36332977ac717",
+          "status": "NOT_YET_DISCRIMINATING",
+          "protocol_executed": false,
+          "packet_of_record_scored": false,
+          "falsifier_reexecuted": false,
+          "why": "product head byte-identical to accepted adjudication 40258497460; frozen 15-member family still 14/15"
+        },
+        "item3": {
+          "benchmark_of_record": "results/evaluation/minimal_retrieval_ca_benchmark/40182692670_engine_mapping_free_recall_falsifier.json",
+          "verdict": "PRODUCT_FALSIFIED",
+          "status": "KEPT_UNCHANGED",
+          "re_executed": false
+        },
+        "item4": {
+          "gate": "mount:/tmp/lex_accepted/product/results/audit/product/CYCLE_39965089504_GATE.json",
+          "pin_matches": true,
+          "required_fix_counts_quoted": false,
+          "status": "REPORTED_ONLY_WHERE_QUOTED"
+        },
+        "item5": {
+          "frozen_bar_edits": [],
+          "falsifier_reexecuted": false,
+          "d2_profile_rederived": false,
+          "universal_174k_benchmark": false,
+          "status": "HONOURED"
+        }
+      },
+      "ordered_work_status": {
+        "1": "DISCHARGED_ELSEWHERE (hash-verified, not re-run)",
+        "2": "NOT_YET_DISCRIMINATING (precondition carried forward, protocol not executed)",
+        "3": "KEPT (benchmark of record present, not re-executed)",
+        "4": "REPORTED_ONLY where quoted (not quoted)",
+        "5": "HONOURED (no frozen bench / D2 profile / bypass re-derivation, no 174k)"
+      }
+    },
+    "R6": {
+      "passed": null,
+      "status": "DEFERRED_TO_FINAL_GATES"
+    },
+    "R7": {
+      "passed": null,
+      "status": "DEFERRED_TO_FINAL_GATES"
+    }
+  },
+  "rule_pass": {
+    "freeze_inputs": true,
+    "R1": true,
+    "R2": true,
+    "R3": true,
+    "R4": true,
+    "R5": true
+  },
+  "passed": true,
+  "verdict": "ORCHESTRATION_DIAGNOSIS_CONFIRMED",
+  "exit_code": 0,
+  "prior_snapshot_defect": {
+    "verdict": "STALE_RESULT_RECORD",
+    "preserved": true,
+    "not_rewritten": true
+  },
+  "ordered_work_status": {
+    "1": "DISCHARGED_ELSEWHERE (hash-verified, not re-run)",
+    "2": "NOT_YET_DISCRIMINATING (precondition carried forward, protocol not executed)",
+    "3": "KEPT (benchmark of record present, not re-executed)",
+    "4": "REPORTED_ONLY where quoted (not quoted)",
+    "5": "HONOURED (no frozen bench / D2 profile / bypass re-derivation, no 174k)"
+  },
+  "negative_results": [
+    "run 44665691117's own instrument returned DIAGNOSIS_NOT_CONFIRMED because its bytes drifted from the freeze pin after execution; its result is preserved verbatim and re-derived here, not overwritten",
+    "the GitHub job logs for the audit death are HTTP 403 without admin rights, so the provider/quantum cause is INFERRED, not an established log line",
+    "no quality, recall, counter-authority, label, geometry or serve measurement is produced; item (2) stays NOT_YET_DISCRIMINATING"
+  ],
+  "claim_ceiling": "Operational provenance only: no quality measurement, no frozen bar, rubric, threshold, gate predicate or verdict contract edited, no serve verdict, no packet admission, no human-gate claim, no universal-174k benchmark, no falsifier/probe re-execution."
+}
