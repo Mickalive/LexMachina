@@ -369,6 +369,50 @@ PROFILES: dict[str, dict[str, Any]] = {
                              / "self_minted_gate_40278460732_producer_"
                                "40283048553.QUARANTINED.json",
     },
+    "44711032839": {
+        # Operational resume of producer snapshot 44700830021: its team job
+        # was green 10/10 with an 8-file durable delta, and its independent
+        # audit died on the workflow's own 2700 s work quantum (exit 78,
+        # annotation-observed) before the gate step could run, so no audit
+        # ref and no gate exist for that run.  The previous resume (44700830021
+        # itself) published no dossier, which is exactly the burden the next
+        # auditor would have had to re-derive inside its own quantum; this
+        # profile exists so the next audit starts from a bounded dossier.
+        "resumed_run_id": "44700830021",
+        "predecessor_run_id": "44694975109",
+        "raw": ORCH / "CYCLE_44700830021_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_44700830021_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_44700830021.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_44711032839.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "delta_kind": "committed",
+        "changed_files": 8,
+        "changed_paths_include": (
+            "product/tests/test_answer_sourcing.py",
+            "reports/product/CYCLE_44700830021.md",
+        ),
+        "cycle_test": "product/tests/test_cycle_44711032839.py",
+        "state_block": "cycle_44711032839_operational_resume",
+        # No new counter-content family this cycle: consume the accepted
+        # fixed-path family pins unchanged (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    # The auditor of the resumed run may invoke the dossier with either the
+    # executing run id or the resumed run id; both resolve to the same profile.
+    "44700830021": {"alias_of": "44711032839"},
 }
 
 # Active profile; empty means "the module constants above" (the original

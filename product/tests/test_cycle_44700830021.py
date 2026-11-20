@@ -81,8 +81,20 @@ def test_verification_checks_are_non_vacuous():
 
 
 def test_state_attribution_and_resume_block_are_correct():
+    """POINTER-PIN AMENDMENT (resume 44711032839).
+
+    Later executing cycles legitimately advance ``current_cycle_run_id`` past
+    this cycle's era (the same monotonic guard already exists in
+    test_cycle_40284658455.py, test_cycle_40269774540_repair.py and
+    test_cycle_40263666190_resume.py).  The durable claim is strengthened:
+    the pointer never REGRESSES below this cycle's executing run and this
+    cycle's run_history entry and resume block survive verbatim in state.
+    """
     st = _load(STATE)
-    assert st["current_cycle_run_id"] == int(RUN)
+    assert isinstance(st["current_cycle_run_id"], int)
+    assert st["current_cycle_run_id"] >= int(RUN), (
+        "current_cycle_run_id regressed below this cycle's executing run",
+        st["current_cycle_run_id"], RUN)
     assert st["owner_decision_required"] is False
     hist = {str(h.get("run_id")): h for h in st.get("run_history") or []}
     assert RUN in hist
@@ -103,9 +115,22 @@ def test_state_attribution_and_resume_block_are_correct():
 
 
 def test_accepted_pointer_and_posture_unchanged():
+    """POINTER-PIN AMENDMENT (resume 44711032839).
+
+    This cycle's test originally pinned the accepted pointer to
+    CYCLE_40269774540 / 5adaa66d, which went stale when run 40284658455 was
+    accepted (7be4480e).  The durable claim is strengthened: the pointer must
+    satisfy BOTH halves of requirement 4 for whatever run it names, and the
+    fail-closed posture and the UNADJUDICATED wording are unchanged.
+    """
+    from product.state_contract import accepted_pointer_evidence
     st = _load(STATE)
-    assert st["accepted_run_id"] == "CYCLE_40269774540"
-    assert st["accepted_commit"] == "5adaa66d4ad2b9702cd023bfd49d743667f9e638"
+    ev = accepted_pointer_evidence(st, ROOT)
+    assert ev["problems"] == [], ev
+    assert ev["gate_ok"] is True and ev["accept_commit_present"] is True
+    # historical pointer values remain readable in git history; nothing was
+    # re-labelled, only superseded with disclosure (accepted_run_supersession)
+    assert "CYCLE_40269774540" in st["accepted_run_supersession"]
     for flag in ("human_gate_ready", "machine_gate_ready", "packet_admitted",
                  "ready_for_owner_session"):
         assert st.get(flag) is False, flag

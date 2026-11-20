@@ -107,15 +107,48 @@ def test_self_minted_gate_is_preserved_and_quarantined_non_promoting():
     assert "non_promoting" in text or "non-promoting" in text
 
 
-def test_no_gate_exists_for_the_executing_or_resumed_run():
-    for run in (EXECUTING_RUN_ID, RESUMED_RUN_ID, MINTED_GATE_RUN):
-        # 40278460732's file exists only as the quarantined producer mint;
-        # no auditor-authored gate exists for any of the three.
+def test_gate_provenance_for_executing_resumed_and_minted_runs():
+    """PROVENANCE AMENDMENT (resume 44711032839).
+
+    When this cycle's test was written, no gate existed yet for the executing
+    run 40284658455.  The run was LATER accepted: results/audit/product/
+    CYCLE_40284658455_GATE.json was introduced by the accept commit 7be4480e
+    (lex-integrator) and origin/lab/product now heads that commit, i.e. both
+    halves of requirement 4 hold.  The original assertion ('no gate file for
+    the executing run') is therefore stale, and deleting it would hide the
+    stronger fact.  The amendment keeps every historical claim and ADDS
+    provenance: the executing run's gate must be auditor-authored (first
+    appearing in the accept commit, never in a producer commit), while the
+    resumed run still has no gate and the minted 40278460732 file remains the
+    quarantined producer mint only.
+    """
+    gate_path = (ROOT / "results" / "audit" / "product"
+                 / f"CYCLE_{EXECUTING_RUN_ID}_GATE.json")
+    assert gate_path.is_file(), "executing run was accepted after this test"
+    introducing = _git("log", "--diff-filter=A", "--format=%H %s", "--",
+                       f"results/audit/product/CYCLE_{EXECUTING_RUN_ID}_GATE.json")
+    lines = [ln for ln in introducing.strip().splitlines() if ln]
+    # Exactly one commit ever ADDED this file, and it is the accept commit:
+    # integrate copied the bytes from the run's audit branch, so no producer
+    # commit in the lineage ever carried an auditor-namespace gate.
+    assert len(lines) == 1, lines
+    sha, _, subject = lines[0].partition(" ")
+    assert subject.strip() == f"accept product cycle {EXECUTING_RUN_ID}", (
+        lines[0])
+    gate = _load(gate_path)
+    assert gate["gate"] == "PASS" and gate["safe_to_integrate"] is True
+    # The resumed run and the self-minted run still have no auditor gate.
+    assert not (ROOT / "results" / "audit" / "product"
+                / f"CYCLE_{RESUMED_RUN_ID}_GATE.json").exists()
+    assert MINTED_GATE.is_file(), "the producer mint must be preserved verbatim"
+    quarantine = _load(QUARANTINE)
+    assert "NON_PROMOTING" in json.dumps(quarantine)
+    assert quarantine["minted_artifact"]["sha256"] == hashlib.sha256(
+        MINTED_GATE.read_bytes()).hexdigest()
+    for run in (RESUMED_RUN_ID, MINTED_GATE_RUN):
         audit_refs = _git("ls-remote", "--heads", "origin",
                           f"refs/heads/cycle/core/product/{run}/audit")
         assert audit_refs == "", f"unexpected /audit ref for {run}"
-    assert not (ROOT / "results" / "audit" / "product" /
-                f"CYCLE_{EXECUTING_RUN_ID}_GATE.json").exists()
 
 
 def test_state_attributes_the_executing_run_not_the_resumed_snapshot():
@@ -146,14 +179,28 @@ def test_state_attributes_the_executing_run_not_the_resumed_snapshot():
 
 
 def test_accepted_pointer_satisfies_both_halves_and_posture_stays_fail_closed():
+    """POINTER-PIN AMENDMENT (resume 44711032839).
+
+    A hard pin to CYCLE_40269774540 / 5adaa66d went stale the moment run
+    40284658455 was accepted (accept commit 7be4480e, now origin/lab/product
+    head), which is the drift class ``state_contract.accepted_pointer_evidence``
+    exists to describe.  The durable claim is strengthened, not weakened: the
+    pointer must satisfy BOTH halves of requirement 4 for the run it names, the
+    lab/product head must be that pointer's commit (the pointer names the
+    LATEST accept), and the posture flags stay fail-closed.
+    """
+    from product.state_contract import accepted_pointer_evidence
     st = _load(STATE)
-    assert st["accepted_run_id"] == "CYCLE_40269774540"
-    assert st["accepted_commit"].startswith("5adaa66d")
-    gate = _load(ROOT / "results" / "audit" / "product"
-                 / "CYCLE_40269774540_GATE.json")
-    assert gate["gate"] == "PASS" and gate["safe_to_integrate"] is True
+    ev = accepted_pointer_evidence(st, ROOT)
+    assert ev["problems"] == [], ev
+    assert ev["gate_ok"] is True and ev["accept_commit_present"] is True
+    # The pointer names the latest accept, so lab/product heads its commit.
     head = _git("ls-remote", "--heads", "origin", "refs/heads/lab/product")
     assert head.startswith(st["accepted_commit"]), (head, st["accepted_commit"])
+    run_id = st["accepted_run_id"].replace("CYCLE_", "")
+    gate = _load(ROOT / "results" / "audit" / "product"
+                 / f"CYCLE_{run_id}_GATE.json")
+    assert gate["gate"] == "PASS" and gate["safe_to_integrate"] is True
     for key, expected in (
         ("continue_recommended", True),
         ("human_gate_ready", False),
