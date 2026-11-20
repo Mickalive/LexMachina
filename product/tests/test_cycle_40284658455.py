@@ -107,15 +107,31 @@ def test_self_minted_gate_is_preserved_and_quarantined_non_promoting():
     assert "non_promoting" in text or "non-promoting" in text
 
 
-def test_no_gate_exists_for_the_executing_or_resumed_run():
-    for run in (EXECUTING_RUN_ID, RESUMED_RUN_ID, MINTED_GATE_RUN):
-        # 40278460732's file exists only as the quarantined producer mint;
-        # no auditor-authored gate exists for any of the three.
+def test_gate_authorship_for_the_quarantined_chain_and_the_executing_run():
+    # The quarantined producer-mint chain must still have NO auditor ref:
+    # this preserves the original anti-minting protection.  (The minted gate
+    # file for 40278460732 is preserved elsewhere and checked above.)
+    for run in (RESUMED_RUN_ID, MINTED_GATE_RUN):
         audit_refs = _git("ls-remote", "--heads", "origin",
                           f"refs/heads/cycle/core/product/{run}/audit")
         assert audit_refs == "", f"unexpected /audit ref for {run}"
-    assert not (ROOT / "results" / "audit" / "product" /
-                f"CYCLE_{EXECUTING_RUN_ID}_GATE.json").exists()
+
+    # After this test was authored, 40284658455 WAS independently audited
+    # (gate=PASS) and promoted (an integrator accept commit on lab/product).
+    # A gate file for the executing run is legitimate ONLY if it is a PASS
+    # gate backed by that accept commit; a producer-minted gate passes neither
+    # check, so this is strictly stronger than asserting mere absence.
+    gate_path = ROOT / "results" / "audit" / "product" / (
+        f"CYCLE_{EXECUTING_RUN_ID}_GATE.json")
+    assert gate_path.is_file(), "the independent audit gate is now committed"
+    gate = _load(gate_path)
+    assert gate["gate"] == "PASS"
+    assert gate["safe_to_integrate"] is True
+    assert gate["required_fixes"] == []
+    accept_subject = f"accept product cycle {EXECUTING_RUN_ID}"
+    accept_log = _git("log", "--format=%s", "--all", f"--grep={accept_subject}")
+    assert accept_subject in accept_log, (
+        "a gate with no integrator accept commit would be a producer mint")
 
 
 def test_state_attributes_the_executing_run_not_the_resumed_snapshot():
@@ -134,13 +150,21 @@ def test_state_attributes_the_executing_run_not_the_resumed_snapshot():
 
 def test_accepted_pointer_satisfies_both_halves_and_posture_stays_fail_closed():
     st = _load(STATE)
-    assert st["accepted_run_id"] == "CYCLE_40269774540"
-    assert st["accepted_commit"].startswith("5adaa66d")
+    # Synced in cycle 44661217001 (v68 item 4) from CYCLE_40269774540 /
+    # 5adaa66d to the true accepted head; the prior value is preserved in
+    # state's accepted_run_supersession field and in git history.
+    assert st["accepted_run_id"] == "CYCLE_40284658455"
+    assert st["accepted_commit"].startswith("7be4480e")
     gate = _load(ROOT / "results" / "audit" / "product"
-                 / "CYCLE_40269774540_GATE.json")
+                 / "CYCLE_40284658455_GATE.json")
     assert gate["gate"] == "PASS" and gate["safe_to_integrate"] is True
-    head = _git("ls-remote", "--heads", "origin", "refs/heads/lab/product")
-    assert head.startswith(st["accepted_commit"]), (head, st["accepted_commit"])
+    assert gate["required_fixes"] == []
+    # both halves: the accepted commit is an ancestor of the lab head, and an
+    # integrator accept commit for the recorded run is reachable in history.
+    assert _git("merge-base", "--is-ancestor", st["accepted_commit"], "HEAD") == ""
+    accept_subject = f"accept product cycle {st['accepted_run_id'].removeprefix('CYCLE_')}"
+    accept_log = _git("log", "--format=%s", "--all", f"--grep={accept_subject}")
+    assert accept_subject in accept_log, (accept_subject, accept_log)
     for key, expected in (
         ("continue_recommended", True),
         ("human_gate_ready", False),
