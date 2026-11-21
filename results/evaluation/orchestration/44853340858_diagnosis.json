@@ -1,0 +1,131 @@
+{
+  "schema": "lex-evaluation-operational-resume-diagnosis/1",
+  "lane": "evaluation",
+  "run_id": 44853340858,
+  "direction_version": 68,
+  "generated_at_utc": "2026-11-21T02:20:00Z",
+  "mode": "OPERATIONAL_RESUME",
+  "classification": "OPERATIONAL_VERIFICATION_NOT_NEW_EVIDENCE_CYCLE",
+  "purpose": "Resume from the persisted producer snapshot of GitHub run 44846226666 (commit 9a4afc51e7c75ab05e46d55667b38e519b3356cb on operational-resume / origin/cycle/core/evaluation/44846226666/team): diagnose the orchestration/validation failure, verify the already-completed lane deliverable, repair residual audit-blocking state hygiene, and make the snapshot audit-ready. No restart from scratch, no re-derivation of closed work.",
+
+  "snapshot_provenance": {
+    "worktree_branch": "operational-resume",
+    "tracks_ref": "origin/cycle/core/evaluation/44846226666/team",
+    "head_sha256": "9a4afc51e7c75ab05e46d55667b38e519b3356cb",
+    "head_commit_subject": "evaluation cycle 44846226666 repair 0",
+    "parent_sha256": "ea98384e54d31d2e694c418a1d1ce5769fc6c32f",
+    "worktree_clean_at_start": true,
+    "prior_snapshot_diagnosis": "results/evaluation/orchestration_failure_diagnosis/44846226666.json",
+    "prior_snapshot_claim": "AUDIT_READY_PENDING_INDEPENDENT_AUDIT"
+  },
+
+  "orchestration_failure_diagnosis": {
+    "status": "ESTABLISHED_FROM_COMMITTED_INSTRUMENT_OUTPUT",
+    "instrument": "evaluation/nested_evidence_refs_guard.py",
+    "verdict_before_repair": "UNRESOLVED_REFS_PRESENT",
+    "n_unresolved": 1,
+    "exact_json_path": "$.github_run_advance_40246705199.required_fixes_source",
+    "exact_value": "results/audit/evaluation/CYCLE_40246705199_GATE.json (gate=REVISE, mounted verification copy at /tmp/lex_prior_audit)",
+    "why_it_blocks": "Factory-wide requirement 38: the operational-resume guard must resolve NESTED evidence_refs lists, not only the top level. A state pointer that resolves only to an absent mount is a fabrication/lag class; the guard exits 1 on any unresolved ref-shaped string, so the snapshot could not be declared audit-ready.",
+    "contrast_instrument": "evaluation/state_integrity_gate.py",
+    "contrast_verdict": "ALL_CHECKS_PASS (11/11) - the top-level-only gate could not see the nested defect",
+    "repair_applied_in_snapshot": {
+      "action": "re-homed the dangling pointer to a committed disposition artifact that preserves the original string verbatim",
+      "artifact": "results/evaluation/orchestration/44846226666_unresolved_historical_ref_disposition.json",
+      "instrument_edited": false,
+      "frozen_input_edited": false,
+      "historical_claim_deleted": false
+    },
+    "post_repair_guard_verdict_in_snapshot": "NESTED_REFS_RESOLVED (n_unresolved=0)",
+    "provenance_limit": "NO GH_TOKEN / GITHUB_TOKEN is available in this worktree, so the GitHub REST job record and step logs for run 44846226666 were NOT fetched. The failure attribution above is read from committed instrument outputs and the snapshot's own diagnosis artifact, NOT from an observed workflow log line. No claim is made about which workflow step emitted the failure.",
+    "inference_label": "ESTABLISHED for the nested-ref verdict (re-executed locally: exit 0 after repair); INFERENCE for the wider workflow-failure cause, because the job log was not observable."
+  },
+
+  "residual_findings_from_this_resume": [
+    {
+      "id": "R1",
+      "severity": "REVISE",
+      "finding": "The non-canonical lane-state mirror had run pins advanced to 44846226666 while its claim-bearing next_recommendation and evidence_refs still described run 40261335674, contradicting the canonical root state.",
+      "evidence": "evaluation/state/evaluation.json github_run=44846226666, proposed_run_id=44846226666, but next_recommendation begins 'CYCLE 40261335674'; root state/evaluation.json next_recommendation begins 'RUN 44846226666'. git diff ea98384e..9a4afc51 -- evaluation/state/evaluation.json changed only 2 lines.",
+      "disposition": "REPAIRED_BY_DISCLOSURE",
+      "repair": "Both state files advanced github_run/proposed_run_id to 44853340858 with an explicit audit_readiness_disclosure_44853340858 block; the mirror's preserved prior-run next_recommendation is labelled historical and the canonical current-run recommendation is the root file. No claim-bearing text was silently rewritten."
+    },
+    {
+      "id": "R2",
+      "severity": "REVISE",
+      "finding": "Generic resume provenance fields carried two different 'resumed from' run ids relative to the new artifacts.",
+      "evidence": "state/evaluation.json operational_resume_of=40232590665 and resumed_run_id=40232590665 (historical, from run 40234421521) vs new key operational_resume_of_44846226666=44841045666 and the 44846226666 hypothesis reporting resumed_from_github_run=44841045666.",
+      "disposition": "REPAIRED_BY_DISCLOSURE",
+      "repair": "Added operational_resume_of_44853340858=44846226666 and a resume_provenance_disclosure_44853340858 block naming the canonical chain; the stale generic fields are kept verbatim and labelled historical, not deleted."
+    },
+    {
+      "id": "R3",
+      "severity": "INFO_RESIDUAL",
+      "finding": "Freeze-before-execution for the 44846226666 recall benchmark is self-attested: freeze, hypothesis and result were first introduced in the SAME git commit 9a4afc51, so commit-time ordering does not establish freeze-first.",
+      "evidence": "git log --format=%cI for the three files returns only 2026-11-21T01:13:22Z; freeze_recorded_at_utc=2026-11-21T00:57:30Z, hypothesis frozen_at_utc=00:57:30Z, result generated_at_utc=00:57:54Z are producer-attested; the artifacts themselves state no separate freeze/execution commits are asserted. Worktree mtimes are checkout time.",
+      "disposition": "CARRIED_FORWARD_AS_DISCLOSED_LIMITATION",
+      "why_not_repaired": "The lane question item (5) forbids a new same-question cycle that re-derives closed work, and re-executing under a fresh freeze commit would be exactly that. The measurement is not re-derived here: all three files reproduce their committed sha256 pins byte-for-byte. This is an audit-verifiability limitation about ordering, not a measurement defect, and is disclosed rather than papered over."
+    },
+    {
+      "id": "R4",
+      "severity": "REVISE",
+      "finding": "The recall benchmark freeze record's own sha256 was not pinned in canonical state.",
+      "evidence": "state fast_mvp_retrieval_recall_benchmark_44846226666 block pinned result_sha256=30cb7ded..., hypothesis_sha256=9970484f..., comparison_sha256=92249b77... but no freeze_sha256; actual sha256sum of evaluation/FAST_MVP_RETRIEVAL_RECALL_BENCHMARK_44846226666_FREEZE_V1.json = fcbef683da123cee7c4e948b710a9744baeceab12bbf915d8cb60c71be7021fa.",
+      "disposition": "REPAIRED",
+      "repair": "freeze_sha256 added to the canonical state block and re-hashed before and after."
+    }
+  ],
+
+  "verifications_performed_this_resume": {
+    "nested_evidence_refs_guard": "NESTED_REFS_RESOLVED, n_unresolved=0, top_level_unresolved=0 (re-executed twice: before and after state repair)",
+    "state_integrity_gate": "ALL_CHECKS_PASS, 11/11, n_failed=0",
+    "lane_suite": "overall_pass=true, 88/88 checks, exit 0, --skip-pytest (wall 287.454s on the final-state rerun)",
+    "frozen_digests": "RULES_LABEL 4457e971, RULES_GEOMETRY a7452748, VERDICT_CONTRACT b9cdb894 all re-hashed unchanged",
+    "claim_artifacts": "recall result 30cb7ded, hypothesis 9970484f, freeze fcbef683, comparison 92249b77, lane suite 13dcf5e8, instrument fa5aa9a5 all reproduce",
+    "write_scope": "every committed file from 9a4afc51 is under evaluation/**, tests/evaluation/**, results/evaluation/**, reports/evaluation/** or state/evaluation.json; nothing under results/audit/**, reports/audit/**, product/** or .github/**",
+    "pytest_absent": "pytest is not installed in this worktree (Python 3.14.4); the lane suite was run with --skip-pytest and the snapshot's no-pytest shim artifacts are the authoritative record of the pytest-style tests. This is disclosed, never counted as a pass."
+  },
+
+  "what_this_failure_is_not": [
+    "not a frozen-bar, rubric or threshold failure: every frozen digest re-hashed to its pin before and after",
+    "not a product defect: PRODUCT_FALSIFIED_RECALL_LOSS is a legitimate preserved measurement, not an orchestration fault",
+    "not a provider/model death: no audit or model job outcome was re-read as a verdict",
+    "not a human decision: owner_decision_required stays false and no gate is raised to the owner",
+    "not a reason to restart from scratch: all completed cycles and artifacts are preserved verbatim",
+    "not a serve verdict or a re-scored frozen bar"
+  ],
+
+  "valid_completed_work_preserved": [
+    "results/evaluation/fast_mvp_retrieval_recall_benchmark/44846226666.json (PRODUCT_FALSIFIED_RECALL_LOSS, exit 1, sha 30cb7ded) - NOT re-run",
+    "results/evaluation/fast_mvp_retrieval_recall_benchmark/44846226666_COMPARISON_40261335674_40153908549.json (sha 92249b77) - preserved",
+    "reports/evaluation/BYPASS_CLAUSE_CORRECTION_OF_RECORD_40105794124_v68.md - item (1) correction of record, present and complete, NOT re-measured",
+    "results/evaluation/post_repair_family_ca_falsifier/40258497460.json (accepted, item (2) NOT_YET_DISCRIMINATING at 14/15 family regeneration) - NOT re-run",
+    "results/evaluation/orchestration_failure_diagnosis/44846226666.json (prior resume diagnosis) - preserved verbatim",
+    "standing falsification record of record: packet-of-record 39319405429, measurement 40182692670 - kept, not re-run, not superseded",
+    "the counter-authority yield NEGATIVE on 2 of 4 frozen questions: a measurement of this lane's own producer marker-rule lexical yield, never Product's counter channel"
+  ],
+
+  "lane_question_scope_compliance": {
+    "item_1": "DISCHARGED by an already-committed correction-of-record report; not re-measured",
+    "item_2": "NOT_YET_DISCRIMINATING: product head 7be4480e has not landed the rejection/incumbent leg plus full 15/15 flagship family regeneration; no synthetic stand-in, no standing-falsification re-run",
+    "item_3": "STANDING FALSIFICATION RECORD KEPT, not superseded",
+    "item_4": "non-blocking CYCLE_39965089504 required fixes reported only where those counts are quoted; not quoted in this resume",
+    "item_5": "this run is OPERATIONAL verification, not a new same-question evidence cycle",
+    "frozen_edits": [],
+    "posture_flags": {
+      "packet_admitted": false,
+      "human_gate_ready": false,
+      "machine_gate_ready": false,
+      "ready_for_owner_session": false,
+      "owner_decision_required": false
+    }
+  },
+
+  "audit_readiness_claim": {
+    "state": "AUDIT_READY_PENDING_INDEPENDENT_AUDIT",
+    "meaning": "all committed claim artifacts reproduce, both validation instruments pass, the lane suite passes, write scope is clean and residual state-hygiene defects are repaired or explicitly disclosed; the independent audit gate is NOT written by this lane and no PASS is claimed here",
+    "residual_disclosures": ["R3 freeze-first ordering is self-attested and cannot be re-established without forbidden closed-work re-derivation"]
+  },
+
+  "claim_ceiling": "This diagnosis is a provenance and validation audit of a persisted snapshot. It does not promote any cycle, does not re-score a frozen bar, does not edit any frozen input, does not prove the visual map helps a jurist, and does not override the independent auditor."
+}
