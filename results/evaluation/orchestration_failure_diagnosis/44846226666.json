@@ -1,0 +1,165 @@
+{
+  "schema": "lex-evaluation-orchestration-validation-failure-diagnosis/1",
+  "lane": "evaluation",
+  "run_id": "44846226666",
+  "direction_version": 68,
+  "generated_at_utc": "2026-11-21T01:06:00Z",
+  "purpose": "Operational resume from the persisted producer snapshot of GitHub run 44841045666: diagnose the orchestration/validation failure, preserve valid completed work, finish and verify the lane deliverable, make the snapshot audit-ready. No restart from scratch.",
+  "snapshot_provenance": {
+    "resumed_from_github_run": 44841045666,
+    "current_github_run": 44846226666,
+    "worktree_branch": "operational-resume",
+    "tracks": "origin/cycle/core/evaluation/44841045666/team",
+    "head_sha256": "ea98384e54d31d2e694c418a1d1ce5769fc6c32f",
+    "head_commit_subject": "accept evaluation cycle 40265377500",
+    "worktree_clean_at_start": true,
+    "no_artifact_in_tree_names_run_44841045666": true
+  },
+  "observed_validation_failure": {
+    "instrument": "evaluation/nested_evidence_refs_guard.py",
+    "verdict_before_repair": "UNRESOLVED_REFS_PRESENT",
+    "n_unresolved": 1,
+    "exact_json_path": "$.github_run_advance_40246705199.required_fixes_source",
+    "exact_value": "results/audit/evaluation/CYCLE_40246705199_GATE.json (gate=REVISE, mounted verification copy at /tmp/lex_prior_audit)",
+    "why_it_blocks": "The operational-resume guard must resolve NESTED evidence_refs lists, not only the top level (factory-wide requirement 38). A state pointer that advances only to unresolving artifacts is a fabrication/lag class (requirement 38); the guard returns exit 1 on any unresolved ref-shaped string.",
+    "top_level_refs_all_resolved": true,
+    "state_integrity_gate_contrast": {
+      "instrument": "evaluation/state_integrity_gate.py",
+      "verdict": "ALL_CHECKS_PASS",
+      "n_checks": 11,
+      "n_failed": 0,
+      "why_the_contrast_matters": "The state-integrity gate checks top-level refs only; the nested guard found the defect the top-level gate cannot see. Passing 11/11 is NOT evidence that nested refs resolve."
+    }
+  },
+  "secondary_lifecycle_bookkeeping_findings": {
+    "finding_1": {
+      "fact": "HEAD commit ea98384e ('accept evaluation cycle 40265377500') added only results/audit/evaluation/CYCLE_40265377500_GATE.json (gate=PASS) and reports/audit/evaluation/CYCLE_40265377500.md; it did not update state/evaluation.json or evaluation/state/evaluation.json.",
+      "consequence": "Both state files still pin proposed_run_id/github_run=40261335674 with audit_status=PENDING_INDEPENDENT_AUDIT while a later accepted audit cycle is present in the tree.",
+      "classification": "OBSERVED"
+    },
+    "finding_2": {
+      "fact": "No gate file for cycle 40261335674 exists in the worktree, in any fetched ref, or in unreachable git objects; its own producer report states PENDING_INDEPENDENT_AUDIT.",
+      "consequence": "The newest substantive producer measurement in the snapshot was never independently audited; treating it as accepted would misstate accepted evidence.",
+      "classification": "OBSERVED"
+    },
+    "finding_3": {
+      "fact": "The CYCLE_40265377500_GATE.json evidence_summary describes BENCHMARK_VALID_NO_FALSIFICATION on the 4-question cached-bundle benchmark, whereas the same cycle's producer artifacts (RETRIEVAL_CA_BENCHMARK_test_40265377500) describe PRODUCT_FALSIFIED on packet 39319405429, and the state's proposed run describes PRODUCT_FALSIFIED_RECALL_LOSS.",
+      "consequence": "These are different measurements, not contradictory verdicts on one population; the lifecycle mismatch is a bookkeeping gap, not a measurement contradiction. This resume does NOT silently advance accepted_run_id to 40265377500.",
+      "classification": "OBSERVED with the scope interpretation labelled as inference, not established fact"
+    },
+    "finding_4": {
+      "fact": "Root state/evaluation.json is ACCEPTED with 255 evidence_refs at snapshot start; evaluation/state/evaluation.json is EXPLORATORY with 162 refs; the divergence is disclosed in the snapshot's own report as deliberate.",
+      "consequence": "Canonical state is the root file per ARCHITECTURE.md and evaluation/nested_evidence_refs_guard.py. This resume appended 12 refs to the root (267 total) and updated only github_run/proposed_run_id in the lane mirror to satisfy the state-integrity parity check; accepted_run_id was not changed in either file.",
+      "classification": "OBSERVED"
+    }
+  },
+  "what_this_failure_is_not": [
+    "not a frozen-bar or rubric failure: every frozen digest re-hashed to its pin before and after execution",
+    "not a product defect: the product falsification finding is a legitimate measurement, not an orchestration fault",
+    "not a provider/model death: no audit or model job outcome is being re-read as a verdict here",
+    "not a human decision: owner_decision_required stays false and no gate is raised to the owner",
+    "not a reason to restart from scratch: all completed cycles and their artifacts are preserved verbatim"
+  ],
+  "valid_completed_work_preserved": [
+    {
+      "cycle": "40258497460",
+      "artifact": "results/evaluation/post_repair_family_ca_falsifier/40258497460.json",
+      "gate": "results/audit/evaluation/CYCLE_40258497460_GATE.json gate=PASS safe_to_integrate=true required_fixes=[]",
+      "status": "ACCEPTED; item (2) NOT_YET_DISCRIMINATING at 14/15 family regeneration - not re-run"
+    },
+    {
+      "cycle": "40261335674",
+      "artifacts": [
+        "results/evaluation/fast_mvp_retrieval_recall_benchmark/40261335674.json",
+        "results/evaluation/fast_mvp_retrieval_recall_benchmark/40261335674_COMPARISON_40153908549.json"
+      ],
+      "sha256": "0e4bbdd13ed898a64249aae2df1fccd2146844e21fb500dfe63326aae8306158",
+      "status": "PRESERVED, PENDING_INDEPENDENT_AUDIT; never audited; not overwritten"
+    },
+    {
+      "cycle": "40265377500",
+      "artifacts": [
+        "results/audit/evaluation/CYCLE_40265377500_GATE.json",
+        "reports/audit/evaluation/CYCLE_40265377500.md"
+      ],
+      "status": "ACCEPT cycle present in HEAD; bookkeeping gap disclosed above, not silently propagated"
+    },
+    {
+      "cycle": "40105794124",
+      "role": "standing substantive content finding (SOUND_COUNTER_ROW_PRESENT, 4/5 defective bundles); item (1) correction of record discharged elsewhere and not re-run"
+    },
+    {
+      "role": "standing falsification record of record",
+      "artifact": "packet-of-record 39319405429, measurement of record 40182692670",
+      "status": "KEPT, not re-run, not superseded"
+    }
+  ],
+  "repairs_applied_this_resume": [
+    {
+      "repair": "re-home the one dangling nested state pointer to a committed disposition artifact that preserves the original string verbatim",
+      "artifact": "results/evaluation/orchestration/44846226666_unresolved_historical_ref_disposition.json",
+      "effect": "nested guard can resolve every ref without any instrument or check being edited"
+    },
+    {
+      "repair": "execute the existing frozen smallest retrieval/CA RECALL@K benchmark on the CURRENT accepted product head under a new pre-registered freeze, reusing all frozen inputs by re-hash",
+      "artifacts": [
+        "evaluation/FAST_MVP_RETRIEVAL_RECALL_BENCHMARK_44846226666_HYPOTHESIS_V1.json",
+        "evaluation/FAST_MVP_RETRIEVAL_RECALL_BENCHMARK_44846226666_FREEZE_V1.json",
+        "results/evaluation/fast_mvp_retrieval_recall_benchmark/44846226666.json",
+        "results/evaluation/fast_mvp_retrieval_recall_benchmark/44846226666_COMPARISON_40261335674_40153908549.json"
+      ],
+      "effect": "the pending, unaudited 40261335674 measurement is independently re-derived on new bytes with zero network calls and byte-identical frozen inputs"
+    },
+    {
+      "repair": "re-execute the reused multilingual/provenance and instrument suites and the lane suite, and publish a side-by-side comparison with full timing-field disclosure",
+      "artifacts": [
+        "results/evaluation/orchestration/44846226666_pytest_shim_multilingual.json",
+        "results/evaluation/orchestration/44846226666_pytest_shim_recall.json",
+        "results/evaluation/orchestration/44846226666_pytest_shim_ca.json",
+        "results/evaluation/lane_suite/44846226666.json"
+      ]
+    }
+  ],
+  "audit_readiness_claim": {
+    "state": "AUDIT_READY_PENDING_INDEPENDENT_AUDIT",
+    "meaning": "the producer snapshot's artifacts and state pointers resolve, the frozen protocol was pre-registered before execution, and the deliverable is executable and reproducible; the independent audit gate is NOT written by this lane and no PASS is claimed here",
+    "posture_flags": {
+      "packet_admitted": false,
+      "human_gate_ready": false,
+      "machine_gate_ready": false,
+      "ready_for_owner_session": false,
+      "owner_decision_required": false
+    }
+  },
+  "post_repair_validation": {
+    "nested_evidence_refs_guard": {
+      "verdict": "NESTED_REFS_RESOLVED",
+      "n_unresolved": 0,
+      "top_level_unresolved": 0,
+      "n_ref_shaped_values_total": 475,
+      "resolution_counts": {
+        "RESOLVED_WORKTREE": 458,
+        "RESOLVED_CROSS_LANE_MOUNT": 10,
+        "RESOLVED_BRANCH_HISTORY": 2,
+        "DISCLOSED_HISTORICAL_REF": 3,
+        "SELF_OUTPUT_PENDING_WRITE": 2
+      },
+      "record": "results/evaluation/orchestration/44846226666_nested_evidence_refs.json",
+      "record_note": "regenerated with a fresh generated_at_utc on every guard run; counts above are from the final post-repair run"
+    },
+    "state_integrity_gate": {
+      "verdict": "ALL_CHECKS_PASS",
+      "n_checks": 11,
+      "n_failed": 0,
+      "note": "root/lane parity restored by updating only the non-canonical lane mirror's github_run and proposed_run_id to 44846226666; accepted_run_id deliberately unchanged at 40258497460"
+    },
+    "lane_suite": {
+      "verdict": "PASS",
+      "checks": "88/88",
+      "exit_code": 0,
+      "record": "results/evaluation/lane_suite/44846226666.json",
+      "record_sha256": "13dcf5e821d52e18486a5370a23828f2b0d506aba900a6161f7cd8a3ac881892"
+    }
+  },
+  "claim_ceiling": "This diagnosis is a provenance and validation audit of a persisted snapshot. It does not promote any cycle, does not re-score a frozen bar, does not edit any frozen input, does not prove the visual map helps a jurist, and does not override the independent auditor."
+}
