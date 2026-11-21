@@ -14,16 +14,36 @@ These tests pin:
 
 They use only plain asserts and pytest.mark.skipif so the lane's
 evaluation/no_pytest_runner shim can execute them when pytest is absent.
+
+MOUNT-DRIFT REPAIR (run 44861140260, disclosed not silent): this file was first
+executed by the no-pytest shim in run 44861140260 and FAILED one case,
+test_population_is_49_enriched_plus_one_control_and_pins_match, on exactly
+['mount:state/product.json', 'mount_head'] - the live accepted mount had
+advanced 5fb312e4 -> 7be4480e since the freeze, while all 50 population
+bundle pins, all 15 probe-family pins and all evaluation-instrument pins still
+matched live. The failing attempt is preserved byte-for-byte in
+results/evaluation/orchestration/44861140260_pytest_shim_attempt1_mount_drift.json.
+The assertion was repaired the same way run 40134202991's guard already
+handles head advance: live re-hash with an explicit two-pin drift allowlist,
+PLUS a full byte-for-byte re-verification against a git worktree materialised
+at the historical commit the freeze names. No pin is dropped, no expectation is
+loosened, and the frozen bars are untouched.
 """
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
+import subprocess
+import sys
+import tempfile
 from pathlib import Path
 
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 MOUNT = Path("/tmp/lex_accepted/product")
 RUN = "40258497460"
 HYPO = REPO_ROOT / f"evaluation/POST_REPAIR_FAMILY_CA_FALSIFIER_{RUN}_HYPOTHESIS_V1.json"
@@ -74,6 +94,36 @@ def test_frozen_predicate_engine_and_adapter_pins_unchanged():
         "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608"
 
 
+def _materialise_historical_mount(sha: str, dest: str) -> None:
+    """Check out the frozen historical product tree named by the hypothesis.
+
+    The accepted product mount legitimately advances after a freeze, so the
+    historical pins cannot be re-verified against the live mount. Anchoring to
+    the source commit the hypothesis itself names is the same repair already
+    used by tests/evaluation/test_post_repair_family_ca_falsifier.py for run
+    40134202991: the assertion is NOT weakened, only pointed at the tree it was
+    frozen on. First executed for run 44861140260, when the live mount had
+    advanced 5fb312e4 -> 7be4480e and this file's live pin re-hash failed for
+    exactly {mount_head, mount:state/product.json}.
+    """
+    present = subprocess.run(
+        ["git", "-C", str(MOUNT), "cat-file", "-e", f"{sha}^{{commit}}"],
+        capture_output=True, text=True, timeout=60)
+    if present.returncode != 0:
+        fetch = subprocess.run(
+            ["git", "-C", str(MOUNT), "fetch", "--no-tags", "origin", sha],
+            capture_output=True, text=True, timeout=180)
+        if fetch.returncode != 0:
+            pytest.skip(
+                f"historical product commit {sha} is absent and could not be "
+                f"fetched; the historical pin is UNVERIFIED in this image: "
+                f"{fetch.stderr.strip()}")
+    add = subprocess.run(
+        ["git", "-C", str(MOUNT), "worktree", "add", "--detach", dest, sha],
+        capture_output=True, text=True, timeout=120)
+    assert add.returncode == 0, add.stderr
+
+
 @MOUNT_REQUIRED
 def test_population_is_49_enriched_plus_one_control_and_pins_match():
     from evaluation import post_repair_family_ca_falsifier as PRF
@@ -84,8 +134,34 @@ def test_population_is_49_enriched_plus_one_control_and_pins_match():
     assert sum(1 for b in bundles if not b["enriched"]) == 1
     control = [b for b in bundles if not b["enriched"]][0]
     assert "first_page.bundle.json" in control["path"]
-    pins = PRF.verify_pins(hyp, freeze)
-    assert pins["all_match"], [c["input"] for c in pins["checks"] if not c["match"]]
+
+    # 1) Live-mount drift is allowed ONLY as the documented head advance: every
+    #    frozen population bundle, probe-family member and evaluation-instrument
+    #    byte must still match against the LIVE mount. This run's freeze pins the
+    #    mount identity as state/product.json + head, so those are the only two
+    #    live pins that may legitimately differ after the product advanced.
+    live = PRF.verify_pins(hyp, freeze)
+    live_failed = [c["input"] for c in live["checks"] if not c["match"]]
+    assert set(live_failed) <= {"mount_head",
+                                "mount:state/product.json"}, live_failed
+
+    # 2) The historical head itself is verified against the historical tree,
+    #    not waived: all pins must match at the commit the freeze names.
+    historical_sha = hyp["population_FROZEN"]["expected_product_mount_head"]
+    assert historical_sha == "5fb312e4a71c99dce0ed6fbd2d3fce9a88ad6e68"
+    with tempfile.TemporaryDirectory(prefix="prf40258497460-hist-") as td:
+        _materialise_historical_mount(historical_sha, td)
+        try:
+            hist = copy.deepcopy(hyp)
+            hist["population_FROZEN"]["product_mount"] = td
+            pins = PRF.verify_pins(hist, freeze)
+            failed = [c for c in pins["checks"] if not c["match"]]
+            assert not failed, failed
+            assert pins["all_match"] is True
+        finally:
+            subprocess.run(
+                ["git", "-C", str(MOUNT), "worktree", "remove", "--force", td],
+                capture_output=True, text=True, timeout=120)
 
 
 @MOUNT_REQUIRED
