@@ -46,6 +46,10 @@ from product.query.counter_status import (  # noqa: E402
     counter_status_bearing_count,
 )
 from product.query.bundle import content_coverage  # noqa: E402
+# v68 P0: the byte-aligned REPORTED-ONLY D1-D4 predicate copy.  This is a
+# product-side wiring invariant over the bundle the slice just emitted; it is
+# NOT a frozen bar, a rubric score, an edit to the frozen gate or a legal claim.
+from product.query.counter_evidence_span import frozen_content_defects  # noqa: E402
 
 DEFAULT_SLUG = "rent-default"
 
@@ -131,6 +135,21 @@ def summarise(bundle: dict) -> dict:
     request_summary = (provenance.get("adversarial_retrieval") or {}).get("request_summary")
     fixture_replay = dict(provenance.get("product_fixture_replay") or {})
     coverage = content_coverage(rows)
+    # v68 P0 rejection/incumbent leg, checked on the bundle the slice itself
+    # emitted rather than on a pre-recorded fixture.  A verified scored row must
+    # never carry a frozen D1-D4 content defect; the defect classes are counted
+    # by name so a regression is attributable instead of a bare boolean.
+    verified = [r for r in rows if r.get("counter_evidence_verified") is True]
+    defective: list[dict] = []
+    defect_histogram: dict[str, int] = {}
+    for row in verified:
+        defects = frozen_content_defects(
+            str(row.get("counter_evidence") or ""), row)
+        if defects:
+            defective.append({"decision_id": row.get("decision_id"),
+                              "defects": defects})
+            for cls in defects:
+                defect_histogram[cls] = defect_histogram.get(cls, 0) + 1
     return {
         "n_decisions": len(rows),
         "n_clusters": len(clusters),
@@ -148,6 +167,17 @@ def summarise(bundle: dict) -> dict:
         "rows_with_cluster_id": sum(1 for r in rows if r.get("cluster_id") is not None),
         "counter_rows": counter_authorities,
         "counter_status_bearing_rows": counter_status_bearing,
+        # v68 P0 wiring invariant (REPORTED-ONLY predicate, NOT a frozen bar):
+        # zero verified counter rows may carry a D1-D4 content defect.
+        "counter_verified_rows": len(verified),
+        "counter_verified_defective_rows": len(defective),
+        "counter_verified_defect_histogram": defect_histogram,
+        "counter_verified_defective_detail": defective,
+        "counter_content_predicate": (
+            "REPORTED-ONLY product predicate: "
+            "product.query.counter_evidence_span.frozen_content_defects "
+            "(v68 byte-aligned D1-D4 copy); no frozen bar scored or edited"
+        ),
         "content_coverage": coverage,
         "answer_status": (bundle.get("answer") or {}).get("status"),
         "cited_decision_ids": len((bundle.get("answer") or {}).get("cited_decision_ids") or []),
@@ -262,6 +292,14 @@ def main(argv: list[str] | None = None) -> int:
             ok = False; reasons.append("sourced answer cites no retrieved decision")
         if stats["geometry_preserved_by_enrich"] is not True:
             ok = False; reasons.append("enrichment moved or dropped a rendered point")
+    # v68 P0 on the shipped slice: a verified counter row with defective content
+    # must fail the slice itself, not merely appear in a separate report.  The
+    # histogram makes the failing class visible in the summary for repair.
+    if stats["counter_verified_defective_rows"]:
+        ok = False; reasons.append(
+            f"{stats['counter_verified_defective_rows']} verified counter row(s) "
+            f"carry frozen content defects "
+            f"{stats['counter_verified_defect_histogram']}")
 
     page_ok, page_last = False, ""
     if args.verify:
@@ -273,10 +311,12 @@ def main(argv: list[str] | None = None) -> int:
         print(f"offline slice [{args.slug}] in {elapsed}s (network: none)")
         for k in ("n_decisions", "n_clusters", "largest_cluster", "rows_with_source_link",
                   "rows_with_canonical_url", "rows_with_source_url", "rows_with_xy",
-                  "rows_with_cluster_id", "counter_rows", "counter_status_bearing_rows",
-                  "answer_status", "cited_decision_ids", "enriched",
-                  "geometry_preserved_by_enrich", "fixture_replay_degraded",
-                  "fixture_replay_cache_misses"):
+                   "rows_with_cluster_id", "counter_rows", "counter_status_bearing_rows",
+                   "counter_verified_rows", "counter_verified_defective_rows",
+                   "answer_status", "cited_decision_ids", "enriched",
+                   "geometry_preserved_by_enrich", "fixture_replay_degraded",
+                   "fixture_replay_cache_misses"):
+
             print(f"  {k}: {stats[k]}")
         print(f"  content_coverage: {stats['content_coverage']['by_state']}"
               f" (pointer-only={stats['content_coverage']['n_pointer_only']})")

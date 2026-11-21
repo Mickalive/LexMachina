@@ -416,6 +416,43 @@ PROFILES: dict[str, dict[str, Any]] = {
     # must resolve so the auditor can pass either the resuming run (the id the
     # workflow prints) or the snapshot's own run.
     "44877180401": {"alias_of": "44881876793"},
+    "44892229595": {
+        # Sixth observed failure mode in this chain, and the same class as
+        # 44877180401: the TEAM job succeeded end to end (validation and write
+        # scope green, 5-file snapshot persisted as 588fa990) and the AUDIT
+        # job's 'Independent audit' step consumed the 2700 s work quantum in
+        # 2705.0 s (exit 78, LEX_WORK_QUANTUM_EXPIRED pid=2580), so no gate was
+        # written and integrate was skipped.  The public REST evidence and the
+        # re-derived diagnosis are committed under results/product/orchestration/.
+        "resumed_run_id": "44885941692",
+        "predecessor_run_id": "44885532084",
+        "raw": ORCH / "CYCLE_44885941692_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_44885941692_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_44885941692.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_44892229595.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "mechanism_kind": "observed",
+        "failed_job": "audit",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "delta_kind": "committed",
+        "changed_files": 5,
+        "changed_paths_include": ("product/tests/test_cycle_44885941692.py",),
+        "cycle_test": "product/tests/test_cycle_44892229595.py",
+        "state_block": "cycle_44892229595_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "44885941692": {"alias_of": "44892229595"},
 }
 
 # Active profile; empty means "the module constants above" (the original
