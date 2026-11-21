@@ -1,0 +1,140 @@
+{
+  "schema": "product-orchestration-resume-diagnosis/1",
+  "generated_at": "2026-11-21T06:53:16Z",
+  "run_id": "44873436245",
+  "resuming_run_id": "44877180401",
+  "direction_version": 68,
+  "lane": "product",
+  "classification": "TEAM_JOB_RUN_LANE_CYCLE_QUANTUM_EXPIRED_ZERO_DURABLE_DELTA_NO_GATE",
+  "producer_authored": true,
+  "verdict": "EVIDENCE_NOT_A_VERDICT: this artifact records OBSERVED orchestration facts for the independent auditor. It is not an audit gate and confers no acceptance.",
+  "observation": {
+    "method": "public GitHub REST API (unauthenticated) + local git plumbing",
+    "github_repository": "Mickalive/LexMachina",
+    "endpoints": [
+      "GET /repos/Mickalive/LexMachina/actions/runs/44873436245",
+      "GET /repos/Mickalive/LexMachina/actions/runs/44873436245/jobs",
+      "GET /repos/Mickalive/LexMachina/check-runs/136752846891/annotations"
+    ],
+    "run": {
+      "id": 44873436245,
+      "name": "Core product dirV68 repair0",
+      "event": "workflow_dispatch",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-11-21T06:00:03Z",
+      "updated_at": "2026-11-21T06:47:10Z",
+      "head_branch": "main",
+      "head_sha": "9adf6fe7d7ce90d6cd8d94f44dfe5fcb03914336",
+      "check_suite_id": 121453804451,
+      "html_url": "https://github.com/Mickalive/LexMachina/actions/runs/44873436245"
+    },
+    "jobs": {
+      "total_count": 4,
+      "team": {
+        "job_id": 136752846891,
+        "status": "completed",
+        "conclusion": "failure",
+        "created_at": "2026-11-21T06:00:07Z",
+        "started_at": "2026-11-21T06:00:10Z",
+        "completed_at": "2026-11-21T06:46:55Z",
+        "steps": {
+          "Run lane cycle": "failure",
+          "Validate active MVP producer state": "skipped",
+          "Enforce lane write scope": "skipped",
+          "Persist team snapshot": "success"
+        },
+        "lane_cycle_step_window": {
+          "started_at": "2026-11-21T06:01:42Z",
+          "completed_at": "2026-11-21T06:46:47Z"
+        }
+      },
+      "audit": {
+        "job_id": 136764306089,
+        "status": "completed",
+        "conclusion": "skipped"
+      },
+      "integrate": {
+        "job_id": 136764306094,
+        "status": "completed",
+        "conclusion": "skipped"
+      },
+      "resilience": {
+        "job_id": 136764305453,
+        "status": "completed",
+        "conclusion": "success"
+      }
+    },
+    "annotations": [
+      {
+        "annotation_level": "warning",
+        "message": "LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2403",
+        "path": ".github",
+        "start_line": 3055
+      },
+      {
+        "annotation_level": "warning",
+        "message": "Agent quantum ended cleanly; workflow must snapshot and resume rather than hang.",
+        "path": ".github",
+        "start_line": 3056
+      },
+      {
+        "annotation_level": "failure",
+        "message": "Process completed with exit code 78.",
+        "path": ".github",
+        "start_line": 3057
+      }
+    ],
+    "git_plumbing": {
+      "commands": [
+        "git ls-remote origin refs/heads/cycle/core/product/44873436245/team",
+        "git ls-remote origin refs/heads/cycle/core/product/44873436245/team-attempt-1",
+        "git ls-remote --exit-code origin refs/heads/cycle/core/product/44873436245/audit",
+        "git ls-remote origin refs/heads/lab/product",
+        "git diff --stat 7be4480e origin/cycle/core/product/44873436245/team"
+      ],
+      "team_ref": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+      "team_attempt_1_ref": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+      "audit_ref_present": false,
+      "lab_product_ref": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+      "team_ref_diff_vs_accepted_head": ""
+    },
+    "accepted_head": {
+      "commit": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+      "commit_message": "accept product cycle 40284658455",
+      "gate_path": "results/audit/product/CYCLE_40284658455_GATE.json",
+      "gate": "PASS",
+      "safe_to_integrate": true,
+      "required_fixes": []
+    }
+  },
+  "diagnosis": {
+    "mechanism": "OBSERVED_QUANTUM_EXPIRED_ZERO_DURABLE_DELTA",
+    "failed_job": "team",
+    "failed_step": "Run lane cycle",
+    "exit_code": 78,
+    "quantum_seconds": 2700,
+    "durable_delta_committed_by_run": false,
+    "audit_gate_written": false,
+    "promotion": false,
+    "excluded_mechanisms": [
+      "LEX_ZERO_DELTA_REPAIR rc=67 (requires a clean rc==0 return; annotation shows exit code 78)",
+      "write-scope enforcement failure (step 'Enforce lane write scope' was skipped)",
+      "independent audit failure (audit job skipped; no /audit ref exists)",
+      "model-provider authentication/overload failure (no such annotation; explicit quantum path observed)"
+    ],
+    "product_defect": false,
+    "control_plane_defect": "The work-quantum wrapper terminated the producer at 2700 s and the always-on 'Persist team snapshot' step committed nothing, so the team ref stayed byte-identical to the accepted head. .github/** is control-plane scope and is recorded, not edited.",
+    "resume_action": "Continue from accepted head 7be4480e with a bounded, durable product delta; do not re-run 44873436245, do not reuse the PASS gate of 40284658455 as a gate for this run, and do not mint an auditor-namespace artifact from the producer."
+  },
+  "verification_of_accepted_work_preserved": {
+    "accepted_gate_and_accept_commit": "Both halves of factory-wide requirement 4 hold for cycle 40284658455: gate=PASS safe_to_integrate=true required_fixes=[] and accept commit 7be4480e on origin/lab/product. Unchanged.",
+    "v68_ordered_work": "P0 rejection/incumbent leg landed; full-family regeneration published; accepted findings consumed; fixture-anchor asymmetry measured DO_NOT_CLOSE; live latency deferred; frozen-rules profile gap disclosed. None re-derived or overwritten.",
+    "quarantined_self_minted_gate": "results/audit/product/CYCLE_40278460732_GATE.json remains preserved verbatim and NON_PROMOTING. Untouched."
+  },
+  "reproduce": [
+    "python3 -m pytest product/tests/test_cycle_44877180401.py -q",
+    "git ls-remote origin refs/heads/cycle/core/product/44873436245/team",
+    "git diff --stat 7be4480e origin/cycle/core/product/44873436245/team"
+  ]
+}

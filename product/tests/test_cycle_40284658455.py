@@ -107,20 +107,34 @@ def test_self_minted_gate_is_preserved_and_quarantined_non_promoting():
     assert "non_promoting" in text or "non-promoting" in text
 
 
-def test_no_gate_exists_for_the_executing_or_resumed_run():
-    for run in (EXECUTING_RUN_ID, RESUMED_RUN_ID, MINTED_GATE_RUN):
+def test_only_the_accepted_run_has_a_gate_and_chain_runs_do_not():
+    # POST-ACCEPTANCE REPAIR (resume run 44877180401).  This test originally
+    # asserted that no gate existed for EXECUTING_RUN_ID, which was true while
+    # 40284658455 was unadjudicated and FALSE after its independent audit
+    # returned PASS and the accept commit 7be4480e landed.  The historical
+    # fact is preserved in prose below; the current contract is that only the
+    # accepted run has an auditor gate, and the two failed chain runs still
+    # have none.
+    for run in (RESUMED_RUN_ID, MINTED_GATE_RUN):
         # 40278460732's file exists only as the quarantined producer mint;
-        # no auditor-authored gate exists for any of the three.
+        # no /audit ref exists for either failed run.
         audit_refs = _git("ls-remote", "--heads", "origin",
                           f"refs/heads/cycle/core/product/{run}/audit")
         assert audit_refs == "", f"unexpected /audit ref for {run}"
     assert not (ROOT / "results" / "audit" / "product" /
-                f"CYCLE_{EXECUTING_RUN_ID}_GATE.json").exists()
+                f"CYCLE_{RESUMED_RUN_ID}_GATE.json").exists()
+    gate = _load(ROOT / "results" / "audit" / "product" /
+                 f"CYCLE_{EXECUTING_RUN_ID}_GATE.json")
+    assert gate["gate"] == "PASS"
+    assert gate["safe_to_integrate"] is True
+    assert gate["required_fixes"] == []
 
 
-def test_state_attributes_the_executing_run_not_the_resumed_snapshot():
+def test_state_attributes_the_resuming_run_not_the_resumed_snapshot():
     st = _load(STATE)
-    assert st["current_cycle_run_id"] == int(EXECUTING_RUN_ID)
+    # The "executing run" convention now names the resuming run 44877180401;
+    # at acceptance time it named 40284658455.  Both are recorded in history.
+    assert st["current_cycle_run_id"] in (int(EXECUTING_RUN_ID), 44877180401)
     blk = st["cycle_40284658455_operational_resume"]
     assert blk["resumed_snapshot"]["run_id"] == int(RESUMED_RUN_ID)
     assert "NON_PROMOTING" in blk["quarantine_verdict"]
@@ -133,14 +147,22 @@ def test_state_attributes_the_executing_run_not_the_resumed_snapshot():
 
 
 def test_accepted_pointer_satisfies_both_halves_and_posture_stays_fail_closed():
+    # POST-ACCEPTANCE REPAIR: the pointer advanced from
+    # CYCLE_40269774540 / 5adaa66d to CYCLE_40284658455 / 7be4480e when this
+    # cycle's audit returned PASS.  The prior values are preserved verbatim in
+    # state's historical_accepted_pointer_40284658455 block and in git history.
     st = _load(STATE)
-    assert st["accepted_run_id"] == "CYCLE_40269774540"
-    assert st["accepted_commit"].startswith("5adaa66d")
+    assert st["accepted_run_id"] == "CYCLE_40284658455"
+    assert st["accepted_commit"].startswith("7be4480e")
     gate = _load(ROOT / "results" / "audit" / "product"
-                 / "CYCLE_40269774540_GATE.json")
+                 / "CYCLE_40284658455_GATE.json")
     assert gate["gate"] == "PASS" and gate["safe_to_integrate"] is True
     head = _git("ls-remote", "--heads", "origin", "refs/heads/lab/product")
     assert head.startswith(st["accepted_commit"]), (head, st["accepted_commit"])
+    hist = st["historical_accepted_pointer_40284658455"]
+    assert hist["accepted_run_id"] == "CYCLE_40269774540"
+    assert hist["accepted_commit"].startswith("5adaa66d")
+    assert (ROOT / hist["gate_path"]).is_file()
     for key, expected in (
         ("continue_recommended", True),
         ("human_gate_ready", False),
