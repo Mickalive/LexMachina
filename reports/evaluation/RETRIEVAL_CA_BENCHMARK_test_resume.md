@@ -1,14 +1,14 @@
 # Minimal Retrieval / Counter-authority Falsification Benchmark — run test_resume
 
-- Wrapper schema: `lex-evaluation-minimal-retrieval-ca-benchmark/1`
-- Direction: v61 (factory direction v61)
+- Wrapper schema: `lex-evaluation-minimal-ca-falsify-benchmark/1`
+- Direction: v68
 - Engine: `evaluation.mapping_free_recall_falsifier.run()` invoked as the accepted entry point (full provenance layer restored, audit F5)
 - Packet: 39319405429 (V3 packet-of-record exact bytes)
 - Combined verdict: **PRODUCT_FALSIFIED** (exit 1)
 - Engine verdict before drift guard: **PRODUCT_FALSIFIED** (exit 1)
 - Falsification proven: **True**
 - Input drift: none (run_valid=True)
-- Product mount head: 4060964a1d63d0a0186035556b5a24a658033cbd
+- Product mount head: 7be4480ed3ca623b77ea082404ca3b5b7ac5ee83
 - Questions measured: 3
 - Gates: 18 total, 11 passed, 4 failed, 3 reported
 - Failed gates: mf::concept_coverage::39319405429::de-kapitalverletzung, mf::counter_authority_surface::39319405429::de-kapitalverletzung, mf::counter_authority_surface::39319405429::fr-bail-entretien, mf::counter_authority_surface::39319405429::it-responsabilita-medica
@@ -27,7 +27,7 @@ This instrument establishes exactly one thing: on the exact accepted packet byte
 ## Provenance (restored layer)
 - Frozen hypothesis SHA256: d1135f9f919140a30dd31250cdb2e782fc3b32a74e39472a24d31560d7de009d
 - Freeze record SHA256: 431aa87b8abeaec3b849d66bce7c0d6b1bcb1ea0fdd5f31bef4b3da122d229f5
-- Engine record: `results/evaluation/minimal_retrieval_ca_benchmark/test_resume_engine_mapping_free_recall_falsifier.json`
+- Engine record: `results/evaluation/minimal_ca_falsify_benchmark/test_resume_engine_mapping_free_recall_falsifier.json`
 - Re-hash before execution: 10 repo / 14 mount inputs
 - Re-hash after execution: drift=none
 - Numeric environment disclosed: yes (factory requirement 30)
