@@ -806,25 +806,53 @@ def _iter_candidates(decisions: Iterable[dict]) -> Iterable[dict]:
             yield d
 
 
+def _incumbent_content_failure(
+    quote: str, row: dict
+) -> tuple[bool, str, list[str], str | None]:
+    """The single predicate that decides whether an incumbent quote may stay verified.
+
+    Applies the frozen D1-D4 content predicates AND the verbatim-grounding check
+    that the seam-abstention leg has always used.  Both that leg and the
+    incumbent sweep call this helper, so a row can no longer be retained by one
+    leg for a defect the other leg rejects.  This only NARROWS which evidence
+    may claim ``counter_evidence_verified``; it edits no frozen predicate,
+    threshold or gate.
+
+    Returns ``(failed, reason_code, frozen_defects, grounded_field)``.
+    """
+    ev = quote if isinstance(quote, str) else ("" if quote is None else str(quote))
+    defects = frozen_content_defects(ev, row)
+    grounded, _offset = ground_evidence(ev, row)
+    ungrounded = bool(ev.strip()) and grounded is None
+    failed = bool(defects) or ungrounded
+    reason = _DEFECT_REASON[defects[0]] if defects else (
+        "ungrounded_evidence" if ungrounded else ""
+    )
+    return failed, reason, defects, grounded
+
+
 def _content_rejection_sweep(out: dict) -> list[dict[str, Any]]:
     """Rejection/incumbent leg over rows the seam loop did not handle.
 
     Any row still claiming ``counter_evidence_verified=True`` whose evidence
-    fails the frozen D1-D4 content predicates is downgraded to an explicitly
-    unevidenced row.  The evidence string is kept for audit; nothing is
-    re-scored, no row is dropped and no geometry is touched.  Runs whether or
-    not a frozen anchor profile exists, because the content predicates are
-    deterministic and need no gate.
+    fails the frozen D1-D4 content predicates OR is not verbatim-grounded in one
+    of its own text fields is downgraded to an explicitly unevidenced row.  The
+    evidence string is kept for audit; nothing is re-scored, no row is dropped
+    and no geometry is touched.  Runs whether or not a frozen anchor profile
+    exists, because the content predicates are deterministic and need no gate.
+
+    A row is no longer skipped merely because it carries a
+    ``counter_evidence_span`` record: such a record can be stale (a prior
+    confirmation or a gate abstention that did not re-check the incumbent).
+    The verified + defect/grounding test below is the authority.
     """
     downgrades: list[dict[str, Any]] = []
     for d in out.get("decisions") or []:
         if d.get("counter_evidence_verified") is not True:
             continue
-        if d.get("counter_evidence_span"):
-            continue  # handled by the span-selection loop above
         ev = str(d.get("counter_evidence") or "")
-        ok, cf_reason = passes_content_filter(ev, d)
-        if ok:
+        failed, cf_reason, defects, grounded = _incumbent_content_failure(ev, d)
+        if not failed:
             continue
         downgrades.append({
             "decision_id": str(d.get("decision_id") or ""),
@@ -840,7 +868,8 @@ def _content_rejection_sweep(out: dict) -> list[dict[str, Any]]:
                 "counter_evidence_unevidenced_reason": cf_reason,
             },
             "reason_code": cf_reason,
-            "defects": frozen_content_defects(ev, d),
+            "defects": defects,
+            "grounded_in": grounded,
         })
         d["counter_evidence_verified"] = False
         d["counter_evidence_unevidenced"] = True
@@ -973,10 +1002,8 @@ def apply_verified_span_selection(
             # different axis from content soundness; on the live path the
             # accepted anchor seam still owns label-driven clearing).
             incumbent_ev = str(d.get("counter_evidence") or "")
-            incumbent_defects = frozen_content_defects(incumbent_ev, d)
-            incumbent_grounded, _off = ground_evidence(incumbent_ev, d)
-            content_fail = bool(incumbent_defects) or (
-                bool(incumbent_ev.strip()) and incumbent_grounded is None
+            content_fail, _cf_reason, incumbent_defects, incumbent_grounded = (
+                _incumbent_content_failure(incumbent_ev, d)
             )
             if content_fail:
                 was_verified = d.get("counter_evidence_verified") is True

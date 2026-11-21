@@ -1,0 +1,81 @@
+{
+  "schema": "product-resume-snapshot-diagnosis/1",
+  "generated_at": "2026-11-21T04:20:00Z",
+  "run_id": "44862651889",
+  "resumed_snapshot_run_id": "44862477576",
+  "direction_version": 68,
+  "lane": "product",
+  "orchestration_failure": {
+    "classification": "TEAM_JOB_ZERO_DURABLE_DELTA_SNAPSHOT_PUBLISHED_BY_ALWAYS_PERSIST",
+    "snapshot_ref": "origin/cycle/core/product/44862477576/team",
+    "snapshot_head": "df5fa61f",
+    "snapshot_head_subject": "product cycle 44856384487 repair 0",
+    "durable_delta_classification": "ZERO_DURABLE_DELTA",
+    "proof": "The snapshot ref resolves to df5fa61f, whose commit is attributed to predecessor run 44856384487. No commit attributable to run 44862477576 exists on that ref; the workflow's if: always() 'Persist team snapshot' step published the unchanged predecessor tree.",
+    "mechanism_status": "UNOBSERVED",
+    "mechanism_note": "As in the committed diagnosis for run 44856191029, job logs were not available at producer scope, so no provider/auth/timeout/token cause is claimed. .github/** is control-plane scope and is not edited from this lane.",
+    "carried_forward_diagnosis_ref": "results/product/orchestration/CYCLE_44856191029_resume_diagnosis.json",
+    "carried_forward_sha256": "9d508ff119b7e629a5f5e33e30e03a4792e722d4978d6ddb148f9b96848aff66",
+    "adjudication": "UNADJUDICATED - neither accepted nor rejected; not a product defect and not an audit verdict"
+  },
+  "real_delta_this_cycle": {
+    "kind": "runnable code + tests, plus verification artifacts",
+    "files": [
+      {
+        "path": "product/query/counter_evidence_span.py",
+        "sha256": "b683be5116b9758a1565be70ddcd8f26cc6e5c562b5d393235609721363de699",
+        "change": "Added _incumbent_content_failure(): one deterministic predicate combining the frozen D1-D4 classes with the verbatim-grounding check. The final incumbent sweep now uses it (closing the ungrounded-incumbent gap) and no longer skips rows merely because they carry a counter_evidence_span record; the seam-abstention leg calls the same helper. No frozen gate, rubric, predicate, threshold or bar is edited."
+      },
+      {
+        "path": "product/tests/test_sweep_grounding_parity.py",
+        "sha256": "bee2de5ec3d3aa999be045df10379c022d3110b35f5766b458d728c953e9c463",
+        "change": "Five executable pins: defective incumbent with stale span record is downgraded; ungrounded non-empty incumbent is downgraded; clean grounded confirmed incumbent with span record is retained; shared-predicate parity; committed-family regression with zero defective/ungrounded verified rows."
+      }
+    ],
+    "scope": "v68 ordered work item (1), rejection/incumbent leg; model-free, no network, no frozen-bar change"
+  },
+  "verification_by_execution": {
+    "bounded_mvp_suite": {
+      "command": "PYTHONPATH=product python3 -m pytest -q <recorded 9 modules> product/tests/test_sweep_grounding_parity.py",
+      "result": "175 passed, 0 failed in 94.77s (170 prior + 5 new)"
+    },
+    "p0_subset": {
+      "result": "49 passed, 0 failed (sweep parity + v68 P0 + span + stage-2 confirmation)"
+    },
+    "state_contract": {
+      "command": "PYTHONPATH=product python3 product/state_contract.py --check --direction-version 68 --json",
+      "result": "ok=true; workflow validation, write scope and shadow state clean"
+    },
+    "full_fixed_path_family_probe": {
+      "artifact": "results/product/counter_content_family/CYCLE_44862651889_post_fix.json",
+      "sha256": "fbf55f7ab70626313992d352e4865deb1cebc361067c0d8941da43ed27e33683",
+      "result": "49 fixed-path bundles / 4900 decisions; 55 verified rows; verified+defective=0; D1=D2=D3=D4=0; confirmed-set false rejects=0; ordered-work success rule met",
+      "note": "The probe re-applies the fixed filter in memory over all 147 committed bundles; historical defective bundles are preserved evidence, not rewritten."
+    },
+    "clickable_slice_post_fix": {
+      "artifact": "results/product/progressive_smoke/CYCLE_44862651889_post_fix_progressive_smoke.json",
+      "sha256": "c5e2336a65e292af0241653fdc8bba31fad3f28b0764a8ca4e8e5dbabb291de3",
+      "result": "PASS 23/23; server boot 1.019s, start 0.549s, expand 0.259s, enrich 0.512s, bundle 0.005s, query.html served",
+      "pre_fix_artifact": "results/product/progressive_smoke/CYCLE_44862651889_progressive_smoke.json",
+      "pre_fix_result": "PASS 23/23; server boot 1.012s, start 0.564s"
+    }
+  },
+  "accepted_mount_inspection": {
+    "path": "/tmp/lex_accepted/frontier",
+    "result": "empty - no accepted Frontier artifact to integrate; counter-evidence Frontier teams stay TERMINATED and were not re-inspected"
+  },
+  "state_pointer": {
+    "accepted_run_id": "CYCLE_40269774540",
+    "accepted_commit": "5adaa66d4ad2b9702cd023bfd49d743667f9e638",
+    "both_halves_of_requirement_4": "PASS on audit ref + accept commit; strict ancestor of origin/lab/product head 7be4480e (accept 40284658455, whose gate is also PASS/safe_to_integrate=true/required_fixes=[]). Pointer left unchanged: historical claim-bearing pointer not churned; drift already disclosed by predecessor cycles."
+  },
+  "posture": {
+    "human_gate_ready": false,
+    "machine_gate_ready": false,
+    "ready_for_owner_session": false,
+    "packet_admitted": false,
+    "owner_decision_required": false,
+    "continue_recommended": true
+  },
+  "claim_ceiling": "A runnable, locally verified hardening of the rejection/incumbent leg plus an end-to-end clickable-slice smoke. It mints no audit gate, scores no frozen bar, re-runs no serve verdict, stages no owner session and makes no legal-usefulness claim. The accepted serve verdict remains BOUNDED-NEGATIVE and both frozen bars remain unmet; this dossier is a handoff aid for the independent auditor, not an audit verdict."
+}
