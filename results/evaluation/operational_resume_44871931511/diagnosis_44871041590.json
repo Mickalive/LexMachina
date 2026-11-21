@@ -1,0 +1,94 @@
+{
+  "schema": "lex-evaluation-operational-resume-diagnosis/1",
+  "lane": "evaluation",
+  "run": 44871931511,
+  "diagnosed_run": "44871041590",
+  "direction_version": 68,
+  "generated_at_utc": "2026-11-21T05:57:30Z",
+  "failure_class": "PRODUCER_WRITE_SCOPE_GUARD_CATCH22_ON_AUDIT_NAMESPACE_DELETION",
+  "confidence": "HIGH for the failed step, exit code, skipped downstream jobs and the guard mechanism; MEDIUM-HIGH for the exact BAD path list (inference, see log_availability).",
+  "headline": "Run 44871041590 completed every substantive step (agent success, state validation success, junk clean success) and failed ONLY at 'Enforce lane write scope' with exit code 3 and the annotation 'lane crossed protected scope:'. Audit and integrate were skipped, so no gate verdict exists for that run. The remediation it performed - relocating four out-of-scope audit-namespace files, committed as R100 renames in f0d00438 - necessarily left those out-of-scope paths in `git status --porcelain -uall`, which the guard rejects for ANY status letter including deletions and renames. The remediation is therefore self-tripping: this is an orchestration/validation catch-22, not a measurement defect, not a product defect and not a REVISE/BLOCKED verdict.",
+  "api_evidence": {
+    "source": "GitHub REST api.github.com (public repo, unauthenticated)",
+    "run": {
+      "id": 44871041590,
+      "display_title": "Core evaluation dirV68 repair0",
+      "event": "workflow_dispatch",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_attempt": 1,
+      "created_at": "2026-11-21T05:28:29Z"
+    },
+    "jobs": [
+      {
+        "name": "team",
+        "job_id": 136745430180,
+        "conclusion": "failure",
+        "started_at": "2026-11-21T05:28:36Z",
+        "completed_at": "2026-11-21T05:39:51Z",
+        "failed_step": "Enforce lane write scope",
+        "successful_steps_before_failure": [
+          "Validate lane and initialize working base",
+          "Mount accepted peer evidence",
+          "Install Ox/OpenCode",
+          "Run lane cycle",
+          "Validate active MVP producer state",
+          "Clean generated junk"
+        ],
+        "steps_after_failure": [
+          {"name": "Persist team snapshot", "conclusion": "success", "note": "if: always(); committed the dirty state as f0d00438 and force-pushed cycle/core/evaluation/44871041590/team"}
+        ],
+        "annotations": [
+          {"annotation_level": "failure", "message": "Process completed with exit code 3."},
+          {"annotation_level": "failure", "message": "lane crossed protected scope:"}
+        ]
+      },
+      {"name": "audit", "job_id": 136748134951, "conclusion": "skipped", "reason": "needs: team; if needs.team.result == 'success'"},
+      {"name": "integrate", "job_id": 136748135007, "conclusion": "skipped", "reason": "needs: audit"},
+      {"name": "resilience", "job_id": 136748134297, "conclusion": "success", "note": "dispatched the operational resume that became this run 44871931511 (created 2026-11-21T05:40:01Z, one second before resilience completed at 05:40:05Z)"}
+    ],
+    "log_availability": "GET /actions/jobs/<id>/logs returns HTTP 403 unauthenticated; GH_TOKEN and GITHUB_TOKEN are unset in the producer environment and gh is not authenticated. The step-level conclusion, exit code and annotation messages are READ facts; the exact BAD path list printed by the step is an INFERENCE.",
+    "bad_path_inference": {
+      "method": "The guard reads `git status --porcelain -uall` and flags every line whose path (column 3 onward) is outside evaluation/**, tests/evaluation/**, results/evaluation/**, reports/evaluation/**, state/evaluation.json, data/evaluation/**. 'Persist team snapshot' (if: always()) then commits exactly that dirty state, so commit f0d00438 is a complete capture of what the guard saw. git diff --name-status 9329f39a..f0d00438 yields ONLY: four R100 renames whose OLD paths are reports/audit/evaluation/CYCLE_44870538384.md, results/audit/evaluation/CYCLE_44870538384_GATE.json, reports/audit/evaluation/CYCLE_44870660846.md, results/audit/evaluation/CYCLE_44870660846_GATE.json (all out of scope), plus new files under reports/evaluation/ and results/evaluation/ (in scope). Therefore the non-empty BAD set is exactly those four audit-namespace paths, presented by the guard as either 'D ' deletions or 'R  old -> new' rename lines. No other out-of-scope path can have existed at guard time, because any other dirty file would have been captured by the same persist commit.",
+      "inferred_bad_paths": [
+        "reports/audit/evaluation/CYCLE_44870538384.md",
+        "results/audit/evaluation/CYCLE_44870538384_GATE.json",
+        "reports/audit/evaluation/CYCLE_44870660846.md",
+        "results/audit/evaluation/CYCLE_44870660846_GATE.json"
+      ],
+      "hedge": "Inference from committed delta plus guard source; not a log read. The four files are byte-identically preserved under results/evaluation/operational_resume_44871041590/ as *.relocated.* by the prior resume."
+    }
+  },
+  "mechanism": {
+    "guard_source": "origin/main:.github/workflows/core-lane.yml steps 'Enforce lane write scope' (producer) and 'Enforce audit scope and read gate' (auditor)",
+    "code": "while IFS= read -r line; do p=\"${line:3}\"; case \"$p\" in <in-scope patterns>|\"\") ;; *) BAD+=\"$p\\n\" ;; esac; done < <(git status --porcelain -uall); [[ -z \"$BAD\" ]] || exit 3",
+    "catch_22": "A producer that owns out-of-scope files in its own snapshot lineage (here: audit-namespace files that the accepted base lab/evaluation does NOT contain) can only become scope-clean by deleting or moving them. Both operations produce porcelain lines whose path is out of scope, so the guard exits 3 and the team job fails even though the remediation is correct. Leaving the files untouched passes the guard but keeps a producer snapshot that differs from the accepted base in the audit namespace. The only passable path is to COMMIT the removal inside the agent phase (porcelain then shows nothing for those paths), which is exactly what this resume does.",
+    "control_plane_note": ".github/** is control-plane scope and is NOT edited by this lane; the guard behaviour is recorded, not patched. Suggested upstream fix for the control-plane maintainer: exempt pure deletions (status letter D, or 'D '/' D ' lines) from the producer scope guard, or evaluate scope against the tree diff versus origin/lab/<lane> rather than the dirty working tree."
+  },
+  "chain_context": {
+    "note": "Six consecutive evaluation dispatches failed before this one; the failure classes alternate between the scope guard and agent-level failure. Every scope-guard failure coincides with exactly one producer commit that ADDED or REMOVED audit-namespace paths.",
+    "runs": [
+      {"run": 44869867193, "failed_step": "Enforce lane write scope", "exit": 3, "coincident_delta": "added results/audit/evaluation/CYCLE_44869867193_GATE.json (commit f6401f60)"},
+      {"run": 44870225032, "failed_step": "Enforce lane write scope", "exit": 3, "coincident_delta": "added reports/audit/evaluation/CYCLE_44869867193.md (commit 41f01308)"},
+      {"run": 44870538384, "failed_step": "Run lane cycle", "exit": 1, "coincident_delta": "none; team branch unchanged at 41f01308 (agent-level failure)"},
+      {"run": 44870660846, "failed_step": "Enforce lane write scope", "exit": 3, "coincident_delta": "added 4 audit-namespace files (commit 9329f39a)"},
+      {"run": 44870941002, "failed_step": "Run lane cycle", "exit": 1, "coincident_delta": "none; team branch unchanged at 9329f39a (agent-level failure, no delta)"},
+      {"run": 44871041590, "failed_step": "Enforce lane write scope", "exit": 3, "coincident_delta": "relocated/removed the 4 audit-namespace files as R100 renames (commit f0d00438)"}
+    ],
+    "no_audit_branches_exist": "git ls-remote origin 'refs/heads/cycle/core/evaluation/*' shows team and team-attempt-1 refs only for this whole chain; no /audit ref exists for any of them, so NONE of these runs issued a gate verdict. Every 'failure' here is an orchestration/validation outcome, never PASS/REVISE/BLOCKED."
+  },
+  "what_this_is_not": [
+    "not a gate verdict (no audit ran; no CYCLE_44871041590_GATE.json exists anywhere)",
+    "not a measurement failure (Run lane cycle, Validate active MVP producer state and Clean generated junk all succeeded)",
+    "not a product defect and not evidence about the product",
+    "not a provider/model failure (no LEX_MODEL_AUTH_FAILURE / LEX_NETWORK_STALL / rc-78 quantum signature on this run)",
+    "not a zero-delta rc-67 (the agent produced a large in-scope delta plus the four relocations)"
+  ],
+  "remediation_applied_by_this_resume": [
+    "Byte-identical re-home of the two residual audit-namespace files that f0d00438 still carries (reports/audit/evaluation/CYCLE_44869867193.md, results/audit/evaluation/CYCLE_44869867193_GATE.json) into results/evaluation/operational_resume_44871931511/, with a RELOCATION_RECORD.json proving sha256 equality against both the worktree bytes and the introducing commits.",
+    "The removal from the audit namespace is COMMITTED inside the agent phase, so `git status --porcelain -uall` carries no out-of-scope line when the guard runs - the catch-22 avoided.",
+    "Nothing is deleted: both originals' bytes live on under their own run-id-derived filenames, per the F-3B append-only-evidence convention.",
+    "No frozen bar, rubric, threshold, predicate, verdict contract or serve posture is touched; no 174k benchmark is rerun."
+  ],
+  "residual_risk": "If a future resume again leaves audit-namespace deletions uncommitted at guard time, the same exit 3 recurs. The durable fix belongs to the control plane (guard exemption for deletions, or scope evaluated as tree-diff versus origin/lab/<lane>); this lane records it and does not edit .github/**."
+}

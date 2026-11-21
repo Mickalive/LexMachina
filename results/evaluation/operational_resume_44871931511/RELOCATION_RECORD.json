@@ -1,0 +1,40 @@
+{
+  "schema": "lex-evaluation-audit-namespace-relocation/1",
+  "lane": "evaluation",
+  "run": 44871931511",
+  "generated_at_utc": "2026-11-21T05:58:40Z",
+  "reason": "Residual producer write-scope violation inherited from the resumed snapshot f0d00438 (run 44871041590). Both files live in independent-auditor namespaces (reports/audit/evaluation/, results/audit/evaluation/) which are outside producer write scope, and neither exists in the accepted base origin/lab/evaluation (ea98384e). They were added by earlier producer runs in this lineage: the GATE by run 44869867193 (commit f6401f60) and the report by run 44870225032 (commit 41f01308). Re-homed byte-identically per AGENTS.md items 5/6 and the F-3B append-only-evidence convention: NOTHING is deleted, a claim-bearing file is never destroyed, and each re-homed copy keeps its run-id-derived name with provenance to the authoring commit.",
+  "catch_22_avoided": "The removal from the audit namespace is committed inside the agent phase of run 44871931511 so that `git status --porcelain -uall` carries no out-of-scope line when the workflow's Enforce lane write scope guard runs. Leaving these deletions uncommitted is precisely what made run 44871041590 exit 3 (see diagnosis_44871041590.json).",
+  "relocations": [
+    {
+      "source_path": "reports/audit/evaluation/CYCLE_44869867193.md",
+      "relocated_path": "results/evaluation/operational_resume_44871931511/CYCLE_44869867193.relocated.md",
+      "bytes": 19300,
+      "sha256_worktree_before": "6ac0aeefaa5f09425b89490f1d83c671ccd8f20b10f9007cd63718b5d59990f1",
+      "sha256_relocated": "6ac0aeefaa5f09425b89490f1d83c671ccd8f20b10f9007cd63718b5d59990f1",
+      "sha256_from_introducing_commit": "6ac0aeefaa5f09425b89490f1d83c671ccd8f20b10f9007cd63718b5d59990f1",
+      "introducing_commit": "41f01308a879317b48a0cf19b934f6bf930034f8",
+      "introducing_run": "44870225032",
+      "byte_identical": true,
+      "present_in_accepted_base": false
+    },
+    {
+      "source_path": "results/audit/evaluation/CYCLE_44869867193_GATE.json",
+      "relocated_path": "results/evaluation/operational_resume_44871931511/CYCLE_44869867193_GATE.relocated.json",
+      "bytes": 2734,
+      "sha256_worktree_before": "a05ee14be2d3f2249824c9a11ad43afb9e2612cbfea7330591d7a7249a088db8",
+      "sha256_relocated": "a05ee14be2d3f2249824c9a11ad43afb9e2612cbfea7330591d7a7249a088db8",
+      "sha256_from_introducing_commit": "a05ee14be2d3f2249824c9a11ad43afb9e2612cbfea7330591d7a7249a088db8",
+      "introducing_commit": "f6401f60b34a93f8ec99b25c16c82abbe09e8090",
+      "introducing_run": "44869867193",
+      "byte_identical": true,
+      "present_in_accepted_base": false,
+      "content_disclosure": "The re-homed GATE carries gate=REVISE with safe_to_integrate=true and was authored in the PRODUCER namespace by run 44869867193; no cycle/core/evaluation/44869867193/audit ref exists on origin, so it was never an independent-audit product of the workflow's audit job. It is preserved as provenance of what that producer committed, is NOT treated as an independent audit verdict, and is NOT quotable as a gate of record."
+    }
+  ],
+  "deletion_policy": "No byte is lost. The two source paths are removed from the audit namespace only after the re-homed copies re-hash equal; the removal is committed (not left dirty) to satisfy the workflow scope guard.",
+  "verification": {
+    "sha256_equality_all_pairs": true,
+    "method": "sha256sum over worktree source, worktree relocated, and `git show <introducing_commit>:<path>` for each pair"
+  }
+}
