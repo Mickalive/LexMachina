@@ -369,6 +369,53 @@ PROFILES: dict[str, dict[str, Any]] = {
                              / "self_minted_gate_40278460732_producer_"
                                "40283048553.QUARANTINED.json",
     },
+    "44881876793": {
+        "resumed_run_id": "44877180401",
+        "predecessor_run_id": "44873436245",
+        "raw": ORCH / "CYCLE_44877180401_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_44877180401_resume_diagnosis.json",
+        # The resumed run DID commit its own report and cycle test before the
+        # audit died, so both are inherited rather than re-authored.
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_44877180401.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_44881876793.md",
+        # Fifth real failure mode, and the exact inverse of 40283048553: the
+        # TEAM job succeeded end to end (state validation and write scope both
+        # green, 6-file snapshot published as 6ae0b14c) and the AUDIT job's
+        # 'Independent audit' step consumed the whole 2700 s work quantum
+        # (2706.0 s, exit 78) before it could write a gate, so the gate and
+        # persist steps were skipped and no /audit ref exists.  A team-side
+        # quantum, a scope or a gateway wording would all misreport it.
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "mechanism_kind": "observed",
+        "failed_job": "audit",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "delta_kind": "committed",
+        "changed_files": 6,
+        "changed_paths_include": ("product/tests/test_cycle_44877180401.py",),
+        "cycle_test": "product/tests/test_cycle_44881876793.py",
+        "state_block": "cycle_44877180401_operational_resume",
+        # No new counter-content family this cycle: consume the accepted
+        # fixed-path family pins unchanged (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+        "self_minted_gate": ROOT / "results" / "product" / "incidents"
+                             / "self_minted_gate_40278460732_producer_"
+                               "40283048553.QUARANTINED.json",
+    },
+    # The snapshot this dossier describes is resumed BY 44881876793; both ids
+    # must resolve so the auditor can pass either the resuming run (the id the
+    # workflow prints) or the snapshot's own run.
+    "44877180401": {"alias_of": "44881876793"},
 }
 
 # Active profile; empty means "the module constants above" (the original

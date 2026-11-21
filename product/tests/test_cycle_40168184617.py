@@ -79,6 +79,23 @@ def _git(*args: str) -> str:
     return out.stdout
 
 
+def _rev_optional(ref: str) -> str | None:
+    """Local/remote ref, or ``None`` when the control plane has pruned it.
+
+    ``core-lane.yml`` fetches ``main`` plus ``lab/<lane>``, and
+    ``actions/checkout`` with ``fetch-depth: 0`` materialises every branch
+    that exists on origin *at that moment*.  Cycle refs outside the control
+    plane's retention window are deleted from origin, so a historical cycle
+    test can no longer re-derive from ``refs/remotes/origin/cycle/...``.
+    Ref absence is recorded as ``PRUNED_FROM_ORIGIN``; it is never treated as
+    a contradiction of the committed artifact and never papered over by
+    inventing a sha.
+    """
+    out = subprocess.run(["git", "rev-parse", "--verify", "--quiet", ref],
+                         cwd=str(REPO_ROOT), capture_output=True, text=True)
+    return out.stdout.strip() or None
+
+
 # --------------------------------------------------------------------------
 # 1. orchestration diagnosis
 # --------------------------------------------------------------------------
@@ -132,9 +149,22 @@ def test_the_chain_root_died_the_same_way_and_its_snapshot_survived() -> None:
     jobs = _load(ORCH_ART["40160899758"])["job_conclusions"]
     assert jobs["team"] == "failure" and jobs["audit"] == "skipped"
     # the snapshot the resume chain grew from is exactly this commit
-    assert _git("rev-parse",
-                "refs/remotes/origin/cycle/core/product/40160899758/team").strip() \
-        == CHAIN_ROOT_SNAPSHOT
+    root_ref = "refs/remotes/origin/cycle/core/product/40160899758/team"
+    got = _rev_optional(root_ref)
+    if got is None:
+        # Amendment (operational resume 44881876793): the control plane has
+        # pruned this cycle ref from origin, so the ref can no longer be the
+        # re-derivation surface.  The commit itself is still reachable in the
+        # object store and is asserted below; the pruned status is recorded
+        # rather than skipped, and the committed diagnosis stays the evidence
+        # of record.  Nothing is deleted and no sha is invented.
+        assert _git("rev-parse", CHAIN_ROOT_SNAPSHOT).strip() == CHAIN_ROOT_SNAPSHOT
+        assert _git("merge-base", "--is-ancestor", CHAIN_ROOT_SNAPSHOT,
+                    "origin/lab/product") == ""
+        assert ("product cycle 40160899758 repair 0"
+                in _git("log", "-1", "--format=%s", CHAIN_ROOT_SNAPSHOT))
+    else:
+        assert got == CHAIN_ROOT_SNAPSHOT
 
 
 def test_the_validation_failure_is_the_scope_guard_beaten_by_always_persist() -> None:
@@ -162,9 +192,18 @@ def test_the_validation_failure_is_the_scope_guard_beaten_by_always_persist() ->
 
     # and the resumed run therefore inherited them as COMMITTED content, which a
     # pending-only `git status --porcelain` scope check can never observe
-    resumed = _git("rev-parse",
-                   "refs/remotes/origin/cycle/core/product/40164459036/team").strip()
-    assert resumed == RESUME_SNAPSHOT_COMMIT
+    resumed_ref = "refs/remotes/origin/cycle/core/product/40164459036/team"
+    resumed = _rev_optional(resumed_ref)
+    if resumed is None:
+        # Amendment (operational resume 44881876793): pruned cycle ref.  The
+        # resume snapshot commit is still reachable and still an ancestor of
+        # the accepted head, which is the surviving half of the claim.
+        assert _git("rev-parse", RESUME_SNAPSHOT_COMMIT).strip() == \
+            RESUME_SNAPSHOT_COMMIT
+        assert _git("merge-base", "--is-ancestor", RESUME_SNAPSHOT_COMMIT,
+                    "origin/lab/product") == ""
+    else:
+        assert resumed == RESUME_SNAPSHOT_COMMIT
     out = subprocess.run(
         ["git", "rev-parse", "--verify", "-q",
          f"{RESUME_SNAPSHOT_COMMIT}:results/audit/product/CYCLE_40160899758_GATE.json"],
@@ -220,11 +259,53 @@ def test_no_producer_minted_audit_file_reaches_this_unadjudicated_chain() -> Non
 
 def test_the_ratchet_reproduces_from_the_tree_not_from_the_artifact() -> None:
     live = rcd.audit_namespace_inventory()
+    # The ratchet itself is unchanged and must stay empty: no producer-minted
+    # file may sit on this cycle's UNADJUDICATED chain.
     assert live["producer_minted_unadjudicated_chain"] == []
     assert live["producer_minted_accepted_baseline"], live
     committed = _load(DIAG_ART)["audit_namespace_after_rehome"]
-    assert ([e["path"] for e in live["producer_minted_accepted_baseline"]]
-            == [e["path"] for e in committed["producer_minted_accepted_baseline"]])
+    old_paths = [e["path"] for e in committed["producer_minted_accepted_baseline"]]
+    new_paths = [e["path"] for e in live["producer_minted_accepted_baseline"]]
+
+    # Amendment (operational resume 44881876793): a strict byte-for-byte
+    # equality against the 40168184617 snapshot is not the contract.  The
+    # accepted baseline is APPEND-ONLY historical evidence, so it may only
+    # GROW, and every entry that grew after this snapshot must be named here
+    # with its adjudicated disposition.  An undeclared new producer-minted
+    # file reaching origin/lab/product still fails, which is the ratchet; a
+    # declared one does not, because an accepted cycle already recorded why
+    # it stays.  Losing a historical entry also still fails.
+    missing = [p for p in old_paths if p not in new_paths]
+    assert not missing, f"historical baseline entries vanished: {missing}"
+
+    declared_new = {
+        # Added by producer snapshot b64e2318 (run 40283048553) and carried to
+        # the accepted branch; accepted cycle 40284658455 adjudicated it as
+        # NON_PROMOTING and quarantined it in place with a provenance sidecar
+        # (results/product/incidents/self_minted_gate_40278460732_producer_
+        # 40283048553.QUARANTINED.json).  It confers no acceptance for any run
+        # and no /audit ref for 40278460732 exists.
+        "results/audit/product/CYCLE_40278460732_GATE.json",
+    }
+    undeclared = [p for p in new_paths if p not in old_paths and p not in declared_new]
+    assert not undeclared, (
+        "undeclared producer-minted file reached the accepted branch: "
+        f"{undeclared}")
+    assert set(new_paths) - set(old_paths) == declared_new, (
+        set(new_paths) - set(old_paths))
+
+    # The sidecar that records the declared entry's provenance must exist and
+    # must agree with the bytes still sitting at the original path.
+    sidecar = REPO_ROOT / "results" / "product" / "incidents" / (
+        "self_minted_gate_40278460732_producer_40283048553.QUARANTINED.json")
+    assert sidecar.is_file()
+    sc = json.loads(sidecar.read_text(encoding="utf-8"))
+    minted = REPO_ROOT / "results" / "audit" / "product" / (
+        "CYCLE_40278460732_GATE.json")
+    assert minted.is_file()
+    assert sc["minted_artifact"]["sha256"] == hashlib.sha256(
+        minted.read_bytes()).hexdigest()
+    assert sc["minted_artifact"]["preserved_verbatim"] is True
 
 
 # --------------------------------------------------------------------------

@@ -23,6 +23,7 @@ Pinned properties
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -68,12 +69,33 @@ def _verified(rows: list[dict]) -> list[dict]:
 
 def test_accepted_pointer_has_both_requirement4_halves() -> None:
     state = _load(STATE)
-    assert state["accepted_run_id"] == f"CYCLE_{ACCEPTED_RUN_ID}"
-    assert state["accepted_commit"] == ACCEPTED_COMMIT
+    # Amendment (operational resume 44881876793): pin the CONTRACT, not a
+    # cycle id.  Lines 71-72 used to pin this cycle's accepted base
+    # (CYCLE_40245479781 / 2f514749) as the LIVE pointer, which went stale the
+    # moment cycle 40247189361 itself was accepted and later cycles advanced
+    # it again.  What must never stop being true is that whatever the state
+    # currently names resolves to a PASS/safe gate AND an accept commit.
     evidence = sc.accepted_pointer_evidence(state)
-    assert evidence["problems"] == []
+    assert evidence["problems"] == [], evidence
     assert evidence["gate_ok"] is True
     assert evidence["accept_commit_present"] is True
+
+    # Both eras stay fully resolvable: the base this cycle resumed from, and
+    # this cycle's own acceptance.  Nothing is deleted or re-labelled.
+    for run_id in (ACCEPTED_RUN_ID, RUN_ID):
+        gate = _load(REPO_ROOT / "results" / "audit" / "product"
+                     / f"CYCLE_{run_id}_GATE.json")
+        assert gate["gate"] == "PASS" and gate["safe_to_integrate"] is True, run_id
+    for run_id in (ACCEPTED_RUN_ID, RUN_ID):
+        log = subprocess.run(
+            ["git", "log", "--all", "--oneline",
+             f"--grep=^accept product cycle {run_id}$"],
+            cwd=str(REPO_ROOT), capture_output=True, text=True).stdout
+        assert run_id in log, run_id
+    # the pinned historical accept commit is still a real object in the store
+    assert subprocess.run(
+        ["git", "cat-file", "-t", ACCEPTED_COMMIT], cwd=str(REPO_ROOT),
+        capture_output=True, text=True).stdout.strip() == "commit"
 
 
 def test_resume_diagnosis_zero_delta_and_no_invented_mechanism() -> None:
@@ -164,5 +186,27 @@ def test_posture_fail_closed_and_no_gate_minted() -> None:
     assert state["human_gate_ready"] is False
     assert state["machine_gate_ready"] is False
     assert state["continue_recommended"] is True
+
+    # Amendment (operational resume 44881876793): this cycle was later
+    # ACCEPTED, so results/audit/product/CYCLE_40247189361_GATE.json now
+    # exists and the old "no gate file exists" half went false.  What the
+    # assertion protected is that the PRODUCER never mints one: the gate's
+    # adding commit must be the independent accept commit by lex-integrator,
+    # never a producer `... repair N` snapshot subject.  The unadjudicated
+    # resumed run's gate must still not exist at all.
+    gate_rel = f"results/audit/product/CYCLE_{RUN_ID}_GATE.json"
+    adding = subprocess.run(
+        ["git", "log", "--all", "--diff-filter=A", "--format=%H\t%an\t%s",
+         "--", gate_rel],
+        cwd=str(REPO_ROOT), capture_output=True, text=True).stdout.splitlines()
+    assert adding, f"{gate_rel} must be reachable from history"
+    sha, author, subject = adding[0].split("\t")
+    assert sha and subject.strip() == f"accept product cycle {RUN_ID}", adding
+    assert author == "lex-integrator", author
+    # a producer snapshot subject must never be the commit that introduced it
+    from product import resume_chain_diagnosis as rcd
+    assert not rcd.PRODUCER_SNAPSHOT_SUBJECT.match(subject.strip()), subject
+
+    # the resumed (never adjudicated) run still has no gate on any ref
     assert not (REPO_ROOT / "results" / "audit" / "product"
-                / f"CYCLE_{RUN_ID}_GATE.json").exists()
+                / f"CYCLE_{RESUMED_RUN_ID}_GATE.json").exists()
