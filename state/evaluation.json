@@ -260,7 +260,10 @@
     "results/evaluation/lane_suite/40261335674.json",
     "results/audit/evaluation/CYCLE_40258497460_GATE.json",
     "results/audit/evaluation/CYCLE_40256546455_GATE.json",
-    "results/evaluation/orchestration/40261335674_state_integrity_gate.json"
+    "results/evaluation/orchestration/40261335674_state_integrity_gate.json",
+    "results/evaluation/operational_resume_44891275807/diagnosis.json",
+    "results/evaluation/operational_resume_44891275807/audit_index.json",
+    "reports/evaluation/OPERATIONAL_RESUME_44891275807_AUDIT_READY.md"
   ],
   "evidence_refs_resolution": {
     "repaired_in_run": 40153908549,
@@ -417,7 +420,7 @@
     },
     "why": "the removal left tests/evaluation/test_disclosure_provenance_crosscheck.py failing with KeyError 'open_items' on the pinned text-sha convention test; this is a byte-exact restoration of frozen-pinned content, not a re-wording."
   },
-  "evidence_refs_n": 255,
+  "evidence_refs_n": 258,
   "github_run": 40261335674,
   "proposed_run_id": 40261335674,
   "audit_status": "PENDING_INDEPENDENT_AUDIT",
@@ -1739,5 +1742,33 @@
       "surfaces_read": "BOTH halves; neither the /tmp/lex_accepted mount nor results/accepted-state alone was used (factory-wide requirement 39)"
     },
     "why": "state/evaluation.json still pointed at 40159747851 although two later cycles are accepted on both halves; the pointer is corrected here without touching any historical artifact."
+  },
+  "operational_resume_44891275807": {
+    "schema": "lex-evaluation-operational-resume/1",
+    "lane": "evaluation",
+    "run_id": "44891377897",
+    "prior_snapshot_run_id": "44891275807",
+    "prior_cycle_run": "40265377500",
+    "direction_version": 68,
+    "snapshot_head": "ea98384e54d31d2e694c418a1d1ce5769fc6c32f",
+    "resume_verdict": "AUDIT_READY_PENDING_INDEPENDENT_AUDIT",
+    "diagnosis": "results/evaluation/operational_resume_44891275807/diagnosis.json",
+    "audit_index": "results/evaluation/operational_resume_44891275807/audit_index.json",
+    "report": "reports/evaluation/OPERATIONAL_RESUME_44891275807_AUDIT_READY.md",
+    "findings": [
+      "F1_HIGH_VALIDATION_OR_INTEGRATION_NAMESPACE_MISMATCH",
+      "F2_HIGH_GATE_ARTIFACT_MISMATCH",
+      "F3_MEDIUM_STATE_NOT_UPDATED_FOR_40265377500",
+      "F4_INFO_DELIVERABLE_ARTIFACTS_PRESENT_AND_INTERNALLY_CONSISTENT"
+    ],
+    "gate_file_preserved_not_evidence_for_test_artifacts": "results/audit/evaluation/CYCLE_40265377500_GATE.json",
+    "producer_artifacts_verified": [
+      "results/evaluation/minimal_retrieval_ca_benchmark/test_40265377500.json",
+      "results/evaluation/minimal_retrieval_ca_benchmark/test_40265377500_engine_mapping_free_recall_falsifier.json",
+      "reports/evaluation/RETRIEVAL_CA_BENCHMARK_test_40265377500.md"
+    ],
+    "state_integrity": "ALL_CHECKS_PASS",
+    "write_scope_current": "SCOPE_CLEAN",
+    "claim_ceiling": "Operational resume only; no acceptance claim; mismatched audit gate preserved but not cited as evidence for test_40265377500; no frozen bar/rubric/threshold/verdict changed; no 174k rerun; human_gate_ready=false."
   }
 }

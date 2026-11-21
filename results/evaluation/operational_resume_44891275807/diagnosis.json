@@ -1,0 +1,251 @@
+{
+  "schema": "lex-evaluation-operational-resume-diagnosis/1",
+  "lane": "evaluation",
+  "run_id": "44891377897",
+  "prior_snapshot_run_id": "44891275807",
+  "direction_version": 68,
+  "generated_at_utc": "2026-11-21T09:56:00Z",
+  "head": "ea98384e54d31d2e694c418a1d1ce5769fc6c32f",
+  "head_message": "accept evaluation cycle 40265377500",
+  "remote_team_head": "ea98384e54d31d2e694c418a1d1ce5769fc6c32f",
+  "remote_matches_head": true,
+  "state": {
+    "accepted_run_id": 40258497460,
+    "proposed_run_id": 40261335674,
+    "direction_version": 68,
+    "audit_status": "PENDING_INDEPENDENT_AUDIT",
+    "continue_recommended": false,
+    "cycle_status": "COMPLETE",
+    "evidence_tier": "ACCEPTED",
+    "evidence_refs_n": 255,
+    "has_40265377500_refs": false
+  },
+  "producer_artifacts": [
+    {
+      "path": "results/evaluation/minimal_retrieval_ca_benchmark/test_40265377500.json",
+      "exists": true,
+      "sha256": "5944f921c00d8f24f52506d5fbe9ffa8686c5a814172f16879f1f345b651a0a1",
+      "bytes": 37194,
+      "run_id": "test_40265377500",
+      "verdict": "PRODUCT_FALSIFIED",
+      "exit_code": 1,
+      "direction_version": 68,
+      "input_drift": [],
+      "run_valid": true,
+      "product_mount_head": "f9b0db254dc22a46a240c7937fd75e3eb2ec2e95"
+    },
+    {
+      "path": "results/evaluation/minimal_retrieval_ca_benchmark/test_40265377500_engine_mapping_free_recall_falsifier.json",
+      "exists": true,
+      "sha256": "e1dc2238d6b721903a5c535f0a5e1a2d95754152b46db24467dc30290606db07",
+      "bytes": 32302,
+      "run_id": "test_40265377500",
+      "verdict": "PRODUCT_FALSIFIED",
+      "exit_code": 1,
+      "direction_version": 57,
+      "input_drift": [],
+      "run_valid": null,
+      "product_mount_head": "f9b0db254dc22a46a240c7937fd75e3eb2ec2e95"
+    },
+    {
+      "path": "reports/evaluation/RETRIEVAL_CA_BENCHMARK_test_40265377500.md",
+      "exists": true,
+      "sha256": "7cdfa8e7912acd2e805c745b91fef903c02077c0dfe80457f0891bcae1590b03",
+      "bytes": 3241
+    }
+  ],
+  "gate_file": {
+    "path": "results/audit/evaluation/CYCLE_40265377500_GATE.json",
+    "exists": true,
+    "sha256": "b9d04cae0eb8f654723a0406fd0684eef0515eb28f6f45c4c4510b8b75e63e53",
+    "gate": "PASS",
+    "safe_to_integrate": true,
+    "evidence_summary_verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
+    "evidence_summary_exit": 0,
+    "n_questions_tested": 4
+  },
+  "write_scope_repros": {
+    "9fe9d714_to_ea98384e": {
+      "verdict": null,
+      "n_bad": null,
+      "bad_paths": null
+    },
+    "419d01bf_to_9fe9d714": {
+      "verdict": null,
+      "n_bad": null,
+      "bad_paths": null
+    }
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "HIGH",
+      "class": "VALIDATION_OR_INTEGRATION_NAMESPACE_MISMATCH",
+      "summary": "HEAD commit ea98384e (accept evaluation cycle 40265377500) adds files under reports/audit/evaluation and results/audit/evaluation. These paths are outside evaluation producer write scope; a producer-snapshot write-scope check comparing producer base to this snapshot reproduces SCOPE_VIOLATION (2 bad paths). The audit files are integrator/auditor namespace artifacts, not producer deliverables.",
+      "evidence": [
+        "write_scope_repros.9fe9d714_to_ea98384e",
+        "git show ea98384e"
+      ]
+    },
+    {
+      "id": "F2",
+      "severity": "HIGH",
+      "class": "GATE_ARTIFACT_MISMATCH",
+      "summary": "CYCLE_40265377500_GATE.json (PASS, BENCHMARK_VALID_NO_FALSIFICATION, 4 questions, cached-bundle claim ceiling) does not describe the committed producer artifacts test_40265377500.json/engine record (PRODUCT_FALSIFIED, exit 1, 18 gates, 4 failed, mapping_free_recall_falsifier schema). Same frozen_spec sha but different instrument/verdict/claim. This is a provenance/claim mismatch; the gate must not be treated as evidence for the test_40265377500 artifacts.",
+      "evidence": [
+        "results/audit/evaluation/CYCLE_40265377500_GATE.json",
+        "results/evaluation/minimal_retrieval_ca_benchmark/test_40265377500.json"
+      ]
+    },
+    {
+      "id": "F3",
+      "severity": "MEDIUM",
+      "class": "STATE_NOT_UPDATED_FOR_40265377500",
+      "summary": "state/evaluation.json does not reference 40265377500/test_40265377500 artifacts; accepted_run_id remains 40258497460, proposed_run_id 40261335674, audit_status PENDING_INDEPENDENT_AUDIT. The 40265377500 gate is present in tree but not wired into state evidence refs.",
+      "evidence": [
+        "state/evaluation.json"
+      ]
+    },
+    {
+      "id": "F4",
+      "severity": "INFO",
+      "class": "DELIVERABLE_ARTIFACTS_PRESENT_AND_INTERNALLY_CONSISTENT",
+      "summary": "The test_40265377500 wrapper and engine records exist, have matching run_id/verdict/exit/product_mount_head/input_drift, frozen hashes re-verify against current files, and engine_record_path resolves. They are not wired into state and the audit gate is mismatched; they remain unaccepted producer artifacts pending independent audit with correct provenance.",
+      "evidence": [
+        "results/evaluation/minimal_retrieval_ca_benchmark/test_40265377500.json",
+        "results/evaluation/minimal_retrieval_ca_benchmark/test_40265377500_engine_mapping_free_recall_falsifier.json",
+        "reports/evaluation/RETRIEVAL_CA_BENCHMARK_test_40265377500.md"
+      ]
+    }
+  ],
+  "verification": {
+    "verified_at_utc": "2026-11-21T09:56:00Z",
+    "hash_checks": [
+      {
+        "artifact": "wrapper",
+        "field": "frozen_hypothesis",
+        "path": "evaluation/MAPPING_FREE_RECALL_FALSIFIER_HYPOTHESIS_V1.json",
+        "expected": "d1135f9f919140a30dd31250cdb2e782fc3b32a74e39472a24d31560d7de009d",
+        "actual": "d1135f9f919140a30dd31250cdb2e782fc3b32a74e39472a24d31560d7de009d",
+        "ok": true
+      },
+      {
+        "artifact": "wrapper",
+        "field": "freeze_record",
+        "path": "evaluation/MAPPING_FREE_RECALL_FALSIFIER_FREEZE_RECORD.json",
+        "expected": "431aa87b8abeaec3b849d66bce7c0d6b1bcb1ea0fdd5f31bef4b3da122d229f5",
+        "actual": "431aa87b8abeaec3b849d66bce7c0d6b1bcb1ea0fdd5f31bef4b3da122d229f5",
+        "ok": true
+      },
+      {
+        "artifact": "wrapper",
+        "field": "frozen_spec",
+        "path": "evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
+        "expected": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+        "actual": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+        "ok": true
+      },
+      {
+        "artifact": "engine",
+        "field": "frozen_hypothesis",
+        "path": "evaluation/MAPPING_FREE_RECALL_FALSIFIER_HYPOTHESIS_V1.json",
+        "expected": "d1135f9f919140a30dd31250cdb2e782fc3b32a74e39472a24d31560d7de009d",
+        "actual": "d1135f9f919140a30dd31250cdb2e782fc3b32a74e39472a24d31560d7de009d",
+        "ok": true
+      },
+      {
+        "artifact": "engine",
+        "field": "freeze_record",
+        "path": "evaluation/MAPPING_FREE_RECALL_FALSIFIER_FREEZE_RECORD.json",
+        "expected": "431aa87b8abeaec3b849d66bce7c0d6b1bcb1ea0fdd5f31bef4b3da122d229f5",
+        "actual": "431aa87b8abeaec3b849d66bce7c0d6b1bcb1ea0fdd5f31bef4b3da122d229f5",
+        "ok": true
+      },
+      {
+        "artifact": "engine",
+        "field": "frozen_spec",
+        "path": "evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
+        "expected": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+        "actual": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+        "ok": true
+      }
+    ],
+    "cross_checks": [
+      {
+        "check": "run_id_match",
+        "ok": true
+      },
+      {
+        "check": "verdict_match",
+        "ok": true
+      },
+      {
+        "check": "exit_code_match",
+        "ok": true
+      },
+      {
+        "check": "product_mount_head_match",
+        "ok": true
+      },
+      {
+        "check": "input_drift_empty",
+        "ok": true
+      },
+      {
+        "check": "wrapper_run_valid_true",
+        "ok": true
+      },
+      {
+        "check": "engine_record_path_resolves",
+        "ok": true
+      },
+      {
+        "check": "no_174k_benchmark_rerun",
+        "ok": true
+      },
+      {
+        "check": "human_gate_ready_false",
+        "ok": true
+      },
+      {
+        "check": "packet_admitted_false",
+        "ok": true
+      }
+    ],
+    "state_integrity": {
+      "verdict": "ALL_CHECKS_PASS",
+      "exit_code": 0,
+      "n_checks": 11,
+      "n_failed": 0
+    },
+    "gate_mismatch": {
+      "gate_path": "results/audit/evaluation/CYCLE_40265377500_GATE.json",
+      "gate_sha256": "b9d04cae0eb8f654723a0406fd0684eef0515eb28f6f45c4c4510b8b75e63e53",
+      "gate": "PASS",
+      "safe_to_integrate": true,
+      "gate_evidence_verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
+      "gate_exit_code": 0,
+      "gate_n_questions": 4,
+      "gate_frozen_spec_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+      "wrapper_verdict": "PRODUCT_FALSIFIED",
+      "wrapper_exit_code": 1,
+      "wrapper_n_gates": 18,
+      "wrapper_n_failed": 4,
+      "wrapper_schema": "lex-evaluation-minimal-retrieval-ca-benchmark/1",
+      "same_frozen_spec_sha256": true,
+      "verdicts_match": false,
+      "describes_same_instrument": false,
+      "note": "Gate describes cached-bundle benchmark (4 questions, BENCHMARK_VALID_NO_FALSIFICATION) while committed producer artifacts are mapping_free_recall_falsifier wrapper (18 gates, PRODUCT_FALSIFIED). Same frozen spec hash appears but instrument/verdict/claim differ; gate must not be cited as evidence for test_40265377500 artifacts."
+    },
+    "write_scope_snapshot_ea98384e": {
+      "verdict": null,
+      "n_bad": null,
+      "bad_paths": null
+    },
+    "resume_verdict": "AUDIT_READY_PENDING_INDEPENDENT_AUDIT",
+    "current_write_scope": {
+      "verdict": "SCOPE_CLEAN",
+      "stdout": "write scope [evaluation]: SCOPE_CLEAN (3 entries, 0 bad, 0 junk dropped)"
+    }
+  }
+}
