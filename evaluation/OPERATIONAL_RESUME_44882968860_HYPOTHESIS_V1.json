@@ -1,0 +1,45 @@
+{
+  "schema": "lex-evaluation-operational-resume-hypothesis/1",
+  "lane": "evaluation",
+  "run": 44882968860,
+  "run_mode": "OPERATIONAL_RESUME (resume_from_run_id=44879155219, repair_round=0, FAST_MVP_MODE)",
+  "direction_version": 68,
+  "frozen_at_utc": "2026-11-21T08:05:00Z",
+  "frozen_before_outcome_inspection": true,
+  "note": "Frozen before this run executed any benchmark, shim, or verification command. This is an operational resume, not a new claim-bearing scientific measurement. H1 diagnoses the orchestration/validation failure of the persisted producer run 44879155219; H2 verifies (not re-scores) the already-frozen minimal CA falsification benchmark; H3 verifies snapshot audit-readiness and scope cleanliness. H2 reproduces a prior committed result and creates NO new evidence tier; it is NOT a second independent falsification. The v68 ordered work item (2) conditional re-measure is explicitly NOT triggered here.",
+  "hypotheses": {
+    "H1_failure_diagnosis": {
+      "statement": "Run 44879155219 failed in the AUDIT job at step 5 'Independent audit' (conclusion=failure). Its TEAM job succeeded end-to-end, including steps 'Run lane cycle', 'Validate active MVP producer state', 'Clean generated junk', 'Enforce lane write scope' and 'Persist team snapshot', and force-pushed the persisted producer snapshot 519d6bc7 to origin/cycle/core/evaluation/44879155219/team. Because the audit agent step died, steps 6 'Enforce audit scope and read gate' and 7 'Persist audit snapshot' were skipped, no results/audit/evaluation/CYCLE_44879155219_GATE.json was ever written on any ref, no /audit branch exists, and integrate was skipped. The audit job ran ~46 minutes (07:16:16Z -> 08:02:03Z), consistent with the documented LEX_WORK_QUANTUM_EXPIRED (seconds=2700) / provider-rotation class, but the precise internal cause is an INFERENCE because job logs return HTTP 403 unauthenticated. This is an audit-agent death (factory-wide requirements 20/33), NOT a gate verdict, NOT a product defect, NOT a measurement failure and NOT a human-gate problem.",
+      "success_rule": "All of: (a) GitHub REST for run 44879155219 shows conclusion=failure with team job conclusion=success and audit job conclusion=failure at step 'Independent audit'; (b) audit steps 'Enforce audit scope and read gate' and 'Persist audit snapshot' are skipped and integrate is skipped; (c) no ref cycle/core/evaluation/44879155219/audit resolves and no CYCLE_44879155219_GATE.json exists in tree or any fetched ref; (d) the persisted team ref resolves to 519d6bc7 and its only delta vs its parent is results/evaluation/orchestration/local_pytest_shim.json. Any unmet clause is recorded as a negative result and the diagnosis is downgraded.",
+      "evidence_sources": [
+        "GitHub REST: /repos/Mickalive/LexMachina/actions/runs/44879155219 and /jobs",
+        "git rev-parse origin/cycle/core/evaluation/44879155219/team == 519d6bc7",
+        "git show 519d6bc7 --stat",
+        "git for-each-ref (audit ref absence)"
+      ],
+      "log_availability": "Job logs endpoint returns HTTP 403 ('Must have admin rights to Repository.'; GH_TOKEN/GITHUB_TOKEN unset, gh not logged in). Step identity, conclusions and timestamps are READ facts from the jobs API; the exact in-agent failure reason (quantum expiry vs provider rotation vs model auth) is an INFERENCE, never quoted as a log read."
+    },
+    "H2_deliverable_verification": {
+      "statement": "The smallest executable retrieval/counter-authority falsification benchmark (evaluation/minimal_ca_falsify_benchmark.py wrapping evaluation/mapping_free_recall_falsifier.py, frozen instruments d06909e9.../58a2e77a...) reproduces its committed result on the V3 packet-of-record 39319405429 against product mount head 7be4480ed3ca623b77ea082404ca3b5b7ac5ee83: verdict PRODUCT_FALSIFIED, 18 gates, 11 passed, 4 failed, empty input_drift, run_valid=true, with the SAME four failed gates as committed records 44870660846 and 44870538384.",
+      "success_rule": "Exact set-equality on the failed-gate list and equality of (verdict, n_gates, n_passed, n_failed, product_mount_head, run_valid, input_drift==[]) against results/evaluation/minimal_ca_falsify_benchmark/44870660846.json and 44870538384.json. Any divergence is published as a DISCREPANCY negative result; this run does not silently pick a matching number. Claim ceiling: verification re-execution of an already-frozen instrument, NOT a new falsification, NOT a re-score, NOT a serve verdict.",
+      "expected_failed_gates": [
+        "mf::concept_coverage::39319405429::de-kapitalverletzung",
+        "mf::counter_authority_surface::39319405429::de-kapitalverletzung",
+        "mf::counter_authority_surface::39319405429::fr-bail-entretien",
+        "mf::counter_authority_surface::39319405429::it-responsabilita-medica"
+      ]
+    },
+    "H3_snapshot_audit_readiness": {
+      "statement": "The persisted snapshot 519d6bc7 is audit-ready: (i) its single delta vs its parent, results/evaluation/orchestration/local_pytest_shim.json, is valid completed work (the no-pytest shim was repaired from an IMPORT_ERROR on tests/evaluation/test_retrieval_benchmark.py to SHIM_PASS 8/8 on tests/evaluation/test_minimal_ca_falsify_benchmark.py) and is preserved unchanged; (ii) the v68 item-(1) correction-of-record is present and re-hashes to its frozen shas (report b10eeb3a..., record 6dd962ea...); (iii) the snapshot diff vs accepted base origin/lab/evaluation contains ZERO paths under reports/audit/ or results/audit/, so no audit-namespace relocation (and no catch-22 deletion) is needed; (iv) a local replay of the workflow's Enforce-lane-write-scope predicate over git status --porcelain -uall reports n_bad=0 for this run's own additions; (v) all posture flags stay fail-closed.",
+      "success_rule": "All of: snapshot delta byte-identity preserved (shim file sha matches 519d6bc7); both item-(1) files re-hash equal to pins; tree-diff vs accepted base has no audit-namespace path; guard simulation n_bad=0 for in-scope writes; packet_admitted/machine_gate_ready/human_gate_ready/ready_for_owner_session all false; direction_version pin 68. Any unmet clause is a negative result, not a silently absorbed drift."
+    }
+  },
+  "explicitly_not_hypothesized": [
+    "No frozen bar, rubric, threshold, predicate or verdict contract is tested, edited or moved.",
+    "No serve verdict is re-run; both DO-NOT-SERVE orders stand.",
+    "No universal-174k benchmark is rerun.",
+    "v68 item (2) conditional re-measure is NOT triggered: Core Product has not landed the rejection/incumbent leg plus a regenerated full flagship family; no synthetic stand-in, no substitute re-run of the standing falsification.",
+    "The counter-authority yield negative (2/4 frozen questions with zero candidate counter labels under the frozen marker rule) is NOT re-measured and remains scoped to this lane's own producer, never Core Product's counter channel.",
+    "No measurement record is overwritten; every new artifact is under a new run-id filename."
+  ]
+}

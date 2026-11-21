@@ -1,0 +1,75 @@
+{
+  "schema": "lex-evaluation-operational-resume-diagnosis/1",
+  "lane": "evaluation",
+  "claim_bearing_run": 44882968860,
+  "run_under_resume": 44879155219,
+  "direction_version": 68,
+  "generated_at_utc": "2026-11-21T08:06:00Z",
+  "failure_class": "AUDIT_AGENT_STEP_FAILURE_NO_GATE",
+  "verdict": "DIAGNOSIS_ESTABLISHED_WITH_HELD_INFERENCE",
+  "summary": "The persisted producer run 44879155219 completed its TEAM job end-to-end (including write-scope enforcement and snapshot persistence) and failed ONLY in the independent AUDIT job at step 5 'Independent audit'. Because that agent step died, the gate-read step and audit-snapshot persist step were skipped, no CYCLE_44879155219_GATE.json was written on any ref, no cycle/core/evaluation/44879155219/audit branch exists, and integrate was skipped. This is an audit-agent death (factory-wide requirements 20/33), NOT a gate verdict, NOT a measurement failure, NOT a product defect, NOT a write-scope violation and NOT a human-gate problem.",
+  "read_facts_github_rest": {
+    "source": "GET https://api.github.com/repos/Mickalive/LexMachina/actions/runs/44879155219 and /jobs (public repo, unauthenticated)",
+    "run": {
+      "name": "Core evaluation dirV68 repair0",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-11-21T07:12:30Z",
+      "updated_at": "2026-11-21T08:02:18Z",
+      "head_branch": "main",
+      "head_sha": "b2d3d577491c83e462237c2008d3f99ffb7a34b1",
+      "event": "workflow_dispatch"
+    },
+    "jobs": [
+      {"name": "team", "id": 136770417393, "status": "completed", "conclusion": "success", "completed_at": "2026-11-21T07:16:13Z", "all_steps_success": true, "notable_steps": ["Run lane cycle", "Validate active MVP producer state", "Clean generated junk", "Enforce lane write scope", "Persist team snapshot"]},
+      {"name": "audit", "id": 136771317109, "status": "completed", "conclusion": "failure", "started_at": "2026-11-21T07:16:16Z", "completed_at": "2026-11-21T08:02:03Z", "failed_step": "Independent audit", "skipped_steps": ["Enforce audit scope and read gate", "Persist audit snapshot"]},
+      {"name": "integrate", "id": 136782025126, "status": "completed", "conclusion": "skipped"},
+      {"name": "resilience", "id": 136782024303, "status": "completed", "conclusion": "success", "note": "dispatched this operational resume"}
+    ],
+    "run_44882968860_current": {
+      "name": "Core evaluation dirV68 repair0",
+      "status": "in_progress",
+      "head_sha": "84373dbf592ee4fe12a2033ecac0875b2263534d",
+      "created_at": "2026-11-21T08:02:12Z"
+    }
+  },
+  "read_facts_git": {
+    "team_ref": "origin/cycle/core/evaluation/44879155219/team",
+    "team_ref_head": "519d6bc79b6097f06c724ae137a5be651d5ba2ef",
+    "team_ref_parent": "cc0ad6089cc062dbb89495ee8ca04b1c5a0000f3",
+    "snapshot_delta_vs_parent": [
+      {"status": "M", "path": "results/evaluation/orchestration/local_pytest_shim.json"}
+    ],
+    "audit_ref_resolves": false,
+    "audit_ref_checked": "origin/cycle/core/evaluation/44879155219/audit",
+    "gate_file_in_tree": false,
+    "gate_file_path_checked": "results/audit/evaluation/CYCLE_44879155219_GATE.json",
+    "gate_file_in_fetched_refs": false
+  },
+  "snapshot_delta_assessment": {
+    "path": "results/evaluation/orchestration/local_pytest_shim.json",
+    "before": {"generated_at_utc": "2026-10-25T08:19:12Z", "test_file": "tests/evaluation/test_retrieval_benchmark.py", "status": "IMPORT_ERROR", "error": "ModuleNotFoundError: No module named 'product'", "n_passed": 0},
+    "after": {"generated_at_utc": "2026-11-21T07:15:38Z", "test_file": "tests/evaluation/test_minimal_ca_falsify_benchmark.py", "status": "PASS", "n_passed": 8, "n_failed": 0},
+    "disposition": "VALID_COMPLETED_WORK - preserved byte-for-byte by this resume. It is a no-pytest shim repair (switch to the runnable test file), not a frozen edit, not a measurement record and not a claim-bearing result overwrite.",
+    "reproduced_this_run": "results/evaluation/operational_resume_44882968860/no_pytest_44882968860.json -> SHIM_PASS 8/8 on tests/evaluation/test_minimal_ca_falsify_benchmark.py; the multilingual test_retrieval_benchmark.py still raises the disclosed module-import error because the 'product' package is absent in this producer image (counted as NOT-RUN, never as passed)."
+  },
+  "held_inference": {
+    "claim": "The ~46-minute audit agent run (07:16:16Z -> 08:02:03Z) most likely ended in the documented LEX_WORK_QUANTUM_EXPIRED (seconds=2700) / provider-rotation class.",
+    "basis": "Duration matches the observed 2700s core-lane work quantum (factory-wide requirement 10) plus retry wrapper overhead; requirement 20 records audit-job deaths on provider rotation, model auth failure and upstream overload with no gate produced.",
+    "hedge": "Job logs endpoint returns HTTP 403 ('Must have admin rights to Repository.'; GH_TOKEN/GITHUB_TOKEN unset, gh not logged in). The precise in-agent error string is an INFERENCE, not a log read. It does not change the operative disposition: no gate, no promotion, re-dispatch as operational resume.",
+    "provenance_tag": "INFERENCE_DO_NOT_LAUNDER_AS_LOG_READ"
+  },
+  "what_this_is_not": [
+    "not a gate verdict (no audit ref, no gate file on any ref)",
+    "not a REVISE or BLOCKED audit finding",
+    "not a measurement or falsification failure",
+    "not a product defect",
+    "not a frozen-bar result",
+    "not a write-scope violation (the team's Enforce lane write scope step succeeded)",
+    "not a human-gate or owner-decision event"
+  ],
+  "control_plane_items_recorded_not_edited": [
+    ".github/** is control-plane scope and is NOT edited from this lane.",
+    "Suggested upstream fix (informational): make the audit agent step emit a durable no-gate marker on quantum expiry/provider death so resilience can distinguish it from a genuine audit REVISE; and lower or checkpoint the audit work quantum for verification-only cycles."
+  ]
+}
