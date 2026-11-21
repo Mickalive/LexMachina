@@ -1,0 +1,52 @@
+{
+  "schema": "lex-evaluation-operational-resume-diagnosis/1",
+  "lane": "evaluation",
+  "resume_run_id": "44871041590",
+  "resumed_run_id": "44870941002",
+  "resumed_snapshot_commit": "9329f39a9f5b8643f90ea6f0dbd23b837953cc68",
+  "resumed_snapshot_branch": "origin/cycle/core/evaluation/44870941002/team",
+  "prior_snapshot_commit": "9329f39a9f5b8643f90ea6f0dbd23b837953cc68",
+  "failure_class": "PRODUCER_WRITE_SCOPE_VIOLATION_AUDIT_NAMESPACE",
+  "failure_class_confidence": "high",
+  "log_evidence_available": false,
+  "diagnosis": {
+    "summary": "The persisted producer snapshot for run 44870941002 is commit 9329f39a (also the 44870660846 team snapshot). That commit contains four files in the independent-auditor namespace (reports/audit/evaluation/CYCLE_44870538384.md, reports/audit/evaluation/CYCLE_44870660846.md, results/audit/evaluation/CYCLE_44870538384_GATE.json, results/audit/evaluation/CYCLE_44870660846_GATE.json). Core-lane producer write scope allows only evaluation/, tests/evaluation/, results/evaluation/, reports/evaluation/, state/evaluation.json, data/evaluation/; the workflow 'Enforce lane write scope' step rejects out-of-scope paths, causing validation/orchestration failure before audit/integrate can complete. This is an orchestration/write-scope failure, not a measurement or deliverable failure.",
+    "evidence": [
+      "git show --name-only 9329f39a lists 13 files; 4 are under reports/audit/evaluation/ or results/audit/evaluation/ (out of scope).",
+      "origin/cycle/core/evaluation/44870941002/team and team-attempt-1 both point to 9329f39a9f5b8643f90ea6f0dbd23b837953cc68.",
+      "origin/cycle/core/evaluation/44870660846/team and team-attempt-1 point to the same commit; 44870538384/team points to 41f01308 (predecessor).",
+      "No GH_TOKEN/GITHUB_TOKEN available in producer environment; GitHub job logs not fetched; diagnosis is based on committed tree, git refs, and workflow scope rules.",
+      ".github/workflows/core-lane.yml write-scope enforcement allows only results/audit/$LANE and reports/audit/$LANE for the AUDIT job; producer job scope excludes audit namespaces (per established defect class R39/R40-era control-plane records and AGENTS/ARCHITECTURE output layout)."
+    ],
+    "not_a_product_defect": true,
+    "not_a_measurement_defect": true,
+    "not_a_gate_revise_or_blocked": true
+  },
+  "remediation": {
+    "action": "Relocate the four out-of-scope audit-namespace files into results/evaluation/operational_resume_44871041590/ as byte-identical relocated copies, remove them from audit namespaces in the team snapshot, and record this diagnosis. No measurement, frozen rule, threshold, or verdict contract is changed.",
+    "relocated_files": [
+      {
+        "from": "reports/audit/evaluation/CYCLE_44870538384.md",
+        "to": "results/evaluation/operational_resume_44871041590/CYCLE_44870538384.relocated.md",
+        "byte_identical": true
+      },
+      {
+        "from": "reports/audit/evaluation/CYCLE_44870660846.md",
+        "to": "results/evaluation/operational_resume_44871041590/CYCLE_44870660846.relocated.md",
+        "byte_identical": true
+      },
+      {
+        "from": "results/audit/evaluation/CYCLE_44870538384_GATE.json",
+        "to": "results/evaluation/operational_resume_44871041590/CYCLE_44870538384_GATE.relocated.json",
+        "byte_identical": true
+      },
+      {
+        "from": "results/audit/evaluation/CYCLE_44870660846_GATE.json",
+        "to": "results/evaluation/operational_resume_44871041590/CYCLE_44870660846_GATE.relocated.json",
+        "byte_identical": true
+      }
+    ],
+    "relocated_artifacts_are_not_auditor_verdicts": true,
+    "relocated_artifacts_note": "These files were present in the producer snapshot; they are preserved for provenance only. They are NOT independent-audit gate files produced by an audit job. No audit branch or gate is created by this resume."
+  }
+}
