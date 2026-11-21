@@ -1,0 +1,45 @@
+{
+  "schema": "lex-evaluation-operational-resume-hypothesis/1",
+  "lane": "evaluation",
+  "run": 44871931511,
+  "run_mode": "OPERATIONAL_RESUME (resume_from_run_id=44871041590, repair_round=0)",
+  "direction_version": 68,
+  "frozen_at_utc": "2026-11-21T05:55:58Z",
+  "frozen_before_outcome_inspection": true,
+  "note": "Frozen before any measurement of this run was executed. This is an operational resume: no new claim-bearing scientific measurement is proposed. The three hypotheses below are (H1) an orchestration-failure diagnosis, (H2) a reproducibility verification of the already-frozen minimal CA falsification benchmark, and (H3) a write-scope remediation check. H2 reproduces a prior committed result; it is NOT a second independent falsification and creates no new evidence tier.",
+  "hypotheses": {
+    "H1_failure_diagnosis": {
+      "statement": "Run 44871041590 failed in the team job at step 'Enforce lane write scope' (exit code 3, annotation 'lane crossed protected scope:'), not in the agent, not in state validation and not in any audit; audit and integrate were skipped as a consequence, so no cycle/core/evaluation/44871041590/audit ref exists and no gate verdict was ever issued for that run. Mechanism: the guard evaluates `git status --porcelain -uall` and rejects EVERY line whose path is outside the producer scope, including deletions (D) and staged renames (R) of previously committed audit-namespace files; run 44871041590's remediation relocated four audit-namespace files (committed as R100 renames in f0d00438), so those out-of-scope paths were necessarily present in porcelain at guard time. This is a validation/orchestration catch-22, not a product defect, not a measurement defect and not a gate verdict.",
+      "success_rule": "All of: (a) GitHub API for run 44871041590 shows team conclusion=failure with failed step named 'Enforce lane write scope' and audit/integrate conclusion=skipped; (b) an annotation exists with message 'lane crossed protected scope:' and exit code 3; (c) git diff f0d00438^..f0d00438 changes at least one path under reports/audit/ or results/audit/; (d) the guard source in .github/workflows/core-lane.yml (main) matches on the unfiltered `git status --porcelain -uall` loop. Any unmet clause is recorded as a negative result and the diagnosis is downgraded.",
+      "evidence_sources": [
+        "GitHub REST: /repos/Mickalive/LexMachina/actions/runs/44871041590 and /jobs",
+        "GitHub REST: /check-runs/<team_job_id>/annotations",
+        "git diff --name-status 9329f39a f0d00438",
+        "origin/main:.github/workflows/core-lane.yml"
+      ],
+      "log_availability": "Job logs endpoint returns HTTP 403 unauthenticated (GH_TOKEN/GITHUB_TOKEN unset in producer env); the exact BAD path list printed by the step is therefore an INFERENCE from the committed delta plus the guard source, not a log read. The step identity, exit code and annotation are read facts."
+    },
+    "H2_deliverable_verification": {
+      "statement": "The smallest executable retrieval/counter-authority falsification benchmark (evaluation/minimal_ca_falsify_benchmark.py over the mapping-free recall falsifier) reproduces its committed result on the V3 packet-of-record 39319405429 against product mount head 7be4480ed3ca623b77ea082404ca3b5b7ac5ee83: verdict PRODUCT_FALSIFIED, 18 gates, 11 passed, 4 failed, the SAME four failed gates as committed records 44870538384 / 44870660846 / 44871041590_smoke, empty input_drift, run_valid=true.",
+      "success_rule": "Exact set-equality on the failed-gate list and equality of (verdict, n_gates, n_passed, n_failed, product_mount_head, input_drift==[]) against results/evaluation/minimal_ca_falsify_benchmark/44870660846.json. Any divergence is published as a DISCREPANCY negative result; the run does not silently pick the matching number. Claim ceiling: verification re-execution of an already-frozen instrument, not a new falsification and not a re-score.",
+      "expected_failed_gates": [
+        "mf::concept_coverage::39319405429::de-kapitalverletzung",
+        "mf::counter_authority_surface::39319405429::de-kapitalverletzung",
+        "mf::counter_authority_surface::39319405429::fr-bail-entretien",
+        "mf::counter_authority_surface::39319405429::it-responsabilita-medica"
+      ]
+    },
+    "H3_scope_remediation": {
+      "statement": "The two residual audit-namespace files that run 44871041590 left in the snapshot tree (reports/audit/evaluation/CYCLE_44869867193.md and results/audit/evaluation/CYCLE_44869867193_GATE.json, both absent from accepted lab/evaluation) can be re-homed byte-identically under results/evaluation/operational_resume_44871931511/ and removed from the audit namespace by an IN-AGENT COMMIT, so that (i) both re-homed copies re-hash equal to their source bytes, (ii) the snapshot diff against origin/lab/evaluation contains ZERO paths under reports/audit/ or results/audit/, and (iii) a local re-execution of the workflow's Enforce-lane-write-scope predicate over `git status --porcelain -uall` reports n_bad=0 at guard time.",
+      "success_rule": "sha256 equality for both relocated pairs; empty `git diff --name-only origin/lab/evaluation HEAD -- reports/audit results/audit`; guard simulation verdict SCOPE_CLEAN with bad_paths=[]. Removal without byte-identical re-homing is a FAILURE (AGENTS.md items 5/6: nothing is deleted; a claim-bearing file is re-homed under its own name, never destroyed).",
+      "catch_22_being_avoided": "If the removal is left UNCOMMITTED at guard time, porcelain carries out-of-scope D/R lines and the guard exits 3 - the exact failure that killed run 44871041590. Committing the removal inside the agent phase makes porcelain clean for those paths."
+    }
+  },
+  "explicitly_not_hypothesized": [
+    "No new bar, rubric, threshold, predicate or verdict contract is tested or moved.",
+    "No serve verdict is re-run; both DO-NOT-SERVE orders stand.",
+    "No universal-174k benchmark is rerun.",
+    "Item (2) of the v68 ordered work is NOT re-measured: it stays NOT_YET_DISCRIMINATING until Core Product lands the rejection/incumbent leg and regenerates the full flagship family.",
+    "The counter-authority yield negative (2/4 frozen questions with zero candidate counter labels under the frozen marker rule) is NOT re-measured and remains scoped to this lane's own producer, never Core Product's counter channel."
+  ]
+}
