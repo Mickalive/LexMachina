@@ -1,0 +1,41 @@
+{
+  "schema": "lex-evaluation-operational-resume-hypothesis/1",
+  "lane": "evaluation",
+  "run_id": 44864973813,
+  "resumed_run_id": 44861140260,
+  "direction_version": 68,
+  "frozen_before_execution": true,
+  "frozen_at_utc": "2026-11-21T04:15:49Z",
+  "research_protocol_step": "3+4 (state hypothesis/baseline/product decision, freeze inputs before observing outcomes)",
+  "mode": "FAST_MVP_OPERATIONAL_RESUME",
+  "fast_mvp_directive": "smallest executable retrieval/counter-authority benchmark that can falsify the product; reuse existing multilingual/provenance tests; no universal-174k reruns",
+  "hypotheses": {
+    "H1_snapshot_preserved": "Every claim-bearing artifact of the persisted producer snapshot 44861140260 (the two result records, the report, the two hypothesis/freeze pairs, the two instruments, the two preserved failed-shim artifacts) re-hashes byte-identically to the pins recorded in this freeze; the snapshot is append-only and no prior artifact is overwritten or deleted.",
+    "H2_failure_diagnosis": "The orchestration/validation failure of run 44861140260 is a producer-side no-pytest SHIM_FAIL, not a gate verdict, not a provider/work-quantum starvation, not a product defect and not a frozen-bar result. It has exactly two causes visible in the committed shim record: (a) the shim was invoked without PYTHONPATH=/tmp/lex_accepted/product so tests/evaluation/test_retrieval_benchmark.py raised ModuleNotFoundError: No module named 'product'; (b) tests/evaluation/test_post_repair_family_ca_falsifier_40258497460.py pin-checked the live mount identity (mount_head, mount:state/product.json) against the pre-advance 5fb312e4 head while the accepted mount had advanced to 7be4480e. The producer repaired the test in-commit (drift allowlist + historical-tree re-verification; current test sha 68c7d4a1...) but never re-ran the shim, leaving only the two byte-identical failed-attempt records.",
+    "H3_shim_repair_reproducible": "Re-running evaluation/no_pytest_runner on the current repaired tree with PYTHONPATH=/tmp/lex_accepted/product yields SHIM_PASS (0 FAIL) over the lane's core FAST-MVP test slices; any historical-pin case whose pinned commit is unavailable is reported SKIPPED (never counted as pass), and unsupported fixture cases remain UNSUPPORTED. The failed-attempt records are preserved, not overwritten.",
+    "H4_substantive_deliverable_intact": "The deliverable carried by the snapshot is intact and non-vacuous: results/evaluation/post_repair_family_ca_falsifier/44861140260.json records SOUND_COUNTER_ROW_PRESENT (exit 0, falsification_proven false, controls hold, pins match before and after) and results/evaluation/v68_continuation_trigger_gate/44861140260.json records NO_TRIGGER_FIRED_NOT_DISCRIMINATING (trigger A product/query byte-identical; trigger B 14/15), both with frozen pins matching and posture fail-closed.",
+    "H5_no_closed_work_rederived": "No frozen bar, rubric, threshold, predicate, verdict contract or benchmark of record is edited or re-run; ordered item (1) correction-of-record stays DISCHARGED, ordered item (2) stays NOT_YET_DISCRIMINATING, item (3) standing falsification on packet-of-record 39319405429 stays UNCHANGED, and no universal-174k benchmark is re-run."
+  },
+  "baseline": {
+    "resumed_snapshot_commit": "146b6a6f532112eba83a1aedd58788be1e7264ea",
+    "freeze_first_commit": "fdcec5fd",
+    "producer_commit": "146b6a6f",
+    "ca_falsifier_result": "results/evaluation/post_repair_family_ca_falsifier/44861140260.json",
+    "ca_falsifier_result_sha256": "c806308d93cefabcaebb6fe4f02bff30292358e5e364dd373f1389369b752717",
+    "continuation_gate_result": "results/evaluation/v68_continuation_trigger_gate/44861140260.json",
+    "continuation_gate_result_sha256": "cbe1233db095aef25ba9c5ae6b42adcc1bd54d6bbd0c20d14215c48ba63c063f",
+    "failed_shim_record": "results/evaluation/orchestration/44861140260_pytest_shim.json",
+    "failed_shim_record_sha256": "40637486cfda61c6ba3ef77f8e204c4b1a64f0ea139898927e58af6a88b4bf1f",
+    "product_mount": "/tmp/lex_accepted/product",
+    "product_mount_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83"
+  },
+  "product_decision_unlocked": "Whether the persisted FAST-MVP counter-authority deliverable is auditable as-is (its own measurement unchanged and its validation harness repaired and re-executed), so the lane's AUDIT_READY snapshot can be promoted to independent audit without re-deriving closed work. No serve verdict, human gate or posture flag is affected.",
+  "success_rules": {
+    "H1": "all 19 external input pins re-hash equal after execution; no prior artifact overwritten or deleted (append-only)",
+    "H2": "the committed shim's two failure signatures are reproduced and attributed with (file:line) and no frozen bar is implicated",
+    "H3": "the new shim record verdict is SHIM_PASS with n_failed=0; failed-attempt files remain byte-identical",
+    "H4": "both recorded verdicts and their pins/controls survive a fresh read; item (2) still NOT_YET_DISCRIMINATING",
+    "H5": "frozen-rule sha256 unchanged; no bar/threshold edit; posture flags all false"
+  },
+  "claim_ceiling": "Pre-registration only. No result is claimed here; the freeze record below pins the inputs that the verify phase re-hashes. This is an operational/verification resume, not a new claim-bearing falsification."
+}

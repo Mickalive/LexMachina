@@ -1,0 +1,60 @@
+{
+  "schema": "lex-evaluation-operational-resume-diagnosis/1",
+  "run_under_resume": 44861140260,
+  "resume_run": 44864973813,
+  "direction_version": 68,
+  "generated_at_utc": "2026-11-21T04:22:00Z",
+  "failure_class": "VALIDATION_PRODUCER_NO_PYTEST_SHIM_FAIL",
+  "failure_summary": "Run 44861140260 completed its producer cycle and persisted snapshot 146b6a6f, but its own committed no-pytest validation shim returned SHIM_FAIL (48 passed, 1 failed, 0 skipped, 1 unsupported). The failure is a producer-side test-harness/pin problem, not a gate verdict, not a provider/work-quantum starvation, not a lane write-scope violation and not a product defect. The lane's substantive FAST-MVP counter-authority deliverable in the same snapshot is intact and, on fresh re-execution, reproduces byte-for-byte except for the wall-clock timestamp.",
+  "two_causes": [
+    {
+      "id": "C1_missing_pythonpath",
+      "test_file": "tests/evaluation/test_retrieval_benchmark.py",
+      "error_in_committed_shim": "ModuleNotFoundError: No module named 'product'",
+      "mechanism": "evaluation/no_pytest_runner.py::run_file inserts only the repo root into sys.path (line 113). The producer invoked the shim without PYTHONPATH=/tmp/lex_accepted/product, so `from product.query.bundle import ...` (test_retrieval_benchmark.py:36) could not resolve. With PYTHONPATH set, this file advances to a numpy import boundary (product/query/qmap.py:6 `import numpy as np`), numpy being NOT_IMPORTABLE in the producer image; it is therefore reported IMPORT_ERROR and counted neither as passed nor as a counted FAIL.",
+      "harness_vs_product": "harness/environment",
+      "shim_status_after_repair": "IMPORT_ERROR (missing numpy) - disclosed, not counted as pass or fail"
+    },
+    {
+      "id": "C2_stale_mount_head_pin",
+      "test_file": "tests/evaluation/test_post_repair_family_ca_falsifier_40258497460.py",
+      "test_case": "test_population_is_49_enriched_plus_one_control_and_pins_match",
+      "error_in_committed_shim": "AssertionError: ['mount:state/product.json', 'mount_head']",
+      "error_at_line": 88,
+      "mechanism": "The test's freeze pinned the live accepted product mount identity (mount_head, mount:state/product.json) to the pre-advance head 5fb312e4. By run 44861140260 the accepted mount had advanced to 7be4480e (accepted cycle 40284658455), so the live pin re-hash failed for exactly those two identity pins while all 50 population-bundle pins, all 15 probe-family pins and all evaluation-instrument pins still matched.",
+      "producer_partial_repair": "The producer already edited this test in the snapshot (MOUNT-DRIFT REPAIR docstring, lines 18-31; drift allowlist at 145-146; historical-tree re-verification at 149-164). But the two committed shim artifacts are byte-identical failed-attempt copies (sha 40637486...) recorded against the OLD test sha aeb835a2..., so the repaired test was never re-executed.",
+      "resume_action": "fetched the pinned historical product commit 5fb312e4 (pin-only network fetch, recorded separately), re-ran the shim on the repaired tree: this file now PASSES 14/14 with live-drift allowlist plus historical-tree verification.",
+      "harness_vs_product": "harness/stale-environment-pin",
+      "shim_status_after_repair": "PASS 14/14"
+    },
+    {
+      "id": "C3_new_test_assertion_wording",
+      "test_file": "tests/evaluation/test_v68_continuation_trigger_gate_44861140260.py",
+      "test_case": "test_exit_code_contract_is_frozen_and_outcome_free",
+      "error_at_line": 89,
+      "error_in_resume_attempt1": "AssertionError: literal substring 'NOT a job failure' absent from frozen hypothesis",
+      "mechanism": "The producer's NEW test asserted a phrase ('NOT a job failure') that does not occur in the frozen hypothesis exit_code_contract['0'] (sha 85c7201d...), whose real text is '...never in the exit code, so no workflow can read a fired trigger as a job failure'. The frozen artifact is correct; the assertion was wrong.",
+      "resume_action": "test-only assertion re-pointed at the real frozen wording (assert 'never in the exit code' and 'no workflow can read a fired trigger as a job failure'); original test bytes preserved at results/evaluation/operational_resume_44864973813/pre_repair/ (sha 553fb32d...). No frozen hypothesis, bar, threshold or verdict contract edited.",
+      "harness_vs_product": "harness/test-authoring",
+      "shim_status_after_repair": "PASS 11/11"
+    }
+  ],
+  "what_this_is_not": [
+    "NOT a gate verdict (no independent audit ran; no /audit ref exists for 44861140260)",
+    "NOT ORCHESTRATION_WORK_QUANTUM_EXPIRED (no 2704s audit-step signature is in scope here)",
+    "NOT VALIDATION_LANE_WRITE_SCOPE_ENFORCEMENT (all producer writes are in the evaluation lane namespace)",
+    "NOT a product defect (the measured verdicts SOUND_COUNTER_ROW_PRESENT and NO_TRIGGER_FIRED_NOT_DISCRIMINATING reproduce)",
+    "NOT a frozen-bar result and NOT a serve/human-gate decision"
+  ],
+  "repair_bounds": {
+    "frozen_bars_edit": false,
+    "frozen_hypotheses_edit": false,
+    "frozen_instruments_edit": false,
+    "measurement_records_overwritten": false,
+    "append_only": true,
+    "test_files_repaired": 2,
+    "source_of_truth_for_repaired_tests": "test assertions only; original bytes preserved under pre_repair/"
+  },
+  "final_shim_verdict": "SHIM_PASS (60 passed, 0 failed, 0 skipped, 1 unsupported; 1 IMPORT_ERROR disclosed)",
+  "claim_ceiling": "Operational diagnosis of a producer validation-harness failure and its bounded repair. It changes no frozen bar, no measurement and no serve posture."
+}

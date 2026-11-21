@@ -9,6 +9,17 @@ They never assert a product-quality number, because the gate measures none.
 
 They use only plain asserts and pytest.mark.skipif so the lane's
 evaluation/no_pytest_runner shim can execute them when pytest is absent.
+
+SHIM ASSERTION REPAIR (run 44864973813, disclosed not silent): on its first
+no-pytest execution in run 44861140260, test_exit_code_contract_is_frozen_and_outcome_free
+asserted the literal substring "NOT a job failure", which does not occur in the
+frozen hypothesis exit_code_contract["0"] (sha 85c7201d...). The frozen artifact
+is CORRECT and is NOT edited: its text is "...never in the exit code, so no
+workflow can read a fired trigger as a job failure". This test-only assertion was
+re-pointed at that real frozen wording so it checks the same invariant without
+touching any frozen input, bar or verdict. The original test bytes are preserved
+byte-for-byte under
+results/evaluation/operational_resume_44864973813/pre_repair/.
 """
 from __future__ import annotations
 
@@ -85,8 +96,13 @@ def test_frozen_input_pins_match_live_bytes():
 def test_exit_code_contract_is_frozen_and_outcome_free():
     hyp = _load(HYPO)
     assert set(hyp["exit_code_contract"]) == {"0", "2"}
-    # a trigger status must never be carried by the exit code
-    assert "NOT a job failure" in hyp["exit_code_contract"]["0"]
+    # a trigger status must never be carried by the exit code. The frozen text
+    # (sha 85c7201d...) says "never in the exit code, so no workflow can read a
+    # fired trigger as a job failure"; assert that real invariant, not a phrase
+    # the frozen artifact never contained (authoring defect repaired 44864973813).
+    contract0 = hyp["exit_code_contract"]["0"]
+    assert "never in the exit code" in contract0
+    assert "no workflow can read a fired trigger as a job failure" in contract0
     for key in ("claim_ceiling", "next_step_map_FROZEN", "triggers_FROZEN"):
         assert key in hyp
     assert set(hyp["next_step_map_FROZEN"]) == {
