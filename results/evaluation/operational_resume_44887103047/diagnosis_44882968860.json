@@ -1,0 +1,55 @@
+{
+  "consequence_for_this_resume": "The producer snapshot is the only durable output of 44882968860 and is resumed here; nothing needs to be rebuilt from scratch.",
+  "diagnosed_run": 44882968860,
+  "direction_version": 68,
+  "failure_class": "AUDIT_AGENT_STEP_FAILURE_NO_GATE",
+  "failure_summary": "Run 44882968860 completed its TEAM job end-to-end (steps 'Run lane cycle', 'Validate active MVP producer state', 'Clean generated junk', 'Enforce lane write scope' 'Persist team snapshot' all success; 08:02:20Z->08:09:14Z), force-pushing the persisted producer snapshot ada742d7 to origin/cycle/core/evaluation/44882968860/team. It failed ONLY in the AUDIT job at step 5 'Independent audit' (08:09:16Z->08:55:01Z, 2745s). Audit steps 'Enforce audit scope and read gate' and 'Persist audit snapshot' were skipped, integrate was skipped, no CYCLE_44882968860_GATE.json exists in the worktree or the team ref and no /audit branch resolves: NO VERDICT WAS EVER ISSUED. The resilience job then dispatched this operational resume (resume_from_run_id=44882968860).",
+  "generated_at_utc": "2026-11-21T09:11:44Z",
+  "inference_disclosure": "The exact in-agent cause (work-quantum expiry at 2700s vs provider rotation vs model auth) is an INFERENCE from the 2745s duration and the documented failure classes; job logs return HTTP 403 unauthenticated (recorded in rest/audit_log_probe_44882968860.status), so no log line was read.",
+  "lane": "evaluation",
+  "provenance": {
+    "files": [
+      "results/evaluation/operational_resume_44887103047/rest/audit_job_136783749627.json",
+      "results/evaluation/operational_resume_44887103047/rest/jobs_44882968860.json",
+      "results/evaluation/operational_resume_44887103047/rest/run_44882968860.json",
+      "results/evaluation/operational_resume_44887103047/rest/run_44887103047_self.json",
+      "results/evaluation/operational_resume_44887103047/rest/team_job_136782080655.json"
+    ],
+    "log_probe_status": 403,
+    "rest_cache_dir": "results/evaluation/operational_resume_44887103047/rest/"
+  },
+  "read_facts": {
+    "audit_job": {
+      "completed_at": "2026-11-21T08:55:01Z",
+      "conclusion": "failure",
+      "failed_steps": [
+        "Independent audit"
+      ],
+      "id": 136783749627,
+      "skipped_steps": [
+        "Enforce audit scope and read gate",
+        "Persist audit snapshot"
+      ],
+      "started_at": "2026-11-21T08:09:16Z",
+      "wall_seconds": 2745
+    },
+    "integrate": "skipped",
+    "resilience": "success",
+    "run": {
+      "conclusion": "failure",
+      "created_at": "2026-11-21T08:02:12Z",
+      "id": 44882968860,
+      "name": "Core evaluation dirV68 repair0",
+      "updated_at": "2026-11-21T08:55:13Z"
+    },
+    "team_job": {
+      "all_steps_success": true,
+      "completed_at": "2026-11-21T08:09:14Z",
+      "conclusion": "success",
+      "id": 136782080655,
+      "started_at": "2026-11-21T08:02:20Z"
+    }
+  },
+  "run": 44887103047,
+  "schema": "lex-evaluation-operational-resume-diagnosis/1"
+}

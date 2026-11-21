@@ -1,0 +1,48 @@
+{
+  "schema": "lex-evaluation-operational-resume-hypothesis/1",
+  "lane": "evaluation",
+  "run": 44887103047,
+  "run_mode": "OPERATIONAL_RESUME (resume_from_run_id=44882968860, repair_round=0, FAST_MVP_MODE)",
+  "direction_version": 68,
+  "frozen_at_utc": "2026-11-21T09:02:00Z",
+  "frozen_before_outcome_inspection": true,
+  "note": "Frozen before this run executed any benchmark, shim or verification command. This is an operational resume, not a new claim-bearing scientific measurement. H1 diagnoses the orchestration/validation failure of persisted producer run 44882968860 (whose TEAM job succeeded and whose AUDIT job died with no gate); H2 re-verifies (does not re-score) the already-frozen minimal CA falsification benchmark from the resumed snapshot; H3 verifies snapshot integrity, byte-identity of the prior resume's claim-bearing outputs, scope cleanliness and audit-readiness for this run's independent auditor. H2 reproduces a prior committed result and creates NO new evidence tier; it is NOT a second independent falsification. The v68 ordered work item (2) conditional re-measure is explicitly NOT triggered here.",
+  "hypotheses": {
+    "H1_failure_diagnosis": {
+      "statement": "Run 44882968860 failed in the AUDIT job at step 5 'Independent audit' (conclusion=failure, 08:09:16Z -> 08:55:01Z, 2745s). Its TEAM job succeeded end-to-end (steps 'Run lane cycle', 'Validate active MVP producer state', 'Clean generated junk', 'Enforce lane write scope', 'Persist team snapshot' all success, 08:02:20Z -> 08:09:14Z) and force-pushed the persisted producer snapshot ada742d7 to origin/cycle/core/evaluation/44882968860/team. Because the audit agent step died, steps 6 'Enforce audit scope and read gate' and 7 'Persist audit snapshot' were skipped, no results/audit/evaluation/CYCLE_44882968860_GATE.json was ever written on any ref, no /audit branch resolves, and integrate was skipped; the resilience job then dispatched this resume with resume_from_run_id=44882968860. The audit job's 2745s wall time is consistent with the documented LEX_WORK_QUANTUM_EXPIRED (seconds=2700) class, but the precise internal cause is an INFERENCE because job logs return HTTP 403 unauthenticated. This is an audit-agent orchestration death (factory-wide requirements 10/20/33), NOT a gate verdict, NOT a producer failure, NOT a product defect, NOT a measurement failure and NOT a human-gate problem.",
+      "success_rule": "All of: (a) GitHub REST for run 44882968860 shows conclusion=failure with team job conclusion=success and audit job conclusion=failure at step 'Independent audit'; (b) audit steps 'Enforce audit scope and read gate' and 'Persist audit snapshot' are skipped and integrate is skipped; (c) no ref cycle/core/evaluation/44882968860/audit resolves and no CYCLE_44882968860_GATE.json exists in worktree or team ref; (d) the persisted team ref resolves to ada742d7 and its delta vs its parent 519d6bc7 consists only of the prior resume's 17 in-scope files (zero audit-namespace paths). Any unmet clause is recorded as a negative result and the diagnosis is downgraded.",
+      "evidence_sources": [
+        "results/evaluation/operational_resume_44887103047/rest/run_44882968860.json",
+        "results/evaluation/operational_resume_44887103047/rest/jobs_44882968860.json",
+        "results/evaluation/operational_resume_44887103047/rest/audit_job_136783749627.json",
+        "results/evaluation/operational_resume_44887103047/rest/team_job_136782080655.json",
+        "results/evaluation/operational_resume_44887103047/git_facts_44887103047.txt",
+        "git rev-parse origin/cycle/core/evaluation/44882968860/team == ada742d7"
+      ],
+      "log_availability": "Job logs endpoint returns HTTP 403 ('Must have admin rights to Repository.'; GH_TOKEN/GITHUB_TOKEN unset, gh not logged in) - recorded in rest/audit_log_probe_44882968860.status. Step identity, conclusions and timestamps are READ facts from the jobs API; the exact in-agent failure reason (quantum expiry vs provider rotation vs model auth) is an INFERENCE, never quoted as a log read."
+    },
+    "H2_deliverable_verification": {
+      "statement": "The smallest executable retrieval/counter-authority falsification benchmark (evaluation/minimal_ca_falsify_benchmark.py wrapping evaluation/mapping_free_recall_falsifier.py, frozen instruments d06909e9.../58a2e77a...) reproduces its committed result on the V3 packet-of-record 39319405429 against product mount head 7be4480ed3ca623b77ea082404ca3b5b7ac5ee83: verdict PRODUCT_FALSIFIED, 18 gates, 11 passed, 4 failed, empty input_drift, run_valid=true, with the SAME four failed gates as committed records 44870660846, 44870538384 and the prior resume record 44882968860_verify.",
+      "success_rule": "Exact set-equality on the failed-gate list and equality of (verdict, n_gates, n_passed, n_failed, product_mount_head, run_valid, input_drift==[]) against results/evaluation/minimal_ca_falsify_benchmark/44870660846.json and results/evaluation/operational_resume_44882968860/44882968860_verify.json. Any divergence is published as a DISCREPANCY negative result; this run does not silently pick a matching number. Claim ceiling: verification re-execution of an already-frozen instrument, NOT a new falsification, NOT a re-score, NOT a serve verdict.",
+      "expected_failed_gates": [
+        "mf::concept_coverage::39319405429::de-kapitalverletzung",
+        "mf::counter_authority_surface::39319405429::de-kapitalverletzung",
+        "mf::counter_authority_surface::39319405429::fr-bail-entretien",
+        "mf::counter_authority_surface::39319405429::it-responsabilita-medica"
+      ]
+    },
+    "H3_snapshot_audit_readiness": {
+      "statement": "The persisted snapshot ada742d7 (origin/cycle/core/evaluation/44882968860/team) is preserved intact and audit-ready for this run's independent auditor: (i) HEAD equals the persisted team ref and its delta vs parent 519d6bc7 is exactly the prior resume's 17 in-scope files, all valid completed work, with ZERO paths under reports/audit/ or results/audit/; (ii) every freeze pin of the prior resume (OPERATIONAL_RESUME_44882968860_FREEZE_V1.json) still re-hashes equal in this worktree, including the byte-identical snapshot shim 999972472b... and the v68 item-(1) correction pins b10eeb3a.../6dd962ea...; (iii) the prior resume's own verification record verification_44882968860.json reports VERIFICATION_PASS 13/13 and its key claims re-check against the current tree; (iv) this run's own additions stay inside the lane write scope (evaluation/, tests/evaluation/, results/evaluation/, reports/evaluation/, state/evaluation.json) and a local replay of the workflow's write-scope predicate reports n_bad=0; (v) all posture flags stay fail-closed and accepted_run_id stays 40258497460.",
+      "success_rule": "All of: snapshot head equality + delta file list equality (17 in-scope files, no audit namespace); full re-hash of prior freeze pins with zero mismatches; shim blob/worktree/pin triple equality; verification_44882968860.json verdict VERIFICATION_PASS with n_fail=0; this run's write-scope simulation n_bad=0; posture flags false; direction_version pin 68. Any unmet clause is a negative result, not a silently absorbed drift."
+    }
+  },
+  "explicitly_not_hypothesized": [
+    "No frozen bar, rubric, threshold, predicate or verdict contract is tested, edited or moved.",
+    "No serve verdict is re-run; both DO-NOT-SERVE orders stand.",
+    "No universal-174k benchmark is rerun.",
+    "v68 item (2) conditional re-measure is NOT triggered: Core Product has not landed the rejection/incumbent leg plus a regenerated full flagship family; no synthetic stand-in, no substitute re-run of the standing falsification.",
+    "The counter-authority yield negative (2/4 frozen questions with zero candidate counter labels under the frozen marker rule) is NOT re-measured and remains scoped to this lane's own producer, never Core Product's counter channel.",
+    "No measurement record is overwritten; every new artifact is under a new run-id filename.",
+    "This run does not audit itself: the gate verdict for run 44887103047 belongs exclusively to the independent auditor of that run."
+  ]
+}
