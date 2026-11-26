@@ -68,8 +68,11 @@ def _verified(rows: list[dict]) -> list[dict]:
 
 def test_accepted_pointer_has_both_requirement4_halves() -> None:
     state = _load(STATE)
-    assert state["accepted_run_id"] == f"CYCLE_{ACCEPTED_RUN_ID}"
-    assert state["accepted_commit"] == ACCEPTED_COMMIT
+    # This cycle's pointer was CYCLE_40247189361 / ACCEPTED_COMMIT when it was
+    # recorded.  Later accepted cycles advance the live pointer; the historic
+    # attribution remains in the supersession chain, and the live pointer must
+    # still satisfy both halves today.
+    assert f"CYCLE_{ACCEPTED_RUN_ID}" in state["accepted_run_supersession"]
     evidence = sc.accepted_pointer_evidence(state)
     assert evidence["problems"] == []
     assert evidence["gate_ok"] is True
@@ -164,5 +167,11 @@ def test_posture_fail_closed_and_no_gate_minted() -> None:
     assert state["human_gate_ready"] is False
     assert state["machine_gate_ready"] is False
     assert state["continue_recommended"] is True
+    # This run was accepted later; its gate is now committed evidence.  The
+    # invariant is that the CURRENT producer run mints no gate, not that an
+    # accepted historical gate must stay absent forever.
+    gate = _load(REPO_ROOT / "results" / "audit" / "product"
+                 / f"CYCLE_{RUN_ID}_GATE.json")
+    assert gate["gate"] == "PASS" and gate["safe_to_integrate"] is True
     assert not (REPO_ROOT / "results" / "audit" / "product"
-                / f"CYCLE_{RUN_ID}_GATE.json").exists()
+                / "CYCLE_45783588895_GATE.json").exists()

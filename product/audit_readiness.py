@@ -369,6 +369,42 @@ PROFILES: dict[str, dict[str, Any]] = {
                              / "self_minted_gate_40278460732_producer_"
                                "40283048553.QUARANTINED.json",
     },
+    "45783588895": {
+        # Operational resume from the persisted team ref of 45783095548.
+        # The instrument proves ZERO_DURABLE_DELTA from git refs alone (that
+        # team ref equals the accepted lab/product head) and records the
+        # provider mechanism as UNOBSERVED: no run/jobs snapshot is available
+        # in this checkout, so no rc-67/rc-78/gateway claim is invented.
+        "resumed_run_id": "45783095548",
+        "predecessor_run_id": "40284658455",
+        "raw": None,
+        "resume_diag": ORCH / "CYCLE_45783095548_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40284658455.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_45783588895.md",
+        "classification": "RAW_SNAPSHOT_UNAVAILABLE",
+        "mechanism_kind": "unobserved",
+        "delta_kind": "zero",
+        "failed_job": None,
+        "quantum_seconds": None,
+        "exit_code": None,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_45783588895.py",
+        "state_block": "cycle_45783588895_operational_resume",
+        # Consume the accepted fixed-path family pins unchanged; this cycle
+        # performs no new frozen measurement.
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
 }
 
 # Active profile; empty means "the module constants above" (the original

@@ -1,0 +1,39 @@
+{
+  "schema": "product-full-suite-comparison/1",
+  "run_id": "45783588895",
+  "direction_version": 68,
+  "purpose": "Prove that this operational-resume repair introduced no new test failures and repaired the five post-accept pointer/gate failures reproduced on the persisted snapshot.",
+  "method": {
+    "baseline": "detached git worktree at persisted snapshot HEAD 7be4480ed3ca623b77ea082404ca3b5b7ac5ee83 (/tmp/opencode/lex-baseline, producer-tree bytes at dispatch)",
+    "current": "working tree of run 45783588895 with the durable delta applied",
+    "command": "python3 -m pytest -q --tb=no product/tests",
+    "environment": "Python 3.14.4; pinned query runtime installed by product/bootstrap_query_env.sh (numpy 2.5.4, scipy 1.18.1, scikit-learn 1.9.1, pytest 9.1.1)",
+    "comparison_key": "FAILED test node id (pytest -q --tb=no), not the assertion message; message text embeds the worktree path and is not a stable identity"
+  },
+  "baseline": {
+    "failed": 213,
+    "passed": 1511,
+    "skipped": 23,
+    "warnings": 88,
+    "raw_output": "/tmp/opencode/pytest_baseline.txt (ephemeral; the node-id sets are preserved below)"
+  },
+  "current": {
+    "failed": 208,
+    "passed": 1521,
+    "skipped": 23,
+    "warnings": 88,
+    "raw_output": "/tmp/opencode/pytest_current.txt (ephemeral; the node-id sets are preserved below)"
+  },
+  "failure_set_difference": {
+    "fixed_by_this_cycle": [
+      "product/tests/test_cycle_40247189361.py::test_accepted_pointer_has_both_requirement4_halves",
+      "product/tests/test_cycle_40247189361.py::test_posture_fail_closed_and_no_gate_minted",
+      "product/tests/test_cycle_40259640985_resume.py::test_current_report_and_state_are_honest",
+      "product/tests/test_cycle_40284658455.py::test_accepted_pointer_satisfies_both_halves_and_posture_stays_fail_closed",
+      "product/tests/test_cycle_40284658455.py::test_no_gate_exists_for_the_executing_or_resumed_run"
+    ],
+    "new_failures": []
+  },
+  "interpretation": "The five repaired tests were the observed post-accept pointer/gate regression. The remaining 208 failures are pre-existing legacy failures already present on the persisted snapshot (absent universal-174k section projections, state-register retention history and similar), are outside the query-map MVP claim set, and are NOT weakened, deleted or re-scored here. The bounded MVP suite (9 files, 170 tests) and the progressive socket smoke remain green in the run's own audit-readiness dossier.",
+  "claim_ceiling": "REPORTED-ONLY local regression comparison, not a frozen benchmark and not an audit verdict."
+}
