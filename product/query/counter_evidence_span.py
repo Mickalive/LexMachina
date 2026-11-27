@@ -537,6 +537,16 @@ SURFACE_SPAN_VERSION = "counter_span_surface/1"
 #: an auditor wants the bridged population switched off for comparison.
 SURFACE_SPAN_ENV = "LEXMACHINA_COUNTER_SPAN_SURFACE"
 
+#: Post-hydration content recheck.  Stage 1 selects a verbatim span before the
+#: pool counter-surface scan hydrates ``full_text``.  Hydration can move the
+#: frozen grounding of that same quote from ``snippet`` into the ``full_text``
+#: letterhead zone, which turns a content-sound incumbent into a D2 defect that
+#: neither the stage-1 seam nor the stage-2 gate ever sees again.  This guard
+#: re-applies the UNCHANGED frozen D1-D4 predicates to every row that still
+#: claims ``counter_evidence_verified=True`` after stage 2, including rows
+#: carrying a span record (the incumbent sweep deliberately skips those).
+CONTENT_RECHECK_VERSION = "counter_content_recheck/1"
+
 
 def _surface_status(row: dict) -> str | None:
     """Scored proposal status the pool counter-surface scan attributed, else None.
@@ -594,7 +604,92 @@ def _surface_candidates(
     return pending, confirmed, excluded_cited, owned_elsewhere, n_surface
 
 
-def apply_surface_span_confirmation(
+def post_hydration_content_recheck(bundle: dict) -> dict[str, Any]:
+    """Re-apply the frozen D1-D4 predicates to every still-verified row.
+
+    Called AFTER stage 2, whose input has already been hydrated by
+    ``product.query.counter_surface``.  It does not re-score, re-label, re-select
+    or drop a decision: a row whose evidence fails the unchanged frozen content
+    predicates is downgraded to an explicitly-unevidenced row, with the original
+    evidence kept verbatim for audit.  A content-sound row is untouched, so the
+    accepted `bstger_SK.2023.49` success rule is preserved.
+
+    Returns the provenance record; the caller publishes it.  Re-running on a
+    bundle with no new downgrades is byte-stable for this block.
+    """
+    downgrades: list[dict[str, Any]] = []
+    n_checked = 0
+    for d in bundle.get("decisions") or []:
+        if d.get("counter_evidence_verified") is not True:
+            continue
+        n_checked += 1
+        ev = str(d.get("counter_evidence") or "")
+        defects = frozen_content_defects(ev, d)
+        if not defects:
+            continue
+        _ok, reason = passes_content_filter(ev, d)
+        field, offset = ground_evidence(ev, d)
+        record = d.get("counter_evidence_span") or {}
+        # Stage-1 span records predate the explicit ``stage`` field; stage 2
+        # stamps ``stage=2``.  Report the owning stage, never invent one for a
+        # row with no record at all.
+        source_stage = record.get("stage", 1) if record else None
+        before_reason = d.get("counter_evidence_unevidenced_reason")
+        downgrades.append({
+            "decision_id": str(d.get("decision_id") or ""),
+            "leg": "post_hydration_recheck",
+            "source_stage": source_stage,
+            "reason_code": reason,
+            "defects": defects,
+            "grounded_field": field,
+            "grounded_offset": offset,
+            "before": {
+                "counter_evidence_verified": True,
+                "counter_status": d.get("counter_status"),
+                "counter_evidence": ev,
+                "counter_evidence_unevidenced_reason": before_reason,
+            },
+            "after": {
+                "counter_evidence_verified": False,
+                "counter_status": d.get("counter_status"),
+                "counter_evidence": ev,
+                "counter_evidence_unevidenced": True,
+                "counter_evidence_unevidenced_reason": reason,
+            },
+        })
+        d["counter_evidence_verified"] = False
+        d["counter_evidence_unevidenced"] = True
+        d["counter_evidence_unevidenced_reason"] = reason
+    return {
+        "version": CONTENT_RECHECK_VERSION,
+        "applied": True,
+        "runs_after": "provenance.counter_evidence_span_surface (stage 2, post-hydration)",
+        "scope": (
+            "every row with counter_evidence_verified=True after stage 2, "
+            "including rows carrying a stage-1 or stage-2 counter_evidence_span "
+            "record (the incumbent sweep skips those by design)"
+        ),
+        "why": (
+            "pool hydration can move the frozen grounding of a verbatim quote "
+            "from snippet into the full_text letterhead zone after stage 1 "
+            "selection; the unchanged frozen D1-D4 predicates are re-applied "
+            "to that later state"
+        ),
+        "n_verified_checked": n_checked,
+        "n_downgraded": len(downgrades),
+        "downgraded_ids": [d["decision_id"] for d in downgrades],
+        "downgrades": downgrades,
+        "content_filter": content_filter_provenance(),
+        "geometry_touched": False,
+        "claim_ceiling": (
+            "Deterministic content narrowing only. No frozen gate, rubric, "
+            "threshold or bar is edited; no label is issued, no row is dropped "
+            "and no geometry, rank, cluster or relation is changed."
+        ),
+    }
+
+
+def _apply_surface_span_confirmation_inner(
     bundle: dict,
     *,
     qid: str | None = None,
@@ -789,6 +884,29 @@ def apply_surface_span_confirmation(
         "stage_1_provenance_block": "provenance.counter_evidence_span (unchanged)",
         "writes_scored_counter_fields_only_on_frozen_gate_confirmation": True,
     }
+    return out
+
+
+def apply_surface_span_confirmation(
+    bundle: dict,
+    *,
+    qid: str | None = None,
+    mode: str | None = None,
+    env: dict[str, str] | None = None,
+) -> dict:
+    """Stage 2 plus the post-hydration content recheck (shipped emission path).
+
+    The gate part is unchanged: only frozen confirmations write scored fields.
+    The recheck is independent of the gate and of its kill switch, because the
+    frozen D1-D4 content predicates apply to ANY row that still claims verified
+    evidence after hydration, whether or not it was a stage-2 candidate.
+    """
+    out = _apply_surface_span_confirmation_inner(bundle, qid=qid, mode=mode, env=env)
+    record = post_hydration_content_recheck(out)
+    prov = out.setdefault("provenance", {})
+    previous = prov.get("counter_evidence_content_recheck")
+    if previous is None or record["n_downgraded"]:
+        prov["counter_evidence_content_recheck"] = record
     return out
 
 
@@ -1219,6 +1337,7 @@ __all__ = [
     "SPAN_VERSION",
     "SURFACE_SPAN_ENV",
     "SURFACE_SPAN_VERSION",
+    "CONTENT_RECHECK_VERSION",
     "apply_surface_span_confirmation",
     "apply_verified_span_selection",
     "content_filter_provenance",
@@ -1227,6 +1346,7 @@ __all__ = [
     "guard_terms",
     "ground_evidence",
     "passes_content_filter",
+    "post_hydration_content_recheck",
     "select_span",
     "sentence_spans",
     "span_passes_precision_guard",
