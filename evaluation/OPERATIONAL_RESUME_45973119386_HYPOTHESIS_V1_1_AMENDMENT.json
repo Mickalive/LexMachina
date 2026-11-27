@@ -1,0 +1,60 @@
+{
+  "schema": "lex-evaluation-operational-resume-hypothesis-amendment/1",
+  "amends": "evaluation/OPERATIONAL_RESUME_45973119386_HYPOTHESIS_V1.json",
+  "amends_sha256_unchanged": "bfbd82c125a57f1d95c284f1326a6813b87d3d5fa6e372df1d3749c032eb1dd5",
+  "amendment_id": "V1_1",
+  "run_id": 45973119386,
+  "resumed_from_run": 45965187540,
+  "direction_version": 68,
+  "recorded_at_utc": "2026-11-27T09:36:00Z",
+  "recorded_before_claim_consumption": true,
+  "precedent": "FAST_MVP_RETRIEVAL_RECALL_BENCHMARK_40149704173_HYPOTHESIS_V1_1_AMENDMENT.json and _V1_2_AMENDMENT.json - the lane appends an amendment file rather than editing a frozen hypothesis, so the original bytes and their sha256 stay verifiable.",
+  "what_is_wrong": {
+    "field": "hypothesis (narrative) duration of the audit job's 'Independent audit' step",
+    "value_as_written_in_V1": "2685 s, followed by the sentence 'Because 2685 s < the frozen 2700 s QUANTUM_SECONDS definition ... this is NOT a work-quantum death under that frozen definition and must not be labelled one.'",
+    "why_it_is_wrong": "Pre-measurement hand arithmetic. The step boundaries recorded by GitHub are 2026-11-27T08:36:51Z -> 2026-11-27T09:21:56Z. 08:36:51 -> 09:21:56 is 45 min 05 s = 2705 s, not 2685 s. The written 2685 s and the conclusion drawn from it are both false.",
+    "measured_value": "2705 s",
+    "measurement_source": "results/evaluation/operational_resume_45973119386/rest_job_capture_45973119386.json (public unauthenticated REST /jobs, captured this run) and the same step boundaries read directly from the GitHub UI-visible REST payload",
+    "producer_step_unaffected": "the producer step duration 752 s (08:23:29Z -> 08:36:01Z) is unchanged and was measured, not guessed"
+  },
+  "frozen_rule_that_decides_it": {
+    "source": "evaluation/OPERATIONAL_RESUME_45973119386_HYPOTHESIS_V1.json -> frozen_classification_definition.rule",
+    "rule_as_frozen": "a FAILED step whose duration is >= 2700 s is a work-quantum death; a failed step below that duration is classified by its job position instead and is never called a quantum death",
+    "quantum_seconds": 2700,
+    "applied_to_measured_value": "2705 >= 2700 is TRUE",
+    "correct_consequence_under_the_frozen_rule": "the audit job's 'Independent audit' step IS a work-quantum death under the frozen definition"
+  },
+  "corrected_classification": {
+    "before": "AUDIT_AGENT_STEP_ORCHESTRATION_DEATH",
+    "after": "AUDIT_STEP_QUANTUM_DEATH",
+    "unchanged_sub_facts": [
+      "team job conclusion=success with all 12 steps success",
+      "producer 'Run lane cycle' SUCCESS, 752 s, 24-file commit daa7c359",
+      "'Validate active MVP producer state' SUCCESS",
+      "'Enforce lane write scope' SUCCESS",
+      "'Persist team snapshot' SUCCESS",
+      "audit job conclusion=failure, failing step 'Independent audit'",
+      "'Enforce audit scope and read gate' SKIPPED",
+      "'Persist audit snapshot' SKIPPED",
+      "no results/audit/evaluation/CYCLE_45965187540_GATE.json anywhere",
+      "no cycle/core/evaluation/45965187540/audit ref on origin",
+      "integrate skipped; run conclusion=failure",
+      "no gate verdict of PASS/REVISE/BLOCKED was ever reached"
+    ],
+    "epistemic_status": "INFERENCE from measured duration arithmetic plus the persisted tree, exactly as evaluation/quantum_death_ledger.py labels its own WHY statements. Job-log content is HTTP 403 unauthenticated and was not observed, so NO provider, model or step-internal cause is claimed."
+  },
+  "effect_on_frozen_success_rules": {
+    "weakened_rules": [],
+    "removed_rules": [],
+    "strengthened_or_unchanged": [
+      "the frozen_classification_definition rule is NOT edited; the correction makes the hypothesis CONSISTENT with it instead of contradicting it",
+      "diagnosis success rule sub-clauses (team success, audit failure at the named step, producer duration < 2700 s, no audit ref, no gate file, integrate skipped) are all UNCHANGED and all measured true",
+      "the one diagnostic label string in the success rule is corrected from AUDIT_AGENT_STEP_ORCHESTRATION_DEATH to AUDIT_STEP_QUANTUM_DEATH to match the frozen rule applied to the measured value",
+      "deliverable_verified, replay_reproduces, pins and state_hygiene success rules are ENTIRELY UNTOUCHED by this amendment"
+    ],
+    "statement": "No threshold, bar, rubric, gate or success criterion is moved, relaxed or removed. A frozen rule applied to a corrected measurement is the opposite of benchmark-weakening: the original narrative would have MIS-APPLIED the frozen rule."
+  },
+  "effect_on_the_product_decision": "None. The lane's posture (FAIL-CLOSED, both DO-NOT-SERVE orders standing, human_gate_ready false, continue_recommended=false until Core Product lands the rejection/incumbent leg and regenerates the full flagship family) is unchanged. What changes is only WHICH orchestration defect the control plane is pointed at: not an unexplained auditor non-zero exit, but the auditor agent exhausting the 45-minute work quantum before it could write a gate file - which is the same control-plane class already recorded in factory-wide requirement 10 (rc 78 LEX_WORK_QUANTUM_EXPIRED) for producer steps, now MEASURED on the audit step.",
+  "control_plane_hardening_item_recorded_not_edited": "core-lane.yml gives the audit job timeout-minutes: 65 but the inner wrapper quantum is 45 min; an independent audit of a 24-file, 266-ref producer snapshot can exceed 45 min, and when it does the run loses the audit ENTIRELY (gate-read and audit-persist are skipped, so even a gate file written just before expiry is never committed). .github/** is control-plane scope and is NOT edited from this lane. Route-around used here: the producer re-verifies its own snapshot and re-publishes it audit-ready; the independent audit still has to be dispatched by the resilience/supervisor path.",
+  "negative_result_preserved": "The pre-measurement 2685 s figure and the 'must not be labelled a quantum death' sentence remain in OPERATIONAL_RESUME_45973119386_HYPOTHESIS_V1.json byte-for-byte; they are superseded by this amendment, never deleted. This is a recorded measurement correction, not a re-interpretation after seeing a favourable result - the correction makes the diagnosis LESS comfortable for the lane (it converts 'mysterious failure' into 'the auditor ran out of time'), which is the direction that cannot be a motivated move."
+}
