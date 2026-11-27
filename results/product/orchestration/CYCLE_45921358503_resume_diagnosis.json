@@ -1,0 +1,138 @@
+{
+  "schema": "product-operational-resume-diagnosis/1",
+  "run_id": "45921135544",
+  "resumed_by_run_id": "45921358503",
+  "predecessor_run_id": "40284658455",
+  "direction_version": 68,
+  "mode": "OPERATIONAL RESUME from persisted producer snapshot of run 45921135544",
+  "orchestration": {
+    "classification": "TEAM_JOB_AGENT_STEP_FAILED_NO_GATE",
+    "failed_job": "team",
+    "failed_job_id": 140251893462,
+    "failed_step": "Run lane cycle",
+    "raw_snapshot": "results/product/orchestration/CYCLE_45921135544_run_jobs_raw.json",
+    "mechanism": {
+      "status": "OBSERVED_AGENT_STEP_FAILED_ZERO_DELTA",
+      "logs_available": false,
+      "logs_endpoint_status": 403,
+      "quantum_expired": false,
+      "lane_cycle_step_conclusion": "failure",
+      "lane_cycle_step_seconds": 17.0,
+      "exit_code": 1,
+      "failure_cause": "UNOBSERVED"
+    },
+    "steps": {
+      "validate_working_base": "success",
+      "mount_accepted_peer_evidence": "success",
+      "install_opencode": "success",
+      "run_lane_cycle": "failure",
+      "validate_active_mvp_producer_state": "skipped",
+      "enforce_lane_write_scope": "skipped",
+      "persist_team_snapshot": "success"
+    },
+    "audit": {
+      "job_conclusion": "skipped",
+      "skipped": true,
+      "ref_exists": false,
+      "gate_file_written": false
+    },
+    "integrate": {"skipped": true},
+    "model_health": {
+      "healthy": true,
+      "resolved_model": "opencode/mimo-v2.6-flash-free",
+      "using_fallback": true,
+      "last_checked_run_id": "45921177720",
+      "last_checked_at": "2026-11-27T00:51:41Z"
+    }
+  },
+  "durable_delta": {
+    "classification": "ZERO_DURABLE_DELTA",
+    "changed_files": 0,
+    "snapshot_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+    "predecessor_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+    "team_ref": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+    "team_attempt_1_ref": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+    "lab_product_ref": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+    "artifacts_named_for_run": 0
+  },
+  "validation_failure_on_snapshot": {
+    "classification": "SUPERSESSION_STALE_HISTORICAL_TEST",
+    "reproduced_command": "python3 -m pytest product/tests/test_cycle_40284658455.py -q",
+    "observed_before_repair": "2 failed, 6 passed in 1.12s",
+    "failures": [
+      {
+        "test": "test_no_gate_exists_for_the_executing_or_resumed_run",
+        "error": "AssertionError: assert not True; results/audit/product/CYCLE_40284658455_GATE.json exists"
+      },
+      {
+        "test": "test_accepted_pointer_satisfies_both_halves_and_posture_stays_fail_closed",
+        "error": "AssertionError: ('7be4480ed3ca623b77ea082404ca3b5b7ac5ee83\\trefs/heads/lab/product', '5adaa66d4ad2b9702cd023bfd49d743667f9e638')"
+      }
+    ],
+    "interpretation": "The failed run's own job logs are unavailable (HTTP 403), so this deterministic, reproducible on-tree validation defect is recorded as a snapshot defect, NOT asserted as the remote exit cause. The remote provider-level cause remains UNOBSERVED.",
+    "not_claimed_as_remote_cause": true,
+    "repaired_by": "SUPERSESSION AMENDMENT in product/tests/test_cycle_40284658455.py plus canonical pointer advance in state/product.json"
+  },
+  "accepted_pointer": {
+    "accepted_run_id": "CYCLE_40284658455",
+    "accepted_commit": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+    "both_halves_verified_this_cycle": true,
+    "half_1": "results/audit/product/CYCLE_40284658455_GATE.json: gate=PASS, safe_to_integrate=true, required_fixes=[]",
+    "half_2": "origin/lab/product head 7be4480ed3ca623b77ea082404ca3b5b7ac5ee83 is the 'accept product cycle 40284658455' commit",
+    "prior_pointer": "CYCLE_40269774540 / 5adaa66d4ad2b9702cd023bfd49d743667f9e638 (correct when recorded, superseded by audit 40284658455)"
+  },
+  "repairs_this_cycle": [
+    "persisted the public run/jobs/annotation record under results/product/orchestration/CYCLE_45921135544_run_jobs_raw.json",
+    "added first-class observed_agent_step mechanism to product/audit_readiness.py with raw job cross-checks instead of mislabelling the exit as quantum/gateway/scope failure",
+    "amended product/tests/test_cycle_40284658455.py so a legitimately accepted gate is expected and the canonical pointer is validated monotonically with both halves, while the minted 40278460732 gate remains QUARANTINED NON-PROMOTING",
+    "advanced state/product.json accepted pointer from CYCLE_40269774540 / 5adaa66d to CYCLE_40284658455 / 7be4480e and current_cycle_run_id to 45921358503",
+    "pinned this repair with product/tests/test_cycle_45921358503.py and reports/product/CYCLE_45921358503.md"
+  ],
+  "runnable_verification": {
+    "progressive_smoke": {
+      "command": "python3 product/progressive_smoke.py --run-id 45921358503 --out results/product/progressive_smoke/CYCLE_45921358503_progressive_smoke.json",
+      "verdict": "PASS",
+      "checks": "23/23",
+      "timings_s": {
+        "server_boot_s": 1.012,
+        "start_s": 0.488,
+        "expand_s": 0.265,
+        "enrich_s": 0.256,
+        "bundle_s": 0.005
+      }
+    },
+    "supersession_and_state_tests": {
+      "command": "python3 -m pytest product/tests/test_cycle_40284658455.py product/tests/test_state_contract.py -q",
+      "result": "37 passed in 0.97s"
+    },
+    "state_contract_cli": {
+      "command": "python3 product/state_contract.py --check --direction-version 68 --json",
+      "workflow_validation_ok": true,
+      "write_scope_ok": true,
+      "producer_wrote_audit_paths": []
+    },
+    "audit_readiness": {
+      "command": "python3 product/audit_readiness.py --run-id 45921358503 --out results/product/audit_readiness/CYCLE_45921358503_audit_readiness.json",
+      "out": "results/product/audit_readiness/CYCLE_45921358503_audit_readiness.json",
+      "overall_status": "PASS",
+      "checks": {
+        "runtime_preflight": "PASS",
+        "state_contract": "PASS",
+        "posture": "PASS",
+        "resumed_diagnosis": "PASS",
+        "claim_artifacts": "PASS",
+        "cycle_test": "PASS",
+        "progressive_smoke": "PASS",
+        "mvp_core_tests": "PASS",
+        "audit_namespace": "PASS"
+      },
+      "failed_checks": [],
+      "skipped_checks": []
+    }
+  },
+  "adjudication": {
+    "status": "UNADJUDICATED",
+    "accepted": false,
+    "claim_ceiling": "OPERATIONAL-RESUME AND AUDIT-READINESS EVIDENCE ONLY. No live retrieval, legal usefulness, frozen bar, serve verdict, acceptance or human-gate readiness is asserted."
+  }
+}

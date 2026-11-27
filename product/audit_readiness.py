@@ -369,6 +369,46 @@ PROFILES: dict[str, dict[str, Any]] = {
                              / "self_minted_gate_40278460732_producer_"
                                "40283048553.QUARANTINED.json",
     },
+    "45921358503": {
+        "resumed_run_id": "45921135544",
+        "predecessor_run_id": "40284658455",
+        "raw": ORCH / "CYCLE_45921135544_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_45921358503_resume_diagnosis.json",
+        # The last committed producer report on the accepted base, and this
+        # resume's own report of record.
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40284658455.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_45921358503.md",
+        "classification": "TEAM_JOB_AGENT_STEP_FAILED_NO_GATE",
+        # Fifth first-class mechanism: the workflow reached an accepted base,
+        # model health was valid, and the lane-cycle agent step failed in 17 s
+        # with exit 1 before validation/write-scope/audit.  The logs endpoint
+        # answers 403, so the provider-level cause is UNOBSERVED; calling this
+        # a quantum expiry, a model-gateway rejection or a scope violation
+        # would invent a cause the public records do not support.
+        "mechanism_kind": "observed_agent_step",
+        "failed_job": "team",
+        "failed_step": "Run lane cycle",
+        "quantum_seconds": None,
+        "exit_code": 1,
+        "failed_step_seconds": 17.0,
+        "delta_kind": "zero",
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_45921358503.py",
+        "state_block": "cycle_45921358503_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "45921135544": {"alias_of": "45921358503"},
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -689,6 +729,51 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                 problems.append("raw_scope_step_not_failure")
         else:
             problems.append("raw_snapshot_missing")
+    elif mechanism_kind == "observed_agent_step":
+        # Fifth real failure mode, observed on run 45921135544: the workflow
+        # reached an accepted base and a healthy free model, but the
+        # lane-cycle agent step failed in seconds with exit 1.  The team ref
+        # is byte-identical to its predecessor, state validation/write scope
+        # were skipped, and no auditor ever ran.  Job logs are unavailable
+        # (HTTP 403), so the provider-level cause stays UNOBSERVED rather than
+        # being mislabelled as a quantum expiry or a gateway rejection.
+        mechanism = orch.get("mechanism") or {}
+        quantum_seconds = None
+        exit_code = p("exit_code")
+        if mechanism.get("status") != "OBSERVED_AGENT_STEP_FAILED_ZERO_DELTA":
+            problems.append("mechanism_status")
+        if mechanism.get("logs_available") is not False:
+            problems.append("logs_available")
+        if mechanism.get("logs_endpoint_status") != 403:
+            problems.append("logs_endpoint_status")
+        if mechanism.get("quantum_expired") is not False:
+            problems.append("quantum_expired")
+        if mechanism.get("lane_cycle_step_conclusion") != "failure":
+            problems.append("lane_cycle_step_conclusion")
+        if orch.get("failed_step") != p("failed_step", "Run lane cycle"):
+            problems.append("failed_step")
+        if mechanism.get("exit_code") != exit_code:
+            problems.append("exit_code")
+        if mechanism.get("failure_cause") != "UNOBSERVED":
+            problems.append("failure_cause")
+        if (orch.get("audit") or {}).get("gate_file_written") is not False:
+            problems.append("gate_file_written")
+        if (orch.get("audit") or {}).get("skipped") is not True:
+            problems.append("audit_not_skipped")
+        if raw is not None and raw.is_file():
+            raw_doc = _load(raw)
+            team = next((j for j in raw_doc.get("jobs") or []
+                         if j.get("name") == "team"), None)
+            steps = {s.get("name"): s.get("conclusion")
+                     for s in (team or {}).get("steps") or []}
+            if steps.get("Run lane cycle") != "failure":
+                problems.append("raw_agent_step_not_failure")
+            if steps.get("Validate active MVP producer state") != "skipped":
+                problems.append("raw_state_validation_not_skipped")
+            if steps.get("Enforce lane write scope") != "skipped":
+                problems.append("raw_scope_step_not_skipped")
+        else:
+            problems.append("raw_snapshot_missing")
     else:
         # Raw-free resume: the public run/jobs snapshot is unavailable. The
         # only honest record is that the mechanism is unobserved; asserting a
@@ -743,6 +828,12 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                    "on a producer-minted auditor-namespace gate file (no "
                    "work quantum reached, audit skipped), durable delta "
                    "present, run unadjudicated")
+    elif mechanism_kind == "observed_agent_step":
+        summary = (f"Resumed run {resumed_id}: lane-cycle agent step failed "
+                   "with exit 1 in seconds on an accepted, healthy-model "
+                   "base; state validation/write scope/audit were skipped, "
+                   "team ref carried zero durable delta, provider-level "
+                   "cause unobserved, run unadjudicated")
     else:
         summary = (f"Resumed run {resumed_id}: raw run/jobs snapshot "
                    "unavailable (mechanism unobserved), team ref carries zero "
@@ -1098,10 +1189,12 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
     cf_expected = dict(p("content_family_expected", CONTENT_FAMILY_EXPECTED))
     live_state = _load(STATE)
 
-    # C1 wording follows the observed mechanism kind: the three real failure
+    # C1 wording follows the observed mechanism kind: the five real failure
     # modes this dossier has now measured are a work-quantum expiry, an
-    # unobserved stop, and a model-gateway request rejection.  Wording all
-    # three as "work quantum" would misreport the last one.
+    # unobserved stop, a model-gateway request rejection, a producer-minted
+    # gate caught by write-scope enforcement, and a lane-cycle agent step that
+    # fails in seconds with unavailable logs.  Wording them all as "work
+    # quantum" would misreport four of the five.
     if mechanism_kind == "observed_log":
         log_ev_path = Path(p("lane_cycle_log_evidence",
                              LANE_CYCLE_LOG_EVIDENCE))
@@ -1138,6 +1231,25 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
             "QUARANTINED.json. Observed from the run's own job records "
             "(logs endpoint HTTP 200), not inferred; no work quantum "
             "expired."
+        )
+        c1_artifacts = (
+            ([str(raw.relative_to(ROOT))] if raw is not None else [])
+            + [str(resume_diag.relative_to(ROOT))])
+    elif mechanism_kind == "observed_agent_step":
+        c1_claim = (
+            f"Run {resumed_id} started from the accepted base 7be4480e with "
+            "a healthy free model (opencode/mimo-v2.6-flash-free), but its "
+            f"'Run lane cycle' step failed after "
+            f"{p('failed_step_seconds', 17.0)} s with exit "
+            f"{p('exit_code', 1)}. State validation, write-scope enforcement, "
+            "audit and integrate were skipped; the team ref is byte-identical "
+            "to the accepted base. The logs endpoint returned HTTP 403, so "
+            "the provider-level cause is UNOBSERVED and no quantum expiry, "
+            "gateway rejection or scope violation is asserted. The snapshot "
+            "did carry a reproducible local validation defect - historical "
+            "test_cycle_40284658455.py still pinned the pre-acceptance "
+            "pointer - which this resume repairs without changing any frozen "
+            "bar. Observed from the run's own job records, not inferred."
         )
         c1_artifacts = (
             ([str(raw.relative_to(ROOT))] if raw is not None else [])
