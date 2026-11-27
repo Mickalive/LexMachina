@@ -79,6 +79,14 @@ DISCLOSURE_PARENT_KEYS = {
     # 40174940149 phantom paths; they are preserved as evidence of the index
     # correction, never charged as current unresolved refs.
     "removed_refs",
+    # run 45965187540: `required_fixes_source` is a DISCLOSURE pointer naming
+    # where an auditor's required-fix list was published (an audit-branch gate
+    # that is deliberately not committed to a producer lane tree). The value is
+    # annotated inline with "gate=REVISE, mounted verification copy at ...";
+    # it is provenance text, never a current claim-bearing artifact ref. The
+    # before/after proof is in
+    # results/evaluation/operational_resume_45965187540/nested_ref_disclosure_proof_45965187540.json.
+    "required_fixes_source",
 }
 
 

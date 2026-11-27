@@ -1,0 +1,47 @@
+{
+  "schema": "lex-evaluation-accepted-pointer-reconciliation/1",
+  "run_id": 45965187540,
+  "generated_at_utc": "2026-11-27T08:34:32Z",
+  "candidate_cycle": 40265377500,
+  "both_halves_of_requirement_4": {
+    "half_i_audit_gate": {
+      "path": "results/audit/evaluation/CYCLE_40265377500_GATE.json",
+      "gate": "PASS",
+      "safe_to_integrate": true,
+      "required_fixes": []
+    },
+    "half_ii_accept_commit": {
+      "ref": "refs/heads/lab/evaluation",
+      "head": "ea98384e54d31d2e694c418a1d1ce5769fc6c32f",
+      "subject": "accept evaluation cycle 40265377500",
+      "author": "lex-integrator <lex-integrator@autonomous.local>",
+      "provenance": "git ls-remote --heads origin refs/heads/lab/evaluation (public, HTTP 200)"
+    },
+    "verdict": "BOTH_HALVES_PRESENT"
+  },
+  "prior_pointer": {
+    "accepted_run_id": 40258497460,
+    "github_run": 40261335674
+  },
+  "new_pointer": {
+    "accepted_run_id": 40265377500,
+    "github_run": 45965187540,
+    "note": "accepted_run_id advances to the latest accepted cycle; github_run names this proposed run pending independent audit"
+  },
+  "claim_discrepancy_disclosed": {
+    "gate_evidence_summary": {
+      "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
+      "exit_code": 0,
+      "instrument": "run_cached_bundle_benchmark.py (24 cached HTTP 200 envelopes, 4 questions, 76 harness checks)",
+      "machine_record": "/tmp/lex_audit_out/40265377500.json (scratch path, not committed in this tree)"
+    },
+    "producer_artifact": {
+      "path": "results/evaluation/minimal_retrieval_ca_benchmark/test_40265377500.json",
+      "verdict": "PRODUCT_FALSIFIED",
+      "exit_code": 1,
+      "instrument": "python -m evaluation.minimal_retrieval_ca_benchmark -> mapping_free_recall_falsifier"
+    },
+    "statement": "The accepted gate/report of cycle 40265377500 describe a DIFFERENT instrument and a DIFFERENT verdict from the producer artifact committed in the same cycle. This is disclosed, not repaired: the gate file is in the independent auditor's namespace, is accepted history and is not edited from this lane. The pointer advance is made on the objective both-halves facts (gate=PASS, accept commit present), not on the gate's evidence_summary."
+  },
+  "no_overwrite": "No accepted claim-bearing artifact was rewritten; all additions are new keyed records."
+}
