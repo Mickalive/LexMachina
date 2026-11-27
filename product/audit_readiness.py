@@ -415,6 +415,41 @@ PROFILES: dict[str, dict[str, Any]] = {
     # The resuming run is the same snapshot under a different id; the dossier
     # must publish the resumed run's claims either way.
     "45954836439": {"alias_of": "45947662468"},
+    # Sixth real failure mode, observed on run 45965383491: the TEAM job's
+    # "Run lane cycle" step failed after 151.0 s (nowhere near the 2700 s
+    # quantum), audit and integrate were SKIPPED, and the persisted team ref
+    # carried zero durable delta over run 45954836439.  Calling this an audit
+    # quantum death or a producer-side validation failure would misreport the
+    # run, so it is pinned as its own profile and mechanism kind.
+    "45965383491": {
+        "resumed_run_id": "45965383491",
+        "predecessor_run_id": "45954836439",
+        "raw": ORCH / "CYCLE_45965383491_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_45965383491_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_45947662468.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_45965956701.md",
+        "mechanism_kind": "observed_team_step_failure",
+        "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+        "failed_job": "team",
+        "failed_step": "Run lane cycle",
+        "team_step_seconds": 151.0,
+        "quantum_seconds": 2700,
+        "delta_kind": "zero",
+        "cycle_test": "product/tests/test_cycle_45965956701.py",
+        "state_block": "cycle_45965383491_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_45947662468.json",
+        "content_family_expected": {
+            "n_bundles": 54,
+            "n_decisions": 5400,
+            "n_verified": 64,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "45965956701": {"alias_of": "45965383491"},
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -800,7 +835,67 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                 problems.append("raw_gate_step_not_skipped")
             if (steps.get("Persist audit snapshot") or {}).get(
                     "conclusion") != "skipped":
-                problems.append("raw_persist_step_not_skipped")
+                    problems.append("raw_persist_step_not_skipped")
+        else:
+            problems.append("raw_snapshot_missing")
+    elif mechanism_kind == "observed_team_step_failure":
+        # Sixth real failure mode, observed on run 45965383491: the lane-cycle
+        # agent step FAILED after 151.0 s, the workflow's 2700 s quantum was
+        # never reached, the validation/scope steps were skipped, and the
+        # persisted team ref carried zero durable delta.  Logs (403) and
+        # annotations (404) are unavailable, so only the step timing is treated
+        # as observed; the cause below it is explicitly unobserved.
+        mechanism = orch.get("mechanism") or {}
+        quantum_seconds = p("quantum_seconds", 2700)
+        step_seconds = p("team_step_seconds")
+        if mechanism.get("status") != "OBSERVED_TEAM_STEP_FAILURE_NO_QUANTUM":
+            problems.append("mechanism_status")
+        if mechanism.get("evidence_basis") != "step_timing":
+            problems.append("evidence_basis")
+        if mechanism.get("annotation_observed") is not False:
+            problems.append("annotation_observed")
+        if mechanism.get("logs_endpoint_status") != 403:
+            problems.append("logs_endpoint_status")
+        if mechanism.get("annotations_endpoint_status") != 404:
+            problems.append("annotations_endpoint_status")
+        if mechanism.get("quantum_expired") is not False:
+            problems.append("quantum_expired")
+        observed = mechanism.get("team_step_seconds")
+        if step_seconds is not None and observed != step_seconds:
+            problems.append("team_step_seconds")
+        if observed is not None and not (0 <= observed < quantum_seconds):
+            problems.append("team_step_outside_quantum_window")
+        if orch.get("failed_step") != p("failed_step", "Run lane cycle"):
+            problems.append("failed_step")
+        if (orch.get("team") or {}).get("lane_cycle_step_conclusion") != "failure":
+            problems.append("lane_cycle_step_conclusion")
+        if (orch.get("audit") or {}).get("skipped") is not True:
+            problems.append("audit_not_skipped")
+        if (orch.get("audit") or {}).get("gate_file_written") is not False:
+            problems.append("gate_file_written")
+        if raw is not None and raw.is_file():
+            raw_doc = _load(raw)
+            by_name = {j.get("name"): j for j in raw_doc.get("jobs") or []}
+            team = by_name.get("team") or {}
+            audit_job = by_name.get("audit") or {}
+            if team.get("conclusion") != "failure":
+                problems.append("raw_team_not_failure")
+            steps = {s.get("name"): s for s in team.get("steps") or []}
+            lane = steps.get("Run lane cycle") or {}
+            if lane.get("conclusion") != "failure":
+                problems.append("raw_lane_cycle_not_failure")
+            if lane.get("seconds") != step_seconds:
+                problems.append("raw_lane_cycle_seconds")
+            if (steps.get("Validate active MVP producer state") or {}).get(
+                    "conclusion") != "skipped":
+                problems.append("raw_state_validation_not_skipped")
+            if (steps.get("Enforce lane write scope") or {}).get(
+                    "conclusion") != "skipped":
+                problems.append("raw_scope_not_skipped")
+            if audit_job.get("conclusion") != "skipped":
+                problems.append("raw_audit_not_skipped")
+            if (by_name.get("integrate") or {}).get("conclusion") != "skipped":
+                problems.append("raw_integrate_not_skipped")
         else:
             problems.append("raw_snapshot_missing")
     else:
@@ -859,12 +954,19 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                    "present, run unadjudicated")
     elif mechanism_kind == "observed_step_timing":
         summary = (f"Resumed run {resumed_id}: team job succeeded end to "
-                   f"end, independent-audit agent step failed at "
-                   f"{p('independent_audit_step_seconds')} s inside the "
-                   f"{p('quantum_seconds', 2700)} s work-quantum kill "
-                   "window (step-timing evidence; logs 403 / annotations "
-                   "404, no log line read), gate and persist steps skipped, "
-                   "durable delta present, run unadjudicated")
+                    f"end, independent-audit agent step failed at "
+                    f"{p('independent_audit_step_seconds')} s inside the "
+                    f"{p('quantum_seconds', 2700)} s work-quantum kill "
+                    "window (step-timing evidence; logs 403 / annotations "
+                    "404, no log line read), gate and persist steps skipped, "
+                    "durable delta present, run unadjudicated")
+    elif mechanism_kind == "observed_team_step_failure":
+        summary = (f"Resumed run {resumed_id}: team job's lane-cycle step "
+                    f"failed at {p('team_step_seconds')} s, well before the "
+                    f"{p('quantum_seconds', 2700)} s quantum (step-timing "
+                    "evidence; logs 403 / annotations 404, no log line read), "
+                    "validation/scope/audit/integrate skipped, team ref "
+                    "carries zero durable delta, run unadjudicated")
     else:
         summary = (f"Resumed run {resumed_id}: raw run/jobs snapshot "
                    "unavailable (mechanism unobserved), team ref carries zero "

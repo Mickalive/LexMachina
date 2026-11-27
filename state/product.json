@@ -206,7 +206,9 @@
     "reports/product/CYCLE_45947662468.md",
     "results/product/orchestration/CYCLE_45947662468_run_jobs_raw.json -> results/product/orchestration/CYCLE_45947662468_resume_diagnosis.json",
     "product/audit_readiness.py -> results/product/audit_readiness/CYCLE_45954836439_audit_readiness.json",
-    "reports/product/CYCLE_45954836439.md"
+    "reports/product/CYCLE_45954836439.md",
+    "results/product/orchestration/CYCLE_45965383491_run_jobs_raw.json -> results/product/orchestration/CYCLE_45965383491_resume_diagnosis.json -> product/audit_readiness.py -> product/tests/test_cycle_45965956701.py -> results/product/audit_readiness/CYCLE_45965956701_audit_readiness.json -> reports/product/CYCLE_45965956701.md",
+    "product/query/counter_evidence_span.py::post_hydration_content_recheck -> results/product/post_hydration_recheck/CYCLE_45947662468.json"
   ],
   "evidence_tier": "REPRODUCED",
   "human_gate_ready": false,
@@ -1114,9 +1116,9 @@
     "audit_namespace_written": false,
     "claim_ceiling": "OPERATIONAL-RESUME AND AUDIT-READINESS EVIDENCE ONLY. No live retrieval, legal usefulness, frozen bar, serve verdict, acceptance or human-gate readiness is asserted."
   },
-  "current_cycle_run_id": 40284658455,
+  "current_cycle_run_id": "45965956701",
   "last_repair_round": 0,
-  "last_updated": "2026-10-26T07:32:00Z",
+  "last_updated": "2026-11-27T08:34:32Z",
   "run_history": [
     {
       "run_id": "40241250741",
@@ -1239,6 +1241,14 @@
       "audit_gate": "NONE_YET",
       "summary": "Operational resume of snapshot 40283048553 (this run). Preserved all valid completed work; diagnosed the full six-run chain (40272586794 quantum-expiry-after-commit -> beam-free gateway rejection -> two zero-delta guard exits -> 40278460732 quantum expiry -> 40283048553 self-minted-gate scope failure); quarantined the minted gate NON-PROMOTING without deleting it; corrected the state attribution (current_cycle_run_id now names the executing run; the minted gate is never cited as an audit gate); pinned the chain with a cycle test; and regenerated the audit-readiness dossier so the next team job can reach an independent audit. No frozen bar scored; posture stays fail-closed. UNADJUDICATED pending independent audit.",
       "date": "2026-10-26T07:32:00Z"
+    },
+    {
+      "run_id": 45965956701,
+      "repair_round": 0,
+      "status": "OPERATIONAL_RESUME_TEAM_STEP_FAILURE_ZERO_DELTA_AUDIT_READY",
+      "audit_gate": "NONE_YET",
+      "summary": "Resume of run 45965383491, whose team job failed at step 6 \"Run lane cycle\" after 151.0 s (not the 2705 s audit-quantum signature of the two preceding runs) and persisted zero durable delta at 2301799c; audit and integrate skipped. Added a first-class observed_team_step_failure mechanism and profiles to product/audit_readiness.py, a bounded cycle test, raw snapshot and diagnosis artifacts; preserved all inherited work; kept every fail-closed flag false. UNADJUDICATED pending independent audit.",
+      "date": "2026-11-27T08:34:32Z"
     }
   ],
   "cycle_40247041354_resume": {
@@ -2079,5 +2089,46 @@
     },
     "continue_recommended": true
   },
-  "owner_decision_required": false
+  "owner_decision_required": false,
+  "cycle_45965383491_operational_resume": {
+    "kind": "OPERATIONAL RESUME of zero-delta producer snapshot 45965383491 (resuming run 45965956701)",
+    "direction_version": 68,
+    "resumed_run_id": "45965383491",
+    "predecessor_run_id": "45954836439",
+    "resuming_run_id": "45965956701",
+    "snapshot_head": "2301799cef1483cc29fc517278a78ae4c3deb00b",
+    "orchestration_failure_of_record": {
+      "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+      "failed_job": "team",
+      "failed_step": "Run lane cycle",
+      "failed_step_seconds": 151.0,
+      "mechanism": "OBSERVED_TEAM_STEP_FAILURE_NO_QUANTUM - step timing only; 151.0 s is far outside the [2700,2715] s quantum kill window that killed the audits of runs 45947662468 and 45954836439 at 2705.0 s",
+      "evidence_ceiling": "logs endpoint HTTP 403 and annotations endpoint HTTP 404: no log line and no check-run annotation was read; the underlying cause is unobserved and no exit code is inferred",
+      "consequence": "state validation, write-scope enforcement, audit and integrate were skipped; the team snapshot persisted the SAME head as the predecessor, so no gate was minted and no promotion occurred",
+      "raw_snapshot": "results/product/orchestration/CYCLE_45965383491_run_jobs_raw.json",
+      "diagnosis": "results/product/orchestration/CYCLE_45965383491_resume_diagnosis.json"
+    },
+    "validation_failure_of_record": "NONE OBSERVABLE on the producer half: workflow validation and write-scope steps were skipped because the lane-cycle step failed. The inherited state contract exits 0 on direction v68 and is re-checked by the one-command dossier.",
+    "inherited_work": "PRESERVED VERBATIM - the 19-file post-hydration content-recheck delta of 45947662468 and the audit-readiness package of 45954836439 are not restarted, re-derived, edited or deleted.",
+    "new_instrument_delta": {
+      "audit_readiness.py": "new first-class mechanism kind observed_team_step_failure plus profiles 45965383491 and alias 45965956701, so a 151 s producer failure is never misreported as an audit quantum death or a state-validation defect",
+      "test": "product/tests/test_cycle_45965956701.py (byte facts, zero-delta identity, fail-closed posture, one-command dossier)"
+    },
+    "artifacts": [
+      "results/product/orchestration/CYCLE_45965383491_run_jobs_raw.json",
+      "results/product/orchestration/CYCLE_45965383491_resume_diagnosis.json",
+      "product/tests/test_cycle_45965956701.py",
+      "reports/product/CYCLE_45965956701.md"
+    ],
+    "artifact_sha256": {
+      "results/product/orchestration/CYCLE_45965383491_run_jobs_raw.json": "a8a4feb09b26f2e55e711cad69e7393048bce59ceefcefb81e64a48449af92a9",
+      "results/product/orchestration/CYCLE_45965383491_resume_diagnosis.json": "45fbcede9ff62c8f7854764e7b021a2be13f8cb745509a9e9d5ba2743467ed28"
+    },
+    "audit_ready_package": {
+      "one_command": "python3 product/audit_readiness.py --run-id 45965956701 --out results/product/audit_readiness/CYCLE_45965956701_audit_readiness.json",
+      "measured": "overall_status PASS, 9/9 mandatory checks PASS, 0 failed / 0 skipped (results/product/audit_readiness/CYCLE_45965956701_audit_readiness.json, the measurement of record for run-specific wall times); cycle test 7 passed / 0 failed; MVP core 9 files 170 passed / 0 failed; progressive smoke PASS 23/23 with boot <3 s and cached start <1 s; state contract exit 0"
+    },
+    "claim_ceiling": "Honest-negative operational diagnosis plus a bounded audit-readiness package. REPORTED-ONLY content-family measurements stay reported-only; no frozen bar scored, no serve verdict re-run, no gate minted, no run labelled accepted or rejected, no human-gate claim.",
+    "continue_recommended": true
+  }
 }

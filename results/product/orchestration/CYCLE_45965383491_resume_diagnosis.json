@@ -1,0 +1,99 @@
+{
+  "schema": "product-resume-diagnosis/2",
+  "run_id": "45965383491",
+  "predecessor_run_id": "45954836439",
+  "resuming_run_id": "45965956701",
+  "direction_version": 68,
+  "generated_at": "2026-11-27T08:33:00Z",
+  "mode": "OPERATIONAL RESUME from persisted producer snapshot of run 45965383491 (branch operational-resume at 2301799c); inherited work preserved, not restarted",
+  "orchestration": {
+    "classification": "TEAM_JOB_LANE_CYCLE_STEP_FAILED_NO_GATE",
+    "failed_job": "team",
+    "failed_step": "Run lane cycle",
+    "raw_snapshot": "results/product/orchestration/CYCLE_45965383491_run_jobs_raw.json",
+    "logs_available": false,
+    "logs_endpoint_status": 403,
+    "annotations_endpoint_status": 404,
+    "mechanism": {
+      "status": "OBSERVED_TEAM_STEP_FAILURE_NO_QUANTUM",
+      "evidence_basis": "step_timing",
+      "annotation_observed": false,
+      "logs_endpoint_status": 403,
+      "annotations_endpoint_status": 404,
+      "log_level_cause": "UNAVAILABLE_HTTP_403",
+      "quantum_expired": false,
+      "team_step_seconds": 151.0,
+      "team_step_window": [
+        "2026-11-27T08:25:51Z",
+        "2026-11-27T08:28:22Z"
+      ],
+      "kill_window_seconds": [
+        2700,
+        2715
+      ],
+      "in_kill_window": false,
+      "why_this_signature": "The public GitHub REST jobs record shows the team job's 'Run lane cycle' step failing after 151.0 s, far outside the [2700, 2715] s poll window of run-ox-with-retry.sh's LEX work quantum. This run is therefore a different failure mode from the two preceding audit deaths, both of which ended at 2705.0 s (runs 45947662468 and 45954836439). No exit code is asserted: the logs endpoint answered HTTP 403 and the annotations endpoint HTTP 404, so no log line or check-run annotation was read.",
+      "competing_causes_not_excluded": [
+        "a fast model-auth/provider failure inside the lane-cycle agent",
+        "an agent-side error that returned before producing any durable delta"
+      ],
+      "not_claimed": [
+        "no job-log text was read",
+        "no exit code is inferred from this step timing",
+        "the run is not labelled rejected",
+        "no producer-side validation defect is inferred from skipped validation steps"
+      ]
+    },
+    "team": {
+      "conclusion": "failure",
+      "lane_cycle_step_conclusion": "failure",
+      "lane_cycle_step_seconds": 151.0,
+      "state_validation_conclusion": "skipped",
+      "scope_enforcement_conclusion": "skipped",
+      "persist_conclusion": "success",
+      "snapshot_head": "2301799cef1483cc29fc517278a78ae4c3deb00b",
+      "snapshot_ref": "refs/heads/cycle/core/product/45965383491/team"
+    },
+    "audit": {
+      "conclusion": "skipped",
+      "independent_audit_step_conclusion": null,
+      "independent_audit_step_seconds": null,
+      "enforce_gate_step": "skipped",
+      "persist_step": "skipped",
+      "gate_file_written": false,
+      "skipped": true
+    },
+    "integrate": {
+      "conclusion": "skipped"
+    },
+    "resilience": {
+      "conclusion": "success",
+      "effect": "dispatched this operational resume"
+    }
+  },
+  "validation": {
+    "status": "NO_PRODUCER_VALIDATION_RUN",
+    "detail": "Workflow steps 7 'Validate active MVP producer state' and 9 'Enforce lane write scope' were skipped because step 6 failed. This is not evidence of a state-contract failure. The inherited state contract is re-checked independently by product/audit_readiness.py on this producer run.",
+    "state_contract_inherited": "product/state_contract.py --check --direction-version 68 exits 0 on the inherited snapshot (re-verified this cycle)"
+  },
+  "durable_delta": {
+    "classification": "ZERO_DURABLE_DELTA",
+    "changed_files": 0,
+    "snapshot_head": "2301799cef1483cc29fc517278a78ae4c3deb00b",
+    "predecessor_head": "2301799cef1483cc29fc517278a78ae4c3deb00b",
+    "changed_paths_sample": [],
+    "note": "The persisted producer snapshot of run 45965383491 is byte-identical to the snapshot published by run 45954836439. The inherited substantive work is preserved verbatim and is not restarted."
+  },
+  "audit_budget": {
+    "note": "The two preceding audits died at 2705.0 s of a 2700 s work quantum. The bounded re-derivation entry point published with run 45954836439 and reused here is one command: python3 product/audit_readiness.py --run-id 45965956701 --out results/product/audit_readiness/CYCLE_45965956701_audit_readiness.json",
+    "reported_only": true
+  },
+  "adjudication": {
+    "status": "UNADJUDICATED",
+    "accepted": false,
+    "rejected": false,
+    "gate_minted": false,
+    "detail": "No audit job ran for run 45965383491, no gate file exists in any checked ref, and lab/product was not advanced by this run."
+  },
+  "continue_recommended": true
+}
