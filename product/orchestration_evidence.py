@@ -304,13 +304,41 @@ def read_wrapper_quantum(root: Path = REPO_ROOT) -> int:
     return int(match.group(1)) if match else DEFAULT_WRAPPER_QUANTUM_SECONDS
 
 
+#: Branch names for :func:`quantum_analysis`'s ``note``.  They exist so a
+#: reader (and a test) can assert WHICH arithmetic produced the prose instead of
+#: trusting that the prose matches the numbers beside it.
+QUANTUM_NOTE_BRANCHES = (
+    "no_agent_step",
+    "within_quantum",
+    "cancelled_past_quantum",
+    "failure_at_or_past_quantum",
+    "other_past_quantum",
+)
+
+
 def quantum_analysis(steps: list[dict], quantum_s: int) -> dict:
     """Did the wrapper's own work quantum plausibly stop the agent step?
 
-    Pure function.  A step conclusion of ``cancelled`` combined with a duration
-    ABOVE the quantum is the sharpest available evidence that the wrapper's rc-78
-    watchdog did not fire: it polls every 15 s and returns 78 the moment the
-    budget is spent, so it cannot produce a longer, cancelled step.
+    Pure function.  Two independent facts decide the note, and each branch
+    states only what its own arithmetic shows:
+
+    * a step conclusion of ``cancelled`` combined with a duration ABOVE the
+      quantum is the sharpest available evidence that the wrapper's rc-78
+      watchdog did NOT fire — it polls every 15 s and returns 78 the moment the
+      budget is spent, so it cannot produce a longer, cancelled step;
+    * a step conclusion of ``failure`` at or above the quantum is the shape
+      rc-78 DOES produce, because the watchdog ends the agent at the budget.
+      The public check-run annotations (collected separately by
+      :func:`diagnose`) pin the exit code; this function only reports whether
+      the duration is consistent with it.
+
+    Cycle 45927143158 fixed the third branch: every branch used to publish the
+    ``cancelled_past_quantum`` prose, so an audit job that failed AT the quantum
+    shipped a note claiming it had "concluded 'cancelled'" and that rc-78
+    "cannot have produced this outcome", contradicting the
+    ``quantum_plausibly_fired: true`` written beside it.  The note is now a
+    pure function of the same fields, and ``quantum_plausibly_fired`` keeps its
+    original semantics so no committed verdict changes meaning.
     """
     agent = next(
         (s for s in steps if (s.get("job") or "").lower() == "audit"
@@ -322,27 +350,59 @@ def quantum_analysis(steps: list[dict], quantum_s: int) -> dict:
             "wrapper_quantum_s": quantum_s,
             "agent_step_found": False,
             "quantum_plausibly_fired": None,
+            "note_branch": "no_agent_step",
             "note": "no audit agent step in the record; nothing to compare against the quantum",
         }
     duration = agent.get("duration_s")
+    conclusion = agent.get("conclusion")
     exceeded = isinstance(duration, (int, float)) and duration >= quantum_s
     fired = bool(
-        agent.get("conclusion") == "failure"
-        or (agent.get("conclusion") == "cancelled" and not exceeded)
+        conclusion == "failure"
+        or (conclusion == "cancelled" and not exceeded)
     )
-    return {
-        "wrapper_quantum_s": quantum_s,
-        "agent_step_found": True,
-        "agent_step_conclusion": agent.get("conclusion"),
-        "agent_step_duration_s": duration,
-        "duration_exceeded_quantum": exceeded,
-        "quantum_plausibly_fired": fired if exceeded else None,
-        "note": (
+    if not exceeded:
+        branch = "within_quantum"
+        note = (
+            "the step finished INSIDE the wrapper quantum, so the duration alone "
+            "supports no rc-78 LEX_WORK_QUANTUM_EXPIRED inference; when the "
+            "public check-run annotations were collected they carry the wrapper's "
+            "exit code and decide this branch instead of the arithmetic here."
+        )
+    elif conclusion == "cancelled":
+        branch = "cancelled_past_quantum"
+        note = (
             "the step ran LONGER than the wrapper quantum and still concluded 'cancelled', "
             "so the rc-78 LEX_WORK_QUANTUM_EXPIRED watchdog (which polls every 15 s and "
             "returns 78) cannot have produced this outcome. Job logs are admin-only over "
             "the public API, so the actual cause is not attributable from the lane."
-        ),
+        )
+    elif conclusion == "failure":
+        branch = "failure_at_or_past_quantum"
+        note = (
+            "the step ran at or beyond the wrapper quantum and concluded 'failure', "
+            "which is the shape the rc-78 LEX_WORK_QUANTUM_EXPIRED watchdog produces "
+            "when it ends the agent at the budget; the duration is CONSISTENT with "
+            "that exit, not evidence against it. Job logs are admin-only over the "
+            "public API, so the lane pins the exit code from the public check-run "
+            "annotations recorded with this report, not from the logs."
+        )
+    else:
+        branch = "other_past_quantum"
+        note = (
+            f"the step ran at or beyond the wrapper quantum and concluded "
+            f"{conclusion!r}, so the rc-78 watchdog did not end it at the budget; "
+            "job logs are admin-only over the public API, so the actual cause is "
+            "not attributable from the lane."
+        )
+    return {
+        "wrapper_quantum_s": quantum_s,
+        "agent_step_found": True,
+        "agent_step_conclusion": conclusion,
+        "agent_step_duration_s": duration,
+        "duration_exceeded_quantum": exceeded,
+        "quantum_plausibly_fired": fired if exceeded else None,
+        "note_branch": branch,
+        "note": note,
     }
 
 

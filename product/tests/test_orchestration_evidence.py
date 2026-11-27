@@ -230,6 +230,61 @@ def test_quantum_analysis_ignores_the_producer_step():
 
 
 # --------------------------------------------------------------------------
+# the note must be a function of the arithmetic beside it
+#
+# Cycle 45927143158: run 45921358503's audit step concluded 'failure' after
+# 2705 s with public annotations reading exit 78 / LEX_WORK_QUANTUM_EXPIRED, yet
+# the published artifact carried the 'cancelled' prose claiming rc-78 "cannot
+# have produced this outcome" next to quantum_plausibly_fired: true.  A note
+# that contradicts its own row is the requirement-33 defect class, so each
+# branch is now pinned.
+# --------------------------------------------------------------------------
+
+def test_a_failed_step_at_the_quantum_publishes_the_consistent_note():
+    out = oe.quantum_analysis([_step("audit", AUDIT_AGENT, "failure", 2705.0)], 2700)
+    assert out["duration_exceeded_quantum"] is True
+    assert out["quantum_plausibly_fired"] is True
+    assert out["note_branch"] == "failure_at_or_past_quantum"
+    assert "concluded 'cancelled'" not in out["note"]
+    assert "cannot have produced" not in out["note"]
+    assert "CONSISTENT" in out["note"]
+
+
+def test_the_cancelled_note_is_still_the_only_note_that_denies_rc78():
+    """The original, load-bearing claim must not be softened by the repair."""
+    out = oe.quantum_analysis([_step("audit", AUDIT_AGENT, "cancelled", 3299.0)], 2700)
+    assert out["note_branch"] == "cancelled_past_quantum"
+    assert out["quantum_plausibly_fired"] is False
+    assert "cannot have produced this outcome" in out["note"]
+
+
+def test_a_step_inside_the_quantum_claims_nothing_about_rc78():
+    out = oe.quantum_analysis([_step("audit", AUDIT_AGENT, "failure", 600.0)], 2700)
+    assert out["duration_exceeded_quantum"] is False
+    assert out["quantum_plausibly_fired"] is None
+    assert out["note_branch"] == "within_quantum"
+    assert "INSIDE the wrapper quantum" in out["note"]
+
+
+def test_a_successful_step_that_outran_the_quantum_is_not_called_rc78():
+    out = oe.quantum_analysis([_step("audit", AUDIT_AGENT, "success", 3000.0)], 2700)
+    assert out["quantum_plausibly_fired"] is False
+    assert out["note_branch"] == "other_past_quantum"
+    assert "did not end it at the budget" in out["note"]
+
+
+def test_every_note_branch_is_named_and_reachable():
+    seen = {
+        oe.quantum_analysis([], 2700)["note_branch"],
+        oe.quantum_analysis([_step("audit", AUDIT_AGENT, "failure", 600.0)], 2700)["note_branch"],
+        oe.quantum_analysis([_step("audit", AUDIT_AGENT, "cancelled", 3299.0)], 2700)["note_branch"],
+        oe.quantum_analysis([_step("audit", AUDIT_AGENT, "failure", 2705.0)], 2700)["note_branch"],
+        oe.quantum_analysis([_step("audit", AUDIT_AGENT, "success", 3000.0)], 2700)["note_branch"],
+    }
+    assert seen == set(oe.QUANTUM_NOTE_BRANCHES)
+
+
+# --------------------------------------------------------------------------
 # network-facing shell: never fatal, never a silent success
 # --------------------------------------------------------------------------
 

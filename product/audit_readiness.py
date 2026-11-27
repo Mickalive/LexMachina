@@ -408,6 +408,57 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
+    # Keyed by the RESUMING run id, like every other profile.  45921358503 is
+    # the awkward case: it is the resuming run of the previous profile above
+    # AND the snapshot this cycle resumes, so it cannot also be this profile's
+    # alias (aliases resolve to one profile only).  Look a cycle up by its own
+    # run id — 45927143158 here, 45921358503 for the previous cycle — and the
+    # resumed_run_id field records which snapshot is being verified.
+    "45927143158": {
+        "resumed_run_id": "45921358503",
+        "predecessor_run_id": "45921135544",
+        "raw": ORCH / "CYCLE_45921358503_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_45927143158_resume_diagnosis.json",
+        # The last committed producer report on the snapshot being resumed,
+        # and this resume's own report of record.
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_45921358503.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_45927143158.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        # Sixth verified shape of a no-gate run, and the first one where the
+        # PRODUCER side was entirely green: the team job passed validation,
+        # write scope and snapshot persistence, then the independent audit ran
+        # its full 2700 s work quantum and exited 78 with the public
+        # LEX_WORK_QUANTUM_EXPIRED annotation.  It is the same mechanism kind
+        # as the pinned default profile (40196023042) — an audit-job quantum
+        # expiry — so it reuses "observed" instead of inventing a sixth kind,
+        # and it now carries the raw job cross-check that kind lacked.
+        "mechanism_kind": "observed",
+        "failed_job": "audit",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "delta_kind": "committed",
+        "changed_files": 9,
+        "changed_paths_include": (
+            "product/audit_readiness.py",
+            "state/product.json",
+            "reports/product/CYCLE_45921358503.md",
+        ),
+        "cycle_test": "product/tests/test_cycle_45927143158.py",
+        "state_block": "cycle_45927143158_operational_resume",
+        # No new counter-content family this cycle: consume the accepted
+        # fixed-path family pins unchanged (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
     "45921135544": {"alias_of": "45921358503"},
 }
 
@@ -605,6 +656,119 @@ def check_posture() -> dict[str, Any]:
     )
 
 
+def _annotations_for_job(raw_doc: dict, job: dict) -> list[dict]:
+    """Annotations of one job from either committed snapshot shape.
+
+    Older committed snapshots key ``annotations`` by check-run/job id; the
+    newer ones store a flat list carrying ``check_run_id``.  Both are committed
+    evidence, so both are read — silently reading only one shape would turn the
+    other runs' snapshots into "no annotations exist".
+    """
+    ann = raw_doc.get("annotations")
+    if isinstance(ann, dict):
+        for key in (str(job.get("id")), job.get("id")):
+            if key in ann and isinstance(ann[key], list):
+                return [r for r in ann[key] if isinstance(r, dict)]
+        return []
+    if isinstance(ann, list):
+        jid = job.get("id")
+        return [a for a in ann if isinstance(a, dict)
+                and (a.get("check_run_id") == jid or a.get("job_id") == jid)]
+    return []
+
+
+def quantum_raw_problems(raw_path: Path, *, failed_job: str,
+                         quantum_seconds: int | None = None,
+                         exit_code: int | None = None) -> list[str]:
+    """Cross-check an observed work-quantum diagnosis against the raw job record.
+
+    Pure and offline: the raw snapshot is committed evidence, so the check runs
+    in the producer checkout and again in the audit worktree without a network
+    call.  Before this existed, ``mechanism_kind == "observed"`` validated only
+    the diagnosis's OWN self-reported fields — a diagnosis could assert a
+    quantum expiry and pass while the committed job records said something
+    else.  The cross-check is what makes the mechanism claim reproducible
+    (factory-wide requirement 33) rather than self-certifying.
+
+    Two shapes, because the failure really has two shapes:
+
+    * ``failed_job == "audit"`` — the producer side must be GREEN (lane cycle,
+      state validation and write scope all success) while the audit job failed
+      at ``Independent audit`` with its gate reader and snapshot persist
+      skipped, and ``integrate`` skipped;
+    * ``failed_job == "team"`` — the lane-cycle step must have failed with
+      state validation and write scope skipped and the audit job skipped
+      entirely.
+
+    In both shapes the failing job's public check-run annotations must carry
+    the wrapper's exit code and, when a quantum is claimed, the literal
+    ``LEX_WORK_QUANTUM_EXPIRED seconds=<n>`` line: those annotations are the
+    only public carrier of the exit code, because the job logs answer HTTP 403.
+    """
+    problems: list[str] = []
+    try:
+        raw_doc = json.loads(Path(raw_path).read_text(encoding="utf-8"))
+    except Exception as exc:  # noqa: BLE001 - any read/parse failure is a problem
+        return [f"raw_snapshot_unreadable:{exc.__class__.__name__}"]
+    jobs = {j.get("name"): j for j in raw_doc.get("jobs") or []
+            if isinstance(j, dict) and j.get("name")}
+    if not jobs:
+        return ["raw_snapshot_has_no_jobs"]
+
+    def steps(job: dict) -> dict[str, Any]:
+        return {s.get("name"): s.get("conclusion")
+                for s in job.get("steps") or [] if isinstance(s, dict)}
+
+    team = jobs.get("team") or {}
+    audit = jobs.get("audit") or {}
+    tsteps, asteps = steps(team), steps(audit)
+
+    if failed_job == "audit":
+        if team.get("conclusion") != "success":
+            problems.append("raw_team_not_success")
+        for name in ("Run lane cycle", "Validate active MVP producer state",
+                     "Enforce lane write scope"):
+            if tsteps.get(name) != "success":
+                problems.append(f"raw_team_step_not_success:{name}")
+        if audit.get("conclusion") != "failure":
+            problems.append("raw_audit_not_failure")
+        if asteps.get("Independent audit") != "failure":
+            problems.append("raw_independent_audit_not_failure")
+        if asteps.get("Enforce audit scope and read gate") != "skipped":
+            problems.append("raw_gate_reader_not_skipped")
+        if asteps.get("Persist audit snapshot") != "skipped":
+            problems.append("raw_audit_persist_not_skipped")
+        subject = audit
+    else:
+        if team.get("conclusion") != "failure":
+            problems.append("raw_team_not_failure")
+        if tsteps.get("Run lane cycle") != "failure":
+            problems.append("raw_lane_cycle_not_failure")
+        if tsteps.get("Validate active MVP producer state") != "skipped":
+            problems.append("raw_state_validation_not_skipped")
+        if tsteps.get("Enforce lane write scope") != "skipped":
+            problems.append("raw_scope_step_not_skipped")
+        if audit and audit.get("conclusion") != "skipped":
+            problems.append("raw_audit_not_skipped")
+        subject = team
+
+    integrate = jobs.get("integrate")
+    if integrate is not None and integrate.get("conclusion") != "skipped":
+        problems.append("raw_integrate_not_skipped")
+
+    rows = _annotations_for_job(raw_doc, subject)
+    if not rows:
+        problems.append("raw_subject_annotations_missing")
+    else:
+        text = " | ".join(str(r.get("message") or "") for r in rows)
+        if exit_code is not None and f"exit code {exit_code}" not in text:
+            problems.append("raw_exit_code_annotation_missing")
+        if quantum_seconds is not None and (
+                f"LEX_WORK_QUANTUM_EXPIRED seconds={quantum_seconds}" not in text):
+            problems.append("raw_quantum_annotation_missing")
+    return problems
+
+
 def check_resumed_diagnosis() -> dict[str, Any]:
     raw = Path(p("raw")) if p("raw") else None
     resume_diag = Path(p("resume_diag", RESUME_DIAG))
@@ -640,6 +804,15 @@ def check_resumed_diagnosis() -> dict[str, Any]:
             problems.append("exit_code")
         if (orch.get("audit") or {}).get("gate_file_written") is not False:
             problems.append("gate_file_written")
+        # The fields above are the diagnosis's own account of itself.  The
+        # committed job records are what make the claim reproducible, so the
+        # quantum mechanism now requires both to agree (cycle 45927143158).
+        if raw is not None and raw.is_file():
+            problems.extend(quantum_raw_problems(
+                raw, failed_job=failed_job, quantum_seconds=quantum_seconds,
+                exit_code=exit_code))
+        else:
+            problems.append("raw_snapshot_missing")
     elif mechanism_kind == "observed_log":
         # Third real-world failure mode, observed on runs 40263308953 and
         # 40263483436: the logs endpoint answered HTTP 200, the committed job

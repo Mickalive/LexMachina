@@ -1,0 +1,196 @@
+{
+  "schema": "product-operational-resume-diagnosis/1",
+  "run_id": "45921358503",
+  "resumed_by_run_id": "45927143158",
+  "predecessor_run_id": "45921135544",
+  "direction_version": 68,
+  "mode": "OPERATIONAL RESUME from persisted producer snapshot of run 45921358503",
+  "orchestration": {
+    "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+    "failed_job": "audit",
+    "failed_job_id": 140256813677,
+    "failed_step": "Independent audit",
+    "raw_snapshot": "results/product/orchestration/CYCLE_45921358503_run_jobs_raw.json",
+    "classification_artifact": "results/product/orchestration/CYCLE_45921358503_orchestration.json",
+    "mechanism": {
+      "status": "OBSERVED_QUANTUM_EXPIRED",
+      "logs_available": false,
+      "logs_endpoint_status": 403,
+      "quantum_expired": true,
+      "quantum_seconds": 2700,
+      "exit_code": 78,
+      "audit_step_conclusion": "failure",
+      "independent_audit_step_seconds": 2705.0,
+      "annotations_collected": true,
+      "annotation_evidence": [
+        "Process completed with exit code 78.",
+        "Agent quantum ended cleanly; workflow must snapshot and resume rather than hang.",
+        "LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2395"
+      ],
+      "surviving_named_branches": [
+        "LEX_WORK_QUANTUM_EXPIRED"
+      ]
+    },
+    "team": {
+      "job_conclusion": "success",
+      "job_id": 140252617686,
+      "started_at": "2026-11-27T01:13:56Z",
+      "completed_at": "2026-11-27T01:27:29Z",
+      "steps": {
+        "validate_working_base": "success",
+        "mount_accepted_peer_evidence": "success",
+        "install_opencode": "success",
+        "run_lane_cycle": "success",
+        "validate_active_mvp_producer_state": "success",
+        "clean_generated_junk": "success",
+        "enforce_lane_write_scope": "success",
+        "persist_team_snapshot": "success"
+      }
+    },
+    "steps": {
+      "validate_working_base": "success",
+      "mount_accepted_peer_evidence": "success",
+      "install_opencode": "success",
+      "run_lane_cycle": "success",
+      "validate_active_mvp_producer_state": "success",
+      "enforce_lane_write_scope": "success",
+      "persist_team_snapshot": "success",
+      "independent_audit": "failure",
+      "enforce_audit_scope_and_read_gate": "skipped",
+      "persist_audit_snapshot": "skipped"
+    },
+    "audit": {
+      "job_conclusion": "failure",
+      "skipped": false,
+      "independent_audit_step": "failure",
+      "gate_reader_step": "skipped",
+      "persist_step": "skipped",
+      "ref_exists": false,
+      "gate_file_written": false
+    },
+    "integrate": {
+      "skipped": true
+    },
+    "resilience": {
+      "job_conclusion": "success",
+      "note": "the resilience job ran its normal recover-and-wake step after the audit failure; it produced no gate and promoted nothing"
+    },
+    "model_health": {
+      "healthy": true,
+      "resolved_model": "opencode/mimo-v2.6-flash-free",
+      "preferred_model": "opencode/x-preview-f-free",
+      "healthy_model_count": 4,
+      "source": "state/model_health.json at head sha e1a98505b22a9b8ba5eb866721b30346b632e2ff, read through the committed raw snapshot"
+    },
+    "diagnosis": {
+      "what_is_established": "The producer side of run 45921358503 was fully green: the team job passed lane validation, peer mount, OpenCode install, the lane-cycle agent step, state validation, write-scope enforcement and snapshot persistence. The independent audit job then ran 'Independent audit' for 2705 s and failed with wrapper exit 78 (LEX_WORK_QUANTUM_EXPIRED seconds=2700), after which the gate reader and audit-snapshot persist steps were skipped, no .../audit ref exists, and integrate was skipped.",
+      "what_is_not_established": "The audit job's logs are admin-only (HTTP 403), so what the auditor was DOING during those 2705 s is not observable from this lane. No verdict about the producer's snapshot can be read from a run that produced no gate: the snapshot is UNADJUDICATED, not rejected.",
+      "failure_class": "orchestration/work-quantum, not product, not validation, not write-scope",
+      "not_claimed": [
+        "no audit verdict (there is none)",
+        "no claim that the snapshot failed validation - every team step succeeded",
+        "no claim about the auditor's model, prompt or progress",
+        "no quantum expiry on the producer side (the team step finished in 813 s)"
+      ]
+    }
+  },
+  "durable_delta": {
+    "classification": "COMMITTED_DELTA",
+    "changed_files": 9,
+    "snapshot_head": "c415c9d9aebe4e8828e918b0fab4ebf6535c0282",
+    "predecessor_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+    "team_ref": "c415c9d9aebe4e8828e918b0fab4ebf6535c0282",
+    "team_attempt_1_ref": "c415c9d9aebe4e8828e918b0fab4ebf6535c0282",
+    "lab_product_ref": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+    "audit_ref": "",
+    "artifacts_named_for_run": 5,
+    "changed_paths_sample": [
+      "product/audit_readiness.py",
+      "product/tests/test_cycle_40284658455.py",
+      "product/tests/test_cycle_45921358503.py",
+      "reports/product/CYCLE_45921358503.md",
+      "results/product/audit_readiness/CYCLE_45921358503_audit_readiness.json",
+      "results/product/orchestration/CYCLE_45921135544_run_jobs_raw.json",
+      "results/product/orchestration/CYCLE_45921358503_resume_diagnosis.json",
+      "results/product/progressive_smoke/CYCLE_45921358503_progressive_smoke.json",
+      "state/product.json"
+    ],
+    "note": "The snapshot's own delta is preserved exactly as published; this resume does not rewrite it and does not re-derive it."
+  },
+  "validation_failure_on_snapshot": {
+    "classification": "NONE_SNAPSHOT_INDUCED",
+    "reproduced_command": "python3 -m pytest product/tests -q",
+    "observed_on_snapshot": "211 failed, 1519 passed, 23 skipped in 294.83s",
+    "control_command": "git worktree add <tmp> 7be4480e && python3 -m pytest product/tests -q   # accepted base, same environment",
+    "observed_on_control": "213 failed, 1511 passed, 23 skipped in 290.80s",
+    "set_relation": {
+      "snapshot_only_failures": [],
+      "base_only_failures": [
+        "product/tests/test_cycle_40284658455.py::test_accepted_pointer_satisfies_both_halves_and_posture_stays_fail_closed",
+        "product/tests/test_cycle_40284658455.py::test_no_gate_exists_for_the_executing_or_resumed_run"
+      ],
+      "verdict": "SNAPSHOT_INTRODUCES_NO_NEW_FAILING_TEST"
+    },
+    "artifact": "results/product/orchestration/CYCLE_45927143158_full_suite_baseline.json",
+    "interpretation": "The inherited snapshot carries NO failing test that the accepted base does not already carry; the only difference is the two supersession-stale failures it repaired. The residue is legacy/174k-artifact-dependent and state-register-retention work, is pre-existing at the accepted base, and is NOT this cycle's claim set - the bounded MVP core pytest set is green.",
+    "not_claimed_as_remote_cause": true,
+    "repaired_by": null
+  },
+  "accepted_pointer": {
+    "accepted_run_id": "CYCLE_40284658455",
+    "accepted_commit": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+    "both_halves_verified_this_cycle": true,
+    "half_1": "results/audit/product/CYCLE_40284658455_GATE.json: gate=PASS, safe_to_integrate=true, required_fixes=[]",
+    "half_2": "origin/lab/product head 7be4480ed3ca623b77ea082404ca3b5b7ac5ee83 is the 'accept product cycle 40284658455' commit",
+    "prior_pointer": "unchanged this cycle; cycle 45921358503 already advanced it from CYCLE_40269774540 / 5adaa66d and this resume re-verifies both halves rather than re-advancing it"
+  },
+  "repairs_this_cycle": [
+    "persisted the public run/jobs/annotation record for 45921358503 under results/product/orchestration/CYCLE_45921358503_run_jobs_raw.json through the new committed fetcher product/run_jobs_snapshot.py, so the cross-check an auditor needs is re-runnable from the tree instead of re-fetched ad hoc",
+    "committed the classification artifact results/product/orchestration/CYCLE_45921358503_orchestration.json (AUDIT_STEP_FAILED_NO_GATE, surviving branch LEX_WORK_QUANTUM_EXPIRED, exit 78)",
+    "fixed a requirement-33 contradiction in product/orchestration_evidence.py::quantum_analysis: every branch published the cancelled-past-quantum prose, so this run's failure-at-quantum row shipped a note claiming it had 'concluded cancelled' and that rc-78 'cannot have produced this outcome' next to quantum_plausibly_fired=true; the note is now a pure function of the same fields (note_branch) and quantum_plausibly_fired keeps its original semantics",
+    "added the raw-snapshot cross-check to the observed (work-quantum) mechanism in product/audit_readiness.py, so an audit-quantum diagnosis must now be backed by the committed job records: green team steps for failed_job=audit, failed lane cycle plus skipped validation/write-scope for failed_job=team, gate reader and audit persist skipped, integrate skipped, and the public exit-78 / LEX_WORK_QUANTUM_EXPIRED annotations on the failing job",
+    "added dossier profile 45927143158 so python3 product/audit_readiness.py --run-id 45927143158 re-derives this snapshot's claims in bounded time instead of leaving the next auditor to rediscover them inside its own 2700 s quantum",
+    "published a full-suite baseline with the accepted-base control run (set relation, not matched counts) at results/product/orchestration/CYCLE_45927143158_full_suite_baseline.json",
+    "pinned all of the above with product/tests/test_cycle_45927143158.py and reports/product/CYCLE_45927143158.md"
+  ],
+  "runnable_verification": {
+    "progressive_smoke": {
+      "command": "python3 product/progressive_smoke.py --run-id 45927143158 --out results/product/progressive_smoke/CYCLE_45927143158_progressive_smoke.json",
+      "verdict": "PASS",
+      "checks": "23/23",
+      "timings_s": {
+        "server_boot_s": 0.817,
+        "start_s": 0.408,
+        "expand_s": 0.262,
+        "enrich_s": 0.256,
+        "bundle_s": 0.005
+      }
+    },
+    "instrument_tests": {
+      "command": "python3 -m pytest product/tests/test_orchestration_evidence.py -q",
+      "result": "46 passed in 0.49s",
+      "note": "includes the five new note-branch tests; the four pre-existing quantum tests are unchanged and still green"
+    },
+    "state_contract_cli": {
+      "command": "python3 product/state_contract.py --check --direction-version 68 --json",
+      "workflow_validation_ok": true,
+      "write_scope_ok": true,
+      "audit_artifact_ownership_ok": true,
+      "shadow_state_ok": true
+    },
+    "full_suite_baseline": {
+      "command": "python3 -m pytest product/tests -q   (snapshot and accepted-base control)",
+      "artifact": "results/product/orchestration/CYCLE_45927143158_full_suite_baseline.json",
+      "verdict": "SNAPSHOT_INTRODUCES_NO_NEW_FAILING_TEST"
+    },
+    "audit_readiness": {
+      "command": "python3 product/audit_readiness.py --run-id 45927143158 --out results/product/audit_readiness/CYCLE_45927143158_audit_readiness.json",
+      "note": "the dossier is generated FROM this diagnosis and hashes it, so it is produced after this file is finalized; its recorded result is read from the committed dossier, never asserted here"
+    }
+  },
+  "adjudication": {
+    "status": "UNADJUDICATED",
+    "accepted": false,
+    "claim_ceiling": "OPERATIONAL-RESUME AND AUDIT-READINESS EVIDENCE ONLY. Run 45921358503 produced no gate, so this run asserts no verdict about it: no live retrieval, legal usefulness, frozen bar, serve verdict, acceptance or human-gate readiness. continue_recommended stays true and human_gate_ready, machine_gate_ready, packet_admitted and ready_for_owner_session stay false."
+  }
+}
