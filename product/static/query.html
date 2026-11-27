@@ -562,6 +562,7 @@ async function waitJob(name,onTick){
 async function run(){
   const q=document.getElementById("q").value.trim(),n=document.getElementById("n").value;if(!q)return;
   document.getElementById("run").disabled=true;RUN_ID=null;BUNDLE=null;draw();
+  ENRICH_ANSWER_PAINTED=false;
   document.getElementById("prose").textContent="";document.getElementById("answerMeta").innerHTML="";
   status("Première page OpenCaseLaw…","1/3");
   try{
@@ -575,6 +576,46 @@ async function run(){
     document.getElementById("answerMeta").innerHTML='<div class="warn">'+esc(err.message)+'</div>';
   }finally{document.getElementById("run").disabled=false}
 }
+/* One poll of the enrich job.
+   The enrich leg is minutes long (measured 319.7 s live on 2026-11-27), so this
+   tick does two things QUERY_MAP_MVP 9A asks for:
+     * it names the leg that is running, instead of only counting seconds;
+     * it paints the sourced answer the moment the server publishes the answer
+       milestone, while the independent counter-authority pass keeps running.
+   A page-level function (rather than an inline closure) so the shipped page's
+   own behavioural contract can be exercised by product/verify_enrich_progress.js.
+   Returns true when this tick was the one that painted the answer. */
+let ENRICH_ANSWER_PAINTED=false;
+function enrichTick(s,j){
+  const det=((s.jobs||{}).enrich||{}).detail||{},stage=det.stage_label||"";
+  /* Terminal answer states are "ready" (generated) and "degraded" (honest
+     extractive fallback with its own disclosure).  BOTH are complete, sourced
+     answers the jurist may read while the counter pass runs — measured live on
+     2026-11-27 the fallback path was the one taken, so gating the milestone on
+     "ready" alone would have kept the fallback answer hidden until the very
+     end of the leg.  "pending" is the only non-milestone state. */
+  const astat=(s.answer&&s.answer.status)||"pending";
+  const haveAnswer=astat==="ready"||astat==="degraded";
+  let paintedNow=false;
+  if(haveAnswer&&!ENRICH_ANSWER_PAINTED){
+    ENRICH_ANSWER_PAINTED=true;paintedNow=true;
+    /* fetchBundle() repaints prose + source chips + counters from the published
+       milestone bundle; a failure here is harmless because the final fetch in
+       advance() still paints the complete bundle. */
+    fetchBundle().catch(()=>{});
+  }
+  if(haveAnswer){
+    status(s.counts.decisions+" décisions · réponse"+(astat==="degraded"?" (mode dégradé)":" prête")
+      +" · passe contradictoire"+(stage?" ("+stage+")":"")+" "+jobText(j),"3/3");
+  }else{
+    /* textContent, not innerHTML: the stage label is server data */
+    document.getElementById("prose").textContent="Analyse en cours… "
+      +(stage?stage+" · ":"")+jobText(j);
+    status(s.counts.decisions+" décisions · "+(stage||"génération")+" "+jobText(j),"3/3");
+  }
+  return paintedNow;
+}
+
 /* Drive an existing run to completion: expansion -> map -> answer/counter pass. */
 async function advance(firstTiming){
   const exp=await waitJob("expand",(s,j)=>{
@@ -588,10 +629,14 @@ async function advance(firstTiming){
   if((exp.s.jobs||{}).enrich?.status!=="running"){
     await getJSON("/api/query/enrich?run_id="+encodeURIComponent(RUN_ID));
   }
-  const fin=await waitJob("enrich",(s,j)=>{
-    document.getElementById("prose").textContent="Analyse en cours… "+jobText(j);
-    status(s.counts.decisions+" décisions · génération "+jobText(j),"3/3");
-  });
+  /* The enrich leg is minutes long (measured 319.7 s live on 2026-11-27), so
+     the answer is painted the moment the server publishes the answer
+     milestone and the contradicting-authority pass keeps running behind it.
+     QUERY_MAP_MVP 9A: "stream/generate the sourced answer" and "run the
+     adversarial/counter-authority pass ... after the provisional answer" are
+     separate milestones; the jurist must not stare at a frozen page while the
+     second one finishes. */
+  const fin=await waitJob("enrich",enrichTick);
   if(fin.job.status==="error")throw new Error("réponse: "+fin.job.error);
   const data=await fetchBundle(),final=data.bundle,ga=final.provenance?.generative_audit||{};
   const count=final.decisions.filter(isCounter).length;

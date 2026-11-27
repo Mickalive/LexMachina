@@ -1242,6 +1242,69 @@ def _refresh_relation_channel(bundle: dict, *, limit: int = 500) -> dict:
     return {"before": before, "after": after, "added": max(0, added)}
 
 
+#: Ordered legs of the enrich phase, in the order they actually run.  The
+#: names are published in ``provenance.timing.enrich_stages`` and surfaced by
+#: ``/api/query/status`` so the browser can say *which* leg is running instead
+#: of only how long it has been waiting (QUERY_MAP_MVP 9A: "stream/generate the
+#: sourced answer" and "run the adversarial/counter-authority pass ... after the
+#: provisional answer" are separate, independently-observable milestones).
+ENRICH_STAGES = (
+    "hydrate",
+    "probe",
+    "answer",
+    "coverage",
+    "counter_retrieval",
+    "counter_audit",
+    "span_gate",
+    "anchor_labels",
+    "counter_surface",
+    "relations",
+)
+
+
+class _StageClock:
+    """Wall-clock split of the enrich leg, published for the operator and the auditor.
+
+    ``mark(name)`` closes the previous leg and starts the next one.  The running
+    totals are handed to ``hook(name, info)``; the hook is deliberately isolated
+    (``Exception`` is swallowed) because a progress reporter must never be able
+    to fail the generation it is reporting on.
+    """
+
+    def __init__(self, hook: Any = None) -> None:
+        self._hook = hook
+        self._t0 = time.time()
+        self._last = self._t0
+        self.stages: dict[str, float] = {}
+
+    def mark(self, name: str, *, bundle: dict | None = None) -> dict:
+        now = time.time()
+        if name in self.stages:
+            # A failure path can re-enter the same boundary (the probe leg, for
+            # instance, is closed on both the success and the exception edge).
+            # The first split is the truthful one; nothing is double-counted and
+            # the running boundary is left alone so the NEXT stage still owns
+            # the elapsed time.
+            return {"stages": dict(self.stages), "stage": name,
+                    "elapsed_s": round(now - self._t0, 3)}
+        self.stages[name] = round(now - self._last, 4)
+        self._last = now
+        if self._hook is None:
+            return {"stages": dict(self.stages)}
+        info: dict[str, Any] = {
+            "stages": dict(self.stages),
+            "stage": name,
+            "elapsed_s": round(now - self._t0, 3),
+        }
+        if bundle is not None:
+            info["bundle"] = bundle
+        try:
+            self._hook(name, info)
+        except Exception:  # noqa: BLE001 - progress must never break generation
+            pass
+        return info
+
+
 def enrich_query_bundle(
     initial_bundle: dict,
     *,
@@ -1250,19 +1313,32 @@ def enrich_query_bundle(
     max_cites: int = 8,
     fixture_generation: bool = False,
     adversarial_retrieval: bool = True,
+    stage_hook: Any = None,
 ) -> dict:
     """Slow phase: lazily hydrate evidence, generate sourced answer, adversarially challenge it.
 
     Geometry is preserved byte-for-byte from the initial map.  Only answer,
     evidence and counter-authority fields are patched.
+
+    ``stage_hook`` (optional) is called as ``hook(stage_name, info)`` at the end
+    of every leg, where ``info`` carries the legs finished so far
+    (``info["stages"]``, seconds) and, on legs that leave a publishable bundle
+    behind, ``info["bundle"]``.  It exists because QUERY_MAP_MVP 9A requires the
+    answer to expose progress rather than block the map: measured live on
+    2026-11-27 the whole leg took 319.7 s and the operator had no way to tell
+    which part was running.  The hook must never be able to break generation —
+    every call is wrapped, so a raising/absent hook degrades to today's
+    single-shot behaviour.
     """
     t0 = time.time()
+    clock = _StageClock(stage_hook)
     timing_local_enrich = 0.0
     base_errors = validate_bundle(initial_bundle)
     if base_errors:
         raise ValueError(f"cannot enrich invalid bundle: {base_errors}")
     work = _merge_hydrated_evidence(initial_bundle, retrieval_mode=retrieval_mode, evidence_count=evidence_count)
     timing_local_enrich = time.time() - t0
+    clock.mark("hydrate")
 
     provider_diagnostics: dict[str, Any] = {}
     try:
@@ -1311,6 +1387,7 @@ def enrich_query_bundle(
                 runner=build_runner(budget_from_env()),
                 timeout=answer_timeout_from_env(),
             )
+        clock.mark("probe")  # 0.0 s in fixture mode: no probe, no CLI call
         audited = run_generative_audit(
             work,
             provider=provider,
@@ -1337,12 +1414,19 @@ def enrich_query_bundle(
                 "product_answer_provider"
             ] = provider_diagnostics
     except Exception as exc:
+        clock.mark("probe")  # no-op when the probe leg already closed
         audited = _extractive_degraded_fallback(
             work,
             f"{type(exc).__name__}: {exc}",
             max_cites=max_cites,
             diagnostics=provider_diagnostics,
         )
+
+    # First publishable milestone: the answer exists (or the honest degraded
+    # fallback does) and the map has not moved.  The counter-authority pass
+    # still runs after this, so the operator is told the answer is ready while
+    # the adversarial leg continues instead of waiting for the whole leg.
+    clock.mark("answer")
 
     # Answer-completeness contract: the model intermittently dropped the
     # Art. 257d(2) effective-dating condition (see results/product/reality_check/
@@ -1366,6 +1450,11 @@ def enrich_query_bundle(
     if gap.get("fired"):
         audited["provenance"]["answer_gap_contract"] = gap
 
+    # The answer is now contract-complete (coverage + citation gap applied).
+    # Publishing it here is what lets the browser paint the sourced answer
+    # while the independent counter-authority pass is still running.
+    clock.mark("coverage", bundle=audited)
+
     # Independent adversarial RETRIEVAL, run only now that a provisional answer
     # exists to attack.  It appends unseen rows and never moves a rendered point.
     if adversarial_retrieval:
@@ -1375,6 +1464,8 @@ def enrich_query_bundle(
             max_new=0 if fixture_generation else 20,
             hydrate_top=0 if fixture_generation else 12,
         )
+    clock.mark("counter_retrieval")
+    if adversarial_retrieval:
         # Now that answer-conditioned retrieval has produced the FINAL bounded
         # source set, classify counters once. This replaces the old ordering
         # where the LLM classified the initial pool and a heuristic labelled
@@ -1384,6 +1475,7 @@ def enrich_query_bundle(
             fixture_mode=fixture_generation,
             fixture_findings=fixture_findings,
         )
+    clock.mark("counter_audit")
 
     # Adopted Frontier component (frontier-counter-label-emission, Outcome A,
     # audit CYCLE_39426324296 gate=PASS, repair heuristic_proposal_promotion_v1):
@@ -1407,6 +1499,7 @@ def enrich_query_bundle(
         )
         if not fixture_generation:
             audited = apply_counter_emission_repair(audited)
+    clock.mark("span_gate")
 
     # Adopted Frontier component (frontier-counter-anchor-classifier, Outcome A,
     # accept d236f5990): confirm-or-abstain on the counter labels the
@@ -1420,6 +1513,7 @@ def enrich_query_bundle(
             audited,
             qid=(initial_bundle.get("provenance") or {}).get("qid"),
         )
+    clock.mark("anchor_labels")
 
     # Direction v63 ordered item 7(a) — pool counter-surface coverage.  The
     # accepted cached falsification measured 0/14 known authorities signalled
@@ -1454,6 +1548,7 @@ def enrich_query_bundle(
         audited,
         qid=(initial_bundle.get("provenance") or {}).get("qid"),
     )
+    clock.mark("counter_surface")
 
     # The adversarial/generative stage must never move the already visible map.
     original_geo = {
@@ -1475,6 +1570,10 @@ def enrich_query_bundle(
 
     audited.setdefault("provenance", {})["phase"] = "complete"
     audited["provenance"]["product_audit_seam"] = AUDIT_SEAM
+    # Final leg: geometry guard + relation refresh + content annotation.  It is
+    # closed here so that sum(enrich_stages) ~= enrich_total_s and an auditor
+    # can attribute every second of the leg to exactly one stage.
+    clock.mark("relations")
     enriched_total_s = time.time() - t0
     audited["provenance"]["enrichment_latency_seconds"] = round(enriched_total_s, 3)
     # Enrichment runs strictly after the map is already rendered (QUERY_MAP_MVP
@@ -1485,7 +1584,9 @@ def enrich_query_bundle(
         "enrich_total_s": round(enriched_total_s, 4),
         "enrich_model_s": round(enriched_total_s - float(timing_local_enrich), 4),
         "enrich_non_model_s": round(float(timing_local_enrich), 4),
+        "enrich_stages": dict(clock.stages),
     })
+
     audited["provenance"]["latency_seconds_total"] = round(
         float(initial_bundle.get("provenance", {}).get("latency_seconds") or 0.0)
         + float(audited["provenance"]["enrichment_latency_seconds"]),

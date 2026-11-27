@@ -184,22 +184,70 @@ def _await_expand(run_id: str, limit_s: float = 900.0) -> None:
         time.sleep(0.25)
 
 
+#: Human-readable name of each enrich leg, for the browser status line.
+#: QUERY_MAP_MVP 9A asks for progress rather than a blocked page: measured live
+#: on 2026-11-27 one run spent 319.7 s inside ``enrich`` and the operator could
+#: only watch a counter, never tell whether the model, the adversarial
+#: retrieval or the counter-surface hydration was running.
+STAGE_LABELS = {
+    "hydrate": "chargement des sources",
+    "probe": "sélection du modèle",
+    "answer": "génération de la réponse",
+    "coverage": "contrôle des citations",
+    "counter_retrieval": "recherche des autorités contraires",
+    "counter_audit": "classement des autorités contraires",
+    "span_gate": "sélection des passages probants",
+    "anchor_labels": "confirmation des libellés",
+    "counter_surface": "balayage de la surface contredite",
+    "relations": "relations et contrôle final",
+}
+
+
+def _stage_detail(stage: str, info: dict) -> dict:
+    stages = dict(info.get("stages") or {})
+    return {
+        "stage": stage,
+        "stage_label": STAGE_LABELS.get(stage, stage),
+        "stages": stages,
+        "stage_elapsed_s": round(sum(stages.values()), 3),
+        "elapsed_s": info.get("elapsed_s"),
+    }
+
+
 def _enrich_task(run_id: str) -> None:
     _await_expand(run_id)
     record = _get(run_id)
     if record is None:
         return
+
+    def on_stage(stage: str, info: dict) -> None:
+        """Publish the running leg, and the answer as soon as it exists.
+
+        The bundle is only published once it validates, so a half-written
+        milestone can never be served to the browser; when it does not yet
+        validate the stage progress is still reported (progress reporting must
+        never be able to fail generation).
+        """
+        detail = _stage_detail(stage, info)
+        partial = info.get("bundle")
+        if partial is not None and not validate_bundle(partial):
+            detail["published"] = stage
+            _set_bundle(run_id, partial)
+        _set_job(run_id, "enrich", detail=detail)
+
     final = enrich_query_bundle(
         record["bundle"],
         retrieval_mode=record["mode"],
         fixture_generation=record["mode"] == "fixture",
+        stage_hook=on_stage,
     )
     errors = validate_bundle(final)
     if errors:
         raise RuntimeError(f"invalid enriched bundle: {errors}")
     _set_bundle(run_id, final)
     answer = final.get("answer", {})
-    _set_job(run_id, "enrich", detail={
+    timing = final.get("provenance", {}).get("timing", {})
+    detail = {
         "answer_status": answer.get("status"),
         "method": answer.get("method"),
         "model": answer.get("model"),
@@ -212,8 +260,12 @@ def _enrich_task(run_id: str) -> None:
         "counter_authorities": counter_authority_count(final.get("decisions") or []),
         "counter_status_bearing_rows": counter_status_bearing_count(
             final.get("decisions") or []),
-        "enrich_total_s": final.get("provenance", {}).get("timing", {}).get("enrich_total_s"),
-    })
+        "enrich_total_s": timing.get("enrich_total_s"),
+        "enrich_stages": timing.get("enrich_stages"),
+        "stage": "complete",
+        "stage_label": "terminé",
+    }
+    _set_job(run_id, "enrich", detail=detail)
 
 
 def run_status(run_id: str) -> dict:
