@@ -369,6 +369,52 @@ PROFILES: dict[str, dict[str, Any]] = {
                              / "self_minted_gate_40278460732_producer_"
                                "40283048553.QUARANTINED.json",
     },
+    "45947662468": {
+        "resumed_run_id": "45947662468",
+        "predecessor_run_id": "40284658455",
+        "raw": ORCH / "CYCLE_45947662468_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_45947662468_resume_diagnosis.json",
+        # Run 45947662468 DID commit a report, so the inherited report is its
+        # own; the resume's report of record is CYCLE_45954836439.md and the
+        # last accepted producer report on the lineage stays 40284658455's.
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_45947662468.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_45954836439.md",
+        # Fifth real failure mode: the TEAM job succeeded end to end and the
+        # AUDIT job's 'Independent audit' agent step died at 2705.0 s of the
+        # 2700 s work quantum, so the gate/persist steps were skipped.  No
+        # annotation (HTTP 404) and no job log (HTTP 403) is reachable, so the
+        # quantum is established from the step-timing signature, not read off
+        # a log line; 'observed' would overstate that.
+        "mechanism_kind": "observed_step_timing",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "independent_audit_step_seconds": 2705.0,
+        "changed_files": 19,
+        "changed_paths_include": (
+            "product/query/counter_evidence_span.py",
+            "results/product/post_hydration_recheck/CYCLE_45947662468.json",
+            "product/tests/test_post_hydration_content_recheck.py",
+        ),
+        "cycle_test": "product/tests/test_cycle_45954836439.py",
+        "state_block": "cycle_45947662468_operational_resume",
+        # The resumed cycle's own full-family re-probe (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_45947662468.json",
+        "content_family_expected": {
+            "n_bundles": 54,
+            "n_decisions": 5400,
+            "n_verified": 64,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    # The resuming run is the same snapshot under a different id; the dossier
+    # must publish the resumed run's claims either way.
+    "45954836439": {"alias_of": "45947662468"},
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -689,6 +735,74 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                 problems.append("raw_scope_step_not_failure")
         else:
             problems.append("raw_snapshot_missing")
+    elif mechanism_kind == "observed_step_timing":
+        # Fifth real failure mode, observed on run 45947662468: the TEAM job
+        # succeeded end to end, the AUDIT job's "Independent audit" agent step
+        # failed, and the two steps that write and read the gate were SKIPPED.
+        # The step wall time (2705.0 s) sits inside the [2700, 2715] kill
+        # window of run-ox-with-retry.sh's 15 s quantum poll, and the same
+        # 2705.0 s signature is already recorded in factory-wide requirement
+        # 10.  Neither a check-run annotation (HTTP 404) nor a job log (HTTP
+        # 403) is reachable from the producer, so this kind deliberately
+        # distinguishes STEP-TIMING evidence from log-read evidence: it
+        # asserts the quantum signature, never a log line.
+        mechanism = orch.get("mechanism") or {}
+        quantum_seconds = p("quantum_seconds", 2700)
+        exit_code = p("exit_code", 78)
+        step_seconds = p("independent_audit_step_seconds")
+        if mechanism.get("status") != "OBSERVED_STEP_TIMING_QUANTUM_SIGNATURE":
+            problems.append("mechanism_status")
+        if mechanism.get("evidence_basis") != "step_timing":
+            problems.append("evidence_basis")
+        if mechanism.get("annotation_observed") is not False:
+            problems.append("annotation_observed")
+        if mechanism.get("logs_endpoint_status") != 403:
+            problems.append("logs_endpoint_status")
+        if mechanism.get("annotations_endpoint_status") != 404:
+            problems.append("annotations_endpoint_status")
+        if mechanism.get("quantum_expired") is not True:
+            problems.append("quantum_expired")
+        if mechanism.get("quantum_seconds") != quantum_seconds:
+            problems.append("quantum_seconds")
+        if mechanism.get("exit_code") != exit_code:
+            problems.append("exit_code")
+        observed = mechanism.get("independent_audit_step_seconds")
+        if step_seconds is not None and observed != step_seconds:
+            problems.append("independent_audit_step_seconds")
+        if observed is not None and not (
+                quantum_seconds <= observed <= quantum_seconds + 30):
+            problems.append("independent_audit_step_outside_kill_window")
+        if mechanism.get("in_kill_window") is not True:
+            problems.append("in_kill_window")
+        if (orch.get("audit") or {}).get("gate_file_written") is not False:
+            problems.append("gate_file_written")
+        if (orch.get("audit") or {}).get("enforce_gate_step") != "skipped":
+            problems.append("gate_step_not_skipped")
+        if (orch.get("audit") or {}).get("persist_step") != "skipped":
+            problems.append("persist_step_not_skipped")
+        if raw is not None and raw.is_file():
+            raw_doc = _load(raw)
+            by_name = {j.get("name"): j for j in raw_doc.get("jobs") or []}
+            team = by_name.get("team") or {}
+            audit_job = by_name.get("audit") or {}
+            if team.get("conclusion") != "success":
+                problems.append("raw_team_not_success")
+            if audit_job.get("conclusion") != "failure":
+                problems.append("raw_audit_not_failure")
+            steps = {s.get("name"): s for s in audit_job.get("steps") or []}
+            ind = steps.get("Independent audit") or {}
+            if ind.get("conclusion") != "failure":
+                problems.append("raw_independent_audit_not_failure")
+            if ind.get("seconds") != step_seconds:
+                problems.append("raw_independent_audit_seconds")
+            if (steps.get("Enforce audit scope and read gate") or {}).get(
+                    "conclusion") != "skipped":
+                problems.append("raw_gate_step_not_skipped")
+            if (steps.get("Persist audit snapshot") or {}).get(
+                    "conclusion") != "skipped":
+                problems.append("raw_persist_step_not_skipped")
+        else:
+            problems.append("raw_snapshot_missing")
     else:
         # Raw-free resume: the public run/jobs snapshot is unavailable. The
         # only honest record is that the mechanism is unobserved; asserting a
@@ -743,6 +857,14 @@ def check_resumed_diagnosis() -> dict[str, Any]:
                    "on a producer-minted auditor-namespace gate file (no "
                    "work quantum reached, audit skipped), durable delta "
                    "present, run unadjudicated")
+    elif mechanism_kind == "observed_step_timing":
+        summary = (f"Resumed run {resumed_id}: team job succeeded end to "
+                   f"end, independent-audit agent step failed at "
+                   f"{p('independent_audit_step_seconds')} s inside the "
+                   f"{p('quantum_seconds', 2700)} s work-quantum kill "
+                   "window (step-timing evidence; logs 403 / annotations "
+                   "404, no log line read), gate and persist steps skipped, "
+                   "durable delta present, run unadjudicated")
     else:
         summary = (f"Resumed run {resumed_id}: raw run/jobs snapshot "
                    "unavailable (mechanism unobserved), team ref carries zero "
@@ -1098,10 +1220,11 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
     cf_expected = dict(p("content_family_expected", CONTENT_FAMILY_EXPECTED))
     live_state = _load(STATE)
 
-    # C1 wording follows the observed mechanism kind: the three real failure
-    # modes this dossier has now measured are a work-quantum expiry, an
-    # unobserved stop, and a model-gateway request rejection.  Wording all
-    # three as "work quantum" would misreport the last one.
+    # C1 wording follows the observed mechanism kind: the failure modes this
+    # dossier has now measured are a work-quantum expiry (annotation-read), a
+    # model-gateway request rejection (log-read), a producer scope violation,
+    # a step-timing quantum signature (no log reachable) and an unobserved
+    # stop.  Wording all of them as "work quantum" would misreport the rest.
     if mechanism_kind == "observed_log":
         log_ev_path = Path(p("lane_cycle_log_evidence",
                              LANE_CYCLE_LOG_EVIDENCE))
@@ -1149,6 +1272,22 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
             f"{p('exit_code', 78)}) before an independent gate could "
             "be written; observed from the public check-run "
             "annotations, not inferred.")
+        c1_artifacts = (
+            ([str(raw.relative_to(ROOT))] if raw is not None else [])
+            + [str(resume_diag.relative_to(ROOT))])
+    elif mechanism_kind == "observed_step_timing":
+        c1_claim = (
+            f"Run {resumed_id}'s team job succeeded end to end and its "
+            "independent-audit agent step failed after "
+            f"{p('independent_audit_step_seconds')} s, inside the "
+            f"[{p('quantum_seconds', 2700)}, "
+            f"{(p('quantum_seconds', 2700) or 0) + 30}] s kill window of "
+            "the workflow's 15 s work-quantum poll, so the gate-read and "
+            "audit-persist steps were skipped and no gate exists in any "
+            "ref. This is STEP-TIMING evidence from the run's own job "
+            "records (logs endpoint HTTP 403, annotations HTTP 404): no "
+            "log line or annotation was read, no log-level cause is "
+            "asserted, and the run is UNADJUDICATED, not rejected.")
         c1_artifacts = (
             ([str(raw.relative_to(ROOT))] if raw is not None else [])
             + [str(resume_diag.relative_to(ROOT))])

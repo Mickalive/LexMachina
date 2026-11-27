@@ -1,0 +1,155 @@
+{
+ "schema": "product-resume-diagnosis/2",
+ "run_id": "45947662468",
+ "predecessor_run_id": "40284658455",
+ "resuming_run_id": "45954836439",
+ "direction_version": 68,
+ "generated_at": "2026-11-27T07:14:52Z",
+ "mode": "OPERATIONAL RESUME from persisted producer snapshot of run 45947662468 (branch operational-resume at 21e2bfa2); inherited work preserved, not restarted",
+ "orchestration": {
+  "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+  "failed_job": "audit",
+  "failed_step": "Independent audit",
+  "raw_snapshot": "results/product/orchestration/CYCLE_45947662468_run_jobs_raw.json",
+  "logs_available": false,
+  "logs_endpoint_status": 403,
+  "annotations_endpoint_status": 404,
+  "mechanism": {
+   "status": "OBSERVED_STEP_TIMING_QUANTUM_SIGNATURE",
+   "evidence_basis": "step_timing",
+   "annotation_observed": false,
+   "log_level_cause": "UNAVAILABLE_HTTP_403",
+   "quantum_expired": true,
+   "quantum_seconds": 2700,
+   "exit_code": 78,
+   "independent_audit_step_seconds": 2705.0,
+   "independent_audit_step_window": [
+    "2026-11-27T06:08:41Z",
+    "2026-11-27T06:53:46Z"
+   ],
+   "kill_window_seconds": [
+    2700,
+    2715
+   ],
+   "in_kill_window": true,
+   "why_this_signature": "run-ox-with-retry.sh run_once() polls kill -0 every 15 s and kills the agent group at the first poll where elapsed >= LEX_AGENT_QUANTUM_SECONDS (2700), returning 78; the observed step wall time of 2705.0 s is inside [2700, 2715]. The same 2705.0 s signature is already recorded in factory-wide requirement 10 for run 40164459036 ('LEX_WORK_QUANTUM_EXPIRED seconds=2700; audit step ran 2705.0 s').",
+   "calibration_precedent": [
+    "factory-wide requirement 10 (run 40164459036, audit step 2705.0 s, rc 78)",
+    "factory-wide requirement 20 (run 38822688733, rc 78 LEX_WORK_QUANTUM_EXPIRED seconds=2700)"
+   ],
+   "competing_causes_not_excluded": [
+    "a model-auth/provider retry loop that happened to end inside the same window; the logs endpoint answered HTTP 403 and the annotations endpoint HTTP 404, so no log line or check-run annotation is available to this producer and no log-level cause is asserted"
+   ],
+   "not_claimed": [
+    "no job-log text was read",
+    "no exit code was observed directly from a log; exit 78 is the workflow's documented return for the quantum branch and is recorded as the value the timing signature implies, not as a log-read fact",
+    "the run is not labelled rejected"
+   ],
+   "logs_endpoint_status": 403,
+   "annotations_endpoint_status": 404
+  },
+  "team": {
+   "conclusion": "success",
+   "lane_cycle_step_conclusion": "success",
+   "lane_cycle_step_seconds": 1173.0,
+   "state_validation_conclusion": "success",
+   "scope_enforcement_conclusion": "success",
+   "persist_conclusion": "success",
+   "snapshot_head": "21e2bfa241b9c43462e26927df291607b76091e5",
+   "snapshot_ref": "refs/heads/cycle/core/product/45947662468/team",
+   "failed_step_seconds": null
+  },
+  "audit": {
+   "conclusion": "failure",
+   "enforce_gate_step": "skipped",
+   "persist_step": "skipped",
+   "gate_file_written": false,
+   "audit_ref_exists": false,
+   "gate_file_in_any_ref": false,
+   "note": "steps 6 and 7 were skipped because step 5 failed, so no gate was minted, no audit branch was pushed and the chain never reached integrate",
+   "independent_audit_step_seconds": 2705.0
+  },
+  "integrate": {
+   "conclusion": "skipped"
+  },
+  "resilience": {
+   "conclusion": "success",
+   "dispatched": "core-lane.yml workflow_dispatch with resume_from_run_id=45947662468, repair_round=0 (this run 45954836439)"
+  }
+ },
+ "validation": {
+  "producer_state_validation": "PASS (workflow step 7 'Validate active MVP producer state' conclusion=success; state/product.json direction_version=68, cycle_status=COMPLETE)",
+  "lane_write_scope": "PASS (workflow step 9 conclusion=success)",
+  "state_contract_recheck_this_resume": "python3 product/state_contract.py --check --direction-version 68 -> exit 0",
+  "note": "there is NO producer-side validation failure on run 45947662468; the only failing gate in the chain is the independent-audit agent step. The validation failure class named in the resume prompt is therefore resolved as 'none on the producer half' rather than invented."
+ },
+ "durable_delta": {
+  "classification": "COMMITTED_DELTA",
+  "predecessor_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+  "predecessor_label": "accept product cycle 40284658455 (both halves of requirement 4 verified by that accepted cycle)",
+  "snapshot_head": "21e2bfa241b9c43462e26927df291607b76091e5",
+  "snapshot_commit_subject": "product cycle 45947662468 repair 0",
+  "changed_files": 19,
+  "changed_paths_sample": [
+   "product/post_hydration_recheck_probe.py",
+   "product/query/counter_evidence_span.py",
+   "product/tests/test_cycle_45947662468.py",
+   "product/tests/test_post_hydration_content_recheck.py",
+   "reports/product/CYCLE_45947662468.md",
+   "results/product/counter_content_family/CYCLE_45947662468.json",
+   "results/product/offline_slice/45947662468-business-judgment-rule/business-judgment-rule.bundle.json",
+   "results/product/offline_slice/45947662468-business-judgment-rule/summary.json",
+   "results/product/offline_slice/45947662468-corporate-criminal-liability/corporate-criminal-liability.bundle.json",
+   "results/product/offline_slice/45947662468-corporate-criminal-liability/summary.json",
+   "results/product/offline_slice/45947662468-petty-theft-dismissal/petty-theft-dismissal.bundle.json",
+   "results/product/offline_slice/45947662468-petty-theft-dismissal/summary.json",
+   "results/product/offline_slice/45947662468-rent-default/rent-default.bundle.json",
+   "results/product/offline_slice/45947662468-rent-default/summary.json",
+   "results/product/post_hydration_recheck/CYCLE_45947662468.json",
+   "results/product/server_slice/45947662468/first_page.bundle.json",
+   "results/product/server_slice/45947662468/served.bundle.json",
+   "results/product/server_slice/45947662468/summary.json",
+   "state/product.json"
+  ],
+  "capability": "post-hydration frozen D1-D4 content recheck on the shipped emission path (product/query/counter_evidence_span.py::post_hydration_content_recheck)",
+  "status_of_inherited_work": "DELIVERED_AND_UNADJUDICATED - preserved verbatim, not restarted"
+ },
+ "audit_budget": {
+  "why": "Run 45947662468's independent audit died at the 2700 s work quantum before writing a gate. The next auditor must be able to re-derive this snapshot inside its own quantum, so every re-derivation entry point and its measured wall time is recorded here.",
+  "quantum_seconds": 2700,
+  "measured_this_resume": {
+   "state_contract_s": 0.062,
+   "progressive_smoke_s": 2.451,
+   "cycle_test_45947662468_s": 2.389,
+   "mvp_core_9_files_170_tests_s": 55.28,
+   "bounded_11_files_213_tests_s": 111.01,
+   "environment": "Python 3.14.4, numpy 2.5.5, scipy 1.18.1, scikit-learn 1.9.1, pytest 9.2.0"
+  },
+  "one_command_entry_point": "python3 product/audit_readiness.py --run-id 45947662468 --out results/product/audit_readiness/CYCLE_45954836439_audit_readiness.json",
+  "budget_estimate_s": 90,
+  "route_around": "Do NOT re-run the 54-bundle content-family probe or the flagship slice regeneration to audit this snapshot: both are already committed as artifacts and are re-hashed/re-structured by product/tests/test_cycle_45947662468.py (8 tests, 1.4 s). Re-running them inside the audit quantum is what the previous auditor appears to have spent its quantum on."
+ },
+ "adjudication": {
+  "status": "UNADJUDICATED",
+  "accepted": false,
+  "gate": "none",
+  "audit_branch": "none",
+  "accept_commit": "none",
+  "note": "Neither accepted nor rejected. Nothing in this file confers a gate, promotion or acceptance."
+ },
+ "validation_of_inherited_report": {
+  "report": "reports/product/CYCLE_45947662468.md",
+  "reproduced": [
+   "state contract exit 0",
+   "progressive smoke PASS 23/23 within budgets (server boot 0.81 s < 3 s, cached start 0.389 s < 1 s)",
+   "cycle test 8/8 green, including byte re-derivation of results/product/post_hydration_recheck/CYCLE_45947662468.json by its own instrument",
+   "bounded MVP core set 170 passed / 0 failed",
+   "no producer-minted gate for 45947662468 in any ref"
+  ],
+  "not_reproduced_as_stated": [
+   "the report's '229 passed / 0 failed across 13 test files' is not re-derivable as written: no committed artifact enumerates the 13 file paths, and the enumerated categories that ARE named reproduce as 213 passed across 11 files in this environment. The claim is recorded as UNENUMERATED rather than repeated. The substantive content of the claim (a green bounded regression suite with zero failures) does reproduce."
+  ],
+  "supersession": "This note supersedes only the 229/13 figure; every other claim in the inherited report stands as measured by that cycle and remains UNADJUDICATED pending independent audit."
+ },
+ "continue_recommended": true
+}
