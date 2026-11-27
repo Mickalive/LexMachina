@@ -1,0 +1,106 @@
+{
+  "schema": "product-operational-resume-diagnosis/1",
+  "kind": "OPERATIONAL RESUME of run 45965956701 (annotation-observed independent-audit quantum expiry)",
+  "direction_version": 68,
+  "run_id": "45965956701",
+  "predecessor_run_id": "45954836439",
+  "resuming_run_id": "45974506375",
+  "snapshot_ref": "origin/cycle/core/product/45965956701/team",
+  "snapshot_head": "2150d0a9a4568f9c5db1d77c7c8ce5326a826176",
+  "orchestration": {
+    "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+    "failed_job": "audit",
+    "failed_step": "Independent audit",
+    "team": {
+      "conclusion": "success",
+      "lane_cycle_step_conclusion": "success",
+      "lane_cycle_step_seconds": 872.0,
+      "state_validation_conclusion": "success",
+      "write_scope_conclusion": "success",
+      "persist_snapshot_conclusion": "success"
+    },
+    "audit": {
+      "conclusion": "failure",
+      "independent_audit_step_seconds": 2706.0,
+      "enforce_gate_step": "skipped",
+      "persist_step": "skipped",
+      "gate_file_written": false,
+      "skipped": false
+    },
+    "integrate": {"conclusion": "skipped"},
+    "resilience": {"conclusion": "success"},
+    "mechanism": {
+      "status": "OBSERVED_QUANTUM_EXPIRED",
+      "evidence_basis": "check_run_annotation",
+      "quantum_expired": true,
+      "quantum_seconds": 2700,
+      "exit_code": 78,
+      "in_kill_window": true,
+      "annotation_observed": true,
+      "logs_endpoint_status": 403,
+      "annotations_endpoint_status": 200,
+      "annotation_messages": [
+        "Process completed with exit code 78.",
+        "Agent quantum ended cleanly; workflow must snapshot and resume rather than hang.",
+        "LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2380"
+      ],
+      "evidence_ceiling": "The check-run annotations endpoint (HTTP 200) for the audit job id 140401537158 was read and explicitly records the quantum marker and process exit 78. The logs endpoint answered HTTP 403, so no job-log line is claimed. The 2706.0 s step wall time is derived from the public jobs record and is consistent with the [2700, 2730] s quantum kill window."
+    },
+    "remote_ref_check": {
+      "command": "git ls-remote --heads origin 'refs/heads/cycle/core/product/45965956701/*'",
+      "observed": [
+        "2150d0a9a4568f9c5db1d77c7c8ce5326a826176 refs/heads/cycle/core/product/45965956701/team",
+        "2150d0a9a4568f9c5db1d77c7c8ce5326a826176 refs/heads/cycle/core/product/45965956701/team-attempt-1"
+      ],
+      "audit_ref_present": false
+    },
+    "raw_snapshot": "results/product/orchestration/CYCLE_45965956701_run_jobs_raw.json",
+    "mechanism_chain_note": "This is the third observed 2700 s audit-quantum death in the chain after 45947662468 and 45954836439, and it follows the separate 151.0 s producer-side step failure of 45965383491. No run is labelled rejected, no exit code is inferred for the team job, and .github/** is not edited."
+  },
+  "validation_failure_of_record": {
+    "classification": "HEAD_PINNED_CYCLE_TEST_STALE_ON_COMMITTED_SNAPSHOT",
+    "detail": "product/tests/test_cycle_45965956701.py asserted `git rev-parse HEAD` equals the pre-commit snapshot head 2301799c. That held while the producer was still on the parent checkout, but the committed team snapshot is 2150d0a9, so the test fails in the audit checkout (observed locally: 1 failed, 6 passed after the pinned runtime was bootstrapped). This is a validation-wiring defect in the inherited artifact, not a product or frozen-bar failure.",
+    "repair": "replace the mutable HEAD assertion with immutable git-object identity checks: the resumed snapshot and predecessor commits must resolve to the same tree, and the snapshot commit must be an ancestor of the checkout HEAD. The zero-delta claim stays pinned by the diagnosis fields and is not weakened."
+  },
+  "durable_delta": {
+    "classification": "COMMITTED_DELTA",
+    "changed_files": 7,
+    "snapshot_head": "2150d0a9a4568f9c5db1d77c7c8ce5326a826176",
+    "predecessor_head": "2301799cef1483cc29fc517278a78ae4c3deb00b",
+    "changed_paths_sample": [
+      "product/audit_readiness.py",
+      "product/tests/test_cycle_45965956701.py",
+      "reports/product/CYCLE_45965956701.md",
+      "results/product/audit_readiness/CYCLE_45965956701_audit_readiness.json",
+      "results/product/orchestration/CYCLE_45965383491_resume_diagnosis.json",
+      "results/product/orchestration/CYCLE_45965383491_run_jobs_raw.json",
+      "state/product.json"
+    ],
+    "meaning": "The failed audit wrote no gate; the producer snapshot of 45965956701 is a real seven-file audit-readiness delta over 45954836439 and is preserved verbatim."
+  },
+  "inherited_work_preserved": [
+    "product/query/counter_evidence_span.py post-hydration content recheck (19-file delta of 45947662468)",
+    "results/product/counter_content_family/CYCLE_45947662468.json (54 bundles / 5400 decisions / 64 verified / 0 verified defective, REPORTED-ONLY)",
+    "45965383491 raw snapshot, zero-delta diagnosis and observed_team_step_failure profile",
+    "the byte-identical historical artifacts named above; none is deleted or overwritten"
+  ],
+  "adjudication": {
+    "status": "UNADJUDICATED",
+    "accepted": false,
+    "gate_file": null,
+    "accept_commit": null,
+    "reason": "No results/audit/product/CYCLE_45965956701_GATE.json exists in any observed ref, the audit gate and persist steps were skipped, and origin/lab/product has no 'accept product cycle 45965956701' commit."
+  },
+  "posture": {
+    "human_gate_ready": false,
+    "machine_gate_ready": false,
+    "packet_admitted": false,
+    "ready_for_owner_session": false,
+    "owner_decision_required": false,
+    "continue_recommended": true,
+    "frozen_bar_scored": false,
+    "serve_verdict_rerun": false
+  },
+  "claim_ceiling": "ORCHESTRATION DIAGNOSIS AND VALIDATION-WIRING REPAIR ONLY. The quantum marker is annotation-observed, not inferred from prose. No frozen bar, serve verdict, packet admission, live latency, answer quality or legal-usefulness claim is made; no run is labelled accepted or rejected.",
+  "continue_recommended": true
+}

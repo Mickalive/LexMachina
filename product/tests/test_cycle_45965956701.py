@@ -5,6 +5,14 @@ This test pins the *new* facts of record for this resume: the producer-side
 failure signature, the zero-delta snapshot relation, the fail-closed posture,
 and the one-command audit-readiness dossier.  It mints no gate and scores no
 frozen bar.
+
+AUTHORING CORRECTION (run 45974506375): the original identity assertion used
+`git rev-parse HEAD` and therefore only held in the pre-commit producer
+checkout.  Once run 45965956701's snapshot was committed at 2150d0a9, the
+assertion failed in the audit checkout.  It is replaced here by immutable
+git-object checks (same tree for the two snapshot commits, snapshot reachable
+from HEAD).  The zero-delta diagnosis fields remain unchanged; no historical
+result is deleted.
 """
 from __future__ import annotations
 
@@ -83,9 +91,20 @@ def test_snapshot_relates_to_its_predecessor_by_identity_not_cardinality():
     assert delta["classification"] == "ZERO_DURABLE_DELTA"
     assert delta["changed_files"] == 0
     assert delta["snapshot_head"] == delta["predecessor_head"] == SNAPSHOT_HEAD
-    head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(ROOT),
-                          capture_output=True, text=True, check=True)
-    assert head.stdout.strip() == SNAPSHOT_HEAD
+
+    # Immutable git-object identity, not the mutable checkout HEAD: the audit
+    # job checks out the committed team ref, not the pre-commit producer tree.
+    def _git(*args: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(["git", *args], cwd=str(ROOT),
+                              capture_output=True, text=True, check=False)
+
+    snapshot_tree = _git("rev-parse", f"{SNAPSHOT_HEAD}^{{tree}}")
+    predecessor_tree = _git("rev-parse", f"{delta['predecessor_head']}^{{tree}}")
+    assert snapshot_tree.returncode == 0, snapshot_tree.stderr
+    assert predecessor_tree.returncode == 0, predecessor_tree.stderr
+    assert snapshot_tree.stdout.strip() == predecessor_tree.stdout.strip()
+    ancestor = _git("merge-base", "--is-ancestor", SNAPSHOT_HEAD, "HEAD")
+    assert ancestor.returncode == 0, ancestor.stderr
 
 
 def test_producer_minted_no_audit_gate_for_either_run():

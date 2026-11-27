@@ -208,7 +208,8 @@
     "product/audit_readiness.py -> results/product/audit_readiness/CYCLE_45954836439_audit_readiness.json",
     "reports/product/CYCLE_45954836439.md",
     "results/product/orchestration/CYCLE_45965383491_run_jobs_raw.json -> results/product/orchestration/CYCLE_45965383491_resume_diagnosis.json -> product/audit_readiness.py -> product/tests/test_cycle_45965956701.py -> results/product/audit_readiness/CYCLE_45965956701_audit_readiness.json -> reports/product/CYCLE_45965956701.md",
-    "product/query/counter_evidence_span.py::post_hydration_content_recheck -> results/product/post_hydration_recheck/CYCLE_45947662468.json"
+    "product/query/counter_evidence_span.py::post_hydration_content_recheck -> results/product/post_hydration_recheck/CYCLE_45947662468.json",
+    "product/orchestration_snapshot.py -> results/product/orchestration/CYCLE_45965956701_run_jobs_raw.json -> results/product/orchestration/CYCLE_45965956701_resume_diagnosis.json -> product/audit_readiness.py -> product/tests/test_cycle_45974506375.py -> results/product/audit_readiness/CYCLE_45974506375_audit_readiness.json -> reports/product/CYCLE_45974506375.md"
   ],
   "evidence_tier": "REPRODUCED",
   "human_gate_ready": false,
@@ -229,7 +230,7 @@
   },
   "lane": "product",
   "machine_gate_ready": false,
-  "next_recommendation": "Direction v68 / FAST MVP, operational resume run 45954836439 of producer snapshot 45947662468 (PRODUCER_DELIVERED_UNADJUDICATED pending independent audit). WHAT THIS CYCLE DID: (1) DIAGNOSED the orchestration failure from the run's own REST job record - the team job succeeded end to end (Run lane cycle 1173.0 s, state validation PASS, write-scope PASS, snapshot 21e2bfa2 published) while the audit job's Independent audit agent step failed at 2705.0 s inside the 2700 s work-quantum kill window, so the gate-read and audit-persist steps were skipped and no gate exists in any ref; logs HTTP 403 and annotations HTTP 404 mean the quantum is STEP-TIMING evidence, not a log read, and a model-auth retry loop in the same window is recorded as a competing cause. (2) CONFIRMED there is NO producer-side validation failure (state contract exit 0) instead of inventing one. (3) PRESERVED the inherited 19-file post-hydration content-recheck delta verbatim and re-verified it: cycle test 8/8, MVP core 170/0, bounded 11-file suite 213/0, progressive smoke PASS 23/23 with server boot 0.81 s and cached start 0.389 s, all 132 evidence_refs resolve, no producer-minted gate. (4) FOUND AND DISCLOSED one inherited-report defect: the '229 passed across 13 test files' figure is not enumerable from any committed artifact and is superseded by the measured 213/11; the inherited report stays byte-preserved. (5) MADE THE SNAPSHOT AUDIT-READY: raw run/jobs snapshot + resume diagnosis committed, a new first-class observed_step_timing mechanism kind plus profile 45947662468/alias 45954836439 added to product/audit_readiness.py so a step-timing signature is never mislabelled as log-read evidence, a one-command dossier entry point, and a published re-derivation budget of about 90 s against the 2700 s quantum - the concrete route-around for the audit-step death. STILL STANDING, NOT CHANGED HERE: both DO-NOT-SERVE frozen bars and the BOUNDED-NEGATIVE serve verdict, packet admission fail-closed, the pivot_absent content-sound disagreement, live latency/precision DEFERRED (budget 8), frozen-rules profile coverage gap evaluation-owned, fixture-mode apply_anchor_labels asymmetry MEASURED_DO_NOT_CLOSE, posture flags all FALSE, owner_decision_required false. NEXT: independent audit of the inherited post-hydration delta through the bounded dossier; continue_recommended stays TRUE until a locally runnable end-to-end path is marked human_gate_ready.",
+  "next_recommendation": "Direction v68 / FAST MVP, operational resume run 45974506375 of producer snapshot 45965956701 (PRODUCER_DELIVERED_UNADJUDICATED pending independent audit). WHAT THIS CYCLE DID: (1) READ the run's public REST record through a new product-owned instrument and found an annotation-observed audit quantum death: team job success (Run lane cycle 872.0 s, validation and write-scope PASS, snapshot 2150d0a9), audit Independent audit step 2706.0 s inside the 2700 s kill window, check-run annotations HTTP 200 explicitly naming LEX_WORK_QUANTUM_EXPIRED seconds=2700 and exit 78, gate-read and audit-persist skipped, integrate skipped, no audit ref. (2) REPRODUCED and REPAIRED a real validation-wiring defect: the inherited test_cycle_45965956701.py pinned `git rev-parse HEAD` to the pre-commit parent 2301799c and failed on the committed snapshot; it now checks immutable git-tree identity and ancestry, preserving the zero-delta diagnosis. (3) REPLACED the stale alias of 45965956701 with its own annotation-observed audit-readiness profile (alias 45974506375), added the reusable snapshot instrument, raw/diagnosis artifacts and a bounded cycle test. (4) PRESERVED the inherited post-hydration content-recheck delta and its REPORTED-ONLY 54-bundle family; no frozen bar, serve verdict or accepted artifact was touched. STILL STANDING: both DO-NOT-SERVE frozen bars and the BOUNDED-NEGATIVE serve verdict, packet admission fail-closed, live latency/precision DEFERRED (budget 8), frozen-rules profile coverage gap evaluation-owned, fixture-mode apply_anchor_labels asymmetry MEASURED_DO_NOT_CLOSE, posture flags all FALSE, owner_decision_required false. NEXT: independent audit of the inherited post-hydration delta and this validation repair through the bounded one-command dossier; keep continue_recommended=TRUE until a locally runnable end-to-end path is marked human_gate_ready under the frozen bars.",
   "not_claimed": [
     "No live OpenCaseLaw latency measured (fixture mode only; upstream measured separately in earlier live artifacts)",
     "No live-answer reliability re-measurement; accepted 0.857 figure not restated",
@@ -1116,9 +1117,9 @@
     "audit_namespace_written": false,
     "claim_ceiling": "OPERATIONAL-RESUME AND AUDIT-READINESS EVIDENCE ONLY. No live retrieval, legal usefulness, frozen bar, serve verdict, acceptance or human-gate readiness is asserted."
   },
-  "current_cycle_run_id": "45965956701",
+  "current_cycle_run_id": "45974506375",
   "last_repair_round": 0,
-  "last_updated": "2026-11-27T08:34:32Z",
+  "last_updated": "2026-11-27T09:36:13Z",
   "run_history": [
     {
       "run_id": "40241250741",
@@ -1249,6 +1250,14 @@
       "audit_gate": "NONE_YET",
       "summary": "Resume of run 45965383491, whose team job failed at step 6 \"Run lane cycle\" after 151.0 s (not the 2705 s audit-quantum signature of the two preceding runs) and persisted zero durable delta at 2301799c; audit and integrate skipped. Added a first-class observed_team_step_failure mechanism and profiles to product/audit_readiness.py, a bounded cycle test, raw snapshot and diagnosis artifacts; preserved all inherited work; kept every fail-closed flag false. UNADJUDICATED pending independent audit.",
       "date": "2026-11-27T08:34:32Z"
+    },
+    {
+      "run_id": 45974506375,
+      "repair_round": 0,
+      "status": "OPERATIONAL_RESUME_ANNOTATION_OBSERVED_AUDIT_QUANTUM_AUDIT_READY",
+      "audit_gate": "NONE_YET",
+      "summary": "Resume of run 45965956701, whose team job succeeded and whose independent audit died on the annotation-observed 2700 s quantum (step 2706.0 s, exit 78); gate-read and persist skipped, no audit ref. Added a reusable public REST snapshot instrument, a distinct annotation-observed readiness profile, the raw diagnosis, a repaired head-independent inheritance test and a bounded cycle test; preserved all inherited work and kept every fail-closed flag false. UNADJUDICATED pending independent audit.",
+      "date": "2026-11-27T09:36:13Z"
     }
   ],
   "cycle_40247041354_resume": {
@@ -2129,6 +2138,67 @@
       "measured": "overall_status PASS, 9/9 mandatory checks PASS, 0 failed / 0 skipped (results/product/audit_readiness/CYCLE_45965956701_audit_readiness.json, the measurement of record for run-specific wall times); cycle test 7 passed / 0 failed; MVP core 9 files 170 passed / 0 failed; progressive smoke PASS 23/23 with boot <3 s and cached start <1 s; state contract exit 0"
     },
     "claim_ceiling": "Honest-negative operational diagnosis plus a bounded audit-readiness package. REPORTED-ONLY content-family measurements stay reported-only; no frozen bar scored, no serve verdict re-run, no gate minted, no run labelled accepted or rejected, no human-gate claim.",
+    "continue_recommended": true
+  },
+  "cycle_45965956701_operational_resume": {
+    "kind": "OPERATIONAL RESUME of run 45965956701 (annotation-observed independent-audit quantum expiry)",
+    "run_id": "45974506375",
+    "resuming_run_id": "45974506375",
+    "resumed_run_id": "45965956701",
+    "predecessor_run_id": "45954836439",
+    "direction_version": 68,
+    "snapshot_head": "2150d0a9a4568f9c5db1d77c7c8ce5326a826176",
+    "parent_head": "2301799cef1483cc29fc517278a78ae4c3deb00b",
+    "orchestration_of_record": {
+      "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+      "mechanism": "OBSERVED_QUANTUM_EXPIRED",
+      "evidence_basis": "check_run_annotation",
+      "independent_audit_step_seconds": 2706.0,
+      "quantum_seconds": 2700,
+      "exit_code": 78,
+      "logs_endpoint_status": 403,
+      "annotations_endpoint_status": 200,
+      "audit_ref_present": false,
+      "note": "Annotation text and per-step times are read from the run's own public REST record by product/orchestration_snapshot.py; no job-log line is claimed."
+    },
+    "validation_failure_of_record": {
+      "classification": "HEAD_PINNED_CYCLE_TEST_STALE_ON_COMMITTED_SNAPSHOT",
+      "observed": "product/tests/test_cycle_45965956701.py failed 1/7 on the committed snapshot because it asserted git rev-parse HEAD == 2301799c",
+      "repair": "immutable git-tree identity plus ancestry assertion; zero-delta diagnosis fields unchanged; AUTHORING CORRECTION header preserves the historical record"
+    },
+    "durable_delta": {
+      "resumed_run_changes": 7,
+      "this_cycle_paths": [
+        "product/orchestration_snapshot.py",
+        "product/audit_readiness.py",
+        "product/tests/test_cycle_45965956701.py",
+        "product/tests/test_cycle_45974506375.py",
+        "results/product/orchestration/CYCLE_45965956701_run_jobs_raw.json",
+        "results/product/orchestration/CYCLE_45965956701_resume_diagnosis.json",
+        "reports/product/CYCLE_45974506375.md",
+        "state/product.json"
+      ]
+    },
+    "artifacts": [
+      "product/orchestration_snapshot.py",
+      "results/product/orchestration/CYCLE_45965956701_run_jobs_raw.json",
+      "results/product/orchestration/CYCLE_45965956701_resume_diagnosis.json",
+      "product/tests/test_cycle_45974506375.py",
+      "reports/product/CYCLE_45974506375.md",
+      "results/product/audit_readiness/CYCLE_45974506375_audit_readiness.json"
+    ],
+    "artifact_sha256": {
+      "results/product/orchestration/CYCLE_45965956701_run_jobs_raw.json": "c9749289cec9415a8cf1cb4ae4703cc7fd6478f63fc1d3e6c235585c8888ea1c",
+      "results/product/orchestration/CYCLE_45965956701_resume_diagnosis.json": "263d257e08405bc81648b6cb4a74e48cf68187881c5093cc0dc73a72a2f683ac",
+      "product/orchestration_snapshot.py": "98dadf16fb6d70800e93497895db6dfaf8402ffb42773384acae56afc4ef5dc5",
+      "product/tests/test_cycle_45974506375.py": "eae85bb27ab8e066d9e8ec4f7bd98bd5d03df97993c81a9dd460c631b1a2d852"
+    },
+    "audit_ready_package": {
+      "one_command": "python3 product/audit_readiness.py --run-id 45974506375 --out results/product/audit_readiness/CYCLE_45974506375_audit_readiness.json",
+      "profile": "product/audit_readiness.py PROFILES['45965956701'] with alias 45974506375",
+      "expected": "overall_status PASS, nine mandatory checks, no producer-minted gate"
+    },
+    "claim_ceiling": "ORCHESTRATION DIAGNOSIS AND VALIDATION-WIRING REPAIR ONLY. The quantum marker is annotation-observed. The inherited content-family numbers remain REPORTED-ONLY; no frozen bar scored, no serve verdict re-run, no gate minted, no live latency, answer quality, legal-usefulness or human-gate claim.",
     "continue_recommended": true
   }
 }

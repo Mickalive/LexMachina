@@ -449,7 +449,46 @@ PROFILES: dict[str, dict[str, Any]] = {
             "false_reject_count": 0,
         },
     },
-    "45965956701": {"alias_of": "45965383491"},
+    # Seventh real failure mode: the SAME quantum death as the 45947662468
+    # profile, but this time the audit job's check-run annotations were served
+    # (HTTP 200) and explicitly name LEX_WORK_QUANTUM_EXPIRED seconds=2700 with
+    # process exit 78, so the mechanism is annotation-observed rather than a
+    # step-timing inference.  This run's own committed snapshot supersedes the
+    # earlier alias of 45965956701 to the 45965383491 team-step profile: that
+    # alias described the run while it was still the executing resumer, and
+    # would now misreport the resumed run's own audit death.
+    "45965956701": {
+        "resumed_run_id": "45965956701",
+        "predecessor_run_id": "45954836439",
+        "raw": ORCH / "CYCLE_45965956701_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_45965956701_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_45965956701.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_45974506375.md",
+        "mechanism_kind": "observed",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "changed_files": 7,
+        "changed_paths_include": (
+            "product/audit_readiness.py",
+            "product/tests/test_cycle_45965956701.py",
+        ),
+        "cycle_test": "product/tests/test_cycle_45974506375.py",
+        "state_block": "cycle_45965956701_operational_resume",
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_45947662468.json",
+        "content_family_expected": {
+            "n_bundles": 54,
+            "n_decisions": 5400,
+            "n_verified": 64,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "45974506375": {"alias_of": "45965956701"},
 }
 
 # Active profile; empty means "the module constants above" (the original
