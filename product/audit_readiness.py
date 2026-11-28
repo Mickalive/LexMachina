@@ -369,6 +369,55 @@ PROFILES: dict[str, dict[str, Any]] = {
                              / "self_minted_gate_40278460732_producer_"
                                "40283048553.QUARANTINED.json",
     },
+    # Fresh cycle (not a repair, not a resume) whose TEAM job succeeded end to
+    # end and whose AUDIT agent then consumed its whole 2700 s work quantum
+    # after only two exploratory commands, writing no gate.  Fifth distinct
+    # failure mode, and the first one where every producer-side validation
+    # step passed: state validation, write scope and snapshot persist all
+    # report "success" in the raw snapshot.
+    #
+    # The durable-delta baseline is origin/lab/product, because that is the
+    # accepted head the cycle was dispatched from and the only ref the audit
+    # worktree is guaranteed to hold.  `predecessor_run_id` is therefore empty
+    # by design (there is no earlier failed run in this chain) and the dossier
+    # falls back to the delta's own `predecessor_ref` when wording C2.
+    "46125190884": {
+        "resumed_run_id": "46125190884",
+        "predecessor_run_id": "",
+        "raw": ORCH / "CYCLE_46125190884_run_jobs_raw.json",
+        "resume_diag": ORCH / "CYCLE_46125190884_resume_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_46125190884.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_46131748389.md",
+        "classification": "AUDIT_JOB_INDEPENDENT_AUDIT_STEP_FAILED_NO_GATE",
+        "failed_job": "audit",
+        "mechanism_kind": "observed",
+        "quantum_seconds": 2700,
+        "exit_code": 78,
+        "delta_kind": "committed",
+        "changed_files": 20,
+        "changed_paths_include": (
+            "product/query/counter_evidence_span.py",
+            "results/product/counter_content_family/CYCLE_46125190884.json",
+            "state/product.json",
+        ),
+        "cycle_test": "product/tests/test_cycle_46131748389.py",
+        "state_block": "cycle_46131748389_operational_resume",
+        # Newest committed fixed-path family: this cycle's own REPORTED-ONLY
+        # measurement (54 bundles after the four regenerated slices + served).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_46125190884.json",
+        "content_family_expected": {
+            "n_bundles": 54,
+            "n_decisions": 5400,
+            "n_verified": 64,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    # The resuming run reaches the same dossier; an auditor may name either id.
+    "46131748389": {"alias_of": "46125190884"},
 }
 
 # Active profile; empty means "the module constants above" (the original
@@ -1094,6 +1143,13 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
     inherited = p("inherited_report", INHERITED_REPORT)
     cycle_test = p("cycle_test", "product/tests/test_cycle_40200882831.py")
     delta_files = ((resumed.get("durable_delta") or {}).get("changed_files"))
+    # A fresh cycle dispatched from the accepted head has no earlier failed run
+    # in its chain, so the profile's predecessor_run_id is empty by design.
+    # Fall back to the ref the delta was actually computed against, so C2 never
+    # publishes "...delta over  and is UNADJUDICATED".
+    delta_baseline = (predecessor
+                      or (resumed.get("durable_delta") or {}).get("predecessor_ref")
+                      or "its accepted base")
     cf_path = Path(p("content_family", CONTENT_FAMILY))
     cf_expected = dict(p("content_family_expected", CONTENT_FAMILY_EXPECTED))
     live_state = _load(STATE)
@@ -1192,12 +1248,12 @@ def run(run_id: str, direction_version: int = DIRECTION_VERSION,
             {"id": "C2",
              "claim": (
                  f"Run {resumed_id} persisted an {delta_files}-file durable "
-                 f"delta over {predecessor} and is UNADJUDICATED."
+                 f"delta over {delta_baseline} and is UNADJUDICATED."
                  if delta_kind != "zero" else
                  f"Run {resumed_id}'s team ref is byte-identical to its "
-                 f"predecessor {predecessor}'s team ref: the resumed producer "
-                 "added nothing (ZERO_DURABLE_DELTA) and the run is "
-                 "UNADJUDICATED."
+                 f"durable-delta baseline {delta_baseline} "
+                 "(ZERO_DURABLE_DELTA): the resumed producer added nothing "
+                 "and the run is UNADJUDICATED."
              ),
              "check": "resumed_diagnosis",
              "artifacts": [str(resume_diag.relative_to(ROOT))]},
