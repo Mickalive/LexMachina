@@ -369,6 +369,43 @@ PROFILES: dict[str, dict[str, Any]] = {
                              / "self_minted_gate_40278460732_producer_"
                                "40283048553.QUARANTINED.json",
     },
+    "46109821912": {
+        "resumed_run_id": "46106207560",
+        "predecessor_run_id": "40284658455",
+        # Fifth observed shape: both producer snapshot refs point at the
+        # previous accepted integrator commit and the tree is byte-identical
+        # to it, so the resumed run carries zero durable delta. GitHub job
+        # metadata is unavailable in this producer, so the mechanism stays
+        # unobserved instead of inventing an rc-67 cause (requirement 33).
+        "raw": None,
+        "resume_diag": ORCH / "CYCLE_46106207560_snapshot_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_40284658455.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_46109821912.md",
+        "classification": "ZERO_DURABLE_DELTA_SNAPSHOT",
+        "mechanism_kind": "unobserved",
+        "delta_kind": "zero",
+        "failed_job": None,
+        "quantum_seconds": None,
+        "exit_code": None,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_46109821912.py",
+        "state_block": "cycle_46106207560_operational_resume",
+        # No new counter-content family: consume the accepted fixed-path pins
+        # from CYCLE_40257275384 unchanged (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "46106207560": {"alias_of": "46109821912"},
 }
 
 # Active profile; empty means "the module constants above" (the original

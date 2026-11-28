@@ -1,0 +1,106 @@
+{
+  "schema": "product-resume-diagnosis/2",
+  "run_id": "46106207560",
+  "predecessor_run_id": "40284658455",
+  "direction_version": 68,
+  "generated_at": "2026-11-28T05:15:00Z",
+  "mode": "OPERATIONAL RESUME from the persisted producer snapshot of run 46106207560; inherited work preserved, not restarted",
+  "orchestration": {
+    "classification": "ZERO_DURABLE_DELTA_SNAPSHOT",
+    "mechanism_unobserved": true,
+    "raw_snapshot": null,
+    "failed_job": null,
+    "exit_code": null,
+    "quantum_seconds": null,
+    "audit": {
+      "gate_file_written": false,
+      "skipped": true,
+      "audit_ref_exists": false
+    },
+    "note": "No GITHUB_TOKEN/GH_TOKEN is available to this producer (gh auth status reports unauthenticated), so the run's job/step conclusions cannot be fetched. The rc-67 zero-delta guard explanation is the known mechanism class for a team ref that repeats its predecessor's commit, but it is NOT asserted as observed for this run. The observable fact is the ref identity below."
+  },
+  "durable_delta": {
+    "classification": "ZERO_DURABLE_DELTA",
+    "changed_files": 0,
+    "snapshot_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+    "predecessor_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+    "changed_paths_sample": []
+  },
+  "adjudication": {
+    "status": "UNADJUDICATED",
+    "accepted": false,
+    "accepted_run_id_at_snapshot": "CYCLE_40269774540",
+    "gate_file_for_this_run": false,
+    "meaning": "The team snapshot refs for 46106207560 point exactly at the previous accepted integrator commit; nothing from run 46106207560 itself is proposed for promotion."
+  },
+  "observations": [
+    {
+      "check": "team_ref_identity",
+      "command": "git ls-remote --heads origin refs/heads/cycle/core/product/46106207560/team",
+      "result": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83\trefs/heads/cycle/core/product/46106207560/team",
+      "ok": true
+    },
+    {
+      "check": "team_attempt_1_ref_identity",
+      "command": "git ls-remote --heads origin refs/heads/cycle/core/product/46106207560/team-attempt-1",
+      "result": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83\trefs/heads/cycle/core/product/46106207560/team-attempt-1",
+      "ok": true
+    },
+    {
+      "check": "local_head_identity",
+      "command": "git rev-parse HEAD",
+      "result": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+      "ok": true
+    },
+    {
+      "check": "tree_identity",
+      "command": "git rev-parse HEAD^{tree}",
+      "result": "72574fa6cfc028dedf953755e82c69f7e9e21dd8",
+      "ok": true
+    },
+    {
+      "check": "no_diff_against_head",
+      "command": "git diff --name-status HEAD origin/cycle/core/product/46106207560/team",
+      "result": "",
+      "ok": true
+    },
+    {
+      "check": "audit_ref_absent",
+      "command": "git ls-remote --heads origin refs/heads/cycle/core/product/46106207560/audit",
+      "result": "",
+      "ok": true
+    },
+    {
+      "check": "no_run_id_in_tree",
+      "command": "git grep -n 46106207560 -- .",
+      "result": "",
+      "ok": true
+    },
+    {
+      "check": "github_metadata_unavailable",
+      "command": "gh run view 46106207560 --json jobs,status,conclusion",
+      "result": "gh: To use GitHub CLI in a GitHub Actions workflow, set the GH_TOKEN environment variable...",
+      "ok": false,
+      "evidence_tier": "UNAVAILABLE"
+    }
+  ],
+  "accepted_head_disclosure": {
+    "accepted_run_id_in_tree": "CYCLE_40284658455",
+    "accept_commit": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+    "accept_commit_message": "accept product cycle 40284658455",
+    "gate_path": "results/audit/product/CYCLE_40284658455_GATE.json",
+    "gate_sha256": "d7b902214fd0931a328b366f2e431a7ade89b034ac722d07cd380bb1ddcc8011",
+    "gate": "PASS",
+    "safe_to_integrate": true,
+    "required_fixes": [],
+    "gate_authority": "committed by lex-integrator in the accept commit; no live cycle/core/product/40284658455/audit ref is observable from this checkout, so this artifact does NOT claim a freshly re-fetched audit-branch gate",
+    "lab_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83"
+  },
+  "preserved_valid_work": [
+    "3b866937 / 40284658455: six-run chain diagnosis, producer-minted gate quarantine NON-PROMOTING, observed_scope readiness profile, cycle test and fail-closed state attribution",
+    "db92ef10 / 40272586794: fixture-anchor exposure measurement, verdict DO_NOT_CLOSE (40 exposure rows), pipeline gate untouched",
+    "5fb312e4 / 40247189361: rejection/incumbent leg re-verification and 49-bundle fixed-path family",
+    "8b5b08dd / 40100397058: path-routing leg acceptance (superseded as explanation for the rejection leg; preserved as evidence)"
+  ],
+  "claim_ceiling": "OBSERVED git-ref evidence only. This diagnosis does not assert a GitHub job/step cause, does not promote any artifact from run 46106207560, does not score a frozen bar, does not re-run a serve verdict and makes no human-gate claim."
+}

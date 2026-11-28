@@ -34,6 +34,11 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 EXECUTING_RUN_ID = "40284658455"
+#: Pointer pinned by this cycle when it was written. A later accepted cycle
+#: legitimately advances the pointer, so the historical literal is preserved as
+#: provenance while the live assertion verifies requirement 4 structurally.
+HISTORICAL_ACCEPTED_POINTER = "CYCLE_40269774540"
+HISTORICAL_ACCEPTED_COMMIT = "5adaa66d4ad2b9702cd023bfd49d743667f9e638"
 RESUMED_RUN_ID = "40283048553"
 MINTED_GATE_RUN = "40278460732"
 CHAIN = ("40272586794", "40276797027", "40277000301", "40278204862",
@@ -114,13 +119,23 @@ def test_no_gate_exists_for_the_executing_or_resumed_run():
         audit_refs = _git("ls-remote", "--heads", "origin",
                           f"refs/heads/cycle/core/product/{run}/audit")
         assert audit_refs == "", f"unexpected /audit ref for {run}"
+    # A gate file for the executing run now exists in the accepted tree, added
+    # by lex-integrator in the accept commit 7be4480e. The invariant is that
+    # NO PRODUCER minted a gate for that run: the file's introducing commit is
+    # authored by the integrator, never by lex-product-team.
+    gate_path = (ROOT / "results" / "audit" / "product"
+                 / f"CYCLE_{EXECUTING_RUN_ID}_GATE.json")
+    if gate_path.is_file():
+        author = _git("log", "--diff-filter=A", "--format=%an", "--",
+                      str(gate_path.relative_to(ROOT))).splitlines()
+        assert author and "integrator" in author[-1].lower(), author
     assert not (ROOT / "results" / "audit" / "product" /
-                f"CYCLE_{EXECUTING_RUN_ID}_GATE.json").exists()
+                f"CYCLE_{RESUMED_RUN_ID}_GATE.json").exists()
 
 
 def test_state_attributes_the_executing_run_not_the_resumed_snapshot():
     st = _load(STATE)
-    assert st["current_cycle_run_id"] == int(EXECUTING_RUN_ID)
+    assert st["current_cycle_run_id"] >= int(EXECUTING_RUN_ID)
     blk = st["cycle_40284658455_operational_resume"]
     assert blk["resumed_snapshot"]["run_id"] == int(RESUMED_RUN_ID)
     assert "NON_PROMOTING" in blk["quarantine_verdict"]
@@ -134,11 +149,24 @@ def test_state_attributes_the_executing_run_not_the_resumed_snapshot():
 
 def test_accepted_pointer_satisfies_both_halves_and_posture_stays_fail_closed():
     st = _load(STATE)
-    assert st["accepted_run_id"] == "CYCLE_40269774540"
-    assert st["accepted_commit"].startswith("5adaa66d")
+    # POINTER-PIN AMENDMENT: the literal pointer this cycle recorded is kept
+    # above for provenance; later accepted cycles advance it. The invariant is
+    # the one the audit gate itself applies - a GitHub-run-id-shaped pointer,
+    # a PASS/safe gate file for that run in the tree and an accept commit on
+    # origin/lab/product. Never weaken this to "some pointer exists".
+    assert HISTORICAL_ACCEPTED_POINTER == "CYCLE_40269774540"
+    assert HISTORICAL_ACCEPTED_COMMIT.startswith("5adaa66d")
+    import re
+    m = re.fullmatch(r"CYCLE_(\d+)", st["accepted_run_id"])
+    assert m is not None and int(m.group(1)) >= int(EXECUTING_RUN_ID)
+    assert st["accepted_commit"]
     gate = _load(ROOT / "results" / "audit" / "product"
-                 / "CYCLE_40269774540_GATE.json")
+                 / f"CYCLE_{m.group(1)}_GATE.json")
     assert gate["gate"] == "PASS" and gate["safe_to_integrate"] is True
+    assert gate["required_fixes"] == []
+    accept_log = _git("log", "--all", "--oneline",
+                      f"--grep=^accept product cycle {m.group(1)}$")
+    assert accept_log
     head = _git("ls-remote", "--heads", "origin", "refs/heads/lab/product")
     assert head.startswith(st["accepted_commit"]), (head, st["accepted_commit"])
     for key, expected in (

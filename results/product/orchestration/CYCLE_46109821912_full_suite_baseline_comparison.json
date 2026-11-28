@@ -1,0 +1,46 @@
+{
+  "schema": "product-full-suite-baseline-comparison/1",
+  "run_id": "46109821912",
+  "resumed_run_id": "46106207560",
+  "direction_version": 68,
+  "generated_at": "2026-11-28T06:24:00Z",
+  "purpose": "Prove that the working tree's full product test failures are inherited from the clean accepted HEAD, not introduced by this operational resume.",
+  "baseline_commit": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+  "environment": {
+    "python": "3.14.4",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "scikit_learn": "1.9.1",
+    "pytest": "9.1.1"
+  },
+  "commands": {
+    "current": "python3 -m pytest product/tests -q --disable-warnings",
+    "baseline_setup": "git clone --quiet --shared /home/runner/work/LexMachina/LexMachina /tmp/opencode/baseline-git && git -C /tmp/opencode/baseline-git checkout --quiet --detach 7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+    "baseline": "python3 -m pytest product/tests -q --disable-warnings (cwd=/tmp/opencode/baseline-git)"
+  },
+  "results": {
+    "current": {
+      "summary": "211 failed, 1522 passed, 23 skipped, 88 warnings in 246.48s (0:04:06)",
+      "failed_test_ids": 211,
+      "failed_test_id_sha256": "1e16d27b482d44a6996138ed2d749251d99838301ec37e1a11b94189e1fe89bb",
+      "log_sha256": "e7686281df49b2e9147cea7a9faff0e1427a4772d5c88190133f719e2c4a1cb2",
+      "log_location_at_measurement": "/home/runner/.local/share/opencode/tool-output/tool_22092587f001WuTBxdzeZwHLo5"
+    },
+    "clean_head_baseline": {
+      "summary": "211 failed, 1522 passed, 23 skipped, 88 warnings in 247.50s (0:04:07)",
+      "failed_test_ids": 211,
+      "failed_test_id_sha256": "1e16d27b482d44a6996138ed2d749251d99838301ec37e1a11b94189e1fe89bb",
+      "log_sha256": "9aa22a4024f4b1a370bd65d6671aa4494beb7325c5468e4d94652958d03c1a18",
+      "log_location_at_measurement": "/tmp/opencode/baseline_git_pytest.log"
+    }
+  },
+  "comparison": {
+    "intersection_count": 211,
+    "current_only": [],
+    "baseline_only": [],
+    "failure_id_sets_identical": true,
+    "classification": "NO_NEW_FULL_SUITE_FAILURES"
+  },
+  "conclusion": "Every full-suite failure on this resume is also present on the clean accepted HEAD in the same environment. The full suite is not green; the 211 legacy-174k/absent-artifact failures are inherited and disclosed, not repaired in this cycle. None was introduced by the pointer, test, report or audit-readiness changes in this resume.",
+  "claim_ceiling": "Environment-scoped comparison over two pytest logs and a clean detached clone with shared git objects. This artifact is not an independent audit verdict, not a frozen-bar result and does not authorize serving any packet."
+}
