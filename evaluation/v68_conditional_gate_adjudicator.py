@@ -347,7 +347,7 @@ def evaluate(run_id: str, hypothesis_relpath: str, freeze_relpath: str) -> tuple
     fz_inst = (freeze.get("instrument") or {}).get("sha256")
     if fz_hyp != sha256_file(REPO_ROOT / hypothesis_relpath):
         raise SystemExit(f"{EXIT_VACUOUS}: hypothesis sha does not match freeze record")
-    if fz_inst != sha256_file(REPO_ROOT / __file__.relative_to(REPO_ROOT)):
+    if fz_inst != sha256_file(Path(__file__).resolve()):
         raise SystemExit(f"{EXIT_VACUOUS}: instrument sha does not match freeze record")
 
     pins_before = verify_pins(hyp)
@@ -400,8 +400,8 @@ def evaluate(run_id: str, hypothesis_relpath: str, freeze_relpath: str) -> tuple
                        "frozen_before_execution": bool(freeze.get("frozen_before_execution"))},
         "freeze_record": freeze_relpath,
         "freeze_sha256": sha256_file(REPO_ROOT / freeze_relpath),
-        "instrument": str(Path(__file__).relative_to(REPO_ROOT)),
-        "instrument_sha256": sha256_file(REPO_ROOT / __file__.relative_to(REPO_ROOT)),
+        "instrument": str(Path(__file__).resolve().relative_to(REPO_ROOT)),
+        "instrument_sha256": sha256_file(Path(__file__).resolve()),
         "generated_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "product_mount": str(mount),
         "product_mount_head": mount_head(mount),
