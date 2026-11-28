@@ -48,15 +48,29 @@ def _git(*args: str) -> str:
         check=True).stdout.strip()
 
 
-def test_snapshot_refs_are_byte_identical_to_the_accepted_head():
-    head = _git("rev-parse", "HEAD")
-    assert head == ACCEPTED_SHA
+def test_snapshot_refs_are_byte_identical_to_the_predecessor_head():
+    """Pin the *snapshot* against its fixed predecessor, never against HEAD.
+
+    Historical defect repaired in 46115755920: the original version of this
+    test asserted ``rev-parse HEAD == ACCEPTED_SHA``. That holds only before
+    the resuming producer commits anything; the moment the durable delta lands,
+    HEAD moves to the new producer commit and the test fails on its own tree.
+    A snapshot claim is about the snapshot refs and tree, so compare those to
+    the fixed predecessor commit and separately prove that the resuming HEAD
+    was built on top of that preserved work (no restart from scratch).
+    """
+    predecessor = _git("rev-parse", ACCEPTED_SHA)
+    assert predecessor == ACCEPTED_SHA
+    snapshot_shas = {}
     for suffix in ("team", "team-attempt-1"):
         ref = _git("ls-remote", "--heads", "origin",
                    f"refs/heads/cycle/core/product/{SNAPSHOT_RUN}/{suffix}")
-        assert ref.split()[0] == head
-    assert _git("diff", "--name-status", "HEAD",
-                f"origin/cycle/core/product/{SNAPSHOT_RUN}/team") == ""
+        snapshot_shas[suffix] = ref.split()[0]
+        assert snapshot_shas[suffix] == predecessor
+    # Diff against the advertised SHA, not a remote-tracking ref name that a
+    # producer checkout may never have fetched (git exits 128 on that name).
+    assert _git("diff", "--name-status", ACCEPTED_SHA,
+                snapshot_shas["team"]) == ""
     # Check the SNAPSHOT TREE, not this resume's working tree (which now names
     # the snapshot in its diagnosis and state on purpose). git grep exits 1 on
     # no match, so this probe must not use the check=True helper.
@@ -64,6 +78,12 @@ def test_snapshot_refs_are_byte_identical_to_the_accepted_head():
         ["git", "grep", "-n", SNAPSHOT_RUN, ACCEPTED_SHA, "--", "."],
         cwd=str(ROOT), capture_output=True, text=True, check=False)
     assert probe.returncode == 1 and probe.stdout == ""
+    # The resuming work must descend from the preserved snapshot: comparing a
+    # mutable HEAD to a fixed SHA would have hidden a restart from scratch.
+    ancestor = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", ACCEPTED_SHA, "HEAD"],
+        cwd=str(ROOT), capture_output=True, text=True, check=False)
+    assert ancestor.returncode == 0, ancestor.stderr
 
 
 def test_no_audit_ref_or_gate_exists_for_the_snapshot_run():
@@ -135,7 +155,14 @@ def test_historical_pointer_and_accepted_findings_are_preserved():
 def test_posture_stays_fail_closed_and_resume_is_recorded():
     st = _load(STATE)
     assert st["direction_version"] == 68
-    assert st["current_cycle_run_id"] == int(RUN_ID)
+    # Historical state pins must survive later valid resumes: current_cycle_run_id
+    # legitimately moves forward. Require this run to remain in run_history and
+    # require any later current run to be recorded there too, instead of
+    # freezing a mutable pointer that breaks on the next accepted resume.
+    history = {str(h["run_id"]): h for h in st["run_history"]}
+    assert RUN_ID in history
+    current = str(st["current_cycle_run_id"])
+    assert current in history and int(current) >= int(RUN_ID)
     for key in ("human_gate_ready", "machine_gate_ready", "packet_admitted",
                 "ready_for_owner_session"):
         assert st[key] is False

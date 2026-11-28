@@ -406,6 +406,46 @@ PROFILES: dict[str, dict[str, Any]] = {
         },
     },
     "46106207560": {"alias_of": "46109821912"},
+    "46115755920": {
+        "resumed_run_id": "46115584428",
+        "predecessor_run_id": "46109821912",
+        # Sixth observed shape: the snapshot's team refs repeat the previous
+        # resuming producer commit 6dcb3b87, not the accepted integrator
+        # commit, and are byte-identical to it.  A separate, locally
+        # REPRODUCIBLE validation failure was found in the predecessor's own
+        # cycle test (it compared mutable HEAD with a fixed accepted SHA and
+        # failed immediately after its commit landed); that defect is repaired
+        # in this resume.  The orchestration mechanism of the zero-delta stop
+        # remains UNOBSERVED because no run/jobs metadata is available here.
+        "raw": None,
+        "resume_diag": ORCH / "CYCLE_46115584428_snapshot_diagnosis.json",
+        "inherited_report": ROOT / "reports" / "product"
+                            / "CYCLE_46109821912.md",
+        "current_report": ROOT / "reports" / "product"
+                          / "CYCLE_46115755920.md",
+        "classification": "ZERO_DURABLE_DELTA_SNAPSHOT",
+        "mechanism_kind": "unobserved",
+        "delta_kind": "zero",
+        "failed_job": None,
+        "quantum_seconds": None,
+        "exit_code": None,
+        "changed_files": 0,
+        "changed_paths_include": (),
+        "cycle_test": "product/tests/test_cycle_46115755920.py",
+        "state_block": "cycle_46115584428_operational_resume",
+        # No new counter-content family: consume the accepted fixed-path pins
+        # from CYCLE_40257275384 unchanged (REPORTED-ONLY).
+        "content_family": ROOT / "results" / "product" / "counter_content_family"
+                          / "CYCLE_40257275384.json",
+        "content_family_expected": {
+            "n_bundles": 49,
+            "n_decisions": 4900,
+            "n_verified": 55,
+            "n_verified_defective": 0,
+            "false_reject_count": 0,
+        },
+    },
+    "46115584428": {"alias_of": "46115755920"},
 }
 
 # Active profile; empty means "the module constants above" (the original

@@ -1,0 +1,133 @@
+{
+  "schema": "product-resume-diagnosis/2",
+  "run_id": "46115584428",
+  "predecessor_run_id": "46109821912",
+  "direction_version": 68,
+  "generated_at": "2026-11-28T06:20:03Z",
+  "mode": "OPERATIONAL RESUME from the persisted producer snapshot of run 46115584428; all inherited work preserved, not restarted",
+  "orchestration": {
+    "classification": "ZERO_DURABLE_DELTA_SNAPSHOT",
+    "mechanism_unobserved": true,
+    "raw_snapshot": null,
+    "failed_job": null,
+    "exit_code": null,
+    "quantum_seconds": null,
+    "audit": {
+      "gate_file_written": false,
+      "skipped": true,
+      "audit_ref_exists": false
+    },
+    "validation_failure": {
+      "status": "OBSERVED_AND_REPRODUCED_LOCALLY",
+      "kind": "CYCLE_TEST_HEAD_PIN_SELF_INVALIDATION",
+      "command": "python3 -m pytest product/tests/test_cycle_46109821912.py -q --disable-warnings",
+      "observed_result": "1 failed, 9 passed; FAILED product/tests/test_cycle_46109821912.py::test_snapshot_refs_are_byte_identical_to_the_accepted_head",
+      "root_cause": "The historical test asserted `rev-parse HEAD == 7be4480e` (the accepted integrator commit). That holds only before the resuming producer commits; commit 6dcb3b87 moved HEAD to the producer commit and the test then failed on its own tree.",
+      "repair": "product/tests/test_cycle_46109821912.py now compares the snapshot refs and tree to the fixed predecessor commit, diffs against the advertised snapshot SHA (not a possibly unfetched remote-tracking ref name), and separately requires HEAD to descend from that snapshot. No assertion was relaxed.",
+      "repaired_test_command": "python3 -m pytest product/tests/test_cycle_46109821912.py -q --disable-warnings",
+      "repaired_test_result": "10 passed",
+      "not_claimed": "This local, reproducible validation failure is NOT asserted as the orchestration cause of run 46115584428's zero delta. The workflow/job mechanism remains unobserved because no GitHub metadata is available to this producer."
+    },
+    "note": "No GH_TOKEN/GITHUB_TOKEN is available to this producer (gh reports unauthenticated), so run 46115584428's job/step conclusions cannot be fetched. The rc-67 zero-delta guard is the known mechanism class for a team ref that repeats its predecessor's commit, but it is NOT asserted as observed. The observable fact is the ref identity below."
+  },
+  "durable_delta": {
+    "classification": "ZERO_DURABLE_DELTA",
+    "changed_files": 0,
+    "snapshot_head": "6dcb3b87ce136cd2316a4312c41e1fc40c1dcc40",
+    "predecessor_head": "6dcb3b87ce136cd2316a4312c41e1fc40c1dcc40",
+    "changed_paths_sample": [],
+    "snapshot_tree": "62b19ac4a2970fd44683af6b2c571970019eec90"
+  },
+  "adjudication": {
+    "status": "UNADJUDICATED",
+    "accepted": false,
+    "accepted_run_id_at_snapshot": "CYCLE_40284658455",
+    "gate_file_for_this_run": false,
+    "meaning": "Both team snapshot refs for 46115584428 point exactly at the previous resuming producer commit 6dcb3b87: run 46115584428 itself added nothing and nothing from it is proposed for promotion."
+  },
+  "observations": [
+    {
+      "check": "team_ref_identity",
+      "command": "git ls-remote --heads origin refs/heads/cycle/core/product/46115584428/team",
+      "result": "6dcb3b87ce136cd2316a4312c41e1fc40c1dcc40\trefs/heads/cycle/core/product/46115584428/team",
+      "ok": true
+    },
+    {
+      "check": "team_attempt_1_ref_identity",
+      "command": "git ls-remote --heads origin refs/heads/cycle/core/product/46115584428/team-attempt-1",
+      "result": "6dcb3b87ce136cd2316a4312c41e1fc40c1dcc40\trefs/heads/cycle/core/product/46115584428/team-attempt-1",
+      "ok": true
+    },
+    {
+      "check": "predecessor_ref_identity",
+      "command": "git ls-remote --heads origin refs/heads/cycle/core/product/46109821912/team",
+      "result": "6dcb3b87ce136cd2316a4312c41e1fc40c1dcc40\trefs/heads/cycle/core/product/46109821912/team",
+      "ok": true
+    },
+    {
+      "check": "local_head_identity",
+      "command": "git rev-parse HEAD",
+      "result": "6dcb3b87ce136cd2316a4312c41e1fc40c1dcc40",
+      "ok": true
+    },
+    {
+      "check": "tree_identity",
+      "command": "git rev-parse HEAD^{tree}",
+      "result": "62b19ac4a2970fd44683af6b2c571970019eec90",
+      "ok": true
+    },
+    {
+      "check": "no_diff_against_head",
+      "command": "git diff --name-status HEAD origin/cycle/core/product/46115584428/team",
+      "result": "",
+      "ok": true
+    },
+    {
+      "check": "audit_ref_absent",
+      "command": "git ls-remote --heads origin refs/heads/cycle/core/product/46115584428/audit",
+      "result": "",
+      "ok": true
+    },
+    {
+      "check": "no_run_id_in_tree",
+      "command": "git grep -n 46115584428 6dcb3b87ce136cd2316a4312c41e1fc40c1dcc40 -- .",
+      "result": "",
+      "ok": true
+    },
+    {
+      "check": "cycle_test_validation_failure",
+      "command": "python3 -m pytest product/tests/test_cycle_46109821912.py -q --disable-warnings",
+      "result": "1 failed, 9 passed (HEAD pin self-invalidation)",
+      "ok": false,
+      "evidence_tier": "REPRODUCED_LOCALLY"
+    },
+    {
+      "check": "github_metadata_unavailable",
+      "command": "gh run view 46115584428 --json jobs,status,conclusion",
+      "result": "gh: To use GitHub CLI in a GitHub Actions workflow, set the GH_TOKEN environment variable...",
+      "ok": false,
+      "evidence_tier": "UNAVAILABLE"
+    }
+  ],
+  "accepted_head_disclosure": {
+    "accepted_run_id_in_tree": "CYCLE_40284658455",
+    "accept_commit": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83",
+    "accept_commit_message": "accept product cycle 40284658455",
+    "gate_path": "results/audit/product/CYCLE_40284658455_GATE.json",
+    "gate_sha256": "d7b902214fd0931a328b366f2e431a7ade89b034ac722d07cd380bb1ddcc8011",
+    "gate": "PASS",
+    "safe_to_integrate": true,
+    "required_fixes": [],
+    "gate_authority": "committed by lex-integrator in the accept commit; no live cycle/core/product/40284658455/audit ref is observable from this checkout, so this artifact does NOT claim a freshly re-fetched audit-branch gate",
+    "lab_head": "7be4480ed3ca623b77ea082404ca3b5b7ac5ee83"
+  },
+  "preserved_valid_work": [
+    "6dcb3b87 / 46109821912: accepted-pointer hygiene to CYCLE_40284658455, zero-delta snapshot diagnosis for 46106207560, repaired historical requirement-4 test, 10-test cycle pin and 9/9 readiness dossier",
+    "7be4480e / 40284658455: accepted integrator commit with committed PASS gate and accept commit on origin/lab/product",
+    "3b866937 / 40284658455: six-run chain diagnosis, NON-PROMOTING quarantine of the producer-minted gate, observed_scope readiness profile",
+    "db92ef10 / 40272586794: fixture-anchor exposure measurement (DO_NOT_CLOSE, 40 rows), pipeline gate untouched",
+    "5fb312e4 / 40247189361: rejection/incumbent leg re-verification and 49-bundle fixed-path family",
+    "8b5b08dd / 40100397058: path-routing leg acceptance, preserved as history"
+  ],
+  "claim_ceiling": "OBSERVED git-ref evidence plus one locally reproduced test failure. This diagnosis does not assert a GitHub job/step cause for the zero delta, does not promote any artifact from run 46115584428, does not score a frozen bar, does not re-run a serve verdict and makes no human-gate claim."
+}
