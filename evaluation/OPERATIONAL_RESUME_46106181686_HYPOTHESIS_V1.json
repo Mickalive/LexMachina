@@ -1,0 +1,37 @@
+{
+  "schema": "lex-evaluation-operational-resume-hypothesis/1",
+  "lane": "evaluation",
+  "direction_version": 68,
+  "resume_run_id": 46106181686,
+  "run_under_resume": 46100599319,
+  "producer_snapshot_commit": "39784cc02d5eb06915cab32bfc5e2647631de74a",
+  "mode": "FAST_MVP_OPERATIONAL_RESUME",
+  "frozen_at_utc": "2026-11-28T04:15:49Z",
+  "claim_ceiling": "Operational only: orchestration diagnosis + deliverable verification + audit-readiness state repair. No new measurement, no frozen edit, no serve verdict, no claim promotion.",
+  "hypotheses": {
+    "H_ORCH": "Run 46100599319 failed only in the audit job at step 'Independent audit'; the team job, 'Validate active MVP producer state' and 'Enforce lane write scope' all passed, and no audit branch, gate file or audit report exists on any ref. This is an orchestration/agent death, not a verdict, product defect or human decision.",
+    "H_DELIVERABLE": "The persisted producer snapshot commit 39784cc0 is complete and internally consistent: every artifact added by that commit resolves as a file, every sha256 pin in state block fast_mvp_retrieval_recall_benchmark_46100599319 matches the committed bytes, the 16-check claim recompute is all true, and the report's headline numbers agree with the result artifact.",
+    "H_AUDIT_READY": "The snapshot is made audit-ready by repairing exactly two pre-existing state-integrity defects without touching any historical claim-bearing artifact: (a) root state/evaluation.json evidence_refs_n must equal len(evidence_refs); (b) root and lane github_run must be identical. After repair evaluation.state_integrity_gate returns ALL_CHECKS_PASS 11/11 and the producer write-scope classifier returns SCOPE_CLEAN."
+  },
+  "falsifiers": [
+    "Any added artifact missing from the committed tree.",
+    "Any sha256 pin mismatch between the state block and the committed artifact.",
+    "Any claim_recompute check false or any report/result numeric disagreement.",
+    "Any out-of-scope path in the producer snapshot or in this resume.",
+    "state_integrity_gate still failing after the two disclosed repairs.",
+    "An audit branch, gate file or auditor-authored report found for run 46100599319 (would contradict H_ORCH)."
+  ],
+  "protocol": [
+    "Capture the public GitHub run/jobs envelopes for 46100599319 under results/evaluation/operational_resume_46106181686/api/ and pin their sha256.",
+    "Re-hash all deliverable artifacts from disk; recompute the claim ledger independently from the result artifact and state block.",
+    "Reconstruct the failing step from the jobs envelope; hedge any cause that cannot be read from logs (HTTP 403 unauthenticated).",
+    "Re-run evaluation.state_integrity_gate, the nested-ref guard and the write-scope classifier before and after the two disclosed repairs.",
+    "Write machine records, a human report and a hash-indexed audit inventory; add a new append-only state block to BOTH state files.",
+    "Never write results/audit/** or reports/audit/**, never edit a frozen bar/rubric/threshold/verdict contract, never re-run the frozen benchmark or falsifier."
+  ],
+  "pre_execution_disclosure": "The two state-integrity defects were identified during reconnaissance before this freeze (baseline gate record kept outside the repository at /tmp/opencode/baseline_state_gate.json: verdict AT_LEAST_ONE_CHECK_FAILED, n_failed=2). The freeze therefore fixes the VERIFICATION PROTOCOL and claim ceiling, not a blind forecast of an unobserved measurement; this is an operational record, not a scientific hypothesis test.",
+  "environment": {
+    "python": "system python3 (pytest absent; use evaluation.no_pytest_runner shim where tests are needed)",
+    "network": "unauthenticated public GitHub REST API for orchestration provenance only; zero OpenCaseLaw/retrieval/model/paid-API calls"
+  }
+}
