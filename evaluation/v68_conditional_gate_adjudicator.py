@@ -343,9 +343,11 @@ def pointer_both_halves(hyp: dict, candidate_run: str) -> dict:
 def evaluate(run_id: str, hypothesis_relpath: str, freeze_relpath: str) -> tuple[dict, int]:
     hyp = json.loads((REPO_ROOT / hypothesis_relpath).read_text(encoding="utf-8"))
     freeze = json.loads((REPO_ROOT / freeze_relpath).read_text(encoding="utf-8"))
-    if freeze.get("hypothesis_sha256") != sha256_file(REPO_ROOT / hypothesis_relpath):
+    fz_hyp = (freeze.get("hypothesis") or {}).get("sha256")
+    fz_inst = (freeze.get("instrument") or {}).get("sha256")
+    if fz_hyp != sha256_file(REPO_ROOT / hypothesis_relpath):
         raise SystemExit(f"{EXIT_VACUOUS}: hypothesis sha does not match freeze record")
-    if freeze.get("instrument_sha256") != sha256_file(REPO_ROOT / __file__.relative_to(REPO_ROOT)):
+    if fz_inst != sha256_file(REPO_ROOT / __file__.relative_to(REPO_ROOT)):
         raise SystemExit(f"{EXIT_VACUOUS}: instrument sha does not match freeze record")
 
     pins_before = verify_pins(hyp)
