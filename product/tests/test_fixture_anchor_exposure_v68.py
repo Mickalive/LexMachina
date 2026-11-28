@@ -43,7 +43,7 @@ from product.query.counter_anchor import FROZEN_LABEL_RULES_SHA256  # noqa: E402
 
 #: The committed artifact of this cycle (also readable from any later checkout).
 ARTIFACT = ROOT / "results" / "product" / "fixture_anchor_exposure" / (
-    "CYCLE_40272586794.json"
+    "CYCLE_46125190884.json"
 )
 
 #: The five decisions whose counter claims change on the fixture fixed-path

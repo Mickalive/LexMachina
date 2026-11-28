@@ -520,9 +520,13 @@ def select_span(
 #   AND no ``counter_evidence_span`` record (i.e. rows stage 1 never saw);
 # * a row is written ONLY when the frozen gate confirms a byte-exact verbatim
 #   span that also passes the content predicates.  Every other row keeps
-#   ``counter_status`` / ``counter_evidence_verified`` exactly as it was, and
-#   the abstention is published in provenance with its reason code instead of
-#   being silently converted into a label;
+#   ``counter_status`` exactly as it was, and the abstention is published in
+#   provenance with its reason code instead of being silently converted into
+#   a label.  The one exception is the v68 rejection/incumbent leg: a row that
+#   still claims ``counter_evidence_verified=True`` on an incumbent failing
+#   the frozen D1-D4 predicates (or ungrounded in its own fields) is downgraded
+#   to explicitly-unevidenced, exactly as in stage 1.  A content-sound verified
+#   incumbent is NOT downgraded merely because the frozen label gate abstained.
 # * geometry, ranks, clusters and relations are never touched.
 #
 # It never edits, re-tunes or re-derives the frozen gate, the rubric, a
@@ -594,6 +598,60 @@ def _surface_candidates(
     return pending, confirmed, excluded_cited, owned_elsewhere, n_surface
 
 
+def _reject_stage2_incumbent(
+    row: dict,
+    *,
+    reason_code: str,
+    leg: str,
+) -> dict[str, Any] | None:
+    """Downgrade a stage-2 row whose verified incumbent fails frozen content.
+
+    Stage 2 previously left every abstained row's ``counter_evidence_verified``
+    flag exactly as it arrived.  That is correct for a content-sound incumbent
+    (the frozen *label* gate abstained on a different axis), but wrong for a
+    D1-D4-defective or ungrounded incumbent: the shipped v68 rejection leg must
+    never leave such a row verified.  This helper applies ONLY the already-frozen
+    content predicates; it never re-scores a label, never writes a scored status
+    and never touches geometry.  Returns an audit record when a verified flag
+    was actually cleared, else ``None`` (including for sound incumbents).
+    """
+    evidence = str(row.get("counter_evidence") or "")
+    if not evidence.strip():
+        return None
+    defects = frozen_content_defects(evidence, row)
+    grounded_in, _offset = ground_evidence(evidence, row)
+    if not defects and grounded_in is not None:
+        return None
+    was_verified = row.get("counter_evidence_verified") is True
+    if not was_verified:
+        return None  # no verified claim to clear; never invent a downgrade
+    before = {
+        "counter_evidence_verified": True,
+        "counter_status": row.get("counter_status"),
+        "counter_evidence_head": evidence[:160],
+    }
+    content_reason = (
+        _DEFECT_REASON[defects[0]] if defects else "evidence_not_grounded"
+    )
+    row["counter_evidence_verified"] = False
+    row["counter_evidence_unevidenced"] = True
+    row["counter_evidence_unevidenced_reason"] = content_reason
+    return {
+        "decision_id": str(row.get("decision_id") or ""),
+        "leg": leg,
+        "before": before,
+        "after": {
+            "counter_evidence_verified": False,
+            "counter_status": row.get("counter_status"),
+            "counter_evidence_unevidenced_reason": content_reason,
+        },
+        "reason_code": content_reason,
+        "gate_reason_code": reason_code,
+        "defects": defects,
+        "incumbent_grounded_in": grounded_in,
+    }
+
+
 def apply_surface_span_confirmation(
     bundle: dict,
     *,
@@ -651,7 +709,10 @@ def apply_surface_span_confirmation(
             "supporting, contrary or limiting, never writes a label the gate "
             "abstained on, and pre-declares no support rate: n_candidates, "
             "n_selected and n_abstained are published together and the frozen "
-            "scorer decides the rest under its own population predicate."
+            "scorer decides the rest under its own population predicate. Its "
+            "only other write is the v68 rejection leg: clearing a verified flag "
+            "whose incumbent fails the frozen content predicates; that is a "
+            "content check, not a label."
         ),
         "geometry_touched": False,
     }
@@ -708,7 +769,21 @@ def apply_surface_span_confirmation(
     n_guard_rejected = 0
     selected_ids: list[str] = [str(d.get("decision_id") or "") for d in prior]
     abstained: list[dict[str, Any]] = []
+    downgrades: list[dict[str, Any]] = []
     reasons: dict[str, int] = {}
+    # Idempotence/defensive re-check: a row a previous run confirmed through
+    # stage 2 may still carry a content-defective verified incumbent.  The
+    # frozen content predicates need no gate, so re-run them here.
+    for d in prior:
+        rec = _reject_stage2_incumbent(
+            d, reason_code="previously_confirmed", leg="stage2_prior_recheck")
+        if rec is None:
+            continue
+        downgrades.append(rec)
+        did = rec["decision_id"]
+        if did in selected_ids:
+            selected_ids.remove(did)
+            n_selected -= 1
     for d in pending:
         status = _surface_status(d)
         if status is None:  # defensive: _surface_candidates already filtered
@@ -736,14 +811,30 @@ def apply_surface_span_confirmation(
         if not sel.selected:
             n_abstained += 1
             reasons[sel.reason_code] = reasons.get(sel.reason_code, 0) + 1
-            abstained.append({
+            entry: dict[str, Any] = {
                 "decision_id": did,
                 "reason_code": sel.reason_code,
                 "proposal_status": status,
-                # The row keeps its pre-stage values: no label, no verified flag.
+                # Abstention never writes a label or changes counter_status.
                 "counter_status_unchanged": d.get("counter_status"),
-                "counter_evidence_verified_unchanged": d.get("counter_evidence_verified"),
-            })
+                "counter_evidence_verified_unchanged": (
+                    d.get("counter_evidence_verified") is True),
+            }
+            # v68 rejection/incumbent leg: the frozen LABEL gate abstained on
+            # one axis; the frozen CONTENT predicates are a different axis.  A
+            # verified incumbent that fails them is downgraded and published.
+            rec = _reject_stage2_incumbent(
+                d, reason_code=sel.reason_code, leg="stage2_abstention")
+            if rec is not None:
+                downgrades.append(rec)
+                entry["content_rejection"] = {
+                    "reason_code": rec["reason_code"],
+                    "defects": rec["defects"],
+                    "counter_evidence_verified_after": False,
+                }
+            elif d.get("counter_evidence_verified") is True:
+                entry["content_sound_incumbent_retained"] = True
+            abstained.append(entry)
             continue
         n_selected += 1
         selected_ids.append(did)
@@ -785,6 +876,16 @@ def apply_surface_span_confirmation(
         "selected_ids": selected_ids,
         "abstained": abstained,
         "abstention_reasons": dict(sorted(reasons.items())),
+        # v68 rejection/incumbent leg, stage 2. Published beside yield so a
+        # reader can distinguish gate abstentions from content rejections.
+        "n_downgraded": len(downgrades),
+        "downgrades": downgrades,
+        "content_rejection_leg": (
+            "stage2_abstention and stage2_prior_recheck clear counter_evidence_verified "
+            "on an incumbent failing the frozen D1-D4 content predicates (or ungrounded "
+            "in the row's own fields); content-sound incumbents are retained, and no "
+            "counter_status or label is written by this leg"
+        ),
         "content_filter": content_filter_provenance(),
         "stage_1_provenance_block": "provenance.counter_evidence_span (unchanged)",
         "writes_scored_counter_fields_only_on_frozen_gate_confirmation": True,

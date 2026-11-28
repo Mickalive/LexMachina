@@ -24,6 +24,7 @@ bar or success rule is imported, edited or re-tuned here.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -225,14 +226,33 @@ def test_this_repair_touched_no_frozen_baseline_data_or_committed_bundle():
     assert not unexpected, (
         f"files changed by this repair outside its declared delta: {unexpected}")
 
-    # A later operational resume may add product-owned artifacts on top.  It may
-    # never touch frozen baselines, committed bundles or control-plane paths.
-    pending = [ln.strip() for ln in _git("diff", "--name-only", "HEAD").splitlines()
-               if ln.strip()]
-    pending += [ln.strip() for ln in
-                _git("ls-files", "--others", "--exclude-standard").splitlines()
-                if ln.strip()]
-    pending_offenders = [p for p in pending if p.startswith(forbidden_prefixes)]
-    assert not pending_offenders, (
-        "a resumed cycle wrote outside the lane's allowed evidence paths: "
-        f"{pending_offenders}")
+    # A later cycle may APPEND run-specific bundle evidence (ordered work (2)
+    # regenerates the flagship family), but it may never MODIFY an existing
+    # frozen baseline or committed bundle, and it may never touch control-plane
+    # paths.  Tracked modifications and new untracked files are therefore
+    # judged separately: a new run-id directory/file is append-only evidence,
+    # not an edit to the historical bytes this repair's claim rests on.
+    pending_tracked = [
+        ln.strip() for ln in _git("diff", "--name-only", "HEAD").splitlines()
+        if ln.strip()
+    ]
+    tracked_offenders = [
+        p for p in pending_tracked if p.startswith(forbidden_prefixes)
+    ]
+    assert not tracked_offenders, (
+        "a later cycle modified a frozen baseline, committed bundle or "
+        f"control-plane path: {tracked_offenders}")
+    pending_untracked = [
+        ln.strip() for ln in
+        _git("ls-files", "--others", "--exclude-standard").splitlines()
+        if ln.strip()
+    ]
+    untracked_offenders = []
+    for path in pending_untracked:
+        if not path.startswith(forbidden_prefixes):
+            continue
+        if not any(re.search(r"\d{10,}", part) for part in Path(path).parts):
+            untracked_offenders.append(path)
+    assert not untracked_offenders, (
+        "new bundle-family evidence must be append-only under a run-id "
+        f"directory: {untracked_offenders}")
